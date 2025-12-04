@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { PropertyTablePagination } from "@/components/PropertyTable";
 
 type TaskStatus = "completed" | "in-progress";
 type TaskPriority = "normal" | "low" | "high";
