@@ -58,14 +58,14 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
     },
     low: {
       color: "text-task-priority-low",
-      bgColor: "",
+      bgColor: "bg-[#DCFCE7]",
       icon: (
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M6.99935 2.91675V11.0834M6.99935 11.0834L11.0827 7.00008M6.99935 11.0834L2.91602 7.00008" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       label: "Low",
-      hasPill: false,
+      hasPill: true,
     },
     high: {
       color: "text-task-priority-high",
