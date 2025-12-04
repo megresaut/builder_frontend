@@ -330,7 +330,7 @@ export default function Index() {
               />
 
               {/* Table Content - Mobile/Tablet */}
-              <div className="lg:hidden divide-y divide-task-border-DEFAULT">
+              <div className="lg:hidden divide-y" style={{ divideColor: "rgb(229, 229, 229)" }}>
                 {tasks.map((task) => (
                   <div key={task.id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
