@@ -267,7 +267,7 @@ export default function Index() {
                   <tbody className="border-b-0">
                     {tasks.map((task, index) => (
                       <tr key={task.id} className={cn(
-                        "border-b border-task-border-DEFAULT hover:bg-gray-50 transition-colors",
+                        "border-b hover:bg-gray-50 transition-colors",
                         index === tasks.length - 1 ? "border-b-0" : ""
                       )}>
                         <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
