@@ -47,37 +47,43 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
   const config = {
     normal: {
       color: "text-task-priority-normal",
+      bgColor: "bg-[#EFF6FF]",
       icon: (
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M2.91602 7H11.0827" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       label: "Normal",
+      hasPill: true,
     },
     low: {
       color: "text-task-priority-low",
+      bgColor: "",
       icon: (
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M6.99935 2.91675V11.0834M6.99935 11.0834L11.0827 7.00008M6.99935 11.0834L2.91602 7.00008" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       label: "Low",
+      hasPill: false,
     },
     high: {
       color: "text-task-priority-high",
+      bgColor: "",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732M14.6673 7.99992C14.6673 11.6818 11.6825 14.6666 8.00065 14.6666C4.31875 14.6666 1.33398 11.6818 1.33398 7.99992C1.33398 4.31802 4.31875 1.33325 8.00065 1.33325C11.6825 1.33325 14.6673 4.31802 14.6673 7.99992Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       label: "High",
+      hasPill: false,
     },
   };
 
-  const { color, icon, label } = config[priority];
+  const { color, bgColor, icon, label, hasPill } = config[priority];
 
   return (
-    <div className={cn("flex items-center gap-1", color)}>
+    <div className={cn("flex items-center gap-1 h-[30px]", color, hasPill ? `${bgColor} px-2 rounded-2xl` : "")}>
       {icon}
       <span className={cn("text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize truncate", priority === "high" ? "text-base" : "")}>
         {label}
@@ -131,7 +137,7 @@ export default function Index() {
           </div>
 
           {/* Tasks Table */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col">
             <div className="w-full overflow-hidden rounded-xl border border-task-border-light shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
               {/* Table Header */}
               <div className="flex justify-between items-center px-4 py-3 border-b border-task-border-DEFAULT">
@@ -161,7 +167,7 @@ export default function Index() {
               </div>
 
               {/* Table Content - Desktop */}
-              <div className="hidden lg:block overflow-x-auto">
+              <div className="hidden lg:block overflow-x-auto border-b-0">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-task-border-DEFAULT">
@@ -257,47 +263,50 @@ export default function Index() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {tasks.map((task) => (
-                      <tr key={task.id} className="border-b border-task-border-DEFAULT hover:bg-gray-50 transition-colors">
-                        <td className="px-3 py-3.5">
+                  <tbody className="border-b-0">
+                    {tasks.map((task, index) => (
+                      <tr key={task.id} className={cn(
+                        "border-b border-task-border-DEFAULT hover:bg-gray-50 transition-colors",
+                        index === tasks.length - 1 ? "border-b-0" : ""
+                      )}>
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <StatusBadge status={task.status} />
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[186px]">
                             {task.task}
                           </div>
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[155px]">
                             {task.property}
                           </div>
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[136px]">
                             {task.due}
                           </div>
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[121px]">
                             {task.updated}
                           </div>
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                             {task.age}
                           </div>
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <PriorityBadge priority={task.priority} />
                         </td>
-                        <td className="px-3 py-3.5">
+                        <td className={cn("px-3 py-3.5", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <div className="flex items-center gap-1">
                             <UserAvatar />
                             <UserAvatar />
                           </div>
                         </td>
-                        <td className="px-3 py-3.5 border-l border-task-border-DEFAULT">
+                        <td className={cn("px-3 py-3.5 border-l border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <button className="w-7 h-7 flex justify-center items-center gap-2 rounded-md border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors">
                             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -310,6 +319,81 @@ export default function Index() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Pagination - Inside Table */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-6 py-4 border-t border-task-border-DEFAULT">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    Showing
+                  </span>
+                  <div className="relative">
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                      className="h-10 px-3 pr-8 rounded-lg border border-task-border-light shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] text-[#0A0A0A] font-medium text-base leading-[140%] tracking-[-0.32px] capitalize bg-white appearance-none cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <svg className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    of 225
+                  </span>
+                </div>
+                <div className="flex h-10 items-center rounded-lg border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] divide-x divide-task-border-light overflow-hidden">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="flex h-full items-center gap-1.5 px-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M16.6673 10H3.33398M3.33398 10L8.33398 15M3.33398 10L8.33398 5" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:inline">
+                      Previous
+                    </span>
+                  </button>
+                  {[1, 2, 3].map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={cn(
+                        "flex h-full min-w-[40px] justify-center items-center px-2 hover:bg-gray-50 transition-colors font-medium text-base leading-[140%] tracking-[-0.32px] capitalize",
+                        currentPage === page ? "text-[#0A0A0A]" : "text-task-text-muted"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button className="flex h-full min-w-[40px] justify-center items-center px-2 text-task-text-muted font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    ...
+                  </button>
+                  {[8, 9, 10].map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className="flex h-full min-w-[40px] justify-center items-center px-2 hover:bg-gray-50 transition-colors text-task-text-muted font-medium text-base leading-[140%] tracking-[-0.32px] capitalize"
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="flex h-full items-center gap-1.5 px-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:inline">
+                      Next
+                    </span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3.33398 10H16.6673M16.6673 10L11.6673 5M16.6673 10L11.6673 15" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {/* Table Content - Mobile/Tablet */}
@@ -357,81 +441,6 @@ export default function Index() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                  Showing
-                </span>
-                <div className="relative">
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                    className="h-10 px-3 pr-8 rounded-lg border border-task-border-light shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] text-[#0A0A0A] font-medium text-base leading-[140%] tracking-[-0.32px] capitalize bg-white appearance-none cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
-                  <svg className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                  of 225
-                </span>
-              </div>
-              <div className="flex h-10 items-center rounded-lg border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] divide-x divide-task-border-light overflow-hidden">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="flex h-full items-center gap-1.5 px-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16.6673 10H3.33398M3.33398 10L8.33398 15M3.33398 10L8.33398 5" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:inline">
-                    Previous
-                  </span>
-                </button>
-                {[1, 2, 3].map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={cn(
-                      "flex h-full min-w-[40px] justify-center items-center px-2 hover:bg-gray-50 transition-colors font-medium text-base leading-[140%] tracking-[-0.32px] capitalize",
-                      currentPage === page ? "text-[#0A0A0A]" : "text-task-text-muted"
-                    )}
-                  >
-                    {page}
-                  </button>
-                ))}
-                <button className="flex h-full min-w-[40px] justify-center items-center px-2 text-task-text-muted font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                  ...
-                </button>
-                {[8, 9, 10].map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className="flex h-full min-w-[40px] justify-center items-center px-2 hover:bg-gray-50 transition-colors text-task-text-muted font-medium text-base leading-[140%] tracking-[-0.32px] capitalize"
-                  >
-                    {page}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  className="flex h-full items-center gap-1.5 px-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:inline">
-                    Next
-                  </span>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3.33398 10H16.6673M16.6673 10L11.6673 5M16.6673 10L11.6673 15" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>
