@@ -322,80 +322,12 @@ export default function Index() {
                 </table>
               </div>
 
-              {/* Pagination - Inside Table */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-6 py-4 border-t border-task-border-DEFAULT">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                    Showing
-                  </span>
-                  <div className="relative">
-                    <select
-                      value={itemsPerPage}
-                      onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                      className="h-10 px-3 pr-8 rounded-lg border border-task-border-light shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] text-[#0A0A0A] font-medium text-base leading-[140%] tracking-[-0.32px] capitalize bg-white appearance-none cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                    </select>
-                    <svg className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                    of 225
-                  </span>
-                </div>
-                <div className="flex h-10 items-center rounded-lg border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] divide-x divide-task-border-light overflow-hidden">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="flex h-full items-center gap-1.5 px-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M16.6673 10H3.33398M3.33398 10L8.33398 15M3.33398 10L8.33398 5" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:inline">
-                      Previous
-                    </span>
-                  </button>
-                  {[1, 2, 3].map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={cn(
-                        "flex h-full min-w-[40px] justify-center items-center px-2 hover:bg-gray-50 transition-colors font-medium text-base leading-[140%] tracking-[-0.32px] capitalize",
-                        currentPage === page ? "text-[#0A0A0A]" : "text-task-text-muted"
-                      )}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button className="flex h-full min-w-[40px] justify-center items-center px-2 text-task-text-muted font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                    ...
-                  </button>
-                  {[8, 9, 10].map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className="flex h-full min-w-[40px] justify-center items-center px-2 hover:bg-gray-50 transition-colors text-task-text-muted font-medium text-base leading-[140%] tracking-[-0.32px] capitalize"
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    className="flex h-full items-center gap-1.5 px-3 hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:inline">
-                      Next
-                    </span>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3.33398 10H16.6673M16.6673 10L11.6673 5M16.6673 10L11.6673 15" stroke="#A3A3A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              <PropertyTablePagination
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+              />
 
               {/* Table Content - Mobile/Tablet */}
               <div className="lg:hidden divide-y divide-task-border-DEFAULT">
