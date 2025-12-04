@@ -257,7 +257,7 @@ export default function Index() {
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-l border-task-border-DEFAULT shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]">
+                      <th className="px-3 py-3 text-left border-l shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]" style={{ borderColor: "rgb(229, 229, 229)" }}>
                         <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
                           Actions
                         </span>
