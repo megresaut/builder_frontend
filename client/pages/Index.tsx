@@ -171,7 +171,7 @@ export default function Index() {
               <div className="hidden lg:block overflow-x-auto border-b-0">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-task-border-DEFAULT">
+                    <tr className="border-b" style={{ borderColor: "rgb(229, 229, 229)" }}>
                       <th className="px-3 py-3 text-left border-r border-task-border-DEFAULT">
                         <div className="flex items-center gap-2">
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
