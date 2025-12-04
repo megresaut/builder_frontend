@@ -307,7 +307,7 @@ export default function Index() {
                             <UserAvatar />
                           </div>
                         </td>
-                        <td className={cn("px-3 py-3.5 border-l border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-l", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <button className="w-7 h-7 flex justify-center items-center gap-2 rounded-md border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors">
                             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
