@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Geist', '-apple-system', 'Roboto', 'Helvetica', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -56,6 +59,31 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        task: {
+          text: {
+            primary: '#303030',
+            secondary: '#525252',
+            tertiary: '#717179',
+            muted: '#A3A3A3',
+          },
+          status: {
+            completed: '#63BC8D',
+            inprogress: '#4E9CC3',
+          },
+          priority: {
+            normal: '#2463EB',
+            low: '#059669',
+            high: '#D97706',
+          },
+          border: {
+            light: '#E5E5E5',
+            DEFAULT: '#DADADA',
+          },
+          button: {
+            primary: '#002D5A',
+          },
+          avatar: '#BC423E',
         },
       },
       borderRadius: {
