@@ -86,7 +86,7 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
   return (
     <div className={cn("flex items-center gap-1 h-[30px]", color, hasPill ? `${bgColor} px-2 rounded-2xl` : "")}>
       {icon}
-      <span className={cn("text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize truncate", priority === "high" ? "text-base" : "")}>
+      <span className={cn("font-normal tracking-[-0.28px] capitalize truncate", priority === "high" ? "text-base" : "")}>
         {label}
       </span>
     </div>
