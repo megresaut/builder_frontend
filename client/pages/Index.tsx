@@ -269,7 +269,7 @@ export default function Index() {
                       <tr key={task.id} className={cn(
                         "border-b hover:bg-gray-50 transition-colors",
                         index === tasks.length - 1 ? "border-b-0" : ""
-                      )}>
+                      )} style={{ borderColor: "rgb(229, 229, 229)" }}>
                         <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
                           <StatusBadge status={task.status} />
                         </td>
