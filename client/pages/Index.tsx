@@ -69,14 +69,14 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
     },
     high: {
       color: "text-task-priority-high",
-      bgColor: "",
+      bgColor: "bg-[#FEF3C7]",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732M14.6673 7.99992C14.6673 11.6818 11.6825 14.6666 8.00065 14.6666C4.31875 14.6666 1.33398 11.6818 1.33398 7.99992C1.33398 4.31802 4.31875 1.33325 8.00065 1.33325C11.6825 1.33325 14.6673 4.31802 14.6673 7.99992Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       label: "High",
-      hasPill: false,
+      hasPill: true,
     },
   };
 
