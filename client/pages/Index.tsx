@@ -270,38 +270,38 @@ export default function Index() {
                         "border-b hover:bg-gray-50 transition-colors",
                         index === tasks.length - 1 ? "border-b-0" : ""
                       )} style={{ borderColor: "rgb(229, 229, 229)" }}>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <StatusBadge status={task.status} />
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[186px]">
                             {task.task}
                           </div>
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[155px]">
                             {task.property}
                           </div>
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[136px]">
                             {task.due}
                           </div>
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[121px]">
                             {task.updated}
                           </div>
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                             {task.age}
                           </div>
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <PriorityBadge priority={task.priority} />
                         </td>
-                        <td className={cn("px-3 py-3.5 border-r border-task-border-DEFAULT", index === tasks.length - 1 ? "border-b-0" : "")}>
+                        <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
                           <div className="flex items-center gap-1">
                             <UserAvatar />
                             <UserAvatar />
