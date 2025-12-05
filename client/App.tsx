@@ -37,6 +37,14 @@ export default function App() {
                 </ShellLayout>
               }
             />
+            <Route
+              path="/bills"
+              element={
+                <ShellLayout>
+                  <Bills />
+                </ShellLayout>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
