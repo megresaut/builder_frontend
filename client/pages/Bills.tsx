@@ -129,9 +129,9 @@ const bills: Bill[] = [
 const StatusBadge = ({ status }: { status: "pushed" | "push-failed" }) => (
   <div
     className={cn(
-      "flex items-center gap-2 px-2.5 py-1.5 rounded",
+      "inline-flex items-center gap-1.5 px-2 py-1 rounded",
       status === "pushed"
-        ? "bg-green-50 text-green-700"
+        ? "bg-emerald-50 text-emerald-700"
         : "bg-orange-50 text-orange-700",
     )}
   >
@@ -165,7 +165,7 @@ const StatusBadge = ({ status }: { status: "pushed" | "push-failed" }) => (
         <line x1="12" x2="12.01" y1="16" y2="16" />
       </svg>
     )}
-    <span className="text-sm font-medium capitalize">
+    <span className="text-xs font-medium capitalize">
       {status === "pushed" ? "Pushed" : "Push Failed"}
     </span>
   </div>
