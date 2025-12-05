@@ -314,7 +314,11 @@ export default function Sidebar() {
                 <span className="text-xl font-semibold text-gray-900">AVM</span>
               </div>
               <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
+                onClick={() => {
+                  setIsCollapsed(true);
+                  setIsHovered(false);
+                  setActiveDropdown(null);
+                }}
                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
               >
                 <svg
@@ -335,7 +339,7 @@ export default function Sidebar() {
             </div>
 
             {/* Navigation */}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1" onMouseLeave={() => setActiveDropdown(null)}>
               {navigationItems.map((item) => (
                 <div key={item.id}>
                   <button
