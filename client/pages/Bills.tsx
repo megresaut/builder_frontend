@@ -349,23 +349,23 @@ export default function Bills() {
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
-                          <span className="text-gray-900 font-normal text-sm">
+                          <span className="text-gray-900 font-normal text-base">
                             {bill.vendor}
                           </span>
                         </div>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-gray-900 font-normal text-sm">
+                        <span className="text-gray-900 font-normal text-base">
                           {bill.property}
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-gray-900 font-normal text-sm">
+                        <span className="text-gray-900 font-normal text-base">
                           {bill.statementDate}
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-gray-900 font-normal text-sm">
+                        <span className="text-gray-900 font-normal text-base">
                           {bill.dueDate}
                         </span>
                       </td>
@@ -373,12 +373,12 @@ export default function Bills() {
                         <StatusBadge status={bill.status} />
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
+                        <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
                           {bill.memo}
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-gray-900 font-normal text-sm">
+                        <span className="text-gray-900 font-normal text-base">
                           {bill.invoiceNumber}
                         </span>
                       </td>
