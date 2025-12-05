@@ -300,6 +300,11 @@ export default function Sidebar() {
           className={`bg-gray-50 border-r border-gray-200 fixed left-0 top-0 h-screen flex flex-col py-4 px-5 justify-between w-64 transition-all duration-300 z-30 transform ${
             isHovered ? "translate-x-0" : "-translate-x-full"
           }`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => {
+            setIsHovered(false);
+            setActiveDropdown(null);
+          }}
         >
           {/* Top Section */}
           <div className="flex flex-col gap-6">
