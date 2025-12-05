@@ -176,7 +176,17 @@ export default function Sidebar() {
     },
   ];
 
-  const submenuItems = ["Portfolios", "Portfolios", "Portfolios"];
+  const submenuMap: Record<string, Array<{ label: string; path?: string }>> = {
+    dashboard: [
+      { label: "Portfolios" },
+      { label: "Portfolios" },
+      { label: "Portfolios" },
+    ],
+    maintenance: [
+      { label: "Field Team Orders", path: "/field-team-orders" },
+    ],
+  };
+
   const favoriteItems = ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"];
 
   const toggleExpanded = (id: string) => {
