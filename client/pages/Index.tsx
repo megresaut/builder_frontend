@@ -274,22 +274,22 @@ export default function Index() {
                           <StatusBadge status={task.status} />
                         </td>
                         <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[186px]">
+                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-xs">
                             {task.task}
                           </div>
                         </td>
                         <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[155px]">
+                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-sm">
                             {task.property}
                           </div>
                         </td>
                         <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[136px]">
+                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[150px]">
                             {task.due}
                           </div>
                         </td>
                         <td className={cn("px-3 py-3.5 border-r", index === tasks.length - 1 ? "border-b-0" : "")} style={{ borderColor: "rgb(229, 229, 229)" }}>
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[121px]">
+                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[150px]">
                             {task.updated}
                           </div>
                         </td>
