@@ -297,9 +297,12 @@ export default function Sidebar() {
 
         {/* Expanded Sidebar on Hover */}
         <aside
-          className={`bg-gray-50 border-r border-gray-200 fixed left-0 top-0 h-screen flex flex-col py-4 px-5 justify-between w-64 transition-all duration-300 z-30 transform ${
+          className={`bg-gray-50 border-r border-gray-200 fixed left-0 top-0 h-screen flex flex-col py-4 px-5 justify-between w-64 z-50 transform pointer-events-auto ${
             isHovered ? "translate-x-0" : "-translate-x-full"
           }`}
+          style={{
+            transition: isHovered ? "transform 0.3s ease" : "transform 0s ease"
+          }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => {
             setIsHovered(false);
