@@ -267,28 +267,28 @@ export default function Bills() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex gap-8 border-b border-gray-200">
+          <div className="flex gap-8 border-b border-gray-200 -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8">
             <button
               onClick={() => setSelectedTab("approved")}
               className={cn(
-                "pb-3 border-b-2 transition-colors",
+                "pb-3 font-medium text-base transition-colors",
                 selectedTab === "approved"
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-600 hover:text-gray-900",
+                  ? "border-b-2 border-gray-900 text-gray-900"
+                  : "border-b-2 border-transparent text-gray-600 hover:text-gray-900",
               )}
             >
-              <span className="font-medium text-base">Approved</span>
+              Approved
             </button>
             <button
               onClick={() => setSelectedTab("drafts")}
               className={cn(
-                "pb-3 border-b-2 transition-colors",
+                "pb-3 font-medium text-base transition-colors",
                 selectedTab === "drafts"
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-600 hover:text-gray-900",
+                  ? "border-b-2 border-gray-900 text-gray-900"
+                  : "border-b-2 border-transparent text-gray-600 hover:text-gray-900",
               )}
             >
-              <span className="font-medium text-base">Drafts</span>
+              Drafts
             </button>
           </div>
 
