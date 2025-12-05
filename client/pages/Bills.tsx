@@ -127,50 +127,6 @@ const bills: Bill[] = [
   },
 ];
 
-const StatusBadge = ({ status }: { status: "pushed" | "push-failed" }) => (
-  <div
-    className={cn(
-      "inline-flex items-center gap-1.5 px-2 py-1 rounded",
-      status === "pushed"
-        ? "bg-emerald-50 text-emerald-700"
-        : "bg-orange-50 text-orange-700",
-    )}
-  >
-    {status === "pushed" ? (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M21.801 10A10 10 0 1 1 17 3.335" />
-        <path d="m9 11 3 3L22 4" />
-      </svg>
-    ) : (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" x2="12" y1="8" y2="12" />
-        <line x1="12" x2="12.01" y1="16" y2="16" />
-      </svg>
-    )}
-    <span className="text-xs font-medium capitalize">
-      {status === "pushed" ? "Pushed" : "Push Failed"}
-    </span>
-  </div>
-);
 
 const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   <svg
