@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { ChevronRight, Search, Settings, Bell } from "lucide-react";
 
 interface Tab {
   id: string;
@@ -8,11 +7,12 @@ interface Tab {
 }
 
 export default function Header() {
-  const [activeTabs, setActiveTabs] = useState<string[]>(["properties"]);
+  const [openTabs, setOpenTabs] = useState<Set<string>>(new Set(["properties"]));
 
   const tabs: Tab[] = [
     {
       id: "portfolio",
+      label: "Portfolio",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -31,10 +31,10 @@ export default function Header() {
           <path d="M8 17v-3" />
         </svg>
       ),
-      label: "Portfolio",
     },
     {
       id: "properties",
+      label: "Properties",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -56,10 +56,10 @@ export default function Header() {
           <path d="M10 18h4" />
         </svg>
       ),
-      label: "Properties",
     },
     {
       id: "screening",
+      label: "Screening",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -77,74 +77,75 @@ export default function Header() {
           <circle cx="9" cy="7" r="4" />
         </svg>
       ),
-      label: "Screening",
     },
   ];
 
   const toggleTab = (tabId: string) => {
-    setActiveTabs((prev) =>
-      prev.includes(tabId) ? prev.filter((id) => id !== tabId) : [...prev, tabId]
-    );
+    const newTabs = new Set(openTabs);
+    if (newTabs.has(tabId)) {
+      newTabs.delete(tabId);
+    } else {
+      newTabs.add(tabId);
+    }
+    setOpenTabs(newTabs);
   };
 
   return (
     <header className="bg-white border-b border-gray-200">
       {/* Tabs Section */}
       <div className="flex items-center gap-0 border-b border-gray-100 px-6 py-0">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => toggleTab(tab.id)}
-            className={`flex items-center gap-2 px-3 py-3 text-sm font-medium border-b-2 transition-all ${
-              activeTabs.includes(tab.id)
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            <span className="flex items-center justify-center">{tab.icon}</span>
-            <span>{tab.label}</span>
-            {activeTabs.includes(tab.id) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleTab(tab.id);
-                }}
-                className="ml-1 text-gray-400 hover:text-gray-600"
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
+        {tabs.map((tab) => {
+          const isOpen = openTabs.has(tab.id);
+          return (
+            <button
+              key={tab.id}
+              onClick={() => toggleTab(tab.id)}
+              className={`flex items-center gap-2 px-3 py-3 border-b-2 transition-all ${
+                isOpen
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-600"
+              }`}
+            >
+              <span className="flex items-center justify-center">{tab.icon}</span>
+              <span className="text-sm font-normal">{tab.label}</span>
+              {isOpen && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTab(tab.id);
+                  }}
+                  className="ml-1 text-gray-400 hover:text-gray-600"
                 >
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </button>
-        ))}
-        <div className="flex-1 flex items-center justify-end px-2">
-          <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </button>
+          );
+        })}
+        <div className="flex-1 flex items-center justify-end pr-2">
+          <button className="p-1.5 text-gray-600 hover:text-gray-900">
             <svg
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
             >
-              <path d="M5 12h14M12 5v14" />
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
             </svg>
           </button>
         </div>
       </div>
 
-      {/* Top Navigation & Search Section */}
+      {/* Navigation & Search Section */}
       <div className="flex items-center justify-between px-6 py-4 gap-6">
-        <div className="flex items-center gap-3 flex-1">
-          <button className="p-1.5 hover:bg-gray-100 rounded transition-colors">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Navigation Buttons */}
+          <button className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
             <svg
               width="20"
               height="20"
@@ -157,7 +158,7 @@ export default function Header() {
               <path d="M19 12H5" />
             </svg>
           </button>
-          <button className="p-1.5 hover:bg-gray-100 rounded transition-colors">
+          <button className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
             <svg
               width="20"
               height="20"
@@ -170,41 +171,89 @@ export default function Header() {
               <path d="m12 5 7 7-7 7" />
             </svg>
           </button>
-          <div className="flex items-center gap-2 text-gray-700">
-            <span className="text-sm font-medium">Properties</span>
-            <ChevronRight size={16} className="text-gray-500" />
-            <span className="text-sm font-medium">Maintenance</span>
-            <ChevronRight size={16} className="text-gray-500" />
-            <span className="text-sm font-medium">3 Hekma Road, Greenwich, CT 06831</span>
+
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-gray-700 truncate">
+            <span className="text-sm font-medium flex-shrink-0">Properties</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span className="text-sm font-medium flex-shrink-0">Maintenance</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span className="text-sm font-medium truncate">3 Hekma Road, Greenwich, CT 06831</span>
           </div>
         </div>
 
         {/* Search and Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Search Bar */}
           <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-96">
             <div className="flex items-center gap-2 flex-1">
-              <Search size={18} className="text-gray-700" />
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-gray-700 flex-shrink-0"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.34-4.34" />
+              </svg>
               <input
                 type="text"
                 placeholder="Search anything..."
                 className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500"
               />
             </div>
-            <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
               </svg>
               <span>S</span>
             </div>
           </div>
 
-          <button className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors">
-            <Search size={18} className="text-gray-700" />
+          {/* Search Button */}
+          <button className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-gray-700"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.34-4.34" />
+            </svg>
           </button>
 
-          <button className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors relative">
-            <Bell size={18} className="text-gray-700" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          {/* Notification Button */}
+          <button className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-gray-700"
+            >
+              <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+              <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+            </svg>
           </button>
         </div>
       </div>
