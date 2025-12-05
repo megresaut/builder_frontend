@@ -435,72 +435,163 @@ export default function Bills() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-white">
+            <div
+              className="flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-white gap-4"
+              style={{
+                borderTopWidth: "0.909091px",
+              }}
+            >
               <div className="flex items-center gap-2">
-                <span className="text-gray-700 text-sm font-medium">Rows per page</span>
-                <button className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700 font-medium text-sm">
-                  10
+                <span className="text-gray-700 text-sm font-medium">Showing</span>
+                <button
+                  className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm"
+                  style={{
+                    borderColor: "rgb(218, 218, 218)",
+                    borderWidth: "0.909091px",
+                    boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                  }}
+                >
+                  <div className="text-gray-900 font-medium text-sm">10</div>
                   <svg
+                    xmlns="http://www.w3.org/2000/svg"
                     width="18"
                     height="18"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="ml-2 inline-block"
                   >
-                    <path d="M6 9l6 6 6-6" />
+                    <path d="m6 9 6 6 6-6" />
                   </svg>
                 </button>
+                <span className="text-gray-700 text-sm font-medium">of 225</span>
               </div>
-              <div className="flex items-center gap-2">
-                <button className="h-10 px-3 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm">
+              <div
+                className="flex items-center rounded-lg border bg-white overflow-hidden"
+                style={{
+                  borderColor: "rgb(218, 218, 218)",
+                  borderWidth: "0.909091px",
+                  boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                }}
+              >
+                <button
+                  disabled
+                  className="flex items-center justify-center gap-1.5 h-10 px-3 opacity-50 cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                  }}
+                >
                   <svg
+                    xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
+                    stroke="rgb(163, 163, 163)"
+                    strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M15 18l-6-6 6-6" />
+                    <path d="m12 19-7-7 7-7" />
+                    <path d="M19 12H5" />
                   </svg>
+                  <div className="text-gray-700 font-medium text-sm">Previous</div>
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-900 font-medium text-sm border border-gray-200 hover:bg-gray-50">
-                  1
+                <button
+                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                  }}
+                >
+                  <div className="text-gray-900 font-medium text-sm">1</div>
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
-                  2
+                <button
+                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-500 font-medium text-sm">2</div>
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
-                  3
+                <button
+                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-500 font-medium text-sm">3</div>
                 </button>
-                <span className="text-gray-600">-</span>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
-                  8
+                <button
+                  disabled
+                  className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-500 font-medium text-sm">...</div>
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
-                  9
+                <button
+                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-500 font-medium text-sm">8</div>
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
-                  10
+                <button
+                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-500 font-medium text-sm">9</div>
                 </button>
-                <button className="h-10 px-3 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm">
+                <button
+                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-500 font-medium text-sm">10</div>
+                </button>
+                <button
+                  className="flex items-center justify-center gap-1.5 h-10 px-3 hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className="text-gray-700 font-medium text-sm">Next</div>
                   <svg
+                    xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
+                    stroke="rgb(163, 163, 163)"
+                    strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M9 18l6-6-6-6" />
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
                   </svg>
                 </button>
               </div>
