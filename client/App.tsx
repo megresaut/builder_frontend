@@ -20,8 +20,8 @@ export default function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/field-team-orders" element={<FieldTeamOrders />} />
+            <Route path="/" element={<ShellLayout><Index /></ShellLayout>} />
+            <Route path="/field-team-orders" element={<ShellLayout><FieldTeamOrders /></ShellLayout>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
