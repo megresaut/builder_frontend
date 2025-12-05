@@ -7,7 +7,9 @@ interface Tab {
 }
 
 export default function Header() {
-  const [openTabs, setOpenTabs] = useState<Set<string>>(new Set(["properties"]));
+  const [openTabs, setOpenTabs] = useState<Set<string>>(
+    new Set(["properties"]),
+  );
 
   const tabs: Tab[] = [
     {
@@ -106,7 +108,9 @@ export default function Header() {
                   : "border-transparent text-gray-600"
               }`}
             >
-              <span className="flex items-center justify-center">{tab.icon}</span>
+              <span className="flex items-center justify-center">
+                {tab.icon}
+              </span>
               <span className="text-sm font-normal">{tab.label}</span>
               {isOpen && (
                 <button
@@ -116,7 +120,14 @@ export default function Header() {
                   }}
                   className="ml-1 text-gray-400 hover:text-gray-600"
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  >
                     <path d="M18 6 6 18M6 6l12 12" />
                   </svg>
                 </button>
@@ -174,15 +185,37 @@ export default function Header() {
 
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-gray-700 truncate">
-            <span className="text-sm font-medium flex-shrink-0">Properties</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+            <span className="text-sm font-medium flex-shrink-0">
+              Properties
+            </span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="flex-shrink-0"
+            >
               <path d="m9 18 6-6-6-6" />
             </svg>
-            <span className="text-sm font-medium flex-shrink-0">Maintenance</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+            <span className="text-sm font-medium flex-shrink-0">
+              Maintenance
+            </span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="flex-shrink-0"
+            >
               <path d="m9 18 6-6-6-6" />
             </svg>
-            <span className="text-sm font-medium truncate">3 Hekma Road, Greenwich, CT 06831</span>
+            <span className="text-sm font-medium truncate">
+              3 Hekma Road, Greenwich, CT 06831
+            </span>
           </div>
         </div>
 

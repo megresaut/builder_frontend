@@ -252,18 +252,30 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
   const { bgColor, icon, label, color } = config[status];
 
   return (
-    <div className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-2xl w-fit", bgColor, color)}>
+    <div
+      className={cn(
+        "flex items-center gap-1.5 px-3 py-1.5 rounded-2xl w-fit",
+        bgColor,
+        color,
+      )}
+    >
       {icon}
       <span className="text-sm font-normal capitalize">{label}</span>
     </div>
   );
 };
 
-const TeamMember = ({ initials, color }: { initials: string; color: string }) => (
+const TeamMember = ({
+  initials,
+  color,
+}: {
+  initials: string;
+  color: string;
+}) => (
   <div
     className={cn(
       "w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold",
-      color
+      color,
     )}
   >
     {initials}
@@ -290,8 +302,20 @@ export default function FieldTeamOrders() {
             </div>
             <div className="flex items-center gap-3">
               <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] bg-task-button-primary text-white hover:opacity-90 transition-opacity">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9.99935 4.16675V15.8334M4.16602 10.0001H15.8327" stroke="white" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.99935 4.16675V15.8334M4.16602 10.0001H15.8327"
+                    stroke="white"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span className="font-medium text-base">Create FTO</span>
               </button>
@@ -300,16 +324,37 @@ export default function FieldTeamOrders() {
 
           {/* Orders Table */}
           <div className="flex flex-col">
-            <div className="w-full overflow-hidden rounded-xl border shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]" style={{ borderColor: "rgb(229, 229, 229)" }}>
+            <div
+              className="w-full overflow-hidden rounded-xl border shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
+              style={{ borderColor: "rgb(229, 229, 229)" }}
+            >
               {/* Table Header */}
-              <div className="flex justify-between items-center px-4 py-3 border-b" style={{ borderColor: "rgb(229, 229, 229)" }}>
+              <div
+                className="flex justify-between items-center px-4 py-3 border-b"
+                style={{ borderColor: "rgb(229, 229, 229)" }}
+              >
                 <h2 className="text-task-text-primary font-medium text-[22px] leading-6">
                   Field Team Orders
                 </h2>
                 <div className="flex items-start gap-2.5">
-                  <div className="flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]" style={{ borderColor: "rgb(229, 229, 229)" }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <div
+                    className="flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
+                    style={{ borderColor: "rgb(229, 229, 229)" }}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+                        stroke="#303030"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     <input
                       type="text"
@@ -317,12 +362,27 @@ export default function FieldTeamOrders() {
                       className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-task-text-primary w-32 sm:w-48"
                     />
                   </div>
-                  <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                  <button
+                    className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                    style={{ borderColor: "rgb(229, 229, 229)" }}
+                  >
                     <span className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                       Filter
                     </span>
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4.5 6.75L9 11.25L13.5 6.75"
+                        stroke="#303030"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -332,20 +392,46 @@ export default function FieldTeamOrders() {
               <div className="hidden lg:block overflow-x-auto border-b-0">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b" style={{ borderColor: "rgb(229, 229, 229)" }}>
-                      <th className="px-3 py-3 text-left border-r" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                    <tr
+                      className="border-b"
+                      style={{ borderColor: "rgb(229, 229, 229)" }}
+                    >
+                      <th
+                        className="px-3 py-3 text-left border-r"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <div className="flex items-center gap-2">
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5.33399 5.33325H5.34065M1.33398 3.46658L1.33398 6.44959C1.33398 6.77572 1.33398 6.93878 1.37082 7.09223C1.40349 7.22827 1.45736 7.35833 1.53046 7.47763C1.61292 7.61219 1.72822 7.72749 1.95882 7.95809L7.07124 13.0705C7.86328 13.8625 8.25929 14.2586 8.71595 14.4069C9.11764 14.5375 9.55033 14.5375 9.95202 14.4069C10.4087 14.2586 10.8047 13.8625 11.5967 13.0705L13.0712 11.596C13.8633 10.804 14.2593 10.4079 14.4077 9.95128C14.5382 9.5496 14.5382 9.1169 14.4077 8.71522C14.2593 8.25856 13.8633 7.86254 13.0712 7.07051L7.95882 1.95809C7.72822 1.72749 7.61292 1.61219 7.47836 1.52973C7.35907 1.45663 7.22901 1.40275 7.09296 1.37009C6.93951 1.33325 6.77645 1.33325 6.45033 1.33325L3.46732 1.33325C2.72058 1.33325 2.34721 1.33325 2.062 1.47858C1.81111 1.60641 1.60714 1.81038 1.47931 2.06126C1.33398 2.34648 1.33398 2.71985 1.33398 3.46658ZM5.66732 5.33325C5.66732 5.51735 5.51808 5.66658 5.33399 5.66658C5.14989 5.66658 5.00065 5.51735 5.00065 5.33325C5.00065 5.14916 5.14989 4.99992 5.33399 4.99992C5.51808 4.99992 5.66732 5.14916 5.66732 5.33325Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M5.33399 5.33325H5.34065M1.33398 3.46658L1.33398 6.44959C1.33398 6.77572 1.33398 6.93878 1.37082 7.09223C1.40349 7.22827 1.45736 7.35833 1.53046 7.47763C1.61292 7.61219 1.72822 7.72749 1.95882 7.95809L7.07124 13.0705C7.86328 13.8625 8.25929 14.2586 8.71595 14.4069C9.11764 14.5375 9.55033 14.5375 9.95202 14.4069C10.4087 14.2586 10.8047 13.8625 11.5967 13.0705L13.0712 11.596C13.8633 10.804 14.2593 10.4079 14.4077 9.95128C14.5382 9.5496 14.5382 9.1169 14.4077 8.71522C14.2593 8.25856 13.8633 7.86254 13.0712 7.07051L7.95882 1.95809C7.72822 1.72749 7.61292 1.61219 7.47836 1.52973C7.35907 1.45663 7.22901 1.40275 7.09296 1.37009C6.93951 1.33325 6.77645 1.33325 6.45033 1.33325L3.46732 1.33325C2.72058 1.33325 2.34721 1.33325 2.062 1.47858C1.81111 1.60641 1.60714 1.81038 1.47931 2.06126C1.33398 2.34648 1.33398 2.71985 1.33398 3.46658ZM5.66732 5.33325C5.66732 5.51735 5.51808 5.66658 5.33399 5.66658C5.14989 5.66658 5.00065 5.51735 5.00065 5.33325C5.00065 5.14916 5.14989 4.99992 5.33399 4.99992C5.51808 4.99992 5.66732 5.14916 5.66732 5.33325Z"
+                              stroke="#525252"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
                           </svg>
                           <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
                             Property
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-r" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                      <th
+                        className="px-3 py-3 text-left border-r"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <div className="flex items-center gap-2">
-                          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
+                          <svg
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-4 h-4"
+                          >
                             <path
                               d="M8.19531 15.9933L17.0553 11.1333L14.5886 8.66663L5.72865 13.5266L5.72198 15.9999L8.19531 15.9933Z"
                               stroke="#525252"
@@ -366,9 +452,23 @@ export default function FieldTeamOrders() {
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-r" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                      <th
+                        className="px-3 py-3 text-left border-r"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <div className="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
                             <path d="M8 2v4" />
                             <path d="M16 2v4" />
                             <rect width="18" height="18" x="3" y="4" rx="2" />
@@ -379,9 +479,23 @@ export default function FieldTeamOrders() {
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-r" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                      <th
+                        className="px-3 py-3 text-left border-r"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <div className="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
                             <path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" />
                           </svg>
                           <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
@@ -389,20 +503,53 @@ export default function FieldTeamOrders() {
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-r" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                      <th
+                        className="px-3 py-3 text-left border-r"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <div className="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
                             <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                            <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                            <circle
+                              cx="7.5"
+                              cy="7.5"
+                              r=".5"
+                              fill="currentColor"
+                            />
                           </svg>
                           <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
                             Status
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-r" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                      <th
+                        className="px-3 py-3 text-left border-r"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <div className="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
                             <line x1="12" x2="12" y1="2" y2="22" />
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                           </svg>
@@ -411,7 +558,10 @@ export default function FieldTeamOrders() {
                           </span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left border-l shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                      <th
+                        className="px-3 py-3 text-left border-l shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]"
+                        style={{ borderColor: "rgb(229, 229, 229)" }}
+                      >
                         <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
                           Actions
                         </span>
@@ -424,14 +574,18 @@ export default function FieldTeamOrders() {
                         key={order.id}
                         className={cn(
                           "border-b hover:bg-gray-50 transition-colors",
-                          index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                          index === fieldTeamOrders.length - 1
+                            ? "border-b-0"
+                            : "",
                         )}
                         style={{ borderColor: "rgb(229, 229, 229)" }}
                       >
                         <td
                           className={cn(
                             "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
@@ -442,7 +596,9 @@ export default function FieldTeamOrders() {
                         <td
                           className={cn(
                             "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
@@ -453,7 +609,9 @@ export default function FieldTeamOrders() {
                         <td
                           className={cn(
                             "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
@@ -464,20 +622,28 @@ export default function FieldTeamOrders() {
                         <td
                           className={cn(
                             "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
                           <div className="flex items-center gap-2.5">
                             {order.fieldTeam.map((member, i) => (
-                              <TeamMember key={i} initials={member.initials} color={member.color} />
+                              <TeamMember
+                                key={i}
+                                initials={member.initials}
+                                color={member.color}
+                              />
                             ))}
                           </div>
                         </td>
                         <td
                           className={cn(
                             "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
@@ -486,7 +652,9 @@ export default function FieldTeamOrders() {
                         <td
                           className={cn(
                             "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
@@ -497,13 +665,25 @@ export default function FieldTeamOrders() {
                         <td
                           className={cn(
                             "px-3 py-3.5 border-l shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]",
-                            index === fieldTeamOrders.length - 1 ? "border-b-0" : ""
+                            index === fieldTeamOrders.length - 1
+                              ? "border-b-0"
+                              : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
                         >
                           <div className="flex justify-center">
                             <button className="flex h-7 w-7 justify-center items-center rounded-md border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="w-4 h-4"
+                              >
                                 <circle cx="12" cy="12" r="1" />
                                 <circle cx="19" cy="12" r="1" />
                                 <circle cx="5" cy="12" r="1" />

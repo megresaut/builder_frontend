@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import NotFound from "./pages/NotFound";
-import ShellLayout from "./layout/ShellLayout"
+import ShellLayout from "./layout/ShellLayout";
 
 const queryClient = new QueryClient();
 
@@ -20,8 +20,22 @@ export default function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<ShellLayout><Index /></ShellLayout>} />
-            <Route path="/field-team-orders" element={<ShellLayout><FieldTeamOrders /></ShellLayout>} />
+            <Route
+              path="/"
+              element={
+                <ShellLayout>
+                  <Index />
+                </ShellLayout>
+              }
+            />
+            <Route
+              path="/field-team-orders"
+              element={
+                <ShellLayout>
+                  <FieldTeamOrders />
+                </ShellLayout>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
