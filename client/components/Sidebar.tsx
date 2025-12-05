@@ -183,6 +183,7 @@ export default function Sidebar() {
       { label: "Portfolios" },
     ],
     maintenance: [
+      { label: "Tasks", path: "/" },
       { label: "Field Team Orders", path: "/field-team-orders" },
     ],
   };
