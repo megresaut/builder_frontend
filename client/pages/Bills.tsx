@@ -259,24 +259,47 @@ export default function Bills() {
             <button
               onClick={() => setSelectedTab("approved")}
               className={cn(
-                "px-1 py-3 border-b-2 font-medium text-base transition-colors",
+                "px-1 py-3 border-b-2 transition-colors flex flex-col items-start",
                 selectedTab === "approved"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900",
+                  ? "border-blue-600"
+                  : "border-transparent hover:text-gray-900",
               )}
             >
-              Approved
+              <span
+                className={cn(
+                  "font-medium text-base",
+                  selectedTab === "approved"
+                    ? "text-blue-600"
+                    : "text-gray-600",
+                )}
+              >
+                Approved
+              </span>
+              {selectedTab === "approved" && (
+                <span className="text-xs text-gray-500 font-normal">
+                  Last Approved 2 minutes ago
+                </span>
+              )}
             </button>
             <button
               onClick={() => setSelectedTab("drafts")}
               className={cn(
-                "px-1 py-3 border-b-2 font-medium text-base transition-colors",
+                "px-1 py-3 border-b-2 transition-colors flex flex-col items-start",
                 selectedTab === "drafts"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900",
+                  ? "border-blue-600"
+                  : "border-transparent hover:text-gray-900",
               )}
             >
-              Drafts
+              <span
+                className={cn(
+                  "font-medium text-base",
+                  selectedTab === "drafts"
+                    ? "text-blue-600"
+                    : "text-gray-600",
+                )}
+              >
+                Drafts
+              </span>
             </button>
           </div>
 
