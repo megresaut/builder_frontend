@@ -539,8 +539,8 @@ export default function Sidebar() {
           </div>
         </aside>
 
-        {/* Dropdown Menu for Icons */}
-        {activeDropdown && submenuMap[activeDropdown] && (
+        {/* Dropdown Menu for Icons - only show when hovering collapsed icon icons */}
+        {activeDropdown && submenuMap[activeDropdown] && !isHovered && (
           <div className="fixed left-24 top-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-w-max">
             {submenuMap[activeDropdown].map((item, idx) => {
               const isLink = item.path !== undefined;
