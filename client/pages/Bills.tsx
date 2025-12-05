@@ -353,27 +353,59 @@ export default function Bills() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Vendor
+                    <tr className="border-b border-gray-200 bg-white">
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M12.5 17.5C12.5 18.3284 11.8284 19 11 19C10.1716 19 9.5 18.3284 9.5 17.5M16.5 7.5C16.5 9.98528 14.4853 12 12 12C9.51472 12 7.5 9.98528 7.5 7.5C7.5 5.01472 9.51472 3 12 3C14.4853 3 16.5 5.01472 16.5 7.5Z" />
+                          </svg>
+                          Vendor
+                        </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Property
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M6 6.5V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2.5M4 14h12a2 2 0 0 1 2 2v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2a2 2 0 0 1 2-2Z" />
+                          </svg>
+                          Property
+                        </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Statement Date
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M14 3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1ZM11 1v4M6 1v4" />
+                          </svg>
+                          Statement Date
+                        </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Due Date
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M14 3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1ZM11 1v4M6 1v4" />
+                          </svg>
+                          Due Date
+                        </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Status
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M10.5 10a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z" />
+                          </svg>
+                          Status
+                        </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Memo
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M2 4h16M2 8h16M2 12h16M2 16h16" />
+                          </svg>
+                          Memo
+                        </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-gray-700 font-medium text-sm">
-                        Invoice #
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
+                          Actions
+                        </div>
                       </th>
                     </tr>
                   </thead>
@@ -381,12 +413,9 @@ export default function Bills() {
                     {approvedBills.map((bill, index) => (
                       <tr
                         key={bill.id}
-                        className={cn(
-                          "border-b border-gray-200 hover:bg-gray-50 transition-colors",
-                          index === approvedBills.length - 1 ? "border-b-0" : "",
-                        )}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
                             <span className="text-gray-900 font-medium text-sm">
@@ -394,38 +423,66 @@ export default function Bills() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">
                           <span className="text-gray-700 text-sm">
                             {bill.property}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">
                           <span className="text-gray-700 text-sm">
                             {bill.statementDate}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">
                           <span className="text-gray-700 text-sm">
                             {bill.dueDate}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">
                           <StatusBadge status={bill.status} />
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="text-gray-700 text-sm truncate max-w-xs">
+                        <td className="px-6 py-4">
+                          <span className="text-gray-700 text-sm truncate max-w-xs block">
                             {bill.memo}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="text-gray-700 text-sm font-medium">
-                            {bill.invoiceNumber}
-                          </span>
+                        <td className="px-6 py-4">
+                          <button className="text-gray-600 hover:text-gray-900 transition-colors p-1">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                              <circle cx="10" cy="5" r="1.5" />
+                              <circle cx="10" cy="10" r="1.5" />
+                              <circle cx="10" cy="15" r="1.5" />
+                            </svg>
+                          </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Pagination Footer */}
+              <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-white">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-700 text-sm font-medium">Showing</span>
+                  <select className="h-8 px-2 border border-gray-200 rounded text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                  </select>
+                  <span className="text-gray-700 text-sm">Of 225</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="text-gray-600 hover:text-gray-900 text-sm font-medium">← Previous</button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-900 font-medium hover:bg-gray-100">1</button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">2</button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">3</button>
+                  <span className="text-gray-600">-</span>
+                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">8</button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">9</button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">10</button>
+                  <button className="text-gray-600 hover:text-gray-900 text-sm font-medium">Next →</button>
+                </div>
               </div>
             </div>
           </div>
