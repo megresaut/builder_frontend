@@ -183,6 +183,9 @@ export default function Sidebar() {
       { label: "Portfolios" },
       { label: "Portfolios" },
     ],
+    accounting: [
+      { label: "Bills", path: "/bills" },
+    ],
     maintenance: [
       { label: "Tasks", path: "/" },
       { label: "Field Team Orders", path: "/field-team-orders" },
