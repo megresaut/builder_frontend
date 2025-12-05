@@ -307,13 +307,30 @@ export default function Bills() {
           <div className="flex flex-col">
             <div className="w-full overflow-hidden rounded-xl border border-gray-200 shadow-sm">
               {/* Table Header */}
-              <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-white">
-                <h2 className="text-gray-900 font-medium text-xl">Bills</h2>
-                <div className="flex items-start gap-2.5">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
+                <h2 className="text-gray-900 font-medium text-lg">Approved</h2>
+                <div className="flex items-center gap-3">
+                  <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+                    <span className="text-gray-700 font-normal text-sm">
+                      Filter
+                    </span>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 18 18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M4.5 6.75L9 11.25L13.5 6.75" />
+                    </svg>
+                  </button>
                   <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white">
                     <svg
-                      width="20"
-                      height="20"
+                      width="18"
+                      height="18"
                       viewBox="0 0 20 20"
                       fill="none"
                       stroke="currentColor"
@@ -326,26 +343,9 @@ export default function Bills() {
                     <input
                       type="text"
                       placeholder="Search..."
-                      className="text-gray-700 font-normal text-base bg-transparent border-none outline-none placeholder:text-gray-600 w-32 sm:w-48"
+                      className="text-gray-700 font-normal text-sm bg-transparent border-none outline-none placeholder:text-gray-500 w-32 sm:w-40"
                     />
                   </div>
-                  <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                    <span className="text-gray-700 font-normal text-base">
-                      Filter
-                    </span>
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M4.5 6.75L9 11.25L13.5 6.75" />
-                    </svg>
-                  </button>
                 </div>
               </div>
 
