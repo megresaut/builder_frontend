@@ -133,6 +133,7 @@ export default function Sidebar() {
           <path d="M8 18h.01" />
         </svg>
       ),
+      hasSubmenu: true,
     },
     {
       id: "maintenance",
