@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import NotFound from "./pages/NotFound";
+import ShellLayout from "./layout/ShellLayout"
 
 const queryClient = new QueryClient();
 
