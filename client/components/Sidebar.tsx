@@ -354,7 +354,13 @@ export default function Sidebar() {
               {navigationItems.map((item) => (
                 <div key={item.id}>
                   <button
-                    onClick={() => item.hasSubmenu && toggleExpanded(item.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (item.hasSubmenu) {
+                        toggleExpanded(item.id);
+                      }
+                    }}
                     className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
                   >
                     <div className="flex items-center gap-2 flex-1 text-left">
