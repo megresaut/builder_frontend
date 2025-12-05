@@ -20,10 +20,10 @@ export default function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/field-team-orders" element={<FieldTeamOrders />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/field-team-orders" element={<FieldTeamOrders />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
