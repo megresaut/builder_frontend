@@ -189,7 +189,7 @@ export default function Sidebar() {
   if (isCollapsed) {
     return (
       <div
-        className="relative h-screen"
+        className="relative h-screen flex"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
