@@ -60,8 +60,8 @@ const bills: Bill[] = [
   },
   {
     id: 5,
-    vendor: "Aqua Solutions",
-    vendorColor: "#EBA524",
+    vendor: "Elite HVAC",
+    vendorColor: "#2463EB",
     property: "22 Indian Chase Dr",
     statementDate: "Oct 1, 2025",
     dueDate: "Dec 6, 2025",
@@ -71,8 +71,8 @@ const bills: Bill[] = [
   },
   {
     id: 6,
-    vendor: "Green Lawn Services",
-    vendorColor: "#059669",
+    vendor: "Aqua Solutions",
+    vendorColor: "#EBA524",
     property: "22 Indian Chase Dr",
     statementDate: "Sep 30, 2025",
     dueDate: "Dec 4, 2025",
@@ -82,8 +82,8 @@ const bills: Bill[] = [
   },
   {
     id: 7,
-    vendor: "Handyman Pros",
-    vendorColor: "#EBA524",
+    vendor: "Green Lawn Services",
+    vendorColor: "#059669",
     property: "22 Indian Chase Dr",
     statementDate: "Sep 29, 2025",
     dueDate: "Dec 2, 2025",
@@ -129,7 +129,7 @@ const bills: Bill[] = [
 const StatusBadge = ({ status }: { status: "pushed" | "push-failed" }) => (
   <div
     className={cn(
-      "flex items-center gap-2 px-2.5 py-1.5 rounded-full",
+      "flex items-center gap-2 px-2.5 py-1.5 rounded",
       status === "pushed"
         ? "bg-green-50 text-green-700"
         : "bg-orange-50 text-orange-700",
@@ -172,12 +172,38 @@ const StatusBadge = ({ status }: { status: "pushed" | "push-failed" }) => (
 );
 
 const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
-  <div
-    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
-    style={{ backgroundColor: color }}
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill={color}
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    {name.charAt(0).toUpperCase()}
-  </div>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const ActionButton = () => (
+  <button className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="19" cy="12" r="1" />
+      <circle cx="5" cy="12" r="1" />
+    </svg>
+  </button>
 );
 
 export default function Bills() {
@@ -188,36 +214,22 @@ export default function Bills() {
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 xl:p-12">
-      <div className="max-w-[1200px] mx-auto flex flex-col gap-9">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
+      <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-gray-900 font-semibold text-2xl leading-[30px]">
-                All Bills
+            <div className="flex flex-col gap-2">
+              <h1 className="text-gray-900 font-semibold text-2xl">
+                Approved
               </h1>
-              <p className="text-gray-600 font-medium text-base leading-4">
-                Track and manage all vendor bills
+              <p className="text-gray-600 font-normal text-sm">
+                Last Approved 2 minutes ago
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                <span className="font-medium text-base">Add Vendor</span>
-              </button>
-              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+                <span className="text-gray-700 font-normal text-sm">Filter</span>
                 <svg
                   width="18"
                   height="18"
@@ -228,17 +240,13 @@ export default function Bills() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                  <path d="M8 16H3v5" />
+                  <path d="m6 9 6 6 6-6" />
                 </svg>
-                <span className="font-medium text-base">Sync</span>
               </button>
-              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors">
+              <div className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white">
                 <svg
-                  width="22"
-                  height="22"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -246,243 +254,255 @@ export default function Bills() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <rect width="20" height="14" x="2" y="5" rx="2" />
-                  <line x1="2" x2="22" y1="10" y2="10" />
+                  <path d="m21 21-4.34-4.34" />
+                  <circle cx="11" cy="11" r="8" />
                 </svg>
-                <span className="font-medium text-base">Record Bill</span>
-              </button>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="text-gray-700 font-normal text-sm bg-transparent border-none outline-none placeholder:text-gray-500 w-32 sm:w-40"
+                />
+              </div>
             </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex gap-6 border-b border-gray-200">
+          <div className="flex gap-8 border-b border-gray-200">
             <button
               onClick={() => setSelectedTab("approved")}
               className={cn(
-                "px-1 py-3 border-b-2 transition-colors flex flex-col items-start",
+                "pb-3 border-b-2 transition-colors",
                 selectedTab === "approved"
-                  ? "border-blue-600"
-                  : "border-transparent hover:text-gray-900",
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-600 hover:text-gray-900",
               )}
             >
-              <span
-                className={cn(
-                  "font-medium text-base",
-                  selectedTab === "approved"
-                    ? "text-blue-600"
-                    : "text-gray-600",
-                )}
-              >
-                Approved
-              </span>
-              {selectedTab === "approved" && (
-                <span className="text-xs text-gray-500 font-normal">
-                  Last Approved 2 minutes ago
-                </span>
-              )}
+              <span className="font-medium text-base">Approved</span>
             </button>
             <button
               onClick={() => setSelectedTab("drafts")}
               className={cn(
-                "px-1 py-3 border-b-2 transition-colors flex flex-col items-start",
+                "pb-3 border-b-2 transition-colors",
                 selectedTab === "drafts"
-                  ? "border-blue-600"
-                  : "border-transparent hover:text-gray-900",
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-600 hover:text-gray-900",
               )}
             >
-              <span
-                className={cn(
-                  "font-medium text-base",
-                  selectedTab === "drafts"
-                    ? "text-blue-600"
-                    : "text-gray-600",
-                )}
-              >
-                Drafts
-              </span>
+              <span className="font-medium text-base">Drafts</span>
             </button>
           </div>
 
           {/* Bills Table */}
-          <div className="flex flex-col">
-            <div className="w-full overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-              {/* Table Header */}
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
-                <h2 className="text-gray-900 font-medium text-lg">Approved</h2>
-                <div className="flex items-center gap-3">
-                  <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                    <span className="text-gray-700 font-normal text-sm">
-                      Filter
-                    </span>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+          <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
+            {/* Table Content */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                          <path d="M10 6h4" />
+                          <path d="M10 10h4" />
+                          <path d="M10 14h4" />
+                          <path d="M10 18h4" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Vendor</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                          <path d="M10 6h4" />
+                          <path d="M10 10h4" />
+                          <path d="M10 14h4" />
+                          <path d="M10 18h4" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Property</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M8 2v4" />
+                          <path d="M16 2v4" />
+                          <rect width="18" height="18" x="3" y="4" rx="2" />
+                          <path d="M3 10h18" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Statement Date</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M8 2v4" />
+                          <path d="M16 2v4" />
+                          <rect width="18" height="18" x="3" y="4" rx="2" />
+                          <path d="M3 10h18" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Due Date</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Status</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">memo</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="4" x2="20" y1="9" y2="9" />
+                          <line x1="4" x2="20" y1="15" y2="15" />
+                          <line x1="10" x2="8" y1="3" y2="21" />
+                          <line x1="16" x2="14" y1="3" y2="21" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Invoice #</span>
+                      </div>
+                    </th>
+                    <th className="sticky right-0 px-3 py-3 text-left bg-white border-l border-gray-200">
+                      <span className="font-medium text-sm text-gray-700">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {approvedBills.map((bill) => (
+                    <tr
+                      key={bill.id}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <path d="M4.5 6.75L9 11.25L13.5 6.75" />
-                    </svg>
-                  </button>
-                  <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="text-gray-700 font-normal text-sm bg-transparent border-none outline-none placeholder:text-gray-500 w-32 sm:w-40"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Table Content */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-white">
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M12.5 17.5C12.5 18.3284 11.8284 19 11 19C10.1716 19 9.5 18.3284 9.5 17.5M16.5 7.5C16.5 9.98528 14.4853 12 12 12C9.51472 12 7.5 9.98528 7.5 7.5C7.5 5.01472 9.51472 3 12 3C14.4853 3 16.5 5.01472 16.5 7.5Z" />
-                          </svg>
-                          Vendor
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
+                          <span className="text-gray-900 font-normal text-sm">
+                            {bill.vendor}
+                          </span>
                         </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M6 6.5V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2.5M4 14h12a2 2 0 0 1 2 2v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2a2 2 0 0 1 2-2Z" />
-                          </svg>
-                          Property
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M14 3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1ZM11 1v4M6 1v4" />
-                          </svg>
-                          Statement Date
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M14 3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1ZM11 1v4M6 1v4" />
-                          </svg>
-                          Due Date
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M10.5 10a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z" />
-                          </svg>
-                          Status
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M2 4h16M2 8h16M2 12h16M2 16h16" />
-                          </svg>
-                          Memo
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium text-sm">
-                          Actions
-                        </div>
-                      </th>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-gray-900 font-normal text-sm">
+                          {bill.property}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-gray-900 font-normal text-sm">
+                          {bill.statementDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-gray-900 font-normal text-sm">
+                          {bill.dueDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <StatusBadge status={bill.status} />
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
+                          {bill.memo}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-gray-900 font-normal text-sm">
+                          {bill.invoiceNumber}
+                        </span>
+                      </td>
+                      <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
+                        <ActionButton />
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {approvedBills.map((bill, index) => (
-                      <tr
-                        key={bill.id}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
-                            <span className="text-gray-900 font-medium text-sm">
-                              {bill.vendor}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-700 text-sm">
-                            {bill.property}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-700 text-sm">
-                            {bill.statementDate}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-700 text-sm">
-                            {bill.dueDate}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={bill.status} />
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-700 text-sm truncate max-w-xs block">
-                            {bill.memo}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <button className="text-gray-600 hover:text-gray-900 transition-colors p-1">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                              <circle cx="10" cy="5" r="1.5" />
-                              <circle cx="10" cy="10" r="1.5" />
-                              <circle cx="10" cy="15" r="1.5" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-              {/* Pagination Footer */}
-              <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-white">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-700 text-sm font-medium">Showing</span>
-                  <select className="h-8 px-2 border border-gray-200 rounded text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
-                  </select>
-                  <span className="text-gray-700 text-sm">Of 225</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button className="text-gray-600 hover:text-gray-900 text-sm font-medium">← Previous</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-900 font-medium hover:bg-gray-100">1</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">2</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">3</button>
-                  <span className="text-gray-600">-</span>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">8</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">9</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm">10</button>
-                  <button className="text-gray-600 hover:text-gray-900 text-sm font-medium">Next →</button>
-                </div>
+            {/* Pagination Footer */}
+            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-white">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700 text-sm font-medium">Rows per page</span>
+                <button className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700 font-medium text-sm">
+                  10
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="ml-2 inline-block"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="h-10 px-3 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-900 font-medium text-sm border border-gray-200 hover:bg-gray-50">
+                  1
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
+                  2
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
+                  3
+                </button>
+                <span className="text-gray-600">-</span>
+                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
+                  8
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
+                  9
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 font-medium text-sm border border-gray-200 hover:bg-gray-50">
+                  10
+                </button>
+                <button className="h-10 px-3 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
