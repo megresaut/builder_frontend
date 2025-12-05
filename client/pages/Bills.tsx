@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { StatusBadge } from "./Utilities";
 
 interface Bill {
   id: number;
