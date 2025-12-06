@@ -125,17 +125,16 @@ export default function Header() {
           return (
             <div
               key={tab.id}
-              className={`flex items-center transition-all whitespace-nowrap ${
-                isSelected
-                  ? "bg-white"
-                  : "bg-gray-50"
-              }`}
+              className="flex items-center transition-all whitespace-nowrap"
               style={{
+                backgroundColor: "rgb(247,247,247)",
                 borderRadius: isSelected ? "12px 12px 0 0" : "0",
-                minHeight: "49px",
+                minHeight: "47px",
                 gap: "35px",
-                margin: "8px 0 -1px",
+                ...(isSelected ? { marginTop: "8px" } : { margin: "8px 0 -2px" }),
                 padding: "0 12px",
+                borderBottomColor: "rgb(210,209,207)",
+                borderBottomWidth: "1px",
                 ...(isSelected && { border: "1px solid #d2d1cf", borderBottomWidth: "0px" })
               }}
             >
