@@ -83,15 +83,24 @@ export default function Header() {
     },
   ];
 
-  const toggleTab = (tabId: string) => {
+  const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
     if (newTabs.has(tabId)) {
       // Prevent closing the last tab
       if (newTabs.size > 1) {
         newTabs.delete(tabId);
+        // If closing the selected tab, select another one
+        if (isClosing && selectedTab === tabId) {
+          const remainingTabs = Array.from(newTabs);
+          if (remainingTabs.length > 0) {
+            setSelectedTab(remainingTabs[0]);
+          }
+        }
       }
     } else {
       newTabs.add(tabId);
+      // Selecting a tab
+      setSelectedTab(tabId);
     }
     setOpenTabs(newTabs);
   };
