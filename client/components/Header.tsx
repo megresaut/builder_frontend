@@ -195,7 +195,7 @@ export default function Header() {
       </div>
 
       {/* Navigation & Search Section */}
-      <div className="flex items-center justify-between px-6 py-4 gap-6 border-l border-[#D2D1CF] border-b border-[#E1E1E1]">
+      <div className="flex items-center justify-between px-6 py-4 gap-6" style={{ borderTopWidth: "0px", borderBottomColor: "rgb(229,229,229)", borderRightWidth: "0px", borderRightColor: "transparent", border: "1px solid #d2d1cf" }}>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Navigation Buttons */}
           <button className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
