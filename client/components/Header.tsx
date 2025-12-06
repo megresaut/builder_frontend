@@ -127,7 +127,7 @@ export default function Header() {
               key={tab.id}
               className="flex items-center transition-all whitespace-nowrap"
               style={{
-                backgroundColor: "rgba(255, 255, 255, 1)",
+                backgroundColor: isSelected ? "rgba(255, 255, 255, 1)" : "#f7f7f7",
                 borderRadius: isSelected ? "12px 12px 0 0" : "0",
                 minHeight: "47px",
                 gap: "35px",
