@@ -666,11 +666,11 @@ export default function Sidebar() {
                   onClick={() => item.hasSubmenu && toggleExpanded(item.id)}
                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
                 >
-                  <div className="flex items-center gap-2 flex-1 text-left">
-                    <span className="flex items-center justify-center text-gray-600">
+                  <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+                    <span className="flex items-center justify-center text-gray-600 flex-shrink-0">
                       {item.icon}
                     </span>
-                    <span className="font-normal">{item.label}</span>
+                    <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>
                   </div>
                   {item.hasSubmenu && expandedItems.has(item.id) && (
                     <svg
@@ -689,13 +689,13 @@ export default function Sidebar() {
                   )}
                 </button>
 
-                {/* Submenu */}
-                {item.hasSubmenu && expandedItems.has(item.id) && (
-                  <div className="ml-6 mt-1 flex flex-col gap-0">
-                    {(submenuMap[item.id] || []).map((subitem, idx) => {
-                      const isLink = subitem.path !== undefined;
-                      const className =
-                        "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10";
+              {/* Submenu */}
+              {item.hasSubmenu && expandedItems.has(item.id) && (
+                <div className="ml-6 mt-1 flex flex-col gap-0">
+                  {(submenuMap[item.id] || []).map((subitem, idx) => {
+                    const isLink = subitem.path !== undefined;
+                    const className =
+                      "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap";
 
                       return isLink ? (
                         <Link key={idx} to={subitem.path!} className={className}>
