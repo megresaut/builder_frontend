@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
+import { TabContext } from "@/hooks/useTabContext";
 
 interface SidebarItem {
   id: string;
