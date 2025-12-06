@@ -7,12 +7,7 @@ interface Tab {
 }
 
 export default function Header() {
-  const [openTabs, setOpenTabs] = useState<Set<string>>(
-    new Set(["properties"]),
-  );
-  const [selectedTab, setSelectedTab] = useState<string>("properties");
-
-  const tabs: Tab[] = [
+  const defaultTabs: Tab[] = [
     {
       id: "portfolio",
       label: "Portfolio",
@@ -82,6 +77,13 @@ export default function Header() {
       ),
     },
   ];
+
+  const [tabs, setTabs] = useState<Tab[]>(defaultTabs);
+  const [openTabs, setOpenTabs] = useState<Set<string>>(
+    new Set(["properties"]),
+  );
+  const [selectedTab, setSelectedTab] = useState<string>("properties");
+  const [nextNewTabId, setNextNewTabId] = useState(1);
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
