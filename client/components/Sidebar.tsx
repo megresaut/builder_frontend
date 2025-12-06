@@ -215,6 +215,18 @@ export default function Sidebar() {
     }
   };
 
+  const tabContext = useContext(TabContext);
+
+  const handleNavigation = (label: string, sectionId?: string) => {
+    // If we have a tab context and are in a new tab, update it
+    if (tabContext && tabContext.selectedTab.startsWith("new-tab-") && sectionId) {
+      tabContext.setTabMetadata(tabContext.selectedTab, {
+        label,
+        sectionId,
+      });
+    }
+  };
+
   if (isCollapsed) {
     return (
       <div
