@@ -1,8 +1,15 @@
 import { createContext, useContext } from "react";
 
+interface TabMetadata {
+  label: string;
+  sectionId?: string; // The section being viewed (e.g., "bills", "field-team-orders")
+}
+
 interface TabContextType {
   selectedTab: string;
   setSelectedTab: (tabId: string) => void;
+  tabMetadata: Record<string, TabMetadata>;
+  setTabMetadata: (tabId: string, metadata: TabMetadata) => void;
 }
 
 export const TabContext = createContext<TabContextType | undefined>(undefined);
