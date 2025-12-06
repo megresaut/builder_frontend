@@ -199,7 +199,6 @@ export default function Sidebar() {
   const favoriteItems = ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"];
 
   const toggleExpanded = (id: string) => {
-    if (isCollapsed) return;
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);
