@@ -184,40 +184,23 @@ export default function Bills() {
         pages.push(i);
       }
     } else {
-      // Always show 3 pages on the left (1, 2, 3)
-      pages.push(1, 2, 3);
+      // Left side: 3 numbers starting from currentPage
+      const leftStart = currentPage;
+      const leftEnd = Math.min(currentPage + 2, totalPages - 4);
 
-      // Calculate the carousel window around current page
-      // Show 3 pages that shift based on current page
-      let windowStart: number;
-      let windowEnd: number;
-
-      if (currentPage <= 3) {
-        // At the beginning, show pages 8-10
-        windowStart = 8;
-        windowEnd = 10;
-      } else if (currentPage >= totalPages - 3) {
-        // Near the end, show last 3 pages
-        windowStart = totalPages - 2;
-        windowEnd = totalPages;
-      } else {
-        // In the middle, show current page and neighbors
-        windowStart = currentPage - 1;
-        windowEnd = currentPage + 1;
+      for (let i = leftStart; i <= leftEnd; i++) {
+        pages.push(i);
       }
 
-      // Ensure no overlap: if windowStart is too close to left side, adjust it
-      // We need a gap of 4, so windowStart should be at least 8 (3 + 1 + 4)
-      windowStart = Math.max(8, windowStart);
-      windowEnd = Math.min(totalPages, windowEnd);
-
-      // Add ellipsis only if there's a gap between left and right
-      if (3 < windowStart - 1) {
+      // Add ellipsis if there's a gap
+      const rightStart = leftEnd + 5; // Gap of 4 hidden pages
+      if (leftEnd < rightStart - 1) {
         pages.push("...");
       }
 
-      // Add the carousel window
-      for (let i = windowStart; i <= windowEnd; i++) {
+      // Right side: 3 numbers with gap of 4 from left
+      const rightEnd = Math.min(rightStart + 2, totalPages);
+      for (let i = rightStart; i <= rightEnd; i++) {
         pages.push(i);
       }
     }
