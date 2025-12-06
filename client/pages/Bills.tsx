@@ -175,77 +175,113 @@ export default function Bills() {
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-gray-900 font-semibold text-2xl">
-                Approved
+          {/* Title and Controls Row */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <h1 className="text-[#303030] font-medium text-[22px] leading-6">
+                All Bills
               </h1>
-              <p className="text-gray-600 font-normal text-sm">
-                Last Approved 2 minutes ago
-              </p>
+              <div className="flex items-center gap-2 h-6">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1.16699 8.16667C1.16699 8.16667 1.23776 8.66206 3.28802 10.7123C5.33827 12.7626 8.66238 12.7626 10.7126 10.7123C11.439 9.9859 11.9081 9.09958 12.1198 8.16667M1.16699 8.16667V11.6667M1.16699 8.16667H4.66699M12.8337 5.83333C12.8337 5.83333 12.7629 5.33794 10.7126 3.28769C8.66238 1.23744 5.33827 1.23744 3.28802 3.28769C2.56161 4.0141 2.09256 4.90042 1.88089 5.83333M12.8337 5.83333V2.33333M12.8337 5.83333H9.33366"
+                    stroke="#8B8D8D"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
+                  Updated 2 minutes ago
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
-                <span className="text-gray-700 font-normal text-sm">Filter</span>
+            <div className="flex items-start gap-2.5">
+              <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                  Filter
+                </span>
                 <svg
                   width="18"
                   height="18"
-                  viewBox="0 0 24 24"
+                  viewBox="0 0 18 18"
                   fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="m6 9 6 6 6-6" />
+                  <path
+                    d="M4.5 6.75L9 11.25L13.5 6.75"
+                    stroke="#303030"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
-              <div className="flex h-10 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white">
+              <div className="flex w-[283px] h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
                 <svg
                   width="20"
                   height="20"
-                  viewBox="0 0 24 24"
+                  viewBox="0 0 20 20"
                   fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="m21 21-4.34-4.34" />
-                  <circle cx="11" cy="11" r="8" />
+                  <path
+                    d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+                    stroke="#303030"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="text-gray-700 font-normal text-sm bg-transparent border-none outline-none placeholder:text-gray-500 w-32 sm:w-40"
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] flex-1"
                 />
               </div>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex gap-8 border-b border-gray-200 -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8">
-            <button
-              onClick={() => setSelectedTab("approved")}
-              className={cn(
-                "pb-3 font-medium text-base transition-colors",
-                selectedTab === "approved"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "border-b-2 border-transparent text-gray-600 hover:text-gray-900",
-              )}
-            >
-              Approved
-            </button>
-            <button
-              onClick={() => setSelectedTab("drafts")}
-              className={cn(
-                "pb-3 font-medium text-base transition-colors",
-                selectedTab === "drafts"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "border-b-2 border-transparent text-gray-600 hover:text-gray-900",
-              )}
-            >
-              Drafts
+          {/* Segmented Tabs and Export Button */}
+          <div className="flex justify-between items-start">
+            <div className="flex w-[382px] items-start rounded-lg shadow-[0_0_0_0.5px_#D2D1CF]">
+              <button
+                onClick={() => setSelectedTab("drafts")}
+                className={cn(
+                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 transition-colors",
+                  selectedTab === "drafts"
+                    ? "bg-white"
+                    : "bg-transparent hover:bg-gray-50",
+                )}
+              >
+                <span className="text-[#282828] text-center font-normal text-sm leading-5">
+                  Drafts
+                </span>
+              </button>
+              <button
+                onClick={() => setSelectedTab("approved")}
+                className={cn(
+                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 transition-colors",
+                  selectedTab === "approved"
+                    ? "bg-white"
+                    : "bg-transparent hover:bg-gray-50",
+                )}
+              >
+                <span className="text-[#282828] text-center font-normal text-sm leading-5">
+                  Approved
+                </span>
+              </button>
+            </div>
+            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors">
+              <span className="text-white font-medium text-base leading-normal">
+                Export to Buildium
+              </span>
             </button>
           </div>
 
