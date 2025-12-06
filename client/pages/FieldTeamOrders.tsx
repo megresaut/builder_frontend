@@ -626,7 +626,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </td>
                       <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
-                        <ActionButton />
+                        <ActionButton orderId={order.id} />
                       </td>
                     </tr>
                   ))}
