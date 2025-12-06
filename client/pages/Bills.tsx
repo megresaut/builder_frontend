@@ -440,9 +440,6 @@ export default function Bills() {
             {/* Pagination Footer */}
             <div
               className="flex justify-between items-center px-6 py-4 bg-white gap-4"
-              style={{
-                borderTopWidth: "0.909091px",
-              }}
             >
               <div className="flex items-center gap-2">
                 <span className="text-gray-700 text-sm font-medium">Showing</span>
