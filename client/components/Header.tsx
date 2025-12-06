@@ -106,21 +106,27 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200">
       {/* Tabs Section */}
-      <div className="flex items-center gap-0 border-b border-gray-100 px-0 py-0">
+      <div className="flex items-center gap-0 border-b border-[#D2D1CF] px-0 py-0">
         {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
           return (
             <div
               key={tab.id}
-              className="flex items-center gap-2 px-6 py-3 border-b-2 border-gray-900 text-gray-900 bg-white transition-all"
+              className="flex items-center gap-2 px-3 py-3 bg-white border-t border-l border-r border-[#D2D1CF] transition-all whitespace-nowrap"
+              style={{
+                borderRadius: "12px 12px 0 0",
+                minHeight: "48px"
+              }}
             >
               <button
                 onClick={() => toggleTab(tab.id)}
                 className="flex items-center gap-2"
               >
-                <span className="flex items-center justify-center">
+                <span className="flex items-center justify-center w-5 h-5">
                   {tab.icon}
                 </span>
-                <span className="text-sm font-normal">{tab.label}</span>
+                <span className="text-sm font-medium text-[#303030]" style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif", lineHeight: "24px" }}>
+                  {tab.label}
+                </span>
               </button>
               <button
                 onClick={(e) => {
@@ -131,8 +137,8 @@ export default function Header() {
                 aria-label={`Close ${tab.label} tab`}
               >
                 <svg
-                  width="14"
-                  height="14"
+                  width="12"
+                  height="12"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -144,16 +150,16 @@ export default function Header() {
             </div>
           );
         })}
-        <div className="flex-1 flex items-center justify-end pr-6">
+        <div className="flex-1 flex items-center border-b border-[#D2D1CF] h-12 px-2">
           <button
             onClick={addNewTab}
             disabled={openTabs.size === tabs.length}
-            className="p-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
+            className="text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
             aria-label="Add new tab"
           >
             <svg
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
