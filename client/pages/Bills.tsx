@@ -670,6 +670,7 @@ export default function Bills() {
             position: "fixed",
             top: dropdownPos.top + "px",
             left: dropdownPos.left + "px",
+            pointerEvents: "auto"
           }}
           onMouseLeave={() => setShowPageSizeDropdown(false)}
         >
