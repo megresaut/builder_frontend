@@ -409,7 +409,7 @@ export default function Index() {
                 <table className="w-full">
                   <thead>
                     <tr
-                      className="border-b"
+                      className="border-b h-12"
                       style={{ borderColor: "rgb(229, 229, 229)" }}
                     >
                       <th
