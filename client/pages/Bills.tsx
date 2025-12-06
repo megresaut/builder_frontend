@@ -185,26 +185,35 @@ export default function Bills() {
       }
     } else {
       // Always show first 3 pages
-      for (let i = 1; i <= 3; i++) {
-        pages.push(i);
+      pages.push(1, 2, 3);
+
+      // Always show ellipsis
+      pages.push("...");
+
+      // Calculate the carousel window around current page
+      // Show 3 pages that shift based on current page
+      let windowStart: number;
+      let windowEnd: number;
+
+      if (currentPage <= 5) {
+        // Near the beginning, show pages 4-6 or similar
+        windowStart = 4;
+        windowEnd = 6;
+      } else if (currentPage >= totalPages - 4) {
+        // Near the end, show last 3 pages
+        windowStart = totalPages - 2;
+        windowEnd = totalPages;
+      } else {
+        // In the middle, show current page and neighbors
+        windowStart = currentPage - 1;
+        windowEnd = currentPage + 1;
       }
 
-      // Add ellipsis if there's a gap
-      if (currentPage > 5) {
-        pages.push("...");
-      }
+      // Ensure we don't overlap with the first 3 pages
+      windowStart = Math.max(4, windowStart);
+      windowEnd = Math.min(totalPages, windowEnd);
 
-      // Show 3 pages around current page (current+5, current+6, current+7)
-      // This creates a window that shifts as you navigate
-      let rightStart = Math.max(4, currentPage + 5);
-      let rightEnd = Math.min(totalPages, rightStart + 2);
-
-      // Make sure we show exactly 3 pages on the right (or less if near end)
-      if (rightEnd === totalPages && totalPages - rightStart < 2) {
-        rightStart = Math.max(4, totalPages - 2);
-      }
-
-      for (let i = rightStart; i <= rightEnd; i++) {
+      for (let i = windowStart; i <= windowEnd; i++) {
         pages.push(i);
       }
     }
