@@ -172,7 +172,7 @@ export default function Header() {
             </div>
           );
         })}
-        <div className="flex-1 flex items-center h-12 px-2" style={{ marginTop: "8px" }}>
+        <div className="flex-1 flex items-center h-12 px-2" style={{ marginTop: "8px", borderBottomColor: "transparent" }}>
           <button
             onClick={addNewTab}
             disabled={openTabs.size === tabs.length}
