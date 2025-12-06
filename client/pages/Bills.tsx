@@ -497,7 +497,7 @@ export default function Bills() {
                 <div className="relative">
                   <button
                     onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
-                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm"
+                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
                     style={{
                       borderColor: "rgb(218, 218, 218)",
                       borderWidth: "0.909091px",
@@ -521,9 +521,12 @@ export default function Bills() {
                   </button>
                   {showPageSizeDropdown && (
                     <div
-                      className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-max"
-                      style={{ borderColor: "rgb(218, 218, 218)", borderWidth: "0.909091px" }}
-                      onMouseLeave={() => setShowPageSizeDropdown(false)}
+                      className="absolute bottom-full left-0 mb-2 bg-white rounded-lg overflow-hidden"
+                      style={{
+                        border: "0.5px solid #DADADA",
+                        boxShadow: "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                        zIndex: 9999
+                      }}
                     >
                       {[10, 25, 50].map((size) => (
                         <button
@@ -534,11 +537,17 @@ export default function Bills() {
                             setShowPageSizeDropdown(false);
                           }}
                           className={cn(
-                            "w-full px-4 py-2 text-left text-sm transition-colors whitespace-nowrap",
+                            "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap min-w-[80px]",
                             itemsPerPage === size
-                              ? "bg-gray-100 font-medium text-gray-900"
-                              : "text-gray-700 hover:bg-gray-50"
+                              ? "bg-gray-50 font-medium text-gray-900"
+                              : "text-[#303030] hover:bg-gray-50"
                           )}
+                          style={{
+                            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                            fontSize: "16px",
+                            lineHeight: "140%",
+                            letterSpacing: "-0.32px"
+                          }}
                         >
                           {size}
                         </button>
