@@ -103,6 +103,11 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    background-color: rgb(247, 247, 247);
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Geist', -apple-system, Roboto, Helvetica, sans-serif;
