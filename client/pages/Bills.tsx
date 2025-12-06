@@ -254,7 +254,7 @@ export default function Bills() {
               <button
                 onClick={() => setSelectedTab("drafts")}
                 className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 transition-colors",
+                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4",
                   selectedTab === "drafts"
                     ? "bg-white"
                     : "bg-transparent hover:bg-gray-50",
@@ -267,7 +267,7 @@ export default function Bills() {
               <button
                 onClick={() => setSelectedTab("approved")}
                 className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 transition-colors",
+                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4",
                   selectedTab === "approved"
                     ? "bg-white"
                     : "bg-transparent hover:bg-gray-50",
