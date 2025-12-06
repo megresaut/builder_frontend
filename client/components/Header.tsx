@@ -150,6 +150,7 @@ export default function Header() {
     setTabs([...tabs, newTab]);
     setOpenTabs(new Set([...openTabs, newTabId]));
     setSelectedTab(newTabId);
+    tabContext.setTabMetadata(newTabId, { label: "New Tab" });
     setNextNewTabId(nextNewTabId + 1);
   };
 
