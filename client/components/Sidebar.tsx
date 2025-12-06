@@ -338,8 +338,8 @@ export default function Sidebar() {
             </div>
 
             <img
-              alt="User avatar"
-              src="https://api.builder.io/api/v1/image/assets/TEMP/2566780a27c3990d201697798765d924dce1c93a?width=80"
+              alt="AVM Logo"
+              src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
               className="w-[38px] h-[38px] rounded-md shadow-md"
             />
           </div>
