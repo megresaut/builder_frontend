@@ -380,146 +380,151 @@ export default function Sidebar() {
                 </svg>
               </button>
             </div>
+          </div>
 
-            {/* Navigation */}
-            <div className="flex flex-col gap-1" onMouseLeave={() => setActiveDropdown(null)}>
-              {navigationItems.map((item) => (
-                <div key={item.id}>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (item.hasSubmenu) {
-                        toggleExpanded(item.id);
-                      }
-                    }}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
-                  >
-                    <div className="flex items-center gap-2 flex-1 text-left">
-                      <span className="flex items-center justify-center text-gray-600">
-                        {item.icon}
-                      </span>
-                      <span className="font-normal">{item.label}</span>
-                    </div>
+          {/* Scrollable Middle Section */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="flex flex-col gap-6 px-5">
+              {/* Navigation */}
+              <div className="flex flex-col gap-1" onMouseLeave={() => setActiveDropdown(null)}>
+                {navigationItems.map((item) => (
+                  <div key={item.id}>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (item.hasSubmenu) {
+                          toggleExpanded(item.id);
+                        }
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
+                    >
+                      <div className="flex items-center gap-2 flex-1 text-left">
+                        <span className="flex items-center justify-center text-gray-600">
+                          {item.icon}
+                        </span>
+                        <span className="font-normal">{item.label}</span>
+                      </div>
+                      {item.hasSubmenu && expandedItems.has(item.id) && (
+                        <svg
+                          className="w-4 h-4 text-gray-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 9l6 6 6-6"
+                          />
+                        </svg>
+                      )}
+                    </button>
+
+                    {/* Submenu */}
                     {item.hasSubmenu && expandedItems.has(item.id) && (
+                      <div className="ml-6 mt-1 flex flex-col gap-0">
+                        {(submenuMap[item.id] || []).map((subitem, idx) => {
+                          const isLink = subitem.path !== undefined;
+                          const className =
+                            "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10";
+
+                          return isLink ? (
+                        <Link
+                          key={idx}
+                          to={subitem.path!}
+                          className={className}
+                          onClick={() => {
+                            setIsHovered(false);
+                            setActiveDropdown(null);
+                          }}
+                        >
+                          <div className="flex items-center h-full">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                          </div>
+                          <span className="text-sm">{subitem.label}</span>
+                        </Link>
+                      ) : (
+                        <button
+                          key={idx}
+                          className={className}
+                          onClick={() => {
+                            setIsHovered(false);
+                            setActiveDropdown(null);
+                          }}
+                        >
+                          <div className="flex items-center h-full">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                          </div>
+                          <span className="text-sm">{subitem.label}</span>
+                        </button>
+                      );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-gray-300"></div>
+
+              {/* Favorites */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-xs font-semibold text-gray-700 uppercase">
+                    Favorites
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button className="p-0 text-gray-600 hover:text-gray-900">
                       <svg
-                        className="w-4 h-4 text-gray-600"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        strokeWidth="2"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 9l6 6 6-6"
-                        />
+                        <path d="M5 12h14M12 5v14" />
                       </svg>
-                    )}
-                  </button>
-
-                  {/* Submenu */}
-                  {item.hasSubmenu && expandedItems.has(item.id) && (
-                    <div className="ml-6 mt-1 flex flex-col gap-0">
-                      {(submenuMap[item.id] || []).map((subitem, idx) => {
-                        const isLink = subitem.path !== undefined;
-                        const className =
-                          "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10";
-
-                        return isLink ? (
-                      <Link
-                        key={idx}
-                        to={subitem.path!}
-                        className={className}
-                        onClick={() => {
-                          setIsHovered(false);
-                          setActiveDropdown(null);
-                        }}
+                    </button>
+                    <button className="p-0 text-gray-600 hover:text-gray-900">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
                       >
-                        <div className="flex items-center h-full">
-                          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                        </div>
-                        <span className="text-sm">{subitem.label}</span>
-                      </Link>
-                    ) : (
-                      <button
-                        key={idx}
-                        className={className}
-                        onClick={() => {
-                          setIsHovered(false);
-                          setActiveDropdown(null);
-                        }}
-                      >
-                        <div className="flex items-center h-full">
-                          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                        </div>
-                        <span className="text-sm">{subitem.label}</span>
-                      </button>
-                    );
-                      })}
-                    </div>
-                  )}
+                        <circle cx="12" cy="12" r="1" />
+                        <circle cx="19" cy="12" r="1" />
+                        <circle cx="5" cy="12" r="1" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-gray-300"></div>
-
-            {/* Favorites */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-xs font-semibold text-gray-700 uppercase">
-                  Favorites
-                </span>
-                <div className="flex items-center gap-2">
-                  <button className="p-0 text-gray-600 hover:text-gray-900">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M5 12h14M12 5v14" />
-                    </svg>
-                  </button>
-                  <button className="p-0 text-gray-600 hover:text-gray-900">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <circle cx="12" cy="12" r="1" />
-                      <circle cx="19" cy="12" r="1" />
-                      <circle cx="5" cy="12" r="1" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              {favoriteItems.map((item, idx) => (
-                <button
-                  key={idx}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
-                >
-                  <span>{item}</span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
+                {favoriteItems.map((item, idx) => (
+                  <button
+                    key={idx}
+                    className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
                   >
-                    <path d="M12 17v5" />
-                    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
-                  </svg>
-                </button>
-              ))}
+                    <span>{item}</span>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M12 17v5" />
+                      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
