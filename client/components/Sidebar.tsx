@@ -383,7 +383,7 @@ export default function Sidebar() {
 
           {/* Scrollable Middle Section */}
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="flex flex-col gap-6 px-5">
+            <div className="flex flex-col gap-6">
               {/* Navigation */}
               <div className="flex flex-col gap-1" onMouseLeave={() => setActiveDropdown(null)}>
                 {navigationItems.map((item) => (
@@ -656,7 +656,7 @@ export default function Sidebar() {
       </div>
 
       {/* Scrollable Middle Section */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0 px-5">
         <div className="flex flex-col gap-6">
           {/* Navigation */}
           <div className="flex flex-col gap-1">
