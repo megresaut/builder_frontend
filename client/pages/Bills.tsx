@@ -203,10 +203,9 @@ export default function Bills() {
         windowEnd = currentPage + 1;
       }
 
-      // Calculate left side to maintain a gap of 4 between left and right
-      // leftEnd should be at most (windowStart - 5) so there's a gap of 4
-      let leftEnd = Math.min(windowStart - 5, Math.floor((windowStart - 1) / 2));
-      leftEnd = Math.max(1, leftEnd);
+      // Calculate left side with a gap of 4 between left and right
+      // leftEnd = windowStart - 5 ensures there are 4 hidden pages between them
+      const leftEnd = Math.max(1, windowStart - 5);
 
       // Show pages from 1 up to leftEnd
       for (let i = 1; i <= leftEnd; i++) {
@@ -218,11 +217,11 @@ export default function Bills() {
         pages.push("...");
       }
 
-      // Add carousel window
-      windowStart = Math.max(leftEnd + 5, windowStart);
-      windowEnd = Math.min(totalPages, windowEnd);
+      // Add carousel window, ensuring no overlap with left side
+      const adjustedWindowStart = Math.max(windowStart, leftEnd + 5);
+      const adjustedWindowEnd = Math.min(totalPages, windowEnd);
 
-      for (let i = windowStart; i <= windowEnd; i++) {
+      for (let i = adjustedWindowStart; i <= adjustedWindowEnd; i++) {
         pages.push(i);
       }
     }
