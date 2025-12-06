@@ -228,64 +228,6 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                console.log("Import clicked for order", orderId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
-              >
-                Import
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.75 11.25V12.15C15.75 13.4101 15.75 14.0402 15.5048 14.5215C15.289 14.9448 14.9448 15.289 14.5215 15.5048C14.0402 15.75 13.4101 15.75 12.15 15.75H5.85C4.58988 15.75 3.95982 15.75 3.47852 15.5048C3.05516 15.289 2.71095 14.9448 2.49524 14.5215C2.25 14.0402 2.25 13.4101 2.25 12.15V11.25M12.75 6L9 2.25M9 2.25L5.25 6M9 2.25V11.25"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                console.log("Login clicked for order", orderId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
-              >
-                Login
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15 15.75C15 14.7033 15 14.18 14.8708 13.7541C14.58 12.7953 13.8297 12.045 12.8709 11.7542C12.445 11.625 11.9217 11.625 10.875 11.625H7.125C6.07833 11.625 5.55499 11.625 5.12914 11.7542C4.17034 12.045 3.42003 12.7953 3.12918 13.7541C3 14.18 3 14.7033 3 15.75M12.375 5.625C12.375 7.48896 10.864 9 9 9C7.13604 9 5.625 7.48896 5.625 5.625C5.625 3.76104 7.13604 2.25 9 2.25C10.864 2.25 12.375 3.76104 12.375 5.625Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
                 console.log("Edit clicked for order", orderId);
                 setOpenMenuId(null);
               }}
