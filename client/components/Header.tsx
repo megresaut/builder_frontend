@@ -136,7 +136,7 @@ export default function Header() {
                 gap: "35px",
                 margin: "8px 0 -1px",
                 padding: "0 12px",
-                ...(isSelected && { border: "1px 1px 0px solid #d2d1cf" })
+                ...(isSelected && { border: "1px solid #d2d1cf", borderBottomWidth: "0px" })
               }}
             >
               <button
