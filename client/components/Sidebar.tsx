@@ -16,6 +16,7 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [favoriteItems, setFavoriteItems] = useState(["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"]);
 
   const navigationItems: SidebarItem[] = [
     {
