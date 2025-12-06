@@ -611,7 +611,7 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="sticky right-0 px-3 py-3 text-left bg-white border-l border-gray-200">
+                    <th className="sticky right-0 px-2 py-3 text-center bg-white border-l border-gray-200 w-16">
                       <span className="font-medium text-sm text-gray-700">
                         Actions
                       </span>
