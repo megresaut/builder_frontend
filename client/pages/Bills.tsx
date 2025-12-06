@@ -365,7 +365,7 @@ export default function Bills() {
             <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
               <div className="flex items-center gap-4">
                 <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                  Draft Bills
+                  {selectedTab === "approved" ? "Approved Bills" : "Draft Bills"}
                 </h2>
                 <div className="flex items-center gap-2 h-6">
                   <svg
@@ -384,7 +384,7 @@ export default function Bills() {
                     />
                   </svg>
                   <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
-                    Updated 2 minutes ago
+                    {selectedTab === "approved" ? "Last exported 3 minutes ago" : "Updated 2 minutes ago"}
                   </span>
                 </div>
               </div>
