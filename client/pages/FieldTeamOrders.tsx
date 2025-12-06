@@ -662,7 +662,7 @@ export default function FieldTeamOrders() {
                           ${order.amount}
                         </span>
                       </td>
-                      <td className="sticky right-0 px-2 py-3 bg-white border-l border-gray-200 w-16 flex items-center justify-center">
+                      <td className="sticky right-0 px-2 py-3 border-gray-200 w-16 flex items-center justify-center" style={{ borderLeftWidth: "2px" }}>
                         <ActionButton
                           orderId={order.id}
                           openMenuId={openMenuId}
