@@ -362,7 +362,7 @@ export default function Sidebar() {
           }}
         >
           {/* Top Section */}
-          <div className="flex flex-col" style={{ gap: "24px" }}>
+          <div className="flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
