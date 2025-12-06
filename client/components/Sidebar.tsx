@@ -382,8 +382,8 @@ export default function Sidebar() {
           </div>
 
           {/* Scrollable Middle Section */}
-          <div className="flex-1 overflow-y-auto min-h-0 px-5">
-            <div className="flex flex-col gap-6">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="flex flex-col gap-6 px-5">
               {/* Navigation */}
               <div className="flex flex-col gap-1" onMouseLeave={() => setActiveDropdown(null)}>
                 {navigationItems.map((item) => (
@@ -528,7 +528,7 @@ export default function Sidebar() {
           </div>
 
           {/* Bottom Section */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 px-5">
             {/* Settings & Help */}
             <div className="flex flex-col gap-1">
               <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm">
@@ -656,8 +656,8 @@ export default function Sidebar() {
       </div>
 
       {/* Scrollable Middle Section */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-5">
-        <div className="flex flex-col gap-6">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex flex-col gap-6 px-5">
           {/* Navigation */}
           <div className="flex flex-col gap-1">
             {navigationItems.map((item) => (
@@ -781,7 +781,7 @@ export default function Sidebar() {
       </div>
 
       {/* Bottom Section */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 px-5">
         {/* Settings & Help */}
         <div className="flex flex-col gap-1">
           <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm">
