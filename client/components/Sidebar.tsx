@@ -331,7 +331,7 @@ export default function Sidebar() {
               </div>
               <button
                 onClick={() => {
-                  setIsCollapsed(true);
+                  setIsCollapsed(!isCollapsed);
                   setIsHovered(false);
                   setActiveDropdown(null);
                 }}
