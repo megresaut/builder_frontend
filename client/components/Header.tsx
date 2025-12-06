@@ -109,7 +109,10 @@ export default function Header() {
     // Find the first closed tab and open it
     const closedTab = tabs.find(tab => !openTabs.has(tab.id));
     if (closedTab) {
-      toggleTab(closedTab.id);
+      const newTabs = new Set(openTabs);
+      newTabs.add(closedTab.id);
+      setOpenTabs(newTabs);
+      setSelectedTab(closedTab.id);
     }
   };
 
