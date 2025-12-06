@@ -272,7 +272,7 @@ export default function Index() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 xl:p-12">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 xl:p-12 border-l border-[#D2D1CF]">
       <div className="max-w-[1200px] mx-auto flex flex-col gap-9">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
