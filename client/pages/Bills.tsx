@@ -189,11 +189,22 @@ export default function Bills() {
         pages.push(i);
       }
 
-      // Add ellipsis
-      pages.push("...");
+      // Add ellipsis if there's a gap
+      if (currentPage > 5) {
+        pages.push("...");
+      }
 
-      // Always show last 3 pages
-      for (let i = totalPages - 2; i <= totalPages; i++) {
+      // Show 3 pages around current page (current+5, current+6, current+7)
+      // This creates a window that shifts as you navigate
+      let rightStart = Math.max(4, currentPage + 5);
+      let rightEnd = Math.min(totalPages, rightStart + 2);
+
+      // Make sure we show exactly 3 pages on the right (or less if near end)
+      if (rightEnd === totalPages && totalPages - rightStart < 2) {
+        rightStart = Math.max(4, totalPages - 2);
+      }
+
+      for (let i = rightStart; i <= rightEnd; i++) {
         pages.push(i);
       }
     }
