@@ -185,23 +185,12 @@ export default function Bills() {
       }
     } else {
       // Left side: 3 consecutive pages starting from currentPage
-      let leftStart = currentPage;
-      let leftEnd = Math.min(currentPage + 2, totalPages);
+      const leftStart = currentPage;
+      const leftEnd = currentPage + 2;
 
       // Right side: 3 consecutive pages with gap of 4 from left
-      let rightStart = leftEnd + 5; // leftEnd + 1 (gap start) + 4 (gap size) = leftEnd + 5
-      let rightEnd = rightStart + 2;
-
-      // Adjust if right side would exceed totalPages
-      if (rightEnd > totalPages) {
-        // Shift backward so right side ends at totalPages
-        rightEnd = totalPages;
-        rightStart = totalPages - 2;
-
-        // Shift left backward to maintain gap of 4
-        leftEnd = rightStart - 5;
-        leftStart = Math.max(1, leftEnd - 2);
-      }
+      const rightStart = leftEnd + 5;
+      const rightEnd = rightStart + 2;
 
       // Add left side
       for (let i = leftStart; i <= leftEnd; i++) {
