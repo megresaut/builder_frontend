@@ -128,7 +128,7 @@ export default function Header() {
               className={`flex items-center gap-2 px-3 py-3 transition-all whitespace-nowrap ${
                 isSelected
                   ? "bg-white border-t border-l border-r border-[#D2D1CF]"
-                  : "bg-gray-50 border-b border-[#D2D1CF]"
+                  : "bg-gray-50"
               }`}
               style={{
                 borderRadius: isSelected ? "12px 12px 0 0" : "0",
