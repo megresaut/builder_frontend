@@ -127,7 +127,7 @@ export default function Header() {
               key={tab.id}
               className={`flex items-center gap-2 px-3 py-3 transition-all whitespace-nowrap ${
                 isSelected
-                  ? "bg-white border-t border-l border-r border-[#D2D1CF] border-b border-white"
+                  ? "bg-white border-t border-l border-r border-[#D2D1CF]"
                   : "bg-gray-50 border-b border-[#D2D1CF]"
               }`}
               style={{
