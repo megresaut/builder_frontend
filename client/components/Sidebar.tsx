@@ -205,8 +205,6 @@ export default function Sidebar() {
     ],
   };
 
-  const favoriteItems = ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"];
-
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
