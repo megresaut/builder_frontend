@@ -184,12 +184,6 @@ export default function Bills() {
         pages.push(i);
       }
     } else {
-      // Always show first 3 pages
-      pages.push(1, 2, 3);
-
-      // Always show ellipsis
-      pages.push("...");
-
       // Calculate the carousel window around current page
       // Show 3 pages that shift based on current page
       let windowStart: number;
@@ -209,8 +203,23 @@ export default function Bills() {
         windowEnd = currentPage + 1;
       }
 
-      // Ensure we don't overlap with the first 3 pages
-      windowStart = Math.max(4, windowStart);
+      // Calculate left side to maintain a gap of 4 between left and right
+      // leftEnd should be at most (windowStart - 5) so there's a gap of 4
+      let leftEnd = Math.min(windowStart - 5, Math.floor((windowStart - 1) / 2));
+      leftEnd = Math.max(1, leftEnd);
+
+      // Show pages from 1 up to leftEnd
+      for (let i = 1; i <= leftEnd; i++) {
+        pages.push(i);
+      }
+
+      // Add ellipsis only if there's a gap
+      if (leftEnd < windowStart - 1) {
+        pages.push("...");
+      }
+
+      // Add carousel window
+      windowStart = Math.max(leftEnd + 5, windowStart);
       windowEnd = Math.min(totalPages, windowEnd);
 
       for (let i = windowStart; i <= windowEnd; i++) {
