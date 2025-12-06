@@ -345,7 +345,7 @@ export default function Sidebar() {
           }}
         >
           {/* Top Section */}
-          <div className="flex flex-col gap-4 px-5">
+          <div className="flex flex-col gap-3 px-5">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -625,7 +625,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-screen py-4 px-5 justify-between transition-all duration-300">
       {/* Top Section - Header Only */}
-      <div className="flex items-center justify-between px-5">
+      <div className="flex items-center justify-between px-5 pb-3">
         <div className="flex items-center gap-2">
           <img
             alt="AVM Logo"
