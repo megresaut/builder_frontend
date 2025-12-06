@@ -243,7 +243,7 @@ export default function Bills() {
             <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
               All Bills
             </h1>
-            <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-2px" }}>
+            <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-3px" }}>
               All your bills, in one place
             </p>
           </div>
