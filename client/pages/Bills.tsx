@@ -503,11 +503,13 @@ export default function Bills() {
                   </button>
                   {showPageSizeDropdown && (
                     <div
-                      className="absolute top-full left-0 mt-2 bg-white rounded-lg overflow-hidden"
+                      className="absolute top-full left-0 mt-2 bg-white rounded-lg"
                       style={{
                         border: "0.5px solid #DADADA",
                         boxShadow: "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                        zIndex: 9999
+                        zIndex: 9999,
+                        minWidth: "50px",
+                        width: "100%"
                       }}
                     >
                       {[10, 25, 50].map((size) => (
@@ -519,7 +521,7 @@ export default function Bills() {
                             setShowPageSizeDropdown(false);
                           }}
                           className={cn(
-                            "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap min-w-[80px]",
+                            "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
                             itemsPerPage === size
                               ? "bg-gray-50 font-medium text-gray-900"
                               : "text-[#303030] hover:bg-gray-50"
