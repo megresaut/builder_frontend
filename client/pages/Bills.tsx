@@ -177,8 +177,8 @@ export default function Bills() {
     if (showPageSizeDropdown && dropdownButtonRef.current) {
       const rect = dropdownButtonRef.current.getBoundingClientRect();
       setDropdownPos({
-        top: rect.bottom + 8,
-        left: rect.left,
+        top: window.scrollY + rect.bottom + 8,
+        left: window.scrollX + rect.left,
       });
     }
   }, [showPageSizeDropdown]);
