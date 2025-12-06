@@ -491,7 +491,7 @@ export default function Bills() {
             {/* Pagination Footer */}
             <div
               className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
-              style={{ position: 'relative', zIndex: 1 }}
+              style={{ position: 'relative', zIndex: 1, overflow: 'visible' }}
             >
               <div className="flex items-center gap-2">
                 <span className="text-gray-700 text-sm font-medium">Showing</span>
