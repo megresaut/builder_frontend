@@ -649,7 +649,7 @@ export default function Bills() {
             zIndex: 99999,
             minWidth: "56px",
             width: "56px",
-            position: "absolute",
+            position: "fixed",
             top: dropdownPos.top + "px",
             left: dropdownPos.left + "px",
           }}
