@@ -131,7 +131,7 @@ export default function Header() {
                 borderRadius: isSelected ? "12px 12px 0 0" : "0",
                 minHeight: "47px",
                 gap: "35px",
-                ...(isSelected ? { marginTop: "8px" } : { margin: "8px 0 -2px" }),
+                margin: "8px 0 -2px",
                 padding: "0 12px",
                 borderBottomColor: "rgb(210,209,207)",
                 borderBottomWidth: "1px",
