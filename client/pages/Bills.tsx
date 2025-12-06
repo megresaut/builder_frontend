@@ -653,9 +653,10 @@ export default function Bills() {
       {/* Dropdown Menu - Rendered at root level */}
       {showPageSizeDropdown && (
         <div
-          className="fixed bg-white rounded-lg"
+          className="fixed bg-white overflow-hidden"
           style={{
             border: "0.5px solid #DADADA",
+            borderRadius: "8px",
             boxShadow: "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
             zIndex: 99999,
             minWidth: "56px",
@@ -665,7 +666,7 @@ export default function Bills() {
           }}
           onMouseLeave={() => setShowPageSizeDropdown(false)}
         >
-          {[10, 25, 50].map((size) => (
+          {[10, 25, 50].map((size, index) => (
             <button
               key={size}
               onClick={() => {
@@ -683,7 +684,8 @@ export default function Bills() {
                 fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontSize: "16px",
                 lineHeight: "140%",
-                letterSpacing: "-0.32px"
+                letterSpacing: "-0.32px",
+                borderRadius: index === 2 ? "0 0 8px 8px" : "0"
               }}
             >
               {size}
