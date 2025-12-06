@@ -157,13 +157,38 @@ export default function Sidebar() {
   const submenuMap: Record<string, Array<{ label: string; path?: string }>> = {
     dashboard: [
       { label: "Portfolios" },
-      { label: "Portfolios" },
-      { label: "Portfolios" },
+      { label: "All Properties" },
+      { label: "Overview" },
     ],
-    accounting: [{ label: "Bills", path: "/bills" }],
+    properties: [
+      { label: "All Properties" },
+      { label: "Active Listings" },
+      { label: "Archived" },
+    ],
+    screening: [
+      { label: "Pending Screenings" },
+      { label: "Completed" },
+      { label: "Rejected" },
+    ],
+    leases: [
+      { label: "Active Leases" },
+      { label: "Pending" },
+      { label: "Expired" },
+    ],
+    accounting: [
+      { label: "Bills", path: "/bills" },
+      { label: "Expenses" },
+      { label: "Income" },
+    ],
     maintenance: [
       { label: "Tasks", path: "/" },
       { label: "Field Team Orders", path: "/field-team-orders" },
+      { label: "Work Orders" },
+    ],
+    reports: [
+      { label: "Financial Reports" },
+      { label: "Property Reports" },
+      { label: "Tenant Reports" },
     ],
   };
 
