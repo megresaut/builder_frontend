@@ -173,7 +173,7 @@ const ActionButton = () => (
 );
 
 export default function FieldTeamOrders() {
-  const [selectedTab, setSelectedTab] = useState<"dispatched" | "in-progress">(
+  const [selectedTab, setSelectedTab] = useState<"dispatched" | "approved">(
     "dispatched",
   );
   const [currentPage, setCurrentPage] = useState(1);
