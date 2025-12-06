@@ -1,713 +1,701 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { PropertyTablePagination } from "@/components/PropertyTable";
-
-type OrderStatus = "dispatched" | "approved" | "pending-approval";
+import { StatusBadge } from "./Utilities";
 
 interface FieldTeamOrder {
   id: number;
+  team: string;
+  teamColor: string;
   property: string;
-  description: string;
+  createdDate: string;
   dueDate: string;
-  fieldTeam: { initials: string; color: string }[];
-  status: OrderStatus;
-  amount: number;
+  status: "dispatched" | "in-progress";
+  description: string;
+  orderNumber: string;
 }
 
 const fieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
+    team: "Team A",
+    teamColor: "#BC423E",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Oct 2, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
+    createdDate: "Oct 4, 2025",
+    dueDate: "Dec 14, 2025",
     status: "dispatched",
-    amount: 420,
+    description: "Doors need to be repaired",
+    orderNumber: "FTO-2024-934",
   },
   {
     id: 2,
+    team: "Team B",
+    teamColor: "#EBA524",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 29, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "approved",
-    amount: 95,
+    createdDate: "Oct 3, 2025",
+    dueDate: "Dec 12, 2025",
+    status: "in-progress",
+    description: "HVAC system maintenance",
+    orderNumber: "FTO-2024-582",
   },
   {
     id: 3,
+    team: "Team A",
+    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 10, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "pending-approval",
-    amount: 95,
+    createdDate: "Oct 2, 2025",
+    dueDate: "Dec 10, 2025",
+    status: "dispatched",
+    description: "Plumbing inspection scheduled",
+    orderNumber: "FTO-2024-195",
   },
   {
     id: 4,
+    team: "Team C",
+    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 6, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 112,
+    createdDate: "Oct 1, 2025",
+    dueDate: "Dec 8, 2025",
+    status: "in-progress",
+    description: "Electrical work in progress",
+    orderNumber: "FTO-2024-732",
   },
   {
     id: 5,
+    team: "Team B",
+    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 5, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
+    createdDate: "Oct 1, 2025",
+    dueDate: "Dec 6, 2025",
     status: "dispatched",
-    amount: 93,
+    description: "Roof inspection required",
+    orderNumber: "FTO-2024-268",
   },
   {
     id: 6,
+    team: "Team D",
+    teamColor: "#EBA524",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 4, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
+    createdDate: "Sep 30, 2025",
+    dueDate: "Dec 4, 2025",
     status: "dispatched",
-    amount: 75,
+    description: "Interior painting scheduled",
+    orderNumber: "FTO-2024-694",
   },
   {
     id: 7,
+    team: "Team A",
+    teamColor: "#059669",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 4, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 101,
+    createdDate: "Sep 29, 2025",
+    dueDate: "Dec 2, 2025",
+    status: "in-progress",
+    description: "Landscaping and exterior work",
+    orderNumber: "FTO-2024-319",
   },
   {
     id: 8,
+    team: "Team E",
+    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 3, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
+    createdDate: "Sep 28, 2025",
+    dueDate: "Nov 30, 2025",
     status: "dispatched",
-    amount: 124,
+    description: "Security system upgrade",
+    orderNumber: "FTO-2024-851",
   },
   {
     id: 9,
+    team: "Team C",
+    teamColor: "#059669",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 1, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 95,
+    createdDate: "Sep 28, 2025",
+    dueDate: "Nov 28, 2025",
+    status: "in-progress",
+    description: "Window replacement in progress",
+    orderNumber: "FTO-2024-427",
   },
   {
     id: 10,
+    team: "Team D",
+    teamColor: "#BC423E",
     property: "22 Indian Chase Dr",
-    description: "Doors need to be repaired",
-    dueDate: "Sep 1, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
+    createdDate: "Sep 28, 2025",
+    dueDate: "Nov 26, 2025",
     status: "dispatched",
-    amount: 120,
+    description: "Flooring installation scheduled",
+    orderNumber: "FTO-2024-934",
   },
 ];
 
-const StatusBadge = ({ status }: { status: OrderStatus }) => {
-  const config = {
-    dispatched: {
-      bgColor: "bg-[#FEF3C7]",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="w-4 h-4"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" x2="12" y1="8" y2="12" />
-          <line x1="12" x2="12.01" y1="16" y2="16" />
-        </svg>
-      ),
-      label: "Dispatched",
-      color: "text-yellow-700",
-    },
-    approved: {
-      bgColor: "bg-[#DCFCE7]",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="w-4 h-4"
-        >
-          <path d="M21.801 10A10 10 0 1 1 17 3.335" />
-          <path d="m9 11 3 3L22 4" />
-        </svg>
-      ),
-      label: "Approved",
-      color: "text-green-700",
-    },
-    "pending-approval": {
-      bgColor: "bg-[#DBEAFE]",
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-4 h-4"
-        >
-          <path
-            d="M8.10938 5.66663H15.2061"
-            stroke="#2463EB"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M8.10938 17.9999H15.2061"
-            stroke="#2463EB"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M13.4394 8.80664L11.386 10.86C10.8527 11.3933 9.98605 11.3933 9.44605 10.86L7.39272 8.80664C7.13272 8.54664 6.99272 8.19997 6.99272 7.83997V7.03997C6.99272 6.27997 7.60605 5.66664 8.36605 5.66664H12.4794C13.2394 5.66664 13.8527 6.27997 13.8527 7.03997V7.83997C13.8394 8.19997 13.6927 8.55331 13.4394 8.80664Z"
-            stroke="#2463EB"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M13.8398 16.6267C13.8398 17.3867 13.2265 18 12.4665 18H8.35984C7.59984 18 6.98651 17.3867 6.98651 16.6267H13.8398Z"
-            fill="#2463EB"
-            stroke="#2463EB"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M13.8398 15.8267V16.6267H6.98651V15.8267C6.98651 15.4667 7.13318 15.1133 7.38651 14.86L9.44651 12.8C9.97984 12.2667 10.8465 12.2667 11.3798 12.8L13.4398 14.86C13.6932 15.1133 13.8398 15.4667 13.8398 15.8267Z"
-            stroke="#2463EB"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9.03906 10.46H11.7857"
-            stroke="#2463EB"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M10.4141 15.0733C10.2807 15.0733 10.1541 15.02 10.0607 14.9267C9.96738 14.8333 9.91405 14.7067 9.91405 14.5733C9.91405 14.5067 9.92738 14.4467 9.95405 14.38C9.98071 14.32 10.0141 14.2667 10.0607 14.22C10.1941 14.08 10.4207 14.04 10.6074 14.1133C10.6674 14.14 10.7207 14.1733 10.7674 14.22C10.8141 14.2667 10.8474 14.32 10.8741 14.38C10.9007 14.4467 10.9141 14.5067 10.9141 14.5733C10.9141 14.7067 10.8607 14.8333 10.7674 14.9267C10.6741 15.02 10.5474 15.0733 10.4141 15.0733Z"
-            fill="#2463EB"
-          />
-        </svg>
-      ),
-      label: "Pending Approval",
-      color: "text-blue-600",
-    },
-  };
 
-  const { bgColor, icon, label, color } = config[status];
-
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-1.5 px-3 py-1.5 rounded-2xl w-fit",
-        bgColor,
-        color,
-      )}
-    >
-      {icon}
-      <span className="text-sm font-normal capitalize">{label}</span>
-    </div>
-  );
-};
-
-const TeamMember = ({
-  initials,
-  color,
-}: {
-  initials: string;
-  color: string;
-}) => (
-  <div
-    className={cn(
-      "w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold",
-      color,
-    )}
+const TeamAvatar = ({ name, color }: { name: string; color: string }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill={color}
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    {initials}
-  </div>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const ActionButton = () => (
+  <button className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="19" cy="12" r="1" />
+      <circle cx="5" cy="12" r="1" />
+    </svg>
+  </button>
 );
 
 export default function FieldTeamOrders() {
+  const [selectedTab, setSelectedTab] = useState<"dispatched" | "in-progress">(
+    "dispatched",
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showPageSizeDropdown && dropdownButtonRef.current) {
+        const rect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showPageSizeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      updateDropdownPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showPageSizeDropdown]);
+
+  const dispatchedOrders = fieldTeamOrders.filter((_, idx) => idx % 2 === 0);
+  const totalPages = Math.ceil(225 / itemsPerPage);
+
+  const getPaginationNumbers = () => {
+    const pages: (number | string)[] = [];
+
+    const leftStart = currentPage;
+    const leftEnd = currentPage + 2;
+
+    const rightStart = leftEnd + 5;
+    const rightEnd = rightStart + 2;
+
+    for (let i = leftStart; i <= leftEnd; i++) {
+      pages.push(i);
+    }
+
+    pages.push("...");
+
+    for (let i = rightStart; i <= rightEnd; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 xl:p-12">
-      <div className="max-w-[1200px] mx-auto flex flex-col gap-9">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
+      <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-task-text-primary font-semibold text-2xl leading-[30px]">
-                All Field Team Orders
-              </h1>
-              <p className="text-task-text-tertiary font-medium text-base leading-4">
-                All your field team orders, in one place
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] bg-task-button-primary text-white hover:opacity-90 transition-opacity">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9.99935 4.16675V15.8334M4.16602 10.0001H15.8327"
-                    stroke="white"
-                    strokeWidth="1.25"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="font-medium text-base">Create FTO</span>
-              </button>
-            </div>
+          {/* Title and Description */}
+          <div className="flex flex-col gap-1">
+            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+              All Field Team Orders
+            </h1>
+            <p className="text-[#717179] font-medium text-base leading-4">
+              All your field team orders, in one place
+            </p>
           </div>
 
-          {/* Orders Table */}
-          <div className="flex flex-col">
-            <div
-              className="w-full overflow-hidden rounded-xl border shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
-              style={{ borderColor: "rgb(229, 229, 229)" }}
-            >
-              {/* Table Header */}
-              <div
-                className="flex justify-between items-center px-4 py-3 border-b"
-                style={{ borderColor: "rgb(229, 229, 229)" }}
+          {/* Segmented Tabs and Export Button */}
+          <div className="flex justify-between items-start">
+            <div className="flex w-[382px] items-start rounded-lg shadow-[0_0_0_0.5px_#D2D1CF]">
+              <button
+                onClick={() => setSelectedTab("dispatched")}
+                className={cn(
+                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
+                  selectedTab === "dispatched"
+                    ? "bg-white"
+                    : "bg-transparent hover:bg-gray-50",
+                )}
               >
-                <h2 className="text-task-text-primary font-medium text-[22px] leading-6">
-                  Field Team Orders
+                <span className="text-[#282828] text-center font-normal text-sm leading-5">
+                  Dispatched
+                </span>
+              </button>
+              <button
+                onClick={() => setSelectedTab("in-progress")}
+                className={cn(
+                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
+                  selectedTab === "in-progress"
+                    ? "bg-white"
+                    : "bg-transparent hover:bg-gray-50",
+                )}
+              >
+                <span className="text-[#282828] text-center font-normal text-sm leading-5">
+                  In Progress
+                </span>
+              </button>
+            </div>
+            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors">
+              <span className="text-white font-medium text-base leading-normal">
+                Create FTO
+              </span>
+            </button>
+          </div>
+
+          {/* Field Team Orders Table */}
+          <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+            {/* Table Header */}
+            <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+              <div className="flex items-center gap-4">
+                <h2 className="text-[#303030] font-medium text-[22px] leading-6">
+                  All Field Team Orders
                 </h2>
-                <div className="flex items-start gap-2.5">
-                  <div
-                    className="flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
-                    style={{ borderColor: "rgb(229, 229, 229)" }}
+                <div className="flex items-center gap-2 h-6">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
-                        stroke="#303030"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-task-text-primary w-32 sm:w-48"
+                    <path
+                      d="M1.16699 8.16667C1.16699 8.16667 1.23776 8.66206 3.28802 10.7123C5.33827 12.7626 8.66238 12.7626 10.7126 10.7123C11.439 9.9859 11.9081 9.09958 12.1198 8.16667M1.16699 8.16667V11.6667M1.16699 8.16667H4.66699M12.8337 5.83333C12.8337 5.83333 12.7629 5.33794 10.7126 3.28769C8.66238 1.23744 5.33827 1.23744 3.28802 3.28769C2.56161 4.0141 2.09256 4.90042 1.88089 5.83333M12.8337 5.83333V2.33333M12.8337 5.83333H9.33366"
+                      stroke="#8B8D8D"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                  </div>
-                  <button
-                    className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                    style={{ borderColor: "rgb(229, 229, 229)" }}
+                  </svg>
+                  <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
+                    Updated 2 minutes ago
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <span className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
-                      Filter
-                    </span>
+                    <path
+                      d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                  />
+                </div>
+                <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    Filter
+                  </span>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M4.5 6.75L9 11.25L13.5 6.75"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Table Content */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                          <path d="M10 6h4" />
+                          <path d="M10 10h4" />
+                          <path d="M10 14h4" />
+                          <path d="M10 18h4" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Team</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                          <path d="M10 6h4" />
+                          <path d="M10 10h4" />
+                          <path d="M10 14h4" />
+                          <path d="M10 18h4" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Property</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M8 2v4" />
+                          <path d="M16 2v4" />
+                          <rect width="18" height="18" x="3" y="4" rx="2" />
+                          <path d="M3 10h18" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Created Date</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M8 2v4" />
+                          <path d="M16 2v4" />
+                          <rect width="18" height="18" x="3" y="4" rx="2" />
+                          <path d="M3 10h18" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Due Date</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Status</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Description</span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="4" x2="20" y1="9" y2="9" />
+                          <line x1="4" x2="20" y1="15" y2="15" />
+                          <line x1="10" x2="8" y1="3" y2="21" />
+                          <line x1="16" x2="14" y1="3" y2="21" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">Order #</span>
+                      </div>
+                    </th>
+                    <th className="sticky right-0 px-3 py-3 text-left bg-white border-l border-gray-200">
+                      <span className="font-medium text-sm text-gray-700">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dispatchedOrders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <TeamAvatar name={order.team} color={order.teamColor} />
+                          <span className="text-gray-900 font-normal text-base">
+                            {order.team}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {order.property}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {order.createdDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {order.dueDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <StatusBadge status={order.status as any} />
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
+                          {order.description}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {order.orderNumber}
+                        </span>
+                      </td>
+                      <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
+                        <ActionButton />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Footer */}
+            <div
+              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+              style={{ position: 'relative', zIndex: 1, overflow: 'visible' }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700 text-sm font-medium">Showing</span>
+                <div className="relative" style={{ position: 'relative', zIndex: 10 }}>
+                  <button
+                    ref={dropdownButtonRef}
+                    onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
+                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
+                    style={{
+                      borderColor: "rgb(218, 218, 218)",
+                      borderWidth: "0.909091px",
+                      boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                    }}
+                  >
+                    <div className="text-gray-900 font-medium text-sm">{itemsPerPage}</div>
                     <svg
+                      xmlns="http://www.w3.org/2000/svg"
                       width="18"
                       height="18"
-                      viewBox="0 0 18 18"
+                      viewBox="0 0 24 24"
                       fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <path
-                        d="M4.5 6.75L9 11.25L13.5 6.75"
-                        stroke="#303030"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                      <path d="m6 9 6 6 6-6" />
                     </svg>
                   </button>
                 </div>
+                <span className="text-gray-700 text-sm font-medium">of 225</span>
               </div>
+              <div
+                className="flex items-center rounded-lg border bg-white overflow-hidden"
+                style={{
+                  borderColor: "rgb(218, 218, 218)",
+                  borderWidth: "0.909091px",
+                  boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                }}
+              >
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50"
+                  )}
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m12 19-7-7 7-7" />
+                    <path d="M19 12H5" />
+                  </svg>
+                  <div className={cn(
+                    "font-medium text-sm",
+                    currentPage === 1 ? "text-gray-400" : "text-gray-700"
+                  )}>
+                    Previous
+                  </div>
+                </button>
+                {getPaginationNumbers().map((page, idx) => {
+                  if (page === "...") {
+                    return (
+                      <button
+                        key={`ellipsis-${idx}`}
+                        disabled
+                        className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                        style={{
+                          borderRightWidth: "0.909091px",
+                          borderRightColor: "rgb(229, 229, 229)",
+                          backgroundColor: "rgba(0, 0, 0, 0)",
+                        }}
+                      >
+                        <div className="text-gray-500 font-medium text-sm">...</div>
+                      </button>
+                    );
+                  }
 
-              {/* Table Content - Desktop */}
-              <div className="hidden lg:block overflow-x-auto border-b-0">
-                <table className="w-full">
-                  <thead>
-                    <tr
-                      className="border-b"
-                      style={{ borderColor: "rgb(229, 229, 229)" }}
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page as number)}
+                      className={cn(
+                        "flex items-center justify-center h-10 min-w-10 transition-colors",
+                        currentPage === page
+                          ? "hover:bg-gray-50"
+                          : "hover:bg-gray-50"
+                      )}
+                      style={{
+                        borderRightWidth: "0.909091px",
+                        borderRightColor: "rgb(229, 229, 229)",
+                        backgroundColor: currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                      }}
                     >
-                      <th
-                        className="px-3 py-3 text-left border-r"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M5.33399 5.33325H5.34065M1.33398 3.46658L1.33398 6.44959C1.33398 6.77572 1.33398 6.93878 1.37082 7.09223C1.40349 7.22827 1.45736 7.35833 1.53046 7.47763C1.61292 7.61219 1.72822 7.72749 1.95882 7.95809L7.07124 13.0705C7.86328 13.8625 8.25929 14.2586 8.71595 14.4069C9.11764 14.5375 9.55033 14.5375 9.95202 14.4069C10.4087 14.2586 10.8047 13.8625 11.5967 13.0705L13.0712 11.596C13.8633 10.804 14.2593 10.4079 14.4077 9.95128C14.5382 9.5496 14.5382 9.1169 14.4077 8.71522C14.2593 8.25856 13.8633 7.86254 13.0712 7.07051L7.95882 1.95809C7.72822 1.72749 7.61292 1.61219 7.47836 1.52973C7.35907 1.45663 7.22901 1.40275 7.09296 1.37009C6.93951 1.33325 6.77645 1.33325 6.45033 1.33325L3.46732 1.33325C2.72058 1.33325 2.34721 1.33325 2.062 1.47858C1.81111 1.60641 1.60714 1.81038 1.47931 2.06126C1.33398 2.34648 1.33398 2.71985 1.33398 3.46658ZM5.66732 5.33325C5.66732 5.51735 5.51808 5.66658 5.33399 5.66658C5.14989 5.66658 5.00065 5.51735 5.00065 5.33325C5.00065 5.14916 5.14989 4.99992 5.33399 4.99992C5.51808 4.99992 5.66732 5.14916 5.66732 5.33325Z"
-                              stroke="#525252"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            Property
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                        className="px-3 py-3 text-left border-r"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4"
-                          >
-                            <path
-                              d="M8.19531 15.9933L17.0553 11.1333L14.5886 8.66663L5.72865 13.5266L5.72198 15.9999L8.19531 15.9933Z"
-                              stroke="#525252"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M14.1211 10.92L15.8011 12.6"
-                              stroke="#525252"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            Description
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                        className="px-3 py-3 text-left border-r"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                          >
-                            <path d="M8 2v4" />
-                            <path d="M16 2v4" />
-                            <rect width="18" height="18" x="3" y="4" rx="2" />
-                            <path d="M3 10h18" />
-                          </svg>
-                          <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            Due Date
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                        className="px-3 py-3 text-left border-r"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                          >
-                            <path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" />
-                          </svg>
-                          <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            Field Team
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                        className="px-3 py-3 text-left border-r"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                          >
-                            <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                            <circle
-                              cx="7.5"
-                              cy="7.5"
-                              r=".5"
-                              fill="currentColor"
-                            />
-                          </svg>
-                          <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            Status
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                        className="px-3 py-3 text-left border-r"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                          >
-                            <line x1="12" x2="12" y1="2" y2="22" />
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                          </svg>
-                          <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            Amount
-                          </span>
-                        </div>
-                      </th>
-                      <th
-                        className="px-3 py-3 text-left border-l shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]"
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <span className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
-                          Actions
-                        </span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="border-b-0">
-                    {fieldTeamOrders.map((order, index) => (
-                      <tr
-                        key={order.id}
-                        className={cn(
-                          "border-b hover:bg-gray-50 transition-colors",
-                          index === fieldTeamOrders.length - 1
-                            ? "border-b-0"
-                            : "",
-                        )}
-                        style={{ borderColor: "rgb(229, 229, 229)" }}
-                      >
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[155px]">
-                            {order.property}
-                          </div>
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[250px]">
-                            {order.description}
-                          </div>
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize truncate max-w-[136px]">
-                            {order.dueDate}
-                          </div>
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            {order.fieldTeam.map((member, i) => (
-                              <TeamMember
-                                key={i}
-                                initials={member.initials}
-                                color={member.color}
-                              />
-                            ))}
-                          </div>
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <StatusBadge status={order.status} />
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-r",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
-                            $ {order.amount}
-                          </div>
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-3.5 border-l shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)]",
-                            index === fieldTeamOrders.length - 1
-                              ? "border-b-0"
-                              : "",
-                          )}
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <div className="flex justify-center">
-                            <button className="flex h-7 w-7 justify-center items-center rounded-md border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="w-4 h-4"
-                              >
-                                <circle cx="12" cy="12" r="1" />
-                                <circle cx="19" cy="12" r="1" />
-                                <circle cx="5" cy="12" r="1" />
-                              </svg>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                      <div className={cn(
+                        "font-medium text-sm",
+                        currentPage === page ? "text-gray-900 font-bold" : "text-gray-500"
+                      )}>
+                        {page}
+                      </div>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50"
+                  )}
+                  style={{
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className={cn(
+                    "font-medium text-sm text-gray-700"
+                  )}>
+                    Next
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
-
-            {/* Pagination */}
-            <PropertyTablePagination
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              setItemsPerPage={setItemsPerPage}
-            />
           </div>
         </div>
       </div>
+      {/* Dropdown Menu - Rendered via Portal at body level */}
+      {showPageSizeDropdown && createPortal(
+        <div
+          className="bg-white overflow-hidden"
+          style={{
+            border: "0.5px solid #DADADA",
+            borderRadius: "8px",
+            boxShadow: "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+            zIndex: 99999,
+            minWidth: "56px",
+            width: "56px",
+            position: "fixed",
+            top: dropdownPos.top + "px",
+            left: dropdownPos.left + "px",
+            pointerEvents: "auto"
+          }}
+          onMouseLeave={() => setShowPageSizeDropdown(false)}
+        >
+          {[10, 25, 50].map((size, index) => (
+            <button
+              key={size}
+              onClick={() => {
+                setItemsPerPage(size);
+                setCurrentPage(1);
+                setShowPageSizeDropdown(false);
+              }}
+              className={cn(
+                "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
+                itemsPerPage === size
+                  ? "bg-gray-50 font-medium text-gray-900"
+                  : "text-[#303030] hover:bg-gray-50"
+              )}
+              style={{
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontSize: "16px",
+                lineHeight: "140%",
+                letterSpacing: "-0.32px",
+                borderRadius: index === 2 ? "0 0 8px 8px" : "0"
+              }}
+            >
+              {size}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
