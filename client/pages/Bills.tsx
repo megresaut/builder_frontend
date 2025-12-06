@@ -174,12 +174,25 @@ export default function Bills() {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    if (showPageSizeDropdown && dropdownButtonRef.current) {
-      const rect = dropdownButtonRef.current.getBoundingClientRect();
-      setDropdownPos({
-        top: rect.bottom + 8,
-        left: rect.left,
-      });
+    const updateDropdownPos = () => {
+      if (showPageSizeDropdown && dropdownButtonRef.current) {
+        const rect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    updateDropdownPos();
+
+    if (showPageSizeDropdown) {
+      window.addEventListener("scroll", updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      return () => {
+        window.removeEventListener("scroll", updateDropdownPos);
+        window.removeEventListener("resize", updateDropdownPos);
+      };
     }
   }, [showPageSizeDropdown]);
 
