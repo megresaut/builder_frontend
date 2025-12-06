@@ -218,7 +218,6 @@ export default function Sidebar() {
   const tabContext = useContext(TabContext);
 
   const handleNavigation = (label: string, sectionId?: string) => {
-    // If we have a tab context and are in a new tab, update it
     if (tabContext && tabContext.selectedTab.startsWith("new-tab-") && sectionId) {
       tabContext.setTabMetadata(tabContext.selectedTab, {
         label,
@@ -230,9 +229,10 @@ export default function Sidebar() {
   if (isCollapsed) {
     return (
       <div
-        className={`relative h-screen flex-shrink-0 group transition-all ${
-          isHovered ? "w-64" : "w-20"
-        }`}
+        className={`relative h-screen flex-shrink-0 group transition-all`}
+        style={{
+          width: isHovered ? "262px" : "80px"
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
@@ -240,10 +240,12 @@ export default function Sidebar() {
         }}
       >
         {/* Collapsed Sidebar */}
-        <aside className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col py-5 px-3 justify-between w-20 z-10 ${
+        <aside className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col justify-between z-10 ${
           isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
         style={{
+          width: "80px",
+          padding: "20px 12px",
           transition: "opacity 0.3s ease",
           borderRightColor: "transparent",
           border: "1px solid #f7f7f7"
@@ -302,7 +304,7 @@ export default function Sidebar() {
                 >
                   <g clipPath="url(#clip0_11076_320)">
                     <path d="M10.0003 12.5C11.381 12.5 12.5003 11.3807 12.5003 9.99999C12.5003 8.61928 11.381 7.49999 10.0003 7.49999C8.61961 7.49999 7.50033 8.61928 7.50033 9.99999C7.50033 11.3807 8.61961 12.5 10.0003 12.5Z" />
-                    <path d="M15.6064 12.2727C15.5055 12.5012 15.4755 12.7547 15.52 13.0004C15.5646 13.2462 15.6817 13.473 15.8564 13.6515L15.9018 13.697C16.0427 13.8377 16.1545 14.0048 16.2307 14.1887C16.307 14.3727 16.3462 14.5698 16.3462 14.7689C16.3462 14.968 16.307 15.1652 16.2307 15.3491C16.1545 15.5331 16.0427 15.7002 15.9018 15.8409C15.7611 15.9818 15.594 16.0935 15.4101 16.1698C15.2261 16.246 15.029 16.2853 14.8299 16.2853C14.6308 16.2853 14.4336 16.246 14.2497 16.1698C14.0657 16.0935 13.8986 15.9818 13.7579 15.8409L13.7124 15.7954C13.5339 15.6208 13.3071 15.5036 13.0614 15.4591C12.8156 15.4145 12.5622 15.4446 12.3337 15.5454C12.1096 15.6415 11.9185 15.8009 11.7839 16.0042C11.6493 16.2074 11.5771 16.4456 11.5761 16.6894V16.8182C11.5761 17.22 11.4165 17.6054 11.1323 17.8895C10.8482 18.1737 10.4628 18.3333 10.0609 18.3333C9.65909 18.3333 9.2737 18.1737 8.98956 17.8895C8.70541 17.6054 8.54578 17.22 8.54578 16.8182V16.75C8.53991 16.4992 8.45875 16.256 8.31283 16.052C8.16692 15.848 7.963 15.6926 7.7276 15.606C7.4991 15.5052 7.24563 15.4751 6.99988 15.5197C6.75413 15.5642 6.52735 15.6814 6.34881 15.8561L6.30336 15.9015C6.16264 16.0424 5.99554 16.1541 5.8116 16.2304C5.62766 16.3066 5.4305 16.3459 5.23139 16.3459C5.03227 16.3459 4.83511 16.3066 4.65117 16.2304C4.46724 16.1541 4.30013 16.0424 4.15942 15.9015C4.01854 15.7608 3.90679 15.5937 3.83054 15.4097C3.75429 15.2258 3.71504 15.0286 3.71504 14.8295C3.71504 14.6304 3.75429 14.4333 3.83054 14.2493C3.90679 14.0654 4.01854 13.8983 4.15942 13.7576L4.20487 13.7121C4.37952 13.5336 4.49668 13.3068 4.54124 13.061C4.5858 12.8153 4.55572 12.5618 4.45487 12.3333C4.35884 12.1093 4.19938 11.9182 3.99613 11.7836C3.79288 11.649 3.55471 11.5767 3.31093 11.5757H3.18214C2.7803 11.5757 2.39492 11.4161 2.11077 11.132C1.82662 10.8478 1.66699 10.4624 1.66699 10.0606C1.66699 9.65875 1.82662 9.27337 2.11077 8.98922C2.39492 8.70508 2.7803 8.54544 3.18214 8.54544H3.25033C3.50108 8.53958 3.74427 8.45841 3.94828 8.3125C4.15229 8.16658 4.30769 7.96267 4.39426 7.72726C4.49511 7.49877 4.52519 7.2453 4.48063 6.99954C4.43607 6.75379 4.31891 6.52702 4.14426 6.34847L4.09881 6.30302C3.95794 6.1623 3.84618 5.9952 3.76993 5.81126C3.69368 5.62733 3.65444 5.43016 3.65444 5.23105C3.65444 5.03194 3.69368 4.83477 3.76993 4.65084C3.84618 4.4669 3.95794 4.2998 4.09881 4.15908C4.23953 4.01821 4.40663 3.90645 4.59057 3.8302C4.7745 3.75395 4.97167 3.71471 5.17078 3.71471C5.36989 3.71471 5.56706 3.75395 5.75099 3.8302C5.93493 3.90645 6.10203 4.01821 6.24275 4.15908L6.2882 4.20454C6.46675 4.37918 6.69352 4.49634 6.93927 4.5409C7.18503 4.58546 7.4385 4.55538 7.66699 4.45454H7.7276C7.95167 4.3585 8.14276 4.19905 8.27737 3.9958C8.41197 3.79255 8.4842 3.55437 8.48517 3.3106V3.18181C8.48517 2.77996 8.64481 2.39458 8.92895 2.11043C9.2131 1.82629 9.59848 1.66666 10.0003 1.66666C10.4022 1.66666 10.7876 1.82629 11.0717 2.11043C11.3558 2.39458 11.5155 2.77996 11.5155 3.18181V3.24999C11.5164 3.49377 11.5887 3.73194 11.7233 3.93519C11.8579 4.13844 12.049 4.2979 12.2731 4.39393C12.5015 4.49477 12.755 4.52486 13.0008 4.4803C13.2465 4.43574 13.4733 4.31858 13.6518 4.14393L13.6973 4.09847C13.838 3.9576 14.0051 3.84585 14.1891 3.7696C14.373 3.69335 14.5702 3.6541 14.7693 3.6541C14.9684 3.6541 15.1655 3.69335 15.3495 3.7696C15.5334 3.84585 15.7005 3.9576 15.8412 4.09847C15.9821 4.23919 16.0939 4.4063 16.1701 4.59023C16.2464 4.77417 16.2856 4.97133 16.2856 5.17044C16.2856 5.36956 16.2464 5.56672 16.1701 5.75066C16.0939 5.93459 15.9821 6.1017 15.8412 6.24241L15.7958 6.28787C15.6211 6.46641 15.504 6.69318 15.4594 6.93894C15.4149 7.18469 15.4449 7.43816 15.5458 7.66666V7.72726C15.6418 7.95133 15.8013 8.14243 16.0045 8.27703C16.2078 8.41163 16.4459 8.48387 16.6897 8.48484H16.8185C17.2204 8.48484 17.6057 8.64447 17.8899 8.92862C18.174 9.21276 18.3337 9.59815 18.3337 9.99999C18.3337 10.4018 18.174 10.7872 17.8899 11.0714C17.6057 11.3555 17.2204 11.5151 16.8185 11.5151H16.7503C16.5065 11.5161 16.2684 11.5883 16.0651 11.723C15.8619 11.8576 15.7024 12.0486 15.6064 12.2727Z" />
+                    <path d="M15.6064 12.2727C15.5055 12.5012 15.4755 12.7547 15.52 13.0004C15.5646 13.2462 15.6817 13.473 15.8564 13.6515L15.9018 13.697C16.0427 13.8377 16.1545 14.0048 16.2307 14.1887C16.307 14.3727 16.3462 14.5698 16.3462 14.7689C16.3462 14.968 16.307 15.1652 16.2307 15.3491C16.1545 15.5331 16.0427 15.7002 15.9018 15.8409C15.7611 15.9818 15.594 16.0935 15.4101 16.1698C15.2261 16.246 15.029 16.2853 14.8299 16.2853C14.6308 16.2853 14.4336 16.246 14.2497 16.1698C14.0657 16.0935 13.8986 15.9818 13.7579 15.8409L13.7124 15.7954C13.5339 15.6208 13.3071 15.5036 13.0614 15.4591C12.8156 15.4145 12.5622 15.4446 12.3337 15.5454C12.1096 15.6415 11.9185 15.8009 11.7839 16.0042C11.6493 16.2074 11.5771 16.4456 11.5761 16.6894V16.8182C11.5761 17.22 11.4165 17.6054 11.1323 17.8895C10.8482 18.1737 10.4628 18.3333 10.0609 18.3333C9.65909 18.3333 9.2737 18.1737 8.98956 17.8895C8.70541 17.6054 8.54578 17.22 8.54578 16.8182V16.75C8.53991 16.4992 8.45875 16.256 8.31283 16.052C8.16692 15.848 7.963 15.6926 7.7276 15.606C7.4991 15.5052 7.24563 15.4751 6.99988 15.5197C6.75413 15.5642 6.52735 15.6814 6.34881 15.8561L6.30336 15.9015C6.16264 16.0424 5.99554 16.1541 5.8116 16.2304C5.62766 16.3066 5.4305 16.3459 5.23139 16.3459C5.03227 16.3459 4.83511 16.3066 4.65117 16.2304C4.46724 16.1541 4.30013 16.0424 4.15942 15.9015C4.01854 15.7608 3.90679 15.5937 3.83054 15.4097C3.75429 15.2258 3.71504 15.0286 3.71504 14.8295C3.71504 14.6304 3.75429 14.4333 3.83054 14.2493C3.90679 14.0654 4.01854 13.8983 4.15942 13.7576C4.30013 13.6168 4.46724 13.5051 4.65117 13.4289C4.83511 13.3526 5.03227 13.3134 5.23139 13.3134C5.4305 13.3134 5.62766 13.3526 5.8116 13.4289C5.99554 13.5051 6.16264 13.6168 6.30336 13.7576L6.34881 13.8031C6.52735 13.9778 6.75413 14.095 6.99988 14.1396C7.24563 14.1841 7.4991 14.154 7.7276 14.0532C7.963 13.9571 8.16692 13.7977 8.31283 13.5944C8.45875 13.3911 8.53991 13.1529 8.54578 12.9091V12.7803C8.54578 12.3785 8.70541 11.9931 8.98956 11.709C9.2737 11.4248 9.65909 11.2652 10.0609 11.2652C10.4628 11.2652 10.8482 11.4248 11.1323 11.709C11.4165 11.9931 11.5761 12.3785 11.5761 12.7803V12.8496C11.5826 13.1004 11.6637 13.3437 11.8097 13.5476C11.9556 13.7516 12.1595 13.907 12.395 13.9936C12.6235 14.0944 12.877 14.1245 13.1227 14.0799C13.3685 14.0354 13.5952 13.9182 13.7738 13.7435L13.8193 13.6981C13.96 13.5572 14.1271 13.4455 14.311 13.3692C14.495 13.293 14.6921 13.2537 14.8912 13.2537C15.0903 13.2537 15.2875 13.293 15.4714 13.3692C15.6554 13.4455 15.8225 13.5572 15.9632 13.6981C16.1041 13.8388 16.2158 14.0059 16.2921 14.1898C16.3683 14.3738 16.4076 14.571 16.4076 14.77C16.4076 14.9691 16.3683 15.1662 16.2921 15.3502C16.2158 15.5341 16.1041 15.7012 15.9632 15.8419C15.8225 15.9828 15.6554 16.0945 15.4714 16.1707C15.2875 16.247 15.0903 16.2862 14.8912 16.2862C14.6921 16.2862 14.495 16.247 14.311 16.1707C14.1271 16.0945 13.96 15.9828 13.8193 15.8419L13.7738 15.7965C13.5952 15.6218 13.3685 15.5046 13.1227 15.46C12.877 15.4155 12.6235 15.4455 12.395 15.5463C12.1595 15.633 11.9556 15.7884 11.8097 15.9923C11.6637 16.1963 11.5826 16.4396 11.5761 16.6903V16.8191C11.5761 17.2209 11.4165 17.6063 11.1323 17.8905C10.8482 18.1746 10.4628 18.3342 10.0609 18.3342C9.65909 18.3342 9.2737 18.1746 8.98956 17.8905C8.70541 17.6063 8.54578 17.2209 8.54578 16.8191V16.7498C8.53991 16.499 8.45875 16.2558 8.31283 16.0518C8.16692 15.8479 7.963 15.6925 7.7276 15.6058C7.4991 15.505 7.24563 15.4749 6.99988 15.5195C6.75413 15.564 6.52735 15.6812 6.34881 15.8559L6.30336 15.9013C6.16264 16.0422 5.99554 16.1539 5.8116 16.2302C5.62766 16.3064 5.4305 16.3457 5.23139 16.3457C5.03227 16.3457 4.83511 16.3064 4.65117 16.2302C4.46724 16.1539 4.30013 16.0422 4.15942 15.9013C4.01854 15.7606 3.90679 15.5935 3.83054 15.4095C3.75429 15.2256 3.71504 15.0284 3.71504 14.8293C3.71504 14.6302 3.75429 14.4331 3.83054 14.2491C3.90679 14.0652 4.01854 13.8981 4.15942 13.7574C4.30013 13.6166 4.46724 13.5049 4.65117 13.4287C4.83511 13.3525 5.03227 13.3132 5.23139 13.3132C5.4305 13.3132 5.62766 13.3525 5.8116 13.4287C5.99554 13.5049 6.16264 13.6166 6.30336 13.7574L6.34881 13.8029C6.52735 13.9775 6.75413 14.0948 6.99988 14.1393C7.24563 14.1839 7.4991 14.1538 7.7276 14.053C7.963 13.9569 8.16692 13.7975 8.31283 13.5942C8.45875 13.3909 8.53991 13.1527 8.54578 12.9089V12.7801C8.54578 12.3783 8.70541 11.9929 8.98956 11.7088C9.2737 11.4246 9.65909 11.265 10.0609 11.265C10.4628 11.265 10.8482 11.4246 11.1323 11.7088C11.4165 11.9929 11.5761 12.3783 11.5761 12.7801Z" />
                   </g>
                   <defs>
                     <clipPath id="clip0_11076_320">
@@ -345,10 +347,12 @@ export default function Sidebar() {
 
         {/* Expanded Sidebar on Hover */}
         <aside
-          className={`bg-gray-50 border-r border-gray-200 absolute left-0 top-0 h-screen flex flex-col py-4 px-5 justify-between w-64 z-20 ${
+          className={`bg-gray-50 border-r border-gray-200 absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
             isHovered ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           }`}
           style={{
+            width: "262px",
+            padding: "20px",
             transition: "opacity 0.3s ease"
           }}
           onMouseEnter={() => setIsHovered(true)}
@@ -358,9 +362,9 @@ export default function Sidebar() {
           }}
         >
           {/* Top Section */}
-          <div className="flex flex-col gap-3 px-5">
+          <div className="flex flex-col" style={{ gap: "24px" }}>
             {/* Header */}
-            <div className="flex items-center justify-between pb-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img
                   alt="AVM Logo"
@@ -396,9 +400,9 @@ export default function Sidebar() {
 
           {/* Scrollable Middle Section */}
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="flex flex-col gap-6 px-5">
+            <div className="flex flex-col">
               {/* Navigation */}
-              <div className="flex flex-col gap-1" onMouseLeave={() => setActiveDropdown(null)}>
+              <div className="flex flex-col gap-1.5" onMouseLeave={() => setActiveDropdown(null)}>
                 {navigationItems.map((item) => (
                   <div key={item.id}>
                     <button
@@ -409,7 +413,8 @@ export default function Sidebar() {
                           toggleExpanded(item.id);
                         }
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
+                      className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                      style={{ minHeight: "38px" }}
                     >
                       <div className="flex items-center gap-2 flex-1 text-left min-w-0">
                         <span className="flex items-center justify-center text-gray-600 flex-shrink-0">
@@ -482,12 +487,12 @@ export default function Sidebar() {
               </div>
 
               {/* Divider */}
-              <div className="h-px bg-gray-300"></div>
+              <div className="h-px bg-gray-300" style={{ marginTop: "16px" }}></div>
 
               {/* Favorites */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between px-3 py-2">
-                  <span className="text-xs font-semibold text-gray-700 uppercase">
+              <div className="flex flex-col" style={{ marginTop: "16px", gap: "4px" }}>
+                <div className="flex items-center justify-between px-3" style={{ minHeight: "36px" }}>
+                  <span className="text-sm font-medium text-gray-700">
                     Favorites
                   </span>
                   <div className="flex items-center gap-2">
@@ -522,7 +527,8 @@ export default function Sidebar() {
                 {favoriteItems.map((item, idx) => (
                   <button
                     key={idx}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
+                    className="flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                    style={{ minHeight: "38px" }}
                   >
                     <span>{item}</span>
                     <svg
@@ -543,10 +549,10 @@ export default function Sidebar() {
           </div>
 
           {/* Bottom Section */}
-          <div className="flex flex-col gap-4 px-5">
+          <div className="flex flex-col" style={{ gap: "16px" }}>
             {/* Settings & Help */}
-            <div className="flex flex-col gap-1">
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm">
+            <div className="flex flex-col" style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}>
+              <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -563,7 +569,7 @@ export default function Sidebar() {
                 </svg>
                 <span>Settings</span>
               </button>
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm">
+              <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -584,7 +590,7 @@ export default function Sidebar() {
             </div>
 
             {/* User Profile */}
-            <div className="flex items-center justify-between p-2 rounded-lg border border-gray-300 bg-white">
+            <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white" style={{ padding: "8px 12px 8px 8px", gap: "35px" }}>
               <div className="flex items-center gap-2">
                 <img
                   alt="User avatar"
@@ -605,7 +611,7 @@ export default function Sidebar() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
-                className="text-gray-700"
+                className="text-gray-700 flex-shrink-0"
               >
                 <path d="m6 9 6 6 6-6" />
               </svg>
@@ -638,9 +644,9 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-screen py-4 px-5 justify-between transition-all duration-300">
+    <aside className="bg-gray-50 border-r border-gray-200 flex flex-col h-screen justify-between transition-all duration-300" style={{ width: "262px", padding: "20px" }}>
       {/* Top Section - Header Only */}
-      <div className="flex items-center justify-between px-5 pb-3">
+      <div className="flex items-center justify-between" style={{ marginBottom: "24px" }}>
         <div className="flex items-center gap-2">
           <img
             alt="AVM Logo"
@@ -672,14 +678,15 @@ export default function Sidebar() {
 
       {/* Scrollable Middle Section */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="flex flex-col gap-6 px-5">
+        <div className="flex flex-col">
           {/* Navigation */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             {navigationItems.map((item) => (
               <div key={item.id}>
                 <button
                   onClick={() => item.hasSubmenu && toggleExpanded(item.id)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
+                  className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                  style={{ minHeight: "38px" }}
                 >
                   <div className="flex items-center gap-2 flex-1 text-left min-w-0">
                     <span className="flex items-center justify-center text-gray-600 flex-shrink-0">
@@ -735,12 +742,12 @@ export default function Sidebar() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gray-300"></div>
+          <div className="h-px bg-gray-300" style={{ marginTop: "16px" }}></div>
 
           {/* Favorites */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-xs font-semibold text-gray-700 uppercase">
+          <div className="flex flex-col" style={{ marginTop: "16px", gap: "4px" }}>
+            <div className="flex items-center justify-between px-3" style={{ minHeight: "36px" }}>
+              <span className="text-sm font-medium text-gray-700">
                 Favorites
               </span>
               <div className="flex items-center gap-2">
@@ -775,7 +782,8 @@ export default function Sidebar() {
             {favoriteItems.map((item, idx) => (
               <button
                 key={idx}
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm"
+                className="flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                style={{ minHeight: "38px" }}
               >
                 <span>{item}</span>
                 <svg
@@ -796,10 +804,10 @@ export default function Sidebar() {
       </div>
 
       {/* Bottom Section */}
-      <div className="flex flex-col gap-4 px-5">
+      <div className="flex flex-col" style={{ gap: "16px" }}>
         {/* Settings & Help */}
-        <div className="flex flex-col gap-1">
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm">
+        <div className="flex flex-col" style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}>
+          <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -816,7 +824,7 @@ export default function Sidebar() {
             </svg>
             <span>Settings</span>
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-sm">
+          <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -837,7 +845,7 @@ export default function Sidebar() {
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center justify-between p-2 rounded-lg border border-gray-300 bg-white">
+        <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white" style={{ padding: "8px 12px 8px 8px", gap: "35px" }}>
           <div className="flex items-center gap-2">
             <img
               alt="User avatar"
@@ -858,7 +866,7 @@ export default function Sidebar() {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="text-gray-700"
+            className="text-gray-700 flex-shrink-0"
           >
             <path d="m6 9 6 6 6-6" />
           </svg>
