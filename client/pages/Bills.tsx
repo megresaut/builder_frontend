@@ -576,8 +576,6 @@ export default function Bills() {
                 <button
                   className="flex items-center justify-center gap-1.5 h-10 px-3 hover:bg-gray-50 transition-colors"
                   style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
