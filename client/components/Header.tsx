@@ -127,7 +127,7 @@ export default function Header() {
               key={tab.id}
               className={`flex items-center transition-all whitespace-nowrap ${
                 isSelected
-                  ? "bg-white border-t border-l border-r border-[#D2D1CF]"
+                  ? "bg-white"
                   : "bg-gray-50"
               }`}
               style={{
@@ -135,7 +135,8 @@ export default function Header() {
                 minHeight: "49px",
                 gap: "35px",
                 margin: "8px 0 -1px",
-                padding: "0 12px"
+                padding: "0 12px",
+                ...(isSelected && { border: "1px 1px 0px solid #d2d1cf" })
               }}
             >
               <button
