@@ -189,7 +189,9 @@ export default function Sidebar() {
   if (isCollapsed) {
     return (
       <div
-        className="relative h-screen w-20 flex-shrink-0 group"
+        className={`relative h-screen flex-shrink-0 group transition-all ${
+          isHovered ? "w-64" : "w-20"
+        }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
