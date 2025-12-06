@@ -160,6 +160,7 @@ export default function Header() {
       <div className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]" style={{ borderBottomWidth: "0px", borderColor: "rgb(210, 209, 207)" }}>
         {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
           const isSelected = tab.id === selectedTab;
+          const displayLabel = tabContext.tabMetadata[tab.id]?.label || tab.label;
           return (
             <div
               key={tab.id}
@@ -195,7 +196,7 @@ export default function Header() {
                   {tab.icon}
                 </span>
                 <span className="text-sm font-medium text-[#303030]" style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif", lineHeight: "24px" }}>
-                  {tab.label}
+                  {displayLabel}
                 </span>
               </button>
               <button
