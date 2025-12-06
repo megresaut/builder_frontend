@@ -401,7 +401,7 @@ export default function FieldTeamOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 pb-32">
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-center gap-10 justify-between flex-wrap">
