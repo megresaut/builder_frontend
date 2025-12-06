@@ -331,8 +331,7 @@ export default function Sidebar() {
               </div>
               <button
                 onClick={() => {
-                  setIsCollapsed(!isCollapsed);
-                  setIsHovered(false);
+                  setIsCollapsed(false);
                   setActiveDropdown(null);
                 }}
                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
