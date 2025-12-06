@@ -436,19 +436,11 @@ export default function FieldTeamOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dispatchedOrders.map((order) => (
+                  {fieldTeamOrders.map((order) => (
                     <tr
                       key={order.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <TeamAvatar name={order.team} color={order.teamColor} />
-                          <span className="text-gray-900 font-normal text-base">
-                            {order.team}
-                          </span>
-                        </div>
-                      </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {order.property}
@@ -456,7 +448,7 @@ export default function FieldTeamOrders() {
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
-                          {order.createdDate}
+                          {order.description}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
@@ -465,16 +457,23 @@ export default function FieldTeamOrders() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
+                        <div className="flex items-center gap-2">
+                          {order.fieldTeam.map((member, idx) => (
+                            <div
+                              key={idx}
+                              className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300`}
+                            >
+                              {member.initials}
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <StatusBadge status={order.status as any} />
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
-                          {order.description}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
-                          {order.orderNumber}
+                          ${order.amount}
                         </span>
                       </td>
                       <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
