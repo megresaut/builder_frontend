@@ -248,50 +248,35 @@ export default function Bills() {
             </div>
           </div>
 
-          {/* Segmented Tabs and Export Button */}
-          <div className="flex justify-between items-start">
-            <div className="flex w-[382px] items-start rounded-lg shadow-[0_0_0_0.5px_#D2D1CF]">
-              <button
-                onClick={() => setSelectedTab("drafts")}
-                className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 transition-colors",
-                  selectedTab === "drafts"
-                    ? "bg-white"
-                    : "bg-transparent hover:bg-gray-50",
-                )}
-              >
-                <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                  Drafts
-                </span>
-              </button>
-              <button
-                onClick={() => setSelectedTab("approved")}
-                className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 transition-colors",
-                  selectedTab === "approved"
-                    ? "bg-white"
-                    : "bg-transparent hover:bg-gray-50",
-                )}
-              >
-                <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                  Approved
-                </span>
-              </button>
-            </div>
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors">
-              <span className="text-white font-medium text-base leading-normal">
-                Export to Buildium
-              </span>
-            </button>
-          </div>
-
           {/* Bills Table */}
           <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
             {/* Table Header */}
             <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
-              <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                Bills
-              </h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-[#303030] font-medium text-[22px] leading-6">
+                  All Bills
+                </h2>
+                <div className="flex items-center gap-2 h-6">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1.16699 8.16667C1.16699 8.16667 1.23776 8.66206 3.28802 10.7123C5.33827 12.7626 8.66238 12.7626 10.7126 10.7123C11.439 9.9859 11.9081 9.09958 12.1198 8.16667M1.16699 8.16667V11.6667M1.16699 8.16667H4.66699M12.8337 5.83333C12.8337 5.83333 12.7629 5.33794 10.7126 3.28769C8.66238 1.23744 5.33827 1.23744 3.28802 3.28769C2.56161 4.0141 2.09256 4.90042 1.88089 5.83333M12.8337 5.83333V2.33333M12.8337 5.83333H9.33366"
+                      stroke="#8B8D8D"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
+                    Updated 2 minutes ago
+                  </span>
+                </div>
+              </div>
               <div className="flex items-start gap-2.5">
                 <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
                   <svg
