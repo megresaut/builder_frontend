@@ -631,7 +631,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="bg-gray-50 border-r border-gray-200 flex flex-col h-screen justify-between transition-all duration-300" style={{ width: "262px", padding: "20px" }}>
+    <aside className="bg-gray-50 flex flex-col h-screen justify-between transition-all duration-300" style={{ width: "262px", padding: "20px" }}>
       {/* Top Section - Header Only */}
       <div className="flex items-center justify-between" style={{ marginBottom: "24px" }}>
         <div className="flex items-center gap-2">
