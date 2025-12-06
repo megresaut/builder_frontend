@@ -148,8 +148,15 @@ const ActionButton = ({ orderId }: { orderId: number }) => {
     const updateMenuPos = () => {
       if (showMenu && buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect();
+        const menuHeight = 220; // Approximate height of the menu
+        const spaceBelow = window.innerHeight - rect.bottom;
+
+        // If not enough space below, position above the button
+        const shouldOpenAbove = spaceBelow < menuHeight + 8;
+        const top = shouldOpenAbove ? rect.top - menuHeight - 8 : rect.bottom + 8;
+
         setMenuPos({
-          top: rect.bottom + 8,
+          top,
           left: rect.right - 145,
         });
       }
