@@ -675,7 +675,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-r",
+                            "px-3 py-3 border-r",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
@@ -686,7 +686,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-r",
+                            "px-3 py-3 border-r",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
@@ -697,7 +697,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-r",
+                            "px-3 py-3 border-r",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
@@ -708,7 +708,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-r",
+                            "px-3 py-3 border-r",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
@@ -719,7 +719,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-r",
+                            "px-3 py-3 border-r",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
@@ -728,7 +728,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-r",
+                            "px-3 py-3 border-r",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
@@ -740,7 +740,7 @@ export default function Index() {
                         </td>
                         <td
                           className={cn(
-                            "px-3 py-3.5 border-l",
+                            "px-3 py-3 border-l",
                             index === tasks.length - 1 ? "border-b-0" : "",
                           )}
                           style={{ borderColor: "rgb(229, 229, 229)" }}
