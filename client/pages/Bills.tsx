@@ -167,8 +167,56 @@ export default function Bills() {
   const [selectedTab, setSelectedTab] = useState<"approved" | "drafts">(
     "approved",
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
 
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
+  const totalPages = Math.ceil(225 / itemsPerPage);
+
+  // Calculate which page numbers to display
+  const getPaginationNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 3;
+
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      // Calculate window of pages around current page
+      let start = Math.max(2, currentPage - Math.floor(maxVisible / 2));
+      let end = Math.min(totalPages - 1, start + maxVisible - 1);
+
+      // Adjust start if we're near the end
+      if (end === totalPages - 1) {
+        start = Math.max(2, end - maxVisible + 1);
+      }
+
+      // Add ellipsis if needed
+      if (start > 2) {
+        pages.push("...");
+      }
+
+      // Add page numbers in window
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      // Add ellipsis if needed
+      if (end < totalPages - 1) {
+        pages.push("...");
+      }
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
