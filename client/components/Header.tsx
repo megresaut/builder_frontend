@@ -118,7 +118,7 @@ export default function Header() {
       {/* Tabs Section */}
       <div className="flex items-center gap-0 border-b border-[#D2D1CF] px-0 py-0">
         {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
-          const isSelected = tab.id === "properties"; // Assuming properties is the selected tab
+          const isSelected = tab.id === selectedTab;
           return (
             <div
               key={tab.id}
@@ -133,7 +133,7 @@ export default function Header() {
               }}
             >
               <button
-                onClick={() => toggleTab(tab.id)}
+                onClick={() => setSelectedTab(tab.id)}
                 className="flex items-center gap-2"
               >
                 <span className="flex items-center justify-center w-5 h-5">
@@ -146,7 +146,7 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleTab(tab.id);
+                  toggleTab(tab.id, true);
                 }}
                 className="ml-1 text-gray-500 hover:text-gray-700 flex-shrink-0"
                 aria-label={`Close ${tab.label} tab`}
