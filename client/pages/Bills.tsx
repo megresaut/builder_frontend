@@ -194,22 +194,15 @@ export default function Bills() {
 
       // Adjust if right side would exceed totalPages
       if (rightEnd > totalPages) {
+        // Shift backward so right side ends at totalPages
         rightEnd = totalPages;
         rightStart = Math.max(leftEnd + 5, totalPages - 2);
 
-        // If right side overlaps with left, shift left backward
+        // If there's still overlap, shift left backward too
         if (rightStart <= leftEnd) {
           leftEnd = rightStart - 5;
-          leftStart = leftEnd - 2;
+          leftStart = Math.max(1, leftEnd - 2);
         }
-      }
-
-      // Ensure left doesn't go below 1
-      if (leftStart < 1) {
-        leftStart = 1;
-        leftEnd = 3;
-        rightStart = 8;
-        rightEnd = 10;
       }
 
       // Add left side
