@@ -191,14 +191,6 @@ export default function FieldTeamOrders() {
     };
   }, [showPageSizeDropdown]);
 
-  const filteredOrders = fieldTeamOrders.filter((order) => {
-    if (selectedTab === "dispatched") {
-      return order.status === "dispatched";
-    } else if (selectedTab === "approved") {
-      return order.status === "approved";
-    }
-    return true;
-  });
   const totalPages = Math.ceil(225 / itemsPerPage);
 
   const getPaginationNumbers = () => {
