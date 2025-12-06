@@ -109,7 +109,7 @@ export const StatusBadge = ({
       <span
         className="inline-flex items-center gap-1 rounded-full px-3 py-1"
         style={{
-          backgroundColor: "rgb(255, 228, 223)",
+          backgroundColor: "rgb(254, 243, 199)",
           color: "rgb(217, 119, 6)",
         }}
       >
