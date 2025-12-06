@@ -157,7 +157,7 @@ export default function Header() {
   return (
     <header className="bg-white">
       {/* Tabs Section */}
-      <div className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]" style={{ borderBottomWidth: "0px", borderColor: "rgb(210, 209, 207)" }}>
+      <div className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]" style={{ borderBottomWidth: "0px", borderColor: "rgb(210, 209, 207)", borderLeftWidth: "0px" }}>
         {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
           const isSelected = tab.id === selectedTab;
           const displayLabel = tabContext.tabMetadata[tab.id]?.label || tab.label;
