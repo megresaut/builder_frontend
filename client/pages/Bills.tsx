@@ -184,22 +184,43 @@ export default function Bills() {
         pages.push(i);
       }
     } else {
-      // Left side: 3 numbers starting from currentPage
-      const leftStart = currentPage;
-      const leftEnd = Math.min(currentPage + 2, totalPages - 4);
+      // Left side: 3 consecutive pages starting from currentPage
+      let leftStart = currentPage;
+      let leftEnd = currentPage + 2;
 
+      // Right side: 3 consecutive pages with gap of 4 from left
+      let rightStart = leftEnd + 5; // leftEnd + 1 (gap start) + 4 (gap size) = leftEnd + 5
+      let rightEnd = rightStart + 2;
+
+      // Adjust if right side would exceed totalPages
+      if (rightEnd > totalPages) {
+        rightEnd = totalPages;
+        rightStart = Math.max(leftEnd + 5, totalPages - 2);
+
+        // If right side overlaps with left, shift left backward
+        if (rightStart <= leftEnd) {
+          leftEnd = rightStart - 5;
+          leftStart = leftEnd - 2;
+        }
+      }
+
+      // Ensure left doesn't go below 1
+      if (leftStart < 1) {
+        leftStart = 1;
+        leftEnd = 3;
+        rightStart = 8;
+        rightEnd = 10;
+      }
+
+      // Add left side
       for (let i = leftStart; i <= leftEnd; i++) {
         pages.push(i);
       }
 
-      // Add ellipsis if there's a gap
-      const rightStart = leftEnd + 5; // Gap of 4 hidden pages
-      if (leftEnd < rightStart - 1) {
-        pages.push("...");
-      }
+      // Add ellipsis
+      pages.push("...");
 
-      // Right side: 3 numbers with gap of 4 from left
-      const rightEnd = Math.min(rightStart + 2, totalPages);
+      // Add right side
       for (let i = rightStart; i <= rightEnd; i++) {
         pages.push(i);
       }
