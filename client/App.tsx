@@ -15,15 +15,30 @@ import { TabContext } from "./hooks/useTabContext";
 
 const queryClient = new QueryClient();
 
+interface TabMetadata {
+  label: string;
+  sectionId?: string;
+}
+
 export default function App() {
   const [selectedTab, setSelectedTab] = useState<string>("properties");
+  const [tabMetadata, setTabMetadataState] = useState<Record<string, TabMetadata>>({
+    properties: { label: "Properties" },
+  });
+
+  const setTabMetadata = (tabId: string, metadata: TabMetadata) => {
+    setTabMetadataState(prev => ({
+      ...prev,
+      [tabId]: metadata
+    }));
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <TabContext.Provider value={{ selectedTab, setSelectedTab }}>
+        <TabContext.Provider value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}>
           <BrowserRouter>
             <Routes>
               <Route
