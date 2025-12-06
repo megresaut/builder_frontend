@@ -438,7 +438,7 @@ export default function Bills() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
+                  <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <svg
