@@ -614,7 +614,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="sticky right-0 px-2 py-3 text-center border-gray-200 w-16" style={{ borderLeftWidth: "2px" }}>
+                    <th className="sticky right-0 px-2 py-3 text-center border-gray-200 w-16" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210,209,207)" }}>
                       <span className="font-medium text-sm text-gray-700">
                         Actions
                       </span>
