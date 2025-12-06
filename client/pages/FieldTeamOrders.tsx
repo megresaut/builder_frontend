@@ -226,7 +226,7 @@ export default function FieldTeamOrders() {
               All Field Team Orders
             </h1>
             <div className="flex items-center gap-3 mt-1">
-              <p className="text-[#717179] font-medium text-base leading-4">
+              <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-4px" }}>
                 All your field team orders, in one place
               </p>
             </div>
