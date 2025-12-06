@@ -195,11 +195,11 @@ export default function Bills() {
       let windowStart: number;
       let windowEnd: number;
 
-      if (currentPage <= 5) {
-        // Near the beginning, show pages 4-6 or similar
-        windowStart = 4;
-        windowEnd = 6;
-      } else if (currentPage >= totalPages - 4) {
+      if (currentPage <= 3) {
+        // At the beginning, show pages 8-10
+        windowStart = 8;
+        windowEnd = 10;
+      } else if (currentPage >= totalPages - 3) {
         // Near the end, show last 3 pages
         windowStart = totalPages - 2;
         windowEnd = totalPages;
@@ -491,10 +491,11 @@ export default function Bills() {
             {/* Pagination Footer */}
             <div
               className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+              style={{ position: 'relative', zIndex: 1 }}
             >
               <div className="flex items-center gap-2">
                 <span className="text-gray-700 text-sm font-medium">Showing</span>
-                <div className="relative">
+                <div className="relative" style={{ position: 'relative', zIndex: 10 }}>
                   <button
                     onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
                     className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
