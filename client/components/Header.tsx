@@ -97,14 +97,25 @@ export default function Header() {
     if (newTabs.has(tabId)) {
       // Prevent closing the last tab
       if (newTabs.size > 1) {
-        newTabs.delete(tabId);
-        // If closing the selected tab, select another one
+        // If closing the selected tab, select the next tab to the right
         if (isClosing && selectedTab === tabId) {
-          const remainingTabs = Array.from(newTabs);
-          if (remainingTabs.length > 0) {
-            setSelectedTab(remainingTabs[0]);
+          // Get the current order of open tabs
+          const openTabsArray = tabs.filter(tab => openTabs.has(tab.id));
+          const closedTabIndex = openTabsArray.findIndex(tab => tab.id === tabId);
+
+          // Determine which tab to select next
+          let nextTabId: string;
+          if (closedTabIndex === openTabsArray.length - 1) {
+            // If closing the rightmost tab, select the one to its left
+            nextTabId = openTabsArray[closedTabIndex - 1].id;
+          } else {
+            // Otherwise, select the next tab to the right
+            nextTabId = openTabsArray[closedTabIndex + 1].id;
           }
+          setSelectedTab(nextTabId);
         }
+
+        newTabs.delete(tabId);
       }
     } else {
       newTabs.add(tabId);
