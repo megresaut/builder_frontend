@@ -174,6 +174,8 @@ export default function Bills() {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
+    let animationFrameId: number;
+
     const updateDropdownPos = () => {
       if (showPageSizeDropdown && dropdownButtonRef.current) {
         const rect = dropdownButtonRef.current.getBoundingClientRect();
@@ -182,22 +184,22 @@ export default function Bills() {
           left: rect.left,
         });
       }
+
+      // Keep updating on every frame while dropdown is open
+      if (showPageSizeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
     };
 
     if (showPageSizeDropdown) {
       updateDropdownPos();
-      // Update position on every frame for smooth following
-      const handleScroll = () => updateDropdownPos();
-      const handleResize = () => updateDropdownPos();
-
-      window.addEventListener("scroll", handleScroll, true);
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        window.removeEventListener("scroll", handleScroll, true);
-        window.removeEventListener("resize", handleResize);
-      };
     }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [showPageSizeDropdown]);
 
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
