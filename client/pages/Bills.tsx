@@ -175,13 +175,31 @@ export default function Bills() {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    if (showPageSizeDropdown && dropdownButtonRef.current) {
-      const rect = dropdownButtonRef.current.getBoundingClientRect();
-      setDropdownPos({
-        top: rect.bottom + 8,
-        left: rect.left,
-      });
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showPageSizeDropdown && dropdownButtonRef.current) {
+        const rect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showPageSizeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      updateDropdownPos();
     }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [showPageSizeDropdown]);
 
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
