@@ -264,38 +264,96 @@ export default function Bills() {
             </p>
           </div>
 
-          {/* Segmented Tabs and Export Button */}
-          <div className="flex justify-between items-start">
-            <div className="flex w-[382px] items-start rounded-lg shadow-[0_0_0_0.5px_#D2D1CF]">
-              <button
-                onClick={() => setSelectedTab("drafts")}
-                className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
-                  selectedTab === "drafts"
-                    ? "bg-white"
-                    : "bg-transparent hover:bg-gray-50",
-                )}
-              >
-                <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                  Drafts
-                </span>
-              </button>
+          {/* Segmented Tabs and Action Buttons */}
+          <div className="flex items-center justify-between w-full bg-white gap-6">
+            <div className="flex bg-gray-50 rounded-lg shadow-[0_0_0_0.5px_#D2D1CF] p-0.5">
               <button
                 onClick={() => setSelectedTab("approved")}
                 className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
+                  "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
                   selectedTab === "approved"
-                    ? "bg-white"
-                    : "bg-transparent hover:bg-gray-50",
+                    ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
+                    : "bg-gray-50 hover:bg-gray-100",
                 )}
-                style={{
-                  zIndex: "9999",
-                  borderTopRightRadius: "8px",
-                  borderBottomRightRadius: "8px",
-                }}
               >
                 <span className="text-[#282828] text-center font-normal text-sm leading-5">
                   Approved
+                </span>
+              </button>
+              <button
+                onClick={() => setSelectedTab("drafts")}
+                className={cn(
+                  "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
+                  selectedTab === "drafts"
+                    ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
+                    : "bg-gray-50 hover:bg-gray-100",
+                )}
+              >
+                <span className="text-[#282828] text-center font-medium text-sm leading-5">
+                  Drafts
+                </span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-3 items-center">
+              <button className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M12 5v14" />
+                </svg>
+                <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
+                  Add Vendor
+                </span>
+              </button>
+
+              <button className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+                </svg>
+                <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
+                  Sync
+                </span>
+              </button>
+
+              <button className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="20" height="14" x="2" y="5" rx="2" />
+                  <line x1="2" x2="22" y1="10" y2="10" />
+                </svg>
+                <span className="text-white font-medium text-sm">
+                  Record Bill
                 </span>
               </button>
             </div>
