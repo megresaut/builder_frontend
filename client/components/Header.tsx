@@ -119,7 +119,7 @@ export default function Header() {
   return (
     <header className="bg-white">
       {/* Tabs Section */}
-      <div className="flex items-center gap-0 border-b border-[#D2D1CF] px-0 py-0 bg-[#f7f7f7]">
+      <div className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]" style={{ borderBottomWidth: "0px", borderColor: "rgb(210, 209, 207)" }}>
         {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
           const isSelected = tab.id === selectedTab;
           return (
