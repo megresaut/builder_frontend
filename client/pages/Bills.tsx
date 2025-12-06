@@ -171,6 +171,18 @@ export default function Bills() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (showPageSizeDropdown && dropdownButtonRef.current) {
+      const rect = dropdownButtonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 8,
+        left: rect.left,
+      });
+    }
+  }, [showPageSizeDropdown]);
 
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
   const totalPages = Math.ceil(225 / itemsPerPage);
