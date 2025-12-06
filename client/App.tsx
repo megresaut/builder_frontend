@@ -30,7 +30,7 @@ export default function App() {
                 path="/"
                 element={
                   <ShellLayout>
-                    <Index />
+                    <TabContent />
                   </ShellLayout>
                 }
               />
