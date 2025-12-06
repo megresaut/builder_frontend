@@ -177,42 +177,25 @@ export default function Bills() {
   // Calculate which page numbers to display
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisible = 3;
 
-    if (totalPages <= 5) {
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always show first page
-      pages.push(1);
-
-      // Calculate window of pages around current page
-      let start = Math.max(2, currentPage - Math.floor(maxVisible / 2));
-      let end = Math.min(totalPages - 1, start + maxVisible - 1);
-
-      // Adjust start if we're near the end
-      if (end === totalPages - 1) {
-        start = Math.max(2, end - maxVisible + 1);
-      }
-
-      // Add ellipsis if needed
-      if (start > 2) {
-        pages.push("...");
-      }
-
-      // Add page numbers in window
-      for (let i = start; i <= end; i++) {
+      // Always show first 3 pages
+      for (let i = 1; i <= 3; i++) {
         pages.push(i);
       }
 
-      // Add ellipsis if needed
-      if (end < totalPages - 1) {
-        pages.push("...");
-      }
+      // Add ellipsis
+      pages.push("...");
 
-      // Always show last page
-      pages.push(totalPages);
+      // Always show last 3 pages
+      for (let i = totalPages - 2; i <= totalPages; i++) {
+        pages.push(i);
+      }
     }
 
     return pages;
