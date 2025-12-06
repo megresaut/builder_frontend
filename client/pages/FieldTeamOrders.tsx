@@ -219,26 +219,45 @@ export default function FieldTeamOrders() {
     <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
-        <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-10 justify-between flex-wrap">
           {/* Title and Description */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 min-w-[240px]">
             <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
               All Field Team Orders
             </h1>
-            <p className="text-[#717179] font-medium text-base leading-4">
-              All your field team orders, in one place
-            </p>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-[#717179] font-medium text-base leading-4">
+                All your field team orders, in one place
+              </p>
+            </div>
           </div>
 
           {/* Create FTO Button */}
-          <div className="flex justify-between items-start text-right self-stretch ml-auto">
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors justify-start">
+          <div className="flex items-center gap-4">
+            <button className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 4.16667V15.8333M4.16667 10H15.8333"
+                  stroke="white"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
               <span className="text-white font-medium text-base leading-normal">
                 Create FTO
               </span>
             </button>
           </div>
+        </div>
 
+        <div className="flex flex-col gap-6">
           {/* Field Team Orders Table */}
           <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
             {/* Table Header */}
