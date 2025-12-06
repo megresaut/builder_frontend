@@ -1,7 +1,12 @@
 export const StatusBadge = ({
   status,
 }: {
-  status: "pushed" | "push-failed" | "dispatched" | "approved" | "pending-approval";
+  status:
+    | "pushed"
+    | "push-failed"
+    | "dispatched"
+    | "approved"
+    | "pending-approval";
 }) => {
   if (status === "pushed") {
     return (

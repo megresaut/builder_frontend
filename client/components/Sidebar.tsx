@@ -159,7 +159,10 @@ export default function Sidebar() {
     },
   ];
 
-  const submenuMap: Record<string, Array<{ label: string; path?: string; sectionId?: string }>> = {
+  const submenuMap: Record<
+    string,
+    Array<{ label: string; path?: string; sectionId?: string }>
+  > = {
     dashboard: [
       { label: "Portfolios" },
       { label: "All Properties" },
@@ -187,7 +190,11 @@ export default function Sidebar() {
     ],
     maintenance: [
       { label: "Tasks", path: "/" },
-      { label: "Field Team Orders", path: "/field-team-orders", sectionId: "field-team-orders" },
+      {
+        label: "Field Team Orders",
+        path: "/field-team-orders",
+        sectionId: "field-team-orders",
+      },
       { label: "Work Orders" },
     ],
     reports: [
@@ -218,7 +225,11 @@ export default function Sidebar() {
   const tabContext = useContext(TabContext);
 
   const handleNavigation = (label: string, sectionId?: string) => {
-    if (tabContext && tabContext.selectedTab.startsWith("new-tab-") && sectionId) {
+    if (
+      tabContext &&
+      tabContext.selectedTab.startsWith("new-tab-") &&
+      sectionId
+    ) {
       tabContext.setTabMetadata(tabContext.selectedTab, {
         label,
         sectionId,
@@ -231,7 +242,7 @@ export default function Sidebar() {
       <div
         className={`relative h-screen flex-shrink-0 group transition-all`}
         style={{
-          width: isHovered ? "262px" : "80px"
+          width: isHovered ? "262px" : "80px",
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
@@ -240,16 +251,18 @@ export default function Sidebar() {
         }}
       >
         {/* Collapsed Sidebar */}
-        <aside className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col justify-between z-10 ${
-          isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
-        style={{
-          width: "80px",
-          padding: "20px 12px",
-          transition: "opacity 0.3s ease",
-          borderRightColor: "transparent",
-          border: "1px solid #f7f7f7"
-        }}>
+        <aside
+          className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col justify-between z-10 ${
+            isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+          style={{
+            width: "80px",
+            padding: "20px 12px",
+            transition: "opacity 0.3s ease",
+            borderRightColor: "transparent",
+            border: "1px solid #f7f7f7",
+          }}
+        >
           <div className="flex flex-col items-center gap-6">
             <img
               alt="AVM Logo"
@@ -335,12 +348,14 @@ export default function Sidebar() {
         {/* Expanded Sidebar on Hover */}
         <aside
           className={`bg-gray-50 border-r border-gray-200 absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
-            isHovered ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            isHovered
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
           }`}
           style={{
             width: "262px",
             padding: "20px",
-            transition: "opacity 0.3s ease"
+            transition: "opacity 0.3s ease",
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => {
@@ -351,7 +366,10 @@ export default function Sidebar() {
           {/* Top Section */}
           <div className="flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between" style={{ marginBottom: "24px" }}>
+            <div
+              className="flex items-center justify-between"
+              style={{ marginBottom: "24px" }}
+            >
               <div className="flex items-center gap-2">
                 <img
                   alt="AVM Logo"
@@ -389,7 +407,10 @@ export default function Sidebar() {
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="flex flex-col">
               {/* Navigation */}
-              <div className="flex flex-col gap-1.5" onMouseLeave={() => setActiveDropdown(null)}>
+              <div
+                className="flex flex-col gap-1.5"
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
                 {navigationItems.map((item) => (
                   <div key={item.id}>
                     <button
@@ -407,7 +428,9 @@ export default function Sidebar() {
                         <span className="flex items-center justify-center text-gray-600 flex-shrink-0">
                           {item.icon}
                         </span>
-                        <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>
+                        <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
+                          {item.label}
+                        </span>
                       </div>
                       {item.hasSubmenu && expandedItems.has(item.id) && (
                         <svg
@@ -435,37 +458,43 @@ export default function Sidebar() {
                             "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap";
 
                           return isLink ? (
-                        <Link
-                          key={idx}
-                          to={subitem.path!}
-                          className={className}
-                          onClick={() => {
-                            handleNavigation(subitem.label, subitem.sectionId);
-                            setIsHovered(false);
-                            setActiveDropdown(null);
-                          }}
-                        >
-                          <div className="flex items-center h-full">
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                          </div>
-                          <span className="text-sm">{subitem.label}</span>
-                        </Link>
-                      ) : (
-                        <button
-                          key={idx}
-                          className={className}
-                          onClick={() => {
-                            handleNavigation(subitem.label, subitem.sectionId);
-                            setIsHovered(false);
-                            setActiveDropdown(null);
-                          }}
-                        >
-                          <div className="flex items-center h-full">
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                          </div>
-                          <span className="text-sm">{subitem.label}</span>
-                        </button>
-                      );
+                            <Link
+                              key={idx}
+                              to={subitem.path!}
+                              className={className}
+                              onClick={() => {
+                                handleNavigation(
+                                  subitem.label,
+                                  subitem.sectionId,
+                                );
+                                setIsHovered(false);
+                                setActiveDropdown(null);
+                              }}
+                            >
+                              <div className="flex items-center h-full">
+                                <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                              </div>
+                              <span className="text-sm">{subitem.label}</span>
+                            </Link>
+                          ) : (
+                            <button
+                              key={idx}
+                              className={className}
+                              onClick={() => {
+                                handleNavigation(
+                                  subitem.label,
+                                  subitem.sectionId,
+                                );
+                                setIsHovered(false);
+                                setActiveDropdown(null);
+                              }}
+                            >
+                              <div className="flex items-center h-full">
+                                <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                              </div>
+                              <span className="text-sm">{subitem.label}</span>
+                            </button>
+                          );
                         })}
                       </div>
                     )}
@@ -474,11 +503,20 @@ export default function Sidebar() {
               </div>
 
               {/* Divider */}
-              <div className="h-px bg-gray-300" style={{ marginTop: "16px" }}></div>
+              <div
+                className="h-px bg-gray-300"
+                style={{ marginTop: "16px" }}
+              ></div>
 
               {/* Favorites */}
-              <div className="flex flex-col" style={{ marginTop: "16px", gap: "4px" }}>
-                <div className="flex items-center justify-between px-3" style={{ minHeight: "36px" }}>
+              <div
+                className="flex flex-col"
+                style={{ marginTop: "16px", gap: "4px" }}
+              >
+                <div
+                  className="flex items-center justify-between px-3"
+                  style={{ minHeight: "36px" }}
+                >
                   <span className="text-sm font-medium text-gray-700">
                     Favorites
                   </span>
@@ -538,8 +576,14 @@ export default function Sidebar() {
           {/* Bottom Section */}
           <div className="flex flex-col" style={{ gap: "16px" }}>
             {/* Settings & Help */}
-            <div className="flex flex-col" style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}>
-              <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
+            <div
+              className="flex flex-col"
+              style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}
+            >
+              <button
+                className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                style={{ minHeight: "38px" }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -556,7 +600,10 @@ export default function Sidebar() {
                 </svg>
                 <span>Settings</span>
               </button>
-              <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
+              <button
+                className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                style={{ minHeight: "38px" }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -577,7 +624,10 @@ export default function Sidebar() {
             </div>
 
             {/* User Profile */}
-            <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white" style={{ padding: "8px 12px 8px 8px", gap: "35px" }}>
+            <div
+              className="flex items-center justify-between rounded-lg border border-gray-300 bg-white"
+              style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
+            >
               <div className="flex items-center gap-2">
                 <img
                   alt="User avatar"
@@ -631,9 +681,15 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="bg-gray-50 flex flex-col h-screen justify-between transition-all duration-300" style={{ width: "262px", padding: "20px" }}>
+    <aside
+      className="bg-gray-50 flex flex-col h-screen justify-between transition-all duration-300"
+      style={{ width: "262px", padding: "20px" }}
+    >
       {/* Top Section - Header Only */}
-      <div className="flex items-center justify-between" style={{ marginBottom: "24px" }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ marginBottom: "24px" }}
+      >
         <div className="flex items-center gap-2">
           <img
             alt="AVM Logo"
@@ -679,7 +735,9 @@ export default function Sidebar() {
                     <span className="flex items-center justify-center text-gray-600 flex-shrink-0">
                       {item.icon}
                     </span>
-                    <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>
+                    <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
+                      {item.label}
+                    </span>
                   </div>
                   {item.hasSubmenu && expandedItems.has(item.id) && (
                     <svg
@@ -698,23 +756,36 @@ export default function Sidebar() {
                   )}
                 </button>
 
-              {/* Submenu */}
-              {item.hasSubmenu && expandedItems.has(item.id) && (
-                <div className="ml-6 mt-1 flex flex-col gap-0">
-                  {(submenuMap[item.id] || []).map((subitem, idx) => {
-                    const isLink = subitem.path !== undefined;
-                    const className =
-                      "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap";
+                {/* Submenu */}
+                {item.hasSubmenu && expandedItems.has(item.id) && (
+                  <div className="ml-6 mt-1 flex flex-col gap-0">
+                    {(submenuMap[item.id] || []).map((subitem, idx) => {
+                      const isLink = subitem.path !== undefined;
+                      const className =
+                        "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap";
 
                       return isLink ? (
-                        <Link key={idx} to={subitem.path!} className={className} onClick={() => handleNavigation(subitem.label, subitem.sectionId)}>
+                        <Link
+                          key={idx}
+                          to={subitem.path!}
+                          className={className}
+                          onClick={() =>
+                            handleNavigation(subitem.label, subitem.sectionId)
+                          }
+                        >
                           <div className="flex items-center h-full">
                             <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
                           </div>
                           <span className="text-sm">{subitem.label}</span>
                         </Link>
                       ) : (
-                        <button key={idx} className={className} onClick={() => handleNavigation(subitem.label, subitem.sectionId)}>
+                        <button
+                          key={idx}
+                          className={className}
+                          onClick={() =>
+                            handleNavigation(subitem.label, subitem.sectionId)
+                          }
+                        >
                           <div className="flex items-center h-full">
                             <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
                           </div>
@@ -732,8 +803,14 @@ export default function Sidebar() {
           <div className="h-px bg-gray-300" style={{ marginTop: "16px" }}></div>
 
           {/* Favorites */}
-          <div className="flex flex-col" style={{ marginTop: "16px", gap: "4px" }}>
-            <div className="flex items-center justify-between px-3" style={{ minHeight: "36px" }}>
+          <div
+            className="flex flex-col"
+            style={{ marginTop: "16px", gap: "4px" }}
+          >
+            <div
+              className="flex items-center justify-between px-3"
+              style={{ minHeight: "36px" }}
+            >
               <span className="text-sm font-medium text-gray-700">
                 Favorites
               </span>
@@ -793,8 +870,14 @@ export default function Sidebar() {
       {/* Bottom Section */}
       <div className="flex flex-col" style={{ gap: "16px" }}>
         {/* Settings & Help */}
-        <div className="flex flex-col" style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}>
-          <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
+        <div
+          className="flex flex-col"
+          style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}
+        >
+          <button
+            className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+            style={{ minHeight: "38px" }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -811,7 +894,10 @@ export default function Sidebar() {
             </svg>
             <span>Settings</span>
           </button>
-          <button className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
+          <button
+            className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+            style={{ minHeight: "38px" }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -832,7 +918,10 @@ export default function Sidebar() {
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white" style={{ padding: "8px 12px 8px 8px", gap: "35px" }}>
+        <div
+          className="flex items-center justify-between rounded-lg border border-gray-300 bg-white"
+          style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
+        >
           <div className="flex items-center gap-2">
             <img
               alt="User avatar"

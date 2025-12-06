@@ -100,8 +100,10 @@ export default function Header() {
         // If closing the selected tab, select the next tab to the right
         if (isClosing && selectedTab === tabId) {
           // Get the current order of open tabs
-          const openTabsArray = tabs.filter(tab => openTabs.has(tab.id));
-          const closedTabIndex = openTabsArray.findIndex(tab => tab.id === tabId);
+          const openTabsArray = tabs.filter((tab) => openTabs.has(tab.id));
+          const closedTabIndex = openTabsArray.findIndex(
+            (tab) => tab.id === tabId,
+          );
 
           // Determine which tab to select next
           let nextTabId: string;
@@ -157,71 +159,98 @@ export default function Header() {
   return (
     <header className="bg-white">
       {/* Tabs Section */}
-      <div className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]" style={{ borderBottomWidth: "0px", borderColor: "rgb(210, 209, 207)", borderLeftWidth: "0px" }}>
-        {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
-          const isSelected = tab.id === selectedTab;
-          const displayLabel = tabContext.tabMetadata[tab.id]?.label || tab.label;
-          return (
-            <div
-              key={tab.id}
-              className="flex items-center transition-all whitespace-nowrap"
-              style={{
-                backgroundColor: isSelected ? "rgba(255, 255, 255, 1)" : "#f7f7f7",
-                borderRadius: isSelected ? "12px 12px 0 0" : "0",
-                minHeight: "47px",
-                gap: "35px",
-                margin: "8px 0 -2px",
-                padding: "0 12px",
-                ...(isSelected
-                  ? {
-                      borderTop: "1px solid #d2d1cf",
-                      borderLeft: "1px solid #d2d1cf",
-                      borderRight: "1px solid #d2d1cf",
-                      borderBottom: "1px solid rgb(255,255,255)"
-                    }
-                  : {
-                      borderTop: "none",
-                      borderLeft: "none",
-                      borderRight: "none",
-                      borderBottom: "1px solid #d2d1cf"
-                    }
-                )
-              }}
-            >
-              <button
-                onClick={() => setSelectedTab(tab.id)}
-                className="flex items-center gap-2"
-              >
-                <span className="flex items-center justify-center w-5 h-5">
-                  {tab.icon}
-                </span>
-                <span className="text-sm font-medium text-[#303030]" style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif", lineHeight: "24px" }}>
-                  {displayLabel}
-                </span>
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleTab(tab.id, true);
+      <div
+        className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]"
+        style={{
+          borderBottomWidth: "0px",
+          borderColor: "rgb(210, 209, 207)",
+          borderLeftWidth: "0px",
+        }}
+      >
+        {tabs
+          .filter((tab) => openTabs.has(tab.id))
+          .map((tab) => {
+            const isSelected = tab.id === selectedTab;
+            const displayLabel =
+              tabContext.tabMetadata[tab.id]?.label || tab.label;
+            return (
+              <div
+                key={tab.id}
+                className="flex items-center transition-all whitespace-nowrap"
+                style={{
+                  backgroundColor: isSelected
+                    ? "rgba(255, 255, 255, 1)"
+                    : "#f7f7f7",
+                  borderRadius: isSelected ? "12px 12px 0 0" : "0",
+                  minHeight: "47px",
+                  gap: "35px",
+                  margin: "8px 0 -2px",
+                  padding: "0 12px",
+                  ...(isSelected
+                    ? {
+                        borderTop: "1px solid #d2d1cf",
+                        borderLeft: "1px solid #d2d1cf",
+                        borderRight: "1px solid #d2d1cf",
+                        borderBottom: "1px solid rgb(255,255,255)",
+                      }
+                    : {
+                        borderTop: "none",
+                        borderLeft: "none",
+                        borderRight: "none",
+                        borderBottom: "1px solid #d2d1cf",
+                      }),
                 }}
-                className="ml-1 text-gray-500 hover:text-gray-700 flex-shrink-0"
-                aria-label={`Close ${tab.label} tab`}
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+                <button
+                  onClick={() => setSelectedTab(tab.id)}
+                  className="flex items-center gap-2"
                 >
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          );
-        })}
-        <div className="flex-1 flex items-center h-12 px-2" style={{ borderTopWidth: "0px", borderLeftWidth: "0px", borderRightWidth: "0px", margin: "8px 0 -1px", border: "1px solid #d2d1cf" }}>
+                  <span className="flex items-center justify-center w-5 h-5">
+                    {tab.icon}
+                  </span>
+                  <span
+                    className="text-sm font-medium text-[#303030]"
+                    style={{
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      lineHeight: "24px",
+                    }}
+                  >
+                    {displayLabel}
+                  </span>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTab(tab.id, true);
+                  }}
+                  className="ml-1 text-gray-500 hover:text-gray-700 flex-shrink-0"
+                  aria-label={`Close ${tab.label} tab`}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })}
+        <div
+          className="flex-1 flex items-center h-12 px-2"
+          style={{
+            borderTopWidth: "0px",
+            borderLeftWidth: "0px",
+            borderRightWidth: "0px",
+            margin: "8px 0 -1px",
+            border: "1px solid #d2d1cf",
+          }}
+        >
           <button
             onClick={addNewTab}
             className="text-gray-600 hover:text-gray-900 transition-opacity"
@@ -243,7 +272,15 @@ export default function Header() {
       </div>
 
       {/* Navigation & Search Section */}
-      <div className="flex items-center justify-between px-6 py-4 gap-6" style={{ borderColor: "rgb(210, 209, 207)", borderWidth: "1px", borderRightWidth: "0px", borderBottomWidth: "1px" }}>
+      <div
+        className="flex items-center justify-between px-6 py-4 gap-6"
+        style={{
+          borderColor: "rgb(210, 209, 207)",
+          borderWidth: "1px",
+          borderRightWidth: "0px",
+          borderBottomWidth: "1px",
+        }}
+      >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Navigation Buttons */}
           <button className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0">

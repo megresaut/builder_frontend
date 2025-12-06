@@ -136,7 +136,6 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
 ];
 
-
 const ActionButton = ({
   orderId,
   openMenuId,
@@ -161,7 +160,9 @@ const ActionButton = ({
 
         // If not enough space below, position above the button
         const shouldOpenAbove = spaceBelow < menuHeight + 8;
-        const top = shouldOpenAbove ? rect.top - menuHeight - 8 : rect.bottom + 8;
+        const top = shouldOpenAbove
+          ? rect.top - menuHeight - 8
+          : rect.bottom + 8;
 
         setMenuPos({
           top,
@@ -235,7 +236,10 @@ const ActionButton = ({
             >
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
               >
                 Edit
               </span>
@@ -264,7 +268,10 @@ const ActionButton = ({
             >
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
               >
                 Delete
               </span>
@@ -285,7 +292,7 @@ const ActionButton = ({
               </svg>
             </button>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );
@@ -352,7 +359,10 @@ export default function FieldTeamOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 pb-32" style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)" }}>
+    <div
+      className="min-h-screen bg-white p-4 md:p-6 lg:p-8 pb-32"
+      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)" }}
+    >
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-center gap-10 justify-between flex-wrap">
@@ -362,7 +372,10 @@ export default function FieldTeamOrders() {
               All Field Team Orders
             </h1>
             <div className="flex items-center gap-3 mt-1">
-              <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-4px" }}>
+              <p
+                className="text-[#717179] font-medium text-base leading-4"
+                style={{ marginTop: "-4px" }}
+              >
                 All your field team orders, in one place
               </p>
             </div>
@@ -476,7 +489,14 @@ export default function FieldTeamOrders() {
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
                           <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
                           <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
@@ -485,60 +505,119 @@ export default function FieldTeamOrders() {
                           <path d="M10 14h4" />
                           <path d="M10 18h4" />
                         </svg>
-                        <span className="font-medium text-sm text-gray-700">Property</span>
+                        <span className="font-medium text-sm text-gray-700">
+                          Property
+                        </span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                          <circle
+                            cx="7.5"
+                            cy="7.5"
+                            r=".5"
+                            fill="currentColor"
+                          />
                         </svg>
-                        <span className="font-medium text-sm text-gray-700">Description</span>
+                        <span className="font-medium text-sm text-gray-700">
+                          Description
+                        </span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M8 2v4" />
                           <path d="M16 2v4" />
                           <rect width="18" height="18" x="3" y="4" rx="2" />
                           <path d="M3 10h18" />
                         </svg>
-                        <span className="font-medium text-sm text-gray-700">Due Date</span>
+                        <span className="font-medium text-sm text-gray-700">
+                          Due Date
+                        </span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                           <circle cx="12" cy="7" r="4" />
                         </svg>
-                        <span className="font-medium text-sm text-gray-700">Field Team</span>
+                        <span className="font-medium text-sm text-gray-700">
+                          Field Team
+                        </span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                          <circle
+                            cx="7.5"
+                            cy="7.5"
+                            r=".5"
+                            fill="currentColor"
+                          />
                         </svg>
-                        <span className="font-medium text-sm text-gray-700">Status</span>
+                        <span className="font-medium text-sm text-gray-700">
+                          Status
+                        </span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <line x1="4" x2="20" y1="9" y2="9" />
                           <line x1="4" x2="20" y1="15" y2="15" />
                           <line x1="10" x2="8" y1="3" y2="21" />
                           <line x1="16" x2="14" y1="3" y2="21" />
                         </svg>
-                        <span className="font-medium text-sm text-gray-700">Amount</span>
+                        <span className="font-medium text-sm text-gray-700">
+                          Amount
+                        </span>
                       </div>
                     </th>
                     <th className="sticky right-0 px-3 py-3 text-left bg-white border-l border-gray-200">
-                      <span className="font-medium text-sm text-gray-700">Actions</span>
+                      <span className="font-medium text-sm text-gray-700">
+                        Actions
+                      </span>
                     </th>
                   </tr>
                 </thead>
@@ -584,7 +663,11 @@ export default function FieldTeamOrders() {
                         </span>
                       </td>
                       <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
-                        <ActionButton orderId={order.id} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} />
+                        <ActionButton
+                          orderId={order.id}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -595,22 +678,32 @@ export default function FieldTeamOrders() {
             {/* Pagination Footer */}
             <div
               className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
-              style={{ position: 'relative', zIndex: 1, overflow: 'visible' }}
+              style={{ position: "relative", zIndex: 1, overflow: "visible" }}
             >
               <div className="flex items-center gap-2">
-                <span className="text-gray-700 text-sm font-medium">Showing</span>
-                <div className="relative" style={{ position: 'relative', zIndex: 10 }}>
+                <span className="text-gray-700 text-sm font-medium">
+                  Showing
+                </span>
+                <div
+                  className="relative"
+                  style={{ position: "relative", zIndex: 10 }}
+                >
                   <button
                     ref={dropdownButtonRef}
-                    onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
+                    onClick={() =>
+                      setShowPageSizeDropdown(!showPageSizeDropdown)
+                    }
                     className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
                     style={{
                       borderColor: "rgb(218, 218, 218)",
                       borderWidth: "0.909091px",
-                      boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                      boxShadow:
+                        "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
                     }}
                   >
-                    <div className="text-gray-900 font-medium text-sm">{itemsPerPage}</div>
+                    <div className="text-gray-900 font-medium text-sm">
+                      {itemsPerPage}
+                    </div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="18"
@@ -626,14 +719,17 @@ export default function FieldTeamOrders() {
                     </svg>
                   </button>
                 </div>
-                <span className="text-gray-700 text-sm font-medium">of 225</span>
+                <span className="text-gray-700 text-sm font-medium">
+                  of 225
+                </span>
               </div>
               <div
                 className="flex items-center rounded-lg border bg-white overflow-hidden"
                 style={{
                   borderColor: "rgb(218, 218, 218)",
                   borderWidth: "0.909091px",
-                  boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                  boxShadow:
+                    "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
                 }}
               >
                 <button
@@ -643,7 +739,7 @@ export default function FieldTeamOrders() {
                     "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
                     currentPage === 1
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50"
+                      : "hover:bg-gray-50",
                   )}
                   style={{
                     borderRightWidth: "0.909091px",
@@ -656,7 +752,9 @@ export default function FieldTeamOrders() {
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"}
+                    stroke={
+                      currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
+                    }
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -664,10 +762,12 @@ export default function FieldTeamOrders() {
                     <path d="m12 19-7-7 7-7" />
                     <path d="M19 12H5" />
                   </svg>
-                  <div className={cn(
-                    "font-medium text-sm",
-                    currentPage === 1 ? "text-gray-400" : "text-gray-700"
-                  )}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === 1 ? "text-gray-400" : "text-gray-700",
+                    )}
+                  >
                     Previous
                   </div>
                 </button>
@@ -684,7 +784,9 @@ export default function FieldTeamOrders() {
                           backgroundColor: "rgba(0, 0, 0, 0)",
                         }}
                       >
-                        <div className="text-gray-500 font-medium text-sm">...</div>
+                        <div className="text-gray-500 font-medium text-sm">
+                          ...
+                        </div>
                       </button>
                     );
                   }
@@ -697,18 +799,23 @@ export default function FieldTeamOrders() {
                         "flex items-center justify-center h-10 min-w-10 transition-colors",
                         currentPage === page
                           ? "hover:bg-gray-50"
-                          : "hover:bg-gray-50"
+                          : "hover:bg-gray-50",
                       )}
                       style={{
                         borderRightWidth: "0.909091px",
                         borderRightColor: "rgb(229, 229, 229)",
-                        backgroundColor: currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                        backgroundColor:
+                          currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
                       }}
                     >
-                      <div className={cn(
-                        "font-medium text-sm",
-                        currentPage === page ? "text-gray-900 font-bold" : "text-gray-500"
-                      )}>
+                      <div
+                        className={cn(
+                          "font-medium text-sm",
+                          currentPage === page
+                            ? "text-gray-900 font-bold"
+                            : "text-gray-500",
+                        )}
+                      >
                         {page}
                       </div>
                     </button>
@@ -717,15 +824,13 @@ export default function FieldTeamOrders() {
                 <button
                   onClick={() => setCurrentPage(currentPage + 1)}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50"
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
                   )}
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn(
-                    "font-medium text-sm text-gray-700"
-                  )}>
+                  <div className={cn("font-medium text-sm text-gray-700")}>
                     Next
                   </div>
                   <svg
@@ -734,7 +839,11 @@ export default function FieldTeamOrders() {
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"}
+                    stroke={
+                      currentPage === totalPages
+                        ? "rgb(163, 163, 163)"
+                        : "currentColor"
+                    }
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -749,51 +858,54 @@ export default function FieldTeamOrders() {
         </div>
       </div>
       {/* Dropdown Menu - Rendered via Portal at body level */}
-      {showPageSizeDropdown && createPortal(
-        <div
-          className="bg-white overflow-hidden"
-          style={{
-            border: "0.5px solid #DADADA",
-            borderRadius: "8px",
-            boxShadow: "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-            zIndex: 99999,
-            minWidth: "56px",
-            width: "56px",
-            position: "fixed",
-            top: dropdownPos.top + "px",
-            left: dropdownPos.left + "px",
-            pointerEvents: "auto"
-          }}
-          onMouseLeave={() => setShowPageSizeDropdown(false)}
-        >
-          {[10, 25, 50].map((size, index) => (
-            <button
-              key={size}
-              onClick={() => {
-                setItemsPerPage(size);
-                setCurrentPage(1);
-                setShowPageSizeDropdown(false);
-              }}
-              className={cn(
-                "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
-                itemsPerPage === size
-                  ? "bg-gray-50 font-medium text-gray-900"
-                  : "text-[#303030] hover:bg-gray-50"
-              )}
-              style={{
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                fontSize: "16px",
-                lineHeight: "140%",
-                letterSpacing: "-0.32px",
-                borderRadius: index === 2 ? "0 0 8px 8px" : "0"
-              }}
-            >
-              {size}
-            </button>
-          ))}
-        </div>,
-        document.body
-      )}
+      {showPageSizeDropdown &&
+        createPortal(
+          <div
+            className="bg-white overflow-hidden"
+            style={{
+              border: "0.5px solid #DADADA",
+              borderRadius: "8px",
+              boxShadow:
+                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+              zIndex: 99999,
+              minWidth: "56px",
+              width: "56px",
+              position: "fixed",
+              top: dropdownPos.top + "px",
+              left: dropdownPos.left + "px",
+              pointerEvents: "auto",
+            }}
+            onMouseLeave={() => setShowPageSizeDropdown(false)}
+          >
+            {[10, 25, 50].map((size, index) => (
+              <button
+                key={size}
+                onClick={() => {
+                  setItemsPerPage(size);
+                  setCurrentPage(1);
+                  setShowPageSizeDropdown(false);
+                }}
+                className={cn(
+                  "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
+                  itemsPerPage === size
+                    ? "bg-gray-50 font-medium text-gray-900"
+                    : "text-[#303030] hover:bg-gray-50",
+                )}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "16px",
+                  lineHeight: "140%",
+                  letterSpacing: "-0.32px",
+                  borderRadius: index === 2 ? "0 0 8px 8px" : "0",
+                }}
+              >
+                {size}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
