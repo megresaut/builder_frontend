@@ -678,7 +678,7 @@ export default function Sidebar() {
 
       {/* Scrollable Middle Section */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="flex flex-col" style={{ marginTop: "24px" }}>
+        <div className="flex flex-col">
           {/* Navigation */}
           <div className="flex flex-col gap-1.5">
             {navigationItems.map((item) => (
