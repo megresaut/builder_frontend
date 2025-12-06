@@ -108,14 +108,31 @@ export default function Header() {
   };
 
   const addNewTab = () => {
-    // Find the first closed tab and open it
-    const closedTab = tabs.find(tab => !openTabs.has(tab.id));
-    if (closedTab) {
-      const newTabs = new Set(openTabs);
-      newTabs.add(closedTab.id);
-      setOpenTabs(newTabs);
-      setSelectedTab(closedTab.id);
-    }
+    const newTabId = `new-tab-${nextNewTabId}`;
+    const newTab: Tab = {
+      id: newTabId,
+      label: "New Tab",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      ),
+    };
+
+    setTabs([...tabs, newTab]);
+    setOpenTabs(new Set([...openTabs, newTabId]));
+    setSelectedTab(newTabId);
+    setNextNewTabId(nextNewTabId + 1);
   };
 
   return (
