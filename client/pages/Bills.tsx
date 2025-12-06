@@ -533,6 +533,24 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <line x1="12" x2="12" y1="2" y2="22" />
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Amount
+                        </span>
+                      </div>
+                    </th>
                     <th className="sticky right-0 px-3 py-3 text-left bg-white border-l border-gray-200">
                       <span className="font-medium text-sm text-gray-700">
                         Actions
