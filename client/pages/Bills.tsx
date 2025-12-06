@@ -638,10 +638,10 @@ export default function Bills() {
           </div>
         </div>
       </div>
-      {/* Dropdown Menu - Rendered at root level */}
-      {showPageSizeDropdown && (
+      {/* Dropdown Menu - Rendered via Portal at body level */}
+      {showPageSizeDropdown && createPortal(
         <div
-          className="absolute bg-white overflow-hidden"
+          className="bg-white overflow-hidden"
           style={{
             border: "0.5px solid #DADADA",
             borderRadius: "8px",
@@ -680,7 +680,8 @@ export default function Bills() {
               {size}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
