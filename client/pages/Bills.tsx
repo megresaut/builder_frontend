@@ -191,10 +191,8 @@ export default function Bills() {
       pages.push(i);
     }
 
-    // Add ellipsis if there are more pages after right side
-    if (rightEnd < totalPages) {
-      pages.push("...");
-    }
+    // Always add ellipsis (there's always a gap of 4 between left and right)
+    pages.push("...");
 
     // Add right side
     for (let i = rightStart; i <= rightEnd; i++) {
