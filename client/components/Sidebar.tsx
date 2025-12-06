@@ -159,7 +159,7 @@ export default function Sidebar() {
     },
   ];
 
-  const submenuMap: Record<string, Array<{ label: string; path?: string }>> = {
+  const submenuMap: Record<string, Array<{ label: string; path?: string; sectionId?: string }>> = {
     dashboard: [
       { label: "Portfolios" },
       { label: "All Properties" },
@@ -181,13 +181,13 @@ export default function Sidebar() {
       { label: "Expired" },
     ],
     accounting: [
-      { label: "Bills", path: "/bills" },
+      { label: "Bills", path: "/bills", sectionId: "bills" },
       { label: "Expenses" },
       { label: "Income" },
     ],
     maintenance: [
       { label: "Tasks", path: "/" },
-      { label: "Field Team Orders", path: "/field-team-orders" },
+      { label: "Field Team Orders", path: "/field-team-orders", sectionId: "field-team-orders" },
       { label: "Work Orders" },
     ],
     reports: [
