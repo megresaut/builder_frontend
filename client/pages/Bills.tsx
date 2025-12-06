@@ -487,33 +487,58 @@ export default function Bills() {
 
             {/* Pagination Footer */}
             <div
-              className="flex justify-between items-center px-6 py-4 bg-white gap-4"
+              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
             >
               <div className="flex items-center gap-2">
                 <span className="text-gray-700 text-sm font-medium">Showing</span>
-                <button
-                  className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm"
-                  style={{
-                    borderColor: "rgb(218, 218, 218)",
-                    borderWidth: "0.909091px",
-                    boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                  }}
-                >
-                  <div className="text-gray-900 font-medium text-sm">10</div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                <div className="relative">
+                  <button
+                    onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
+                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm"
+                    style={{
+                      borderColor: "rgb(218, 218, 218)",
+                      borderWidth: "0.909091px",
+                      boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                    }}
                   >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
+                    <div className="text-gray-900 font-medium text-sm">{itemsPerPage}</div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  {showPageSizeDropdown && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10" style={{ borderColor: "rgb(218, 218, 218)", borderWidth: "0.909091px" }}>
+                      {[10, 25, 50].map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => {
+                            setItemsPerPage(size);
+                            setCurrentPage(1);
+                            setShowPageSizeDropdown(false);
+                          }}
+                          className={cn(
+                            "w-full px-4 py-2 text-left text-sm transition-colors",
+                            itemsPerPage === size
+                              ? "bg-gray-100 font-medium text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50"
+                          )}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <span className="text-gray-700 text-sm font-medium">of 225</span>
               </div>
               <div
@@ -525,8 +550,14 @@ export default function Bills() {
                 }}
               >
                 <button
-                  disabled
-                  className="flex items-center justify-center gap-1.5 h-10 px-3 opacity-50 cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50"
+                  )}
                   style={{
                     borderRightWidth: "0.909091px",
                     borderRightColor: "rgb(229, 229, 229)",
@@ -538,7 +569,7 @@ export default function Bills() {
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="rgb(163, 163, 163)"
+                    stroke={currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"}
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -546,92 +577,82 @@ export default function Bills() {
                     <path d="m12 19-7-7 7-7" />
                     <path d="M19 12H5" />
                   </svg>
-                  <div className="text-gray-700 font-medium text-sm">Previous</div>
+                  <div className={cn(
+                    "font-medium text-sm",
+                    currentPage === 1 ? "text-gray-400" : "text-gray-700"
+                  )}>
+                    Previous
+                  </div>
                 </button>
+                {getPaginationNumbers().map((page, idx) => {
+                  if (page === "...") {
+                    return (
+                      <button
+                        key={`ellipsis-${idx}`}
+                        disabled
+                        className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                        style={{
+                          borderRightWidth: "0.909091px",
+                          borderRightColor: "rgb(229, 229, 229)",
+                          backgroundColor: "rgba(0, 0, 0, 0)",
+                        }}
+                      >
+                        <div className="text-gray-500 font-medium text-sm">...</div>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page as number)}
+                      className={cn(
+                        "flex items-center justify-center h-10 min-w-10 transition-colors",
+                        currentPage === page
+                          ? "hover:bg-gray-50"
+                          : "hover:bg-gray-50"
+                      )}
+                      style={{
+                        borderRightWidth: "0.909091px",
+                        borderRightColor: "rgb(229, 229, 229)",
+                        backgroundColor: currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      <div className={cn(
+                        "font-medium text-sm",
+                        currentPage === page ? "text-gray-900 font-bold" : "text-gray-500"
+                      )}>
+                        {page}
+                      </div>
+                    </button>
+                  );
+                })}
                 <button
-                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                  }}
-                >
-                  <div className="text-gray-900 font-medium text-sm">1</div>
-                </button>
-                <button
-                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className="text-gray-500 font-medium text-sm">2</div>
-                </button>
-                <button
-                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className="text-gray-500 font-medium text-sm">3</div>
-                </button>
-                <button
-                  disabled
-                  className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className="text-gray-500 font-medium text-sm">...</div>
-                </button>
-                <button
-                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className="text-gray-500 font-medium text-sm">8</div>
-                </button>
-                <button
-                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className="text-gray-500 font-medium text-sm">9</div>
-                </button>
-                <button
-                  className="flex items-center justify-center h-10 min-w-10 hover:bg-gray-50 transition-colors"
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className="text-gray-500 font-medium text-sm">10</div>
-                </button>
-                <button
-                  className="flex items-center justify-center gap-1.5 h-10 px-3 hover:bg-gray-50 transition-colors"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50"
+                  )}
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className="text-gray-700 font-medium text-sm">Next</div>
+                  <div className={cn(
+                    "font-medium text-sm",
+                    currentPage === totalPages ? "text-gray-400" : "text-gray-700"
+                  )}>
+                    Next
+                  </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="rgb(163, 163, 163)"
+                    stroke={currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"}
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
