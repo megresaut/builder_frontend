@@ -178,32 +178,27 @@ export default function Bills() {
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
 
-    if (totalPages <= 7) {
-      // Show all pages if 7 or fewer
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Left side: 3 consecutive pages starting from currentPage
-      const leftStart = currentPage;
-      const leftEnd = currentPage + 2;
+    // Left side: 3 consecutive pages starting from currentPage
+    const leftStart = currentPage;
+    const leftEnd = currentPage + 2;
 
-      // Right side: 3 consecutive pages with gap of 4 from left
-      const rightStart = leftEnd + 5;
-      const rightEnd = rightStart + 2;
+    // Right side: 3 consecutive pages with gap of 4 from left
+    const rightStart = leftEnd + 5;
+    const rightEnd = rightStart + 2;
 
-      // Add left side
-      for (let i = leftStart; i <= leftEnd; i++) {
-        pages.push(i);
-      }
+    // Add left side
+    for (let i = leftStart; i <= leftEnd; i++) {
+      pages.push(i);
+    }
 
-      // Add ellipsis
+    // Add ellipsis if there are more pages after right side
+    if (rightEnd < totalPages) {
       pages.push("...");
+    }
 
-      // Add right side
-      for (let i = rightStart; i <= rightEnd; i++) {
-        pages.push(i);
-      }
+    // Add right side
+    for (let i = rightStart; i <= rightEnd; i++) {
+      pages.push(i);
     }
 
     return pages;
