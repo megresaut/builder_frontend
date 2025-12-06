@@ -648,7 +648,7 @@ export default function Index() {
                       <tr
                         key={task.id}
                         className={cn(
-                          "border-b hover:bg-gray-50 transition-colors",
+                          "border-b hover:bg-gray-50 transition-colors h-12",
                           index === tasks.length - 1 ? "border-b-0" : "",
                         )}
                         style={{ borderColor: "rgb(229, 229, 229)" }}
