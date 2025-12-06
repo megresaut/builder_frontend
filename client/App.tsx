@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import TabContent from "./components/TabContent";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import Bills from "./pages/Bills";
+import AllProperties from "./pages/AllProperties";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
@@ -62,6 +63,14 @@ export default function App() {
                 element={
                   <ShellLayout>
                     <Bills />
+                  </ShellLayout>
+                }
+              />
+              <Route
+                path="/all-properties"
+                element={
+                  <ShellLayout>
+                    <AllProperties />
                   </ShellLayout>
                 }
               />

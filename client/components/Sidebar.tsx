@@ -170,7 +170,7 @@ export default function Sidebar() {
       { label: "Overview" },
     ],
     properties: [
-      { label: "All Properties" },
+      { label: "All Properties", path: "/all-properties", sectionId: "all-properties" },
       { label: "Active Listings" },
       { label: "Archived" },
     ],
