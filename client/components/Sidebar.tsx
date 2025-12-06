@@ -251,24 +251,11 @@ export default function Sidebar() {
           border: "1px solid #f7f7f7"
         }}>
           <div className="flex flex-col items-center gap-6">
-            <div className="flex items-center gap-2">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 32 32"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="rounded-md"
-              >
-                <rect width="32" height="32" rx="6" fill="#013764" />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M14.9194 6.679C14.6822 6.59982 14.4307 6.57292 14.1821 6.60014C13.9335 6.62736 13.6938 6.70806 13.4793 6.8367L9.90933 8.97869C9.65272 9.13266 9.44034 9.35046 9.2929 9.61088C9.14545 9.8713 9.06796 10.1655 9.06796 10.4647V22.1053H8.20146C7.97165 22.1053 7.75125 22.1966 7.58875 22.3591C7.42625 22.5216 7.33496 22.742 7.33496 22.9718C7.33496 23.2016 7.42625 23.422 7.58875 23.5845C7.75125 23.747 7.97165 23.8383 8.20146 23.8383H23.7985C24.0283 23.8383 24.2487 23.747 24.4112 23.5845C24.5737 23.422 24.665 23.2016 24.665 22.9718C24.665 22.742 24.5737 22.5216 24.4112 22.3591C24.2487 22.1966 24.0283 22.1053 23.7985 22.1053H22.932V10.5982C22.9317 10.2347 22.8173 9.88051 22.6047 9.58569C22.3921 9.29086 22.0922 9.07033 21.7475 8.95529L14.9194 6.679ZM13.4005 8.9059L10.801 10.4656V22.1053H13.4005V8.90503V8.9059Z"
-                  fill="#DEEFFD"
-                />
-              </svg>
-            </div>
+            <img
+              alt="AVM Logo"
+              src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
+              className="w-8 h-8"
+            />
 
             <div className="flex flex-col items-center gap-4 w-full">
               {navigationItems.map((item) => (
