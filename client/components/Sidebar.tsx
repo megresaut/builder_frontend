@@ -713,14 +713,14 @@ export default function Sidebar() {
                       "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap";
 
                       return isLink ? (
-                        <Link key={idx} to={subitem.path!} className={className}>
+                        <Link key={idx} to={subitem.path!} className={className} onClick={() => handleNavigation(subitem.label, subitem.sectionId)}>
                           <div className="flex items-center h-full">
                             <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
                           </div>
                           <span className="text-sm">{subitem.label}</span>
                         </Link>
                       ) : (
-                        <button key={idx} className={className}>
+                        <button key={idx} className={className} onClick={() => handleNavigation(subitem.label, subitem.sectionId)}>
                           <div className="flex items-center h-full">
                             <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
                           </div>
