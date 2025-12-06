@@ -10,6 +10,7 @@ export default function Header() {
   const [openTabs, setOpenTabs] = useState<Set<string>>(
     new Set(["properties"]),
   );
+  const [selectedTab, setSelectedTab] = useState<string>("properties");
 
   const tabs: Tab[] = [
     {
