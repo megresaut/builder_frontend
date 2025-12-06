@@ -274,16 +274,16 @@ export default function FieldTeamOrders() {
                 </span>
               </button>
               <button
-                onClick={() => setSelectedTab("in-progress")}
+                onClick={() => setSelectedTab("approved")}
                 className={cn(
                   "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
-                  selectedTab === "in-progress"
+                  selectedTab === "approved"
                     ? "bg-white"
                     : "bg-transparent hover:bg-gray-50",
                 )}
               >
                 <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                  In Progress
+                  Approved
                 </span>
               </button>
             </div>
