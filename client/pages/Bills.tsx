@@ -491,6 +491,7 @@ export default function Bills() {
                 <span className="text-gray-700 text-sm font-medium">Showing</span>
                 <div className="relative" style={{ position: 'relative', zIndex: 10 }}>
                   <button
+                    ref={dropdownButtonRef}
                     onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
                     className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
                     style={{
