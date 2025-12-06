@@ -622,7 +622,7 @@ export default function Bills() {
                   {approvedBills.map((bill) => (
                     <tr
                       key={bill.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
                         <div className="flex items-center gap-2">
