@@ -346,7 +346,7 @@ export default function Bills() {
                       key={bill.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <div className="flex items-center gap-2">
                           <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
                           <span className="text-gray-900 font-normal text-base">
@@ -354,30 +354,30 @@ export default function Bills() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.property}
                         </span>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.statementDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.dueDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <StatusBadge status={bill.status} />
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
                           {bill.memo}
                         </span>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.invoiceNumber}
                         </span>
