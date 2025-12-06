@@ -818,7 +818,7 @@ export default function Sidebar() {
                 Favorites
               </span>
               <div className="flex items-center gap-2">
-                <button className="p-0 text-gray-600 hover:text-gray-900">
+                <button onClick={addFavoriteItem} className="p-0 text-gray-600 hover:text-gray-900">
                   <svg
                     width="16"
                     height="16"
