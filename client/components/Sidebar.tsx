@@ -347,7 +347,7 @@ export default function Sidebar() {
           {/* Top Section */}
           <div className="flex flex-col gap-3 px-5">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pb-3">
               <div className="flex items-center gap-2">
                 <img
                   alt="AVM Logo"
