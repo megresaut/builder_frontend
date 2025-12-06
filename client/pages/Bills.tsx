@@ -670,7 +670,7 @@ export default function Bills() {
                           ${bill.amount}
                         </span>
                       </td>
-                      <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
+                      <td className="sticky right-0 px-2 py-3 bg-white border-l border-gray-200 w-16 flex items-center justify-center">
                         <ActionButton />
                       </td>
                     </tr>
