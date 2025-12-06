@@ -95,47 +95,52 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200">
       {/* Tabs Section */}
-      <div className="flex items-center gap-0 border-b border-gray-100 px-6 py-0">
+      <div className="flex items-center gap-0 border-b border-gray-100 px-0 py-0">
         {tabs.map((tab) => {
           const isOpen = openTabs.has(tab.id);
           return (
-            <button
+            <div
               key={tab.id}
-              onClick={() => toggleTab(tab.id)}
-              className={`flex items-center gap-2 px-3 py-3 border-b-2 transition-all ${
+              className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-all ${
                 isOpen
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-600"
+                  ? "border-gray-900 text-gray-900 bg-white"
+                  : "border-transparent text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <span className="flex items-center justify-center">
-                {tab.icon}
-              </span>
-              <span className="text-sm font-normal">{tab.label}</span>
+              <button
+                onClick={() => toggleTab(tab.id)}
+                className="flex items-center gap-2"
+              >
+                <span className="flex items-center justify-center">
+                  {tab.icon}
+                </span>
+                <span className="text-sm font-normal">{tab.label}</span>
+              </button>
               {isOpen && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleTab(tab.id);
                   }}
-                  className="ml-1 text-gray-400 hover:text-gray-600"
+                  className="ml-1 text-gray-500 hover:text-gray-700 flex-shrink-0"
+                  aria-label={`Close ${tab.label} tab`}
                 >
                   <svg
-                    width="12"
-                    height="12"
+                    width="14"
+                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="3"
+                    strokeWidth="2.5"
                   >
                     <path d="M18 6 6 18M6 6l12 12" />
                   </svg>
                 </button>
               )}
-            </button>
+            </div>
           );
         })}
-        <div className="flex-1 flex items-center justify-end pr-2">
+        <div className="flex-1 flex items-center justify-end pr-6">
           <button className="p-1.5 text-gray-600 hover:text-gray-900">
             <svg
               width="16"
