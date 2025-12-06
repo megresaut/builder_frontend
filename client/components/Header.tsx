@@ -111,27 +111,25 @@ export default function Header() {
                 </span>
                 <span className="text-sm font-normal">{tab.label}</span>
               </button>
-              {isOpen && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleTab(tab.id);
-                  }}
-                  className="ml-1 text-gray-500 hover:text-gray-700 flex-shrink-0"
-                  aria-label={`Close ${tab.label} tab`}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTab(tab.id);
+                }}
+                className="ml-1 text-gray-500 hover:text-gray-700 flex-shrink-0"
+                aria-label={`Close ${tab.label} tab`}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M18 6 6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           );
         })}
