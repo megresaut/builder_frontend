@@ -186,7 +186,7 @@ export default function Bills() {
     } else {
       // Left side: 3 consecutive pages starting from currentPage
       let leftStart = currentPage;
-      let leftEnd = currentPage + 2;
+      let leftEnd = Math.min(currentPage + 2, totalPages);
 
       // Right side: 3 consecutive pages with gap of 4 from left
       let rightStart = leftEnd + 5; // leftEnd + 1 (gap start) + 4 (gap size) = leftEnd + 5
@@ -196,13 +196,11 @@ export default function Bills() {
       if (rightEnd > totalPages) {
         // Shift backward so right side ends at totalPages
         rightEnd = totalPages;
-        rightStart = Math.max(leftEnd + 5, totalPages - 2);
+        rightStart = totalPages - 2;
 
-        // If there's still overlap, shift left backward too
-        if (rightStart <= leftEnd) {
-          leftEnd = rightStart - 5;
-          leftStart = Math.max(1, leftEnd - 2);
-        }
+        // Shift left backward to maintain gap of 4
+        leftEnd = rightStart - 5;
+        leftStart = Math.max(1, leftEnd - 2);
       }
 
       // Add left side
