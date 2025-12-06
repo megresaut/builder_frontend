@@ -13,6 +13,7 @@ interface Bill {
   status: "pushed" | "push-failed";
   memo: string;
   invoiceNumber: string;
+  amount: number;
 }
 
 const bills: Bill[] = [
