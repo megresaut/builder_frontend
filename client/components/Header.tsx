@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { TabContext } from "@/hooks/useTabContext";
 
 interface Tab {
   id: string;
