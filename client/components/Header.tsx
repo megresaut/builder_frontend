@@ -96,16 +96,11 @@ export default function Header() {
     <header className="bg-white border-b border-gray-200">
       {/* Tabs Section */}
       <div className="flex items-center gap-0 border-b border-gray-100 px-0 py-0">
-        {tabs.map((tab) => {
-          const isOpen = openTabs.has(tab.id);
+        {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
           return (
             <div
               key={tab.id}
-              className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-all ${
-                isOpen
-                  ? "border-gray-900 text-gray-900 bg-white"
-                  : "border-transparent text-gray-600 hover:bg-gray-50"
-              }`}
+              className="flex items-center gap-2 px-6 py-3 border-b-2 border-gray-900 text-gray-900 bg-white transition-all"
             >
               <button
                 onClick={() => toggleTab(tab.id)}
