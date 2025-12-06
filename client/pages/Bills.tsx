@@ -511,7 +511,11 @@ export default function Bills() {
                     </svg>
                   </button>
                   {showPageSizeDropdown && (
-                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10" style={{ borderColor: "rgb(218, 218, 218)", borderWidth: "0.909091px" }}>
+                    <div
+                      className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-max"
+                      style={{ borderColor: "rgb(218, 218, 218)", borderWidth: "0.909091px" }}
+                      onMouseLeave={() => setShowPageSizeDropdown(false)}
+                    >
                       {[10, 25, 50].map((size) => (
                         <button
                           key={size}
@@ -521,7 +525,7 @@ export default function Bills() {
                             setShowPageSizeDropdown(false);
                           }}
                           className={cn(
-                            "w-full px-4 py-2 text-left text-sm transition-colors",
+                            "w-full px-4 py-2 text-left text-sm transition-colors whitespace-nowrap",
                             itemsPerPage === size
                               ? "bg-gray-100 font-medium text-gray-900"
                               : "text-gray-700 hover:bg-gray-50"
