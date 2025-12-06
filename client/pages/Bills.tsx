@@ -603,6 +603,11 @@ export default function Bills() {
                           {bill.invoiceNumber}
                         </span>
                       </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          ${bill.amount}
+                        </span>
+                      </td>
                       <td className="sticky right-0 px-3 py-3 bg-white border-l border-gray-200">
                         <ActionButton />
                       </td>
