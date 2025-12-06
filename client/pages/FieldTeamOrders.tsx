@@ -5,126 +5,134 @@ import { StatusBadge } from "./Utilities";
 
 interface FieldTeamOrder {
   id: number;
-  team: string;
-  teamColor: string;
   property: string;
-  createdDate: string;
-  dueDate: string;
-  status: "dispatched" | "in-progress";
   description: string;
-  orderNumber: string;
+  dueDate: string;
+  fieldTeam: Array<{ initials: string; color: string }>;
+  status: "dispatched" | "approved" | "pending-approval";
+  amount: number;
 }
 
 const fieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
-    team: "Team A",
-    teamColor: "#BC423E",
     property: "22 Indian Chase Dr",
-    createdDate: "Oct 4, 2025",
-    dueDate: "Dec 14, 2025",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Oct 2, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
     status: "dispatched",
-    description: "Doors need to be repaired",
-    orderNumber: "FTO-2024-934",
+    amount: 420,
   },
   {
     id: 2,
-    team: "Team B",
-    teamColor: "#EBA524",
     property: "22 Indian Chase Dr",
-    createdDate: "Oct 3, 2025",
-    dueDate: "Dec 12, 2025",
-    status: "in-progress",
-    description: "HVAC system maintenance",
-    orderNumber: "FTO-2024-582",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 29, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
+    status: "approved",
+    amount: 95,
   },
   {
     id: 3,
-    team: "Team A",
-    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    createdDate: "Oct 2, 2025",
-    dueDate: "Dec 10, 2025",
-    status: "dispatched",
-    description: "Plumbing inspection scheduled",
-    orderNumber: "FTO-2024-195",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 10, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
+    status: "pending-approval",
+    amount: 95,
   },
   {
     id: 4,
-    team: "Team C",
-    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    createdDate: "Oct 1, 2025",
-    dueDate: "Dec 8, 2025",
-    status: "in-progress",
-    description: "Electrical work in progress",
-    orderNumber: "FTO-2024-732",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 6, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
+    status: "dispatched",
+    amount: 112,
   },
   {
     id: 5,
-    team: "Team B",
-    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    createdDate: "Oct 1, 2025",
-    dueDate: "Dec 6, 2025",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 5, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
     status: "dispatched",
-    description: "Roof inspection required",
-    orderNumber: "FTO-2024-268",
+    amount: 93,
   },
   {
     id: 6,
-    team: "Team D",
-    teamColor: "#EBA524",
     property: "22 Indian Chase Dr",
-    createdDate: "Sep 30, 2025",
-    dueDate: "Dec 4, 2025",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 4, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
     status: "dispatched",
-    description: "Interior painting scheduled",
-    orderNumber: "FTO-2024-694",
+    amount: 75,
   },
   {
     id: 7,
-    team: "Team A",
-    teamColor: "#059669",
     property: "22 Indian Chase Dr",
-    createdDate: "Sep 29, 2025",
-    dueDate: "Dec 2, 2025",
-    status: "in-progress",
-    description: "Landscaping and exterior work",
-    orderNumber: "FTO-2024-319",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 4, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
+    status: "dispatched",
+    amount: 101,
   },
   {
     id: 8,
-    team: "Team E",
-    teamColor: "#2463EB",
     property: "22 Indian Chase Dr",
-    createdDate: "Sep 28, 2025",
-    dueDate: "Nov 30, 2025",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 3, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
     status: "dispatched",
-    description: "Security system upgrade",
-    orderNumber: "FTO-2024-851",
+    amount: 124,
   },
   {
     id: 9,
-    team: "Team C",
-    teamColor: "#059669",
     property: "22 Indian Chase Dr",
-    createdDate: "Sep 28, 2025",
-    dueDate: "Nov 28, 2025",
-    status: "in-progress",
-    description: "Window replacement in progress",
-    orderNumber: "FTO-2024-427",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 1, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
+    status: "dispatched",
+    amount: 67,
   },
   {
     id: 10,
-    team: "Team D",
-    teamColor: "#BC423E",
     property: "22 Indian Chase Dr",
-    createdDate: "Sep 28, 2025",
-    dueDate: "Nov 26, 2025",
+    description: "Doors Need To Be Repaired",
+    dueDate: "Sep 1, 2025",
+    fieldTeam: [
+      { initials: "CH", color: "bg-blue-500" },
+      { initials: "CS", color: "bg-blue-500" },
+    ],
     status: "dispatched",
-    description: "Flooring installation scheduled",
-    orderNumber: "FTO-2024-934",
+    amount: 118,
   },
 ];
 
