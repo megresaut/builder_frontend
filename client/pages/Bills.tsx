@@ -640,7 +640,7 @@ export default function Bills() {
       {/* Dropdown Menu - Rendered at root level */}
       {showPageSizeDropdown && (
         <div
-          className="fixed bg-white overflow-hidden"
+          className="absolute bg-white overflow-hidden"
           style={{
             border: "0.5px solid #DADADA",
             borderRadius: "8px",
@@ -648,6 +648,7 @@ export default function Bills() {
             zIndex: 99999,
             minWidth: "56px",
             width: "56px",
+            position: "absolute",
             top: dropdownPos.top + "px",
             left: dropdownPos.left + "px",
           }}
