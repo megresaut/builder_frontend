@@ -243,7 +243,7 @@ export default function Bills() {
             <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
               All Bills
             </h1>
-            <p className="text-[#717179] font-medium text-base leading-4">
+            <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-2px" }}>
               All your bills, in one place
             </p>
           </div>
@@ -272,17 +272,17 @@ export default function Bills() {
                     ? "bg-white"
                     : "bg-transparent hover:bg-gray-50",
                 )}
+                style={{
+                  zIndex: "9999",
+                  borderTopRightRadius: "8px",
+                  borderBottomRightRadius: "8px",
+                }}
               >
                 <span className="text-[#282828] text-center font-normal text-sm leading-5">
                   Approved
                 </span>
               </button>
             </div>
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors">
-              <span className="text-white font-medium text-base leading-normal">
-                Export to Buildium
-              </span>
-            </button>
           </div>
 
           {/* Bills Table */}
