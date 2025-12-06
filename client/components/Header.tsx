@@ -104,16 +104,21 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="bg-white">
       {/* Tabs Section */}
       <div className="flex items-center gap-0 border-b border-[#D2D1CF] px-0 py-0">
         {tabs.filter(tab => openTabs.has(tab.id)).map((tab) => {
+          const isSelected = tab.id === "properties"; // Assuming properties is the selected tab
           return (
             <div
               key={tab.id}
-              className="flex items-center gap-2 px-3 py-3 bg-white border-t border-l border-r border-[#D2D1CF] transition-all whitespace-nowrap"
+              className={`flex items-center gap-2 px-3 py-3 transition-all whitespace-nowrap ${
+                isSelected
+                  ? "bg-white border-t border-l border-r border-[#D2D1CF] border-b border-white"
+                  : "bg-gray-50 border-b border-[#D2D1CF]"
+              }`}
               style={{
-                borderRadius: "12px 12px 0 0",
+                borderRadius: isSelected ? "12px 12px 0 0" : "0",
                 minHeight: "48px"
               }}
             >
