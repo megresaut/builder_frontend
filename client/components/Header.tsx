@@ -203,8 +203,7 @@ export default function Header() {
         <div className="flex-1 flex items-center h-12 px-2" style={{ borderTopWidth: "0px", borderLeftWidth: "0px", borderRightWidth: "0px", margin: "8px 0 -1px", border: "1px solid #d2d1cf" }}>
           <button
             onClick={addNewTab}
-            disabled={openTabs.size === tabs.length}
-            className="text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
+            className="text-gray-600 hover:text-gray-900 transition-opacity"
             aria-label="Add new tab"
           >
             <svg
