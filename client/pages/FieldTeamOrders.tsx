@@ -258,7 +258,7 @@ const ActionButton = ({
             <button
               onClick={() => {
                 console.log("Login clicked for order", orderId);
-                setShowMenu(false);
+                setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
