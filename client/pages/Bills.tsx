@@ -569,7 +569,7 @@ export default function Bills() {
                           />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          memo
+                          Memo
                         </span>
                       </div>
                     </th>
