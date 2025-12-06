@@ -175,6 +175,16 @@ export default function Bills() {
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
+          {/* Title and Description */}
+          <div className="flex flex-col gap-1">
+            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+              All Bills
+            </h1>
+            <p className="text-[#717179] font-medium text-base leading-4">
+              All your bills, in one place
+            </p>
+          </div>
+
           {/* Segmented Tabs and Export Button */}
           <div className="flex justify-between items-start">
             <div className="flex w-[382px] items-start rounded-lg shadow-[0_0_0_0.5px_#D2D1CF]">
