@@ -85,11 +85,22 @@ export default function Header() {
   const toggleTab = (tabId: string) => {
     const newTabs = new Set(openTabs);
     if (newTabs.has(tabId)) {
-      newTabs.delete(tabId);
+      // Prevent closing the last tab
+      if (newTabs.size > 1) {
+        newTabs.delete(tabId);
+      }
     } else {
       newTabs.add(tabId);
     }
     setOpenTabs(newTabs);
+  };
+
+  const addNewTab = () => {
+    // Find the first closed tab and open it
+    const closedTab = tabs.find(tab => !openTabs.has(tab.id));
+    if (closedTab) {
+      toggleTab(closedTab.id);
+    }
   };
 
   return (
@@ -134,7 +145,12 @@ export default function Header() {
           );
         })}
         <div className="flex-1 flex items-center justify-end pr-6">
-          <button className="p-1.5 text-gray-600 hover:text-gray-900">
+          <button
+            onClick={addNewTab}
+            disabled={openTabs.size === tabs.length}
+            className="p-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
+            aria-label="Add new tab"
+          >
             <svg
               width="16"
               height="16"
