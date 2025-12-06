@@ -241,37 +241,9 @@ export default function FieldTeamOrders() {
             </p>
           </div>
 
-          {/* Segmented Tabs and Export Button */}
-          <div className="flex justify-between items-start">
-            <div className="flex w-[382px] items-start rounded-lg shadow-[0_0_0_0.5px_#D2D1CF]">
-              <button
-                onClick={() => setSelectedTab("dispatched")}
-                className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
-                  selectedTab === "dispatched"
-                    ? "bg-white"
-                    : "bg-transparent hover:bg-gray-50",
-                )}
-              >
-                <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                  Dispatched
-                </span>
-              </button>
-              <button
-                onClick={() => setSelectedTab("approved")}
-                className={cn(
-                  "flex justify-center items-center gap-2 flex-1 rounded-md py-2 px-4 outline-none",
-                  selectedTab === "approved"
-                    ? "bg-white"
-                    : "bg-transparent hover:bg-gray-50",
-                )}
-              >
-                <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                  Approved
-                </span>
-              </button>
-            </div>
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors">
+          {/* Create FTO Button */}
+          <div className="flex justify-between items-start text-right self-stretch ml-auto">
+            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] hover:bg-[#003a73] transition-colors justify-start">
               <span className="text-white font-medium text-base leading-normal">
                 Create FTO
               </span>
