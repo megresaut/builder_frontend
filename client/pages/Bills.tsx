@@ -178,19 +178,24 @@ export default function Bills() {
       if (showPageSizeDropdown && dropdownButtonRef.current) {
         const rect = dropdownButtonRef.current.getBoundingClientRect();
         setDropdownPos({
-          top: window.scrollY + rect.bottom + 8,
-          left: window.scrollX + rect.left,
+          top: rect.bottom + 8,
+          left: rect.left,
         });
       }
     };
 
     if (showPageSizeDropdown) {
       updateDropdownPos();
-      window.addEventListener("scroll", updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
+      // Update position on every frame for smooth following
+      const handleScroll = () => updateDropdownPos();
+      const handleResize = () => updateDropdownPos();
+
+      window.addEventListener("scroll", handleScroll, true);
+      window.addEventListener("resize", handleResize);
+
       return () => {
-        window.removeEventListener("scroll", updateDropdownPos);
-        window.removeEventListener("resize", updateDropdownPos);
+        window.removeEventListener("scroll", handleScroll, true);
+        window.removeEventListener("resize", handleResize);
       };
     }
   }, [showPageSizeDropdown]);
