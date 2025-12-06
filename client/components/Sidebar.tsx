@@ -427,7 +427,7 @@ export default function Sidebar() {
                         {(submenuMap[item.id] || []).map((subitem, idx) => {
                           const isLink = subitem.path !== undefined;
                           const className =
-                            "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10";
+                            "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap";
 
                           return isLink ? (
                         <Link
