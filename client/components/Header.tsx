@@ -83,8 +83,14 @@ export default function Header() {
   const [openTabs, setOpenTabs] = useState<Set<string>>(
     new Set(["properties"]),
   );
-  const [selectedTab, setSelectedTab] = useState<string>("properties");
   const [nextNewTabId, setNextNewTabId] = useState(1);
+  const tabContext = useContext(TabContext);
+
+  if (!tabContext) {
+    throw new Error("Header must be used within TabContext provider");
+  }
+
+  const { selectedTab, setSelectedTab } = tabContext;
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
