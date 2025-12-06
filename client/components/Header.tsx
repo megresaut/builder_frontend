@@ -133,9 +133,19 @@ export default function Header() {
                 gap: "35px",
                 margin: "8px 0 -2px",
                 padding: "0 12px",
-                borderBottomColor: "rgb(210,209,207)",
-                borderBottomWidth: "1px",
-                ...(isSelected && { border: "1px solid #d2d1cf", borderBottomWidth: "0px" })
+                ...(isSelected
+                  ? {
+                      border: "1px solid #d2d1cf",
+                      borderBottomColor: "rgb(255,255,255)",
+                      borderBottomWidth: "1px"
+                    }
+                  : {
+                      borderTopWidth: "0px",
+                      borderLeftWidth: "0px",
+                      borderRightWidth: "0px",
+                      border: "1px solid #d2d1cf"
+                    }
+                )
               }}
             >
               <button
