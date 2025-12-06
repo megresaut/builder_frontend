@@ -197,11 +197,13 @@ export default function Sidebar() {
         }}
       >
         {/* Collapsed Sidebar */}
-        <aside className={`bg-[#F7F7F7] border-r absolute left-0 top-0 h-screen flex flex-col py-5 px-3 justify-between w-20 z-10 ${
+        <aside className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col py-5 px-3 justify-between w-20 z-10 ${
           isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
         style={{
-          transition: "opacity 0.3s ease"
+          transition: "opacity 0.3s ease",
+          borderRightColor: "transparent",
+          border: "1px solid #f7f7f7"
         }}>
           <div className="flex flex-col items-center gap-6">
             <div className="flex items-center gap-2">
