@@ -305,8 +305,8 @@ export default function Sidebar() {
 
         {/* Expanded Sidebar on Hover */}
         <aside
-          className={`bg-gray-50 border-r border-gray-200 absolute left-0 top-0 h-screen flex flex-col py-4 px-5 justify-between w-64 z-20 ${
-            isHovered ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          className={`bg-gray-50 border-r border-gray-200 relative h-screen flex flex-col py-4 px-5 justify-between w-full z-20 ${
+            isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
           style={{
             transition: "opacity 0.3s ease"
