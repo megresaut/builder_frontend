@@ -274,7 +274,7 @@ export default function Bills() {
           </div>
 
           {/* Bills Table */}
-          <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="w-full rounded-lg border border-gray-200 bg-white" style={{ overflow: 'visible' }}>
             {/* Table Header */}
             <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
               <div className="flex items-center gap-4">
