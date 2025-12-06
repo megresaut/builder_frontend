@@ -650,9 +650,11 @@ export default function Bills() {
                           {bill.dueDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <StatusBadge status={bill.status} />
-                      </td>
+                      {selectedTab !== "approved" && (
+                        <td className="px-3 py-3 border-r border-gray-200">
+                          <StatusBadge status={bill.status} />
+                        </td>
+                      )}
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
                           {bill.memo}
