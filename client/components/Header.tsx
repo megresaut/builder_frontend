@@ -41,8 +41,6 @@ export default function Header() {
         if (tab && tab !== "Overview") {
           items.push({ label: tab });
         }
-
-        items.push({ label: "Properties", href: "/all-properties" });
       }
     } else if (path === "/all-properties") {
       items.push({ label: "All Properties" });
