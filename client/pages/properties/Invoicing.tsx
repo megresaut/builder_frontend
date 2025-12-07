@@ -215,13 +215,13 @@ const bills: Bill[] = [
   },
 ];
 
-interface UtilitiesProps {
+interface InvoicingProps {
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
 }
 
-export const Utilities: React.FC<UtilitiesProps> = ({
+export const Invoicing: React.FC<InvoicingProps> = ({
   propertyAddress,
   propertyType,
   propertyUnits,
