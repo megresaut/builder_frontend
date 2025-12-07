@@ -938,6 +938,12 @@ export default function Bills() {
           </div>,
           document.body,
         )}
+
+      {/* Record Bill Modal */}
+      <RecordBillModal
+        open={isRecordBillModalOpen}
+        onOpenChange={setIsRecordBillModalOpen}
+      />
     </div>
   );
 }
