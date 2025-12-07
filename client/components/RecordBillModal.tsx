@@ -261,55 +261,55 @@ export default function RecordBillModal({
 
                 {/* Line Items Table */}
                 <div className="overflow-x-auto rounded-xl border border-[#DADADA] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
-                  <table className="w-full border-collapse">
+                  <table className="border-collapse whitespace-nowrap" style={{ minWidth: "1200px" }}>
                     <thead>
                       <tr className="border-b border-[#DADADA]">
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "140px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Property / Ledger
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "60px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Unit
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Work Order
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA] min-w-[180px]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "160px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Description
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             GL Account
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-center border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-center border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Reimbursement
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "90px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Subtotal
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Up-charge
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "80px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Total
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-center border-r border-[#DADADA]">
+                        <th className="px-3 py-3 text-center border-r border-[#DADADA]" style={{ minWidth: "70px" }}>
                           <span className="text-[#525252] font-medium text-base">
                             Actions
                           </span>
