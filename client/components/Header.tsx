@@ -14,7 +14,7 @@ export default function Header() {
   const location = useLocation();
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
 
-  const getCurrentPageLabel = (): { label: string; path: string } | null => {
+  const getCurrentPageLabel = (): { label: string; path: string; id?: string } | null => {
     const path = location.pathname;
 
     if (path.includes("/property/")) {
@@ -23,33 +23,36 @@ export default function Header() {
         const propertyId = match[1];
         const tab = match[2];
 
-        const propertyAddresses: Record<string, string> = {
-          "1": "22 Indian Chase Dr, Greenwich, CT",
-          "2": "22 Indian Chase Dr, Greenwich, CT",
-          "3": "22 Indian Chase Dr, Greenwich, CT",
-          "4": "22 Indian Chase Dr, Greenwich, CT",
-          "5": "22 Indian Chase Dr, Greenwich, CT",
-          "6": "22 Indian Chase Dr, Greenwich, CT",
-          "7": "22 Indian Chase Dr, Greenwich, CT",
-          "8": "22 Indian Chase Dr, Greenwich, CT",
-          "9": "22 Indian Chase Dr, Greenwich, CT",
-          "10": "22 Indian Chase Dr, Greenwich, CT",
+        // Map property types for unique identification
+        const propertyTypes: Record<string, string> = {
+          "1": "Concierge",
+          "2": "Rental",
+          "3": "Commercial",
+          "4": "OR",
+          "5": "HOA",
+          "6": "Concierge",
+          "7": "Concierge",
+          "8": "Concierge",
+          "9": "Concierge",
+          "10": "Concierge",
         };
 
-        const address = propertyAddresses[propertyId] || "Property";
+        const propertyType = propertyTypes[propertyId] || "Property";
+        const label = `${propertyType} - Property ${propertyId}`;
+
         if (tab && tab !== "Overview") {
-          return { label: tab, path };
+          return { label: `${label} - ${tab}`, path, id: `property-${propertyId}-${tab}` };
         }
-        return { label: address, path };
+        return { label, path, id: `property-${propertyId}` };
       }
     } else if (path === "/all-properties") {
-      return { label: "All Properties", path };
+      return { label: "All Properties", path, id: "all-properties" };
     } else if (path === "/utilities") {
-      return { label: "Utilities", path };
+      return { label: "Utilities", path, id: "utilities" };
     } else if (path === "/bills") {
-      return { label: "Bills", path };
+      return { label: "Bills", path, id: "bills" };
     } else if (path === "/field-team-orders") {
-      return { label: "Field Team Orders", path };
+      return { label: "Field Team Orders", path, id: "field-team-orders" };
     }
 
     return null;
