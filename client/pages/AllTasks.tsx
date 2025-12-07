@@ -882,6 +882,12 @@ export default function AllTasks() {
           </div>,
           document.body,
         )}
+
+      {/* Create Task Modal */}
+      <CreateTaskModal
+        open={isCreateTaskModalOpen}
+        onOpenChange={setIsCreateTaskModalOpen}
+      />
     </div>
   );
 }
