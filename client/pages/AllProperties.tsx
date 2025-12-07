@@ -644,7 +644,7 @@ export default function AllProperties() {
 
             {/* Pagination Footer */}
             <div
-              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative flex-wrap"
               style={{ position: "relative", zIndex: 1, overflow: "visible" }}
             >
               <div className="flex items-center gap-2">
