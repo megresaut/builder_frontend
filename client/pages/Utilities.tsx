@@ -395,7 +395,7 @@ export const BillStatusBadge = ({ status }: { status: "Pushed" | "Push Failed" }
   );
 };
 
-const AIInsightBadge = ({ insight }: { insight: "High" | "Normal" | "Low" }) => {
+export const AIInsightBadge = ({ insight }: { insight: "High" | "Normal" | "Low" }) => {
   const colors = {
     High: "#C24A4A",
     Normal: "#3A71C4",
