@@ -139,7 +139,7 @@ export function PropertyTablePagination({
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
-            className="w-5 h-5"
+            className="w-5 h-5 flex-shrink-0"
             style={{ color: "rgb(163, 163, 163)" }}
           >
             <path d="m9 18 6-6-6-6" />
