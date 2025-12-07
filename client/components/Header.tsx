@@ -9,6 +9,56 @@ interface Tab {
 }
 
 export default function Header() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getBreadcrumbItems = () => {
+    const path = location.pathname;
+    const items: { label: string; href?: string }[] = [];
+
+    if (path.includes("/property/")) {
+      items.push({ label: "Properties", href: "/all-properties" });
+
+      const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
+      if (match) {
+        const propertyId = match[1];
+        const tab = match[2];
+
+        // Map property IDs to addresses
+        const propertyAddresses: Record<string, string> = {
+          "1": "22 Indian Chase Dr, Greenwich, CT",
+          "2": "22 Indian Chase Dr, Greenwich, CT",
+          "3": "22 Indian Chase Dr, Greenwich, CT",
+          "4": "22 Indian Chase Dr, Greenwich, CT",
+          "5": "22 Indian Chase Dr, Greenwich, CT",
+          "6": "22 Indian Chase Dr, Greenwich, CT",
+          "7": "22 Indian Chase Dr, Greenwich, CT",
+          "8": "22 Indian Chase Dr, Greenwich, CT",
+          "9": "22 Indian Chase Dr, Greenwich, CT",
+          "10": "22 Indian Chase Dr, Greenwich, CT",
+        };
+
+        if (tab && tab !== "Overview") {
+          items.push({ label: tab });
+        }
+
+        items.push({ label: propertyAddresses[propertyId] || "Property" });
+      }
+    } else if (path === "/all-properties") {
+      items.push({ label: "All Properties" });
+    } else if (path === "/utilities") {
+      items.push({ label: "Utilities" });
+    } else if (path === "/bills") {
+      items.push({ label: "Bills" });
+    } else if (path === "/field-team-orders") {
+      items.push({ label: "Field Team Orders" });
+    }
+
+    return items;
+  };
+
+  const breadcrumbItems = getBreadcrumbItems();
+
   const defaultTabs: Tab[] = [
     {
       id: "portfolio",
