@@ -371,37 +371,35 @@ export default function Header() {
 
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-gray-700 truncate">
-            <span className="text-sm font-medium flex-shrink-0">
-              Properties
-            </span>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="flex-shrink-0"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-            <span className="text-sm font-medium flex-shrink-0">
-              Maintenance
-            </span>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="flex-shrink-0"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-            <span className="text-sm font-medium truncate">
-              3 Hekma Road, Greenwich, CT 06831
-            </span>
+            {breadcrumbItems.map((item, index) => (
+              <React.Fragment key={index}>
+                {item.href ? (
+                  <button
+                    onClick={() => navigate(item.href)}
+                    className="text-sm font-medium flex-shrink-0 hover:text-gray-900 hover:underline"
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <span className={`text-sm font-medium ${index === breadcrumbItems.length - 1 ? 'truncate' : 'flex-shrink-0'}`}>
+                    {item.label}
+                  </span>
+                )}
+                {index < breadcrumbItems.length - 1 && (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="flex-shrink-0"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
 
