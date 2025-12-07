@@ -16,6 +16,9 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   propertyType = "Single-Family",
   propertyUnits = 1
 }) => {
+  const navigate = useNavigate();
+  const { propertyId } = useParams<{ propertyId: string }>();
+
   const tabs = [
     "Overview",
     "Units",
@@ -27,6 +30,12 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
     "Notes",
     "Invoicing",
   ];
+
+  const handleTabClick = (tab: string) => {
+    if (propertyId) {
+      navigate(`/property/${propertyId}/${tab}`);
+    }
+  };
 
   return (
     <div className="flex-1 overflow-auto bg-white">
