@@ -46,11 +46,11 @@ export function PropertyTablePagination({
             </svg>
           </button>
         </div>
-        <div className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+        <div className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap flex-shrink-0">
           of 225
         </div>
       </div>
-      <div className="flex items-center justify-center h-10 rounded-lg border overflow-hidden" style={{ backgroundColor: "rgb(251, 251, 251)", borderColor: "rgb(229, 229, 229)" }}>
+      <div className="flex items-center justify-center h-10 rounded-lg border overflow-hidden flex-nowrap flex-shrink-0" style={{ backgroundColor: "rgb(251, 251, 251)", borderColor: "rgb(229, 229, 229)" }}>
         <button
           onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
           className="flex items-center justify-center gap-1.5 px-4 py-2 h-10 border-r transition-all duration-150"
