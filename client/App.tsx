@@ -76,10 +76,10 @@ export default function App() {
                 }
               />
               <Route
-                path="/all-properties"
+                path="/utilities"
                 element={
                   <ShellLayout>
-                    <AllProperties />
+                    <Utilities />
                   </ShellLayout>
                 }
               />
