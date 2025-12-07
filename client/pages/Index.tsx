@@ -357,7 +357,7 @@ export default function Index() {
                 </h2>
                 <div className="flex items-start gap-2.5 flex-nowrap">
                   <div
-                    className="flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
+                    className="flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] flex-shrink-0"
                     style={{ borderColor: "rgb(229, 229, 229)" }}
                   >
                     <svg
@@ -378,7 +378,7 @@ export default function Index() {
                     <input
                       type="text"
                       placeholder="Search..."
-                      className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-task-text-primary w-32 sm:w-48"
+                      className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-task-text-primary w-32 sm:w-48 whitespace-nowrap"
                     />
                   </div>
                   <button
