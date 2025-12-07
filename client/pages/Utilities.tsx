@@ -395,14 +395,22 @@ const BillStatusBadge = ({ status }: { status: "Pushed" | "Push Failed" }) => {
 };
 
 const AIInsightBadge = ({ insight }: { insight: "High" | "Normal" | "Low" }) => {
-  const bgColors = {
-    High: "bg-red-50 text-red-700",
-    Normal: "bg-blue-50 text-blue-700",
-    Low: "bg-blue-50 text-blue-700",
+  const colors = {
+    High: "#C24A4A",
+    Normal: "#3A71C4",
+    Low: "#37A74B",
   };
 
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${bgColors[insight]}`}>
+    <span
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl text-base font-normal"
+      style={{
+        color: colors[insight],
+        boxShadow: "-1px 1px 1px 0 rgba(255, 28, 198, 0.10) inset, 1px -1px 1px 0 rgba(3, 57, 219, 0.10) inset, 2px -2px 5px 0 rgba(3, 57, 219, 0.10) inset, -2px 2px 5px 0 rgba(255, 28, 198, 0.10) inset, 0 0 1px 0 #A3A6D1, 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+        letterSpacing: "-0.32px",
+        lineHeight: "140%",
+      }}
+    >
       {insight}
     </span>
   );
@@ -1205,7 +1213,7 @@ export default function Utilities() {
 
             {/* Pagination Footer */}
             <div
-              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative border-t border-gray-200"
               style={{ position: "relative", zIndex: 1, overflow: "visible" }}
             >
               <div className="flex items-center gap-2">
