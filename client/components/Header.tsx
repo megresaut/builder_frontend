@@ -2,7 +2,6 @@ import React, { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useState } from "react";
 
 interface Tab {
   id: string;
