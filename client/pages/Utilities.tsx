@@ -1012,21 +1012,20 @@ export default function Utilities() {
                         <svg
                           width="16"
                           height="16"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 16 16"
                           fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                          <path d="M10 6h4" />
-                          <path d="M10 10h4" />
-                          <path d="M10 14h4" />
-                          <path d="M10 18h4" />
+                          <path
+                            d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Address
+                          Provider
                         </span>
                       </div>
                     </th>
@@ -1035,16 +1034,20 @@ export default function Utilities() {
                         <svg
                           width="16"
                           height="16"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 16 16"
                           fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                          <circle cx="12" cy="10" r="3" />
+                          <path
+                            d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Location
+                          Date
                         </span>
                       </div>
                     </th>
@@ -1053,16 +1056,17 @@ export default function Utilities() {
                         <svg
                           width="16"
                           height="16"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 16 16"
                           fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
+                          <path
+                            d="M3.66602 1.33317C3.66602 0.964981 3.36754 0.666504 2.99935 0.666504C2.63116 0.666504 2.33268 0.964981 2.33268 1.33317V2.33317H1.33268C0.964492 2.33317 0.666016 2.63165 0.666016 2.99984C0.666016 3.36803 0.964492 3.6665 1.33268 3.6665H2.33268V4.6665C2.33268 5.03469 2.63116 5.33317 2.99935 5.33317C3.36754 5.33317 3.66602 5.03469 3.66602 4.6665V3.6665H4.66602C5.03421 3.6665 5.33268 3.36803 5.33268 2.99984C5.33268 2.63165 5.03421 2.33317 4.66602 2.33317H3.66602V1.33317Z"
+                            fill="#037DFF"
+                          />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Manager
+                          AI Usage Insight
                         </span>
                       </div>
                     </th>
@@ -1071,16 +1075,20 @@ export default function Utilities() {
                         <svg
                           width="16"
                           height="16"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 16 16"
                           fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <rect width="18" height="18" x="3" y="3" rx="2" />
-                          <path d="M7 7h10M7 12h10M7 17h4" />
+                          <path
+                            d="M12.6673 3.3335L3.33398 12.6668M6.00065 4.66683C6.00065 5.40321 5.4037 6.00016 4.66732 6.00016C3.93094 6.00016 3.33398 5.40321 3.33398 4.66683C3.33398 3.93045 3.93094 3.3335 4.66732 3.3335C5.4037 3.3335 6.00065 3.93045 6.00065 4.66683ZM12.6673 11.3335C12.6673 12.0699 12.0704 12.6668 11.334 12.6668C10.5976 12.6668 10.0007 12.0699 10.0007 11.3335C10.0007 10.5971 10.5976 10.0002 11.334 10.0002C12.0704 10.0002 12.6673 10.5971 12.6673 11.3335Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Type
+                          Change from Last Bill
                         </span>
                       </div>
                     </th>
@@ -1089,34 +1097,44 @@ export default function Utilities() {
                         <svg
                           width="16"
                           height="16"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 16 16"
                           fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <rect width="18" height="18" x="3" y="3" rx="2" />
-                          <path d="M8 7h8M8 12h8M8 17h4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Buildium ID
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left" style={{ borderBottomWidth: "1px", borderColor: "rgba(0, 0, 0, 0) rgb(231, 232, 236) rgb(231, 232, 236) rgba(0, 0, 0, 0)", borderRightWidth: "1px", borderTopWidth: "1px", borderWidth: "1px 1px 1px 0px" }}>
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
+                          <g clipPath="url(#clip0_status)">
+                            <path
+                              d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                              stroke="#525252"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </g>
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
                           Status
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Amount
                         </span>
                       </div>
                     </th>
@@ -1128,42 +1146,53 @@ export default function Utilities() {
                   </tr>
                 </thead>
                 <tbody>
-                  {properties.map((property) => (
+                  {bills.map((bill, index) => (
                     <tr
-                      key={property.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      key={bill.id}
+                      className={cn(
+                        "hover:bg-gray-50 transition-colors h-12",
+                        index === bills.length - 1
+                          ? "border-b-0"
+                          : "border-b border-gray-200"
+                      )}
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.address}
-                        </span>
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                            {bill.icon}
+                          </div>
+                          <span className="text-gray-900 font-normal text-base">
+                            {bill.provider}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
-                          {property.location}
+                          {bill.date}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.manager}
+                        <AIInsightBadge insight={bill.aiUsageInsight} />
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className={cn(
+                          "text-sm font-medium",
+                          bill.changeFromLastBill.startsWith("↑") ? "text-red-600" : "text-green-600"
+                        )}>
+                          {bill.changeFromLastBill}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.type}
-                        </span>
+                        <BillStatusBadge status={bill.status} />
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
-                          {property.buildingId}
+                          {bill.amount}
                         </span>
-                      </td>
-                      <td className="px-3 py-3" style={{ borderRightWidth: "1px", border: "1px solid #e7e8ec" }}>
-                        <StatusBadge status={property.status} />
                       </td>
                       <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", width: "80px", border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)", borderLeftColor: "transparent" }}>
                         <ActionButton
-                          propertyId={property.id}
+                          propertyId={bill.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
                         />
