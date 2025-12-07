@@ -482,7 +482,7 @@ export default function Header() {
               </svg>
               <input
                 type="text"
-                placeholder="Search anything..."
+                placeholder="Search..."
                 className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500 min-w-0"
               />
             </div>
