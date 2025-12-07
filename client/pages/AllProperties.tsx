@@ -346,18 +346,16 @@ export default function AllProperties() {
     const pages: (number | string)[] = [];
 
     const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    const leftEnd = currentPage + 2;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
+    const rightStart = leftEnd + 5;
+    const rightEnd = rightStart + 2;
 
     for (let i = leftStart; i <= leftEnd; i++) {
       pages.push(i);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
+    pages.push("...");
 
     for (let i = rightStart; i <= rightEnd; i++) {
       pages.push(i);
@@ -691,7 +689,7 @@ export default function AllProperties() {
                 </span>
               </div>
               <div
-                className="flex items-center rounded-lg border bg-white overflow-hidden flex-shrink-0"
+                className="flex items-center rounded-lg border bg-white overflow-hidden"
                 style={{
                   borderColor: "rgb(218, 218, 218)",
                   borderWidth: "0.909091px",
@@ -789,24 +787,15 @@ export default function AllProperties() {
                   );
                 })}
                 <button
-                  disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(currentPage + 1)}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-                    currentPage === totalPages
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
                   )}
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div
-                    className={cn(
-                      "font-medium text-sm",
-                      currentPage === totalPages ? "text-gray-400" : "text-gray-700",
-                    )}
-                  >
+                  <div className={cn("font-medium text-sm text-gray-700")}>
                     Next
                   </div>
                   <svg
