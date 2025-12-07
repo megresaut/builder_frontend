@@ -42,17 +42,17 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
               <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-                3 Hekma Road, Greenwich, CT 06831
+                {propertyAddress}
               </h1>
               <div className="flex items-center gap-3">
                 <span className="text-[#717179] font-medium text-base leading-4">
-                  Single-Family
+                  {propertyType}
                 </span>
                 <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="2" cy="2" r="2" fill="#717179"/>
                 </svg>
                 <span className="text-[#717179] font-medium text-base leading-4">
-                  1 Unit
+                  {propertyUnits} Unit{propertyUnits !== 1 ? "s" : ""}
                 </span>
                 <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="2" cy="2" r="2" fill="#717179"/>
