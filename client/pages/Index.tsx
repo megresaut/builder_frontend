@@ -278,8 +278,8 @@ export default function Index() {
         <div className="p-4 md:p-6 lg:p-8 xl:p-12">
           <div className="lg:max-w-[1200px] lg:mx-auto flex flex-col gap-9 lg:w-auto w-max lg:w-full">
         {/* Header Section */}
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col gap-6 lg:flex-col flex-nowrap">
+          <div className="flex lg:flex-row flex-nowrap justify-between items-start sm:items-center gap-4">
             <div className="flex flex-col gap-1">
               <h1 className="text-task-text-primary font-semibold text-2xl leading-[30px]">
                 All Tasks
