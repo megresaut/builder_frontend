@@ -1248,7 +1248,7 @@ export default function Utilities() {
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {properties.length}
+                  of {bills.length}
                 </span>
               </div>
               <div
