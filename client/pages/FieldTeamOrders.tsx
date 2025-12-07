@@ -614,7 +614,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="sticky right-0 px-2 py-3 text-center border-gray-200 w-16" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210,209,207)" }}>
+                    <th className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210,209,207)" }}>
                       <span className="font-medium text-sm text-gray-700">
                         Actions
                       </span>
@@ -662,7 +662,7 @@ export default function FieldTeamOrders() {
                           ${order.amount}
                         </span>
                       </td>
-                      <td className="sticky right-0 px-2 py-3 border-gray-200 w-16 flex items-center justify-center" style={{ borderLeftWidth: "1px" }}>
+                      <td className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center" style={{ borderLeftWidth: "1px" }}>
                         <ActionButton
                           orderId={order.id}
                           openMenuId={openMenuId}
