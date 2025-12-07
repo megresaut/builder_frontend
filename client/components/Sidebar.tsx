@@ -749,17 +749,18 @@ export default function Sidebar() {
             ) : (
               favorites.map((item, idx) => (
                 <button
-                  key={idx}
-                  className="flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                  key={item.id}
+                  onClick={() => navigate(item.path)}
+                  className="flex items-center justify-between px-3 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
                   style={{ minHeight: "38px" }}
                 >
-                  <span>{item.label}</span>
+                  <span className="flex-1 text-left truncate">{item.label}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeFavorite(item.label);
+                      removeFavorite(item.id);
                     }}
-                    className="text-gray-400 hover:text-gray-700 transition-colors"
+                    className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
                   >
                     <svg
                       width="16"
