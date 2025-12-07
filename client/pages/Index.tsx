@@ -890,13 +890,13 @@ export default function Index() {
                 setItemsPerPage={setItemsPerPage}
               />
 
-              {/* Narrow Layout - Narrow screens (below lg) - Vertical scrolling with no text wrapping */}
-              <div className="lg:hidden overflow-y-auto max-h-[600px] border-b-0">
+              {/* Narrow Layout - Narrow screens (below lg) - Vertical card layout, page scrolls both ways */}
+              <div className="lg:hidden border-b-0">
                 <div className="flex flex-col gap-3 p-4 w-full">
                   {tasks.map((task) => (
                     <div
                       key={task.id}
-                      className="flex-shrink-0 rounded-lg border p-4 space-y-3 bg-white hover:bg-gray-50 transition-colors"
+                      className="rounded-lg border p-4 space-y-3 bg-white hover:bg-gray-50 transition-colors"
                       style={{
                         borderColor: "rgb(229, 229, 229)",
                       }}
