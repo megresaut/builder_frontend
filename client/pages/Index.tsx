@@ -280,11 +280,11 @@ export default function Index() {
         {/* Header Section */}
         <div className="flex flex-col gap-6 lg:flex-col flex-nowrap">
           <div className="flex lg:flex-row flex-nowrap justify-between items-start sm:items-center gap-4">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-task-text-primary font-semibold text-2xl leading-[30px]">
+            <div className="flex flex-col gap-1 whitespace-nowrap">
+              <h1 className="text-task-text-primary font-semibold text-2xl leading-[30px] whitespace-nowrap">
                 All Tasks
               </h1>
-              <p className="text-task-text-tertiary font-medium text-base leading-4">
+              <p className="text-task-text-tertiary font-medium text-base leading-4 whitespace-nowrap">
                 All your tasks, in one place
               </p>
             </div>
