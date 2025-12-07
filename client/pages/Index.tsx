@@ -344,7 +344,7 @@ export default function Index() {
           {/* Tasks Table */}
           <div className="flex flex-col">
             <div
-              className="w-full overflow-hidden rounded-xl border shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
+              className="lg:w-full w-max overflow-hidden rounded-xl border shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
               style={{ borderColor: "rgb(229, 229, 229)" }}
             >
               {/* Table Header */}
