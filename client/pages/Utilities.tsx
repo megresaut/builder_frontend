@@ -12,6 +12,16 @@ interface Property {
   status: "active" | "inactive";
 }
 
+interface UtilityAccount {
+  id: number;
+  provider: string;
+  account: string;
+  status: "active" | "inactive";
+  lastBillDate: string;
+  lastBillAmount: string;
+  lastImport: string;
+}
+
 const properties: Property[] = [
   {
     id: 1,
@@ -102,6 +112,54 @@ const properties: Property[] = [
     type: "Concierge",
     buildingId: "624090",
     status: "active",
+  },
+];
+
+const utilityAccounts: UtilityAccount[] = [
+  {
+    id: 1,
+    provider: "National Grid",
+    account: "#28591-03",
+    status: "active",
+    lastBillDate: "Oct 1, 2025",
+    lastBillAmount: "$420",
+    lastImport: "2h ago",
+  },
+  {
+    id: 2,
+    provider: "ConEd",
+    account: "#19374-09",
+    status: "inactive",
+    lastBillDate: "Sep 28, 2025",
+    lastBillAmount: "$180",
+    lastImport: "4h ago",
+  },
+  {
+    id: 3,
+    provider: "Greenwich Water",
+    account: "#57392-02",
+    status: "active",
+    lastBillDate: "Sep 9, 2025",
+    lastBillAmount: "$95",
+    lastImport: "2 days ago",
+  },
+  {
+    id: 4,
+    provider: "Optium",
+    account: "#95738-08",
+    status: "active",
+    lastBillDate: "Sep 5, 2025",
+    lastBillAmount: "$89",
+    lastImport: "3 days ago",
+  },
+  {
+    id: 5,
+    provider: "Optium",
+    account: "#36829-05",
+    status: "active",
+    lastBillDate: "Sep 2, 2025",
+    lastBillAmount: "$89",
+    lastImport: "4 days ago",
   },
 ];
 
