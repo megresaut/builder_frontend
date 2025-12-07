@@ -338,7 +338,7 @@ export default function PropertyDetail() {
       {/* Metrics Cards */}
       <div className="flex items-start content-start gap-4 self-stretch flex-wrap">
         {/* Last Bill Imported Card */}
-        <div className="flex w-[307px] h-[116px] flex-col items-start gap-4 p-4 rounded-xl border border-[#E9EFF4] shadow-[0_1px_3px_0_rgba(25,54,73,0.03)]">
+        <div className="flex w-[307px] h-[116px] flex-col items-start gap-4 p-4 rounded-xl border border-[#E9EFF4] shadow-[0_1px_3px_0_rgba(25,54,73,0.03)]" style={{ backgroundColor: "#f3f1fe" }}>
           <div className="flex items-center self-stretch">
             <div className="flex-1 text-[#717179] font-medium text-base leading-[18px]">
               Last Bill Imported
