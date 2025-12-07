@@ -13,6 +13,7 @@ import AllProperties from "./pages/AllProperties";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
+import { FavoritesProvider } from "./hooks/FavoritesContext";
 import Utilities from "./pages/Utilities";
 import PropertyDetail from "./pages/PropertyDetail";
 
