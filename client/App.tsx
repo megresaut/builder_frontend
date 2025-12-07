@@ -84,6 +84,22 @@ export default function App() {
                   </ShellLayout>
                 }
               />
+              <Route
+                path="/property/:propertyId"
+                element={
+                  <ShellLayout>
+                    <PropertyDetail />
+                  </ShellLayout>
+                }
+              />
+              <Route
+                path="/property/:propertyId/:tab"
+                element={
+                  <ShellLayout>
+                    <PropertyDetail />
+                  </ShellLayout>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
