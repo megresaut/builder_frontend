@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface SidebarItem {
   id: string;
