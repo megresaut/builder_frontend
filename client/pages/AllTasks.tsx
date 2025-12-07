@@ -309,6 +309,7 @@ export default function AllTasks() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
