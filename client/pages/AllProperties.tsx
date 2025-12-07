@@ -633,7 +633,7 @@ export default function AllProperties() {
                       <td className="px-3 py-3" style={{ borderRightWidth: "1px", border: "1px solid #e7e8ec" }}>
                         <StatusBadge status={property.status} />
                       </td>
-                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", width: "80px", border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)" }}>
+                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", width: "80px", border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)", borderLeftColor: "transparent" }}>
                         <ActionButton
                           propertyId={property.id}
                           openMenuId={openMenuId}
