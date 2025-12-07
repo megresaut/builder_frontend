@@ -13,7 +13,7 @@ import AllProperties from "./pages/AllProperties";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
-import AllProperties from "./pages/Utilities"
+import Utilities from "./pages/Utilities"
 const queryClient = new QueryClient();
 
 interface TabMetadata {
