@@ -345,10 +345,6 @@ export default function AllProperties() {
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
 
-    if (totalPages <= 1) {
-      return pages;
-    }
-
     const leftStart = currentPage;
     const leftEnd = Math.min(currentPage + 2, totalPages);
 
