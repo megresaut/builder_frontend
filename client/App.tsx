@@ -107,6 +107,14 @@ export default function App() {
                     </ShellLayout>
                   }
                 />
+                <Route
+                  path="/all-tasks"
+                  element={
+                    <ShellLayout>
+                      <AllTasks />
+                    </ShellLayout>
+                  }
+                />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
