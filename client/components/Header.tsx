@@ -47,6 +47,8 @@ export default function Header() {
       }
     } else if (path === "/all-properties") {
       return { label: "All Properties", path, id: "all-properties" };
+    } else if (path === "/all-tasks") {
+      return { label: "All Tasks", path, id: "all-tasks" };
     } else if (path === "/utilities") {
       return { label: "Utilities", path, id: "utilities" };
     } else if (path === "/bills") {
