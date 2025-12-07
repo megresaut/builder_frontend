@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
-import Utilities from "./Utilities";
 
 // Mock property data - in a real app, this would come from an API
 const propertyData: Record<
