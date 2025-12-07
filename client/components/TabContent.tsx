@@ -8,7 +8,7 @@ export default function TabContent() {
   const tabContext = useContext(TabContext);
 
   if (!tabContext) {
-    return <Index />;
+    return <AllProperties />;
   }
 
   const { selectedTab, tabMetadata } = tabContext;
@@ -35,11 +35,11 @@ export default function TabContent() {
     return <FieldTeamOrders />;
   }
 
-  // For default tabs, show the Index page
+  // For default tabs, show the All Properties page
   if (selectedTab === "properties") {
-    return <Index />;
+    return <AllProperties />;
   }
 
-  // Default to Index for other tabs
-  return <Index />;
+  // Default to All Properties for other tabs
+  return <AllProperties />;
 }
