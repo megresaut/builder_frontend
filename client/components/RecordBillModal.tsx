@@ -322,19 +322,19 @@ export default function RecordBillModal({
                           key={item.id}
                           className="border-b border-[#DADADA] last:border-b-0"
                         >
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
-                            <span className="text-[#303030] text-base line-clamp-1">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "140px" }}>
+                            <span className="text-[#303030] text-base truncate">
                               {item.property}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "60px" }}>
                             <span className="text-[#303030] text-base">
                               {item.unit}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
                             <Select defaultValue={item.workOrder}>
-                              <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                              <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] w-full">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -344,8 +344,8 @@ export default function RecordBillModal({
                               </SelectContent>
                             </Select>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
-                            <span className="text-[#303030] text-base line-clamp-1">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "160px" }}>
+                            <span className="text-[#303030] text-base truncate">
                               {item.description}
                             </span>
                           </td>
