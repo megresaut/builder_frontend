@@ -11,7 +11,7 @@ interface SidebarItem {
 
 export default function Sidebar() {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(
-    new Set(["dashboard"]),
+    new Set([]),
   );
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
