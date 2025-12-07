@@ -372,8 +372,8 @@ export default function AllProperties() {
 
   return (
     <div
-      className="min-h-screen bg-white p-4 md:p-6 lg:p-8 pb-32"
-      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)" }}
+      className="bg-white"
+      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)", padding: "32px 32px 100px" }}
     >
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
@@ -574,7 +574,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -633,7 +633,7 @@ export default function AllProperties() {
                       <td className="px-3 py-3 border-r border-gray-200">
                         <StatusBadge status={property.status} />
                       </td>
-                      <td className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center" style={{ borderLeftWidth: "1px" }}>
+                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210, 209, 207)" }}>
                         <ActionButton
                           propertyId={property.id}
                           openMenuId={openMenuId}
