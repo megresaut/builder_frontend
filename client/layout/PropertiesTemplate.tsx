@@ -3,11 +3,17 @@ import React from "react";
 interface PropertiesTemplateProps {
   children: React.ReactNode;
   activeTab?: string;
+  propertyAddress?: string;
+  propertyType?: string;
+  propertyUnits?: number;
 }
 
-export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({ 
-  children, 
-  activeTab = "Utilities" 
+export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
+  children,
+  activeTab = "Utilities",
+  propertyAddress = "3 Hekma Road, Greenwich, CT 06831",
+  propertyType = "Single-Family",
+  propertyUnits = 1
 }) => {
   const tabs = [
     "Overview",
