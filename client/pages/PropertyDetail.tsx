@@ -76,21 +76,80 @@ export default function PropertyDetail() {
     );
   }
 
+  const renderTabContent = () => {
+    const currentTab = tab || "Overview";
+
+    switch (currentTab) {
+      case "Utilities":
+        return (
+          <div className="flex flex-col gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Utilities for {property.address}
+              </h2>
+              <p className="text-gray-600 text-base mb-4">
+                Manage utility accounts and usage data for this property
+              </p>
+              <div className="flex flex-col gap-4">
+                <div className="border-t pt-4">
+                  <p className="text-gray-500 text-sm">
+                    Utility accounts information will appear here
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case "Bills":
+        return (
+          <div className="flex flex-col gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Bills for {property.address}
+              </h2>
+              <p className="text-gray-600 text-base">
+                View and manage utility bills
+              </p>
+            </div>
+          </div>
+        );
+      case "Maintenance":
+        return (
+          <div className="flex flex-col gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Maintenance for {property.address}
+              </h2>
+              <p className="text-gray-600 text-base">
+                Track maintenance requests and schedules
+              </p>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex flex-col gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                {currentTab}
+              </h2>
+              <p className="text-gray-600 text-base">
+                This is the {currentTab} tab for {property.address}
+              </p>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
-    <PropertiesTemplate 
+    <PropertiesTemplate
       propertyAddress={property.address}
       propertyType={property.type}
       propertyUnits={property.units}
       activeTab={tab || "Overview"}
     >
-      {/* Blank page content - can be filled in based on active tab */}
-      <div className="flex flex-col gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <p className="text-gray-600 text-base">
-            This is the {tab || "Overview"} tab for {property.address}
-          </p>
-        </div>
-      </div>
+      {renderTabContent()}
     </PropertiesTemplate>
   );
 }
