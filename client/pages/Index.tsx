@@ -786,118 +786,9 @@ export default function Index() {
                 </table>
               </div>
 
-              {/* Widget/Card Layout - Medium screens (Table to Cards transition) */}
-              <div className="hidden lg:block 2xl:hidden overflow-x-auto border-b-0">
-                <div className="inline-flex flex-col gap-3 p-4 w-full min-w-max">
-                  {tasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex-shrink-0 rounded-lg border p-4 space-y-3 bg-white hover:bg-gray-50 transition-colors"
-                      style={{
-                        borderColor: "rgb(229, 229, 229)",
-                        minWidth: "320px",
-                        maxWidth: "360px",
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <StatusBadge status={task.status} />
-                        <button
-                          className="w-7 h-7 flex-shrink-0 flex justify-center items-center rounded-md border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
-                          style={{ borderColor: "rgb(229, 229, 229)" }}
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 18 18"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
-                              stroke="#525252"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
-                              stroke="#525252"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
-                              stroke="#525252"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-
-                      <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px]">
-                        {task.task}
-                      </div>
-
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
-                            Property
-                          </span>
-                          <span className="text-task-text-primary">
-                            {task.property}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
-                            Due Date
-                          </span>
-                          <span className="text-task-text-primary">
-                            {task.due}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
-                            Age
-                          </span>
-                          <span className="text-task-text-primary">
-                            {task.age}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
-                            Priority
-                          </span>
-                          <PriorityBadge priority={task.priority} />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t" style={{ borderColor: "rgb(229, 229, 229)" }}>
-                        <span className="text-task-text-secondary text-xs font-medium">
-                          Assignees
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <UserAvatar />
-                          <UserAvatar />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <PropertyTablePagination
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                setItemsPerPage={setItemsPerPage}
-              />
-
-              {/* Mobile Layout - Narrow screens with vertical stacking cards */}
+              {/* Medium Layout - Medium screens (lg to 2xl) - Vertical stacking cards with text wrapping */}
               <div
-                className="lg:hidden divide-y"
+                className="hidden lg:block 2xl:hidden divide-y"
                 style={{ divideColor: "rgb(229, 229, 229)" }}
               >
                 {tasks.map((task) => (
@@ -987,6 +878,115 @@ export default function Index() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <PropertyTablePagination
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+              />
+
+              {/* Narrow Layout - Narrow screens (below lg) - Horizontal scrolling with no text wrapping */}
+              <div className="lg:hidden overflow-x-auto border-b-0">
+                <div className="inline-flex flex-row gap-3 p-4 w-full min-w-max">
+                  {tasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex-shrink-0 rounded-lg border p-4 space-y-3 bg-white hover:bg-gray-50 transition-colors"
+                      style={{
+                        borderColor: "rgb(229, 229, 229)",
+                        minWidth: "320px",
+                        maxWidth: "360px",
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <StatusBadge status={task.status} />
+                        <button
+                          className="w-7 h-7 flex-shrink-0 flex justify-center items-center rounded-md border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
+                          style={{ borderColor: "rgb(229, 229, 229)" }}
+                        >
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
+                              stroke="#525252"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
+                              stroke="#525252"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
+                              stroke="#525252"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] truncate">
+                        {task.task}
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
+                            Property
+                          </span>
+                          <span className="text-task-text-primary truncate block">
+                            {task.property}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
+                            Due Date
+                          </span>
+                          <span className="text-task-text-primary truncate block">
+                            {task.due}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
+                            Age
+                          </span>
+                          <span className="text-task-text-primary truncate block">
+                            {task.age}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-task-text-secondary block text-xs font-medium mb-1">
+                            Priority
+                          </span>
+                          <PriorityBadge priority={task.priority} />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t" style={{ borderColor: "rgb(229, 229, 229)" }}>
+                        <span className="text-task-text-secondary text-xs font-medium truncate">
+                          Assignees
+                        </span>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <UserAvatar />
+                          <UserAvatar />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
