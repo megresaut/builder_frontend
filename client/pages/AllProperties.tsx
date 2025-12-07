@@ -568,7 +568,8 @@ export default function AllProperties() {
                   {properties.map((property) => (
                     <tr
                       key={property.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                      onClick={() => navigate(`/property/${property.id}`)}
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
