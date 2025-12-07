@@ -504,6 +504,20 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               ))}
             </tbody>
           </table>
+          <div className="flex items-center justify-between w-full p-4" style={{ borderBottomLeftRadius: "11px", borderBottomRightRadius: "11px" }}>
+            <div className="flex items-center gap-4">
+              <div className="text-[#303030] text-[22px] font-medium">
+                Subtotal: $920
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5 flex-wrap">
+              <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
+                <span className="text-white font-medium text-base leading-normal">
+                  Preview PDF
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
