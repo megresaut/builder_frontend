@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { StatusBadge, BillStatusBadge, AIInsightBadge, ActionButton } from "../Utilities";
+import { AlertBanner } from "@/components/AlertBanner";
 
 interface UtilityAccount {
   id: number;
