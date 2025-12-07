@@ -721,21 +721,6 @@ export default function Sidebar() {
                 Favorites
               </span>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={addFavoriteItem}
-                  className="p-0 text-gray-600 hover:text-gray-900"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M5 12h14M12 5v14" />
-                  </svg>
-                </button>
                 <button className="p-0 text-gray-600 hover:text-gray-900">
                   <svg
                     width="16"
@@ -752,26 +737,42 @@ export default function Sidebar() {
                 </button>
               </div>
             </div>
-            {favoriteItems.map((item, idx) => (
-              <button
-                key={idx}
-                className="flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+            {favorites.length === 0 ? (
+              <div
+                className="px-3 py-2 text-sm text-gray-500"
                 style={{ minHeight: "38px" }}
               >
-                <span>{item}</span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
+                Click the star icon on any page to add favorites
+              </div>
+            ) : (
+              favorites.map((item, idx) => (
+                <button
+                  key={idx}
+                  className="flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                  style={{ minHeight: "38px" }}
                 >
-                  <path d="M12 17v5" />
-                  <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
-                </svg>
-              </button>
-            ))}
+                  <span>{item.label}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFavorite(item.label);
+                    }}
+                    className="text-gray-400 hover:text-gray-700 transition-colors"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </button>
+              ))
+            )}
           </div>
         </div>
       </div>
