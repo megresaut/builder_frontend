@@ -464,9 +464,9 @@ export default function Header() {
         </div>
 
         {/* Search and Actions */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
           {/* Search Bar */}
-          <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-96">
+          <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-48 sm:w-64 lg:w-96 flex-shrink">
             <div className="flex items-center gap-2 flex-1">
               <svg
                 width="18"
