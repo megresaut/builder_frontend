@@ -12,9 +12,9 @@ interface Tab {
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
-  const getCurrentPageLabel = (): { label: string; path: string; id?: string } | null => {
+  const getCurrentPageLabel = (): { label: string; path: string; id: string } | null => {
     const path = location.pathname;
 
     if (path.includes("/property/")) {
