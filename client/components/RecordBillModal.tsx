@@ -428,39 +428,21 @@ export default function RecordBillModal({
           </div>
         </div>
 
-        {/* Fixed Footer */}
-        <div className="flex-shrink-0 flex flex-col gap-6 px-6 md:px-8 py-6 border-t border-[#E5E5E5] bg-white">
-          {/* Bill Total */}
-          <div className="flex justify-between items-center">
-            <h3 className="text-[#303030] font-semibold text-xl leading-[26px]">
-              Bill Total:
-            </h3>
-            <div className="flex flex-col items-end gap-2">
-              <p className="text-[#6B7280] text-sm">
-                Total Up-Charge: ${totalUpcharge.toFixed(2)}
-              </p>
-              <p className="text-[#303030] font-semibold text-xl leading-[26px]">
-                Total: ${grandTotal.toFixed(2)}
-              </p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end items-center gap-2.5">
-            <button
-              onClick={() => onOpenChange(false)}
-              className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-[#303030] font-normal text-base capitalize">
-                Cancel
-              </span>
-            </button>
-            <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
-              <span className="text-white font-medium text-base">
-                Record Bill
-              </span>
-            </button>
-          </div>
+        {/* Fixed Footer - Action Buttons Only */}
+        <div className="flex-shrink-0 flex justify-end items-center gap-2.5 px-6 md:px-8 py-4 border-t border-[#E5E5E5] bg-white">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-[#303030] font-normal text-base capitalize">
+              Cancel
+            </span>
+          </button>
+          <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
+            <span className="text-white font-medium text-base">
+              Record Bill
+            </span>
+          </button>
         </div>
       </DialogContent>
     </Dialog>
