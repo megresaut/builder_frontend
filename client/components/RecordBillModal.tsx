@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
@@ -87,66 +86,66 @@ export default function RecordBillModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] md:max-w-[90vw] lg:max-w-[1400px] max-h-[95vh] overflow-y-auto p-0">
-        <div className="flex flex-col gap-7 p-6 md:p-8">
-          {/* Header */}
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col gap-2">
-                <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[26px]">
-                  Record Bill
-                </DialogTitle>
-                <DialogDescription className="text-[#6B7280] text-sm leading-4">
-                  Record a new bill to automatically upload to Buildium
-                </DialogDescription>
+      <DialogContent className="max-w-[95vw] md:max-w-[90vw] lg:max-w-[1400px] max-h-[95vh] flex flex-col p-0">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 flex flex-col gap-4 px-6 md:px-8 pt-6 md:pt-8 pb-4">
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-2">
+              <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[26px]">
+                Record Bill
+              </DialogTitle>
+              <DialogDescription className="text-[#6B7280] text-sm leading-4">
+                Record a new bill to automatically upload to Buildium
+              </DialogDescription>
+            </div>
+          </div>
+          <div className="h-px bg-[#E5E5E5]" />
+        </div>
+
+        {/* Scrollable Middle Section */}
+        <div className="flex-1 overflow-hidden flex">
+          {/* Fixed Left Section - Invoice Document */}
+          <div className="flex-shrink-0 w-full lg:w-[400px] xl:w-[500px] border-r border-[#E5E5E5] flex flex-col gap-2 px-6 md:px-8 py-6 overflow-y-auto">
+            <h3 className="text-[#303030] font-semibold text-xl leading-[26px]">
+              Invoice Document
+            </h3>
+            <div className="flex flex-col justify-center items-center gap-6 flex-1 min-h-[350px] rounded-lg border border-dashed border-[rgba(18,18,18,0.4)] p-8">
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col justify-center items-center gap-2">
+                  <p className="text-[#09090B] text-base">
+                    Choose a file or drag & drop it here
+                  </p>
+                  <p className="text-[#09090B] text-base opacity-50">
+                    JPEG, PNG and PDF formats, up to 50 MB.
+                  </p>
+                </div>
+                <button className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M14 10V10.8C14 11.9201 14 12.4802 13.782 12.908C13.5903 13.2843 13.2843 13.5903 12.908 13.782C12.4802 14 11.9201 14 10.8 14H5.2C4.07989 14 3.51984 14 3.09202 13.782C2.71569 13.5903 2.40973 13.2843 2.21799 12.908C2 12.4802 2 11.9201 2 10.8V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-[#303030] font-normal text-base capitalize">
+                    Browse Files
+                  </span>
+                </button>
               </div>
             </div>
-            <div className="h-px bg-[#E5E5E5]" />
           </div>
 
-          {/* Main Content */}
-          <div className="flex flex-col lg:flex-row gap-7">
-            {/* Left Section - Upload File */}
-            <div className="flex flex-col gap-2 w-full lg:w-[400px] xl:w-[500px]">
-              <h3 className="text-[#303030] font-semibold text-xl leading-[26px]">
-                Invoice Document
-              </h3>
-              <div className="flex flex-col justify-center items-center gap-6 flex-1 min-h-[400px] rounded-lg border border-dashed border-[rgba(18,18,18,0.4)] p-8">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex flex-col justify-center items-center gap-2">
-                    <p className="text-[#09090B] text-base">
-                      Choose a file or drag & drop it here
-                    </p>
-                    <p className="text-[#09090B] text-base opacity-50">
-                      JPEG, PNG and PDF formats, up to 50 MB.
-                    </p>
-                  </div>
-                  <button className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M14 10V10.8C14 11.9201 14 12.4802 13.782 12.908C13.5903 13.2843 13.2843 13.5903 12.908 13.782C12.4802 14 11.9201 14 10.8 14H5.2C4.07989 14 3.51984 14 3.09202 13.782C2.71569 13.5903 2.40973 13.2843 2.21799 12.908C2 12.4802 2 11.9201 2 10.8V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
-                        stroke="#303030"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-[#303030] font-normal text-base capitalize">
-                      Browse Files
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Section - Bill Details */}
-            <div className="flex flex-col justify-between gap-6 flex-1">
+          {/* Scrollable Right Section - Bill Details & Line Items */}
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
+            <div className="min-w-[1000px] flex flex-col gap-6 px-6 md:px-8 py-6">
               {/* Bill Details */}
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-5">
@@ -237,7 +236,7 @@ export default function RecordBillModal({
                     </h3>
                     <div className="h-px bg-[#E5E5E5]" />
                   </div>
-                  <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
+                  <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors flex-shrink-0 ml-4">
                     <svg
                       width="20"
                       height="20"
@@ -253,7 +252,7 @@ export default function RecordBillModal({
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span className="text-white font-medium text-base">
+                    <span className="text-white font-medium text-base whitespace-nowrap">
                       Add Line Item
                     </span>
                   </button>
@@ -424,26 +423,29 @@ export default function RecordBillModal({
                     </tbody>
                   </table>
                 </div>
-
-                {/* Bill Total */}
-                <div className="flex justify-between items-center pt-4">
-                  <h3 className="text-[#303030] font-semibold text-xl leading-[26px]">
-                    Bill Total:
-                  </h3>
-                  <div className="flex flex-col items-end gap-2">
-                    <p className="text-[#6B7280] text-sm">
-                      Total Up-Charge: ${totalUpcharge.toFixed(2)}
-                    </p>
-                    <p className="text-[#303030] font-semibold text-xl leading-[26px]">
-                      Total: ${grandTotal.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Footer */}
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 flex flex-col gap-6 px-6 md:px-8 py-6 border-t border-[#E5E5E5] bg-white">
+          {/* Bill Total */}
+          <div className="flex justify-between items-center">
+            <h3 className="text-[#303030] font-semibold text-xl leading-[26px]">
+              Bill Total:
+            </h3>
+            <div className="flex flex-col items-end gap-2">
+              <p className="text-[#6B7280] text-sm">
+                Total Up-Charge: ${totalUpcharge.toFixed(2)}
+              </p>
+              <p className="text-[#303030] font-semibold text-xl leading-[26px]">
+                Total: ${grandTotal.toFixed(2)}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
           <div className="flex justify-end items-center gap-2.5">
             <button
               onClick={() => onOpenChange(false)}
