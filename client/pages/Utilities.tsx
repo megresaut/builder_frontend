@@ -650,45 +650,137 @@ export default function Utilities() {
       style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)", padding: "32px 32px 150px" }}
     >
       <div className="max-w-full mx-auto flex flex-col gap-6">
-        {/* Header Section */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Properties
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p
-                className="text-[#717179] font-medium text-base leading-4"
-                style={{ marginTop: "-4px" }}
-              >
-                Click a property to manage its utility accounts and imports
-              </p>
-            </div>
-          </div>
-
-          {/* Add Property Button */}
-          <div className="flex items-center gap-4">
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+        {/* High Usage Insight Banner */}
+        <div
+          className="flex justify-between items-center self-stretch rounded-2xl border border-[#E5E5FF] px-4 py-3"
+          style={{
+            boxShadow: "4px -4px 14px 0 rgba(0, 28, 237, 0.07) inset, -4px 4px 14px 0 rgba(237, 0, 217, 0.07) inset"
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clipPath="url(#clip0_star)">
                 <path
-                  d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                  stroke="white"
+                  d="M3 14.6668V11.3335M3 4.66683V1.3335M1.33333 3.00016H4.66667M1.33333 13.0002H4.66667M8.66667 2.00016L7.51047 5.00607C7.32246 5.49489 7.22845 5.7393 7.08227 5.94489C6.95271 6.12709 6.79352 6.28629 6.61131 6.41585C6.40572 6.56203 6.16131 6.65604 5.67249 6.84404L2.66659 8.00016L5.67249 9.15628C6.16131 9.34429 6.40572 9.43829 6.61131 9.58448C6.79352 9.71404 6.95271 9.87323 7.08227 10.0554C7.22845 10.261 7.32246 10.5054 7.51047 10.9943L8.66659 14.0002L9.8227 10.9943C10.0107 10.5054 10.1047 10.261 10.2509 10.0554C10.3805 9.87323 10.5397 9.71404 10.7219 9.58448C10.9274 9.43829 11.1719 9.34429 11.6607 9.15628L14.6666 8.00016L11.6607 6.84404C11.1719 6.65604 10.9274 6.56203 10.7219 6.41585C10.5397 6.28629 10.3805 6.12709 10.2509 5.94489C10.1047 5.7393 10.0107 5.49489 9.8227 5.00607L8.66667 2.00016Z"
+                  stroke="#1D407F"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
+              </g>
+              <defs>
+                <clipPath id="clip0_star">
+                  <rect width="16" height="16" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+            <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+              <span className="font-bold">High Usage</span>
+              <span> -Electric usage increased 23% compared to last month. Consider energy audit.</span>
+            </div>
+          </div>
+          <a
+            href="#"
+            className="text-[#013764] font-medium text-base leading-[140%] tracking-[-0.32px] capitalize underline hover:no-underline"
+          >
+            View All Insights
+          </a>
+        </div>
+
+        {/* Metrics Cards */}
+        <div className="flex items-start content-start gap-4 self-stretch flex-wrap">
+          {/* Last Bill Imported Card */}
+          <div className="flex w-[307px] h-[116px] flex-col items-start gap-4 p-4 rounded-xl border border-[#E9EFF4] shadow-[0_1px_3px_0_rgba(25,54,73,0.03)]">
+            <div className="flex items-center self-stretch">
+              <div className="flex-1 text-[#717179] font-medium text-base leading-[18px]">
+                Last Bill Imported
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.99992 8.6665C8.36811 8.6665 8.66659 8.36803 8.66659 7.99984C8.66659 7.63165 8.36811 7.33317 7.99992 7.33317C7.63173 7.33317 7.33325 7.63165 7.33325 7.99984C7.33325 8.36803 7.63173 8.6665 7.99992 8.6665Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.99992 3.99984C8.36811 3.99984 8.66659 3.70136 8.66659 3.33317C8.66659 2.96498 8.36811 2.6665 7.99992 2.6665C7.63173 2.6665 7.33325 2.96498 7.33325 3.33317C7.33325 3.70136 7.63173 3.99984 7.99992 3.99984Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.99992 13.3332C8.36811 13.3332 8.66659 13.0347 8.66659 12.6665C8.66659 12.2983 8.36811 11.9998 7.99992 11.9998C7.63173 11.9998 7.33325 12.2983 7.33325 12.6665C7.33325 13.0347 7.63173 13.3332 7.99992 13.3332Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span className="text-white font-medium text-base leading-normal">
-                Add Property
-              </span>
-            </button>
+            </div>
+            <div className="flex items-center gap-1.5 self-stretch">
+              <div className="text-[#303030] font-medium text-[26px] leading-[34px]">
+                Sep 10 2025
+              </div>
+            </div>
+          </div>
+
+          {/* Active Accounts Card */}
+          <div className="flex h-[116px] flex-col items-start gap-4 flex-1 p-4 rounded-xl border border-[#E5E5E5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+            <div className="flex items-center self-stretch">
+              <div className="flex-1 text-[#717179] font-medium text-base leading-[18px]">
+                Active Accounts
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.99992 8.6665C8.36811 8.6665 8.66659 8.36803 8.66659 7.99984C8.66659 7.63165 8.36811 7.33317 7.99992 7.33317C7.63173 7.33317 7.33325 7.63165 7.33325 7.99984C7.33325 8.36803 7.63173 8.6665 7.99992 8.6665Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.99992 3.99984C8.36811 3.99984 8.66659 3.70136 8.66659 3.33317C8.66659 2.96498 8.36811 2.6665 7.99992 2.6665C7.63173 2.6665 7.33325 2.96498 7.33325 3.33317C7.33325 3.70136 7.63173 3.99984 7.99992 3.99984Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.99992 13.3332C8.36811 13.3332 8.66659 13.0347 8.66659 12.6665C8.66659 12.2983 8.36811 11.9998 7.99992 11.9998C7.63173 11.9998 7.33325 12.2983 7.33325 12.6665C7.33325 13.0347 7.63173 13.3332 7.99992 13.3332Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="flex items-end gap-2 self-stretch">
+              <div className="text-[#303030] font-medium text-[26px] leading-[28px]">
+                5 Accounts
+              </div>
+              <div className="text-[#717179] font-normal text-sm leading-5">
+                1 account inactive
+              </div>
+            </div>
+          </div>
+
+          {/* Total YoY Utility Spend Card */}
+          <div className="flex flex-col items-start gap-3 flex-1 p-4 rounded-xl border border-[#E5E5E5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+            <div className="flex items-center self-stretch">
+              <div className="flex-1 text-[#717179] font-medium text-base leading-[18px]">
+                Total YoY Utility Spend Change Spend
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.99992 8.6665C8.36811 8.6665 8.66659 8.36803 8.66659 7.99984C8.66659 7.63165 8.36811 7.33317 7.99992 7.33317C7.63173 7.33317 7.33325 7.63165 7.33325 7.99984C7.33325 8.36803 7.63173 8.6665 7.99992 8.6665Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.99992 3.99984C8.36811 3.99984 8.66659 3.70136 8.66659 3.33317C8.66659 2.96498 8.36811 2.6665 7.99992 2.6665C7.63173 2.6665 7.33325 2.96498 7.33325 3.33317C7.33325 3.70136 7.63173 3.99984 7.99992 3.99984Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.99992 13.3332C8.36811 13.3332 8.66659 13.0347 8.66659 12.6665C8.66659 12.2983 8.36811 11.9998 7.99992 11.9998C7.63173 11.9998 7.33325 12.2983 7.33325 12.6665C7.33325 13.0347 7.63173 13.3332 7.99992 13.3332Z" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="flex items-end self-stretch">
+              <div className="flex flex-col justify-center items-start gap-1">
+                <div className="text-[#303030] font-medium text-[26px] leading-[34px]">
+                  $2,120
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <div className="flex items-center">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.0347 4.36018C2.06908 4.25359 2.12733 4.16248 2.20206 4.09837C2.2768 4.03426 2.36467 4.00002 2.45457 4H11.5451C11.6351 3.99991 11.723 4.03407 11.7978 4.09816C11.8726 4.16224 11.9309 4.25338 11.9654 4.36002C11.9998 4.46666 12.0088 4.58401 11.9912 4.69722C11.9737 4.81043 11.9303 4.9144 11.8667 4.99598L7.32142 10.8289C7.27921 10.8832 7.22908 10.9262 7.1739 10.9555C7.11872 10.9849 7.05957 11 6.99984 11C6.94011 11 6.88096 10.9849 6.82578 10.9555C6.7706 10.9262 6.72048 10.8832 6.67826 10.8289L2.13299 4.99598C2.06944 4.91436 2.02619 4.81039 2.00869 4.69721C1.99119 4.58404 2.00024 4.46675 2.0347 4.36018Z" fill="#982740"/>
+                    </svg>
+                    <div className="text-[#982740] font-medium text-xs leading-normal">
+                      -12.3%
+                    </div>
+                  </div>
+                  <div className="text-[#717179] font-normal text-sm leading-4">
+                    vs last month
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-center items-center flex-1 relative">
+                <div className="flex items-center gap-[5px] absolute" style={{ left: "47px", top: "-15px", width: "120px", height: "49px" }}>
+                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
+                    <div className="w-6 h-[23px] absolute left-[-2px] top-[26px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
+                  </div>
+                  <div className="flex w-[20px] h-[48.846px] flex-col justify-end items-center rounded-t-[3.761px]">
+                    <div className="w-[22px] h-[15px] flex-shrink-0 absolute left-0 top-[34px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
+                  </div>
+                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
+                    <div className="w-6 h-[37px] absolute left-[-1px] top-[12px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
+                  </div>
+                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
+                    <div className="w-[23px] h-[29px] absolute left-[-1px] top-[20px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
+                  </div>
+                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
+                    <div className="w-[22px] h-[36px] absolute left-[-1px] top-[13px]" style={{ background: "#1F2937" }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
