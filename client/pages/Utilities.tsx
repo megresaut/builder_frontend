@@ -357,7 +357,7 @@ export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
   );
 };
 
-const BillStatusBadge = ({ status }: { status: "Pushed" | "Push Failed" }) => {
+export const BillStatusBadge = ({ status }: { status: "Pushed" | "Push Failed" }) => {
   if (status === "Pushed") {
     return (
       <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
