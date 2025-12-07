@@ -360,6 +360,7 @@ export default function Utilities() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
