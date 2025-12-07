@@ -334,7 +334,11 @@ export default function Header() {
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Navigation Buttons */}
-          <button className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+            aria-label="Go back"
+          >
             <svg
               width="20"
               height="20"
@@ -347,7 +351,11 @@ export default function Header() {
               <path d="M19 12H5" />
             </svg>
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
+          <button
+            onClick={() => window.history.forward()}
+            className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+            aria-label="Go forward"
+          >
             <svg
               width="20"
               height="20"
