@@ -105,7 +105,7 @@ const properties: Property[] = [
   },
 ];
 
-const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
+export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
   if (status === "active") {
     return (
       <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
