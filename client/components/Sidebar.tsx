@@ -18,6 +18,7 @@ export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { favorites, removeFavorite } = useFavorites();
+  const navigate = useNavigate();
 
   const navigationItems: SidebarItem[] = [
     {
