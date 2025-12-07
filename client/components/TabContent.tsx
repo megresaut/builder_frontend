@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { TabContext } from "@/hooks/useTabContext";
-import Index from "@/pages/Index";
+import AllProperties from "@/pages/AllProperties";
 import Bills from "@/pages/Bills";
 import FieldTeamOrders from "@/pages/FieldTeamOrders";
 
