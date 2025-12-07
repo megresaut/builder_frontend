@@ -683,10 +683,15 @@ export default function Utilities() {
                   </tr>
                 </thead>
                 <tbody>
-                  {utilityAccounts.map((account) => (
+                  {utilityAccounts.map((account, index) => (
                     <tr
                       key={account.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      className={cn(
+                        "hover:bg-gray-50 transition-colors h-12",
+                        index === utilityAccounts.length - 1
+                          ? "border-b-0"
+                          : "border-b border-gray-200"
+                      )}
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
@@ -717,22 +722,11 @@ export default function Utilities() {
                         </span>
                       </td>
                       <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", width: "80px", border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)", borderLeftColor: "transparent" }}>
-                        <button className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
+                        <ActionButton
+                          propertyId={account.id}
+                          openMenuId={openUtilityMenuId}
+                          setOpenMenuId={setOpenUtilityMenuId}
+                        />
                       </td>
                     </tr>
                   ))}
