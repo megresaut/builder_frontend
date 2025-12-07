@@ -106,6 +106,8 @@ export default function Header() {
       }
     } else if (path === "/all-properties") {
       items.push({ label: "All Properties" });
+    } else if (path === "/all-tasks") {
+      items.push({ label: "All Tasks" });
     } else if (path === "/utilities") {
       items.push({ label: "Utilities" });
     } else if (path === "/bills") {
