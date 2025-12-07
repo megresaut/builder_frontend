@@ -102,20 +102,21 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
           {/* Tab Navigation */}
           <div className="flex h-9 items-start gap-6 self-stretch border-b border-[#E5E5E5]">
             {tabs.map((tab) => (
-              <div
+              <button
                 key={tab}
-                className={`flex items-center gap-1.5 pb-2 ${
-                  activeTab === tab ? "border-b-[1.5px] border-[#09090B]" : ""
+                onClick={() => handleTabClick(tab)}
+                className={`flex items-center gap-1.5 pb-2 border-b-[1.5px] transition-colors ${
+                  activeTab === tab ? "border-b-[#09090B]" : "border-b-transparent"
                 }`}
               >
                 <span
-                  className={`font-medium text-base leading-5 ${
-                    activeTab === tab ? "text-[#09090B]" : "text-[#717179]"
+                  className={`font-medium text-base leading-5 transition-colors ${
+                    activeTab === tab ? "text-[#09090B]" : "text-[#717179] hover:text-[#303030]"
                   }`}
                 >
                   {tab}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
 
