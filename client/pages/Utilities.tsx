@@ -20,6 +20,7 @@ interface UtilityAccount {
   lastBillDate: string;
   lastBillAmount: string;
   lastImport: string;
+  icon?: React.ReactNode;
 }
 
 const properties: Property[] = [
