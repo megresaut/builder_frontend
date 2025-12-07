@@ -168,48 +168,25 @@ export default function Sidebar() {
     string,
     Array<{ label: string; path?: string; sectionId?: string }>
   > = {
-    dashboard: [
-      { label: "Portfolios" },
-      { label: "All Properties" },
-      { label: "Overview" },
-    ],
+    dashboard: [],
     properties: [
       {
         label: "All Properties",
         path: "/all-properties",
         sectionId: "all-properties",
       },
-      { label: "Active Listings" },
-      { label: "Archived" },
     ],
-    screening: [
-      { label: "Pending Screenings" },
-      { label: "Completed" },
-      { label: "Rejected" },
-    ],
-    leases: [
-      { label: "Active Leases" },
-      { label: "Pending" },
-      { label: "Expired" },
-    ],
+    screening: [],
+    leases: [],
     accounting: [
       { label: "Bills", path: "/bills", sectionId: "bills" },
-      { label: "Expenses" },
-      { label: "Income" },
     ],
     maintenance: [
-      { label: "Tasks", path: "/" },
       {
         label: "Field Team Orders",
         path: "/field-team-orders",
         sectionId: "field-team-orders",
       },
-      { label: "Work Orders" },
-    ],
-    reports: [
-      { label: "Financial Reports" },
-      { label: "Property Reports" },
-      { label: "Tenant Reports" },
     ],
   };
 
