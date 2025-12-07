@@ -59,14 +59,14 @@ export default function Header() {
   };
 
   const currentPage = getCurrentPageLabel();
-  const isCurrentPageFavorite = currentPage ? isFavorite(currentPage.label) : false;
+  const isCurrentPageFavorite = currentPage ? isFavorite(currentPage.id) : false;
 
   const handleFavoriteClick = () => {
     if (currentPage) {
       if (isCurrentPageFavorite) {
-        removeFavorite(currentPage.label);
+        removeFavorite(currentPage.id);
       } else {
-        addFavorite({ label: currentPage.label, path: currentPage.path });
+        addFavorite({ id: currentPage.id, label: currentPage.label, path: currentPage.path });
       }
     }
   };
