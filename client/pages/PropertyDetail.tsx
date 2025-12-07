@@ -1,9 +1,14 @@
 import { useParams } from "react-router-dom";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
-import { StatusBadge, BillStatusBadge, AIInsightBadge, ActionButton } from "./Utilities";
+import { Overview } from "./properties/Overview";
+import { Units } from "./properties/Units";
+import { Utilities } from "./properties/Utilities";
+import { Maintenance } from "./properties/Maintenance";
+import { Tasks } from "./properties/Tasks";
+import { Vendors } from "./properties/Vendors";
+import { Bills } from "./properties/Bills";
+import { Notes } from "./properties/Notes";
+import { Invoicing } from "./properties/Invoicing";
 
 // Mock property data - in a real app, this would come from an API
 const propertyData: Record<
