@@ -417,7 +417,7 @@ export const AIInsightBadge = ({ insight }: { insight: "High" | "Normal" | "Low"
   );
 };
 
-const ActionButton = ({
+export const ActionButton = ({
   propertyId,
   openMenuId,
   setOpenMenuId,
