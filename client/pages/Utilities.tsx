@@ -646,13 +646,9 @@ export default function Utilities() {
   };
 
   return (
-    <div
-      className="bg-white"
-      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)", padding: "32px 32px 150px" }}
-    >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
-        {/* High Usage Insight Banner */}
-        <div
+    <PropertiesTemplate activeTab="Utilities">
+      {/* High Usage Insight Banner */}
+      <div
           className="flex justify-between items-center self-stretch rounded-2xl border border-[#E5E5FF] px-4 py-3"
           style={{
             boxShadow: "4px -4px 14px 0 rgba(0, 28, 237, 0.07) inset, -4px 4px 14px 0 rgba(237, 0, 217, 0.07) inset"
@@ -1467,7 +1463,6 @@ export default function Utilities() {
             </div>
           </div>
         </div>
-      </div>
       {/* Dropdown Menu - Rendered via Portal at body level */}
       {showPageSizeDropdown &&
         createPortal(
@@ -1517,6 +1512,6 @@ export default function Utilities() {
           </div>,
           document.body,
         )}
-    </div>
+    </PropertiesTemplate>
   );
 }
