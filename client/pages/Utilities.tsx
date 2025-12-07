@@ -297,7 +297,7 @@ const ActionButton = ({
   );
 };
 
-export default function AllProperties() {
+export default function Utilities() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
