@@ -44,72 +44,74 @@ export default function App() {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <TabContext.Provider
-          value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
-        >
-          <BrowserRouter>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <ShellLayout>
-                    <TabContent />
-                  </ShellLayout>
-                }
-              />
-              <Route
-                path="/field-team-orders"
-                element={
-                  <ShellLayout>
-                    <FieldTeamOrders />
-                  </ShellLayout>
-                }
-              />
-              <Route
-                path="/bills"
-                element={
-                  <ShellLayout>
-                    <Bills />
-                  </ShellLayout>
-                }
-              />
-              <Route
-                path="/all-properties"
-                element={
-                  <ShellLayout>
-                    <AllProperties />
-                  </ShellLayout>
-                }
-              />
-              <Route
-                path="/utilities"
-                element={
-                  <ShellLayout>
-                    <Utilities />
-                  </ShellLayout>
-                }
-              />
-              <Route
-                path="/property/:propertyId"
-                element={
-                  <ShellLayout>
-                    <PropertyDetail />
-                  </ShellLayout>
-                }
-              />
-              <Route
-                path="/property/:propertyId/:tab"
-                element={
-                  <ShellLayout>
-                    <PropertyDetail />
-                  </ShellLayout>
-                }
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TabContext.Provider>
+        <FavoritesProvider>
+          <TabContext.Provider
+            value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
+          >
+            <BrowserRouter>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <ShellLayout>
+                      <TabContent />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/field-team-orders"
+                  element={
+                    <ShellLayout>
+                      <FieldTeamOrders />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/bills"
+                  element={
+                    <ShellLayout>
+                      <Bills />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/all-properties"
+                  element={
+                    <ShellLayout>
+                      <AllProperties />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/utilities"
+                  element={
+                    <ShellLayout>
+                      <Utilities />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/property/:propertyId"
+                  element={
+                    <ShellLayout>
+                      <PropertyDetail />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/property/:propertyId/:tab"
+                  element={
+                    <ShellLayout>
+                      <PropertyDetail />
+                    </ShellLayout>
+                  }
+                />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TabContext.Provider>
+        </FavoritesProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
