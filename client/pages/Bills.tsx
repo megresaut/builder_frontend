@@ -372,7 +372,9 @@ export default function Bills() {
             <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
               <div className="flex items-center gap-4">
                 <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                  {selectedTab === "approved" ? "Approved Bills" : "Draft Bills"}
+                  {selectedTab === "approved"
+                    ? "Approved Bills"
+                    : "Draft Bills"}
                 </h2>
                 <div className="flex items-center gap-2 h-6">
                   <svg
@@ -391,7 +393,9 @@ export default function Bills() {
                     />
                   </svg>
                   <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
-                    {selectedTab === "approved" ? "Last exported 3 minutes ago" : "Updated 2 minutes ago"}
+                    {selectedTab === "approved"
+                      ? "Last exported 3 minutes ago"
+                      : "Updated 2 minutes ago"}
                   </span>
                 </div>
               </div>
@@ -446,7 +450,10 @@ export default function Bills() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200" style={{ lineHeight: "24px" }}>
+                    <th
+                      className="px-3 py-3 text-left border-r border-gray-200"
+                      style={{ lineHeight: "24px" }}
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -618,7 +625,13 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210,209,207)" }}>
+                    <th
+                      className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
+                      style={{
+                        borderLeftWidth: "2px",
+                        borderLeftColor: "rgb(210,209,207)",
+                      }}
+                    >
                       <span className="font-medium text-sm text-gray-700">
                         Actions
                       </span>
@@ -677,7 +690,10 @@ export default function Bills() {
                           ${bill.amount}
                         </span>
                       </td>
-                      <td className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center" style={{ borderLeftWidth: "1px" }}>
+                      <td
+                        className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
+                        style={{ borderLeftWidth: "1px" }}
+                      >
                         <ActionButton />
                       </td>
                     </tr>

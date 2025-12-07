@@ -16,7 +16,11 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [favoriteItems, setFavoriteItems] = useState(["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"]);
+  const [favoriteItems, setFavoriteItems] = useState([
+    "Lorem Ipsum",
+    "Lorem Ipsum",
+    "Lorem Ipsum",
+  ]);
 
   const navigationItems: SidebarItem[] = [
     {
@@ -170,7 +174,11 @@ export default function Sidebar() {
       { label: "Overview" },
     ],
     properties: [
-      { label: "All Properties", path: "/all-properties", sectionId: "all-properties" },
+      {
+        label: "All Properties",
+        path: "/all-properties",
+        sectionId: "all-properties",
+      },
       { label: "Active Listings" },
       { label: "Archived" },
     ],
@@ -524,7 +532,10 @@ export default function Sidebar() {
                     Favorites
                   </span>
                   <div className="flex items-center gap-2">
-                    <button onClick={addFavoriteItem} className="p-0 text-gray-600 hover:text-gray-900">
+                    <button
+                      onClick={addFavoriteItem}
+                      className="p-0 text-gray-600 hover:text-gray-900"
+                    >
                       <svg
                         width="16"
                         height="16"
@@ -818,7 +829,10 @@ export default function Sidebar() {
                 Favorites
               </span>
               <div className="flex items-center gap-2">
-                <button onClick={addFavoriteItem} className="p-0 text-gray-600 hover:text-gray-900">
+                <button
+                  onClick={addFavoriteItem}
+                  className="p-0 text-gray-600 hover:text-gray-900"
+                >
                   <svg
                     width="16"
                     height="16"

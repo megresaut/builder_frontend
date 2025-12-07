@@ -90,25 +90,85 @@ export default function PropertyDetail() {
 
     switch (currentTab) {
       case "Overview":
-        return <Overview propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Overview
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Units":
-        return <Units propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Units
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Utilities":
-        return <Utilities propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Utilities
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Maintenance":
-        return <Maintenance propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Maintenance
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Tasks":
-        return <Tasks propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Tasks
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Vendors":
-        return <Vendors propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Vendors
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Bills":
-        return <Bills propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Bills
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Notes":
-        return <Notes propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Notes
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Invoicing":
-        return <Invoicing propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Invoicing
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       default:
-        return <Overview propertyAddress={property.address} propertyType={property.type} propertyUnits={property.units} />;
+        return (
+          <Overview
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
     }
   };
 

@@ -25,14 +25,16 @@ interface TabMetadata {
 
 export default function App() {
   const [selectedTab, setSelectedTab] = useState<string>("properties");
-  const [tabMetadata, setTabMetadataState] = useState<Record<string, TabMetadata>>({
+  const [tabMetadata, setTabMetadataState] = useState<
+    Record<string, TabMetadata>
+  >({
     properties: { label: "Properties" },
   });
 
   const setTabMetadata = (tabId: string, metadata: TabMetadata) => {
-    setTabMetadataState(prev => ({
+    setTabMetadataState((prev) => ({
       ...prev,
-      [tabId]: metadata
+      [tabId]: metadata,
     }));
   };
 
@@ -41,7 +43,9 @@ export default function App() {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <TabContext.Provider value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}>
+        <TabContext.Provider
+          value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
+        >
           <BrowserRouter>
             <Routes>
               <Route

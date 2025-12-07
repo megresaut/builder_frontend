@@ -22,7 +22,7 @@ export default function Header() {
         const propertyId = match[1];
         const tab = match[2];
         items.push({ label: "Properties", href: "/all-properties" });
-        
+
         // Map property IDs to addresses
         const propertyAddresses: Record<string, string> = {
           "1": "22 Indian Chase Dr, Greenwich, CT",
@@ -380,7 +380,9 @@ export default function Header() {
                     {item.label}
                   </button>
                 ) : (
-                  <span className={`text-sm font-medium ${index === breadcrumbItems.length - 1 ? 'truncate' : 'flex-shrink-0'}`}>
+                  <span
+                    className={`text-sm font-medium ${index === breadcrumbItems.length - 1 ? "truncate" : "flex-shrink-0"}`}
+                  >
                     {item.label}
                   </span>
                 )}

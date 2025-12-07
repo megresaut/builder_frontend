@@ -338,7 +338,11 @@ export default function AllProperties() {
   return (
     <div
       className="bg-white"
-      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)", padding: "32px 32px 100px" }}
+      style={{
+        borderLeftWidth: "1px",
+        borderLeftColor: "rgb(210, 209, 207)",
+        padding: "32px 32px 100px",
+      }}
     >
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
@@ -539,7 +543,17 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left" style={{ borderBottomWidth: "1px", borderColor: "rgba(0, 0, 0, 0) rgb(231, 232, 236) rgb(231, 232, 236) rgba(0, 0, 0, 0)", borderRightWidth: "1px", borderTopWidth: "1px", borderWidth: "1px 1px 1px 0px" }}>
+                    <th
+                      className="px-3 py-3 text-left"
+                      style={{
+                        borderBottomWidth: "1px",
+                        borderColor:
+                          "rgba(0, 0, 0, 0) rgb(231, 232, 236) rgb(231, 232, 236) rgba(0, 0, 0, 0)",
+                        borderRightWidth: "1px",
+                        borderTopWidth: "1px",
+                        borderWidth: "1px 1px 1px 0px",
+                      }}
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -557,7 +571,13 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="sticky right-0 px-2 py-3 text-center w-20" style={{ borderLeftWidth: "2px", border: "1px none rgb(226, 232, 240)" }}>
+                    <th
+                      className="sticky right-0 px-2 py-3 text-center w-20"
+                      style={{
+                        borderLeftWidth: "2px",
+                        border: "1px none rgb(226, 232, 240)",
+                      }}
+                    >
                       <span className="font-medium text-sm text-gray-700">
                         Actions
                       </span>
@@ -596,10 +616,25 @@ export default function AllProperties() {
                           {property.buildingId}
                         </span>
                       </td>
-                      <td className="px-3 py-3" style={{ borderRightWidth: "1px", border: "1px solid #e7e8ec" }}>
+                      <td
+                        className="px-3 py-3"
+                        style={{
+                          borderRightWidth: "1px",
+                          border: "1px solid #e7e8ec",
+                        }}
+                      >
                         <StatusBadge status={property.status} />
                       </td>
-                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", width: "80px", border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)", borderLeftColor: "transparent" }}>
+                      <td
+                        className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                        style={{
+                          borderLeftWidth: "2px",
+                          width: "80px",
+                          border:
+                            "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                          borderLeftColor: "transparent",
+                        }}
+                      >
                         <ActionButton
                           propertyId={property.id}
                           openMenuId={openMenuId}
