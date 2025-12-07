@@ -1,5 +1,9 @@
 import { useParams } from "react-router-dom";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
+import { StatusBadge, BillStatusBadge, AIInsightBadge } from "./Utilities";
 
 // Mock property data - in a real app, this would come from an API
 const propertyData: Record<
