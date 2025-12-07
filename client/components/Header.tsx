@@ -13,6 +13,61 @@ interface Tab {
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
+
+  const getCurrentPageLabel = (): { label: string; path: string } | null => {
+    const path = location.pathname;
+
+    if (path.includes("/property/")) {
+      const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
+      if (match) {
+        const propertyId = match[1];
+        const tab = match[2];
+
+        const propertyAddresses: Record<string, string> = {
+          "1": "22 Indian Chase Dr, Greenwich, CT",
+          "2": "22 Indian Chase Dr, Greenwich, CT",
+          "3": "22 Indian Chase Dr, Greenwich, CT",
+          "4": "22 Indian Chase Dr, Greenwich, CT",
+          "5": "22 Indian Chase Dr, Greenwich, CT",
+          "6": "22 Indian Chase Dr, Greenwich, CT",
+          "7": "22 Indian Chase Dr, Greenwich, CT",
+          "8": "22 Indian Chase Dr, Greenwich, CT",
+          "9": "22 Indian Chase Dr, Greenwich, CT",
+          "10": "22 Indian Chase Dr, Greenwich, CT",
+        };
+
+        const address = propertyAddresses[propertyId] || "Property";
+        if (tab && tab !== "Overview") {
+          return { label: tab, path };
+        }
+        return { label: address, path };
+      }
+    } else if (path === "/all-properties") {
+      return { label: "All Properties", path };
+    } else if (path === "/utilities") {
+      return { label: "Utilities", path };
+    } else if (path === "/bills") {
+      return { label: "Bills", path };
+    } else if (path === "/field-team-orders") {
+      return { label: "Field Team Orders", path };
+    }
+
+    return null;
+  };
+
+  const currentPage = getCurrentPageLabel();
+  const isCurrentPageFavorite = currentPage ? isFavorite(currentPage.label) : false;
+
+  const handleFavoriteClick = () => {
+    if (currentPage) {
+      if (isCurrentPageFavorite) {
+        removeFavorite(currentPage.label);
+      } else {
+        addFavorite({ label: currentPage.label, path: currentPage.path });
+      }
+    }
+  };
 
   const getBreadcrumbItems = () => {
     const path = location.pathname;
