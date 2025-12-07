@@ -761,25 +761,7 @@ export default function Utilities() {
                   </div>
                 </div>
               </div>
-              <div className="flex justify-center items-center flex-1 relative">
-                <div className="flex items-center gap-[5px] absolute" style={{ left: "47px", top: "-15px", width: "120px", height: "49px" }}>
-                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
-                    <div className="w-6 h-[23px] absolute left-[-2px] top-[26px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
-                  </div>
-                  <div className="flex w-[20px] h-[48.846px] flex-col justify-end items-center rounded-t-[3.761px]">
-                    <div className="w-[22px] h-[15px] flex-shrink-0 absolute left-0 top-[34px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
-                  </div>
-                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
-                    <div className="w-6 h-[37px] absolute left-[-1px] top-[12px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
-                  </div>
-                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
-                    <div className="w-[23px] h-[29px] absolute left-[-1px] top-[20px]" style={{ boxShadow: "2.507px 2.507px 9.402px 0 rgba(255, 255, 255, 0.30) inset", background: "#E5E7EB" }}></div>
-                  </div>
-                  <div className="flex w-[20px] flex-col justify-end items-center rounded-t-[3.761px]">
-                    <div className="w-[22px] h-[36px] absolute left-[-1px] top-[13px]" style={{ background: "#1F2937" }}></div>
-                  </div>
-                </div>
-              </div>
+              <div className="flex justify-center items-center flex-1 relative" />
             </div>
           </div>
         </div>
