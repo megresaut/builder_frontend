@@ -947,13 +947,13 @@ export default function Utilities() {
             </div>
           </div>
 
-          {/* Properties Table */}
+          {/* Bills Table */}
           <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
             {/* Table Header */}
             <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
               <div className="flex items-center gap-4">
                 <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                  Property List
+                  Bills
                 </h2>
               </div>
               <div className="flex items-start gap-2.5">
