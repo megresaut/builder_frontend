@@ -373,7 +373,7 @@ export default function Utilities() {
   return (
     <div
       className="bg-white"
-      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)", padding: "32px 32px 100px" }}
+      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)", padding: "32px 32px 150px" }}
     >
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
