@@ -117,9 +117,6 @@ export default function Sidebar() {
     setExpandedItems(newExpanded);
   };
 
-  const addFavoriteItem = () => {
-    setFavoriteItems([...favoriteItems, "Lorem Ipsum"]);
-  };
 
   const handleIconClick = (id: string) => {
     if (submenuMap[id]) {
