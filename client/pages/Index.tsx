@@ -382,10 +382,10 @@ export default function Index() {
                     />
                   </div>
                   <button
-                    className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                    className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors flex-shrink-0 whitespace-nowrap"
                     style={{ borderColor: "rgb(229, 229, 229)" }}
                   >
-                    <span className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    <span className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap">
                       Filter
                     </span>
                     <svg
