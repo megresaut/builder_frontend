@@ -162,16 +162,9 @@ const ActionButton = ({
     const updateMenuPos = () => {
       if (showMenu && buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect();
-        const menuHeight = 220;
-        const spaceBelow = window.innerHeight - rect.bottom;
-
-        const shouldOpenAbove = spaceBelow < menuHeight + 8;
-        const top = shouldOpenAbove
-          ? rect.top - menuHeight - 8
-          : rect.bottom + 8;
 
         setMenuPos({
-          top,
+          top: rect.bottom + 8,
           left: rect.right - 145,
         });
       }
