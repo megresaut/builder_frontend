@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
 import Utilities from "./pages/Utilities"
+
 const queryClient = new QueryClient();
 
 interface TabMetadata {
