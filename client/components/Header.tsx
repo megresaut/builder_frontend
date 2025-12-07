@@ -17,8 +17,6 @@ export default function Header() {
     const items: { label: string; href?: string }[] = [];
 
     if (path.includes("/property/")) {
-      items.push({ label: "Properties", href: "/all-properties" });
-
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
         const propertyId = match[1];
@@ -38,11 +36,13 @@ export default function Header() {
           "10": "22 Indian Chase Dr, Greenwich, CT",
         };
 
+        items.push({ label: propertyAddresses[propertyId] || "Property" });
+
         if (tab && tab !== "Overview") {
           items.push({ label: tab });
         }
 
-        items.push({ label: propertyAddresses[propertyId] || "Property" });
+        items.push({ label: "Properties", href: "/all-properties" });
       }
     } else if (path === "/all-properties") {
       items.push({ label: "All Properties" });
