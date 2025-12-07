@@ -574,7 +574,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left" style={{ borderTopWidth: "0px", border: "1px solid #e7e8ec" }}>
+                    <th className="px-3 py-3 text-left" style={{ borderColor: "rgb(231, 232, 236)", borderWidth: "1px", borderTopColor: "transparent", borderTopWidth: "0px", borderLeftColor: "transparent", borderLeftWidth: "0px" }}>
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
