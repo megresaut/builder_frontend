@@ -574,7 +574,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left">
+                    <th className="px-3 py-3 text-left" style={{ borderRightColor: "rgb(255,241,201)", borderRightWidth: "1px", border: "0px 0px 0px 1px solid #e7e8ec" }}>
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -592,7 +592,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210,209,207)" }}>
+                    <th className="sticky right-0 px-2 py-3 text-center w-20" style={{ borderLeftWidth: "2px", border: "1px none rgb(229, 231, 235) rgb(229, 231, 235) rgb(229, 231, 235) rgb(210, 209, 207)" }}>
                       <span className="font-medium text-sm text-gray-700">
                         Actions
                       </span>
@@ -630,10 +630,10 @@ export default function AllProperties() {
                           {property.buildingId}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3" style={{ borderRightWidth: "1px", border: "1px solid #e7e8ec" }}>
                         <StatusBadge status={property.status} />
                       </td>
-                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210, 209, 207)" }}>
+                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", borderLeftColor: "rgb(210, 209, 207)", width: "80px" }}>
                         <ActionButton
                           propertyId={property.id}
                           openMenuId={openMenuId}
