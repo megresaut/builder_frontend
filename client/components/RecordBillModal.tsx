@@ -349,12 +349,12 @@ export default function RecordBillModal({
                               {item.description}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
                             <span className="text-[#303030] text-base">
                               {item.glAccount}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
                             <div className="flex justify-center">
                               <Checkbox
                                 checked={item.reimbursement}
@@ -362,14 +362,14 @@ export default function RecordBillModal({
                               />
                             </div>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "90px" }}>
                             <span className="text-[#303030] text-base">
                               ${item.subtotal}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
                             <Select defaultValue={item.upcharge.toString()}>
-                              <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                              <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] w-full">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -379,12 +379,12 @@ export default function RecordBillModal({
                               </SelectContent>
                             </Select>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "80px" }}>
                             <span className="text-[#303030] text-base">
                               ${item.total}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]">
+                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "70px" }}>
                             <div className="flex justify-center">
                               <button className="flex w-7 h-7 justify-center items-center rounded-md border border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50">
                                 <svg
