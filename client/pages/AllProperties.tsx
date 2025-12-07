@@ -691,7 +691,7 @@ export default function AllProperties() {
                 </span>
               </div>
               <div
-                className="flex items-center rounded-lg border bg-white overflow-hidden"
+                className="flex items-center rounded-lg border bg-white overflow-hidden flex-shrink-0"
                 style={{
                   borderColor: "rgb(218, 218, 218)",
                   borderWidth: "0.909091px",
