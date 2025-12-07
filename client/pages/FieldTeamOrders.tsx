@@ -331,17 +331,30 @@ export default function FieldTeamOrders() {
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
 
-    const leftStart = currentPage;
-    const leftEnd = currentPage + 2;
+    if (totalPages <= 1) {
+      return [1];
+    }
 
-    const rightStart = leftEnd + 5;
-    const rightEnd = rightStart + 2;
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    const leftStart = currentPage;
+    const leftEnd = Math.min(currentPage + 2, totalPages);
+
+    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
+    const rightEnd = totalPages;
 
     for (let i = leftStart; i <= leftEnd; i++) {
       pages.push(i);
     }
 
-    pages.push("...");
+    if (rightStart > leftEnd + 1) {
+      pages.push("...");
+    }
 
     for (let i = rightStart; i <= rightEnd; i++) {
       pages.push(i);
