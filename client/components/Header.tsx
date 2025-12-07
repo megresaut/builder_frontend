@@ -22,6 +22,7 @@ export default function Header() {
         const propertyId = match[1];
         const tab = match[2];
         items.push({ label: "Properties", href: "/all-properties" });
+        
         // Map property IDs to addresses
         const propertyAddresses: Record<string, string> = {
           "1": "22 Indian Chase Dr, Greenwich, CT",
