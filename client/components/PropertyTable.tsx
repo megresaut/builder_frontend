@@ -15,17 +15,17 @@ export function PropertyTablePagination({
   setItemsPerPage,
 }: PropertyTablePaginationProps) {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-6 py-4 border-t w-full relative" style={{ borderColor: "rgb(229, 229, 229)" }}>
-      <div className="flex items-center gap-2">
-        <div className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+    <div className="flex lg:flex-row flex-nowrap justify-between items-start lg:items-center px-6 py-4 border-t w-full relative whitespace-nowrap" style={{ borderColor: "rgb(229, 229, 229)" }}>
+      <div className="flex items-center gap-2 flex-nowrap flex-shrink-0">
+        <div className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap flex-shrink-0">
           Showing
         </div>
-        <div className="flex items-start rounded-lg border shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]" style={{ borderColor: "rgb(229, 229, 229)", backgroundColor: "rgb(251, 251, 251)" }}>
+        <div className="flex items-start rounded-lg border shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex-shrink-0" style={{ borderColor: "rgb(229, 229, 229)", backgroundColor: "rgb(251, 251, 251)" }}>
           <button
-            className="flex items-center justify-center gap-2 h-10 px-3 rounded-lg transition-all duration-150"
+            className="flex items-center justify-center gap-2 h-10 px-3 rounded-lg transition-all duration-150 whitespace-nowrap"
             style={{ backgroundColor: "rgb(251, 251, 251)" }}
           >
-            <div className="text-[#0A0A0A] font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+            <div className="text-[#0A0A0A] font-medium text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap">
               {itemsPerPage}
             </div>
             <svg
