@@ -215,27 +215,34 @@ export default function Bills() {
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
   const totalPages = Math.ceil(225 / itemsPerPage);
 
-  // Calculate which page numbers to display
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
 
-    // Left side: 3 consecutive pages starting from currentPage
+    if (totalPages <= 1) {
+      return [1];
+    }
+
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
     const leftStart = currentPage;
-    const leftEnd = currentPage + 2;
+    const leftEnd = Math.min(currentPage + 2, totalPages);
 
-    // Right side: 3 consecutive pages with gap of 4 from left
-    const rightStart = leftEnd + 5;
-    const rightEnd = rightStart + 2;
+    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
+    const rightEnd = totalPages;
 
-    // Add left side
     for (let i = leftStart; i <= leftEnd; i++) {
       pages.push(i);
     }
 
-    // Always add ellipsis (there's always a gap of 4 between left and right)
-    pages.push("...");
+    if (rightStart > leftEnd + 1) {
+      pages.push("...");
+    }
 
-    // Add right side
     for (let i = rightStart; i <= rightEnd; i++) {
       pages.push(i);
     }
