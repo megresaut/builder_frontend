@@ -477,6 +477,269 @@ export default function Utilities() {
         </div>
 
         <div className="flex flex-col gap-6">
+          {/* Utility Accounts Table */}
+          <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+            {/* Table Header */}
+            <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+              <div className="flex items-center gap-4">
+                <h2 className="text-[#303030] font-medium text-[22px] leading-6">
+                  Utility Accounts
+                </h2>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    Filter
+                  </span>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M4.5 6.75L9 11.25L13.5 6.75"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10 4.16667V15.8333M4.16667 10H15.8333"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">
+                    Add Account
+                  </span>
+                </button>
+                <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    Import
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Table Content */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50 h-12">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Provider
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Account
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g clipPath="url(#clip0_status)">
+                            <path
+                              d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                              stroke="#525252"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </g>
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Status
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Last Bill Date
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Last Bill Amount
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Last Import
+                        </span>
+                      </div>
+                    </th>
+                    <th className="sticky right-0 px-2 py-3 text-center w-20" style={{ borderLeftWidth: "2px", border: "1px none rgb(226, 232, 240)" }}>
+                      <span className="font-medium text-sm text-gray-700">
+                        Actions
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {utilityAccounts.map((account) => (
+                    <tr
+                      key={account.id}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                    >
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {account.provider}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {account.account}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <StatusBadge status={account.status} />
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {account.lastBillDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {account.lastBillAmount}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {account.lastImport}
+                        </span>
+                      </td>
+                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center" style={{ borderLeftWidth: "2px", width: "80px", border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)", borderLeftColor: "transparent" }}>
+                        <button className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors">
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <circle cx="12" cy="12" r="1" />
+                            <circle cx="19" cy="12" r="1" />
+                            <circle cx="5" cy="12" r="1" />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Properties Table */}
           <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
             {/* Table Header */}
