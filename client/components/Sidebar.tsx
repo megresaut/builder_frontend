@@ -101,6 +101,11 @@ export default function Sidebar() {
     ],
     maintenance: [
       {
+        label: "All Tasks",
+        path: "/all-tasks",
+        sectionId: "all-tasks",
+      },
+      {
         label: "Field Team Orders",
         path: "/field-team-orders",
         sectionId: "field-team-orders",
