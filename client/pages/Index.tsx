@@ -272,11 +272,11 @@ export default function Index() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   return (
-    <div className="min-h-screen bg-white border-l border-[#D2D1CF] overflow-hidden">
-      {/* Scrollable wrapper for narrow screens */}
-      <div className="lg:overflow-visible overflow-x-auto">
-        <div className="p-4 md:p-6 lg:p-8 xl:p-12">
-          <div className="lg:max-w-[1200px] lg:mx-auto flex flex-col gap-9 lg:w-auto w-max lg:w-full">
+    <div className="min-h-screen bg-white border-l border-[#D2D1CF]">
+      {/* Scrollable wrapper for narrow screens - allows both horizontal and vertical scrolling */}
+      <div className="overflow-auto">
+        <div className="p-4 md:p-6 lg:p-8 xl:p-12 lg:min-h-screen">
+          <div className="lg:max-w-[1200px] lg:mx-auto flex flex-col gap-9 w-full lg:w-auto">
         {/* Header Section */}
         <div className="flex flex-col gap-6 lg:flex-col flex-nowrap">
           <div className="flex lg:flex-row flex-nowrap justify-between items-start sm:items-center gap-4">
