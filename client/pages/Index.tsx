@@ -288,8 +288,8 @@ export default function Index() {
                 All your tasks, in one place
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] bg-task-button-primary text-white hover:opacity-90 transition-opacity">
+            <div className="flex items-center gap-3 flex-nowrap flex-shrink-0">
+              <button className="flex h-10 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.20)] bg-task-button-primary text-white hover:opacity-90 transition-opacity flex-shrink-0 whitespace-nowrap">
                 <svg
                   width="20"
                   height="20"
@@ -305,9 +305,9 @@ export default function Index() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="font-medium text-base">Add task</span>
+                <span className="font-medium text-base whitespace-nowrap">Add task</span>
               </button>
-              <button className="w-10 h-10 flex justify-center items-center rounded-lg border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+              <button className="w-10 h-10 flex justify-center items-center rounded-lg border border-task-border-DEFAULT shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors flex-shrink-0">
                 <svg
                   width="20"
                   height="20"
