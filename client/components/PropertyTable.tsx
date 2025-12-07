@@ -80,27 +80,27 @@ export function PropertyTablePagination({
           <button
             key={page}
             onClick={() => setCurrentPage(page)}
-            className="flex items-center justify-center min-w-[40px] h-10 px-2 border-r transition-all duration-150"
+            className="flex items-center justify-center min-w-[40px] h-10 px-2 border-r transition-all duration-150 flex-shrink-0 whitespace-nowrap"
             style={{
               backgroundColor: "rgb(255, 255, 255)",
               borderColor: "rgb(229, 229, 229)",
               color: currentPage === page ? "rgb(10, 10, 10)" : "rgb(163, 163, 163)",
             }}
           >
-            <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+            <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap">
               {page}
             </div>
           </button>
         ))}
         <button
-          className="flex items-center justify-center min-w-[40px] h-10 px-2 border-r transition-all duration-150"
+          className="flex items-center justify-center min-w-[40px] h-10 px-2 border-r transition-all duration-150 flex-shrink-0 whitespace-nowrap"
           style={{
             backgroundColor: "rgb(255, 255, 255)",
             borderColor: "rgb(229, 229, 229)",
             color: "rgb(163, 163, 163)",
           }}
         >
-          <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+          <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap">
             ...
           </div>
         </button>
@@ -108,24 +108,24 @@ export function PropertyTablePagination({
           <button
             key={page}
             onClick={() => setCurrentPage(page)}
-            className="flex items-center justify-center min-w-[40px] h-10 px-2 border-r transition-all duration-150"
+            className="flex items-center justify-center min-w-[40px] h-10 px-2 border-r transition-all duration-150 flex-shrink-0 whitespace-nowrap"
             style={{
               backgroundColor: "rgb(255, 255, 255)",
               borderColor: "rgb(229, 229, 229)",
               color: "rgb(163, 163, 163)",
             }}
           >
-            <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize">
+            <div className="font-medium text-base leading-[140%] tracking-[-0.32px] capitalize whitespace-nowrap">
               {page}
             </div>
           </button>
         ))}
         <button
           onClick={() => setCurrentPage(currentPage + 1)}
-          className="flex items-center justify-center gap-1.5 px-4 py-2 h-10 transition-all duration-150"
+          className="flex items-center justify-center gap-1.5 px-4 py-2 h-10 transition-all duration-150 flex-shrink-0 whitespace-nowrap"
           style={{ backgroundColor: "rgb(255, 255, 255)" }}
         >
-          <div className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden sm:block">
+          <div className="text-task-text-secondary font-medium text-base leading-[140%] tracking-[-0.32px] capitalize hidden lg:block whitespace-nowrap flex-shrink-0">
             Next
           </div>
           <svg
