@@ -789,15 +789,24 @@ export default function AllProperties() {
                   );
                 })}
                 <button
+                  disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(currentPage + 1)}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50",
                   )}
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn("font-medium text-sm text-gray-700")}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === totalPages ? "text-gray-400" : "text-gray-700",
+                    )}
+                  >
                     Next
                   </div>
                   <svg
