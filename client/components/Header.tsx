@@ -467,7 +467,7 @@ export default function Header() {
         <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
           {/* Search Bar */}
           <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-40 sm:w-56 md:w-72 lg:w-96 min-w-0">
-            <div className="flex items-center gap-2 flex-1">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <svg
                 width="18"
                 height="18"
@@ -483,7 +483,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search anything..."
-                className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500"
+                className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500 min-w-0"
               />
             </div>
             <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
