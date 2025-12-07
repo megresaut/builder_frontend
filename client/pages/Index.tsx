@@ -349,13 +349,13 @@ export default function Index() {
             >
               {/* Table Header */}
               <div
-                className="flex justify-between items-center px-4 py-3 border-b"
+                className="flex justify-between items-center px-4 py-3 border-b flex-nowrap whitespace-nowrap"
                 style={{ borderColor: "rgb(229, 229, 229)" }}
               >
-                <h2 className="text-task-text-primary font-medium text-[22px] leading-6">
+                <h2 className="text-task-text-primary font-medium text-[22px] leading-6 whitespace-nowrap flex-shrink-0">
                   Tasks
                 </h2>
-                <div className="flex items-start gap-2.5">
+                <div className="flex items-start gap-2.5 flex-nowrap">
                   <div
                     className="flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
                     style={{ borderColor: "rgb(229, 229, 229)" }}
