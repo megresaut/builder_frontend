@@ -735,9 +735,14 @@ export default function Utilities() {
                       )}
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base">
-                          {account.provider}
-                        </span>
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                            {account.icon}
+                          </div>
+                          <span className="text-gray-900 font-normal text-base">
+                            {account.provider}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
