@@ -204,6 +204,120 @@ const utilityAccounts: UtilityAccount[] = [
   },
 ];
 
+interface Bill {
+  id: number;
+  provider: string;
+  date: string;
+  aiUsageInsight: "High" | "Normal" | "Low";
+  changeFromLastBill: string;
+  status: "Pushed" | "Push Failed";
+  amount: string;
+  icon?: React.ReactNode;
+}
+
+const bills: Bill[] = [
+  {
+    id: 1,
+    provider: "ConEd",
+    date: "Oct 4, 2025",
+    aiUsageInsight: "High",
+    changeFromLastBill: "↑ 8%",
+    status: "Push Failed",
+    amount: "$234",
+    icon: getProviderIcon("ConEd"),
+  },
+  {
+    id: 2,
+    provider: "National Grid",
+    date: "Oct 3, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↓ 1.3%",
+    status: "Pushed",
+    amount: "$287",
+    icon: getProviderIcon("National Grid"),
+  },
+  {
+    id: 3,
+    provider: "Greenwich Water",
+    date: "Oct 2, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↓ 9%",
+    status: "Pushed",
+    amount: "$156",
+    icon: getProviderIcon("Greenwich Water"),
+  },
+  {
+    id: 4,
+    provider: "Optium",
+    date: "Oct 1, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↑ 7.2%",
+    status: "Pushed",
+    amount: "$234",
+    icon: getProviderIcon("Optium"),
+  },
+  {
+    id: 5,
+    provider: "ConEd",
+    date: "Oct 1, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↓ 5%",
+    status: "Push Failed",
+    amount: "$167",
+    icon: getProviderIcon("ConEd"),
+  },
+  {
+    id: 6,
+    provider: "National Grid",
+    date: "Sep 30, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↑ 9.4%",
+    status: "Pushed",
+    amount: "$312",
+    icon: getProviderIcon("National Grid"),
+  },
+  {
+    id: 7,
+    provider: "Greenwich Water",
+    date: "Sep 29, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↓ 0.8%",
+    status: "Pushed",
+    amount: "$256",
+    icon: getProviderIcon("Greenwich Water"),
+  },
+  {
+    id: 8,
+    provider: "Optium",
+    date: "Sep 28, 2025",
+    aiUsageInsight: "Low",
+    changeFromLastBill: "↓ 8.5%",
+    status: "Pushed",
+    amount: "$178",
+    icon: getProviderIcon("Optium"),
+  },
+  {
+    id: 9,
+    provider: "ConEd",
+    date: "Sep 28, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↑ 2.1%",
+    status: "Pushed",
+    amount: "$213",
+    icon: getProviderIcon("ConEd"),
+  },
+  {
+    id: 10,
+    provider: "Greenwich Water",
+    date: "Sep 28, 2025",
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "↓ 5%",
+    status: "Pushed",
+    amount: "$145",
+    icon: getProviderIcon("Greenwich Water"),
+  },
+];
+
 export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
   if (status === "active") {
     return (
