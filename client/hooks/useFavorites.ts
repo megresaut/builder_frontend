@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 
-interface FavoriteItem {
+export interface FavoriteItem {
+  id: string;
   label: string;
-  path?: string;
+  path: string;
 }
 
 const FAVORITES_STORAGE_KEY = "app_favorites";
@@ -33,8 +34,8 @@ export function useFavorites() {
 
   const addFavorite = (item: FavoriteItem) => {
     setFavorites((prev) => {
-      // Check if already exists
-      const exists = prev.some((fav) => fav.label === item.label);
+      // Check if already exists by id
+      const exists = prev.some((fav) => fav.id === item.id);
       if (exists) {
         return prev;
       }
@@ -42,12 +43,12 @@ export function useFavorites() {
     });
   };
 
-  const removeFavorite = (label: string) => {
-    setFavorites((prev) => prev.filter((fav) => fav.label !== label));
+  const removeFavorite = (id: string) => {
+    setFavorites((prev) => prev.filter((fav) => fav.id !== id));
   };
 
-  const isFavorite = (label: string) => {
-    return favorites.some((fav) => fav.label === label);
+  const isFavorite = (id: string) => {
+    return favorites.some((fav) => fav.id === id);
   };
 
   return {
