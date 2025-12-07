@@ -423,6 +423,21 @@ export default function RecordBillModal({
                     </tbody>
                   </table>
                 </div>
+
+                {/* Bill Total */}
+                <div className="flex justify-between items-center pt-4">
+                  <h3 className="text-[#303030] font-semibold text-xl leading-[26px]">
+                    Bill Total:
+                  </h3>
+                  <div className="flex flex-col items-end gap-2">
+                    <p className="text-[#6B7280] text-sm">
+                      Total Up-Charge: ${totalUpcharge.toFixed(2)}
+                    </p>
+                    <p className="text-[#303030] font-semibold text-xl leading-[26px]">
+                      Total: ${grandTotal.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
