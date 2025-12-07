@@ -570,11 +570,11 @@ export default function AllProperties() {
                           <path d="M8 7h8M8 12h8M8 17h4" />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Buildnum ID
+                          Buildium ID
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left" style={{ borderColor: "rgb(231, 232, 236)", borderWidth: "1px", borderTopColor: "transparent", borderTopWidth: "0px", borderLeftColor: "transparent", borderLeftWidth: "0px" }}>
+                    <th className="px-3 py-3 text-left" style={{ borderBottomWidth: "1px", borderColor: "rgba(0, 0, 0, 0) rgb(231, 232, 236) rgb(231, 232, 236) rgba(0, 0, 0, 0)", borderRightWidth: "1px", borderTopWidth: "1px", borderWidth: "1px 1px 1px 0px" }}>
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
