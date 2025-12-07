@@ -73,9 +73,6 @@ export default function PropertyDetail() {
     tab?: string;
   }>();
 
-  const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-
   const property = propertyId ? propertyData[propertyId] : null;
 
   if (!property) {
@@ -116,13 +113,13 @@ export default function PropertyDetail() {
   };
 
   return (
-    <PropertiesTemplate 
+    <PropertiesTemplate
       propertyAddress={property.address}
       propertyType={property.type}
       propertyUnits={property.units}
       activeTab={tab || "Overview"}
     >
-      {renderTabContent()}
+      {renderPageContent()}
     </PropertiesTemplate>
   );
 }
