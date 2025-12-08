@@ -15,6 +15,7 @@ export default function Sidebar() {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([]));
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { favorites, removeFavorite } = useFavorites();
