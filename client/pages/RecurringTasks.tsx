@@ -626,7 +626,8 @@ export default function RecurringTasks() {
                         {task.assignees.map((assignee) => (
                           <div
                             key={assignee.id}
-                            className={`w-7 h-7 rounded-full ${assignee.color} flex items-center justify-center text-white text-xs font-semibold`}
+                            className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-gray-700 text-xs font-semibold border border-gray-300"
+                            style={{ borderColor: "rgb(209, 213, 219)" }}
                             title={assignee.name}
                           >
                             {assignee.initials}

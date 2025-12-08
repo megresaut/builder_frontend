@@ -640,7 +640,8 @@ export default function AllProperties() {
                           {property.managers.map((manager) => (
                             <div
                               key={manager.id}
-                              className={`w-7 h-7 rounded-full ${manager.color} flex items-center justify-center text-white text-xs font-semibold`}
+                              className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-gray-700 text-xs font-semibold border border-gray-300"
+                              style={{ borderColor: "rgb(209, 213, 219)" }}
                               title={manager.name}
                             >
                               {manager.initials}
