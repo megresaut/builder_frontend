@@ -1,141 +1,146 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "./Utilities";
 import CreateFTOModal from "@/components/CreateFTOModal";
+
+
+export function StatusBadge({ status }: { status: string }) {
+  // Normalize
+  const s = status?.toLowerCase();
+
+  let label = "";
+  let color = "";
+  let icon = null;
+
+  switch (s) {
+    case "new":
+      label = "New";
+      color = "bg-blue-50 text-blue-700 border-blue-200";
+      icon = (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      );
+      break;
+
+    case "dispatched":
+      label = "Dispatched";
+      color = "bg-purple-50 text-purple-700 border-purple-200";
+      icon = (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M12 3v18M3 12h18" />
+        </svg>
+      );
+      break;
+
+    case "in_progress":
+      label = "In Progress";
+      color = "bg-yellow-50 text-yellow-700 border-yellow-200";
+      icon = (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M12 6v6l4 2" />
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      );
+      break;
+
+    case "completed":
+      label = "Completed";
+      color = "bg-green-50 text-green-700 border-green-200";
+      icon = (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      );
+      break;
+
+    case "cancelled":
+      label = "Cancelled";
+      color = "bg-red-50 text-red-700 border-red-200";
+      icon = (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      );
+      break;
+
+    default:
+      label = s || "Unknown";
+      color = "bg-gray-100 text-gray-700 border-gray-300";
+      icon = (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      );
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${color}`}
+    >
+      {icon}
+      {label}
+    </span>
+  );
+}
+
+
 
 interface FieldTeamOrder {
   id: number;
-  property: string;
-  description: string;
-  dueDate: string;
-  fieldTeam: Array<{ initials: string; color: string }>;
-  status: "dispatched" | "approved" | "pending-approval";
-  amount: number;
+  name: string;
+  description: string | null;
+  property_address: string;
+  field_team_member_name: string | null;
+  due_date: string | null;
+  status: string;
+  priority: string;
+  total_amount: number;
 }
 
-const fieldTeamOrders: FieldTeamOrder[] = [
-  {
-    id: 1,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Oct 2, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 420,
-  },
-  {
-    id: 2,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 29, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "approved",
-    amount: 95,
-  },
-  {
-    id: 3,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 10, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "pending-approval",
-    amount: 95,
-  },
-  {
-    id: 4,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 6, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 112,
-  },
-  {
-    id: 5,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 5, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 93,
-  },
-  {
-    id: 6,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 4, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 75,
-  },
-  {
-    id: 7,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 4, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 101,
-  },
-  {
-    id: 8,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 3, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 124,
-  },
-  {
-    id: 9,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 1, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 67,
-  },
-  {
-    id: 10,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 1, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 118,
-  },
-];
 
 const ActionButton = ({
   orderId,
@@ -299,6 +304,14 @@ export default function FieldTeamOrders() {
   const [showFTOModal, setShowFTOModal] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/maintenance/ftos")
+      .then((res) => res.json())
+      .then((data) => setFieldTeamOrders(data))
+      .catch((err) => console.error("Failed to load FTOs:", err));
+  }, []);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -650,39 +663,50 @@ export default function FieldTeamOrders() {
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {order.property}
+                          {order.property_address}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {order.description}
+                          {order.name}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {order.dueDate}
+                          {order.due_date
+                            ? new Date(order.due_date).toLocaleDateString()
+                            : "--"}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          {order.fieldTeam.map((member, idx) => (
-                            <div
-                              key={idx}
-                              className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300`}
-                            >
-                              {member.initials}
+                          {order.field_team_member_name ? (
+                            <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-semibold border border-gray-300">
+                              {order.field_team_member_name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()}
                             </div>
-                          ))}
+                          ) : (
+                            <div className="text-gray-400 text-sm">—</div>
+                          )}
                         </div>
                       </td>
+
+                      {/* STATUS */}
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <StatusBadge status={order.status as any} />
                       </td>
+
+                      {/* AMOUNT */}
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          ${order.amount}
+                          ${order.total_amount.toFixed(2)}
                         </span>
                       </td>
+
+                      {/* ACTIONS */}
                       <td
                         className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                         style={{

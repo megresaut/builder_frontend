@@ -33,7 +33,9 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
 
   const handleTabClick = (tab: string) => {
     if (propertyId) {
-      navigate(`/property/${propertyId}/${tab}`);
+      navigate(`/property/${propertyId}/${tab}`, {
+        state: { address: propertyAddress }
+      });
     }
   };
 

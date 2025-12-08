@@ -6,6 +6,9 @@ import {
   AIInsightBadge,
   ActionButton,
 } from "../Utilities";
+import { useQuery } from "@tanstack/react-query";
+import { fetchJSON } from "@/api/fetchJSON";
+import { useParams } from "react-router-dom";
 
 interface UtilityAccount {
   id: number;
@@ -28,255 +31,78 @@ interface Bill {
   amount: string;
   icon?: React.ReactNode;
 }
+type MappedAccount = {
+  id: number;
+  provider: string;
+  account: string;
+  status: "active" | "inactive";
+  lastBillDate: string;
+  lastBillAmount: string;
+  lastImport: string;
+  icon?: React.ReactNode;
+  type: string | null | undefined;
+};
 
-const getProviderIcon = (provider: string) => {
-  switch (provider) {
-    case "National Grid":
+type MappedBill = {
+  id: number;
+  provider: string;
+  date: string;
+  aiUsageInsight: "Normal" | "High" | "Low";
+  changeFromLastBill: string;
+  status: "Pushed" | "Push Failed";
+  amount: string;
+  icon?: React.ReactNode;
+  type: string | null | undefined;
+};
+
+const getCategoryIcon = (category: string | null | undefined) => {
+  switch (category) {
+    case "gas":
       return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path
-            d="M11.2558 18.9774C14.2023 18.3873 18.0123 16.2674 18.0123 10.7863C18.0123 5.79907 14.3616 2.47739 11.7365 0.951337C11.1531 0.612005 10.4716 1.05785 10.4716 1.7318V3.45485C10.4716 4.81406 9.90036 7.29495 8.31305 8.32709C7.50242 8.85399 6.62581 8.06505 6.52778 7.10361L6.44672 6.31372C6.35246 5.39564 5.41742 4.83857 4.68408 5.39847C3.3654 6.40232 1.98828 8.16496 1.98828 10.7854C1.98828 17.4881 6.97363 19.165 9.46583 19.165C9.61162 19.165 9.76369 19.1602 9.92204 19.1508C8.69102 19.0462 6.70122 18.2827 6.70122 15.8131C6.70122 13.8808 8.11039 12.5753 9.18117 11.9391C9.4696 11.7694 9.8061 11.9909 9.8061 12.3255V12.8817C9.8061 13.3058 9.97106 13.9704 10.3622 14.4247C10.8052 14.9393 11.4547 14.4002 11.5065 13.7234C11.5235 13.5104 11.7384 13.3746 11.9232 13.4821C12.5274 13.8356 13.2993 14.5896 13.2993 15.8131C13.2993 17.7435 12.2352 18.6315 11.2558 18.9774Z"
+            d="M10 1.5C10 1.5 16 6 16 11C16 15 13 18.5 10 18.5C7 18.5 4 15 4 11C4 6 10 1.5 10 1.5Z"
             fill="#BC423E"
           />
         </svg>
       );
-    case "ConEd":
+
+    case "electric":
       return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path
-            d="M11.6593 1.77024C11.7052 1.40316 11.5036 1.04977 11.1642 0.902458C10.8249 0.755151 10.429 0.849194 10.1922 1.13339L2.751 10.0628C2.6224 10.2171 2.49215 10.3733 2.39732 10.5107C2.30763 10.6405 2.14387 10.8958 2.13881 11.2314C2.13302 11.6155 2.3042 11.981 2.60301 12.2224C2.86402 12.4334 3.16499 12.471 3.32217 12.4852C3.48835 12.5003 3.69176 12.5002 3.89258 12.5002L9.05509 12.5002L8.33884 18.2302C8.29295 18.5973 8.49456 18.9507 8.83391 19.098C9.17326 19.2453 9.56909 19.1512 9.80592 18.867L17.2471 9.93758C17.3757 9.78332 17.506 9.62707 17.6008 9.48977C17.6905 9.35991 17.8543 9.1046 17.8593 8.76906C17.8651 8.38491 17.6939 8.01945 17.3951 7.77798C17.1341 7.56705 16.8331 7.52941 16.676 7.51518C16.5098 7.50013 16.3064 7.50017 16.1055 7.50021L10.9431 7.50021L11.6593 1.77024Z"
+            d="M11 1L4 11H10L9 19L16 9H10L11 1Z"
             fill="#EBA524"
           />
         </svg>
       );
-    case "Greenwich Water":
+
+    case "water":
       return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path
-            d="M10.0005 19.165C7.85413 19.165 6.06437 18.4286 4.63119 16.956C3.198 15.4833 2.4811 13.6503 2.48047 11.457C2.48047 10.4856 2.6998 9.5143 3.13847 8.54297C3.57713 7.57163 4.12547 6.63947 4.78347 5.74647C5.44147 4.85347 6.1543 4.0153 6.92197 3.23197C7.68963 2.44864 8.40246 1.76714 9.06046 1.18747C9.1858 1.06214 9.33087 0.972211 9.49568 0.917691C9.6605 0.863171 9.82876 0.835598 10.0005 0.834971C10.1722 0.834345 10.3407 0.861918 10.5062 0.917691C10.6716 0.973465 10.8164 1.06339 10.9405 1.18747C11.5985 1.76714 12.3113 2.44864 13.079 3.23197C13.8466 4.0153 14.5595 4.85347 15.2175 5.74647C15.8755 6.63947 16.4238 7.57163 16.8625 8.54297C17.3011 9.5143 17.5205 10.4856 17.5205 11.457C17.5205 13.6503 16.8039 15.4833 15.3707 16.956C13.9375 18.4286 12.1474 19.165 10.0005 19.165ZM10.259 16.345C10.447 16.3293 10.6077 16.2547 10.7412 16.1212C10.8747 15.9878 10.9411 15.8273 10.9405 15.64C10.9405 15.4206 10.87 15.2445 10.729 15.1117C10.588 14.9788 10.4078 14.9199 10.1885 14.935C9.54613 14.982 8.86463 14.8059 8.14396 14.4067C7.4233 14.0075 6.96897 13.2828 6.78097 12.2325C6.74963 12.0601 6.66754 11.9191 6.53469 11.8095C6.40183 11.6998 6.24893 11.645 6.07597 11.645C5.85663 11.645 5.67647 11.7274 5.53547 11.8922C5.39447 12.057 5.34747 12.2488 5.39447 12.4675C5.6608 13.8931 6.28747 14.9115 7.27447 15.5225C8.26147 16.1335 9.2563 16.4076 10.259 16.345Z"
+            d="M10 1C10 1 15 7 15 11.5C15 15.6421 12.0899 18.5 8.5 18.5C4.91015 18.5 2 15.6421 2 11.5C2 7 10 1 10 1Z"
             fill="#2463EB"
           />
         </svg>
       );
-    case "Optium":
+
+    case "internet":
       return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M12.9469 5.87503C13.2724 5.54959 13.8 5.54959 14.1254 5.87503C16.4035 8.15308 16.4035 11.8465 14.1254 14.1246C13.8 14.45 13.2724 14.45 12.9469 14.1246C12.6215 13.7992 12.6215 13.2715 12.9469 12.9461C14.5741 11.3189 14.5741 8.68072 12.9469 7.05354C12.6215 6.7281 12.6215 6.20046 12.9469 5.87503Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M7.05437 5.875C7.37981 6.20043 7.37981 6.72807 7.05437 7.05351C5.42719 8.68069 5.42719 11.3189 7.05437 12.9461C7.37981 13.2715 7.37981 13.7991 7.05437 14.1246C6.72894 14.45 6.2013 14.45 5.87586 14.1246C3.5978 11.8465 3.5978 8.15306 5.87586 5.875C6.2013 5.54956 6.72894 5.54956 7.05437 5.875Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M4.69735 3.518C5.02279 3.84344 5.02279 4.37108 4.69735 4.69651C1.76842 7.62545 1.76842 12.3742 4.69735 15.3031C5.02279 15.6286 5.02279 16.1562 4.69735 16.4816C4.37191 16.8071 3.84428 16.8071 3.51884 16.4816C-0.0609673 12.9018 -0.0609673 7.09781 3.51884 3.518C3.84428 3.19257 4.37191 3.19257 4.69735 3.518Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M15.304 3.51804C15.6294 3.1926 16.157 3.1926 16.4825 3.51804C20.0623 7.09785 20.0623 12.9019 16.4825 16.4817C16.157 16.8071 15.6294 16.8071 15.304 16.4817C14.9785 16.1562 14.9785 15.6286 15.304 15.3032C18.2329 12.3742 18.2329 7.62549 15.304 4.69655C14.9785 4.37112 14.9785 3.84348 15.304 3.51804Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M7.50065 9.99982C7.50065 8.6191 8.61994 7.49982 10.0007 7.49982C11.3814 7.49982 12.5007 8.6191 12.5007 9.99982C12.5007 11.3805 11.3814 12.4998 10.0007 12.4998C8.61994 12.4998 7.50065 11.3805 7.50065 9.99982Z"
-            fill="#059669"
-          />
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="#059669" strokeWidth="2" />
+          <circle cx="10" cy="10" r="3" fill="#059669" />
         </svg>
       );
+
     default:
-      return null;
+      return (
+        <div className="h-5 w-5 rounded-full bg-gray-300" />
+      );
   }
 };
 
-const utilityAccounts: UtilityAccount[] = [
-  {
-    id: 1,
-    provider: "National Grid",
-    account: "#28591-03",
-    status: "active",
-    lastBillDate: "Oct 1, 2025",
-    lastBillAmount: "$420",
-    lastImport: "2h ago",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 2,
-    provider: "ConEd",
-    account: "#19374-09",
-    status: "inactive",
-    lastBillDate: "Sep 28, 2025",
-    lastBillAmount: "$180",
-    lastImport: "4h ago",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 3,
-    provider: "Greenwich Water",
-    account: "#57392-02",
-    status: "active",
-    lastBillDate: "Sep 9, 2025",
-    lastBillAmount: "$95",
-    lastImport: "2 days ago",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 4,
-    provider: "Optium",
-    account: "#95738-08",
-    status: "active",
-    lastBillDate: "Sep 5, 2025",
-    lastBillAmount: "$89",
-    lastImport: "3 days ago",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 5,
-    provider: "Optium",
-    account: "#36829-05",
-    status: "active",
-    lastBillDate: "Sep 2, 2025",
-    lastBillAmount: "$89",
-    lastImport: "4 days ago",
-    icon: getProviderIcon("Optium"),
-  },
-];
 
-const bills: Bill[] = [
-  {
-    id: 1,
-    provider: "ConEd",
-    date: "Oct 4, 2025",
-    aiUsageInsight: "High",
-    changeFromLastBill: "↑ 8%",
-    status: "Push Failed",
-    amount: "$234",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 2,
-    provider: "National Grid",
-    date: "Oct 3, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 1.3%",
-    status: "Pushed",
-    amount: "$287",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 3,
-    provider: "Greenwich Water",
-    date: "Oct 2, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 9%",
-    status: "Pushed",
-    amount: "$156",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 4,
-    provider: "Optium",
-    date: "Oct 1, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 7.2%",
-    status: "Pushed",
-    amount: "$234",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 5,
-    provider: "ConEd",
-    date: "Oct 1, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 5%",
-    status: "Push Failed",
-    amount: "$167",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 6,
-    provider: "National Grid",
-    date: "Sep 30, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 9.4%",
-    status: "Pushed",
-    amount: "$312",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 7,
-    provider: "Greenwich Water",
-    date: "Sep 29, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 0.8%",
-    status: "Pushed",
-    amount: "$256",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 8,
-    provider: "Optium",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Low",
-    changeFromLastBill: "↓ 8.5%",
-    status: "Pushed",
-    amount: "$178",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 9,
-    provider: "ConEd",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 2.1%",
-    status: "Pushed",
-    amount: "$213",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 10,
-    provider: "Greenwich Water",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 5%",
-    status: "Pushed",
-    amount: "$145",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-];
 
 interface UtilitiesProps {
   propertyAddress: string;
@@ -293,6 +119,104 @@ export const Utilities: React.FC<UtilitiesProps> = ({
     null,
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const { propertyId } = useParams<{ propertyId: string }>();
+
+  const { data: utilityAccounts = [], isLoading: utilLoading } = useQuery({
+    queryKey: ["utility-accounts", propertyId],
+    queryFn: () =>
+      fetchJSON(`/utilities/accounts/${propertyId}`),
+  });
+  
+  const { data: bills = [], isLoading: billsLoading } = useQuery({
+    queryKey: ["utility-bills", propertyId],
+    queryFn: () =>
+      fetchJSON(
+        `/utilities/bills${propertyId ? `?property_id=${propertyId}` : ""}`
+      ),
+  });
+  
+  const safeAccounts = Array.isArray(utilityAccounts)
+  ? utilityAccounts
+  : [];
+
+const safeBills = Array.isArray(bills)
+  ? bills
+  : [];
+
+  const mappedAccounts = safeAccounts.map((ua: any) => ({
+    id: ua.id,
+    provider: ua.provider_name,
+    account: ua.account_number,
+    status: (ua.active ? "active" : "inactive") as "active" | "inactive",
+    lastBillDate: ua.last_bill_date
+      ? new Date(ua.last_bill_date).toLocaleDateString()
+      : "—",
+    lastBillAmount: ua.last_bill_amount_cents
+      ? `$${(ua.last_bill_amount_cents / 100).toFixed(2)}`
+      : "—",
+    lastImport: ua.last_import_at
+      ? new Date(ua.last_import_at).toLocaleString()
+      : "—",
+      icon: getCategoryIcon(ua.provider_category),
+      type: ua.provider_category,
+  }));
+
+  // Build a quick provider lookup so bills can inherit category from accounts
+  const providerCategoryMap: Record<string, string | null | undefined> = {};
+  safeAccounts.forEach((ua: any) => {
+    providerCategoryMap[ua.provider_name] = ua.provider_category;
+  });
+
+
+  const filteredBills = safeBills.filter((b: any) => {
+    return b.provider_name && b.provider_name.trim() !== "";
+  });
+  
+
+  const mappedBills = safeBills.map((b: any) => {
+    const category = providerCategoryMap[b.provider_name] || null;
+
+    return {
+      id: b.id,
+      provider: b.provider_name,
+      date: b.statement_date
+        ? new Date(b.statement_date).toLocaleDateString()
+        : "—",
+      aiUsageInsight: "Normal",
+      changeFromLastBill: "—",
+      status: "Pushed",
+      amount: b.amount_cents
+        ? `$${(b.amount_cents / 100).toFixed(2)}`
+        : "—",
+      icon: getCategoryIcon(category),
+      type: category,
+    };
+  });
+
+    // ----- KPI VALUES -----
+
+  // 1. Most recent bill date
+  const lastBillImported = filteredBills.length
+  ? new Date(
+      Math.max(
+        ...filteredBills
+          .filter((b: any) => b.statement_date)
+          .map((b: any) => new Date(b.statement_date).getTime())
+      )
+    ).toLocaleDateString()
+  : "—";
+
+  // 2. Active / inactive account counts
+  const activeAccounts = mappedAccounts.filter((a) => a.status === "active").length;
+  const inactiveAccounts = mappedAccounts.filter((a) => a.status === "inactive").length;
+
+  // 3. Total utility spend
+  const totalSpendCents = filteredBills.reduce((sum: number, b: any) => {
+  return sum + (b.amount_cents || 0);
+  }, 0);
+
+  const totalSpend = `$${(totalSpendCents / 100).toFixed(2)}`;
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -387,7 +311,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           </div>
           <div className="flex items-center gap-1.5 self-stretch">
             <div className="text-[#303030] font-medium text-[26px] leading-[34px]">
-              Sep 10 2025
+              {lastBillImported}
             </div>
           </div>
         </div>
@@ -430,10 +354,10 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           </div>
           <div className="flex items-end gap-2 self-stretch">
             <div className="text-[#303030] font-medium text-[26px] leading-[28px]">
-              5 Accounts
+              {activeAccounts} Accounts
             </div>
             <div className="text-[#717179] font-normal text-sm leading-5">
-              1 account inactive
+              {inactiveAccounts} account inactive
             </div>
           </div>
         </div>
@@ -477,7 +401,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           <div className="flex items-end self-stretch">
             <div className="flex flex-col justify-center items-start gap-1">
               <div className="text-[#303030] font-medium text-[26px] leading-[34px]">
-                $2,120
+                {totalSpend}
               </div>
               <div className="flex items-start gap-1.5">
                 <div className="flex items-center">
@@ -609,13 +533,13 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {utilityAccounts.map((account, index) => (
+            <tbody> 
+              {mappedAccounts.map((account, index) => (
                 <tr
                   key={account.id}
                   className={cn(
                     "hover:bg-gray-50 transition-colors h-12",
-                    index === utilityAccounts.length - 1
+                    index === safeAccounts.length - 1
                       ? "border-b-0"
                       : "border-b border-gray-200",
                   )}
@@ -632,7 +556,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
-                      Electric
+                      {account.type || "—"}
                     </span>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -759,12 +683,12 @@ export const Utilities: React.FC<UtilitiesProps> = ({
               </tr>
             </thead>
             <tbody>
-              {bills.map((bill, index) => (
+              {mappedBills.map((bill, index) => (
                 <tr
                   key={bill.id}
                   className={cn(
                     "hover:bg-gray-50 transition-colors h-12",
-                    index === bills.length - 1
+                    index === safeBills.length - 1
                       ? "border-b-0"
                       : "border-b border-gray-200",
                   )}
@@ -784,8 +708,8 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       {bill.date}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <AIInsightBadge insight={bill.aiUsageInsight} />
+                  <td className="px-3 py-3 border-r border-gray-200">
+                    <AIInsightBadge insight={bill.aiUsageInsight as "Normal" | "High" | "Low"} />
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span
@@ -799,8 +723,8 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       {bill.changeFromLastBill}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <BillStatusBadge status={bill.status} />
+                  <td className="px-3 py-3 border-r border-gray-200">
+                    <BillStatusBadge status={bill.status as "Pushed" | "Push Failed"} />
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">

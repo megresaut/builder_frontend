@@ -4,6 +4,14 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import RecordBillModal from "@/components/RecordBillModal";
 import AddVendorModal from "@/components/AddVendorModal";
+import { fetchJSON } from "@/api/fetchJSON";
+
+
+function formatDate(value: string | null | undefined): string {
+  if (!value || value === "--") return "--";
+  // value: "2025-09-08T00:00:00Z" → take only YYYY-MM-DD
+  return value.split("T")[0];
+}
 
 interface Bill {
   id: number;
@@ -18,128 +26,6 @@ interface Bill {
   amount: number;
 }
 
-const bills: Bill[] = [
-  {
-    id: 1,
-    vendor: "Elite HVAC",
-    vendorColor: "#BC423E",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 4, 2025",
-    dueDate: "Dec 14, 2025",
-    status: "pushed",
-    memo: "Heater Not Working, Call For Service",
-    invoiceNumber: "REF-2024-934",
-    amount: 234,
-  },
-  {
-    id: 2,
-    vendor: "ABC Plumbing",
-    vendorColor: "#EBA524",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 3, 2025",
-    dueDate: "Dec 12, 2025",
-    status: "push-failed",
-    memo: "Leaky Faucet, Plumber Scheduled For Tomorrow",
-    invoiceNumber: "REF-2024-582",
-    amount: 287,
-  },
-  {
-    id: 3,
-    vendor: "Elite HVAC",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 2, 2025",
-    dueDate: "Dec 10, 2025",
-    status: "pushed",
-    memo: "High Bill, Check For Leaks And Wastage",
-    invoiceNumber: "REF-2024-195",
-    amount: 156,
-  },
-  {
-    id: 4,
-    vendor: "Elite HVAC",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 1, 2025",
-    dueDate: "Dec 8, 2025",
-    status: "push-failed",
-    memo: "Slow Connection, Contact ISP For Assistance",
-    invoiceNumber: "REF-2024-732",
-    amount: 234,
-  },
-  {
-    id: 5,
-    vendor: "Elite HVAC",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 1, 2025",
-    dueDate: "Dec 6, 2025",
-    status: "pushed",
-    memo: "Pilot Light Out, Schedule Safety Inspection",
-    invoiceNumber: "REF-2024-268",
-    amount: 167,
-  },
-  {
-    id: 6,
-    vendor: "Aqua Solutions",
-    vendorColor: "#EBA524",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 30, 2025",
-    dueDate: "Dec 4, 2025",
-    status: "pushed",
-    memo: "Outage Reported, Check Breaker And Connections",
-    invoiceNumber: "REF-2024-694",
-    amount: 312,
-  },
-  {
-    id: 7,
-    vendor: "Green Lawn Services",
-    vendorColor: "#059669",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 29, 2025",
-    dueDate: "Dec 2, 2025",
-    status: "push-failed",
-    memo: "Clogged Drain, Use Drain Cleaner Carefully",
-    invoiceNumber: "REF-2024-319",
-    amount: 256,
-  },
-  {
-    id: 8,
-    vendor: "Spark Electrical",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 28, 2025",
-    dueDate: "Nov 30, 2025",
-    status: "pushed",
-    memo: "Low Pressure, Check Supply And Aerators",
-    invoiceNumber: "REF-2024-851",
-    amount: 178,
-  },
-  {
-    id: 9,
-    vendor: "Secure Locksmiths",
-    vendorColor: "#059669",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 28, 2025",
-    dueDate: "Nov 28, 2025",
-    status: "push-failed",
-    memo: "Intermittent Issues, Troubleshoot Router And Modem",
-    invoiceNumber: "REF-2024-427",
-    amount: 213,
-  },
-  {
-    id: 10,
-    vendor: "Clean Sweep Janitorial",
-    vendorColor: "#BC423E",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 28, 2025",
-    dueDate: "Nov 26, 2025",
-    status: "pushed",
-    memo: "High Usage, Investigate Appliances And Settings",
-    invoiceNumber: "REF-2024-934",
-    amount: 145,
-  },
-];
 
 const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   <svg
@@ -175,6 +61,17 @@ const ActionButton = () => (
     </svg>
   </button>
 );
+// Deterministic vendor color generator based on vendor name
+function getVendorColor(vendor: string) {
+  let hash = 0;
+  for (let i = 0; i < vendor.length; i++) {
+    hash = vendor.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const color = '#' + ((hash >> 24) & 0xff).toString(16).padStart(2, '0') +
+                      ((hash >> 16) & 0xff).toString(16).padStart(2, '0') +
+                      ((hash >> 8) & 0xff).toString(16).padStart(2, '0');
+  return color.slice(0, 7);
+}
 
 export default function Bills() {
   const [selectedTab, setSelectedTab] = useState<"approved" | "drafts">(
@@ -187,7 +84,61 @@ export default function Bills() {
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [filteredBills, setFilteredBills] = useState<Bill[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    async function load() {
+      const data = await fetchJSON("/utilities/bills/all?limit=200");   // approved bills endpoint
+      const mapped = data.map((b: any) => ({
+        id: b.id,
+        vendor: b.vendor_name || b.provider_name,
+        vendorColor: getVendorColor(b.vendor_name || b.provider_name),
+        property: b.property_name ?? "--",
+        statementDate: formatDate(b.statement_date) ?? "--",
+        dueDate: formatDate(b.due_date) ?? "--",
+        status: b.push_status === "failed" ? "push-failed" : "pushed",
+        memo: b.memo ?? "",
+        invoiceNumber: b.invoice_number ?? "--",
+        amount: (b.amount_cents ?? 0) / 100,
+      }));
+      
+      const drafts = await fetchJSON(
+        "/vendors/bill-drafts?status=draft,receipt&limit=200"
+      );
+      
+      const mappedDrafts = drafts.map((d: any) => ({
+        id: d.id,
+        vendor: d.vendor_name ?? "--",
+        vendorColor: getVendorColor(d.vendor_name ?? "--"),
+        property: d.property_address ?? "--",
+        statementDate: formatDate(d.statement_date) ?? "--",
+        dueDate: formatDate(d.due_date) ?? "--",
+        status: "push-failed",
+        memo: d.memo ?? "",
+        invoiceNumber: d.invoice_number ?? "--",
+        amount:
+          typeof d.amount_cents === "number"
+            ? d.amount_cents / 100
+            : typeof d.amount === "number"
+            ? d.amount
+            : 0,
+      }));
+      
+      // ✅ DEFINE finalBills PROPERLY
+      const finalBills =
+        selectedTab === "approved" ? mapped : mappedDrafts;
+      
+      // SAVE BOTH
+      setBills(finalBills);
+      setFilteredBills(finalBills);
+      
+    }
+  
+    load();
+  }, [selectedTab]);
+  
   useEffect(() => {
     let animationFrameId: number;
 
@@ -216,8 +167,30 @@ export default function Bills() {
     };
   }, [showPageSizeDropdown]);
 
-  const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
-  const totalPages = Math.ceil(225 / itemsPerPage);
+
+  useEffect(() => {
+    const term = searchTerm.toLowerCase();
+  
+    const filtered = bills.filter((b) =>
+      b.vendor.toLowerCase().includes(term) ||
+      b.property.toLowerCase().includes(term) ||
+      b.invoiceNumber.toLowerCase().includes(term)
+    );
+  
+    setFilteredBills(filtered);
+    setCurrentPage(1); // reset to page 1
+  }, [searchTerm, bills]);
+
+  const approvedBills = filteredBills;
+  const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBills = filteredBills.slice(startIndex, endIndex);
+
+  const start = filteredBills.length === 0 ? 0 : startIndex + 1;
+  const endShown = Math.min(endIndex, filteredBills.length);
+
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -433,6 +406,8 @@ export default function Bills() {
                   <input
                     type="text"
                     placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
                   />
                 </div>
@@ -654,7 +629,7 @@ export default function Bills() {
                   </tr>
                 </thead>
                 <tbody>
-                  {approvedBills.map((bill) => (
+                  {paginatedBills.map((bill) => (
                     <tr
                       key={bill.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
@@ -686,8 +661,8 @@ export default function Bills() {
                         </span>
                       </td>
                       {selectedTab !== "approved" && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <StatusBadge status={bill.status} />
+                        <td className="px-3 py-3 border-r border-gray-200">
+                          <StatusBadge status={bill.status as "active" | "inactive"} />
                         </td>
                       )}
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -747,7 +722,7 @@ export default function Bills() {
                     }}
                   >
                     <div className="text-gray-900 font-medium text-sm">
-                      {itemsPerPage}
+                      {start}-{endShown}
                     </div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -765,7 +740,7 @@ export default function Bills() {
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of 225
+                  of {filteredBills.length}
                 </span>
               </div>
               <div

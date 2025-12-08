@@ -6,6 +6,7 @@ interface PropertyTablePaginationProps {
   setCurrentPage: (page: number) => void;
   itemsPerPage: number;
   setItemsPerPage: (items: number) => void;
+  totalItems: number;
 }
 
 export function PropertyTablePagination({
@@ -13,6 +14,7 @@ export function PropertyTablePagination({
   setCurrentPage,
   itemsPerPage,
   setItemsPerPage,
+  totalItems,
 }: PropertyTablePaginationProps) {
   return (
     <div className="flex lg:flex-row flex-nowrap justify-between items-start lg:items-center px-6 py-4 border-t w-full relative whitespace-nowrap" style={{ borderColor: "rgb(229, 229, 229)" }}>

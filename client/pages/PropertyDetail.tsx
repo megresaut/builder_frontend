@@ -1,4 +1,7 @@
 import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { fetchJSON } from "@/api/fetchJSON";
+
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { Overview } from "./properties/Overview";
 import { Units } from "./properties/Units";
@@ -10,70 +13,66 @@ import { Bills } from "./properties/Bills";
 import { Notes } from "./properties/Notes";
 import { Invoicing } from "./properties/Invoicing";
 
-// Mock property data - in a real app, this would come from an API
-const propertyData: Record<
-  string,
-  { address: string; type: string; units: number }
-> = {
-  "1": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Concierge",
-    units: 1,
-  },
-  "2": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Rental",
-    units: 1,
-  },
-  "3": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Commercial",
-    units: 1,
-  },
-  "4": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "OR",
-    units: 1,
-  },
-  "5": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "HOA",
-    units: 1,
-  },
-  "6": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Concierge",
-    units: 1,
-  },
-  "7": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Concierge",
-    units: 1,
-  },
-  "8": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Concierge",
-    units: 1,
-  },
-  "9": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Concierge",
-    units: 1,
-  },
-  "10": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
-    type: "Concierge",
-    units: 1,
-  },
+type BackendProperty = {
+  id: number;
+  name: string;
+  buildium_property_id: string;
+  property_type: string; // R, C, HOA, OR, Comm
+  address_line1: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  active: boolean;
+  created_at: string;
 };
 
 export default function PropertyDetail() {
-  const { propertyId, tab } = useParams<{
-    propertyId: string;
-    tab?: string;
-  }>();
+  const { propertyId, tab } = useParams<{ propertyId: string; tab?: string }>();
 
-  const property = propertyId ? propertyData[propertyId] : null;
+  const [property, setProperty] = useState<BackendProperty | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Map DB code → display type
+  const formatType = (t: string) => {
+    switch (t) {
+      case "R":
+        return "Rental";
+      case "C":
+        return "Concierge";
+      case "HOA":
+        return "HOA";
+      case "OR":
+        return "OR";
+      case "Comm":
+        return "Commercial";
+      default:
+        return t;
+    }
+  };
+
+  useEffect(() => {
+    async function load() {
+      if (!propertyId) return;
+
+      try {
+        setLoading(true);
+        const data = await fetchJSON(`/properties/${propertyId}`);
+        setProperty(data);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, [propertyId]);
+
+  if (loading) {
+    return (
+      <PropertiesTemplate activeTab={tab || "Overview"}>
+        <div className="p-10 text-gray-500">Loading...</div>
+      </PropertiesTemplate>
+    );
+  }
 
   if (!property) {
     return (
@@ -85,6 +84,11 @@ export default function PropertyDetail() {
     );
   }
 
+  // Derived values for UI
+  const propertyAddress = property.address_line1;
+  const propertyType = formatType(property.property_type);
+  const propertyUnits = 1; // hardcoded for now
+
   const renderPageContent = () => {
     const currentTab = tab || "Overview";
 
@@ -92,81 +96,90 @@ export default function PropertyDetail() {
       case "Overview":
         return (
           <Overview
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Units":
         return (
           <Units
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Utilities":
         return (
           <Utilities
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Maintenance":
         return (
           <Maintenance
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Tasks":
         return (
           <Tasks
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Vendors":
         return (
           <Vendors
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Bills":
         return (
           <Bills
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Notes":
         return (
           <Notes
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       case "Invoicing":
         return (
           <Invoicing
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
+
       default:
         return (
           <Overview
-            propertyAddress={property.address}
-            propertyType={property.type}
-            propertyUnits={property.units}
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
           />
         );
     }
@@ -174,9 +187,9 @@ export default function PropertyDetail() {
 
   return (
     <PropertiesTemplate
-      propertyAddress={property.address}
-      propertyType={property.type}
-      propertyUnits={property.units}
+      propertyAddress={propertyAddress}
+      propertyType={propertyType}
+      propertyUnits={propertyUnits}
       activeTab={tab || "Overview"}
     >
       {renderPageContent()}
