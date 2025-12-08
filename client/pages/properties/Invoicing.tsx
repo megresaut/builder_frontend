@@ -728,12 +728,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2.5">
-              <button className="flex h-10 items-center gap-2 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                <span className="text-[#303030] font-medium text-sm leading-normal">
+              <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                <span className="text-[#303030] font-medium text-sm leading-[22.4px]">
                   Save Draft
                 </span>
               </button>
-              <button className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
+              <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
                 <span className="text-white font-medium text-sm leading-normal">
                   Preview PDF
                 </span>
