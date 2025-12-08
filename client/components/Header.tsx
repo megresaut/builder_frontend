@@ -476,7 +476,9 @@ export default function Header() {
             const isSelected = tab.id === selectedTab;
             const metadata = tabContext.tabMetadata[tab.id];
             const displayLabel = metadata?.label || tab.label;
-            const sectionIcon = getIconForSection(metadata?.sectionId);
+            // Use metadata sectionId first, then fall back to tab.id for default tabs
+            const sectionId = metadata?.sectionId || (!tab.id.startsWith("new-tab-") ? tab.id : undefined);
+            const sectionIcon = getIconForSection(sectionId);
             const displayIcon = sectionIcon || tab.icon;
             return (
               <div
