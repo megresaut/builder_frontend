@@ -4,6 +4,13 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
 
+interface Assignee {
+  id: number;
+  name: string;
+  initials: string;
+  color: string;
+}
+
 interface RecurringTask {
   id: number;
   task: string;
@@ -11,7 +18,7 @@ interface RecurringTask {
   priority: "High" | "Low" | "Normal";
   category: string;
   status: "active" | "inactive";
-  assignees: number;
+  assignees: Assignee[];
 }
 
 const mockRecurringTasks: RecurringTask[] = [
@@ -22,7 +29,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "High",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
   },
   {
     id: 2,
@@ -31,7 +41,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Low",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
   },
   {
     id: 3,
@@ -40,7 +53,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
   },
   {
     id: 4,
@@ -49,7 +65,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
   },
   {
     id: 5,
@@ -58,7 +77,9 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
   },
   {
     id: 6,
@@ -67,7 +88,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
   },
   {
     id: 7,
@@ -76,7 +100,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
   },
   {
     id: 8,
@@ -85,7 +112,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
   },
   {
     id: 9,
@@ -94,7 +124,10 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
   },
   {
     id: 10,
@@ -103,7 +136,9 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
-    assignees: 2,
+    assignees: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
   },
 ];
 
@@ -587,10 +622,18 @@ export default function RecurringTasks() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {task.assignees} {task.assignees === 1 ? "assignee" : "assignees"}
-                        </span>
-                      </td>
+                      <div className="flex items-center gap-1">
+                        {task.assignees.map((assignee) => (
+                          <div
+                            key={assignee.id}
+                            className={`w-7 h-7 rounded-full ${assignee.color} flex items-center justify-center text-white text-xs font-semibold`}
+                            title={assignee.name}
+                          >
+                            {assignee.initials}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
                       <td
                         className="px-3 py-3 whitespace-nowrap"
                         style={{
