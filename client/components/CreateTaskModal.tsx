@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, parse, isValid, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 
 interface CreateTaskModalProps {
   open: boolean;
