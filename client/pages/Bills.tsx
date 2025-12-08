@@ -957,6 +957,12 @@ export default function Bills() {
         open={isRecordBillModalOpen}
         onOpenChange={setIsRecordBillModalOpen}
       />
+
+      {/* Add Vendor Modal */}
+      <AddVendorModal
+        open={isAddVendorModalOpen}
+        onOpenChange={setIsAddVendorModalOpen}
+      />
     </div>
   );
 }
