@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
-
+import { fetchJSON } from "@/api/fetchJSON";
 interface Property {
   id: number;
   address: string;
@@ -13,99 +13,6 @@ interface Property {
   buildingId: string;
   status: "active" | "inactive";
 }
-
-const properties: Property[] = [
-  {
-    id: 1,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "inactive",
-  },
-  {
-    id: 2,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Rental",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 3,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Commercial",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 4,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "OR",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 5,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "HOA",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 6,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 7,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 8,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 9,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 10,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-];
 
 const ActionButton = ({
   propertyId,
@@ -269,6 +176,55 @@ export default function AllProperties() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Load properties from backend
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await fetchJSON("/properties");
+
+        const mapped = data.map((p: any) => ({
+          id: p.id,
+          address: p.address_line1,
+          location: `${p.city}, ${p.state}`,
+          manager: "Carter Hughes",  // hardcoded per your request
+          type: p.property_type,
+          buildingId: p.buildium_property_id,
+          status: p.active ? "active" : "inactive",
+        }));
+
+        setProperties(mapped);
+        setFilteredProperties(mapped);   // NEW
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, []);
+
+  useEffect(() => {
+    const term = searchTerm.toLowerCase();
+  
+    const filtered = properties.filter((p) =>
+      p.address.toLowerCase().includes(term) ||
+      p.location.toLowerCase().includes(term) ||
+      p.type.toLowerCase().includes(term) ||
+      p.buildingId.toLowerCase().includes(term)
+    );
+  
+    setFilteredProperties(filtered);
+    setCurrentPage(1); // reset pagination to page 1
+  }, [searchTerm, properties]);
+  
 
   useEffect(() => {
     let animationFrameId: number;
@@ -298,7 +254,7 @@ export default function AllProperties() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(properties.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -334,7 +290,12 @@ export default function AllProperties() {
 
     return pages;
   };
-
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProperties = filteredProperties.slice(startIndex, endIndex);
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(start + paginatedProperties.length - 1, filteredProperties.length);
+  
   return (
     <div
       className="bg-white"
@@ -417,6 +378,8 @@ export default function AllProperties() {
                   <input
                     type="text"
                     placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
                   />
                 </div>
@@ -585,11 +548,18 @@ export default function AllProperties() {
                   </tr>
                 </thead>
                 <tbody>
-                  {properties.map((property) => (
+                  {paginatedProperties.map((property) => (
                     <tr
                       key={property.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={() => navigate(`/property/${property.id}`)}
+                      onClick={() =>
+                        navigate(`/property/${property.id}`, {
+                          state: {
+                            address: property.address,        // Street address
+                            location: property.location,      // City, State
+                          },
+                        })
+                      }
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
@@ -618,10 +588,7 @@ export default function AllProperties() {
                       </td>
                       <td
                         className="px-3 py-3"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
+                        style={{ borderRightWidth: "1px", border: "1px solid #e7e8ec" }}
                       >
                         <StatusBadge status={property.status} />
                       </td>
@@ -644,6 +611,7 @@ export default function AllProperties() {
                     </tr>
                   ))}
                 </tbody>
+
               </table>
             </div>
 
@@ -674,7 +642,7 @@ export default function AllProperties() {
                     }}
                   >
                     <div className="text-gray-900 font-medium text-sm">
-                      {itemsPerPage}
+                      {start}-{end}
                     </div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -692,7 +660,7 @@ export default function AllProperties() {
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {properties.length}
+                  of {filteredProperties.length}
                 </span>
               </div>
               <div

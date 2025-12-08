@@ -15,7 +15,8 @@ export default function Header() {
   const getBreadcrumbItems = () => {
     const path = location.pathname;
     const items: { label: string; href?: string }[] = [];
-
+    const propertyState = location.state as { address?: string } | null;
+    console.log(propertyState);
     if (path.includes("/property/")) {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
@@ -23,21 +24,10 @@ export default function Header() {
         const tab = match[2];
         items.push({ label: "Properties", href: "/all-properties" });
 
-        // Map property IDs to addresses
-        const propertyAddresses: Record<string, string> = {
-          "1": "22 Indian Chase Dr, Greenwich, CT",
-          "2": "22 Indian Chase Dr, Greenwich, CT",
-          "3": "22 Indian Chase Dr, Greenwich, CT",
-          "4": "22 Indian Chase Dr, Greenwich, CT",
-          "5": "22 Indian Chase Dr, Greenwich, CT",
-          "6": "22 Indian Chase Dr, Greenwich, CT",
-          "7": "22 Indian Chase Dr, Greenwich, CT",
-          "8": "22 Indian Chase Dr, Greenwich, CT",
-          "9": "22 Indian Chase Dr, Greenwich, CT",
-          "10": "22 Indian Chase Dr, Greenwich, CT",
-        };
 
-        items.push({ label: propertyAddresses[propertyId] || "Property" });
+        items.push({
+          label: propertyState?.address || "Property"
+        });
 
         if (tab && tab !== "Overview") {
           items.push({ label: tab });

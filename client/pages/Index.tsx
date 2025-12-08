@@ -1,134 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { PropertyTablePagination } from "@/components/PropertyTable";
+import { fetchJSON } from "@/api/fetchJSON";
 
 type TaskStatus = "completed" | "in-progress";
 type TaskPriority = "normal" | "low" | "high";
 
+function formatDate(dateStr: string | null | undefined) {
+  if (!dateStr) return "--";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "--";
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function calculateAge(dateRequested: string): string {
+  if (!dateRequested) return "--";
+
+  const req = new Date(dateRequested);
+  const now = new Date();
+  const diffMs = now.getTime() - req.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return "0 Days";
+  if (diffDays === 1) return "1 Day";
+  return `${diffDays} Days`;
+}
+
 interface Task {
   id: number;
-  status: TaskStatus;
+  status: "completed" | "in-progress";
   task: string;
   property: string;
   due: string;
   updated: string;
   age: string;
-  priority: TaskPriority;
-  assignees: number;
+  priority: "normal" | "low" | "high";
+  assignees: number;  // for now 1 or 0
 }
 
-const tasks: Task[] = [
-  {
-    id: 1,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Oct 2, 2025",
-    updated: "Oct 2, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 2,
-    status: "in-progress",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 29, 2025",
-    updated: "Sep 29, 2025",
-    age: "6 Days",
-    priority: "low",
-    assignees: 2,
-  },
-  {
-    id: 3,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 10, 2025",
-    updated: "Sep 10, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 4,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 6, 2025",
-    updated: "Sep 6, 2025",
-    age: "6 Days",
-    priority: "high",
-    assignees: 2,
-  },
-  {
-    id: 5,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 5, 2025",
-    updated: "Sep 5, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 6,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 4, 2025",
-    updated: "Sep 4, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 7,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 4, 2025",
-    updated: "Sep 4, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 8,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 3, 2025",
-    updated: "Sep 3, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 9,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 1, 2025",
-    updated: "Sep 1, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-  {
-    id: 10,
-    status: "completed",
-    task: "Doors need to be repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 1, 2025",
-    updated: "Sep 1, 2025",
-    age: "6 Days",
-    priority: "normal",
-    assignees: 2,
-  },
-];
 
 const StatusBadge = ({ status }: { status: TaskStatus }) => (
   <div className="flex items-center gap-2.5">
@@ -147,41 +60,12 @@ const StatusBadge = ({ status }: { status: TaskStatus }) => (
 );
 
 const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
-  const config = {
-    normal: {
-      color: "text-task-priority-normal",
-      bgColor: "bg-[#EFF6FF]",
-      icon: (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M2.91602 7H11.0827"
-            stroke="currentColor"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-      label: "Normal",
-      hasPill: true,
-    },
+  const config: Record<string, any> = {
     low: {
       color: "text-task-priority-low",
       bgColor: "bg-[#DCFCE7]",
       icon: (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path
             d="M6.99935 2.91675V11.0834M6.99935 11.0834L11.0827 7.00008M6.99935 11.0834L2.91602 7.00008"
             stroke="currentColor"
@@ -194,19 +78,44 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
       label: "Low",
       hasPill: true,
     },
+  
+    medium: {
+      color: "text-blue-700",
+      bgColor: "bg-blue-100",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="3" stroke="currentColor" strokeWidth="1.3" />
+        </svg>
+      ),
+      label: "Medium",
+      hasPill: true,
+    },
+  
+    normal: {
+      color: "text-task-priority-normal",
+      bgColor: "bg-[#EFF6FF]",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path
+            d="M2.91602 7H11.0827"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      label: "Normal",
+      hasPill: true,
+    },
+  
     high: {
       color: "text-task-priority-high",
       bgColor: "bg-[#FEF3C7]",
       icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path
-            d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732M14.6673 7.99992C14.6673 11.6818 11.6825 14.6666 8.00065 14.6666C4.31875 14.6666 1.33398 11.6818 1.33398 7.99992C1.33398 4.31802 4.31875 1.33325 8.00065 1.33325C11.6825 1.33325 14.6673 4.31802 14.6673 7.99992Z"
+            d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732"
             stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"
@@ -217,7 +126,26 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
       label: "High",
       hasPill: true,
     },
+  
+    urgent: {
+      color: "text-red-700",
+      bgColor: "bg-red-100",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M8 5v3m0 3h.01M1 8a7 7 0 1114 0A7 7 0 011 8z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      label: "Urgent",
+      hasPill: true,
+    },
   };
+  
 
   const { color, bgColor, icon, label, hasPill } = config[priority];
 
@@ -270,6 +198,50 @@ const UserAvatar = () => (
 export default function Index() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      const data = await fetchJSON("/maintenance/tasks?limit=200");
+  
+      const mapped = data.map((t: any) => ({
+        id: t.id,
+        status: t.status === "closed" ? "completed" : "in-progress",
+        task: t.name,
+        property: t.property_address ?? "--",
+        due: formatDate(t.due_date),
+        updated: formatDate(t.last_updated),
+        age: calculateAge(t.date_requested),
+        priority: (t.priority || "normal").toLowerCase(),
+        assignees: t.assignee ? 1 : 0, // for now since only 1 assignee exists
+      }));
+  
+      setTasks(mapped);
+      setFilteredTasks(mapped);
+    }
+    load();
+  }, []);
+
+  useEffect(() => {
+    const term = searchTerm.toLowerCase();
+  
+    const filtered = tasks.filter((t) =>
+      t.task.toLowerCase().includes(term) ||
+      t.property.toLowerCase().includes(term) ||
+      t.priority.toLowerCase().includes(term)
+    );
+  
+    setFilteredTasks(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, tasks]);
+
+  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  
+  const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8 xl:p-12 border-l border-[#D2D1CF]">
@@ -375,6 +347,8 @@ export default function Index() {
                     <input
                       type="text"
                       placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="text-task-text-primary font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-task-text-primary w-32 sm:w-48"
                     />
                   </div>
@@ -644,7 +618,7 @@ export default function Index() {
                     </tr>
                   </thead>
                   <tbody className="border-b-0">
-                    {tasks.map((task, index) => (
+                    {paginatedTasks.map((task, index) => (
                       <tr
                         key={task.id}
                         className={cn(
@@ -790,15 +764,16 @@ export default function Index() {
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
-                setItemsPerPage={setItemsPerPage}
+                setItemsPerPage={setItemsPerPage} 
+                totalItems={filteredTasks.length}
               />
 
               {/* Table Content - Mobile/Tablet */}
               <div
                 className="lg:hidden divide-y"
-                style={{ divideColor: "rgb(229, 229, 229)" }}
+                style={{ borderColor: "rgb(229, 229, 229)" }}
               >
-                {tasks.map((task) => (
+                {paginatedTasks.map((task) => (
                   <div key={task.id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">

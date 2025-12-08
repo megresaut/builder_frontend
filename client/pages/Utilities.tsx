@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
-
+import { fetchJSON } from "@/api/fetchJSON";
 interface Property {
   id: number;
   address: string;
@@ -24,98 +24,7 @@ interface UtilityAccount {
   icon?: React.ReactNode;
 }
 
-const properties: Property[] = [
-  {
-    id: 1,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "inactive",
-  },
-  {
-    id: 2,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Rental",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 3,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Commercial",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 4,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "OR",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 5,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "HOA",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 6,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 7,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 8,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 9,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-  {
-    id: 10,
-    address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
-    type: "Concierge",
-    buildingId: "624090",
-    status: "active",
-  },
-];
+
 
 const getProviderIcon = (provider: string) => {
   switch (provider) {
@@ -210,58 +119,6 @@ const getProviderIcon = (provider: string) => {
   }
 };
 
-const utilityAccounts: UtilityAccount[] = [
-  {
-    id: 1,
-    provider: "National Grid",
-    account: "#28591-03",
-    status: "active",
-    lastBillDate: "Oct 1, 2025",
-    lastBillAmount: "$420",
-    lastImport: "2h ago",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 2,
-    provider: "ConEd",
-    account: "#19374-09",
-    status: "inactive",
-    lastBillDate: "Sep 28, 2025",
-    lastBillAmount: "$180",
-    lastImport: "4h ago",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 3,
-    provider: "Greenwich Water",
-    account: "#57392-02",
-    status: "active",
-    lastBillDate: "Sep 9, 2025",
-    lastBillAmount: "$95",
-    lastImport: "2 days ago",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 4,
-    provider: "Optium",
-    account: "#95738-08",
-    status: "active",
-    lastBillDate: "Sep 5, 2025",
-    lastBillAmount: "$89",
-    lastImport: "3 days ago",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 5,
-    provider: "Optium",
-    account: "#36829-05",
-    status: "active",
-    lastBillDate: "Sep 2, 2025",
-    lastBillAmount: "$89",
-    lastImport: "4 days ago",
-    icon: getProviderIcon("Optium"),
-  },
-];
 
 interface Bill {
   id: number;
@@ -273,109 +130,6 @@ interface Bill {
   amount: string;
   icon?: React.ReactNode;
 }
-
-const bills: Bill[] = [
-  {
-    id: 1,
-    provider: "ConEd",
-    date: "Oct 4, 2025",
-    aiUsageInsight: "High",
-    changeFromLastBill: "↑ 8%",
-    status: "Push Failed",
-    amount: "$234",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 2,
-    provider: "National Grid",
-    date: "Oct 3, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 1.3%",
-    status: "Pushed",
-    amount: "$287",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 3,
-    provider: "Greenwich Water",
-    date: "Oct 2, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 9%",
-    status: "Pushed",
-    amount: "$156",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 4,
-    provider: "Optium",
-    date: "Oct 1, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 7.2%",
-    status: "Pushed",
-    amount: "$234",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 5,
-    provider: "ConEd",
-    date: "Oct 1, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 5%",
-    status: "Push Failed",
-    amount: "$167",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 6,
-    provider: "National Grid",
-    date: "Sep 30, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 9.4%",
-    status: "Pushed",
-    amount: "$312",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 7,
-    provider: "Greenwich Water",
-    date: "Sep 29, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 0.8%",
-    status: "Pushed",
-    amount: "$256",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 8,
-    provider: "Optium",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Low",
-    changeFromLastBill: "↓ 8.5%",
-    status: "Pushed",
-    amount: "$178",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 9,
-    provider: "ConEd",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 2.1%",
-    status: "Pushed",
-    amount: "$213",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 10,
-    provider: "Greenwich Water",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 5%",
-    status: "Pushed",
-    amount: "$145",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-];
 
 export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
   if (status === "active") {
@@ -673,6 +427,73 @@ export default function Utilities() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
+  const [utilityAccounts, setUtilityAccounts] = useState<UtilityAccount[]>([]);
+  const [utilityBills, setUtilityBills] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        // TEMP: property_id=1 until hooked to real property selection
+        const data = await fetchJSON("/utilities/accounts?property_id=1");
+
+        console.log(data);
+        const mapped = data.map((a: any) => ({
+          id: a.id,
+          provider: a.provider_name,
+          account: a.account_number,
+          status: a.active ? "active" : "inactive",
+          lastBillDate: a.last_bill_date
+            ? new Date(a.last_bill_date).toLocaleDateString()
+            : "—",
+          lastBillAmount: a.last_bill_amount_cents
+            ? `$${(a.last_bill_amount_cents / 100).toFixed(2)}`
+            : "—",
+          lastImport: a.last_import_at
+            ? new Date(a.last_import_at).toLocaleDateString()
+            : "—",
+          icon: getProviderIcon(a.provider_name)
+        }));
+  
+        setUtilityAccounts(mapped);
+      } catch (err) {
+        console.error("Failed to load utility accounts", err);
+      }
+    };
+  
+    fetchAccounts();
+  }, []);
+
+
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        // TEMP: property_id=1 until property selection is wired
+        const data = await fetchJSON("/utilities/bills?property_id=1");
+  
+        const mapped = data.map((b: any) => ({
+          id: b.id,
+          provider: b.provider_name || b.vendor_name || "Unknown",
+          date: b.statement_date
+            ? new Date(b.statement_date).toLocaleDateString()
+            : "—",
+          aiUsageInsight: "Normal", // placeholder until AI logic is added
+          changeFromLastBill: "—", // placeholder
+          status: b.push_status === "pushed" ? "Pushed" : "Push Failed",
+          amount: b.amount_cents
+            ? `$${(b.amount_cents / 100).toFixed(2)}`
+            : "—",
+          icon: getProviderIcon(b.provider_name || b.vendor_name),
+        }));
+  
+        setUtilityBills(mapped);
+      } catch (err) {
+        console.error("Failed to load utility bills", err);
+      }
+    };
+  
+    fetchBills();
+  }, []);
+  
   useEffect(() => {
     let animationFrameId: number;
 
@@ -701,7 +522,7 @@ export default function Utilities() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(properties.length / itemsPerPage);
+  const totalPages = 10;
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -1431,12 +1252,12 @@ export default function Utilities() {
                 </tr>
               </thead>
               <tbody>
-                {bills.map((bill, index) => (
+                {utilityBills.map((bill, index) => (
                   <tr
                     key={bill.id}
                     className={cn(
                       "hover:bg-gray-50 transition-colors h-12",
-                      index === bills.length - 1
+                      index === utilityBills.length - 1
                         ? "border-b-0"
                         : "border-b border-gray-200",
                     )}
@@ -1542,7 +1363,7 @@ export default function Utilities() {
                 </button>
               </div>
               <span className="text-gray-700 text-sm font-medium">
-                of {bills.length}
+                of {utilityBills.length}
               </span>
             </div>
             <div
