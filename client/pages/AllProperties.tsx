@@ -4,11 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 
+interface Manager {
+  id: number;
+  name: string;
+  initials: string;
+  color: string;
+}
+
 interface Property {
   id: number;
   address: string;
   location: string;
-  manager: string;
+  managers: Manager[];
   type: string;
   buildingId: string;
   status: "active" | "inactive";
@@ -19,7 +26,10 @@ const properties: Property[] = [
     id: 1,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
     type: "Concierge",
     buildingId: "624090",
     status: "inactive",
@@ -28,7 +38,10 @@ const properties: Property[] = [
     id: 2,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
     type: "Rental",
     buildingId: "624090",
     status: "active",
@@ -37,7 +50,10 @@ const properties: Property[] = [
     id: 3,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "Commercial",
     buildingId: "624090",
     status: "active",
@@ -46,7 +62,9 @@ const properties: Property[] = [
     id: 4,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
     type: "OR",
     buildingId: "624090",
     status: "active",
@@ -55,7 +73,10 @@ const properties: Property[] = [
     id: 5,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "HOA",
     buildingId: "624090",
     status: "active",
@@ -64,7 +85,9 @@ const properties: Property[] = [
     id: 6,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
     type: "Concierge",
     buildingId: "624090",
     status: "active",
@@ -73,7 +96,10 @@ const properties: Property[] = [
     id: 7,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
     type: "Concierge",
     buildingId: "624090",
     status: "active",
@@ -82,7 +108,9 @@ const properties: Property[] = [
     id: 8,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "Concierge",
     buildingId: "624090",
     status: "active",
@@ -91,7 +119,10 @@ const properties: Property[] = [
     id: 9,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "Concierge",
     buildingId: "624090",
     status: "active",
@@ -100,7 +131,9 @@ const properties: Property[] = [
     id: 10,
     address: "22 Indian Chase Dr",
     location: "Greenwich, CT",
-    manager: "Jerry Sanchez",
+    managers: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
     type: "Concierge",
     buildingId: "624090",
     status: "active",
@@ -603,9 +636,17 @@ export default function AllProperties() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.manager}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          {property.managers.map((manager) => (
+                            <div
+                              key={manager.id}
+                              className={`w-7 h-7 rounded-full ${manager.color} flex items-center justify-center text-white text-xs font-semibold`}
+                              title={manager.name}
+                            >
+                              {manager.initials}
+                            </div>
+                          ))}
+                        </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
