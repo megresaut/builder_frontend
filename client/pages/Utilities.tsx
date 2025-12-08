@@ -494,7 +494,7 @@ export const AIInsightBadge = ({
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl text-base font-normal"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl text-sm font-normal"
       style={{
         color: colors[insight],
         boxShadow:
