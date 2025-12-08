@@ -244,23 +244,30 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
 
   if (priority === "High") {
     return (
-      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2 bg-red-50 text-red-600">
+      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2">
         <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path
-            d="M6.99935 11.0834V2.91675M6.99935 2.91675L2.91602 7.00008M6.99935 2.91675L11.0827 7.00008"
-            stroke="#DC2626"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <g clipPath="url(#clip0_high_priority)">
+            <path
+              d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732M14.6673 7.99992C14.6673 11.6818 11.6825 14.6666 8.00065 14.6666C4.31875 14.6666 1.33398 11.6818 1.33398 7.99992C1.33398 4.31802 4.31875 1.33325 8.00065 1.33325C11.6825 1.33325 14.6673 4.31802 14.6673 7.99992Z"
+              stroke="#D97706"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+          <defs>
+            <clipPath id="clip0_high_priority">
+              <rect width="16" height="16" fill="white" />
+            </clipPath>
+          </defs>
         </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
+        <div className="text-base font-normal tracking-[-0.32px] capitalize overflow-hidden text-ellipsis whitespace-nowrap text-[#D97706]">
           {priority}
         </div>
       </div>
