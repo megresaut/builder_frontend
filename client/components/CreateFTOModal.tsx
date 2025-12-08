@@ -215,6 +215,21 @@ export default function CreateFTOModal({
                 <Input
                   type="text"
                   placeholder="MM/DD/YYYY"
+                  value={dueDate}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, "");
+                    if (value.length > 0) {
+                      if (value.length <= 2) {
+                        value = value;
+                      } else if (value.length <= 4) {
+                        value = value.slice(0, 2) + "/" + value.slice(2);
+                      } else {
+                        value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4, 8);
+                      }
+                    }
+                    setDueDate(value);
+                  }}
+                  maxLength={10}
                   className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
                 />
                 <svg
