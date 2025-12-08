@@ -305,12 +305,12 @@ export default function FTOApprovalModal({
                       </svg>
                     </button>
                     {openMenuId === "hours-1" && (
-                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50">
-                        <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50 whitespace-nowrap">
+                        <button className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full">
+                          <span>Delete</span>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
                           </svg>
-                          Delete
                         </button>
                       </div>
                     )}
@@ -335,12 +335,12 @@ export default function FTOApprovalModal({
                       </svg>
                     </button>
                     {openMenuId === "hours-2" && (
-                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50">
-                        <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50 whitespace-nowrap">
+                        <button className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full">
+                          <span>Delete</span>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
                           </svg>
-                          Delete
                         </button>
                       </div>
                     )}
@@ -365,12 +365,12 @@ export default function FTOApprovalModal({
                       </svg>
                     </button>
                     {openMenuId === "hours-3" && (
-                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50">
-                        <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50 whitespace-nowrap">
+                        <button className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full">
+                          <span>Delete</span>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
                           </svg>
-                          Delete
                         </button>
                       </div>
                     )}
@@ -609,12 +609,12 @@ export default function FTOApprovalModal({
                       </svg>
                     </button>
                     {openMenuId === "expenses-1" && (
-                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50">
-                        <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50 whitespace-nowrap">
+                        <button className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full">
+                          <span>Delete</span>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
                           </svg>
-                          Delete
                         </button>
                       </div>
                     )}
@@ -639,12 +639,12 @@ export default function FTOApprovalModal({
                       </svg>
                     </button>
                     {openMenuId === "expenses-2" && (
-                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50">
-                        <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50 whitespace-nowrap">
+                        <button className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full">
+                          <span>Delete</span>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
                           </svg>
-                          Delete
                         </button>
                       </div>
                     )}
@@ -669,12 +669,12 @@ export default function FTOApprovalModal({
                       </svg>
                     </button>
                     {openMenuId === "expenses-3" && (
-                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50">
-                        <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <div className="absolute top-full mt-1 right-0 bg-white border border-[#dadada] rounded-md shadow-md z-50 whitespace-nowrap">
+                        <button className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full">
+                          <span>Delete</span>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
                           </svg>
-                          Delete
                         </button>
                       </div>
                     )}
