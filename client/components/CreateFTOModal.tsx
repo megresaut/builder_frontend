@@ -104,6 +104,38 @@ export default function CreateFTOModal({
     setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
   };
 
+  const handleDateSelect = (day: number) => {
+    const selected = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+    setSelectedDate(selected);
+    const formatted = format(selected, "MM/dd/yyyy");
+    setDueDate(formatted);
+    setShowCalendar(false);
+  };
+
+  const getCalendarDays = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
+    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
+
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    return days;
+  };
+
+  const previousMonth = () => {
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
+  };
+
+  const nextMonth = () => {
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1));
+  };
+
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
       low: "#059669",
