@@ -184,6 +184,7 @@ export default function Bills() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [isRecordBillModalOpen, setIsRecordBillModalOpen] = useState(false);
+  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
