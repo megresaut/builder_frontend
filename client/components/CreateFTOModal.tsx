@@ -27,6 +27,8 @@ export default function CreateFTOModal({
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
 
+  console.log("CreateFTOModal - open prop:", open);
+
   const getPriorityIcon = () => {
     return (
       <svg
