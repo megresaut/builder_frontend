@@ -20,7 +20,10 @@ export default function FTOApprovalModal({
   onOpenChange,
 }: FTOApprovalModalProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   useEffect(() => {
@@ -97,7 +100,9 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">Add Hours</span>
+                <span className="text-white font-medium text-base">
+                  Add Hours
+                </span>
               </button>
             </div>
 
@@ -105,7 +110,10 @@ export default function FTOApprovalModal({
             <div className="border-t border-[#dadada] overflow-x-auto">
               <div className="inline-flex min-w-full">
                 {/* Task Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[121px]" style={{ height: "auto", flexGrow: "0" }}>
+                <div
+                  className="flex flex-col border-r border-[#dadada] min-w-[121px]"
+                  style={{ height: "auto", flexGrow: "0" }}
+                >
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
                     <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Task
@@ -301,9 +309,16 @@ export default function FTOApprovalModal({
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
-                      ref={(el) => { buttonRefs.current["hours-1"] = el; }}
-                      onClick={() => setOpenMenuId(openMenuId === "hours-1" ? null : "hours-1")}
-                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      ref={(el) => {
+                        buttonRefs.current["hours-1"] = el;
+                      }}
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === "hours-1" ? null : "hours-1",
+                        )
+                      }
+                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    >
                       <svg
                         width="18"
                         height="18"
@@ -321,22 +336,47 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "hours-1" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
+                        <div
+                          className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap"
+                          style={{
+                            position: "fixed",
+                            top: `${menuPos.top}px`,
+                            left: `${menuPos.left}px`,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            onClick={() => setOpenMenuId(null)}
+                            className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
                             <span>Delete</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6" />
                             </svg>
                           </div>
                         </div>,
-                        document.body
+                        document.body,
                       )}
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
-                      ref={(el) => { buttonRefs.current["hours-2"] = el; }}
-                      onClick={() => setOpenMenuId(openMenuId === "hours-2" ? null : "hours-2")}
-                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      ref={(el) => {
+                        buttonRefs.current["hours-2"] = el;
+                      }}
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === "hours-2" ? null : "hours-2",
+                        )
+                      }
+                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    >
                       <svg
                         width="18"
                         height="18"
@@ -354,22 +394,47 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "hours-2" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
+                        <div
+                          className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap"
+                          style={{
+                            position: "fixed",
+                            top: `${menuPos.top}px`,
+                            left: `${menuPos.left}px`,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            onClick={() => setOpenMenuId(null)}
+                            className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
                             <span>Delete</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6" />
                             </svg>
                           </div>
                         </div>,
-                        document.body
+                        document.body,
                       )}
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
-                      ref={(el) => { buttonRefs.current["hours-3"] = el; }}
-                      onClick={() => setOpenMenuId(openMenuId === "hours-3" ? null : "hours-3")}
-                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      ref={(el) => {
+                        buttonRefs.current["hours-3"] = el;
+                      }}
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === "hours-3" ? null : "hours-3",
+                        )
+                      }
+                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    >
                       <svg
                         width="18"
                         height="18"
@@ -387,15 +452,33 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "hours-3" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
+                        <div
+                          className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap"
+                          style={{
+                            position: "fixed",
+                            top: `${menuPos.top}px`,
+                            left: `${menuPos.left}px`,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            onClick={() => setOpenMenuId(null)}
+                            className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
                             <span>Delete</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6" />
                             </svg>
                           </div>
                         </div>,
-                        document.body
+                        document.body,
                       )}
                   </div>
                 </div>
@@ -428,7 +511,9 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">Add Expenses</span>
+                <span className="text-white font-medium text-base">
+                  Add Expenses
+                </span>
               </button>
             </div>
 
@@ -614,9 +699,16 @@ export default function FTOApprovalModal({
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
-                      ref={(el) => { buttonRefs.current["expenses-1"] = el; }}
-                      onClick={() => setOpenMenuId(openMenuId === "expenses-1" ? null : "expenses-1")}
-                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      ref={(el) => {
+                        buttonRefs.current["expenses-1"] = el;
+                      }}
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === "expenses-1" ? null : "expenses-1",
+                        )
+                      }
+                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    >
                       <svg
                         width="18"
                         height="18"
@@ -634,22 +726,47 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "expenses-1" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
+                        <div
+                          className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap"
+                          style={{
+                            position: "fixed",
+                            top: `${menuPos.top}px`,
+                            left: `${menuPos.left}px`,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            onClick={() => setOpenMenuId(null)}
+                            className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
                             <span>Delete</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6" />
                             </svg>
                           </div>
                         </div>,
-                        document.body
+                        document.body,
                       )}
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
-                      ref={(el) => { buttonRefs.current["expenses-2"] = el; }}
-                      onClick={() => setOpenMenuId(openMenuId === "expenses-2" ? null : "expenses-2")}
-                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      ref={(el) => {
+                        buttonRefs.current["expenses-2"] = el;
+                      }}
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === "expenses-2" ? null : "expenses-2",
+                        )
+                      }
+                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    >
                       <svg
                         width="18"
                         height="18"
@@ -667,22 +784,47 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "expenses-2" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
+                        <div
+                          className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap"
+                          style={{
+                            position: "fixed",
+                            top: `${menuPos.top}px`,
+                            left: `${menuPos.left}px`,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            onClick={() => setOpenMenuId(null)}
+                            className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
                             <span>Delete</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6" />
                             </svg>
                           </div>
                         </div>,
-                        document.body
+                        document.body,
                       )}
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
-                      ref={(el) => { buttonRefs.current["expenses-3"] = el; }}
-                      onClick={() => setOpenMenuId(openMenuId === "expenses-3" ? null : "expenses-3")}
-                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      ref={(el) => {
+                        buttonRefs.current["expenses-3"] = el;
+                      }}
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === "expenses-3" ? null : "expenses-3",
+                        )
+                      }
+                      className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    >
                       <svg
                         width="18"
                         height="18"
@@ -700,15 +842,33 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "expenses-3" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
+                        <div
+                          className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap"
+                          style={{
+                            position: "fixed",
+                            top: `${menuPos.top}px`,
+                            left: `${menuPos.left}px`,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            onClick={() => setOpenMenuId(null)}
+                            className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
                             <span>Delete</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6" />
                             </svg>
                           </div>
                         </div>,
-                        document.body
+                        document.body,
                       )}
                   </div>
                 </div>

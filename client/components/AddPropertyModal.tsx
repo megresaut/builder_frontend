@@ -29,11 +29,56 @@ const AVAILABLE_MANAGERS: Manager[] = [
 ];
 
 const US_STATES = [
-  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
 ];
 
 export default function AddPropertyModal({
@@ -53,7 +98,10 @@ export default function AddPropertyModal({
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [showManagerDropdown, setShowManagerDropdown] = useState(false);
   const managerButtonRef = useRef<HTMLButtonElement>(null);
-  const [managerDropdownPos, setManagerDropdownPos] = useState({ top: 0, left: 0 });
+  const [managerDropdownPos, setManagerDropdownPos] = useState({
+    top: 0,
+    left: 0,
+  });
 
   useEffect(() => {
     let animationFrameId: number;
@@ -102,7 +150,7 @@ export default function AddPropertyModal({
 
   const handleDollarInput = (
     value: string,
-    setter: React.Dispatch<React.SetStateAction<string>>
+    setter: React.Dispatch<React.SetStateAction<string>>,
   ) => {
     const formatted = formatDollarValue(value);
     setter(formatted);
@@ -128,7 +176,9 @@ export default function AddPropertyModal({
 
         <div className="flex flex-col gap-4">
           {/* Address Section */}
-          <div className="text-[#71717A] font-medium text-base leading-4">Address</div>
+          <div className="text-[#71717A] font-medium text-base leading-4">
+            Address
+          </div>
 
           {/* Country */}
           <div className="flex flex-col gap-0">
@@ -190,7 +240,9 @@ export default function AddPropertyModal({
           </div>
 
           {/* Basics Section */}
-          <div className="text-[#71717A] font-medium text-base leading-4 mt-0">Basics</div>
+          <div className="text-[#71717A] font-medium text-base leading-4 mt-0">
+            Basics
+          </div>
 
           {/* Property Type and Property Manager Row */}
           <div className="flex flex-wrap gap-3">
@@ -200,7 +252,10 @@ export default function AddPropertyModal({
               </label>
               <Select value={propertyType} onValueChange={setPropertyType}>
                 <SelectTrigger className="h-[38px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7]">
-                  <SelectValue placeholder="Select Property Type" className="text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]" />
+                  <SelectValue
+                    placeholder="Select Property Type"
+                    className="text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Concierge">Concierge</SelectItem>
@@ -268,7 +323,9 @@ export default function AddPropertyModal({
                       onMouseLeave={() => setShowManagerDropdown(false)}
                     >
                       {AVAILABLE_MANAGERS.map((manager) => {
-                        const isSelected = selectedManagers.some((m) => m.id === manager.id);
+                        const isSelected = selectedManagers.some(
+                          (m) => m.id === manager.id,
+                        );
                         return (
                           <button
                             key={manager.id}
@@ -325,7 +382,9 @@ export default function AddPropertyModal({
                 </span>
                 <Input
                   value={hourlyRate}
-                  onChange={(e) => handleDollarInput(e.target.value, setHourlyRate)}
+                  onChange={(e) =>
+                    handleDollarInput(e.target.value, setHourlyRate)
+                  }
                   placeholder="Insert Hourly Rate"
                   className="h-[38px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] pl-7"
                 />
@@ -342,7 +401,9 @@ export default function AddPropertyModal({
                 </span>
                 <Input
                   value={emergencyHourlyRate}
-                  onChange={(e) => handleDollarInput(e.target.value, setEmergencyHourlyRate)}
+                  onChange={(e) =>
+                    handleDollarInput(e.target.value, setEmergencyHourlyRate)
+                  }
                   placeholder="Insert Emergency Hourly Rate"
                   className="h-[38px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] pl-7"
                 />
@@ -362,7 +423,9 @@ export default function AddPropertyModal({
                 </span>
                 <Input
                   value={managementFee}
-                  onChange={(e) => handleDollarInput(e.target.value, setManagementFee)}
+                  onChange={(e) =>
+                    handleDollarInput(e.target.value, setManagementFee)
+                  }
                   placeholder="Insert Management Fee"
                   className="h-[38px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] pl-7"
                 />
@@ -373,12 +436,18 @@ export default function AddPropertyModal({
               <label className="text-[#303030] font-medium text-sm leading-[20px]">
                 Status <span className="text-red-600">*</span>
               </label>
-              <Select value={status} onValueChange={(value: "Active" | "Inactive") => setStatus(value)}>
+              <Select
+                value={status}
+                onValueChange={(value: "Active" | "Inactive") =>
+                  setStatus(value)
+                }
+              >
                 <SelectTrigger className="h-[38px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7]">
                   <div
                     className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
                     style={{
-                      backgroundColor: status === "Active" ? "#d1fae5" : "#fed7aa",
+                      backgroundColor:
+                        status === "Active" ? "#d1fae5" : "#fed7aa",
                     }}
                   >
                     <span
@@ -401,7 +470,9 @@ export default function AddPropertyModal({
 
           {/* Add Property Button */}
           <button className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2">
-            <span className="text-white font-medium text-base">Add Property</span>
+            <span className="text-white font-medium text-base">
+              Add Property
+            </span>
           </button>
         </div>
       </DialogContent>

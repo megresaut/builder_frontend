@@ -21,13 +21,25 @@ export default function TabContent() {
 
     if (path === "/bills") {
       setSelectedTab("bills");
-      setTabMetadata("bills", { label: "Bills", sectionId: "bills", route: path });
+      setTabMetadata("bills", {
+        label: "Bills",
+        sectionId: "bills",
+        route: path,
+      });
     } else if (path === "/field-team-orders") {
       setSelectedTab("field-team-orders");
-      setTabMetadata("field-team-orders", { label: "Field Team Orders", sectionId: "field-team-orders", route: path });
+      setTabMetadata("field-team-orders", {
+        label: "Field Team Orders",
+        sectionId: "field-team-orders",
+        route: path,
+      });
     } else if (path === "/work-orders") {
       setSelectedTab("work-orders");
-      setTabMetadata("work-orders", { label: "Work Orders", sectionId: "work-orders", route: path });
+      setTabMetadata("work-orders", {
+        label: "Work Orders",
+        sectionId: "work-orders",
+        route: path,
+      });
     } else if (path === "/all-properties") {
       setSelectedTab("properties");
     }
@@ -46,7 +58,10 @@ export default function TabContent() {
         mainContent.scrollTop = scrollPos;
       }, 0);
     }
-  }, [tabContext?.selectedTab, tabContext?.tabMetadata[tabContext?.selectedTab || ""]?.route]);
+  }, [
+    tabContext?.selectedTab,
+    tabContext?.tabMetadata[tabContext?.selectedTab || ""]?.route,
+  ]);
 
   if (!tabContext) {
     return <Index />;

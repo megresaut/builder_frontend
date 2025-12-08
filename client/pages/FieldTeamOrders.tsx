@@ -971,7 +971,10 @@ export default function FieldTeamOrders() {
       <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
 
       {/* FTO Approval Modal */}
-      <FTOApprovalModal open={showApprovalModal} onOpenChange={setShowApprovalModal} />
+      <FTOApprovalModal
+        open={showApprovalModal}
+        onOpenChange={setShowApprovalModal}
+      />
     </div>
   );
 }

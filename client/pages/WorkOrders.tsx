@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { ChevronDown, Edit, Calendar, Upload, MapPin, Mail, Send, Paperclip } from "lucide-react";
+import {
+  ChevronDown,
+  Edit,
+  Calendar,
+  Upload,
+  MapPin,
+  Mail,
+  Send,
+  Paperclip,
+} from "lucide-react";
 
 export default function WorkOrders() {
   const [messageText, setMessageText] = useState("");
@@ -18,7 +27,13 @@ export default function WorkOrders() {
               <div className="flex items-center gap-1">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#059669] flex items-center justify-center">
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 5L4 7L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M2 5L4 7L8 3"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
                 <span>Completed</span>
@@ -107,7 +122,9 @@ export default function WorkOrders() {
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="font-semibold">Vendor:</span>
-                        <span className="font-medium">Dolce Plumbing &amp; Heating LLC</span>
+                        <span className="font-medium">
+                          Dolce Plumbing &amp; Heating LLC
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="font-semibold">Charge Work To:</span>
@@ -129,12 +146,20 @@ export default function WorkOrders() {
             {/* Totals */}
             <div className="flex gap-4 mt-5 w-full flex-wrap font-['Geist',sans-serif]">
               <div className="flex flex-col flex-1 min-w-[240px] px-4 py-4 bg-[#f9f9f9] border border-[#dadada] rounded-lg">
-                <div className="text-sm text-[#717179] leading-[1.43]">ESTIMATE TOTAL</div>
-                <div className="mt-1 text-2xl text-[#303030] font-medium leading-[1.17]">$1,450.50</div>
+                <div className="text-sm text-[#717179] leading-[1.43]">
+                  ESTIMATE TOTAL
+                </div>
+                <div className="mt-1 text-2xl text-[#303030] font-medium leading-[1.17]">
+                  $1,450.50
+                </div>
               </div>
               <div className="flex flex-col flex-1 min-w-[240px] px-4 py-4 bg-[#f9f9f9] border border-[#dadada] rounded-lg">
-                <div className="text-sm text-[#717179] leading-[1.43]">WORK ORDER TOTAL</div>
-                <div className="mt-1 text-2xl text-[#303030] font-medium leading-[1.17]">$1,350.00</div>
+                <div className="text-sm text-[#717179] leading-[1.43]">
+                  WORK ORDER TOTAL
+                </div>
+                <div className="mt-1 text-2xl text-[#303030] font-medium leading-[1.17]">
+                  $1,350.00
+                </div>
               </div>
             </div>
 
@@ -142,7 +167,9 @@ export default function WorkOrders() {
             <div className="flex gap-5 mt-5 w-full flex-wrap">
               {/* Notes */}
               <div className="flex flex-col flex-1 min-w-[240px] font-['Geist',sans-serif]">
-                <div className="text-base text-[#303030] font-medium leading-[1.25]">Notes</div>
+                <div className="text-base text-[#303030] font-medium leading-[1.25]">
+                  Notes
+                </div>
                 <textarea
                   placeholder="Add some note here"
                   className="mt-6 min-h-[100px] w-full px-3 py-2 bg-[#f9f9f9] border border-[#dadada] rounded-lg text-sm text-[#a1a1a9] leading-5 resize-none focus:outline-none focus:border-[#2463eb]"
@@ -153,8 +180,10 @@ export default function WorkOrders() {
               {/* Files */}
               <div className="flex flex-col flex-1 min-w-[240px] font-['Geist',sans-serif]">
                 <div className="flex flex-col w-full">
-                  <div className="text-base text-[#303030] font-medium leading-[1.25]">Files</div>
-                  
+                  <div className="text-base text-[#303030] font-medium leading-[1.25]">
+                    Files
+                  </div>
+
                   {/* File Tabs */}
                   <div className="flex mt-2 w-full px-0.5 py-0.5 bg-[#f9f9f9] rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center leading-[1.43]">
                     <button
@@ -200,21 +229,43 @@ export default function WorkOrders() {
                 <div className="mt-6 flex flex-col w-full max-w-[270px]">
                   <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif]">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M8 2V14M14 8H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path
+                        d="M8 2V14M14 8H2"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
                     </svg>
                     <span>Files</span>
                   </div>
-                  
+
                   <div className="mt-2 flex flex-col gap-2">
                     {/* File Item 1 */}
                     <div className="flex items-center justify-between gap-3 px-3 py-3 bg-[#fbfbfb] border border-[#e5e5e5] rounded-lg shadow-sm">
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                          <rect width="32" height="32" rx="4" fill="#EF4444"/>
-                          <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          fill="none"
+                        >
+                          <rect width="32" height="32" rx="4" fill="#EF4444" />
+                          <text
+                            x="50%"
+                            y="50%"
+                            dominantBaseline="middle"
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize="10"
+                            fontWeight="600"
+                          >
+                            PDF
+                          </text>
                         </svg>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <div className="text-xs text-[#181932] font-['Inter',sans-serif] truncate">Lorem Ipsum.PDF</div>
+                          <div className="text-xs text-[#181932] font-['Inter',sans-serif] truncate">
+                            Lorem Ipsum.PDF
+                          </div>
                           <div className="flex items-center gap-2 text-[10px] text-[#717179]">
                             <span>PDF</span>
                             <span>112KB</span>
@@ -222,8 +273,18 @@ export default function WorkOrders() {
                         </div>
                       </div>
                       <button className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <path
+                            d="M2 14L14 2M14 14L2 2"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -231,12 +292,29 @@ export default function WorkOrders() {
                     {/* File Item 2 */}
                     <div className="flex items-center justify-between gap-3 px-3 py-3 bg-[#fbfbfb] border border-[#e5e5e5] rounded-lg shadow-sm">
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                          <rect width="32" height="32" rx="4" fill="#EF4444"/>
-                          <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          fill="none"
+                        >
+                          <rect width="32" height="32" rx="4" fill="#EF4444" />
+                          <text
+                            x="50%"
+                            y="50%"
+                            dominantBaseline="middle"
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize="10"
+                            fontWeight="600"
+                          >
+                            PDF
+                          </text>
                         </svg>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <div className="text-xs text-[#181932] font-['Inter',sans-serif] truncate">Lorem Ipsum.PDF</div>
+                          <div className="text-xs text-[#181932] font-['Inter',sans-serif] truncate">
+                            Lorem Ipsum.PDF
+                          </div>
                           <div className="flex items-center gap-2 text-[10px] text-[#717179]">
                             <span>PDF</span>
                             <span>112KB</span>
@@ -244,8 +322,18 @@ export default function WorkOrders() {
                         </div>
                       </div>
                       <button className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <path
+                            d="M2 14L14 2M14 14L2 2"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -260,7 +348,9 @@ export default function WorkOrders() {
         <div className="flex flex-col min-w-[240px] w-full lg:w-[376px]">
           {/* Bills Section */}
           <div className="flex flex-col w-full px-4 py-4 bg-white border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
-            <div className="text-base text-[#303030] font-medium leading-[1.25]">Bills</div>
+            <div className="text-base text-[#303030] font-medium leading-[1.25]">
+              Bills
+            </div>
             <div className="flex flex-col mt-4 px-4 py-4 bg-[#f9f9f9] border border-[#dadada] rounded-lg">
               <div className="flex flex-col w-full">
                 <div className="flex items-start gap-6 text-sm text-[#717179] tracking-[-0.28px] leading-[1.14]">
@@ -270,8 +360,19 @@ export default function WorkOrders() {
                   </div>
                   <div className="flex items-center gap-1">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M8 4V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <circle
+                        cx="8"
+                        cy="8"
+                        r="6"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M8 4V8L10 10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
                     </svg>
                     <span>5:00 PM</span>
                   </div>
@@ -281,11 +382,19 @@ export default function WorkOrders() {
                 </div>
               </div>
               <div className="flex items-start justify-between mt-6 w-full gap-10">
-                <div className="text-2xl text-[#2463eb] font-medium leading-[1.08]">$1,350.00</div>
+                <div className="text-2xl text-[#2463eb] font-medium leading-[1.08]">
+                  $1,350.00
+                </div>
                 <div className="flex items-center gap-1 min-h-[32px] px-3.5 py-1.5 border border-[#059669] rounded-full text-base text-[#059669] font-medium tracking-[-0.32px] leading-[1.4]">
                   <div className="w-3.5 h-3.5 rounded-full bg-[#059669] flex items-center justify-center">
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 5L4 7L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path
+                        d="M2 5L4 7L8 3"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </div>
                   <span>Paid</span>
@@ -296,8 +405,10 @@ export default function WorkOrders() {
 
           {/* Assignees Section */}
           <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
-            <div className="text-base text-[#303030] font-medium leading-[1.25]">Assignees</div>
-            
+            <div className="text-base text-[#303030] font-medium leading-[1.25]">
+              Assignees
+            </div>
+
             {/* Tabs */}
             <div className="flex mt-4 w-full px-0.5 py-0.5 bg-[#f2f2f2] rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center leading-[1.43]">
               <button
@@ -322,20 +433,30 @@ export default function WorkOrders() {
 
             {/* Assigned to */}
             <div className="flex flex-col mt-4 w-full">
-              <div className="text-sm text-[#303030] font-medium leading-[1.14]">Assigned to</div>
+              <div className="text-sm text-[#303030] font-medium leading-[1.14]">
+                Assigned to
+              </div>
               <div className="flex items-center justify-between mt-3 w-full">
                 <div className="flex items-center gap-2.5 min-w-[240px] flex-1">
                   <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl text-[#2463eb] font-semibold leading-[0.8]">
                     JL
                   </div>
                   <div className="flex flex-col flex-1 text-sm">
-                    <div className="text-[#2463eb] font-medium leading-[1.29] tracking-[-0.28px]">Julia LoSchiavo</div>
-                    <div className="mt-1 text-[#a1a1a9] leading-[1.14]">Staff member</div>
+                    <div className="text-[#2463eb] font-medium leading-[1.29] tracking-[-0.28px]">
+                      Julia LoSchiavo
+                    </div>
+                    <div className="mt-1 text-[#a1a1a9] leading-[1.14]">
+                      Staff member
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <div className="text-base text-[#2463eb] font-medium leading-[1.13] tracking-[-0.32px]">Edit</div>
-                  <div className="mt-1 text-sm text-[#a1a1a9] leading-[1.14]">(203) 927-1280</div>
+                  <div className="text-base text-[#2463eb] font-medium leading-[1.13] tracking-[-0.32px]">
+                    Edit
+                  </div>
+                  <div className="mt-1 text-sm text-[#a1a1a9] leading-[1.14]">
+                    (203) 927-1280
+                  </div>
                 </div>
               </div>
             </div>
@@ -344,7 +465,9 @@ export default function WorkOrders() {
 
             {/* Collaborators */}
             <div className="flex flex-col mt-4 w-full">
-              <div className="text-sm text-[#303030] font-medium leading-[1.14]">Collaborators</div>
+              <div className="text-sm text-[#303030] font-medium leading-[1.14]">
+                Collaborators
+              </div>
               <div className="flex items-center justify-between mt-3 w-full gap-10 text-[#2463eb]">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl font-semibold leading-[0.8]">
@@ -354,7 +477,9 @@ export default function WorkOrders() {
                     CS
                   </div>
                 </div>
-                <div className="text-base font-medium leading-[1.13] tracking-[-0.32px]">Edit</div>
+                <div className="text-base font-medium leading-[1.13] tracking-[-0.32px]">
+                  Edit
+                </div>
               </div>
             </div>
 
@@ -372,16 +497,23 @@ export default function WorkOrders() {
             <div className="flex flex-col w-full max-w-[376px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between gap-10 px-4 py-4 bg-white border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#303030]">
-                <div className="font-medium leading-[1.25]">Vendor Communication</div>
+                <div className="font-medium leading-[1.25]">
+                  Vendor Communication
+                </div>
                 <div className="flex items-center gap-3">
                   <button className="flex items-center gap-2 min-h-[28px] px-3 pr-2 py-0.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm tracking-[-0.32px] leading-[1.4] hover:bg-gray-50 transition-colors">
                     English
                     <ChevronDown className="w-4 h-4" />
                   </button>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <circle cx="10" cy="10" r="1"/>
-                    <circle cx="10" cy="4" r="1"/>
-                    <circle cx="10" cy="16" r="1"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <circle cx="10" cy="10" r="1" />
+                    <circle cx="10" cy="4" r="1" />
+                    <circle cx="10" cy="16" r="1" />
                   </svg>
                 </div>
               </div>
@@ -395,7 +527,8 @@ export default function WorkOrders() {
                   <div className="flex flex-col min-w-[240px] flex-1 text-black">
                     <div className="text-base font-semibold">Michael Tran</div>
                     <div className="mt-2 text-sm leading-4">
-                      I just got back from a hiking trip, and the views were breathtaking! You should try it.
+                      I just got back from a hiking trip, and the views were
+                      breathtaking! You should try it.
                     </div>
                   </div>
                 </div>
@@ -407,7 +540,8 @@ export default function WorkOrders() {
                   <div className="flex flex-col min-w-[240px] flex-1 text-black">
                     <div className="text-base font-semibold">Sara Patel</div>
                     <div className="mt-2 text-sm leading-4">
-                      The new art exhibit at the gallery opens this weekend. Are you interested in going?
+                      The new art exhibit at the gallery opens this weekend. Are
+                      you interested in going?
                     </div>
                   </div>
                 </div>
@@ -419,7 +553,8 @@ export default function WorkOrders() {
                   <div className="flex flex-col min-w-[240px] flex-1 text-black">
                     <div className="text-base font-semibold">David Kim</div>
                     <div className="mt-2 text-sm leading-4">
-                      There's a great concert happening in the park next week. We should grab some tickets!
+                      There's a great concert happening in the park next week.
+                      We should grab some tickets!
                     </div>
                   </div>
                 </div>
@@ -431,7 +566,8 @@ export default function WorkOrders() {
                   <div className="flex flex-col min-w-[240px] flex-1 text-black">
                     <div className="text-base font-semibold">Emma Johnson</div>
                     <div className="mt-2 text-sm leading-4">
-                      I found a cute little cafe that serves the best pastries. Want to check it out together?
+                      I found a cute little cafe that serves the best pastries.
+                      Want to check it out together?
                     </div>
                   </div>
                 </div>
