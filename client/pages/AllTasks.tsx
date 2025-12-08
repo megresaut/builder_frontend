@@ -180,7 +180,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
   if (status === "In Progress") {
     return (
-      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-medium leading-5">
+      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-normal leading-5">
         {status}
       </div>
     );
@@ -196,7 +196,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 const PriorityBadge = ({ priority }: { priority: string }) => {
   if (priority === "Low") {
     return (
-      <div className="inline-flex items-center bg-green-100 rounded-full text-green-600 py-1 px-3 text-sm font-medium leading-5">
+      <div className="inline-flex items-center bg-green-100 rounded-full text-green-600 py-1 px-3 text-sm font-normal leading-5">
         {priority}
       </div>
     );
@@ -204,7 +204,7 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
 
   if (priority === "Normal") {
     return (
-      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-medium leading-5">
+      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-normal leading-5">
         {priority}
       </div>
     );
@@ -212,7 +212,7 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
 
   if (priority === "High") {
     return (
-      <div className="inline-flex items-center bg-yellow-100 rounded-full text-amber-600 py-1 px-3 text-sm font-medium leading-5">
+      <div className="inline-flex items-center bg-yellow-100 rounded-full text-amber-600 py-1 px-3 text-sm font-normal leading-5">
         {priority}
       </div>
     );
