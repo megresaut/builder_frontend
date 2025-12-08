@@ -547,6 +547,7 @@ export default function RecurringTasks() {
                       style={{
                         borderLeftWidth: "2px",
                         border: "1px none rgb(226, 232, 240)",
+                        backgroundColor: "white",
                       }}
                     >
                       <span className="font-medium text-sm text-gray-700">
@@ -607,6 +608,7 @@ export default function RecurringTasks() {
                           border:
                             "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
                           borderLeftColor: "transparent",
+                          backgroundColor: "white",
                         }}
                       >
                         <ActionButton
