@@ -45,41 +45,6 @@ const invoiceItems: InvoiceLineItem[] = [
 export const InvoiceTable: React.FC = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
-  const getStatusColor = (status: InvoiceLineItem["status"]) => {
-    switch (status) {
-      case "Paid":
-        return {
-          backgroundColor: "rgb(210, 249, 231)",
-          color: "rgb(39, 176, 125)",
-          icon: "check",
-        };
-      case "Pending":
-        return {
-          backgroundColor: "rgb(254, 242, 205)",
-          color: "rgb(214, 133, 10)",
-          icon: "clock",
-        };
-      case "Approved":
-        return {
-          backgroundColor: "rgb(226, 236, 254)",
-          color: "rgb(36, 99, 235)",
-          icon: "check",
-        };
-      case "Overdue":
-        return {
-          backgroundColor: "rgb(255, 227, 224)",
-          color: "rgb(215, 42, 29)",
-          icon: "alert",
-        };
-      default:
-        return {
-          backgroundColor: "rgb(245, 245, 245)",
-          color: "rgb(100, 100, 100)",
-          icon: "file",
-        };
-    }
-  };
-
   return (
     <div
       style={{
