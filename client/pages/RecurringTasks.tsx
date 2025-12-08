@@ -347,22 +347,26 @@ export default function RecurringTasks() {
                       </button>
                     </td>
                     <td className="px-3 py-4">
-                      <div className="flex items-center gap-1">
-                        <div className="w-7 h-7 rounded-full bg-[#fff0ef] border border-[rgba(188,66,62,0.22)] flex items-center justify-center">
-                          <img
-                            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1e4df0d6a9f453fa97f21f7bd0951081b33b6c2f?placeholderIfAbsent=true"
-                            alt=""
-                            className="w-5 h-5"
-                          />
-                        </div>
-                        <div className="w-7 h-7 rounded-full bg-[#fff0ef] border border-[rgba(188,66,62,0.22)] flex items-center justify-center">
-                          <img
-                            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1e4df0d6a9f453fa97f21f7bd0951081b33b6c2f?placeholderIfAbsent=true"
-                            alt=""
-                            className="w-5 h-5"
-                          />
-                        </div>
-                      </div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#dcfce7] text-[#158633] rounded-full text-sm font-medium">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g clipPath="url(#clip0_approved)">
+                            <path
+                              d="M4.99967 8.00004L6.99967 10L10.9997 6.00004M14.6663 8.00004C14.6663 11.6819 11.6816 14.6667 7.99967 14.6667C4.31778 14.6667 1.33301 11.6819 1.33301 8.00004C1.33301 4.31814 4.31778 1.33337 7.99967 1.33337C11.6816 1.33337 14.6663 4.31814 14.6663 8.00004Z"
+                              stroke="#059669"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </g>
+                        </svg>
+                        Active
+                      </span>
                     </td>
                     <td className="px-3 py-4">
                       <button className="flex items-center justify-center w-7 h-7 bg-[#fbfbfb] border border-[#dadada] rounded-md shadow-sm hover:bg-gray-50 transition-colors">
