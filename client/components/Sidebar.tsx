@@ -226,7 +226,7 @@ export default function Sidebar() {
                         : ""
                     }`}
                   >
-                    <span className="text-gray-600">{item.icon}</span>
+                    <span className={getIconColor(item.id)}>{item.icon}</span>
                   </button>
                 </div>
               ))}
