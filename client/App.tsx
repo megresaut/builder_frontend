@@ -12,6 +12,7 @@ import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import TaskSummary from "./pages/TaskSummary";
+import RecurringTasks from "./pages/RecurringTasks";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
@@ -113,6 +114,14 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <AllTasks />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/recurring-tasks"
+                  element={
+                    <ShellLayout>
+                      <RecurringTasks />
                     </ShellLayout>
                   }
                 />

@@ -106,6 +106,11 @@ export default function Sidebar() {
         sectionId: "all-tasks",
       },
       {
+        label: "Recurring Tasks",
+        path: "/recurring-tasks",
+        sectionId: "recurring-tasks",
+      },
+      {
         label: "Field Team Orders",
         path: "/field-team-orders",
         sectionId: "field-team-orders",
