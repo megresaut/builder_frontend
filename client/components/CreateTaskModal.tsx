@@ -41,8 +41,59 @@ export default function CreateTaskModal({
   onOpenChange,
 }: CreateTaskModalProps) {
   const [priority, setPriority] = useState("normal");
+  const [dueDate, setDueDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const dueDateInputRef = useRef<HTMLInputElement>(null);
+  const [calendarPos, setCalendarPos] = useState({ top: 0, left: 0 });
+  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
+  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({ top: 0, left: 0 });
 
-  const getPriorityIcon = () => {
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updatePositions = () => {
+      if (showCalendar && dueDateInputRef.current) {
+        const rect = dueDateInputRef.current.getBoundingClientRect();
+        setCalendarPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showAssigneeDropdown && assigneeButtonRef.current) {
+        const rect = assigneeButtonRef.current.getBoundingClientRect();
+        setAssigneeDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showCalendar || showAssigneeDropdown) {
+        animationFrameId = requestAnimationFrame(updatePositions);
+      }
+    };
+
+    if (showCalendar || showAssigneeDropdown) {
+      updatePositions();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showCalendar, showAssigneeDropdown]);
+
+  const getPriorityIcon = (priorityLevel: string = priority) => {
+    const colors: Record<string, string> = {
+      low: "#059669",
+      normal: "#2463EB",
+      high: "#D97706",
+    };
     return (
       <svg
         width="14"
@@ -53,13 +104,87 @@ export default function CreateTaskModal({
       >
         <path
           d="M2.91602 7H11.0827"
-          stroke="#2463EB"
+          stroke={colors[priorityLevel] || colors.normal}
           strokeWidth="1.3"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </svg>
     );
+  };
+
+  const getPriorityLabel = () => {
+    const labels: Record<string, string> = {
+      low: "Low",
+      normal: "Normal",
+      high: "High",
+    };
+    return labels[priority] || "Normal";
+  };
+
+  const getPriorityBgColor = () => {
+    const colors: Record<string, string> = {
+      low: "#d1fae5",
+      normal: "#dbe9fe",
+      high: "#fef3c7",
+    };
+    return colors[priority] || colors.normal;
+  };
+
+  const getPriorityTextColor = () => {
+    const colors: Record<string, string> = {
+      low: "#059669",
+      normal: "#2463eb",
+      high: "#d97706",
+    };
+    return colors[priority] || colors.normal;
+  };
+
+  const toggleAssignee = (assignee: Assignee) => {
+    setSelectedAssignees((prev) => {
+      const isSelected = prev.some((a) => a.id === assignee.id);
+      if (isSelected) {
+        return prev.filter((a) => a.id !== assignee.id);
+      } else {
+        return [...prev, assignee];
+      }
+    });
+  };
+
+  const removeAssignee = (assigneeId: string) => {
+    setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
+  };
+
+  const handleDateSelect = (day: number) => {
+    const selected = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+    setSelectedDate(selected);
+    const formatted = format(selected, "MM/dd/yyyy");
+    setDueDate(formatted);
+    setShowCalendar(false);
+  };
+
+  const getCalendarDays = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
+    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
+
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    return days;
+  };
+
+  const previousMonth = () => {
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
+  };
+
+  const nextMonth = () => {
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1));
   };
 
   return (
