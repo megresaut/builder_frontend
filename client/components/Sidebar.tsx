@@ -17,6 +17,27 @@ export default function Sidebar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { favorites, removeFavorite } = useFavorites();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine which section is currently active based on the pathname
+  const getActiveSection = (): string | null => {
+    const path = location.pathname;
+    if (path === "/all-properties" || path === "/") return "properties";
+    if (path === "/bills") return "accounting";
+    if (path.includes("/all-tasks") || path.includes("/recurring-tasks") || path.includes("/field-team-orders") || path.includes("/work-orders")) {
+      return "maintenance";
+    }
+    return null;
+  };
+
+  const activeSection = getActiveSection();
+
+  // Determine if an icon should be dark (when expanded or active)
+  const getIconColor = (itemId: string): string => {
+    const isExpanded = expandedItems.has(itemId);
+    const isActive = activeSection === itemId;
+    return isExpanded || isActive ? "text-gray-900" : "text-gray-600";
+  };
 
   const navigationItems: SidebarItem[] = [
     {
