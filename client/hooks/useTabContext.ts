@@ -3,6 +3,8 @@ import { createContext, useContext } from "react";
 interface TabMetadata {
   label: string;
   sectionId?: string; // The section being viewed (e.g., "bills", "field-team-orders")
+  route?: string; // Current route/page for this tab
+  scrollPosition?: number; // Scroll position within the tab
 }
 
 interface TabContextType {
