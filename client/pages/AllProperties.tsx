@@ -303,6 +303,7 @@ export default function AllProperties() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = useState(false);
 
   useEffect(() => {
     let animationFrameId: number;
