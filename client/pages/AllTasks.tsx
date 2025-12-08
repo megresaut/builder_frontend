@@ -782,9 +782,22 @@ export default function AllTasks() {
                           border: "1px solid #e7e8ec",
                         }}
                       >
-                        <span className="text-gray-900 font-normal text-base">
-                          {task.assignee}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {task.assignees.map((assignee) => (
+                            <div
+                              key={assignee.id}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                              style={{
+                                backgroundColor: "rgb(59, 130, 246)",
+                                borderColor: "rgb(209, 213, 219)",
+                                borderWidth: "1px",
+                              }}
+                              title={assignee.name}
+                            >
+                              {assignee.initials}
+                            </div>
+                          ))}
+                        </div>
                       </td>
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
