@@ -16,7 +16,7 @@ import WorkOrders from "./WorkOrders";
 
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
-  const [activeTab, setActiveTab] = useState("summary");
+  const [activeTab, setActiveTab] = useState("workorders");
   const [messageText, setMessageText] = useState("");
 
   return (
