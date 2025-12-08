@@ -269,7 +269,31 @@ export default function Header() {
     throw new Error("Header must be used within TabContext provider");
   }
 
-  const { selectedTab, setSelectedTab } = tabContext;
+  const { selectedTab, setSelectedTab, tabMetadata, setTabMetadata } = tabContext;
+
+  // Save scroll position before switching tabs
+  const saveScrollPosition = () => {
+    const mainContent = document.querySelector('[data-testid="main-content"]');
+    if (mainContent) {
+      const currentTab = selectedTab;
+      const scrollPos = mainContent.scrollTop || 0;
+      const currentMetadata = tabMetadata[currentTab];
+      if (currentMetadata) {
+        setTabMetadata(currentTab, {
+          ...currentMetadata,
+          scrollPosition: scrollPos,
+        });
+      }
+    }
+  };
+
+  // Navigate to a tab's stored route
+  const navigateToTabRoute = (tabId: string) => {
+    const metadata = tabMetadata[tabId];
+    if (metadata?.route && metadata.route !== location.pathname) {
+      navigate(metadata.route);
+    }
+  };
 
   // Automatically open the selected tab if it exists and isn't open
   useEffect(() => {
@@ -278,6 +302,7 @@ export default function Header() {
       const newTabs = new Set(openTabs);
       newTabs.add(selectedTab);
       setOpenTabs(newTabs);
+      navigateToTabRoute(selectedTab);
     }
   }, [selectedTab, tabs, openTabs]);
 
