@@ -931,6 +931,11 @@ export default function AllProperties() {
           </div>,
           document.body,
         )}
+
+      <AddPropertyModal
+        open={isAddPropertyModalOpen}
+        onOpenChange={setIsAddPropertyModalOpen}
+      />
     </div>
   );
 }
