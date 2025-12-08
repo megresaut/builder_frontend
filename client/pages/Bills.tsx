@@ -456,7 +456,7 @@ export default function Bills() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     <th
-                      className="px-3 py-3 text-left border-r border-gray-200"
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap"
                       style={{ lineHeight: "24px" }}
                     >
                       <div className="flex items-center gap-2">
@@ -481,7 +481,7 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -504,7 +504,7 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -524,7 +524,7 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -545,7 +545,7 @@ export default function Bills() {
                       </div>
                     </th>
                     {selectedTab !== "approved" && (
-                      <th className="px-3 py-3 text-left border-r border-gray-200">
+                      <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <svg
                             width="16"
@@ -569,7 +569,7 @@ export default function Bills() {
                         </div>
                       </th>
                     )}
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -592,7 +592,7 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -612,7 +612,7 @@ export default function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -649,7 +649,7 @@ export default function Bills() {
                       key={bill.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <VendorAvatar
                             name={bill.vendor}
@@ -660,37 +660,37 @@ export default function Bills() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.property}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.statementDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.dueDate}
                         </span>
                       </td>
                       {selectedTab !== "approved" && (
-                        <td className="px-3 py-3 border-r border-gray-200">
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <StatusBadge status={bill.status} />
                         </td>
                       )}
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
                           {bill.memo}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {bill.invoiceNumber}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           ${bill.amount}
                         </span>

@@ -1012,7 +1012,7 @@ export default function Utilities() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1034,7 +1034,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1056,7 +1056,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1080,7 +1080,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1102,7 +1102,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1124,7 +1124,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1170,7 +1170,7 @@ export default function Utilities() {
                         : "border-b border-gray-200",
                     )}
                   >
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                           {account.icon}
@@ -1180,25 +1180,25 @@ export default function Utilities() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {account.account}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <StatusBadge status={account.status} />
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {account.lastBillDate}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {account.lastBillAmount}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {account.lastImport}
                       </span>
@@ -1286,7 +1286,7 @@ export default function Utilities() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1308,7 +1308,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1330,7 +1330,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1349,7 +1349,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1371,7 +1371,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1395,7 +1395,7 @@ export default function Utilities() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1441,7 +1441,7 @@ export default function Utilities() {
                         : "border-b border-gray-200",
                     )}
                   >
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                           {bill.icon}
@@ -1451,15 +1451,15 @@ export default function Utilities() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {bill.date}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <AIInsightBadge insight={bill.aiUsageInsight} />
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span
                         className={cn(
                           "text-sm font-medium",
@@ -1471,10 +1471,10 @@ export default function Utilities() {
                         {bill.changeFromLastBill}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <BillStatusBadge status={bill.status} />
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {bill.amount}
                       </span>

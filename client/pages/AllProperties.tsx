@@ -448,7 +448,7 @@ export default function AllProperties() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -471,7 +471,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -489,7 +489,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -507,7 +507,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -525,7 +525,7 @@ export default function AllProperties() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -591,27 +591,27 @@ export default function AllProperties() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                       onClick={() => navigate(`/property/${property.id}`)}
                     >
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {property.address}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {property.location}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {property.manager}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {property.type}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {property.buildingId}
                         </span>

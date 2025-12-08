@@ -492,7 +492,7 @@ export default function FieldTeamOrders() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -515,7 +515,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -538,7 +538,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -558,7 +558,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -576,7 +576,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -599,7 +599,7 @@ export default function FieldTeamOrders() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -638,22 +638,22 @@ export default function FieldTeamOrders() {
                       key={order.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {order.property}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {order.description}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {order.dueDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {order.fieldTeam.map((member, idx) => (
                             <div
@@ -665,10 +665,10 @@ export default function FieldTeamOrders() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <StatusBadge status={order.status as any} />
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           ${order.amount}
                         </span>
