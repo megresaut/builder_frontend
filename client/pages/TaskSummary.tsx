@@ -31,7 +31,7 @@ export default function TaskSummary() {
             Edgerton - Quote
           </div>
           <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
-            <span>To do</span>
+            <span>Resident Request</span>
             <span>/</span>
             <span>10244381</span>
           </div>
@@ -57,7 +57,7 @@ export default function TaskSummary() {
                 : "hover:text-[#09090b]"
             } transition-colors`}
           >
-            Task summary
+            Summary
           </button>
           <button
             onClick={() => setActiveTab("workorders")}
@@ -77,7 +77,7 @@ export default function TaskSummary() {
                 : "hover:text-[#09090b]"
             } transition-colors`}
           >
-            Field team orders
+            Field Team Orders
           </button>
         </div>
 
