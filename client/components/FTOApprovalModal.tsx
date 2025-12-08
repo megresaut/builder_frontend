@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
@@ -17,9 +18,11 @@ export default function FTOApprovalModal({
   open,
   onOpenChange,
 }: FTOApprovalModalProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[min(1085px,90vw)] p-8 gap-0 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[min(1600px,95vw)] p-8 gap-0 max-h-[90vh] overflow-y-auto">
         <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25] mb-4">
           Field Team Order Approval
         </DialogTitle>
