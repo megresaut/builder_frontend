@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useParams } from "react-router-dom";
 import {
   ChevronDown,
   Calendar,
