@@ -275,52 +275,231 @@ export default function CreateTaskModal({
               </label>
               <div className="relative">
                 <Input
-                  type="date"
+                  ref={dueDateInputRef}
+                  type="text"
                   placeholder="MM/DD/YYYY"
-                  className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:capitalize"
+                  value={dueDate}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, "");
+                    if (value.length > 0) {
+                      if (value.length <= 2) {
+                        value = value;
+                      } else if (value.length <= 4) {
+                        value = value.slice(0, 2) + "/" + value.slice(2);
+                      } else {
+                        value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4, 8);
+                      }
+                    }
+                    setDueDate(value);
+                    const parsed = parse(value, "MM/dd/yyyy", new Date());
+                    if (isValid(parsed)) {
+                      setSelectedDate(parsed);
+                      setCalendarMonth(parsed);
+                    }
+                  }}
+                  maxLength={10}
+                  className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9]"
                 />
-                <svg
-                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <button
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity p-1"
+                  type="button"
                 >
-                  <path
-                    d="M14 6.66668H2M10.6667 1.33334V4.00001M5.33333 1.33334V4.00001M5.2 14.6667H10.8C11.9201 14.6667 12.4802 14.6667 12.908 14.4487C13.2843 14.2569 13.5903 13.951 13.782 13.5747C14 13.1468 14 12.5868 14 11.4667V5.86668C14 4.74657 14 4.18652 13.782 3.7587C13.5903 3.38237 13.2843 3.07641 12.908 2.88466C12.4802 2.66668 11.9201 2.66668 10.8 2.66668H5.2C4.0799 2.66668 3.51984 2.66668 3.09202 2.88466C2.71569 3.07641 2.40973 3.38237 2.21799 3.7587C2 4.18652 2 4.74657 2 5.86668V11.4667C2 12.5868 2 13.1468 2.21799 13.5747C2.40973 13.951 2.71569 14.2569 3.09202 14.4487C3.51984 14.6667 4.0799 14.6667 5.2 14.6667Z"
-                    stroke="black"
-                    strokeWidth="1.48576"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M14 6.66668H2M10.6667 1.33334V4.00001M5.33333 1.33334V4.00001M5.2 14.6667H10.8C11.9201 14.6667 12.4802 14.6667 12.908 14.4487C13.2843 14.2569 13.5903 13.951 13.782 13.5747C14 13.1468 14 12.5868 14 11.4667V5.86668C14 4.74657 14 4.18652 13.782 3.7587C13.5903 3.38237 13.2843 3.07641 12.908 2.88466C12.4802 2.66668 11.9201 2.66668 10.8 2.66668H5.2C4.0799 2.66668 3.51984 2.66668 3.09202 2.88466C2.71569 3.07641 2.40973 3.38237 2.21799 3.7587C2 4.18652 2 4.74657 2 5.86668V11.4667C2 12.5868 2 13.1468 2.21799 13.5747C2.40973 13.951 2.71569 14.2569 3.09202 14.4487C3.51984 14.6667 4.0799 14.6667 5.2 14.6667Z"
+                      stroke="black"
+                      strokeWidth="1.48576"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {showCalendar &&
+                  createPortal(
+                    <div
+                      className="bg-white flex flex-col gap-3 p-4"
+                      style={{
+                        width: "280px",
+                        border: "0.5px solid #DADADA",
+                        borderRadius: "8px",
+                        boxShadow:
+                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                        zIndex: 99999,
+                        position: "fixed",
+                        top: calendarPos.top + "px",
+                        left: calendarPos.left + "px",
+                        pointerEvents: "auto",
+                      }}
+                      onMouseLeave={() => setShowCalendar(false)}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          onClick={previousMonth}
+                          className="p-1 hover:bg-gray-100 rounded transition-colors"
+                          type="button"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-sm font-medium text-[#303030]">
+                          {format(calendarMonth, "MMMM yyyy")}
+                        </span>
+                        <button
+                          onClick={nextMonth}
+                          className="p-1 hover:bg-gray-100 rounded transition-colors"
+                          type="button"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1">
+                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                          <div
+                            key={day}
+                            className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
+                          >
+                            {day}
+                          </div>
+                        ))}
+
+                        {getCalendarDays().map((day, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => day !== null && handleDateSelect(day)}
+                            disabled={day === null}
+                            className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
+                              day === null
+                                ? "text-transparent cursor-default"
+                                : selectedDate &&
+                                  selectedDate.getDate() === day &&
+                                  selectedDate.getMonth() === calendarMonth.getMonth() &&
+                                  selectedDate.getFullYear() === calendarMonth.getFullYear()
+                                ? "bg-[#2463EB] text-white font-medium"
+                                : "hover:bg-gray-100 text-[#303030]"
+                            }`}
+                            type="button"
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    </div>,
+                    document.body,
+                  )}
               </div>
             </div>
             <div className="flex flex-col gap-2 flex-1">
               <label className="text-[#303030] font-medium text-sm leading-5">
                 Assignees <span className="text-red-600">*</span>
               </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className="flex w-[22px] h-[22px] justify-center items-center rounded-full border border-[#2463EB]">
-                      <span className="text-[#2463EB] font-semibold text-[9px]">
-                        DH
-                      </span>
-                    </div>
-                    <div className="flex w-[22px] h-[22px] justify-center items-center rounded-full border border-[#2463EB]">
-                      <span className="text-[#2463EB] font-semibold text-[9px]">
-                        DH
-                      </span>
-                    </div>
+              <div className="relative">
+                <button
+                  ref={assigneeButtonRef}
+                  onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                  className="h-11 rounded-lg border border-[#E5E5E5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white"
+                >
+                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                    {selectedAssignees.length === 0 ? (
+                      <span className="text-[#A1A1A9] text-sm">Select assignees</span>
+                    ) : (
+                      selectedAssignees.map((assignee) => (
+                        <div key={assignee.id} className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5">
+                          <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
+                            <span className="text-white font-semibold text-[8px]">
+                              {assignee.initials}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeAssignee(assignee.id);
+                            }}
+                            className="hover:opacity-70 transition-opacity"
+                          >
+                            <X className="w-3 h-3 text-[#2463EB]" />
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="assignee1">Assignee 1</SelectItem>
-                  <SelectItem value="assignee2">Assignee 2</SelectItem>
-                </SelectContent>
-              </Select>
+                  <svg
+                    className="w-4 h-4 text-gray-600 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </button>
+
+                {showAssigneeDropdown &&
+                  createPortal(
+                    <div
+                      className="bg-white flex flex-col justify-start items-start p-2 gap-1"
+                      style={{
+                        width: "280px",
+                        border: "0.5px solid #DADADA",
+                        borderRadius: "8px",
+                        boxShadow:
+                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                        zIndex: 99999,
+                        position: "fixed",
+                        top: assigneeDropdownPos.top + "px",
+                        left: assigneeDropdownPos.left + "px",
+                        pointerEvents: "auto",
+                      }}
+                      onMouseLeave={() => setShowAssigneeDropdown(false)}
+                    >
+                      {AVAILABLE_ASSIGNEES.map((assignee) => {
+                        const isSelected = selectedAssignees.some((a) => a.id === assignee.id);
+                        return (
+                          <button
+                            key={assignee.id}
+                            onClick={() => toggleAssignee(assignee)}
+                            className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50 rounded transition-colors"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463EB]">
+                                <span className="text-white font-semibold text-[10px]">
+                                  {assignee.initials}
+                                </span>
+                              </div>
+                              <span className="text-[#303030] font-normal text-sm">
+                                {assignee.name}
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M13.5 3L6 10.5L2.5 7"
+                                  stroke="#2463EB"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>,
+                    document.body,
+                  )}
+              </div>
             </div>
           </div>
 
