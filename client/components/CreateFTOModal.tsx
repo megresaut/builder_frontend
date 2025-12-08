@@ -25,6 +25,7 @@ export default function CreateFTOModal({
 }: CreateFTOModalProps) {
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
+  const [dueDate, setDueDate] = useState("");
 
   const getPriorityIcon = () => {
     return (
