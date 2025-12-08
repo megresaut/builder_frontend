@@ -822,13 +822,20 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               padding: "16px",
             }}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center" style={{ gap: "16px" }}>
               <div style={{ color: "rgb(48, 48, 48)", fontSize: "22px", fontWeight: "500", lineHeight: "33px" }}>
                 Subtotal: $920
               </div>
             </div>
-            <div className="flex items-start flex-wrap gap-2.5">
-              <button className="flex items-center h-9 gap-2 px-3 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
+            <div className="flex items-start flex-wrap" style={{ gap: "10px" }}>
+              <button
+                className="flex items-center rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
+                style={{
+                  height: "36px",
+                  padding: "0 12px",
+                  gap: "8px",
+                }}
+              >
                 <div style={{ display: "block", color: "rgb(255, 255, 255)", fontWeight: "500" }}>
                   Preview PDF
                 </div>
