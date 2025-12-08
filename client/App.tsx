@@ -115,6 +115,14 @@ export default function App() {
                     </ShellLayout>
                   }
                 />
+                <Route
+                  path="/tasks/:taskId"
+                  element={
+                    <ShellLayout>
+                      <TaskSummary />
+                    </ShellLayout>
+                  }
+                />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
