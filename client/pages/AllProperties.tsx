@@ -544,7 +544,7 @@ export default function AllProperties() {
                       </div>
                     </th>
                     <th
-                      className="px-3 py-3 text-left"
+                      className="px-3 py-3 text-left whitespace-nowrap"
                       style={{
                         borderBottomWidth: "1px",
                         borderColor:
@@ -617,7 +617,7 @@ export default function AllProperties() {
                         </span>
                       </td>
                       <td
-                        className="px-3 py-3"
+                        className="px-3 py-3 whitespace-nowrap"
                         style={{
                           borderRightWidth: "1px",
                           border: "1px solid #e7e8ec",
