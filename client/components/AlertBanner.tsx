@@ -104,7 +104,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
                 backgroundImage:
                   "linear-gradient(to right, rgb(16, 70, 117), rgb(109, 21, 183), rgb(16, 70, 117))",
                 color: "rgba(0, 0, 0, 0)",
-                fontSize: "17px",
+                fontSize: "16px",
                 fontWeight: "900",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
