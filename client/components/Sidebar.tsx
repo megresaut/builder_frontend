@@ -206,10 +206,10 @@ export default function Sidebar() {
         />
 
         <aside
-          className={`bg-gray-50 border-r border-gray-200 absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
+          className={`bg-gray-50 border-r absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
             isExpanded ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           }`}
-          style={{ width: "262px", padding: "20px", transition: "opacity 0.3s ease" }}
+          style={{ width: "262px", padding: "20px", transition: "opacity 0.3s ease", borderRightColor: "transparent" }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => {
             if (!isPinned) {
