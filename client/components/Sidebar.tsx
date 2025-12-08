@@ -484,14 +484,16 @@ export default function Sidebar() {
                   <div className="px-3 py-2 text-sm text-gray-500" style={{ minHeight: "38px" }}>Click the star icon on any page to add favorites</div>
                 ) : (
                   favorites.map((item, idx) => (
-                    <button key={item.id} onClick={() => navigate(item.path)} className="flex items-center justify-between px-3 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
-                      <span className="flex-1 text-left truncate">{item.label}</span>
+                    <div key={item.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
+                      <button onClick={() => navigate(item.path)} className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer">
+                        {item.label}
+                      </button>
                       <button onClick={(e) => { e.stopPropagation(); removeFavorite(item.id); }} className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M18 6L6 18M6 6l12 12" />
                         </svg>
                       </button>
-                    </button>
+                    </div>
                   ))
                 )}
               </div>
@@ -603,14 +605,16 @@ export default function Sidebar() {
               <div className="px-3 py-2 text-sm text-gray-500" style={{ minHeight: "38px" }}>Click the star icon on any page to add favorites</div>
             ) : (
               favorites.map((item, idx) => (
-                <button key={item.id} onClick={() => navigate(item.path)} className="flex items-center justify-between px-3 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
-                  <span className="flex-1 text-left truncate">{item.label}</span>
+                <div key={item.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base" style={{ minHeight: "38px" }}>
+                  <button onClick={() => navigate(item.path)} className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer">
+                    {item.label}
+                  </button>
                   <button onClick={(e) => { e.stopPropagation(); removeFavorite(item.id); }} className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
                   </button>
-                </button>
+                </div>
               ))
             )}
           </div>
