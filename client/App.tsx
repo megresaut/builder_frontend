@@ -11,6 +11,7 @@ import FieldTeamOrders from "./pages/FieldTeamOrders";
 import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
+import TaskSummary from "./pages/TaskSummary";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
