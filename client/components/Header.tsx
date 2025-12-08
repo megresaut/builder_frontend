@@ -426,7 +426,20 @@ export default function Header() {
         </svg>
       ),
     };
-    return sectionIconMap[sectionId || ""] || null;
+
+    // Map section IDs to icon types
+    const mapping: Record<string, keyof typeof iconLibrary> = {
+      "all-properties": isSelected ? "propertiesDark" : "propertiesLight",
+      "properties": isSelected ? "propertiesDark" : "propertiesLight",
+      "bills": isSelected ? "billsDark" : "billsLight",
+      "all-tasks": isSelected ? "maintenanceDark" : "maintenanceLight",
+      "recurring-tasks": isSelected ? "maintenanceDark" : "maintenanceLight",
+      "field-team-orders": isSelected ? "maintenanceDark" : "maintenanceLight",
+      "work-orders": isSelected ? "maintenanceDark" : "maintenanceLight",
+    };
+
+    const iconKey = mapping[sectionId];
+    return iconKey ? iconLibrary[iconKey] : null;
   };
 
   // Save scroll position before switching tabs
