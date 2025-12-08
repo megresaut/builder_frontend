@@ -268,16 +268,6 @@ export default function WorkOrders() {
             >
               Vendors
             </button>
-            <button
-              onClick={() => setActiveAssigneeTab("fieldteam")}
-              className={`flex items-center justify-center flex-1 px-4 py-1.5 rounded-md ${
-                activeAssigneeTab === "fieldteam"
-                  ? "bg-white shadow-sm text-[#09090b] font-medium"
-                  : "bg-transparent"
-              }`}
-            >
-              Field Team
-            </button>
           </div>
 
           {/* Assigned to */}
