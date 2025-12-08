@@ -181,12 +181,8 @@ export default function TaskSummary() {
                 <div className="flex flex-col min-w-[240px] flex-1">
                   <div className="flex items-center gap-2">
                     <div className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
-                      To do - #I 1024431
+                      Overview
                     </div>
-                    <button className="flex items-center gap-1 text-base text-[#2463eb] font-medium tracking-[-0.32px] hover:underline">
-                      <Edit className="w-4 h-4" />
-                      Edit
-                    </button>
                   </div>
                   <div className="mt-2 text-sm text-[#717179] font-medium">
                     Created by{" "}
