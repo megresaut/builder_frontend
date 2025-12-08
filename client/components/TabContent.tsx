@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { TabContext } from "@/hooks/useTabContext";
+import Index from "@/pages/Index";
 import AllProperties from "@/pages/AllProperties";
 import Bills from "@/pages/Bills";
 import FieldTeamOrders from "@/pages/FieldTeamOrders";
@@ -8,7 +9,7 @@ export default function TabContent() {
   const tabContext = useContext(TabContext);
 
   if (!tabContext) {
-    return <AllProperties />;
+    return <Index />;
   }
 
   const { selectedTab, tabMetadata } = tabContext;
@@ -35,11 +36,11 @@ export default function TabContent() {
     return <FieldTeamOrders />;
   }
 
-  // For default tabs, show the All Properties page
+  // For default tabs, show the Index page
   if (selectedTab === "properties") {
-    return <AllProperties />;
+    return <Index />;
   }
 
-  // Default to All Properties for other tabs
-  return <AllProperties />;
+  // Default to Index page for other tabs
+  return <Index />;
 }
