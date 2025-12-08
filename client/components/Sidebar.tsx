@@ -390,6 +390,7 @@ export default function Sidebar() {
                                 handleNavigation(
                                   subitem.label,
                                   subitem.sectionId,
+                                  subitem.path,
                                 );
                                 setIsHovered(false);
                                 setActiveDropdown(null);
@@ -408,6 +409,7 @@ export default function Sidebar() {
                                 handleNavigation(
                                   subitem.label,
                                   subitem.sectionId,
+                                  subitem.path,
                                 );
                                 setIsHovered(false);
                                 setActiveDropdown(null);
