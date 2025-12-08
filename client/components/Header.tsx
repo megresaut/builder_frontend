@@ -553,7 +553,7 @@ export default function Header() {
     <header className="bg-white">
       {/* Tabs Section */}
       <div
-        className="flex items-center gap-0 px-0 py-0 bg-[#f7f7f7]"
+        className="flex items-center gap-0 px-0 py-0 bg-[#f9fafb]"
         style={{
           borderBottomWidth: "0px",
           borderColor: "rgb(210, 209, 207)",
@@ -577,7 +577,7 @@ export default function Header() {
                 style={{
                   backgroundColor: isSelected
                     ? "rgba(255, 255, 255, 1)"
-                    : "#f7f7f7",
+                    : "#f9fafb",
                   borderRadius: isSelected ? "12px 12px 0 0" : "0",
                   minHeight: "47px",
                   gap: "35px",
@@ -658,6 +658,10 @@ export default function Header() {
             borderRightWidth: "0px",
             margin: "8px 0 -1px",
             border: "1px solid #d2d1cf",
+            backgroundColor: "#f9fafb",
+            borderRightColor: "transparent",
+            borderLeftColor: "transparent",
+            borderTopColor: "transparent",
           }}
         >
           <button
