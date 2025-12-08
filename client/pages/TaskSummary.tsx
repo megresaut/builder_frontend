@@ -357,120 +357,178 @@ export default function TaskSummary() {
             </div>
 
             {/* Updates Section */}
-            <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm">
-              <div className="text-base text-[#303030] font-['Geist',sans-serif] font-medium">
+            <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-white border border-[#e5e5e5] rounded-lg shadow-sm">
+              <div className="text-base text-[#303030] font-['Geist',sans-serif] font-medium mb-4">
                 Updates
               </div>
-              <div className="flex mt-4 w-full gap-5 flex-wrap">
-                {/* Timeline Dots */}
-                <div className="flex flex-col items-center w-[44px]">
-                  <div className="flex items-center justify-center w-10 h-10 bg-[#013764] rounded-full shadow-[0px_0px_0px_1px_rgba(0,45,90,1)]">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="white"
-                    >
-                      <path d="M9 4V9L12 12" />
-                    </svg>
-                  </div>
-                  <div className="mt-3 w-full max-w-[40px] h-[76px] flex items-center justify-center">
-                    <div className="w-10 h-10 bg-[#dbe9fe] border border-[rgba(36,99,235,0.19)] rounded-full shadow-sm"></div>
-                  </div>
-                  <div className="mt-3 w-full max-w-[40px] h-[76px] flex items-center justify-center">
-                    <div className="w-10 h-10 bg-[#d1fae5] border border-[rgba(5,150,105,0.19)] rounded-full shadow-sm"></div>
-                  </div>
+              <div className="flex gap-4">
+                {/* Timeline Icons */}
+                <div className="flex flex-col items-center gap-2">
+                  <button className="flex items-center justify-center w-10 h-10 bg-[#013764] rounded-full shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] text-white hover:bg-[#014777] transition-colors">
+                    <span className="text-lg font-semibold">+</span>
+                  </button>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm"></div>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm"></div>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-full text-gray-600 font-semibold text-sm"></div>
+                  <div className="w-1 h-12 bg-gray-200"></div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-full text-gray-600 font-semibold text-sm"></div>
                 </div>
 
                 {/* Update Items */}
-                <div className="flex flex-col min-w-[240px] flex-1 gap-3">
-                  <div className="flex items-center justify-center px-5 py-3 bg-white border border-[#dadada] rounded-lg text-base text-[#09090b] font-['Geist',sans-serif]">
+                <div className="flex flex-col flex-1 gap-3">
+                  <div className="px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif]">
                     Update task
                   </div>
 
-                  {/* Update Item */}
-                  <div className="flex flex-col min-h-[76px] w-full px-5 py-[18px] bg-white border border-[#dadada] rounded-lg">
-                    <div className="flex items-center justify-between flex-wrap">
-                      <div className="flex items-center gap-2.5 min-w-[240px] flex-1 flex-wrap font-['Geist',sans-serif]">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold">
-                          JL
-                        </div>
-                        <div className="flex flex-col min-w-[240px] flex-1">
-                          <div className="flex items-center gap-1.5 text-base text-[#09090b] flex-wrap">
-                            <span>Julia LoSchiavo submitted an</span>
-                            <span className="text-[#2463eb] font-medium tracking-[-0.32px]">
-                              8.0 Hour
-                            </span>
-                            <span>Field Team Submission</span>
-                          </div>
-                          <div className="mt-1 text-sm text-[#a1a1a9]">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
+                  {/* Update 1 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      JL
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Julia LoSchiavo</span> submitted an <span className="text-[#2463eb] font-medium">8.0 Hour</span> <span>Field Team Submission</span>
                       </div>
-                      <button className="flex items-center justify-center w-7 h-7 bg-[#fbfbfb] border border-[#dadada] rounded-md shadow-sm hover:bg-gray-100 transition-colors">
-                        <MoreVertical className="w-[18px] h-[18px]" />
-                      </button>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
+                    </div>
+                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Update 2 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      MK
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Meghashyam Krishnasamy</span> updated the priority from <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-xs text-[#2463eb]">Normal</span> to <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">Low</span>
+                      </div>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
+                    </div>
+                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Update 3 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      JL
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Julia LoSchiavo</span> updated status to <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">✓ Completed</span> for <span className="text-[#2463eb] font-medium">Work Order #1024431</span>
+                      </div>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
+                    </div>
+                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Update 4 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      MK
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Meghashyam Krishnasamy</span> sent a payment of <span className="text-[#2463eb] font-medium">$1,450.00</span> for <span className="text-[#2463eb] font-medium">Work Order #1024431</span>
+                      </div>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
+                    </div>
+                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Update 5 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      JL
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Julia LoSchiavo</span> added a vendor estimate of <span className="text-[#2463eb] font-medium">$1,450.00</span> for <span className="text-[#2463eb] font-medium">Work Order #1024431</span>
+                      </div>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
+                    </div>
+                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Update 6 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      JL
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Julia LoSchiavo</span> created a work order for <span className="text-[#2463eb] font-medium">Edgerton Inc.</span>
+                      </div>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
                     </div>
                   </div>
 
-                  {/* Additional Updates */}
-                  <div className="flex flex-col min-h-[76px] w-full px-5 py-4 bg-white border border-[#dadada] rounded-lg">
-                    <div className="flex items-center justify-between flex-wrap">
-                      <div className="flex items-center gap-2.5 min-w-[240px] flex-1 flex-wrap font-['Geist',sans-serif]">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold">
-                          MK
+                  {/* Update 7 */}
+                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                      JL
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="text-sm text-[#303030]">
+                        <span className="font-medium">Julia LoSchiavo</span> created a new task
+                      </div>
+                      <div className="text-xs text-[#a1a1a9] mt-1">
+                        11/12/2025 9:22 PM
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-[#e5e5e5] space-y-2">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-[#059669]">✓ Completed</span>
                         </div>
-                        <div className="flex flex-col min-w-[240px] flex-1">
-                          <div className="flex items-center gap-2.5 text-base text-[#09090b] flex-wrap">
-                            <span>
-                              Meghashyam Krishnasamy updated the priority from
-                            </span>
-                            <div className="flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded-2xl text-sm text-[#2463eb] tracking-[-0.28px]">
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 14 14"
-                                fill="none"
-                              >
-                                <path
-                                  d="M2.91602 7H11.0827"
-                                  stroke="currentColor"
-                                  strokeWidth="1.3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Normal</span>
-                            </div>
-                            <span>to</span>
-                            <div className="flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded-2xl text-sm text-[#059669] tracking-[-0.28px]">
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 14 14"
-                                fill="none"
-                              >
-                                <path
-                                  d="M6.99935 11.0834V2.91675M6.99935 2.91675L2.91602 7.00008M6.99935 2.91675L11.0827 7.00008"
-                                  stroke="currentColor"
-                                  strokeWidth="1.3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Low</span>
-                            </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-[#2463eb]">Normal</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-[#303030] font-medium">Collaborators:</span>
+                          <div className="flex gap-1">
+                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">JL</div>
+                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">CH</div>
+                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">CS</div>
                           </div>
-                          <div className="mt-1 text-sm text-[#a1a1a9]">
-                            11/12/2025 9:22 PM
-                          </div>
+                        </div>
+                        <div className="text-xs text-[#717179]">
+                          <span className="font-medium">Description:</span> We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower...
                         </div>
                       </div>
-                      <button className="flex items-center justify-center w-7 h-7 bg-[#fbfbfb] border border-[#dadada] rounded-md shadow-sm hover:bg-gray-100 transition-colors">
-                        <MoreVertical className="w-[18px] h-[18px]" />
-                      </button>
                     </div>
+                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
