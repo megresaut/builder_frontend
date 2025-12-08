@@ -813,10 +813,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </tbody>
           </table>
           <div
-            className="flex items-center justify-between w-full p-4"
+            className="flex items-center justify-between w-full"
             style={{
               borderBottomLeftRadius: "11px",
               borderBottomRightRadius: "11px",
+              borderTopWidth: "1px",
+              borderTopColor: "rgb(229,231,235)",
+              padding: "16px",
             }}
           >
             <div className="flex items-center gap-4">
