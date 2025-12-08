@@ -1734,7 +1734,13 @@ export default function TaskSummary() {
               </div>,
               document.body,
             )}
-        </div>
+
+        {/* Create/Update FTO Modal */}
+        <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
+
+        {/* FTO Approval Modal */}
+        <FTOApprovalModal open={showApprovalModal} onOpenChange={setShowApprovalModal} />
+      </div>
       </div>
     </div>
   );
