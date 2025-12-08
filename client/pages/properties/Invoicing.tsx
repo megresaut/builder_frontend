@@ -527,37 +527,37 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Provider
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Type
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Account
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Status
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Last Bill Date
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Last Bill Amount
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Last Import
                   </span>
@@ -580,7 +580,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       : "border-b border-gray-200",
                   )}
                 >
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                         {account.icon}
@@ -590,30 +590,30 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       Electric
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {account.account}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <StatusBadge status={account.status} />
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {account.lastBillDate}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {account.lastBillAmount}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {account.lastImport}
                     </span>
@@ -706,32 +706,32 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Provider
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Date
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     AI Usage Insight
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Change from Last Bill
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Status
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
                     Amount
                   </span>
@@ -754,7 +754,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       : "border-b border-gray-200",
                   )}
                 >
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                         {bill.icon}
@@ -764,15 +764,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {bill.date}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <AIInsightBadge insight={bill.aiUsageInsight} />
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span
                       className={cn(
                         "text-sm font-medium",
@@ -784,10 +784,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       {bill.changeFromLastBill}
                     </span>
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <BillStatusBadge status={bill.status} />
                   </td>
-                  <td className="px-3 py-3 border-r border-gray-200">
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {bill.amount}
                     </span>
