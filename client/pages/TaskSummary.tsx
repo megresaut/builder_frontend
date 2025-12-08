@@ -198,6 +198,8 @@ export default function TaskSummary() {
                 <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">
                   <span>Created</span>
                   <span>11/12/2025 9:22 PM</span>
+                  <Edit className="w-4 h-4 ml-2 text-[#2463eb]" />
+                  <span className="text-[#2463eb] font-medium">Edit</span>
                 </div>
               </div>
 
