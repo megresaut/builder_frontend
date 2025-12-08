@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { VendorAvatar } from "./VendorAvatar";
-import { StatusBadge } from "./Utilities";
+import { StatusBadge } from "./StatusBadge";
 
 interface InvoiceLineItem {
   id: number;
