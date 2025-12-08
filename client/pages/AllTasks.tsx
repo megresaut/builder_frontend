@@ -708,39 +708,39 @@ export default function AllTasks() {
                       key={task.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <StatusBadge status={task.status} />
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {task.title}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {task.property}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {task.due}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-blue-600 font-normal text-base hover:underline cursor-pointer">
                           {task.updated}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {task.age}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <PriorityBadge priority={task.priority} />
                       </td>
                       <td
-                        className="px-3 py-3"
+                        className="px-3 py-3 whitespace-nowrap"
                         style={{
                           borderRightWidth: "1px",
                           border: "1px solid #e7e8ec",
