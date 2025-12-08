@@ -1,10 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -15,7 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, parse, isValid, getDaysInMonth, startOfMonth, getDay } from "date-fns";
+import {
+  format,
+  parse,
+  isValid,
+  getDaysInMonth,
+  startOfMonth,
+  getDay,
+} from "date-fns";
 
 interface CreateFTOModalProps {
   open: boolean;
@@ -51,7 +54,10 @@ export default function CreateFTOModal({
   const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const assigneeButtonRef = useRef<HTMLButtonElement>(null);
-  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({ top: 0, left: 0 });
+  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
+    top: 0,
+    left: 0,
+  });
 
   useEffect(() => {
     let animationFrameId: number;
@@ -105,7 +111,11 @@ export default function CreateFTOModal({
   };
 
   const handleDateSelect = (day: number) => {
-    const selected = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+    const selected = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth(),
+      day,
+    );
     setSelectedDate(selected);
     const formatted = format(selected, "MM/dd/yyyy");
     setDueDate(formatted);
@@ -129,11 +139,15 @@ export default function CreateFTOModal({
   };
 
   const previousMonth = () => {
-    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
+    setCalendarMonth(
+      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
+    );
   };
 
   const nextMonth = () => {
-    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1));
+    setCalendarMonth(
+      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
+    );
   };
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
@@ -202,7 +216,13 @@ export default function CreateFTOModal({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="8" cy="8" r="6" stroke={colors[status] || colors.outstanding} strokeWidth="1.5" />
+        <circle
+          cx="8"
+          cy="8"
+          r="6"
+          stroke={colors[status] || colors.outstanding}
+          strokeWidth="1.5"
+        />
       </svg>
     );
   };
@@ -298,9 +318,15 @@ export default function CreateFTOModal({
               </label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-2xl" style={{ backgroundColor: getPriorityBgColor() }}>
+                  <div
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
+                    style={{ backgroundColor: getPriorityBgColor() }}
+                  >
                     {getPriorityIcon()}
-                    <span className="text-sm tracking-[-0.28px] leading-[1.4]" style={{ color: getPriorityTextColor() }}>
+                    <span
+                      className="text-sm tracking-[-0.28px] leading-[1.4]"
+                      style={{ color: getPriorityTextColor() }}
+                    >
                       {getPriorityLabel()}
                     </span>
                   </div>
@@ -334,7 +360,12 @@ export default function CreateFTOModal({
                       } else if (value.length <= 4) {
                         value = value.slice(0, 2) + "/" + value.slice(2);
                       } else {
-                        value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4, 8);
+                        value =
+                          value.slice(0, 2) +
+                          "/" +
+                          value.slice(2, 4) +
+                          "/" +
+                          value.slice(4, 8);
                       }
                     }
                     setDueDate(value);
@@ -408,29 +439,35 @@ export default function CreateFTOModal({
                       </div>
 
                       <div className="grid grid-cols-7 gap-1">
-                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                          <div
-                            key={day}
-                            className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
-                          >
-                            {day}
-                          </div>
-                        ))}
+                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
+                          (day) => (
+                            <div
+                              key={day}
+                              className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
+                            >
+                              {day}
+                            </div>
+                          ),
+                        )}
 
                         {getCalendarDays().map((day, idx) => (
                           <button
                             key={idx}
-                            onClick={() => day !== null && handleDateSelect(day)}
+                            onClick={() =>
+                              day !== null && handleDateSelect(day)
+                            }
                             disabled={day === null}
                             className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
                               day === null
                                 ? "text-transparent cursor-default"
                                 : selectedDate &&
-                                  selectedDate.getDate() === day &&
-                                  selectedDate.getMonth() === calendarMonth.getMonth() &&
-                                  selectedDate.getFullYear() === calendarMonth.getFullYear()
-                                ? "bg-[#2463EB] text-white font-medium"
-                                : "hover:bg-gray-100 text-[#303030]"
+                                    selectedDate.getDate() === day &&
+                                    selectedDate.getMonth() ===
+                                      calendarMonth.getMonth() &&
+                                    selectedDate.getFullYear() ===
+                                      calendarMonth.getFullYear()
+                                  ? "bg-[#2463EB] text-white font-medium"
+                                  : "hover:bg-gray-100 text-[#303030]"
                             }`}
                             type="button"
                           >
@@ -455,10 +492,15 @@ export default function CreateFTOModal({
                 >
                   <div className="flex items-center gap-1.5 flex-wrap flex-1">
                     {selectedAssignees.length === 0 ? (
-                      <span className="text-[#a1a1a9] text-sm">Select assignees</span>
+                      <span className="text-[#a1a1a9] text-sm">
+                        Select assignees
+                      </span>
                     ) : (
                       selectedAssignees.map((assignee) => (
-                        <div key={assignee.id} className="flex items-center gap-1 bg-white rounded-full border border-[#2463eb] px-2 py-0.5">
+                        <div
+                          key={assignee.id}
+                          className="flex items-center gap-1 bg-white rounded-full border border-[#2463eb] px-2 py-0.5"
+                        >
                           <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463eb]">
                             <span className="text-white font-semibold text-[8px]">
                               {assignee.initials}
@@ -483,7 +525,12 @@ export default function CreateFTOModal({
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
                   </svg>
                 </button>
 
@@ -506,7 +553,9 @@ export default function CreateFTOModal({
                       onMouseLeave={() => setShowAssigneeDropdown(false)}
                     >
                       {AVAILABLE_ASSIGNEES.map((assignee) => {
-                        const isSelected = selectedAssignees.some((a) => a.id === assignee.id);
+                        const isSelected = selectedAssignees.some(
+                          (a) => a.id === assignee.id,
+                        );
                         return (
                           <button
                             key={assignee.id}
@@ -557,9 +606,18 @@ export default function CreateFTOModal({
             </label>
             <Select value={timesheetStatus} onValueChange={setTimesheetStatus}>
               <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-2xl" style={{ backgroundColor: getTimesheetStatusBgColor() }}>
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
+                  style={{ backgroundColor: getTimesheetStatusBgColor() }}
+                >
                   {getTimesheetStatusIcon()}
-                  <span className="text-sm tracking-[-0.32px] leading-[1.4]" style={{ color: getTimesheetStatusTextColor(), marginTop: "1px" }}>
+                  <span
+                    className="text-sm tracking-[-0.32px] leading-[1.4]"
+                    style={{
+                      color: getTimesheetStatusTextColor(),
+                      marginTop: "1px",
+                    }}
+                  >
                     {getTimesheetStatusLabel()}
                   </span>
                 </div>

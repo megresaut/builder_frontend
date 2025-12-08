@@ -1,8 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -26,8 +22,7 @@ export default function AddVendorModal({
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Vendor Name{" "}
-                <span className="text-red-600">*</span>
+                Vendor Name <span className="text-red-600">*</span>
               </label>
               <Input
                 placeholder="Input Vendor Name"
