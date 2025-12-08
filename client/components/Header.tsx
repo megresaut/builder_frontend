@@ -194,6 +194,68 @@ export default function Header() {
         </svg>
       ),
     },
+    {
+      id: "bills",
+      label: "Bills",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M13.75 2.75h-10a2 2 0 0 0-2 2v14.5a2 2 0 0 0 2 2h10" />
+          <path d="M18 8v-3.25" />
+          <path d="M18 16.75v-3.5" />
+          <circle cx="18" cy="12" r="2.5" />
+        </svg>
+      ),
+    },
+    {
+      id: "field-team-orders",
+      label: "Field Team Orders",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
+    {
+      id: "work-orders",
+      label: "Work Orders",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
   ];
 
   const [tabs, setTabs] = useState<Tab[]>(defaultTabs);
