@@ -222,6 +222,29 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
+                console.log("Approve clicked for order", orderId);
+                setOpenMenuId(null);
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+            >
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
+              >
+                Approve
+              </span>
+              <img
+                loading="lazy"
+                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b13c8f79f0bbe495c159d6f52432780ef6582cfb?placeholderIfAbsent=true"
+                className="w-4 h-4"
+                alt=""
+              />
+            </button>
+            <button
+              onClick={() => {
                 console.log("Edit clicked for order", orderId);
                 setOpenMenuId(null);
               }}
