@@ -299,8 +299,9 @@ export default function FTOApprovalModal({
                       Actions
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center relative z-10">
+                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
                     <button
+                      ref={(el) => { buttonRefs.current["hours-1"] = el; }}
                       onClick={() => setOpenMenuId(openMenuId === "hours-1" ? null : "hours-1")}
                       className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
                       <svg
@@ -320,8 +321,8 @@ export default function FTOApprovalModal({
                     </button>
                     {openMenuId === "hours-1" &&
                       createPortal(
-                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: 0, left: 0, pointerEvents: "auto" }}>
-                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 w-full cursor-pointer">
+                        <div className="bg-white border border-[#dadada] rounded-md shadow-md z-[9999] whitespace-nowrap" style={{ position: "fixed", top: `${menuPos.top}px`, left: `${menuPos.left}px`, pointerEvents: "auto" }}>
+                          <div onClick={() => setOpenMenuId(null)} className="px-3 py-2 text-sm text-[#303030] hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 cursor-pointer">
                             <span>Delete</span>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h16zM10 11v6M14 11v6"/>
