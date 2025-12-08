@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
+import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 
 interface Assignee {
   id: number;
@@ -301,6 +302,8 @@ export default function RecurringTasks() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [isCreateRecurringTaskModalOpen, setIsCreateRecurringTaskModalOpen] =
+    useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -411,7 +414,10 @@ export default function RecurringTasks() {
 
           {/* Create Task Button */}
           <div className="flex items-center gap-4">
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors">
+            <button
+              onClick={() => setIsCreateRecurringTaskModalOpen(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+            >
               <Plus className="w-5 h-5 text-white" />
               <span className="text-white font-medium text-base leading-normal">
                 Create Recurring Task
@@ -902,6 +908,12 @@ export default function RecurringTasks() {
           </div>,
           document.body,
         )}
+
+      {/* Create Recurring Task Modal */}
+      <CreateRecurringTaskModal
+        open={isCreateRecurringTaskModalOpen}
+        onOpenChange={setIsCreateRecurringTaskModalOpen}
+      />
     </div>
   );
 }
