@@ -19,7 +19,7 @@ export default function TaskSummary() {
   const [messageText, setMessageText] = useState("");
 
   return (
-    <div className="flex flex-col px-6 py-9 pb-6 bg-white">
+    <div className="flex flex-col px-6 py-9 pb-6 bg-white border-l" style={{ borderLeftColor: "rgb(210,209,207)" }}>
       {/* Header Section */}
       <div className="flex items-center justify-between gap-10 flex-wrap w-full">
         <div className="flex flex-col justify-start font-['Geist',sans-serif]">
