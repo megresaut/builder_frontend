@@ -1302,12 +1302,502 @@ export default function TaskSummary() {
             </>
           )}
 
-          {/* Field Team Orders tab content - placeholder */}
+          {/* Field Team Orders tab content */}
           {activeTab === "fieldteam" && (
-            <div className="flex flex-col items-center justify-center w-full min-h-[400px]">
-              <p className="text-gray-500 text-lg">Field Team Orders content coming soon...</p>
+            <div className="flex flex-col w-full gap-6">
+              {/* Field Team Orders Table */}
+              <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-[#303030] font-medium text-[22px] leading-6">
+                      Field Team Orders
+                    </h2>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+                          stroke="#303030"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                      />
+                    </div>
+                    <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                      <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                        Filter
+                      </span>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4.5 6.75L9 11.25L13.5 6.75"
+                          stroke="#303030"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Table Content */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50 h-12">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                              <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                              <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                              <path d="M10 6h4" />
+                              <path d="M10 10h4" />
+                              <path d="M10 14h4" />
+                              <path d="M10 18h4" />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Property
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                              <circle
+                                cx="7.5"
+                                cy="7.5"
+                                r=".5"
+                                fill="currentColor"
+                              />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Description
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M8 2v4" />
+                              <path d="M16 2v4" />
+                              <rect width="18" height="18" x="3" y="4" rx="2" />
+                              <path d="M3 10h18" />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Due Date
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Field Team
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                              <circle
+                                cx="7.5"
+                                cy="7.5"
+                                r=".5"
+                                fill="currentColor"
+                              />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Status
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <line x1="4" x2="20" y1="9" y2="9" />
+                              <line x1="4" x2="20" y1="15" y2="15" />
+                              <line x1="10" x2="8" y1="3" y2="21" />
+                              <line x1="16" x2="14" y1="3" y2="21" />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Amount
+                            </span>
+                          </div>
+                        </th>
+                        <th
+                          className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
+                          style={{
+                            borderLeftWidth: "2px",
+                            borderLeftColor: "rgb(210,209,207)",
+                            backgroundColor: "white",
+                          }}
+                        >
+                          <span className="font-medium text-sm text-gray-700">
+                            Actions
+                          </span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fieldTeamOrders.map((order) => (
+                        <tr
+                          key={order.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                        >
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {order.property}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {order.description}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {order.dueDate}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {order.fieldTeam.map((member, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300`}
+                                >
+                                  {member.initials}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <StatusBadge status={order.status as any} />
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              ${order.amount}
+                            </span>
+                          </td>
+                          <td
+                            className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
+                            style={{
+                              borderLeftWidth: "1px",
+                              backgroundColor: "white",
+                            }}
+                          >
+                            <ActionButton
+                              orderId={order.id}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Footer */}
+                <div
+                  className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+                  style={{ position: "relative", zIndex: 1, overflow: "visible" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700 text-sm font-medium">
+                      Showing
+                    </span>
+                    <div
+                      className="relative"
+                      style={{ position: "relative", zIndex: 10 }}
+                    >
+                      <button
+                        ref={dropdownButtonRef}
+                        onClick={() =>
+                          setShowPageSizeDropdown(!showPageSizeDropdown)
+                        }
+                        className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
+                        style={{
+                          borderColor: "rgb(218, 218, 218)",
+                          borderWidth: "0.909091px",
+                          boxShadow:
+                            "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                        }}
+                      >
+                        <div className="text-gray-900 font-medium text-sm">
+                          {itemsPerPage}
+                        </div>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="text-gray-700 text-sm font-medium">
+                      of 225
+                    </span>
+                  </div>
+                  <div
+                    className="flex items-center rounded-lg border bg-white overflow-hidden"
+                    style={{
+                      borderColor: "rgb(218, 218, 218)",
+                      borderWidth: "0.909091px",
+                      boxShadow:
+                        "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                    }}
+                  >
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={cn(
+                        "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                        currentPage === 1
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-gray-50",
+                      )}
+                      style={{
+                        borderRightWidth: "0.909091px",
+                        borderRightColor: "rgb(229, 229, 229)",
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={
+                          currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
+                        }
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                      </svg>
+                      <div
+                        className={cn(
+                          "font-medium text-sm",
+                          currentPage === 1 ? "text-gray-400" : "text-gray-700",
+                        )}
+                      >
+                        Previous
+                      </div>
+                    </button>
+                    {getPaginationNumbers().map((page, idx) => {
+                      if (page === "...") {
+                        return (
+                          <button
+                            key={`ellipsis-${idx}`}
+                            disabled
+                            className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                            style={{
+                              borderRightWidth: "0.909091px",
+                              borderRightColor: "rgb(229, 229, 229)",
+                              backgroundColor: "rgba(0, 0, 0, 0)",
+                            }}
+                          >
+                            <div className="text-gray-500 font-medium text-sm">
+                              ...
+                            </div>
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={cn(
+                            "flex items-center justify-center h-10 min-w-10 transition-colors",
+                            currentPage === page
+                              ? "hover:bg-gray-50"
+                              : "hover:bg-gray-50",
+                          )}
+                          style={{
+                            borderRightWidth: "0.909091px",
+                            borderRightColor: "rgb(229, 229, 229)",
+                            backgroundColor:
+                              currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                          }}
+                        >
+                          <div
+                            className={cn(
+                              "font-medium text-sm",
+                              currentPage === page
+                                ? "text-gray-900 font-bold"
+                                : "text-gray-500",
+                            )}
+                          >
+                            {page}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      className={cn(
+                        "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+                      )}
+                      style={{
+                        backgroundColor: "rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      <div className={cn("font-medium text-sm text-gray-700")}>
+                        Next
+                      </div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={
+                          currentPage === totalPages
+                            ? "rgb(163, 163, 163)"
+                            : "currentColor"
+                        }
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
+          {/* Dropdown Menu - Rendered via Portal at body level */}
+          {showPageSizeDropdown &&
+            createPortal(
+              <div
+                className="bg-white overflow-hidden"
+                style={{
+                  border: "0.5px solid #DADADA",
+                  borderRadius: "8px",
+                  boxShadow:
+                    "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                  zIndex: 99999,
+                  minWidth: "56px",
+                  width: "56px",
+                  position: "fixed",
+                  top: dropdownPos.top + "px",
+                  left: dropdownPos.left + "px",
+                  pointerEvents: "auto",
+                }}
+                onMouseLeave={() => setShowPageSizeDropdown(false)}
+              >
+                {[10, 25, 50].map((size, index) => (
+                  <button
+                    key={size}
+                    onClick={() => {
+                      setItemsPerPage(size);
+                      setCurrentPage(1);
+                      setShowPageSizeDropdown(false);
+                    }}
+                    className={cn(
+                      "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
+                      itemsPerPage === size
+                        ? "bg-gray-50 font-medium text-gray-900"
+                        : "text-[#303030] hover:bg-gray-50",
+                    )}
+                    style={{
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      fontSize: "16px",
+                      lineHeight: "140%",
+                      letterSpacing: "-0.32px",
+                      borderRadius: index === 2 ? "0 0 8px 8px" : "0",
+                    }}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
     </div>
