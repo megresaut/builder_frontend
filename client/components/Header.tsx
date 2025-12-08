@@ -422,7 +422,13 @@ export default function Header() {
                 }}
               >
                 <button
-                  onClick={() => setSelectedTab(tab.id)}
+                  onClick={() => {
+                    if (tab.id !== selectedTab) {
+                      saveScrollPosition();
+                      navigateToTabRoute(tab.id);
+                    }
+                    setSelectedTab(tab.id);
+                  }}
                   className="flex items-center gap-2"
                 >
                   <span className="flex items-center justify-center w-5 h-5">
