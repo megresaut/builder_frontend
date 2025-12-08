@@ -55,6 +55,8 @@ export default function Header() {
       return { label: "Bills", path, id: "bills" };
     } else if (path === "/field-team-orders") {
       return { label: "Field Team Orders", path, id: "field-team-orders" };
+    } else if (path === "/work-orders") {
+      return { label: "Work Orders", path, id: "work-orders" };
     }
 
     return null;
@@ -114,6 +116,8 @@ export default function Header() {
       items.push({ label: "Bills" });
     } else if (path === "/field-team-orders") {
       items.push({ label: "Field Team Orders" });
+    } else if (path === "/work-orders") {
+      items.push({ label: "Work Orders" });
     }
 
     return items;
