@@ -271,6 +271,7 @@ export default function Header() {
     setSelectedTab(newTabId);
     tabContext.setTabMetadata(newTabId, { label: "New Tab" });
     setNextNewTabId(nextNewTabId + 1);
+    navigate("/");
   };
 
   return (
