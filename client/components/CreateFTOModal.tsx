@@ -21,6 +21,20 @@ interface CreateFTOModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface Assignee {
+  id: string;
+  name: string;
+  initials: string;
+}
+
+const AVAILABLE_ASSIGNEES: Assignee[] = [
+  { id: "1", name: "David Harris", initials: "DH" },
+  { id: "2", name: "Sarah Johnson", initials: "SJ" },
+  { id: "3", name: "Michael Chen", initials: "MC" },
+  { id: "4", name: "Emily Rodriguez", initials: "ER" },
+  { id: "5", name: "James Wilson", initials: "JW" },
+];
+
 export default function CreateFTOModal({
   open,
   onOpenChange,
