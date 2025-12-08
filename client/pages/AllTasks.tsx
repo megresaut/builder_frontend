@@ -714,9 +714,12 @@ export default function AllTasks() {
                         <StatusBadge status={task.status} />
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <button
+                          onClick={() => navigate(`/tasks/${task.id}`)}
+                          className="text-blue-600 font-normal text-base hover:underline cursor-pointer transition-colors"
+                        >
                           {task.title}
-                        </span>
+                        </button>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
