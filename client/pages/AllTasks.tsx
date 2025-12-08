@@ -180,25 +180,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 
   if (status === "In Progress") {
     return (
-      <div className="flex items-center bg-blue-50 rounded-2xl text-blue-600 gap-1 h-[30px] px-2">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M2.91602 7H11.0827"
-            stroke="currentColor"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
-          {status}
-        </div>
+      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-medium leading-5">
+        {status}
       </div>
     );
   }
@@ -213,82 +196,24 @@ const StatusBadge = ({ status }: { status: string }) => {
 const PriorityBadge = ({ priority }: { priority: string }) => {
   if (priority === "Low") {
     return (
-      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2 bg-emerald-50 text-emerald-600">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M6.99935 2.91675V11.0834M6.99935 11.0834L11.0827 7.00008M6.99935 11.0834L2.91602 7.00008"
-            stroke="#059669"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
-          {priority}
-        </div>
+      <div className="inline-flex items-center bg-green-100 rounded-full text-green-600 py-1 px-3 text-sm font-medium leading-5">
+        {priority}
       </div>
     );
   }
 
   if (priority === "Normal") {
     return (
-      <div className="flex items-center bg-blue-50 rounded-2xl text-blue-600 gap-1 h-[30px] px-2">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M2.91602 7H11.0827"
-            stroke="currentColor"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
-          {priority}
-        </div>
+      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-medium leading-5">
+        {priority}
       </div>
     );
   }
 
   if (priority === "High") {
     return (
-      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g clipPath="url(#clip0_high_priority)">
-            <path
-              d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732M14.6673 7.99992C14.6673 11.6818 11.6825 14.6666 8.00065 14.6666C4.31875 14.6666 1.33398 11.6818 1.33398 7.99992C1.33398 4.31802 4.31875 1.33325 8.00065 1.33325C11.6825 1.33325 14.6673 4.31802 14.6673 7.99992Z"
-              stroke="#D97706"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-          <defs>
-            <clipPath id="clip0_high_priority">
-              <rect width="16" height="16" fill="white" />
-            </clipPath>
-          </defs>
-        </svg>
-        <div className="text-base font-normal tracking-[-0.32px] capitalize overflow-hidden text-ellipsis whitespace-nowrap text-[#D97706]">
-          {priority}
-        </div>
+      <div className="inline-flex items-center bg-yellow-100 rounded-full text-amber-600 py-1 px-3 text-sm font-medium leading-5">
+        {priority}
       </div>
     );
   }
