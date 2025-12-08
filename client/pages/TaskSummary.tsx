@@ -228,8 +228,14 @@ export default function TaskSummary() {
 
         {/* Main Content Area */}
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
-          {/* Left Column */}
-          <div className="flex flex-col min-w-[240px] flex-1">
+          {/* Show WorkOrders component when work orders tab is active */}
+          {activeTab === "workorders" && <WorkOrders />}
+
+          {/* Show summary content when summary tab is active */}
+          {activeTab === "summary" && (
+            <>
+              {/* Left Column */}
+              <div className="flex flex-col min-w-[240px] flex-1">
             {/* Task Details Card */}
             <div className="flex flex-col w-full px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
               <div className="flex justify-between items-start gap-10 w-full flex-wrap">
@@ -932,6 +938,15 @@ export default function TaskSummary() {
               </div>
             </div>
           </div>
+            </>
+          )}
+
+          {/* Field Team Orders tab content - placeholder */}
+          {activeTab === "fieldteam" && (
+            <div className="flex flex-col items-center justify-center w-full min-h-[400px]">
+              <p className="text-gray-500 text-lg">Field Team Orders content coming soon...</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
