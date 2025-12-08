@@ -189,10 +189,10 @@ export default function CreateFTOModal({
               </label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <div className="flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded-2xl">
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-2xl" style={{ backgroundColor: getPriorityBgColor() }}>
                     {getPriorityIcon()}
-                    <span className="text-[#2463eb] text-sm tracking-[-0.28px] leading-[1.4]">
-                      Normal
+                    <span className="text-sm tracking-[-0.28px] leading-[1.4]" style={{ color: getPriorityTextColor() }}>
+                      {getPriorityLabel()}
                     </span>
                   </div>
                 </SelectTrigger>
