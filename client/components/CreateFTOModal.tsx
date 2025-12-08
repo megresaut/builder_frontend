@@ -42,6 +42,53 @@ export default function CreateFTOModal({
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
   const [dueDate, setDueDate] = useState("");
+  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
+  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showAssigneeDropdown && assigneeButtonRef.current) {
+        const rect = assigneeButtonRef.current.getBoundingClientRect();
+        setAssigneeDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showAssigneeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
+    };
+
+    if (showAssigneeDropdown) {
+      updateDropdownPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showAssigneeDropdown]);
+
+  const toggleAssignee = (assignee: Assignee) => {
+    setSelectedAssignees((prev) => {
+      const isSelected = prev.some((a) => a.id === assignee.id);
+      if (isSelected) {
+        return prev.filter((a) => a.id !== assignee.id);
+      } else {
+        return [...prev, assignee];
+      }
+    });
+  };
+
+  const removeAssignee = (assigneeId: string) => {
+    setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
+  };
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
