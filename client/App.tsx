@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from "react";
 import TabContent from "./components/TabContent";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
+import WorkOrders from "./pages/WorkOrders";
 import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
@@ -66,6 +67,14 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <FieldTeamOrders />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/work-orders"
+                  element={
+                    <ShellLayout>
+                      <WorkOrders />
                     </ShellLayout>
                   }
                 />
