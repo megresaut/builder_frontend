@@ -636,12 +636,16 @@ export default function AllProperties() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {property.managers.map((manager) => (
                             <div
                               key={manager.id}
-                              className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-gray-700 text-xs font-semibold border border-gray-300"
-                              style={{ borderColor: "rgb(209, 213, 219)" }}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                              style={{
+                                backgroundColor: "rgb(59, 130, 246)",
+                                borderColor: "rgb(209, 213, 219)",
+                                borderWidth: "1px",
+                              }}
                               title={manager.name}
                             >
                               {manager.initials}
