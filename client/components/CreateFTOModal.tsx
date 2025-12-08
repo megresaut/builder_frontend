@@ -66,15 +66,7 @@ export default function CreateFTOModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-0 gap-0 font-['Geist',sans-serif]">
-        <div className="relative flex flex-col gap-4 px-8 py-8 bg-white rounded-2xl">
-          {/* Close Button */}
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-8 top-8 w-[18px] h-[18px] opacity-70 hover:opacity-100 transition-opacity"
-          >
-            <X className="w-[18px] h-[18px]" />
-          </button>
-
+        <div className="flex flex-col gap-4 px-8 py-8 bg-white rounded-2xl">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25]">
             Create/Update Field Team Order
