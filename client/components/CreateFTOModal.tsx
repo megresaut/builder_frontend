@@ -27,7 +27,12 @@ export default function CreateFTOModal({
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
   const [dueDate, setDueDate] = useState("");
 
-  const getPriorityIcon = () => {
+  const getPriorityIcon = (priorityLevel: string = priority) => {
+    const colors: Record<string, string> = {
+      low: "#059669",
+      normal: "#2463EB",
+      high: "#D97706",
+    };
     return (
       <svg
         width="14"
@@ -38,13 +43,40 @@ export default function CreateFTOModal({
       >
         <path
           d="M2.91602 7H11.0827"
-          stroke="#2463EB"
+          stroke={colors[priorityLevel] || colors.normal}
           strokeWidth="1.3"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </svg>
     );
+  };
+
+  const getPriorityLabel = () => {
+    const labels: Record<string, string> = {
+      low: "Low",
+      normal: "Normal",
+      high: "High",
+    };
+    return labels[priority] || "Normal";
+  };
+
+  const getPriorityBgColor = () => {
+    const colors: Record<string, string> = {
+      low: "#d1fae5",
+      normal: "#dbe9fe",
+      high: "#fef3c7",
+    };
+    return colors[priority] || colors.normal;
+  };
+
+  const getPriorityTextColor = () => {
+    const colors: Record<string, string> = {
+      low: "#059669",
+      normal: "#2463eb",
+      high: "#d97706",
+    };
+    return colors[priority] || colors.normal;
   };
 
   const getTimesheetIcon = () => {
