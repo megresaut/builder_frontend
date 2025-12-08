@@ -111,6 +111,11 @@ export default function Sidebar() {
         path: "/field-team-orders",
         sectionId: "field-team-orders",
       },
+      {
+        label: "Work Orders",
+        path: "/work-orders",
+        sectionId: "work-orders",
+      },
     ],
   };
 
