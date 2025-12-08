@@ -142,10 +142,14 @@ const ActionButton = ({
   orderId,
   openMenuId,
   setOpenMenuId,
+  onApprove,
+  onEdit,
 }: {
   orderId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onApprove: () => void;
+  onEdit: () => void;
 }) => {
   const showMenu = openMenuId === orderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -225,7 +229,7 @@ const ActionButton = ({
               onClick={() => {
                 console.log("Approve clicked for order", orderId);
                 setOpenMenuId(null);
-                setShowApprovalModal(true);
+                onApprove();
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
@@ -249,7 +253,7 @@ const ActionButton = ({
               onClick={() => {
                 console.log("Edit clicked for order", orderId);
                 setOpenMenuId(null);
-                setShowFTOModal(true);
+                onEdit();
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
