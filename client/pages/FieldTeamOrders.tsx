@@ -677,8 +677,7 @@ export default function FieldTeamOrders() {
                   {fieldTeamOrders.map((order) => (
                     <tr
                       key={order.id}
-                      onClick={() => setShowFTOModal(true)}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
