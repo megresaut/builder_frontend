@@ -1,977 +1,469 @@
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
-import { StatusBadge } from "./Utilities";
-import CreateFTOModal from "@/components/CreateFTOModal";
-import FTOApprovalModal from "@/components/FTOApprovalModal";
-
-interface FieldTeamOrder {
-  id: number;
-  property: string;
-  description: string;
-  dueDate: string;
-  fieldTeam: Array<{ initials: string; color: string }>;
-  status: "dispatched" | "approved" | "pending-approval";
-  amount: number;
-}
-
-const fieldTeamOrders: FieldTeamOrder[] = [
-  {
-    id: 1,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Oct 2, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 420,
-  },
-  {
-    id: 2,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 29, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "approved",
-    amount: 95,
-  },
-  {
-    id: 3,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 10, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "pending-approval",
-    amount: 95,
-  },
-  {
-    id: 4,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 6, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 112,
-  },
-  {
-    id: 5,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 5, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 93,
-  },
-  {
-    id: 6,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 4, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 75,
-  },
-  {
-    id: 7,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 4, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 101,
-  },
-  {
-    id: 8,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 3, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 124,
-  },
-  {
-    id: 9,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 1, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 67,
-  },
-  {
-    id: 10,
-    property: "22 Indian Chase Dr",
-    description: "Doors Need To Be Repaired",
-    dueDate: "Sep 1, 2025",
-    fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
-    ],
-    status: "dispatched",
-    amount: 118,
-  },
-];
-
-const ActionButton = ({
-  orderId,
-  openMenuId,
-  setOpenMenuId,
-  onApprove,
-  onEdit,
-}: {
-  orderId: number;
-  openMenuId: number | null;
-  setOpenMenuId: (id: number | null) => void;
-  onApprove: () => void;
-  onEdit: () => void;
-}) => {
-  const showMenu = openMenuId === orderId;
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateMenuPos = () => {
-      if (showMenu && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-
-        setMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 145,
-        });
-      }
-
-      if (showMenu) {
-        animationFrameId = requestAnimationFrame(updateMenuPos);
-      }
-    };
-
-    if (showMenu) {
-      updateMenuPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showMenu]);
-
-  return (
-    <>
-      <button
-        ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : orderId)}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="1" />
-          <circle cx="19" cy="12" r="1" />
-          <circle cx="5" cy="12" r="1" />
-        </svg>
-      </button>
-
-      {showMenu &&
-        createPortal(
-          <div
-            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
-            style={{
-              width: "145px",
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              position: "fixed",
-              top: menuPos.top + "px",
-              left: menuPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setOpenMenuId(null)}
-          >
-            <button
-              onClick={() => {
-                console.log("Approve clicked for order", orderId);
-                setOpenMenuId(null);
-                onApprove();
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Approve
-              </span>
-              <img
-                loading="lazy"
-                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b13c8f79f0bbe495c159d6f52432780ef6582cfb?placeholderIfAbsent=true"
-                className="w-4 h-4"
-                alt=""
-              />
-            </button>
-            <button
-              onClick={() => {
-                console.log("Edit clicked for order", orderId);
-                setOpenMenuId(null);
-                onEdit();
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Edit
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                console.log("Delete clicked for order", orderId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Delete
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                  stroke="#982740"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>,
-          document.body,
-        )}
-    </>
-  );
-};
+import { useState } from "react";
+import { ChevronDown, Edit, Calendar, Upload, MapPin, Mail, Send, Paperclip } from "lucide-react";
 
 export default function WorkOrders() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [showFTOModal, setShowFTOModal] = useState(false);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateDropdownPos = () => {
-      if (showPageSizeDropdown && dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showPageSizeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
-      }
-    };
-
-    if (showPageSizeDropdown) {
-      updateDropdownPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showPageSizeDropdown]);
-
-  const totalPages = Math.ceil(225 / itemsPerPage);
-
-  const getPaginationNumbers = () => {
-    const pages: (number | string)[] = [];
-
-    if (totalPages <= 1) {
-      return [1];
-    }
-
-    if (totalPages <= 6) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-      return pages;
-    }
-
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
-
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
-    }
-
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  };
+  const [messageText, setMessageText] = useState("");
+  const [selectedFilesTab, setSelectedFilesTab] = useState("all");
+  const [selectedAssigneeTab, setSelectedAssigneeTab] = useState("staff");
 
   return (
-    <div
-      className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
-      style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
-        paddingBottom: "150px",
-      }}
-    >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
-        {/* Header Section */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Work Orders
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p
-                className="text-[#717179] font-medium text-base leading-4"
-                style={{ marginTop: "-4px" }}
-              >
-                All your work orders, in one place
-              </p>
+    <div className="flex flex-col w-full gap-5">
+      {/* Status/Priority/Due Date Section */}
+      <div className="flex items-center justify-between gap-10 w-full flex-wrap bg-white rounded-lg shadow-sm font-['Geist',sans-serif]">
+        <div className="flex items-center gap-5 flex-wrap min-w-[240px] flex-1 text-[#303030]">
+          {/* Status */}
+          <div className="flex flex-col flex-1 min-w-[180px]">
+            <div className="text-sm font-medium leading-[1.14]">Status</div>
+            <div className="mt-2 flex items-center justify-between gap-10 w-full px-3 py-1.5 bg-white border border-[#dadada] rounded-lg shadow-sm text-sm tracking-[-0.28px] leading-[1.4]">
+              <div className="flex items-center gap-1">
+                <div className="w-3.5 h-3.5 rounded-full bg-[#059669] flex items-center justify-center">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5L4 7L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span>Completed</span>
+              </div>
+              <ChevronDown className="w-4 h-4" />
             </div>
           </div>
 
-          {/* Create FTO Button */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowFTOModal(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-white font-medium text-base leading-normal">
-                Create WO
-              </span>
-            </button>
+          {/* Priority */}
+          <div className="flex flex-col flex-1 min-w-[180px]">
+            <div className="text-sm font-medium leading-[1.14]">Priority</div>
+            <div className="mt-2 flex items-center justify-between gap-10 w-full px-3 py-1.5 bg-white border border-[#dadada] rounded-lg shadow-sm text-sm tracking-[-0.28px] leading-[1.4]">
+              <div className="flex items-center gap-1">
+                <div className="w-3.5 h-3.5 rounded-full bg-[#fbbf24]"></div>
+                <span>Normal</span>
+              </div>
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Due Date */}
+          <div className="flex flex-col flex-1 min-w-[180px]">
+            <div className="text-sm font-medium leading-[1.14]">Due Date</div>
+            <div className="mt-2 flex items-center justify-between gap-10 w-full px-3 py-1.5 bg-white border border-[#dadada] rounded-lg shadow-sm text-base tracking-[-0.32px] leading-[1.4]">
+              <span>mm/dd/yyyy</span>
+              <ChevronDown className="w-4 h-4" />
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-6">
-          {/* Work Orders Table */}
-          <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-            {/* Table Header */}
-            <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
-              <div className="flex items-center gap-4">
-                <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                  All Work Orders
-                </h2>
-                <div className="flex items-center gap-2 h-6">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1.16699 8.16667C1.16699 8.16667 1.23776 8.66206 3.28802 10.7123C5.33827 12.7626 8.66238 12.7626 10.7126 10.7123C11.439 9.9859 11.9081 9.09958 12.1198 8.16667M1.16699 8.16667V11.6667M1.16699 8.16667H4.66699M12.8337 5.83333C12.8337 5.83333 12.7629 5.33794 10.7126 3.28769C8.66238 1.23744 5.33827 1.23744 3.28802 3.28769C2.56161 4.0141 2.09256 4.90042 1.88089 5.83333M12.8337 5.83333V2.33333M12.8337 5.83333H9.33366"
-                      stroke="#8B8D8D"
-                      strokeWidth="1.3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
-                    Updated 2 minutes ago
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
-                      stroke="#303030"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-                  />
-                </div>
-                <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
-                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
-                    Filter
-                  </span>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M4.5 6.75L9 11.25L13.5 6.75"
-                      stroke="#303030"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
+        {/* Last Updated */}
+        <div className="flex items-center gap-1 text-sm tracking-[-0.28px] leading-[1.4]">
+          <span className="text-[#717179]">Last Updated</span>
+          <span className="text-[#303030] font-medium">11/12/2025 9:22 PM</span>
+        </div>
+      </div>
 
-            {/* Table Content */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                          <path d="M10 6h4" />
-                          <path d="M10 10h4" />
-                          <path d="M10 14h4" />
-                          <path d="M10 18h4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Property
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle
-                            cx="7.5"
-                            cy="7.5"
-                            r=".5"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Description
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M8 2v4" />
-                          <path d="M16 2v4" />
-                          <rect width="18" height="18" x="3" y="4" rx="2" />
-                          <path d="M3 10h18" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Due Date
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Field Team
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle
-                            cx="7.5"
-                            cy="7.5"
-                            r=".5"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Status
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <line x1="4" x2="20" y1="9" y2="9" />
-                          <line x1="4" x2="20" y1="15" y2="15" />
-                          <line x1="10" x2="8" y1="3" y2="21" />
-                          <line x1="16" x2="14" y1="3" y2="21" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Amount
-                        </span>
-                      </div>
-                    </th>
-                    <th
-                      className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
-                      style={{
-                        borderLeftWidth: "2px",
-                        borderLeftColor: "rgb(210,209,207)",
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <span className="font-medium text-sm text-gray-700">
-                        Actions
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fieldTeamOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.property}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.description}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.dueDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {order.fieldTeam.map((member, idx) => (
-                            <div
-                              key={idx}
-                              className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300`}
-                            >
-                              {member.initials}
-                            </div>
-                          ))}
+      {/* Main Content Area */}
+      <div className="flex gap-6 w-full flex-wrap lg:flex-nowrap">
+        {/* Left Column */}
+        <div className="flex flex-col min-w-[240px] flex-1">
+          {/* Work Order Details Card */}
+          <div className="flex flex-col w-full px-4 py-4 bg-white border border-[#e5e5e5] rounded-lg shadow-sm">
+            <div className="flex gap-4 w-full flex-wrap lg:flex-nowrap">
+              {/* Property Image */}
+              <img
+                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/a778dc0c324c3b12d3592c96c97db0f2241bffe1?placeholderIfAbsent=true&width=400"
+                alt="Property"
+                className="w-full lg:w-[251px] aspect-[1.31] rounded-lg object-cover min-w-[240px]"
+              />
+
+              {/* Work Order Info */}
+              <div className="flex flex-col min-w-[240px] flex-1 font-['Geist',sans-serif]">
+                <div className="flex flex-col w-full">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex flex-col flex-1 min-w-[240px]">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
+                          HVAC - #1024431-1
                         </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <StatusBadge status={order.status as any} />
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          ${order.amount}
-                        </span>
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "1px",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton
-                          orderId={order.id}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          onApprove={() => setShowApprovalModal(true)}
-                          onEdit={() => setShowFTOModal(true)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Footer */}
-            <div
-              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
-              style={{ position: "relative", zIndex: 1, overflow: "visible" }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-gray-700 text-sm font-medium">
-                  Showing
-                </span>
-                <div
-                  className="relative"
-                  style={{ position: "relative", zIndex: 10 }}
-                >
-                  <button
-                    ref={dropdownButtonRef}
-                    onClick={() =>
-                      setShowPageSizeDropdown(!showPageSizeDropdown)
-                    }
-                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
-                    style={{
-                      borderColor: "rgb(218, 218, 218)",
-                      borderWidth: "0.909091px",
-                      boxShadow:
-                        "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                    }}
-                  >
-                    <div className="text-gray-900 font-medium text-sm">
-                      {itemsPerPage}
+                        <button className="flex items-center gap-1 text-base text-[#2463eb] font-medium tracking-[-0.32px] leading-[1.4] hover:underline">
+                          <Edit className="w-4 h-4" />
+                          <span>Edit</span>
+                        </button>
+                      </div>
+                      <div className="mt-4 flex flex-col text-sm text-[#717179] font-medium leading-[1.14]">
+                        <div>Created by Julia LoSchiavo for</div>
+                        <div className="mt-2">
+                          <span className="font-bold text-[#2463eb]">
+                            (C) 51 Willowmere Circle, Riverside CT 06878 -1
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                </div>
-                <span className="text-gray-700 text-sm font-medium">
-                  of 225
-                </span>
-              </div>
-              <div
-                className="flex items-center rounded-lg border bg-white overflow-hidden"
-                style={{
-                  borderColor: "rgb(218, 218, 218)",
-                  borderWidth: "0.909091px",
-                  boxShadow:
-                    "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                }}
-              >
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-                    currentPage === 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50",
-                  )}
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={
-                      currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
-                    }
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m12 19-7-7 7-7" />
-                    <path d="M19 12H5" />
-                  </svg>
-                  <div
-                    className={cn(
-                      "font-medium text-sm",
-                      currentPage === 1 ? "text-gray-400" : "text-gray-700",
-                    )}
-                  >
-                    Previous
+                    <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px] leading-[1.4]">
+                      <span>Created</span>
+                      <span>11/12/2025 9:22 PM</span>
+                    </div>
                   </div>
-                </button>
-                {getPaginationNumbers().map((page, idx) => {
-                  if (page === "...") {
-                    return (
-                      <button
-                        key={`ellipsis-${idx}`}
-                        disabled
-                        className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
-                        style={{
-                          borderRightWidth: "0.909091px",
-                          borderRightColor: "rgb(229, 229, 229)",
-                          backgroundColor: "rgba(0, 0, 0, 0)",
-                        }}
-                      >
-                        <div className="text-gray-500 font-medium text-sm">
-                          ...
-                        </div>
-                      </button>
-                    );
-                  }
 
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page as number)}
-                      className={cn(
-                        "flex items-center justify-center h-10 min-w-10 transition-colors",
-                        currentPage === page
-                          ? "hover:bg-gray-50"
-                          : "hover:bg-gray-50",
-                      )}
-                      style={{
-                        borderRightWidth: "0.909091px",
-                        borderRightColor: "rgb(229, 229, 229)",
-                        backgroundColor:
-                          currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
-                      }}
-                    >
-                      <div
-                        className={cn(
-                          "font-medium text-sm",
-                          currentPage === page
-                            ? "text-gray-900 font-bold"
-                            : "text-gray-500",
-                        )}
-                      >
-                        {page}
+                  <div className="flex items-end justify-between mt-6 gap-4 flex-wrap text-sm leading-[1.14]">
+                    <div className="flex flex-col gap-3 min-w-[240px] flex-1 text-[#717179]">
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Invoice Number:</span>
+                        <span className="font-medium">234605</span>
                       </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Vendor:</span>
+                        <span className="font-medium">Dolce Plumbing &amp; Heating LLC</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Charge Work To:</span>
+                        <span className="font-medium">Owner</span>
+                      </div>
+                    </div>
+                    <button className="flex items-center gap-2 min-h-[40px] px-4 py-2.5 bg-[#f9f9f9] border border-[#dadada] rounded-lg shadow-sm text-sm text-[#2463eb] font-medium tracking-[-0.28px] leading-[1.4] hover:bg-gray-100 transition-colors">
+                      <MapPin className="w-4 h-4" />
+                      View Maps
                     </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
-                  )}
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                  }}
-                >
-                  <div className={cn("font-medium text-sm text-gray-700")}>
-                    Next
                   </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={
-                      currentPage === totalPages
-                        ? "rgb(163, 163, 163)"
-                        : "currentColor"
-                    }
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
+                </div>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-[#e5e5e5] mt-5"></div>
+
+            {/* Totals */}
+            <div className="flex gap-4 mt-5 w-full flex-wrap font-['Geist',sans-serif]">
+              <div className="flex flex-col flex-1 min-w-[240px] px-4 py-4 bg-[#f9f9f9] border border-[#dadada] rounded-lg">
+                <div className="text-sm text-[#717179] leading-[1.43]">ESTIMATE TOTAL</div>
+                <div className="mt-1 text-2xl text-[#303030] font-medium leading-[1.17]">$1,450.50</div>
+              </div>
+              <div className="flex flex-col flex-1 min-w-[240px] px-4 py-4 bg-[#f9f9f9] border border-[#dadada] rounded-lg">
+                <div className="text-sm text-[#717179] leading-[1.43]">WORK ORDER TOTAL</div>
+                <div className="mt-1 text-2xl text-[#303030] font-medium leading-[1.17]">$1,350.00</div>
+              </div>
+            </div>
+
+            {/* Notes and Files Section */}
+            <div className="flex gap-5 mt-5 w-full flex-wrap">
+              {/* Notes */}
+              <div className="flex flex-col flex-1 min-w-[240px] font-['Geist',sans-serif]">
+                <div className="text-base text-[#303030] font-medium leading-[1.25]">Notes</div>
+                <textarea
+                  placeholder="Add some note here"
+                  className="mt-6 min-h-[100px] w-full px-3 py-2 bg-[#f9f9f9] border border-[#dadada] rounded-lg text-sm text-[#a1a1a9] leading-5 resize-none focus:outline-none focus:border-[#2463eb]"
+                  rows={4}
+                />
+              </div>
+
+              {/* Files */}
+              <div className="flex flex-col flex-1 min-w-[240px] font-['Geist',sans-serif]">
+                <div className="flex flex-col w-full">
+                  <div className="text-base text-[#303030] font-medium leading-[1.25]">Files</div>
+                  
+                  {/* File Tabs */}
+                  <div className="flex mt-2 w-full px-0.5 py-0.5 bg-[#f9f9f9] rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center leading-[1.43]">
+                    <button
+                      onClick={() => setSelectedFilesTab("all")}
+                      className={`flex-1 px-4 py-1.5 rounded-md ${selectedFilesTab === "all" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setSelectedFilesTab("estimates")}
+                      className={`flex-1 px-2 py-1.5 rounded-md ${selectedFilesTab === "estimates" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+                    >
+                      Estimates (1)
+                    </button>
+                    <button
+                      onClick={() => setSelectedFilesTab("bills")}
+                      className={`flex-1 px-4 py-1.5 rounded-md ${selectedFilesTab === "bills" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+                    >
+                      Bills (1)
+                    </button>
+                    <button
+                      onClick={() => setSelectedFilesTab("other")}
+                      className={`flex-1 px-4 py-1.5 rounded-md ${selectedFilesTab === "other" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+                    >
+                      Other
+                    </button>
+                  </div>
+
+                  {/* Upload Area */}
+                  <div className="flex flex-col items-center mt-4 px-4 py-4 bg-[#f9f9f9] border border-dashed border-[rgba(18,18,18,0.4)] rounded-lg">
+                    <button className="flex items-center gap-2 min-h-[36px] px-3 bg-white border border-[#dadada] rounded-lg shadow-sm text-base text-[#303030] tracking-[-0.32px] leading-[1.4] hover:bg-gray-50 transition-colors">
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </button>
+                    <div className="mt-2 px-2.5 py-2.5 flex flex-col items-center text-sm text-[#09090b] leading-[1.14]">
+                      <div>Choose a file or drag &amp; drop it here</div>
+                      <div className="mt-1.5">Maximum 500 MB file size</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* File List */}
+                <div className="mt-6 flex flex-col w-full max-w-[270px]">
+                  <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif]">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2V14M14 8H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    <span>Files</span>
+                  </div>
+                  
+                  <div className="mt-2 flex flex-col gap-2">
+                    {/* File Item 1 */}
+                    <div className="flex items-center justify-between gap-3 px-3 py-3 bg-[#fbfbfb] border border-[#e5e5e5] rounded-lg shadow-sm">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                          <rect width="32" height="32" rx="4" fill="#EF4444"/>
+                          <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
+                        </svg>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="text-xs text-[#181932] font-['Inter',sans-serif] truncate">Lorem Ipsum.PDF</div>
+                          <div className="flex items-center gap-2 text-[10px] text-[#717179]">
+                            <span>PDF</span>
+                            <span>112KB</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* File Item 2 */}
+                    <div className="flex items-center justify-between gap-3 px-3 py-3 bg-[#fbfbfb] border border-[#e5e5e5] rounded-lg shadow-sm">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                          <rect width="32" height="32" rx="4" fill="#EF4444"/>
+                          <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
+                        </svg>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="text-xs text-[#181932] font-['Inter',sans-serif] truncate">Lorem Ipsum.PDF</div>
+                          <div className="flex items-center gap-2 text-[10px] text-[#717179]">
+                            <span>PDF</span>
+                            <span>112KB</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar */}
+        <div className="flex flex-col min-w-[240px] w-full lg:w-[376px]">
+          {/* Bills Section */}
+          <div className="flex flex-col w-full px-4 py-4 bg-white border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
+            <div className="text-base text-[#303030] font-medium leading-[1.25]">Bills</div>
+            <div className="flex flex-col mt-4 px-4 py-4 bg-[#f9f9f9] border border-[#dadada] rounded-lg">
+              <div className="flex flex-col w-full">
+                <div className="flex items-start gap-6 text-sm text-[#717179] tracking-[-0.28px] leading-[1.14]">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>November 27</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                      <path d="M8 4V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    <span>5:00 PM</span>
+                  </div>
+                </div>
+                <div className="mt-3 text-base text-[#303030] font-medium leading-[1.25] tracking-[-0.32px]">
+                  234605 - Dolce Heating &amp; Plumbing
+                </div>
+              </div>
+              <div className="flex items-start justify-between mt-6 w-full gap-10">
+                <div className="text-2xl text-[#2463eb] font-medium leading-[1.08]">$1,350.00</div>
+                <div className="flex items-center gap-1 min-h-[32px] px-3.5 py-1.5 border border-[#059669] rounded-full text-base text-[#059669] font-medium tracking-[-0.32px] leading-[1.4]">
+                  <div className="w-3.5 h-3.5 rounded-full bg-[#059669] flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 5L4 7L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <span>Paid</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Assignees Section */}
+          <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
+            <div className="text-base text-[#303030] font-medium leading-[1.25]">Assignees</div>
+            
+            {/* Tabs */}
+            <div className="flex mt-4 w-full px-0.5 py-0.5 bg-[#f2f2f2] rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center leading-[1.43]">
+              <button
+                onClick={() => setSelectedAssigneeTab("staff")}
+                className={`flex-1 px-4 py-1.5 rounded-md ${selectedAssigneeTab === "staff" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+              >
+                Staff
+              </button>
+              <button
+                onClick={() => setSelectedAssigneeTab("vendors")}
+                className={`flex-1 px-4 py-1.5 rounded-md ${selectedAssigneeTab === "vendors" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+              >
+                Vendors
+              </button>
+              <button
+                onClick={() => setSelectedAssigneeTab("fieldteam")}
+                className={`flex-1 px-4 py-1.5 rounded-md ${selectedAssigneeTab === "fieldteam" ? "bg-white shadow-sm text-[#09090b] font-medium" : ""}`}
+              >
+                Field Team
+              </button>
+            </div>
+
+            {/* Assigned to */}
+            <div className="flex flex-col mt-4 w-full">
+              <div className="text-sm text-[#303030] font-medium leading-[1.14]">Assigned to</div>
+              <div className="flex items-center justify-between mt-3 w-full">
+                <div className="flex items-center gap-2.5 min-w-[240px] flex-1">
+                  <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl text-[#2463eb] font-semibold leading-[0.8]">
+                    JL
+                  </div>
+                  <div className="flex flex-col flex-1 text-sm">
+                    <div className="text-[#2463eb] font-medium leading-[1.29] tracking-[-0.28px]">Julia LoSchiavo</div>
+                    <div className="mt-1 text-[#a1a1a9] leading-[1.14]">Staff member</div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="text-base text-[#2463eb] font-medium leading-[1.13] tracking-[-0.32px]">Edit</div>
+                  <div className="mt-1 text-sm text-[#a1a1a9] leading-[1.14]">(203) 927-1280</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full h-px bg-[#e5e5e5] mt-4"></div>
+
+            {/* Collaborators */}
+            <div className="flex flex-col mt-4 w-full">
+              <div className="text-sm text-[#303030] font-medium leading-[1.14]">Collaborators</div>
+              <div className="flex items-center justify-between mt-3 w-full gap-10 text-[#2463eb]">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl font-semibold leading-[0.8]">
+                    CH
+                  </div>
+                  <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl font-semibold leading-[0.8]">
+                    CS
+                  </div>
+                </div>
+                <div className="text-base font-medium leading-[1.13] tracking-[-0.32px]">Edit</div>
+              </div>
+            </div>
+
+            <div className="w-full h-px bg-[#e5e5e5] mt-4"></div>
+
+            {/* Email Staff */}
+            <button className="flex items-center justify-center gap-1 mt-4 w-full text-sm text-[#2463eb] font-medium tracking-[-0.28px] leading-[1.4] hover:underline">
+              <Mail className="w-4 h-4" />
+              Email staff
+            </button>
+          </div>
+
+          {/* Vendor Communication Section */}
+          <div className="flex flex-col mt-[18px] min-h-[534px]">
+            <div className="flex flex-col w-full max-w-[376px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-10 px-4 py-4 bg-white border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#303030]">
+                <div className="font-medium leading-[1.25]">Vendor Communication</div>
+                <div className="flex items-center gap-3">
+                  <button className="flex items-center gap-2 min-h-[28px] px-3 pr-2 py-0.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm tracking-[-0.32px] leading-[1.4] hover:bg-gray-50 transition-colors">
+                    English
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <circle cx="10" cy="10" r="1"/>
+                    <circle cx="10" cy="4" r="1"/>
+                    <circle cx="10" cy="16" r="1"/>
                   </svg>
-                </button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="px-4 space-y-4 mt-4 font-['Geist',sans-serif]">
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                    MT
+                  </div>
+                  <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                    <div className="text-base font-semibold">Michael Tran</div>
+                    <div className="mt-2 text-sm leading-4">
+                      I just got back from a hiking trip, and the views were breathtaking! You should try it.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                    SP
+                  </div>
+                  <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                    <div className="text-base font-semibold">Sara Patel</div>
+                    <div className="mt-2 text-sm leading-4">
+                      The new art exhibit at the gallery opens this weekend. Are you interested in going?
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                    DK
+                  </div>
+                  <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                    <div className="text-base font-semibold">David Kim</div>
+                    <div className="mt-2 text-sm leading-4">
+                      There's a great concert happening in the park next week. We should grab some tickets!
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                    EJ
+                  </div>
+                  <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                    <div className="text-base font-semibold">Emma Johnson</div>
+                    <div className="mt-2 text-sm leading-4">
+                      I found a cute little cafe that serves the best pastries. Want to check it out together?
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Input */}
+              <div className="flex flex-col mt-4 w-full">
+                <div className="flex flex-col px-4 py-4 bg-white border-b border-[#e5e5e5]">
+                  <div className="flex min-h-[98px] w-full max-w-[345px] px-5 py-[17px] bg-white border border-[#2463eb] rounded-lg font-['Geist',sans-serif] text-sm text-black leading-4">
+                    <textarea
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      placeholder="I found a cute little cafe that serves the best pastries. Want to check it out together? I found a cute little cafe that serves the best pastries. Want to check it out together?"
+                      className="flex-1 resize-none focus:outline-none bg-transparent"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-10 mt-2.5 w-full py-px overflow-hidden">
+                    <button className="flex items-center justify-center w-[33px] min-h-[28px] px-2 py-1.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                      <Paperclip className="w-[17px] h-[17px]" />
+                    </button>
+                    <button className="flex items-center gap-1.5 w-[156px] min-h-[28px] px-3 pr-2 py-0.5 bg-[#2463eb] border border-[#dadada] rounded-lg shadow-sm font-['Geist',sans-serif] text-base text-white tracking-[-0.32px] leading-[1.4] hover:bg-[#1d4ed8] transition-colors">
+                      Send Message
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      {/* Dropdown Menu - Rendered via Portal at body level */}
-      {showPageSizeDropdown &&
-        createPortal(
-          <div
-            className="bg-white overflow-hidden"
-            style={{
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              minWidth: "56px",
-              width: "56px",
-              position: "fixed",
-              top: dropdownPos.top + "px",
-              left: dropdownPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setShowPageSizeDropdown(false)}
-          >
-            {[10, 25, 50].map((size, index) => (
-              <button
-                key={size}
-                onClick={() => {
-                  setItemsPerPage(size);
-                  setCurrentPage(1);
-                  setShowPageSizeDropdown(false);
-                }}
-                className={cn(
-                  "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
-                  itemsPerPage === size
-                    ? "bg-gray-50 font-medium text-gray-900"
-                    : "text-[#303030] hover:bg-gray-50",
-                )}
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "16px",
-                  lineHeight: "140%",
-                  letterSpacing: "-0.32px",
-                  borderRadius: index === 2 ? "0 0 8px 8px" : "0",
-                }}
-              >
-                {size}
-              </button>
-            ))}
-          </div>,
-          document.body,
-        )}
-
-      {/* Create/Update FTO Modal */}
-      <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
-
-      {/* FTO Approval Modal */}
-      <FTOApprovalModal open={showApprovalModal} onOpenChange={setShowApprovalModal} />
     </div>
   );
 }
