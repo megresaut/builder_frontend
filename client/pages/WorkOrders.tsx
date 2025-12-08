@@ -172,9 +172,6 @@ export default function WorkOrders() {
               {/* File List */}
               <div className="flex flex-col mt-6">
                 <div className="flex items-center gap-2 text-sm text-[#09090b] font-medium">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-600">
-                    <path d="M2 2v12h12V2H2z" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
                   <span>Files</span>
                 </div>
                 <div className="flex flex-col gap-2 mt-2 w-full max-w-[270px]">
@@ -190,7 +187,6 @@ export default function WorkOrders() {
                           <div className="text-xs text-[#181932] truncate">Lorem Ipsum.PDF</div>
                           <div className="flex items-center gap-2 text-[10px] text-[#717179] mt-0.5">
                             <span>PDF</span>
-                            <span>112KB</span>
                           </div>
                         </div>
                       </div>
