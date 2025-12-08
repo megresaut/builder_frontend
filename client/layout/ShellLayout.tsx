@@ -12,7 +12,12 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <div className="flex-1 overflow-auto bg-white">{children}</div>
+        <div
+          data-testid="main-content"
+          className="flex-1 overflow-auto bg-white"
+        >
+          {children}
+        </div>
       </main>
     </div>
   );
