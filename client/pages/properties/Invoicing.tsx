@@ -1091,6 +1091,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </svg>
               </button>
             </div>
+            <button className="flex items-center rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors" style={{
+              height: "36px",
+              padding: "0 12px",
+              gap: "8px",
+            }}>
+              <div style={{ display: "block", color: "rgb(255, 255, 255)", fontWeight: "500" }}>
+                Preview PDF
+              </div>
+            </button>
           </div>
         </div>
       </div>
