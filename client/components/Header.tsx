@@ -5,7 +5,8 @@ import { useFavorites } from "@/hooks/FavoritesContext";
 
 interface Tab {
   id: string;
-  icon: React.ReactNode;
+  iconLight: React.ReactNode;
+  iconDark: React.ReactNode;
   label: string;
 }
 
