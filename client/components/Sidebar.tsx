@@ -153,6 +153,8 @@ export default function Sidebar() {
   const handleIconClick = (id: string) => {
     if (submenuMap[id]) {
       setActiveDropdown(activeDropdown === id ? null : id);
+      // Also toggle the expanded state so the icon turns dark
+      toggleExpanded(id);
     }
   };
 
