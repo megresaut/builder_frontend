@@ -273,8 +273,8 @@ export default function TaskSummary() {
               </div>
 
               {/* File List */}
-              <div className="mt-4 flex flex-col max-w-[270px]">
-                <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif]">
+              <div className="mt-4 flex flex-col w-full">
+                <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif] font-medium">
                   <svg
                     width="16"
                     height="16"
@@ -285,77 +285,47 @@ export default function TaskSummary() {
                   </svg>
                   <span>Files (2)</span>
                 </div>
-                <div className="mt-2 flex flex-col gap-2 w-full font-['Inter',sans-serif]">
-                  <div className="flex items-center justify-between px-3 py-3 bg-[#fbfbfb] border border-[#e5e5e5] rounded-lg shadow-sm">
-                    <div className="flex items-center gap-1.5">
-                      <svg
-                        width="32"
-                        height="32"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                        className="flex-shrink-0"
-                      >
-                        <rect width="32" height="32" rx="4" fill="#ef4444" />
-                        <text
-                          x="50%"
-                          y="50%"
-                          dominantBaseline="middle"
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="10"
-                          fontWeight="600"
-                        >
-                          PDF
-                        </text>
-                      </svg>
-                      <div className="flex flex-col">
-                        <div className="text-xs text-[#181932]">
+                <div className="mt-2 flex flex-col gap-2 w-full">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">PDF</span>
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="text-sm text-[#303030] font-medium truncate">
                           Lorem Ipsum.PDF
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-[#717179]">
+                        <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
                           <span>PDF</span>
                           <span>112KB</span>
                         </div>
                       </div>
                     </div>
-                    <button className="w-4 h-4 text-gray-400 hover:text-gray-600">
-                      ×
+                    <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
                     </button>
                   </div>
-                  <div className="flex items-center justify-between px-3 py-3 bg-[#fbfbfb] border border-[#e5e5e5] rounded-lg shadow-sm">
-                    <div className="flex items-center gap-1.5">
-                      <svg
-                        width="32"
-                        height="32"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                        className="flex-shrink-0"
-                      >
-                        <rect width="32" height="32" rx="4" fill="#ef4444" />
-                        <text
-                          x="50%"
-                          y="50%"
-                          dominantBaseline="middle"
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="10"
-                          fontWeight="600"
-                        >
-                          PDF
-                        </text>
-                      </svg>
-                      <div className="flex flex-col">
-                        <div className="text-xs text-[#181932]">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">PDF</span>
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="text-sm text-[#303030] font-medium truncate">
                           Lorem Ipsum.PDF
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-[#717179]">
+                        <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
                           <span>PDF</span>
                           <span>112KB</span>
                         </div>
                       </div>
                     </div>
-                    <button className="w-4 h-4 text-gray-400 hover:text-gray-600">
-                      ×
+                    <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
                     </button>
                   </div>
                 </div>
