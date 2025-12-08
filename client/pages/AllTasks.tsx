@@ -150,7 +150,7 @@ const tasks: Task[] = [
 const StatusBadge = ({ status }: { status: string }) => {
   if (status === "Completed") {
     return (
-      <span className="inline-flex items-center bg-emerald-100 rounded-2xl text-emerald-600 gap-1.5 relative px-3 py-1">
+      <span className="inline-flex items-center bg-emerald-100 rounded-2xl text-emerald-600 gap-1.5 relative px-3 py-1 text-sm">
         <svg
           width="16"
           height="16"
