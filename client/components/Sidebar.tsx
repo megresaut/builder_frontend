@@ -137,19 +137,23 @@ export default function Sidebar() {
 
   const tabContext = useContext(TabContext);
 
-  const handleNavigation = (label: string, sectionId?: string) => {
+  const handleNavigation = (label: string, sectionId?: string, path?: string) => {
     if (tabContext) {
       if (tabContext.selectedTab.startsWith("new-tab-") && sectionId) {
         // If on a new tab, update its metadata with the selected section
         tabContext.setTabMetadata(tabContext.selectedTab, {
           label,
           sectionId,
+          route: path,
+          scrollPosition: 0,
         });
       } else if (sectionId) {
         // If navigating to a section from a regular tab, update that tab's metadata
         tabContext.setTabMetadata(sectionId, {
           label,
           sectionId,
+          route: path,
+          scrollPosition: 0,
         });
         // Set the selected tab to the section
         tabContext.setSelectedTab(sectionId);
