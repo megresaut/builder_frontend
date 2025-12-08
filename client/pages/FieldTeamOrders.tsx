@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
+import CreateFTOModal from "@/components/CreateFTOModal";
 
 interface FieldTeamOrder {
   id: number;
@@ -295,6 +297,7 @@ export default function FieldTeamOrders() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [showFTOModal, setShowFTOModal] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -392,7 +395,10 @@ export default function FieldTeamOrders() {
 
           {/* Create FTO Button */}
           <div className="flex items-center gap-4">
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors">
+            <button
+              onClick={() => setShowFTOModal(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+            >
               <svg
                 width="20"
                 height="20"
@@ -928,6 +934,9 @@ export default function FieldTeamOrders() {
           </div>,
           document.body,
         )}
+
+      {/* Create/Update FTO Modal */}
+      <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
     </div>
   );
 }
