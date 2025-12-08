@@ -238,7 +238,7 @@ export default function TaskSummary() {
                   </div>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="text-sm text-[#717179]">LINKED TASKS</div>
+                  <div className="text-sm text-[#717179]">FTOs</div>
                   <div className="mt-1 text-2xl text-[#303030] font-medium">
                     3
                   </div>
