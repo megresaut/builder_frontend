@@ -727,6 +727,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 Subtotal: $920
               </div>
             </div>
+            <div className="flex items-center gap-2.5">
+              <button className="flex h-10 items-center gap-2 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+                <span className="text-[#303030] font-medium text-sm leading-normal">
+                  Save Draft
+                </span>
+              </button>
+              <button className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
+                <span className="text-white font-medium text-sm leading-normal">
+                  Preview PDF
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
