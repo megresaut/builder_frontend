@@ -32,7 +32,9 @@ const tasks: Task[] = [
     updated: "Oct 2, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "John Doe",
+    assignees: [
+      { id: 1, name: "John Doe", initials: "JD" },
+    ],
   },
   {
     id: 2,
@@ -43,7 +45,9 @@ const tasks: Task[] = [
     updated: "Sep 25, 2025",
     age: "6 Days",
     priority: "Low",
-    assignee: "Jane Smith",
+    assignees: [
+      { id: 2, name: "Jane Smith", initials: "JMS" },
+    ],
   },
   {
     id: 3,
@@ -54,7 +58,10 @@ const tasks: Task[] = [
     updated: "Sep 12, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "John Doe",
+    assignees: [
+      { id: 1, name: "John Doe", initials: "JD" },
+      { id: 2, name: "Jane Smith", initials: "JMS" },
+    ],
   },
   {
     id: 4,
@@ -65,7 +72,9 @@ const tasks: Task[] = [
     updated: "Sep 6, 2025",
     age: "6 Days",
     priority: "High",
-    assignee: "Mike Johnson",
+    assignees: [
+      { id: 3, name: "Mike Johnson", initials: "MJ" },
+    ],
   },
   {
     id: 5,
@@ -76,7 +85,10 @@ const tasks: Task[] = [
     updated: "Sep 5, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "Jane Smith",
+    assignees: [
+      { id: 2, name: "Jane Smith", initials: "JMS" },
+      { id: 3, name: "Mike Johnson", initials: "MJ" },
+    ],
   },
   {
     id: 6,
@@ -87,7 +99,9 @@ const tasks: Task[] = [
     updated: "Sep 4, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "John Doe",
+    assignees: [
+      { id: 1, name: "John Doe", initials: "JD" },
+    ],
   },
   {
     id: 7,
@@ -98,7 +112,10 @@ const tasks: Task[] = [
     updated: "Sep 3, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "Mike Johnson",
+    assignees: [
+      { id: 3, name: "Mike Johnson", initials: "MJ" },
+      { id: 1, name: "John Doe", initials: "JD" },
+    ],
   },
   {
     id: 8,
@@ -109,7 +126,9 @@ const tasks: Task[] = [
     updated: "Sep 2, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "Jane Smith",
+    assignees: [
+      { id: 2, name: "Jane Smith", initials: "JMS" },
+    ],
   },
   {
     id: 9,
@@ -120,7 +139,10 @@ const tasks: Task[] = [
     updated: "Sep 1, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "John Doe",
+    assignees: [
+      { id: 1, name: "John Doe", initials: "JD" },
+      { id: 2, name: "Jane Smith", initials: "JMS" },
+    ],
   },
   {
     id: 10,
@@ -131,7 +153,9 @@ const tasks: Task[] = [
     updated: "Sep 1, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignee: "Mike Johnson",
+    assignees: [
+      { id: 3, name: "Mike Johnson", initials: "MJ" },
+    ],
   },
 ];
 
