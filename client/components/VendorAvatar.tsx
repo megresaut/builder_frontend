@@ -1,0 +1,62 @@
+import React from "react";
+
+interface VendorAvatarProps {
+  name: string;
+  icon?: React.ReactNode;
+}
+
+export const VendorAvatar: React.FC<VendorAvatarProps> = ({ name, icon }) => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "32px",
+          height: "32px",
+          borderRadius: "50%",
+          backgroundColor: "#f3f3f3",
+        }}
+      >
+        {icon ? (
+          icon
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            style={{
+              width: "24px",
+              height: "24px",
+            }}
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        )}
+      </div>
+      <div
+        style={{
+          fontSize: "16px",
+          fontWeight: "400",
+        }}
+      >
+        {name}
+      </div>
+    </div>
+  );
+};
