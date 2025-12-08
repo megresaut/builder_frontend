@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StatusBadge } from "./Utilities";
+import { StatusBadge } from "./StatusBadge";
 
 interface InvoiceHistory {
   id: number;
