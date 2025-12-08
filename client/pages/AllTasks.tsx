@@ -128,26 +128,148 @@ const tasks: Task[] = [
   },
 ];
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Completed":
-      return "bg-green-100 text-green-700";
-    case "In Progress":
-      return "bg-blue-100 text-blue-700";
-    default:
-      return "bg-gray-100 text-gray-700";
+const StatusBadge = ({ status }: { status: string }) => {
+  if (status === "Completed") {
+    return (
+      <span className="inline-flex items-center bg-emerald-100 rounded-2xl text-emerald-600 gap-1.5 relative px-3 py-1">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g clipPath="url(#clip0_bills_pushed)">
+            <path
+              d="M5.00065 8.00016L7.00065 10.0002L11.0007 6.00016M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+              stroke="#059669"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+          <defs>
+            <clipPath id="clip0_bills_pushed">
+              <rect width="16" height="16" fill="white" />
+            </clipPath>
+          </defs>
+        </svg>
+        {status}
+      </span>
+    );
   }
+
+  if (status === "In Progress") {
+    return (
+      <div className="flex items-center bg-blue-50 rounded-2xl text-blue-600 gap-1 h-[30px] px-2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M2.91602 7H11.0827"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
+          {status}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <span className="text-sm font-medium px-2 py-1 rounded bg-gray-100 text-gray-700">
+      {status}
+    </span>
+  );
 };
 
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case "High":
-      return "text-red-600";
-    case "Low":
-      return "text-gray-600";
-    default:
-      return "text-yellow-600";
+const PriorityBadge = ({ priority }: { priority: string }) => {
+  if (priority === "Low") {
+    return (
+      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2 bg-emerald-50 text-emerald-600">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6.99935 2.91675V11.0834M6.99935 11.0834L11.0827 7.00008M6.99935 11.0834L2.91602 7.00008"
+            stroke="#059669"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
+          {priority}
+        </div>
+      </div>
+    );
   }
+
+  if (priority === "Normal") {
+    return (
+      <div className="flex items-center bg-blue-50 rounded-2xl text-blue-600 gap-1 h-[30px] px-2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M2.91602 7H11.0827"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
+          {priority}
+        </div>
+      </div>
+    );
+  }
+
+  if (priority === "High") {
+    return (
+      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2 bg-red-50 text-red-600">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6.99935 11.0834V2.91675M6.99935 2.91675L2.91602 7.00008M6.99935 2.91675L11.0827 7.00008"
+            stroke="#DC2626"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
+          {priority}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <span className="font-normal text-base text-gray-600">{priority}</span>
+  );
 };
 
 const ActionButton = ({
