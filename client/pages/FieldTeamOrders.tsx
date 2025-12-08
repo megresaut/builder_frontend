@@ -628,6 +628,7 @@ export default function FieldTeamOrders() {
                       style={{
                         borderLeftWidth: "2px",
                         borderLeftColor: "rgb(210,209,207)",
+                        backgroundColor: "white",
                       }}
                     >
                       <span className="font-medium text-sm text-gray-700">
@@ -679,7 +680,7 @@ export default function FieldTeamOrders() {
                       </td>
                       <td
                         className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{ borderLeftWidth: "1px" }}
+                        style={{ borderLeftWidth: "1px", backgroundColor: "white" }}
                       >
                         <ActionButton
                           orderId={order.id}
