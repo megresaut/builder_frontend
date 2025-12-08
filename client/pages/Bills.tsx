@@ -255,7 +255,11 @@ export default function Bills() {
   return (
     <div
       className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
-      style={{ borderLeftWidth: "1px", borderLeftColor: "rgb(210, 209, 207)" }}
+      style={{
+        borderLeftWidth: "1px",
+        borderLeftColor: "rgb(210, 209, 207)",
+        paddingBottom: "150px",
+      }}
     >
       <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
