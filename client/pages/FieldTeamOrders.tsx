@@ -395,10 +395,7 @@ export default function FieldTeamOrders() {
           {/* Create FTO Button */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => {
-                console.log("Create FTO button clicked, setting showFTOModal to true");
-                setShowFTOModal(true);
-              }}
+              onClick={() => setShowFTOModal(true)}
               className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <svg
