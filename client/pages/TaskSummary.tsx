@@ -273,15 +273,7 @@ export default function TaskSummary() {
               {/* File List */}
               <div className="mt-4 flex flex-col w-full">
                 <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif] font-medium">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="currentColor"
-                  >
-                    <path d="M8 2L8 14M8 14L4 10M8 14L12 10" />
-                  </svg>
-                  <span>Files (2)</span>
+                  <span>Files</span>
                 </div>
                 <div className="mt-2 flex flex-col gap-2 w-full">
                   <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
