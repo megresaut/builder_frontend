@@ -173,7 +173,7 @@ const safeBills = Array.isArray(bills)
   });
   
 
-  const mappedBills = safeBills.map((b: any) => {
+  const mappedBills = filteredBills.map((b: any) => {
     const category = providerCategoryMap[b.provider_name] || null;
 
     return {

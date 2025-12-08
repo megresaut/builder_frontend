@@ -19,11 +19,23 @@ import {
   startOfMonth,
   getDay,
 } from "date-fns";
+import { fetchJSON } from "../api/fetchJSON"; // same helper used in FTOModal
 
 interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingFTOId: number | null;
 }
+
+// --- Simple DTOs for dropdowns (same shape as FTOModal) ---
+type SimpleTask = { id: number; name: string };
+type SimpleProperty = {
+  id: number;
+  name?: string | null;
+  address_line1?: string | null;
+  city?: string | null;
+  state?: string | null;
+};
 
 interface Assignee {
   id: string;
@@ -31,6 +43,7 @@ interface Assignee {
   initials: string;
 }
 
+// You can still keep this static for now; later you can wire it to /maintenance/assignees
 const AVAILABLE_ASSIGNEES: Assignee[] = [
   { id: "1", name: "David Harris", initials: "DH" },
   { id: "2", name: "Sarah Johnson", initials: "SJ" },
@@ -42,7 +55,15 @@ const AVAILABLE_ASSIGNEES: Assignee[] = [
 export default function CreateFTOModal({
   open,
   onOpenChange,
+  editingFTOId,
 }: CreateFTOModalProps) {
+  // --- dropdown data loaded from API ---
+  const [tasks, setTasks] = useState<SimpleTask[]>([]);
+  const [properties, setProperties] = useState<SimpleProperty[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+
+  // --- local UI state ---
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
   const [dueDate, setDueDate] = useState("");
@@ -59,6 +80,60 @@ export default function CreateFTOModal({
     left: 0,
   });
 
+  const [taskName, setTaskName] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Property / Task selection (IDs as strings)
+  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [associatedTaskLabel, setAssociatedTaskLabel] = useState<string | null>(
+    null,
+  );
+
+  // --------- LOAD DROPDOWN OPTIONS (tasks + properties) ----------
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadOptions = async () => {
+      try {
+        setOptionsLoading(true);
+        setOptionsError(null);
+
+        const [tasksRes, propsRes] = await Promise.all([
+          fetchJSON("/maintenance/tasks?limit=200").catch(  
+            () => [],
+          ),
+          fetchJSON("/properties").catch(() => []),
+        ]);
+
+        if (cancelled) return;
+
+        setTasks(tasksRes || []);
+        setProperties(propsRes || []);
+      } catch (err: any) {
+        if (!cancelled) {
+          setOptionsError(
+            err?.message || "Failed to load properties/tasks options.",
+          );
+        }
+      } finally {
+        if (!cancelled) setOptionsLoading(false);
+      }
+    };
+
+    loadOptions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const renderPropertyLabel = (p: SimpleProperty) =>
+    p.name ||
+    [p.address_line1, p.city, p.state].filter(Boolean).join(", ") ||
+    `Property #${p.id}`;
+
+  // --------- POSITIONING PORTAL POPOVERS ----------
   useEffect(() => {
     let animationFrameId: number;
 
@@ -148,6 +223,155 @@ export default function CreateFTOModal({
     setCalendarMonth(
       new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
     );
+  };
+
+  // RESET fields when entering CREATE MODE
+  useEffect(() => {
+    if (!open) return; // modal must be open
+    if (editingFTOId !== null) return; // skip reset in edit mode
+
+    setTaskName("");
+    setDescription("");
+    setPriority("normal");
+    setTimesheetStatus("outstanding");
+
+    setDueDate("");
+    setSelectedDate(null);
+    setCalendarMonth(new Date());
+    setShowCalendar(false);
+
+    setSelectedAssignees([]);
+    setShowAssigneeDropdown(false);
+
+    setSelectedProperty(null);
+    setSelectedTask(null);
+    setAssociatedTaskLabel(null);
+  }, [open, editingFTOId]);
+
+  // Load existing FTO when editing (kept for edit mode)
+  useEffect(() => {
+    if (!open || editingFTOId === null) return;
+
+    setLoading(true);
+
+    fetch(`http://localhost:8080/maintenance/ftos/${editingFTOId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTaskName(data.name || "");
+        setDescription(data.description || "");
+        setPriority((data.priority || "normal").toLowerCase());
+
+        if (data.property_id) {
+          setSelectedProperty(String(data.property_id));
+        }
+
+        if (data.task_name) {
+          setAssociatedTaskLabel(data.task_name);
+        } else {
+          setAssociatedTaskLabel(null);
+        }
+
+        if (data.due_date) {
+          const d = new Date(data.due_date);
+          setDueDate(
+            `${String(d.getMonth() + 1).padStart(2, "0")}/${String(
+              d.getDate(),
+            ).padStart(2, "0")}/${d.getFullYear()}`,
+          );
+          setSelectedDate(d);
+          setCalendarMonth(d);
+        } else {
+          setDueDate("");
+        }
+
+        if (data.field_team_member_id && data.field_team_member_name) {
+          const initials = data.field_team_member_name
+            .split(" ")
+            .map((w: string) => w[0])
+            .join("")
+            .toUpperCase();
+
+          setSelectedAssignees([
+            {
+              id: String(data.field_team_member_id),
+              name: data.field_team_member_name,
+              initials,
+            },
+          ]);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [open, editingFTOId]);
+
+  // --- helpers mimicking old FTOModal date logic ---
+  const buildDateWithTodayTimeFromMMDDYYYY = (
+    value: string,
+  ): string | null => {
+    if (!value) return null;
+    const parsed = parse(value, "MM/dd/yyyy", new Date());
+    if (!isValid(parsed)) return null;
+
+    const now = new Date();
+    parsed.setHours(now.getHours(), now.getMinutes(), 0, 0);
+    return parsed.toISOString();
+  };
+
+  // ---------- SUBMIT (CREATE + EDIT) ----------
+  const handleSubmit = async () => {
+    const nameTrimmed = taskName.trim();
+    const descTrimmed = description.trim();
+
+    if (!selectedProperty || !nameTrimmed || !descTrimmed || !dueDate) {
+      alert("Please fill in Property, Task Name, Description, and Due Date.");
+      return;
+    }
+
+    const dueISO = buildDateWithTodayTimeFromMMDDYYYY(dueDate);
+    if (!dueISO) {
+      alert("Invalid due date.");
+      return;
+    }
+
+    const payload: any = {
+      name: nameTrimmed,
+      description: descTrimmed,
+      priority,
+      due_date: dueISO,
+    };
+
+    // CREATE ONLY: property + task
+    if (editingFTOId === null) {
+      payload.property_id = Number(selectedProperty);
+      if (selectedTask) {
+        payload.task_id = Number(selectedTask);
+      }
+    }
+
+    // Optional assignee → both PM and tech for now
+    const firstAssigneeId = selectedAssignees[0]?.id;
+    if (firstAssigneeId) {
+      const idNum = Number(firstAssigneeId);
+      payload.assignee_id = idNum;
+      payload.field_team_member_id = idNum;
+    }
+
+    try {
+      if (editingFTOId === null) {
+        await fetchJSON("/maintenance/ftos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetchJSON(`/maintenance/ftos/${editingFTOId}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+      }
+      onOpenChange(false);
+    } catch (err) {
+      console.error("Failed to save FTO:", err);
+      alert("Failed to save field team order.");
+    }
   };
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
@@ -258,44 +482,78 @@ export default function CreateFTOModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-0 gap-0 font-['Geist',sans-serif]">
         <div className="flex flex-col gap-4 px-8 py-8 bg-white rounded-2xl">
-          {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25]">
             Create/Update Field Team Order
           </DialogTitle>
 
-          {/* Property and Unit Row */}
+          {/* Property, Unit, and Associated Task Row */}
           <div className="flex gap-3 w-full flex-wrap">
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Property <span className="text-red-600">*</span>
               </label>
-              <Select>
+              <Select
+                value={selectedProperty || ""}
+                onValueChange={setSelectedProperty}
+                disabled={editingFTOId !== null}
+              >
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <SelectValue
-                    placeholder="Select Property"
-                    className="text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
-                  />
+                  <SelectValue placeholder="Select Property" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
-                  <SelectItem value="property2">Property 2</SelectItem>
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {renderPropertyLabel(p)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+
+            {/* Unit (smaller) – still static for now */}
+            <div className="flex flex-col gap-2 min-w-[140px] flex-[0.4]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Unit
               </label>
-              <Select>
+              <Select disabled={editingFTOId !== null}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
                   <SelectValue
-                    placeholder="Select Unit If Applicable"
+                    placeholder="Unit"
                     className="text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
                   />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unit1">Unit 1</SelectItem>
                   <SelectItem value="unit2">Unit 2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Associated Task Dropdown */}
+            <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+              <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+                Associated Task
+              </label>
+              <Select
+                value={
+                  editingFTOId !== null ? associatedTaskLabel || "" : selectedTask || ""
+                }
+                onValueChange={setSelectedTask}
+                disabled={editingFTOId !== null}
+              >
+                <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
+                  {editingFTOId !== null && associatedTaskLabel ? (
+                    <span className="text-[#303030]">{associatedTaskLabel}</span>
+                  ) : (
+                    <SelectValue placeholder="Select Task" />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  {tasks.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -309,6 +567,8 @@ export default function CreateFTOModal({
               </label>
               <Input
                 placeholder="Type Task Name"
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
                 className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
               />
             </div>
@@ -480,6 +740,8 @@ export default function CreateFTOModal({
                   )}
               </div>
             </div>
+
+            {/* Assignees */}
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Assignees <span className="text-red-600">*</span>
@@ -637,16 +899,28 @@ export default function CreateFTOModal({
             </label>
             <Textarea
               placeholder="Insert Description Here"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               className="min-h-[169px] rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4] resize-none"
             />
           </div>
 
-          {/* Update Field Team Order Button */}
-          <button className="flex min-h-[36px] justify-center items-center gap-2 px-4 py-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors">
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            className="flex min-h-[36px] justify-center items-center gap-2 px-4 py-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors"
+            disabled={optionsLoading || loading}
+          >
             <span className="text-white font-medium text-base">
-              Update Field Team Order
+              {editingFTOId === null
+                ? "Create Field Team Order"
+                : "Update Field Team Order"}
             </span>
           </button>
+
+          {optionsError && (
+            <p className="text-sm text-red-600 mt-1">{optionsError}</p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

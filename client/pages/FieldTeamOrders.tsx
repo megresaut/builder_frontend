@@ -146,10 +146,14 @@ const ActionButton = ({
   orderId,
   openMenuId,
   setOpenMenuId,
+  setEditingFTOId,
+  setShowFTOModal,
 }: {
   orderId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  setEditingFTOId: (id: number | null) => void;
+  setShowFTOModal: (open: boolean) => void;
 }) => {
   const showMenu = openMenuId === orderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -227,7 +231,8 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                console.log("Edit clicked for order", orderId);
+                setEditingFTOId(orderId);
+                setShowFTOModal(true);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -302,6 +307,7 @@ export default function FieldTeamOrders() {
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [showFTOModal, setShowFTOModal] = useState(false);
+  const [editingFTOId, setEditingFTOId] = useState<number | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
@@ -408,7 +414,7 @@ export default function FieldTeamOrders() {
           {/* Create FTO Button */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setShowFTOModal(true)}
+              onClick={() => {setEditingFTOId(null);setShowFTOModal(true)}}
               className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <svg
@@ -718,6 +724,8 @@ export default function FieldTeamOrders() {
                           orderId={order.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          setEditingFTOId={setEditingFTOId}
+                          setShowFTOModal={setShowFTOModal}
                         />
                       </td>
                     </tr>
@@ -959,7 +967,7 @@ export default function FieldTeamOrders() {
         )}
 
       {/* Create/Update FTO Modal */}
-      <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
+      <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} editingFTOId={editingFTOId}/>     
     </div>
   );
 }
