@@ -313,6 +313,7 @@ export default function Header() {
       if (newTabs.size > 1) {
         // If closing the selected tab, select the next tab to the right
         if (isClosing && selectedTab === tabId) {
+          saveScrollPosition();
           // Get the current order of open tabs
           const openTabsArray = tabs.filter((tab) => openTabs.has(tab.id));
           const closedTabIndex = openTabsArray.findIndex(
@@ -335,6 +336,10 @@ export default function Header() {
       }
     } else {
       newTabs.add(tabId);
+      // Save scroll position before switching tabs
+      if (selectedTab !== tabId) {
+        saveScrollPosition();
+      }
       // Selecting a tab
       setSelectedTab(tabId);
     }
