@@ -317,26 +317,106 @@ export default function CreateFTOModal({
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Assignees <span className="text-red-600">*</span>
               </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className="flex w-[22px] h-[22px] justify-center items-center rounded-full bg-white border border-[#2463eb]">
-                      <span className="text-[#2463eb] font-semibold text-[9px] leading-4">
-                        DH
-                      </span>
-                    </div>
-                    <div className="flex w-[22px] h-[22px] justify-center items-center rounded-full bg-white border border-[#2463eb]">
-                      <span className="text-[#2463eb] font-semibold text-[9px] leading-4">
-                        DH
-                      </span>
-                    </div>
+              <div className="relative">
+                <button
+                  ref={assigneeButtonRef}
+                  onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                  className="h-11 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                    {selectedAssignees.length === 0 ? (
+                      <span className="text-[#a1a1a9] text-sm">Select assignees</span>
+                    ) : (
+                      selectedAssignees.map((assignee) => (
+                        <div key={assignee.id} className="flex items-center gap-1 bg-white rounded-full border border-[#2463eb] px-2 py-0.5">
+                          <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463eb]">
+                            <span className="text-white font-semibold text-[8px]">
+                              {assignee.initials}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeAssignee(assignee.id);
+                            }}
+                            className="hover:opacity-70 transition-opacity"
+                          >
+                            <X className="w-3 h-3 text-[#2463eb]" />
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="assignee1">Assignee 1</SelectItem>
-                  <SelectItem value="assignee2">Assignee 2</SelectItem>
-                </SelectContent>
-              </Select>
+                  <svg
+                    className="w-4 h-4 text-gray-600 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </button>
+
+                {showAssigneeDropdown &&
+                  createPortal(
+                    <div
+                      className="bg-white flex flex-col justify-start items-start p-2 gap-1"
+                      style={{
+                        width: "280px",
+                        border: "0.5px solid #DADADA",
+                        borderRadius: "8px",
+                        boxShadow:
+                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                        zIndex: 99999,
+                        position: "fixed",
+                        top: assigneeDropdownPos.top + "px",
+                        left: assigneeDropdownPos.left + "px",
+                        pointerEvents: "auto",
+                      }}
+                      onMouseLeave={() => setShowAssigneeDropdown(false)}
+                    >
+                      {AVAILABLE_ASSIGNEES.map((assignee) => {
+                        const isSelected = selectedAssignees.some((a) => a.id === assignee.id);
+                        return (
+                          <button
+                            key={assignee.id}
+                            onClick={() => toggleAssignee(assignee)}
+                            className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50 rounded transition-colors"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463eb]">
+                                <span className="text-white font-semibold text-[10px]">
+                                  {assignee.initials}
+                                </span>
+                              </div>
+                              <span className="text-[#303030] font-normal text-sm">
+                                {assignee.name}
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M13.5 3L6 10.5L2.5 7"
+                                  stroke="#2463EB"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>,
+                    document.body,
+                  )}
+              </div>
             </div>
           </div>
 
