@@ -56,7 +56,15 @@ export default function CreateFTOModal({
   useEffect(() => {
     let animationFrameId: number;
 
-    const updateDropdownPos = () => {
+    const updatePositions = () => {
+      if (showCalendar && dueDateInputRef.current) {
+        const rect = dueDateInputRef.current.getBoundingClientRect();
+        setCalendarPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
       if (showAssigneeDropdown && assigneeButtonRef.current) {
         const rect = assigneeButtonRef.current.getBoundingClientRect();
         setAssigneeDropdownPos({
@@ -65,13 +73,13 @@ export default function CreateFTOModal({
         });
       }
 
-      if (showAssigneeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      if (showCalendar || showAssigneeDropdown) {
+        animationFrameId = requestAnimationFrame(updatePositions);
       }
     };
 
-    if (showAssigneeDropdown) {
-      updateDropdownPos();
+    if (showCalendar || showAssigneeDropdown) {
+      updatePositions();
     }
 
     return () => {
@@ -79,7 +87,7 @@ export default function CreateFTOModal({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showAssigneeDropdown]);
+  }, [showCalendar, showAssigneeDropdown]);
 
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
