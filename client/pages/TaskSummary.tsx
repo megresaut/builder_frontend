@@ -12,6 +12,7 @@ import {
   Send,
   Paperclip,
 } from "lucide-react";
+import WorkOrders from "./WorkOrders";
 
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -81,33 +82,82 @@ export default function TaskSummary() {
         </div>
 
         {/* Notifications Banner */}
-        <div className="flex flex-col mt-5 w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
-          <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
-            <div className="flex items-center gap-2">
-              <Bell className="w-[18px] h-[18px]" />
-              <div className="text-base text-[#303030] font-bold tracking-[-0.32px]">
-                Notifications
+        {activeTab === "workorders" && (
+          <div className="flex flex-col mt-5 w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
+            <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
+              <div className="flex items-center gap-2">
+                <Bell className="w-[18px] h-[18px]" />
+                <div className="text-base text-[#303030] font-bold tracking-[-0.32px]">
+                  Notifications
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col px-3 py-3 bg-white">
+              <div className="flex items-center justify-between flex-wrap">
+                <div className="flex items-center gap-2 min-w-[240px] flex-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
+                  <div className="text-base text-[#303030]">
+                    A bill from Edgerton Inc. was uploaded, would you like to update work order status?
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
+                  <button className="text-[#303030] underline hover:no-underline">
+                    Dismiss
+                  </button>
+                  <button className="text-[#2463eb] hover:underline">
+                    Approve
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-3 flex-wrap">
+                <div className="flex items-center gap-2 min-w-[240px] flex-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
+                  <div className="text-base text-[#303030]">
+                    Estimate differed from invoice by $50.50
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
+                  <button className="text-[#303030] underline hover:no-underline">
+                    Dismiss
+                  </button>
+                  <button className="text-[#2463eb] hover:underline">
+                    Approve
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between px-3 py-3 bg-white flex-wrap">
-            <div className="flex items-center gap-2 min-w-[240px] flex-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
-              <div className="text-base text-[#303030]">
-                Task looks similar to a previous task XYZ. Would you like to
-                link tasks?
+        )}
+
+        {activeTab === "summary" && (
+          <div className="flex flex-col mt-5 w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
+            <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
+              <div className="flex items-center gap-2">
+                <Bell className="w-[18px] h-[18px]" />
+                <div className="text-base text-[#303030] font-bold tracking-[-0.32px]">
+                  Notifications
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
-              <button className="text-[#303030] underline hover:no-underline">
-                Dismiss
-              </button>
-              <button className="text-[#2463eb] hover:underline">
-                Approve
-              </button>
+            <div className="flex items-center justify-between px-3 py-3 bg-white flex-wrap">
+              <div className="flex items-center gap-2 min-w-[240px] flex-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
+                <div className="text-base text-[#303030]">
+                  Task looks similar to a previous task XYZ. Would you like to
+                  link tasks?
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
+                <button className="text-[#303030] underline hover:no-underline">
+                  Dismiss
+                </button>
+                <button className="text-[#2463eb] hover:underline">
+                  Approve
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Status Section */}
         <div className="flex flex-col mt-5 w-full px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
