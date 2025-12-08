@@ -702,13 +702,7 @@ export default function AllTasks() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded ${getStatusColor(
-                            task.status
-                          )}`}
-                        >
-                          {task.status}
-                        </span>
+                        <StatusBadge status={task.status} />
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
@@ -736,9 +730,7 @@ export default function AllTasks() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className={`font-normal text-base ${getPriorityColor(task.priority)}`}>
-                          {task.priority}
-                        </span>
+                        <PriorityBadge priority={task.priority} />
                       </td>
                       <td
                         className="px-3 py-3"
