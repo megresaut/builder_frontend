@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
@@ -270,6 +270,16 @@ export default function Header() {
   }
 
   const { selectedTab, setSelectedTab } = tabContext;
+
+  // Automatically open the selected tab if it exists and isn't open
+  useEffect(() => {
+    const tabExists = tabs.some((tab) => tab.id === selectedTab);
+    if (tabExists && !openTabs.has(selectedTab)) {
+      const newTabs = new Set(openTabs);
+      newTabs.add(selectedTab);
+      setOpenTabs(newTabs);
+    }
+  }, [selectedTab, tabs, openTabs]);
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
