@@ -8,6 +8,8 @@ import {
   ActionButton,
 } from "../Utilities";
 import { AlertBanner } from "@/components/AlertBanner";
+import { InvoiceTable } from "@/components/InvoiceTable";
+import { InvoiceHistoryTable } from "@/components/InvoiceHistoryTable";
 
 interface UtilityAccount {
   id: number;
@@ -376,6 +378,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         message="There Are Unapproved Field Team Expenses Outstanding. Please Review Before Invoicing Client."
         actionText="View"
       />
+
+      {/* This Month's Invoice */}
+      <InvoiceTable />
+
+      {/* Invoice History */}
+      <InvoiceHistoryTable />
 
       {/* Metrics Cards */}
       <div className="flex items-start content-start gap-4 self-stretch flex-wrap">
