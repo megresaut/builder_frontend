@@ -317,13 +317,17 @@ export default function Sidebar() {
                   </div>
                 ) : (
                   favorites.map((item, idx) => (
-                    <button
+                    <div
                       key={item.id}
-                      onClick={() => navigate(item.path)}
-                      className="flex items-center justify-between px-3 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
                       style={{ minHeight: "38px" }}
                     >
-                      <span className="flex-1 text-left truncate">{item.label}</span>
+                      <button
+                        onClick={() => navigate(item.path)}
+                        className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
+                      >
+                        {item.label}
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -335,7 +339,7 @@ export default function Sidebar() {
                           <path d="M18 6L6 18M6 6l12 12" />
                         </svg>
                       </button>
-                    </button>
+                    </div>
                   ))
                 )}
               </div>
