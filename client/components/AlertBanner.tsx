@@ -116,6 +116,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
                 {
                   display: "inline",
                   fontWeight: "900",
+                  fontSize: "16px",
                 } as React.CSSProperties
               }
             >

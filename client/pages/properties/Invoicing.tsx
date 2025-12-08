@@ -638,6 +638,22 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               ))}
             </tbody>
           </table>
+          <div
+            className="flex items-center justify-between w-full"
+            style={{
+              borderBottomLeftRadius: "11px",
+              borderBottomRightRadius: "11px",
+              borderTopWidth: "1px",
+              borderTopColor: "rgb(229,231,235)",
+              padding: "16px",
+            }}
+          >
+            <div className="flex items-center" style={{ gap: "16px" }}>
+              <div style={{ color: "rgb(48, 48, 48)", fontSize: "22px", fontWeight: "500", lineHeight: "33px" }}>
+                Subtotal: $920
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -823,9 +839,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             }}
           >
             <div className="flex items-center" style={{ gap: "16px" }}>
-              <div style={{ color: "rgb(48, 48, 48)", fontSize: "22px", fontWeight: "500", lineHeight: "33px" }}>
-                Subtotal: $920
-              </div>
             </div>
             <div className="flex items-start flex-wrap" style={{ gap: "10px" }}>
               <button
