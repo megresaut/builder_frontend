@@ -370,7 +370,7 @@ export default function Sidebar() {
                       style={{ minHeight: "38px" }}
                     >
                       <div className="flex items-center gap-2 flex-1 text-left min-w-0">
-                        <span className="flex items-center justify-center text-gray-600 flex-shrink-0">
+                        <span className={`flex items-center justify-center ${getIconColor(item.id)} flex-shrink-0`}>
                           {item.icon}
                         </span>
                         <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
@@ -379,7 +379,7 @@ export default function Sidebar() {
                       </div>
                       {item.hasSubmenu && expandedItems.has(item.id) && (
                         <svg
-                          className="w-4 h-4 text-gray-600"
+                          className={`w-4 h-4 ${getIconColor(item.id)}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
