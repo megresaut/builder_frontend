@@ -284,10 +284,10 @@ export default function CreateFTOModal({
             </label>
             <Select value={timesheetStatus} onValueChange={setTimesheetStatus}>
               <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#fef3c7] rounded-2xl">
-                  {getTimesheetIcon()}
-                  <span className="text-[#d97706] text-base tracking-[-0.32px] leading-[1.4]">
-                    Outstanding
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-2xl" style={{ backgroundColor: getTimesheetStatusBgColor() }}>
+                  {getTimesheetStatusIcon()}
+                  <span className="text-sm tracking-[-0.32px] leading-[1.4]" style={{ color: getTimesheetStatusTextColor(), marginTop: "1px" }}>
+                    {getTimesheetStatusLabel()}
                   </span>
                 </div>
               </SelectTrigger>
