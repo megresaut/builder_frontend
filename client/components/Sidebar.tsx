@@ -185,14 +185,18 @@ export default function Sidebar() {
 
   // Desktop: show expanded sidebar on hover with left edge trigger
   if (!isMobile) {
+    const isExpanded = isHovered || isPinned;
+
     return (
       <div
         className="relative h-screen flex-shrink-0 transition-all"
-        style={{ width: isHovered ? "262px" : "0px" }}
+        style={{ width: isExpanded ? "262px" : "0px" }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
-          setIsHovered(false);
-          setActiveDropdown(null);
+          if (!isPinned) {
+            setIsHovered(false);
+            setActiveDropdown(null);
+          }
         }}
       >
         <div
@@ -203,13 +207,15 @@ export default function Sidebar() {
 
         <aside
           className={`bg-gray-50 border-r border-gray-200 absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
-            isHovered ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            isExpanded ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           }`}
           style={{ width: "262px", padding: "20px", transition: "opacity 0.3s ease" }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => {
-            setIsHovered(false);
-            setActiveDropdown(null);
+            if (!isPinned) {
+              setIsHovered(false);
+              setActiveDropdown(null);
+            }
           }}
         >
           <div className="flex flex-col">
@@ -222,6 +228,21 @@ export default function Sidebar() {
                 />
                 <span className="text-xl font-semibold text-gray-900">AVM</span>
               </div>
+              <button
+                onClick={() => setIsPinned(!isPinned)}
+                className="p-0.5 hover:bg-gray-200 rounded transition-colors"
+                title={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  {isPinned ? (
+                    <>
+                      <path d="M4 7h16M9 4v4M15 4v4M6 11v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9M9 14h6M9 18h6"/>
+                    </>
+                  ) : (
+                    <path d="M10.5 1.5H3.75A2.25 2.25 0 0 0 1.5 3.75V20.25A2.25 2.25 0 0 0 3.75 22.5H20.25A2.25 2.25 0 0 0 22.5 20.25V13.5M16.5 6L8.25 14.25M8.25 6L16.5 14.25"/>
+                  )}
+                </svg>
+              </button>
             </div>
           </div>
 
