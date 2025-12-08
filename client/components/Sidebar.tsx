@@ -703,7 +703,7 @@ export default function Sidebar() {
                           to={subitem.path!}
                           className={className}
                           onClick={() =>
-                            handleNavigation(subitem.label, subitem.sectionId)
+                            handleNavigation(subitem.label, subitem.sectionId, subitem.path)
                           }
                         >
                           <div className="flex items-center h-full">
@@ -716,7 +716,7 @@ export default function Sidebar() {
                           key={idx}
                           className={className}
                           onClick={() =>
-                            handleNavigation(subitem.label, subitem.sectionId)
+                            handleNavigation(subitem.label, subitem.sectionId, subitem.path)
                           }
                         >
                           <div className="flex items-center h-full">
