@@ -11,9 +11,7 @@ interface SidebarItem {
 }
 
 export default function Sidebar() {
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(
-    new Set([]),
-  );
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([]));
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -96,9 +94,7 @@ export default function Sidebar() {
     ],
     screening: [],
     leases: [],
-    accounting: [
-      { label: "Bills", path: "/bills", sectionId: "bills" },
-    ],
+    accounting: [{ label: "Bills", path: "/bills", sectionId: "bills" }],
     maintenance: [
       {
         label: "All Tasks",
@@ -127,7 +123,6 @@ export default function Sidebar() {
     }
     setExpandedItems(newExpanded);
   };
-
 
   const handleIconClick = (id: string) => {
     if (submenuMap[id]) {
@@ -465,7 +460,9 @@ export default function Sidebar() {
                       className="flex items-center justify-between px-3 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
                       style={{ minHeight: "38px" }}
                     >
-                      <span className="flex-1 text-left truncate">{item.label}</span>
+                      <span className="flex-1 text-left truncate">
+                        {item.label}
+                      </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -764,7 +761,9 @@ export default function Sidebar() {
                   className="flex items-center justify-between px-3 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
                   style={{ minHeight: "38px" }}
                 >
-                  <span className="flex-1 text-left truncate">{item.label}</span>
+                  <span className="flex-1 text-left truncate">
+                    {item.label}
+                  </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

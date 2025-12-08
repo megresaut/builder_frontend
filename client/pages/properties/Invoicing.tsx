@@ -731,7 +731,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           }}
         >
           <div className="flex items-center" style={{ gap: "16px" }}>
-            <div style={{ color: "rgb(48, 48, 48)", fontSize: "22px", fontWeight: "500", lineHeight: "33px" }}>
+            <div
+              style={{
+                color: "rgb(48, 48, 48)",
+                fontSize: "22px",
+                fontWeight: "500",
+                lineHeight: "33px",
+              }}
+            >
               Subtotal: $920
             </div>
           </div>
@@ -927,18 +934,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             style={{ position: "relative", zIndex: 1, overflow: "visible" }}
           >
             <div className="flex items-center gap-2">
-              <span className="text-gray-700 text-sm font-medium">
-                Showing
-              </span>
+              <span className="text-gray-700 text-sm font-medium">Showing</span>
               <div
                 className="relative"
                 style={{ position: "relative", zIndex: 10 }}
               >
                 <button
                   ref={dropdownButtonRef}
-                  onClick={() =>
-                    setShowPageSizeDropdown(!showPageSizeDropdown)
-                  }
+                  onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
                   className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
                   style={{
                     borderColor: "rgb(218, 218, 218)",

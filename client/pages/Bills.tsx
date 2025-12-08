@@ -702,7 +702,10 @@ export default function Bills() {
                       </td>
                       <td
                         className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{ borderLeftWidth: "1px", backgroundColor: "white" }}
+                        style={{
+                          borderLeftWidth: "1px",
+                          backgroundColor: "white",
+                        }}
                       >
                         <ActionButton />
                       </td>

@@ -610,7 +610,7 @@ export default function RecurringTasks() {
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPriorityBadgeColor(
-                            task.priority
+                            task.priority,
                           )}`}
                         >
                           {task.priority}
@@ -622,23 +622,23 @@ export default function RecurringTasks() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {task.assignees.map((assignee) => (
-                          <div
-                            key={assignee.id}
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-                            style={{
-                              backgroundColor: "rgb(59, 130, 246)",
-                              borderColor: "rgb(209, 213, 219)",
-                              borderWidth: "1px",
-                            }}
-                            title={assignee.name}
-                          >
-                            {assignee.initials}
-                          </div>
-                        ))}
-                      </div>
-                    </td>
+                        <div className="flex items-center gap-2">
+                          {task.assignees.map((assignee) => (
+                            <div
+                              key={assignee.id}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                              style={{
+                                backgroundColor: "rgb(59, 130, 246)",
+                                borderColor: "rgb(209, 213, 219)",
+                                borderWidth: "1px",
+                              }}
+                              title={assignee.name}
+                            >
+                              {assignee.initials}
+                            </div>
+                          ))}
+                        </div>
+                      </td>
                       <td
                         className="px-3 py-3 whitespace-nowrap"
                         style={{

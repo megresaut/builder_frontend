@@ -19,7 +19,10 @@ export default function TaskSummary() {
   const [messageText, setMessageText] = useState("");
 
   return (
-    <div className="flex flex-col px-6 py-9 pb-6 bg-white border-l" style={{ borderLeftColor: "rgb(210,209,207)" }}>
+    <div
+      className="flex flex-col px-6 py-9 pb-6 bg-white border-l"
+      style={{ borderLeftColor: "rgb(210,209,207)" }}
+    >
       {/* Header Section */}
       <div className="flex items-center justify-between gap-10 flex-wrap w-full">
         <div className="flex flex-col justify-start font-['Geist',sans-serif]">
@@ -91,15 +94,17 @@ export default function TaskSummary() {
             <div className="flex items-center gap-2 min-w-[240px] flex-1">
               <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
               <div className="text-base text-[#303030]">
-                Task looks similar to a previous task XYZ. Would you like to link
-                tasks?
+                Task looks similar to a previous task XYZ. Would you like to
+                link tasks?
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
               <button className="text-[#303030] underline hover:no-underline">
                 Dismiss
               </button>
-              <button className="text-[#2463eb] hover:underline">Approve</button>
+              <button className="text-[#2463eb] hover:underline">
+                Approve
+              </button>
             </div>
           </div>
         </div>
@@ -216,10 +221,10 @@ export default function TaskSummary() {
               <div className="mt-5 text-sm text-[#717179] font-medium leading-4">
                 We have been experiencing issues with the water heater. At first
                 we thought the issue was due to us just moving in and maybe the
-                water heater needed time to heat up after no tenants. It has been
-                3 days in a row now that we lose hot water mid shower. My wife
-                and I both timed it and we lose hot water in the shower after
-                about 5 min. It also takes about 3-4 min to even heat up.
+                water heater needed time to heat up after no tenants. It has
+                been 3 days in a row now that we lose hot water mid shower. My
+                wife and I both timed it and we lose hot water in the shower
+                after about 5 min. It also takes about 3-4 min to even heat up.
               </div>
 
               <div className="w-full h-px bg-[#e5e5e5] mt-5"></div>
@@ -279,7 +284,9 @@ export default function TaskSummary() {
                   <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">PDF</span>
+                        <span className="text-white text-xs font-bold">
+                          PDF
+                        </span>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
                         <div className="text-sm text-[#303030] font-medium truncate">
@@ -292,15 +299,27 @@ export default function TaskSummary() {
                       </div>
                     </div>
                     <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 14L14 2M14 14L2 2"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
                       </svg>
                     </button>
                   </div>
                   <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">PDF</span>
+                        <span className="text-white text-xs font-bold">
+                          PDF
+                        </span>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
                         <div className="text-sm text-[#303030] font-medium truncate">
@@ -313,8 +332,18 @@ export default function TaskSummary() {
                       </div>
                     </div>
                     <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 14L14 2M14 14L2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 14L14 2M14 14L2 2"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -396,7 +425,12 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span> submitted an <span className="text-[#2463eb] font-medium">8.0 Hour</span> <span>Field Team Submission</span>
+                        <span className="font-medium">Julia LoSchiavo</span>{" "}
+                        submitted an{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          8.0 Hour
+                        </span>{" "}
+                        <span>Field Team Submission</span>
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
@@ -414,7 +448,17 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Meghashyam Krishnasamy</span> updated the priority from <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-xs text-[#2463eb]">Normal</span> to <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">Low</span>
+                        <span className="font-medium">
+                          Meghashyam Krishnasamy
+                        </span>{" "}
+                        updated the priority from{" "}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-xs text-[#2463eb]">
+                          Normal
+                        </span>{" "}
+                        to{" "}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">
+                          Low
+                        </span>
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
@@ -432,7 +476,15 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span> updated status to <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">✓ Completed</span> for <span className="text-[#2463eb] font-medium">Work Order #1024431</span>
+                        <span className="font-medium">Julia LoSchiavo</span>{" "}
+                        updated status to{" "}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">
+                          ✓ Completed
+                        </span>{" "}
+                        for{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          Work Order #1024431
+                        </span>
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
@@ -450,7 +502,17 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Meghashyam Krishnasamy</span> sent a payment of <span className="text-[#2463eb] font-medium">$1,450.00</span> for <span className="text-[#2463eb] font-medium">Work Order #1024431</span>
+                        <span className="font-medium">
+                          Meghashyam Krishnasamy
+                        </span>{" "}
+                        sent a payment of{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          $1,450.00
+                        </span>{" "}
+                        for{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          Work Order #1024431
+                        </span>
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
@@ -468,7 +530,15 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span> added a vendor estimate of <span className="text-[#2463eb] font-medium">$1,450.00</span> for <span className="text-[#2463eb] font-medium">Work Order #1024431</span>
+                        <span className="font-medium">Julia LoSchiavo</span>{" "}
+                        added a vendor estimate of{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          $1,450.00
+                        </span>{" "}
+                        for{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          Work Order #1024431
+                        </span>
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
@@ -486,7 +556,11 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span> created a work order for <span className="text-[#2463eb] font-medium">Edgerton Inc.</span>
+                        <span className="font-medium">Julia LoSchiavo</span>{" "}
+                        created a work order for{" "}
+                        <span className="text-[#2463eb] font-medium">
+                          Edgerton Inc.
+                        </span>
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
@@ -501,28 +575,46 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span> created a new task
+                        <span className="font-medium">Julia LoSchiavo</span>{" "}
+                        created a new task
                       </div>
                       <div className="text-xs text-[#a1a1a9] mt-1">
                         11/12/2025 9:22 PM
                       </div>
                       <div className="mt-3 pt-3 border-t border-[#e5e5e5] space-y-2">
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-[#059669]">✓ Completed</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-[#059669]">
+                            ✓ Completed
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-[#2463eb]">Normal</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-[#2463eb]">
+                            Normal
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="text-[#303030] font-medium">Collaborators:</span>
+                          <span className="text-[#303030] font-medium">
+                            Collaborators:
+                          </span>
                           <div className="flex gap-1">
-                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">JL</div>
-                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">CH</div>
-                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">CS</div>
+                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
+                              JL
+                            </div>
+                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
+                              CH
+                            </div>
+                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
+                              CS
+                            </div>
                           </div>
                         </div>
                         <div className="text-xs text-[#717179]">
-                          <span className="font-medium">Description:</span> We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower...
+                          <span className="font-medium">Description:</span> We
+                          have been experiencing issues with the water heater.
+                          At first we thought the issue was due to us just
+                          moving in and maybe the water heater needed time to
+                          heat up after no tenants. It has been 3 days in a row
+                          now that we lose hot water mid shower...
                         </div>
                       </div>
                     </div>
@@ -712,7 +804,9 @@ export default function TaskSummary() {
                       MT
                     </div>
                     <div className="flex flex-col min-w-[240px] flex-1 text-black">
-                      <div className="text-base font-semibold">Michael Tran</div>
+                      <div className="text-base font-semibold">
+                        Michael Tran
+                      </div>
                       <div className="mt-2 text-sm leading-4">
                         I just got back from a hiking trip, and the views were
                         breathtaking! You should try it.
@@ -751,7 +845,9 @@ export default function TaskSummary() {
                       EJ
                     </div>
                     <div className="flex flex-col min-w-[240px] flex-1 text-black">
-                      <div className="text-base font-semibold">Emma Johnson</div>
+                      <div className="text-base font-semibold">
+                        Emma Johnson
+                      </div>
                       <div className="mt-2 text-sm leading-4">
                         I found a cute little cafe that serves the best
                         pastries. Want to check it out together?

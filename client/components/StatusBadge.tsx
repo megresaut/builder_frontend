@@ -1,12 +1,19 @@
 import React from "react";
 
 interface StatusBadgeProps {
-  status: "Paid" | "Pending" | "Approved" | "Overdue" | "Draft" | "active" | "inactive";
+  status:
+    | "Paid"
+    | "Pending"
+    | "Approved"
+    | "Overdue"
+    | "Draft"
+    | "active"
+    | "inactive";
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const getStatusStyles = (
-    status: StatusBadgeProps["status"]
+    status: StatusBadgeProps["status"],
   ): { backgroundColor: string; color: string } => {
     switch (status) {
       case "Paid":

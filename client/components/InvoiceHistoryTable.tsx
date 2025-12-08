@@ -125,7 +125,7 @@ export const InvoiceHistoryTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedItems = invoiceHistory.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + itemsPerPage,
   );
 
   return (
@@ -644,7 +644,9 @@ export const InvoiceHistoryTable: React.FC = () => {
                 height="20"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke={currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"}
+                stroke={
+                  currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
+                }
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -656,7 +658,10 @@ export const InvoiceHistoryTable: React.FC = () => {
                 style={{
                   fontSize: "14px",
                   fontWeight: "500",
-                  color: currentPage === 1 ? "rgb(163, 163, 163)" : "rgb(48, 48, 48)",
+                  color:
+                    currentPage === 1
+                      ? "rgb(163, 163, 163)"
+                      : "rgb(48, 48, 48)",
                 }}
               >
                 Previous
@@ -702,12 +707,16 @@ export const InvoiceHistoryTable: React.FC = () => {
                     minWidth: "40px",
                     borderRight: "1px solid rgb(229, 229, 229)",
                     backgroundColor:
-                      currentPage === page ? "rgb(255, 255, 255)" : "rgba(0, 0, 0, 0)",
+                      currentPage === page
+                        ? "rgb(255, 255, 255)"
+                        : "rgba(0, 0, 0, 0)",
                     cursor: "pointer",
                     fontSize: "14px",
                     fontWeight: currentPage === page ? "700" : "500",
                     color:
-                      currentPage === page ? "rgb(10, 10, 10)" : "rgb(163, 163, 163)",
+                      currentPage === page
+                        ? "rgb(10, 10, 10)"
+                        : "rgb(163, 163, 163)",
                     border: "none",
                   }}
                 >
@@ -746,7 +755,9 @@ export const InvoiceHistoryTable: React.FC = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke={
-                  currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"
+                  currentPage === totalPages
+                    ? "rgb(163, 163, 163)"
+                    : "currentColor"
                 }
                 strokeWidth="1.5"
                 strokeLinecap="round"
