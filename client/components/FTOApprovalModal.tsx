@@ -88,7 +88,7 @@ export default function FTOApprovalModal({
             <div className="border-t border-[#dadada] overflow-x-auto">
               <div className="inline-flex min-w-full">
                 {/* Task Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[121px]">
+                <div className="flex flex-col border-r border-[#dadada] min-w-[121px]" style={{ height: "auto", flexGrow: "0" }}>
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
                     <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Task
@@ -176,10 +176,10 @@ export default function FTOApprovalModal({
                 </div>
 
                 {/* No Fee Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[71px]">
+                <div className="flex flex-col border-r border-[#dadada] min-w-[80px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
                     <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      No Fee
+                      NoFee?
                     </span>
                   </div>
                   <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
