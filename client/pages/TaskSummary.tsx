@@ -1424,11 +1424,6 @@ export default function TaskSummary() {
                         >
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <span className="text-gray-900 font-normal text-base">
-                              {order.property}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
                               {order.description}
                             </span>
                           </td>
