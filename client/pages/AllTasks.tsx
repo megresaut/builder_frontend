@@ -4,6 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
 
+interface Assignee {
+  id: number;
+  name: string;
+  initials: string;
+}
+
 interface Task {
   id: number;
   status: string;
@@ -13,7 +19,7 @@ interface Task {
   updated: string;
   age: string;
   priority: string;
-  assignee: string;
+  assignees: Assignee[];
 }
 
 const tasks: Task[] = [
