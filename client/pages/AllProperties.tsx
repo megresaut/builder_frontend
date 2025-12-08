@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
+import AddPropertyModal from "@/components/AddPropertyModal";
 
 interface Manager {
   id: number;
