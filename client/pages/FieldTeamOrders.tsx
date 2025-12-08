@@ -726,6 +726,8 @@ export default function FieldTeamOrders() {
                           orderId={order.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onApprove={() => setShowApprovalModal(true)}
+                          onEdit={() => setShowFTOModal(true)}
                         />
                       </td>
                     </tr>
