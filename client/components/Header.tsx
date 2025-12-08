@@ -474,8 +474,10 @@ export default function Header() {
           .filter((tab) => openTabs.has(tab.id))
           .map((tab) => {
             const isSelected = tab.id === selectedTab;
-            const displayLabel =
-              tabContext.tabMetadata[tab.id]?.label || tab.label;
+            const metadata = tabContext.tabMetadata[tab.id];
+            const displayLabel = metadata?.label || tab.label;
+            const sectionIcon = getIconForSection(metadata?.sectionId);
+            const displayIcon = sectionIcon || tab.icon;
             return (
               <div
                 key={tab.id}
@@ -515,7 +517,7 @@ export default function Header() {
                   className="flex items-center gap-2"
                 >
                   <span className="flex items-center justify-center w-5 h-5">
-                    {tab.icon}
+                    {displayIcon}
                   </span>
                   <span
                     className="text-sm font-medium text-[#303030]"
