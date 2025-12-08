@@ -79,7 +79,12 @@ export default function CreateFTOModal({
     return colors[priority] || colors.normal;
   };
 
-  const getTimesheetIcon = () => {
+  const getTimesheetStatusIcon = (status: string = timesheetStatus) => {
+    const colors: Record<string, string> = {
+      outstanding: "#D97706",
+      submitted: "#059669",
+      approved: "#2463EB",
+    };
     return (
       <svg
         width="16"
@@ -88,9 +93,36 @@ export default function CreateFTOModal({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="8" cy="8" r="6" stroke="#D97706" strokeWidth="1.5" />
+        <circle cx="8" cy="8" r="6" stroke={colors[status] || colors.outstanding} strokeWidth="1.5" />
       </svg>
     );
+  };
+
+  const getTimesheetStatusLabel = () => {
+    const labels: Record<string, string> = {
+      outstanding: "Outstanding",
+      submitted: "Submitted",
+      approved: "Approved",
+    };
+    return labels[timesheetStatus] || "Outstanding";
+  };
+
+  const getTimesheetStatusBgColor = () => {
+    const colors: Record<string, string> = {
+      outstanding: "#fef3c7",
+      submitted: "#d1fae5",
+      approved: "#dbe9fe",
+    };
+    return colors[timesheetStatus] || colors.outstanding;
+  };
+
+  const getTimesheetStatusTextColor = () => {
+    const colors: Record<string, string> = {
+      outstanding: "#d97706",
+      submitted: "#059669",
+      approved: "#2463eb",
+    };
+    return colors[timesheetStatus] || colors.outstanding;
   };
 
   return (
