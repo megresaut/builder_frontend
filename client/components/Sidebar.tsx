@@ -186,7 +186,18 @@ export default function Sidebar() {
     }
   };
 
-  if (isCollapsed) {
+  // On desktop, hide collapsed sidebar and show expanded on hover near left edge
+  if (!isMobile && !isHovered) {
+    return (
+      <div
+        className="fixed left-0 top-0 h-screen w-16 z-10 hover-trigger"
+        onMouseEnter={() => setIsHovered(true)}
+        style={{ cursor: "default" }}
+      />
+    );
+  }
+
+  if (isCollapsed && isMobile) {
     return (
       <div
         className={`relative h-screen flex-shrink-0 group transition-all`}
