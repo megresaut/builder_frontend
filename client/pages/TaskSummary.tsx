@@ -16,6 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import WorkOrders from "./WorkOrders";
+import CreateFTOModal from "@/components/CreateFTOModal";
+import FTOApprovalModal from "@/components/FTOApprovalModal";
 
 interface FieldTeamOrder {
   id: number;
@@ -237,6 +239,7 @@ const ActionButton = ({
               onClick={() => {
                 console.log("Approve clicked for order", orderId);
                 setOpenMenuId(null);
+                setShowApprovalModal(true);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
@@ -260,6 +263,7 @@ const ActionButton = ({
               onClick={() => {
                 console.log("Edit clicked for order", orderId);
                 setOpenMenuId(null);
+                setShowFTOModal(true);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
