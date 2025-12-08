@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import FTOApprovalModal from "@/components/FTOApprovalModal";
 
 interface FieldTeamOrder {
   id: number;
@@ -224,6 +225,7 @@ const ActionButton = ({
               onClick={() => {
                 console.log("Approve clicked for order", orderId);
                 setOpenMenuId(null);
+                setShowApprovalModal(true);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
@@ -247,6 +249,7 @@ const ActionButton = ({
               onClick={() => {
                 console.log("Edit clicked for order", orderId);
                 setOpenMenuId(null);
+                setShowFTOModal(true);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
@@ -320,6 +323,7 @@ export default function FieldTeamOrders() {
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [showFTOModal, setShowFTOModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -669,7 +673,8 @@ export default function FieldTeamOrders() {
                   {fieldTeamOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      onClick={() => setShowFTOModal(true)}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
@@ -959,6 +964,9 @@ export default function FieldTeamOrders() {
 
       {/* Create/Update FTO Modal */}
       <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
+
+      {/* FTO Approval Modal */}
+      <FTOApprovalModal open={showApprovalModal} onOpenChange={setShowApprovalModal} />
     </div>
   );
 }
