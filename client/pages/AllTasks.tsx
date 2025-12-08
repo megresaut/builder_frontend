@@ -623,49 +623,49 @@ export default function AllTasks() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Status
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Task
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Property
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Due
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Updated
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Age
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Priority
@@ -673,7 +673,7 @@ export default function AllTasks() {
                       </div>
                     </th>
                     <th
-                      className="px-3 py-3 text-left border-r border-gray-200"
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap"
                       style={{
                         borderBottomWidth: "1px",
                         borderColor:
@@ -690,7 +690,7 @@ export default function AllTasks() {
                       </div>
                     </th>
                     <th
-                      className="sticky right-0 px-2 py-3 text-center w-20"
+                      className="sticky right-0 px-2 py-3 text-center w-20 whitespace-nowrap"
                       style={{
                         borderLeftWidth: "2px",
                         border: "1px none rgb(226, 232, 240)",
