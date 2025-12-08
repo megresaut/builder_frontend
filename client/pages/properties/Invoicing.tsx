@@ -712,33 +712,33 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               ))}
             </tbody>
           </table>
-          <div
-            className="flex items-center justify-between w-full"
-            style={{
-              borderBottomLeftRadius: "11px",
-              borderBottomRightRadius: "11px",
-              borderTopWidth: "1px",
-              borderTopColor: "rgb(229,231,235)",
-              padding: "16px",
-            }}
-          >
-            <div className="flex items-center" style={{ gap: "16px" }}>
-              <div style={{ color: "rgb(48, 48, 48)", fontSize: "22px", fontWeight: "500", lineHeight: "33px" }}>
-                Subtotal: $920
-              </div>
+        </div>
+        <div
+          className="flex items-center justify-between w-full"
+          style={{
+            borderBottomLeftRadius: "11px",
+            borderBottomRightRadius: "11px",
+            borderTopWidth: "1px",
+            borderTopColor: "rgb(229,231,235)",
+            padding: "16px",
+          }}
+        >
+          <div className="flex items-center" style={{ gap: "16px" }}>
+            <div style={{ color: "rgb(48, 48, 48)", fontSize: "22px", fontWeight: "500", lineHeight: "33px" }}>
+              Subtotal: $920
             </div>
-            <div className="flex items-center gap-2.5">
-              <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                <span className="text-[#303030] font-medium text-sm leading-[22.4px]">
-                  Save Draft
-                </span>
-              </button>
-              <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
-                <span className="text-white font-medium text-sm leading-normal">
-                  Preview PDF
-                </span>
-              </button>
-            </div>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button className="flex h-9 items-center gap-2 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+              <span className="text-[#303030] font-medium text-sm leading-[22.4px]">
+                Save Draft
+              </span>
+            </button>
+            <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors">
+              <span className="text-white font-medium text-sm leading-normal">
+                Preview PDF
+              </span>
+            </button>
           </div>
         </div>
       </div>
