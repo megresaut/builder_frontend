@@ -518,15 +518,21 @@ export default function Header() {
                   }}
                   className="flex items-center gap-2"
                 >
-                  <span className="flex items-center justify-center w-5 h-5">
+                  <span
+                    className="flex items-center justify-center w-5 h-5"
+                    style={{
+                      color: isSelected ? "#303030" : "#717179",
+                    }}
+                  >
                     {displayIcon}
                   </span>
                   <span
-                    className="text-sm font-medium text-[#303030]"
+                    className="text-sm font-medium"
                     style={{
                       fontFamily:
                         "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                       lineHeight: "24px",
+                      color: isSelected ? "#303030" : "#717179",
                     }}
                   >
                     {displayLabel}
