@@ -395,12 +395,12 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                       />
                       {openInvoiceActionId === item.id && (
                         <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-50 min-w-[120px]">
-                          <button className="block w-full text-left px-4 py-2 text-sm text-[#303030] hover:bg-gray-50 border-b border-[#E5E5E5]">
+                          <div className="block w-full text-left px-4 py-2 text-sm text-[#303030] hover:bg-gray-50 border-b border-[#E5E5E5] cursor-pointer" onClick={(e) => e.stopPropagation()}>
                             Edit
-                          </button>
-                          <button className="block w-full text-left px-4 py-2 text-sm text-[#C61916] hover:bg-red-50">
+                          </div>
+                          <div className="block w-full text-left px-4 py-2 text-sm text-[#C61916] hover:bg-red-50 cursor-pointer" onClick={(e) => e.stopPropagation()}>
                             Delete
-                          </button>
+                          </div>
                         </div>
                       )}
                     </button>
