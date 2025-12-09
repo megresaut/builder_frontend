@@ -222,9 +222,12 @@ export const RecordBill = () => {
             {/* Header */}
             <div className="flex h-9 justify-between items-start w-full">
               <div className="flex flex-col gap-5">
-                <h2 className="text-[#303030] text-xl font-semibold leading-[26px]">
-                  Line Items
-                </h2>
+                <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px] w-[625px]">
+                  <div className="font-semibold">
+                    Bill Details
+                  </div>
+                  <div className="w-[790px] h-px bg-gray-200 mt-5" />
+                </div>
               </div>
               <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors">
                 <span className="text-white text-base font-medium">
@@ -238,7 +241,7 @@ export const RecordBill = () => {
               <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white w-full">
                 {/* Table Header */}
                 <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[140px]">
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[151px]">
                     <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
                       Property / Ledger
                     </span>
@@ -277,7 +280,7 @@ export const RecordBill = () => {
 
                 {/* Row 1 */}
                 <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[140px]">
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
                     <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
                       22 Indian Creek Dr
                     </span>
@@ -360,7 +363,7 @@ export const RecordBill = () => {
 
                 {/* Row 2 */}
                 <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[140px]">
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
                     <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
                       22 Indian Creek Dr
                     </span>
@@ -443,7 +446,7 @@ export const RecordBill = () => {
 
                 {/* Row 3 */}
                 <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[140px]">
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
                     <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
                       22 Indian Creek Dr
                     </span>
@@ -535,9 +538,7 @@ export const RecordBill = () => {
               <div>Bill Total:</div>
             </div>
             <div className="flex flex-col items-center justify-center">
-              <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]">
-                <div>Total Up-Charge: $42.00</div>
-              </div>
+              <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
               <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
                 Total: $1,620.00
               </div>
