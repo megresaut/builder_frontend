@@ -897,9 +897,10 @@ export default function AllTasks() {
                         }}
                       >
                         <ActionButton
-                          taskId={task.id}
+                          task={task}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEditClick={handleTaskEdit}
                         />
                       </td>
                     </tr>
