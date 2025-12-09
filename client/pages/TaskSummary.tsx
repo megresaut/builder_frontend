@@ -456,7 +456,7 @@ export default function TaskSummary() {
       <div className="flex flex-col mt-9 w-full">
         <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium">
           <button
-            onClick={() => setActiveTab("summary")}
+            onClick={() => handleTabChange("summary")}
             className={`flex items-center gap-1.5 py-2 ${
               activeTab === "summary"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
@@ -466,7 +466,7 @@ export default function TaskSummary() {
             Summary
           </button>
           <button
-            onClick={() => setActiveTab("workorders")}
+            onClick={() => handleTabChange("workorders")}
             className={`flex items-center gap-1.5 py-2 ${
               activeTab === "workorders"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
@@ -476,7 +476,7 @@ export default function TaskSummary() {
             Work orders
           </button>
           <button
-            onClick={() => setActiveTab("fieldteam")}
+            onClick={() => handleTabChange("fieldteam")}
             className={`flex items-center gap-1.5 py-2 ${
               activeTab === "fieldteam"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
