@@ -282,7 +282,7 @@ export const Bills: React.FC<BillsProps> = ({
   };
 
   return (
-    <div className="max-w-full mx-auto flex flex-col gap-6">
+    <div className="max-w-full flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
           {/* Title and Description */}
