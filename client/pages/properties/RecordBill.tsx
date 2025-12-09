@@ -311,9 +311,9 @@ export const RecordBill = () => {
         </div>
 
         {/* Right Column - Scrollable Content with Sticky Footer */}
-        <div className="flex-1 flex flex-col" style={{ minHeight: "0px" }}>
+        <div className="flex-1 flex flex-col">
           {/* Scrollable Content Area */}
-          <div className="flex-1 overflow-y-auto overflow-x-auto" style={{ minHeight: "0px" }}>
+          <div className="overflow-y-auto overflow-x-auto" style={{ maxHeight: "calc(100vh - 250px)" }}>
             <div className="px-8 py-6 min-w-min">
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
