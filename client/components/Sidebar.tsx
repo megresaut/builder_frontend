@@ -437,20 +437,7 @@ export default function Sidebar() {
                     Favorites
                   </span>
                   <div className="flex items-center gap-2">
-                    <button className="p-0 text-gray-600 hover:text-gray-900">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="12" cy="12" r="1" />
-                        <circle cx="19" cy="12" r="1" />
-                        <circle cx="5" cy="12" r="1" />
-                      </svg>
-                    </button>
+                    <button className="p-0 text-gray-600 hover:text-gray-900" />
                   </div>
                 </div>
                 {favorites.length === 0 ? (
