@@ -352,9 +352,12 @@ export default function Sidebar() {
                 onMouseLeave={() => setActiveDropdown(null)}
               >
                 {navigationItems.map((item) => (
-                  <div key={item.id}>
+                  <div
+                    key={item.id}
+                    onMouseEnter={() => setHoveredItem(item.id)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
                     <button
-                      onClick={() => item.hasSubmenu && toggleExpanded(item.id)}
                       className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                       style={{ minHeight: "38px" }}
                     >
