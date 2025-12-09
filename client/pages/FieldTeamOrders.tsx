@@ -140,18 +140,19 @@ const fieldTeamOrders: FieldTeamOrder[] = [
 ];
 
 const ActionButton = ({
-  orderId,
+  order,
   openMenuId,
   setOpenMenuId,
   onApprove,
   onEdit,
 }: {
-  orderId: number;
+  order: FieldTeamOrder;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
-  onApprove: () => void;
-  onEdit: () => void;
+  onApprove: (order: FieldTeamOrder) => void;
+  onEdit: (order: FieldTeamOrder) => void;
 }) => {
+  const orderId = order.id;
   const showMenu = openMenuId === orderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
