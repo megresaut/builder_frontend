@@ -271,7 +271,7 @@ export const RecordBill = () => {
   };
 
   return (
-    <div className="bg-white flex flex-col h-screen border-l-4 border-l-[#E5E7EB] font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]" style={{ marginBottom: "-200px" }}>
+    <div className="bg-white flex flex-col h-screen border-l-4 border-l-[#E5E7EB] font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
