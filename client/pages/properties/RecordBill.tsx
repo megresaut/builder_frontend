@@ -140,28 +140,12 @@ export const RecordBill = () => {
     document.querySelectorAll('[data-measure-width]').forEach((element) => {
       const columnName = element.getAttribute('data-measure-width') as keyof typeof defaultColumnWidths;
       const padding = 24; // px-3 = 12px * 2
-      let requiredWidth = defaultColumnWidths[columnName];
 
-      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement) {
-        // For input and select elements, measure the text content width
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          const computedStyle = window.getComputedStyle(element);
-          const font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-          ctx.font = font;
+      // Measure the scrollWidth of the element (accounts for actual content)
+      const scrollWidth = (element as HTMLElement).scrollWidth;
+      const requiredWidth = scrollWidth + padding;
 
-          const value = (element as HTMLInputElement).value || (element as HTMLSelectElement).textContent || '';
-          const textWidth = ctx.measureText(value).width;
-          requiredWidth = textWidth + padding;
-        }
-      } else {
-        // For other elements, use scrollWidth
-        const scrollWidth = (element as HTMLElement).scrollWidth;
-        requiredWidth = scrollWidth + padding;
-      }
-
-      // Always set to the maximum of default or required width
+      // Set to the maximum of default or required width - allows both expanding and contracting
       newWidths[columnName] = Math.max(defaultColumnWidths[columnName], requiredWidth);
     });
 
