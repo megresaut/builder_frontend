@@ -510,7 +510,7 @@ export const RecordBill = () => {
                     {lineItems.map((item) => (
                       <div key={item.id} className="flex items-center">
                         {/* Property */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[151px] flex-shrink-0">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
                           <Select
                             value={item.property}
                             onValueChange={(value) =>
@@ -531,7 +531,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Unit */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[60px] flex-shrink-0">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
                           <Select
                             value={item.unit}
                             onValueChange={(value) =>
@@ -552,7 +552,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Work Order */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[120px] flex-shrink-0">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
                           <Select
                             value={item.workOrder}
                             onValueChange={(value) =>
@@ -573,7 +573,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Description */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1 min-w-[200px]">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
                           <input
                             type="text"
                             value={item.description}
@@ -585,7 +585,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* GL Account */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[120px] flex-shrink-0">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
                           <Select
                             value={item.glAccount}
                             onValueChange={(value) =>
@@ -606,7 +606,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Total */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[80px] flex-shrink-0">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
                           <input
                             type="text"
                             value={item.total}
