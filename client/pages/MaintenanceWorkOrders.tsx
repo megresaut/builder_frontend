@@ -339,10 +339,16 @@ export default function MaintenanceWorkOrders() {
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(null);
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  const handleWorkOrderEdit = (workOrder: WorkOrder) => {
+    setEditingWorkOrder(workOrder);
+    setIsCreateWorkOrderModalOpen(true);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
