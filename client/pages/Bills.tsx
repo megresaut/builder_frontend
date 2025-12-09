@@ -880,7 +880,11 @@ export default function Bills() {
                           backgroundColor: "white",
                         }}
                       >
-                        <ActionButton />
+                        <ActionButton
+                          itemId={bill.id}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                        />
                       </td>
                     </tr>
                   );
