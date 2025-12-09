@@ -665,7 +665,7 @@ export default function WorkOrdersTab({
                 {mockWorkOrders.map((workOrder) => (
                   <tr
                     key={workOrder.id}
-                    onClick={() => setSelectedWorkOrderId(workOrder.id)}
+                    onClick={() => handleSelectWorkOrder(workOrder.id)}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                   >
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
