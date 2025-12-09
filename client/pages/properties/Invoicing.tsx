@@ -375,8 +375,8 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative">
-                <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-20 gap-2 overflow-hidden px-3 py-3">
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative z-40">
+                <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-20 gap-2 overflow-visible px-3 py-3">
                   <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                     Actions
                   </div>
@@ -394,7 +394,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                         alt=""
                       />
                       {openInvoiceActionId === item.id && (
-                        <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-50 min-w-[120px]">
+                        <div className="fixed bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[9999] min-w-[120px]" style={{ top: '0', left: '0' }}>
                           <div className="block w-full text-left px-4 py-2 text-sm text-[#303030] hover:bg-gray-50 border-b border-[#E5E5E5] cursor-pointer" onClick={(e) => e.stopPropagation()}>
                             Edit
                           </div>
