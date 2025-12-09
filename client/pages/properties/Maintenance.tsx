@@ -1172,7 +1172,19 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           <div className="flex items-center justify-between w-full gap-4 flex-wrap px-6 py-4 border-t border-gray-200">
             <div className="flex items-center gap-2">
               <div className="text-[#525252] text-base font-medium">Showing</div>
-              <div className="text-[#0A0A0A] text-base font-medium">{itemsPerPage}</div>
+              <button
+                ref={workordersDropdownRef}
+                onClick={() => setWorkordersShowDropdown(!workordersShowDropdown)}
+                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+              >
+                <div className="text-[#0A0A0A] text-base font-medium">{workordersItemsPerPage}</div>
+                <img
+                  loading="lazy"
+                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/cc5507ba17118962f81e4f61a415adb6e3ee75ee?placeholderIfAbsent=true"
+                  className="w-[18px] h-[18px]"
+                  alt=""
+                />
+              </button>
               <div className="text-[#525252] text-base font-medium">of {mockPropertyWorkOrders.length}</div>
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
@@ -1205,6 +1217,54 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Work Orders Items Per Page Dropdown */}
+          {workordersShowDropdown &&
+            createPortal(
+              <div
+                className="bg-white overflow-hidden"
+                style={{
+                  border: "0.5px solid #DADADA",
+                  borderRadius: "8px",
+                  boxShadow:
+                    "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                  zIndex: 99999,
+                  minWidth: "56px",
+                  width: "56px",
+                  position: "fixed",
+                  top: workordersDropdownPos.top + "px",
+                  left: workordersDropdownPos.left + "px",
+                  pointerEvents: "auto",
+                }}
+                onMouseLeave={() => setWorkordersShowDropdown(false)}
+              >
+                {[10, 25, 50].map((size, index) => (
+                  <button
+                    key={size}
+                    onClick={() => {
+                      setWorkordersItemsPerPage(size);
+                      setWorkordersPage(1);
+                      setWorkordersShowDropdown(false);
+                    }}
+                    className={`w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap ${
+                      workordersItemsPerPage === size
+                        ? "bg-gray-50 font-medium text-gray-900"
+                        : "text-[#303030] hover:bg-gray-50"
+                    }`}
+                    style={{
+                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      fontSize: "16px",
+                      lineHeight: "140%",
+                      letterSpacing: "-0.32px",
+                      borderRadius: index === 2 ? "0 0 8px 8px" : "0",
+                    }}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>,
+              document.body,
+            )}
         </div>
       )}
 
