@@ -232,10 +232,6 @@ export const Vendors: React.FC<VendorsProps> = ({
     "openMenuId",
     null,
   );
-  const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
-  const [uploadDocumentType, setUploadDocumentType] = useState<
-    "w9" | "insurance"
-  >("w9");
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
     "isAddVendorModalOpen",
