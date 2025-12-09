@@ -672,7 +672,9 @@ export const Bills: React.FC<BillsProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {approvedBills.map((bill) => (
+                  {displayedBills
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((bill) => (
                     <tr
                       key={bill.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
