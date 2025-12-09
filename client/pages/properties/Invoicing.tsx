@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useState, useRef, useEffect } from "react";
 
 interface InvoicingProps {
   propertyAddress: string;
