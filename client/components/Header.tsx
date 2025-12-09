@@ -129,7 +129,10 @@ export default function Header() {
     const path = location.pathname;
     const items: { label: string; href?: string }[] = [];
 
-    if (path.includes("/tasks/")) {
+    if (path === "/record-bill" || path.includes("/bills/record")) {
+      items.push({ label: "Bills", href: "/bills" });
+      items.push({ label: "Record Bill" });
+    } else if (path.includes("/tasks/")) {
       const match = path.match(/\/tasks\/(\d+)(?:\/(\w+))?(?:\/(\d+))?/);
       if (match) {
         const taskId = match[1];
