@@ -493,7 +493,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Unit */}
-                        <div className="flex items-start border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[60px] flex-shrink-0">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 w-[60px] flex-shrink-0">
                           <Select
                             value={item.unit}
                             onValueChange={(value) =>
