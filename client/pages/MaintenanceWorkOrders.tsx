@@ -838,9 +838,10 @@ export default function MaintenanceWorkOrders() {
                         }}
                       >
                         <ActionButton
-                          taskId={workOrder.id}
+                          workOrder={workOrder}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEditClick={handleWorkOrderEdit}
                         />
                       </td>
                     </tr>
