@@ -143,14 +143,17 @@ const properties: Property[] = [
 ];
 
 const ActionButton = ({
-  propertyId,
+  property,
   openMenuId,
   setOpenMenuId,
+  onEditClick,
 }: {
-  propertyId: number;
+  property: Property;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onEditClick: (data: Property) => void;
 }) => {
+  const propertyId = property.id;
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
