@@ -1353,6 +1353,29 @@ export default function TaskSummary() {
                         />
                       </svg>
                     </button>
+                    <button
+                      onClick={() => setShowFTOModal(true)}
+                      className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10 4.16667V15.8333M4.16667 10H15.8333"
+                          stroke="white"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span className="text-white font-medium text-base leading-normal">
+                        Create FTO
+                      </span>
+                    </button>
                   </div>
                 </div>
 
