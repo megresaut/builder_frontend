@@ -20,15 +20,21 @@ import {
   getDay,
 } from "date-fns";
 
-interface CreateWorkOrderModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 interface Assignee {
   id: string;
   name: string;
   initials: string;
+}
+
+interface CreateWorkOrderModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editData?: {
+    task: string;
+    dueDate: string;
+    priority: string;
+    status: string;
+  };
 }
 
 const AVAILABLE_ASSIGNEES: Assignee[] = [
