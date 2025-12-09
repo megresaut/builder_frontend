@@ -378,65 +378,6 @@ export default function WorkOrdersTab() {
   // Show table view
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Notifications Banner */}
-      <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
-        <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
-          <div className="flex items-center gap-2">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            <div className="text-base text-[#303030] font-bold tracking-[-0.32px]">
-              Notifications
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col px-3 py-3 bg-white">
-          <div className="flex items-center justify-between flex-wrap">
-            <div className="flex items-center gap-2 min-w-[240px] flex-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
-              <div className="text-base text-[#303030]">
-                A bill from Edgerton Inc. was uploaded, would you like to
-                update work order status?
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
-              <button className="text-[#303030] underline hover:no-underline">
-                Dismiss
-              </button>
-              <button className="text-[#2463eb] hover:underline">
-                Approve
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-3 flex-wrap">
-            <div className="flex items-center gap-2 min-w-[240px] flex-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
-              <div className="text-base text-[#303030]">
-                Estimate differed from invoice by $50.50
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
-              <button className="text-[#303030] underline hover:no-underline">
-                Dismiss
-              </button>
-              <button className="text-[#2463eb] hover:underline">
-                Approve
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-6">
         {/* Work Orders Table */}
         <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
