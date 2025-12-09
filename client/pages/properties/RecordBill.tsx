@@ -417,24 +417,6 @@ export const RecordBill = () => {
                       </div>
                     </div>
 
-                    {/* Select Task */}
-                    <div className="flex flex-col flex-1 min-w-[240px]" style={{ marginRight: "23px", marginTop: "10px" }}>
-                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Select Work Order{" "}
-                        <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
-                      </label>
-                      <Select>
-                        <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
-                          <SelectValue placeholder="Select Work Order..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="task1">Task 1</SelectItem>
-                          <SelectItem value="task2">Task 2</SelectItem>
-                          <SelectItem value="task3">Task 3</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
                     {/* Memo/Notes */}
                     <div className="flex mt-5 w-full flex-col" style={{ width: "790px" }}>
                       <label className="text-[#303030] text-sm font-medium leading-[1.43]">
