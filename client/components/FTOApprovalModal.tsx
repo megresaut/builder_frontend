@@ -13,11 +13,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface FTOApprovalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedFTOId?: number | null;
 }
 
 export default function FTOApprovalModal({
   open,
   onOpenChange,
+  selectedFTOId,
 }: FTOApprovalModalProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({
