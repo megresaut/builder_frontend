@@ -110,6 +110,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
             </div>
             <div className="flex items-center gap-3">
               <button
+                onClick={() => setIsEditModalOpen(true)}
                 className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
                 style={{
                   boxShadow:
