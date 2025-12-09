@@ -986,7 +986,20 @@ export default function FieldTeamOrders() {
         )}
 
       {/* Create/Update FTO Modal */}
-      <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
+      <CreateFTOModal
+        open={showFTOModal}
+        onOpenChange={(open) => {
+          setShowFTOModal(open);
+          if (!open) {
+            setEditingOrder(null);
+          }
+        }}
+        editData={editingOrder ? {
+          dueDate: editingOrder.dueDate,
+          priority: "Normal",
+          timesheetStatus: editingOrder.status,
+        } : undefined}
+      />
 
       {/* FTO Approval Modal */}
       <FTOApprovalModal
