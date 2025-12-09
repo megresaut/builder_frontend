@@ -48,6 +48,7 @@ const AVAILABLE_ASSIGNEES: Assignee[] = [
 export default function CreateWorkOrderModal({
   open,
   onOpenChange,
+  editData,
 }: CreateWorkOrderModalProps) {
   const [activeTab, setActiveTab] = useState<"new" | "existing">("new");
   const [status, setStatus] = useState("inprogress");
