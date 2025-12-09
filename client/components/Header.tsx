@@ -128,10 +128,11 @@ export default function Header() {
     const items: { label: string; href?: string }[] = [];
 
     if (path.includes("/tasks/")) {
-      const match = path.match(/\/tasks\/(\d+)(?:\/(\w+))?/);
+      const match = path.match(/\/tasks\/(\d+)(?:\/(\w+))?(?:\/(\d+))?/);
       if (match) {
         const taskId = match[1];
         const tab = match[2];
+        const workOrderId = match[3];
         items.push({ label: "Tasks", href: "/all-tasks" });
         // Map taskId to task information (mock data)
         const taskData: Record<string, string> = {
@@ -155,6 +156,23 @@ export default function Header() {
             fieldteam: "Field Team Orders",
           };
           items.push({ label: tabLabels[tab] || tab });
+
+          // Add work order to breadcrumbs if present
+          if (workOrderId && tab === "workorders") {
+            const workOrderData: Record<string, string> = {
+              "1": "Doors Need To Be Repaired",
+              "2": "Doors Need To Be Repaired",
+              "3": "Doors Need To Be Repaired",
+              "4": "Doors Need To Be Repaired",
+              "5": "Doors Need To Be Repaired",
+              "6": "Doors Need To Be Repaired",
+              "7": "Doors Need To Be Repaired",
+              "8": "Doors Need To Be Repaired",
+              "9": "Doors Need To Be Repaired",
+              "10": "Doors Need To Be Repaired",
+            };
+            items.push({ label: workOrderData[workOrderId] || `Work Order ${workOrderId}` });
+          }
         }
       }
     } else if (path.includes("/property/")) {
