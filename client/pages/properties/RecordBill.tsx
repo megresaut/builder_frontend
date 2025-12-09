@@ -535,7 +535,7 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Description */}
-                        <div className="flex items-start border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1 min-w-[200px]">
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1 min-w-[200px]">
                           <input
                             type="text"
                             value={item.description}
