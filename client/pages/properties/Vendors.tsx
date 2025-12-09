@@ -518,72 +518,15 @@ export const Vendors: React.FC<VendorsProps> = ({
                           {vendor.phone}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {vendor.email}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
-                          {vendor.insuranceProvider}
+                          {vendor.notes}
                         </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {vendor.expires}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        {vendor.w9 ? (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("w9");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-blue-600 font-normal text-base underline cursor-pointer hover:opacity-70"
-                          >
-                            {vendor.w9}
-                          </span>
-                        ) : (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("w9");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-gray-400 font-normal text-base underline cursor-pointer hover:text-gray-600"
-                          >
-                            Add
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        className="px-3 py-3 whitespace-nowrap"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
-                      >
-                        {vendor.insurance ? (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("insurance");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-blue-600 font-normal text-base underline cursor-pointer hover:opacity-70"
-                          >
-                            {vendor.insurance}
-                          </span>
-                        ) : (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("insurance");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-gray-400 font-normal text-base underline cursor-pointer hover:text-gray-600"
-                          >
-                            Add
-                          </span>
-                        )}
                       </td>
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
@@ -796,17 +739,6 @@ export const Vendors: React.FC<VendorsProps> = ({
           </div>
         </div>
       </div>
-
-      {/* File Upload Modal */}
-      <FileUploadModal
-        open={isFileUploadModalOpen}
-        onOpenChange={setIsFileUploadModalOpen}
-        title={
-          uploadDocumentType === "w9"
-            ? "Upload W9 Document"
-            : "Upload Insurance Document"
-        }
-      />
 
       {/* Add Vendor Modal */}
       <AddVendorModal
