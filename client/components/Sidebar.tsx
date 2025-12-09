@@ -602,9 +602,10 @@ export default function Sidebar() {
             isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
           style={{
-            width: "80px",
-            padding: "20px 12px",
+            width: "30px",
+            padding: "20px 0px",
             transition: "opacity 0.3s ease",
+            overflow: "hidden",
           }}
         >
           <div className="flex flex-col items-center gap-6">
