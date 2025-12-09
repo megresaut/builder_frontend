@@ -142,6 +142,23 @@ export default function CreateWorkOrderModal({
     );
   };
 
+  const getStatusLabel = () => {
+    const labels: Record<string, string> = {
+      inprogress: "In progress",
+      completed: "Completed",
+    };
+    return labels[status] || "In progress";
+  };
+
+  const getPriorityLabel = () => {
+    const labels: Record<string, string> = {
+      low: "Low",
+      normal: "Normal",
+      high: "High",
+    };
+    return labels[priority] || "Normal";
+  };
+
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
       const isSelected = prev.some((a) => a.id === assignee.id);
@@ -510,7 +527,9 @@ export default function CreateWorkOrderModal({
                 <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
                   <div className="flex items-center gap-1 px-2 py-0.5 rounded-2xl bg-[#dbe9fe]">
                     {getStatusIcon()}
-                    <span className="text-sm text-[#2463eb]">In progress</span>
+                    <span className="text-sm text-[#2463eb]">
+                      {getStatusLabel()}
+                    </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -527,7 +546,9 @@ export default function CreateWorkOrderModal({
                 <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
                   <div className="flex items-center gap-1 px-2 py-0.5 rounded-2xl bg-[#dbe9fe]">
                     {getPriorityIcon()}
-                    <span className="text-sm text-[#2463eb]">Normal</span>
+                    <span className="text-sm text-[#2463eb]">
+                      {getPriorityLabel()}
+                    </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
