@@ -1159,7 +1159,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     if ((e.target as HTMLElement).closest('td:last-child')) {
                       return;
                     }
-                    navigate(`/work-orders/${workOrder.id}`);
+                    navigate(`/work-order/${workOrder.id}`);
                   };
                   return (
                   <tr
