@@ -32,6 +32,7 @@ const mockWorkOrders: WorkOrder[] = [
   {
     id: 1,
     task: "Doors need to be repaired",
+    taskId: 1,
     dueDate: "Oct 2, 2025",
     updatedDate: "Oct 2, 2025",
     age: "6 days 5 hours",
@@ -45,7 +46,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 2,
-    task: "Doors need to be repaired",
+    task: "HVAC maintenance needed",
+    taskId: 2,
     dueDate: "Sep 29, 2025",
     updatedDate: "Sep 29, 2025",
     age: "6 days 5 hours",
@@ -59,7 +61,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 3,
-    task: "Doors need to be repaired",
+    task: "Window replacement",
+    taskId: 3,
     dueDate: "Sep 10, 2025",
     updatedDate: "Sep 10, 2025",
     age: "6 days 5 hours",
@@ -73,7 +76,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 4,
-    task: "Doors need to be repaired",
+    task: "Roof inspection",
+    taskId: 4,
     dueDate: "Sep 6, 2025",
     updatedDate: "Sep 6, 2025",
     age: "6 days 5 hours",
@@ -87,7 +91,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 5,
-    task: "Doors need to be repaired",
+    task: "Plumbing repair",
+    taskId: 5,
     dueDate: "Sep 5, 2025",
     updatedDate: "Sep 5, 2025",
     age: "6 days 5 hours",
@@ -101,7 +106,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 6,
-    task: "Doors need to be repaired",
+    task: "Electrical work",
+    taskId: 6,
     dueDate: "Sep 4, 2025",
     updatedDate: "Sep 4, 2025",
     age: "6 days 5 hours",
@@ -115,7 +121,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 7,
-    task: "Doors need to be repaired",
+    task: "Painting job",
+    taskId: 7,
     dueDate: "Sep 4, 2025",
     updatedDate: "Sep 4, 2025",
     age: "6 days 5 hours",
@@ -129,7 +136,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 8,
-    task: "Doors need to be repaired",
+    task: "Carpet replacement",
+    taskId: 8,
     dueDate: "Sep 3, 2025",
     updatedDate: "Sep 3, 2025",
     age: "6 days 5 hours",
@@ -143,7 +151,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 9,
-    task: "Doors need to be repaired",
+    task: "Landscaping work",
+    taskId: 9,
     dueDate: "Sep 1, 2025",
     updatedDate: "Sep 1, 2025",
     age: "6 days 5 hours",
@@ -157,7 +166,8 @@ const mockWorkOrders: WorkOrder[] = [
   },
   {
     id: 10,
-    task: "Doors need to be repaired",
+    task: "Fence repair",
+    taskId: 10,
     dueDate: "Sep 1, 2025",
     updatedDate: "Sep 1, 2025",
     age: "6 days 5 hours",
