@@ -186,7 +186,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
 
   useEffect(() => {
     const handleClickAnywhere = () => {
-      setOpenActionId(null);
+      setOpenMenuId(null);
     };
 
     document.addEventListener("mousedown", handleClickAnywhere);
