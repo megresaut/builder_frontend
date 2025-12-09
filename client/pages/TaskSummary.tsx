@@ -339,7 +339,14 @@ const ActionButton = ({
 
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
-  const [activeTab, setActiveTab] = useState("workorders");
+  const { tabMetadata, setTabMetadata } = useTabContext();
+  const currentTabId = `task-${taskId}`;
+  const currentMetadata = tabMetadata[currentTabId];
+
+  const [activeTab, setActiveTab] = useState(currentMetadata?.activeTab || "workorders");
+  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
+    currentMetadata?.selectedWorkOrderId || null
+  );
   const [messageText, setMessageText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
