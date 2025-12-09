@@ -575,14 +575,14 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-hidden w-20 relative">
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative z-10">
                 <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-20 gap-2 overflow-hidden px-3 py-3">
                   <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                     Actions
                   </div>
                 </div>
                 {paginatedHistory.map((item) => (
-                  <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative">
+                  <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative z-20">
                     <button
                       onClick={() => setOpenHistoryActionId(openHistoryActionId === item.id ? null : item.id)}
                       className="rounded-md bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-7 w-7 px-1.5 items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 relative"
