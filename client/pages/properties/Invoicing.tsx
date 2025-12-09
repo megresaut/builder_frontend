@@ -351,7 +351,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                     </div>
                   </div>
                   {invoiceItems.map((item) => (
-                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3">
+                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3" style={{ borderRightWidth: "0px" }}>
                       <div
                         className="flex items-center gap-1.5 rounded-2xl px-3 py-1"
                         style={{
