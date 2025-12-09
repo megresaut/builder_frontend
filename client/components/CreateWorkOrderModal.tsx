@@ -1043,12 +1043,14 @@ export default function CreateWorkOrderModal({
             </div>
           </div>
 
-          {/* Create Button */}
+          {/* Create/Update Button */}
           <button className="flex h-9 justify-center items-center gap-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0">
             <span className="text-white font-medium text-base">
-              {activeTab === "new"
-                ? "Create New Task & Work Order"
-                : "Create New Work Order"}
+              {editData
+                ? "Update Work Order"
+                : activeTab === "new"
+                  ? "Create New Task & Work Order"
+                  : "Create New Work Order"}
             </span>
           </button>
         </div>
