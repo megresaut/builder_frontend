@@ -375,22 +375,35 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-hidden w-20">
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-hidden w-20 relative">
                 <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-20 gap-2 overflow-hidden px-3 py-3">
                   <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                     Actions
                   </div>
                 </div>
                 {invoiceItems.map((item) => (
-                  <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3">
-                    <div className="rounded-md bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-7 w-7 px-1.5 items-center gap-2 justify-center cursor-pointer hover:bg-gray-100">
+                  <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative">
+                    <button
+                      onClick={() => setOpenInvoiceActionId(openInvoiceActionId === item.id ? null : item.id)}
+                      className="rounded-md bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-7 w-7 px-1.5 items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 relative"
+                    >
                       <img
                         loading="lazy"
                         src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7e6ac68158ffa1dc48847fc07b3685f07fa98a1f?placeholderIfAbsent=true"
                         className="w-[18px] h-[18px]"
                         alt=""
                       />
-                    </div>
+                      {openInvoiceActionId === item.id && (
+                        <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-50 min-w-[120px]">
+                          <button className="block w-full text-left px-4 py-2 text-sm text-[#303030] hover:bg-gray-50 border-b border-[#E5E5E5]">
+                            Edit
+                          </button>
+                          <button className="block w-full text-left px-4 py-2 text-sm text-[#C61916] hover:bg-red-50">
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </button>
                   </div>
                 ))}
               </div>
