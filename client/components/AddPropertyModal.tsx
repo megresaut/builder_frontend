@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 
 interface Manager {
-  id: string;
+  id: string | number;
   name: string;
   initials: string;
 }
@@ -27,12 +27,6 @@ interface AddPropertyModalProps {
     status: "active" | "inactive";
     managers: Manager[];
   };
-}
-
-interface Manager {
-  id: string;
-  name: string;
-  initials: string;
 }
 
 const AVAILABLE_MANAGERS: Manager[] = [
