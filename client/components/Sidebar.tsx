@@ -602,7 +602,7 @@ export default function Sidebar() {
             isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
           style={{
-            width: "30px",
+            width: "40px",
             padding: "20px 0px",
             transition: "opacity 0.3s ease",
             overflow: "hidden",
