@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
@@ -323,6 +324,7 @@ const ActionButton = ({
 };
 
 export default function MaintenanceWorkOrders() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
@@ -725,6 +727,7 @@ export default function MaintenanceWorkOrders() {
                   {mockWorkOrders.map((workOrder) => (
                     <tr
                       key={workOrder.id}
+                      onClick={() => navigate(`/work-orders/${workOrder.id}`)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
