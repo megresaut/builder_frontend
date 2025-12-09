@@ -304,7 +304,7 @@ export const RecordBill = () => {
         {/* Right Column - Scrollable Content with Sticky Footer */}
         <div className="flex-1 flex flex-col">
           {/* Scrollable Content Area */}
-          <div className="overflow-y-auto overflow-x-auto" style={{ maxHeight: "65vh" }}>
+          <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
             <div className="px-8 py-6 min-w-min">
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
@@ -447,8 +447,9 @@ export const RecordBill = () => {
                   </div>
 
                   {/* Table */}
-                  <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                  <div className="overflow-x-auto">
+                    <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] min-w-min">
+                      <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                       {/* Table Header */}
                       <div className="flex items-center">
                         <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
@@ -618,6 +619,7 @@ export const RecordBill = () => {
                           </div>
                         </div>
                       ))}
+                      </div>
                     </div>
                   </div>
                 </div>
