@@ -125,7 +125,27 @@ export default function Header() {
     const path = location.pathname;
     const items: { label: string; href?: string }[] = [];
 
-    if (path.includes("/property/")) {
+    if (path.includes("/tasks/")) {
+      const match = path.match(/\/tasks\/(\d+)/);
+      if (match) {
+        const taskId = match[1];
+        items.push({ label: "Tasks", href: "/all-tasks" });
+        // Map taskId to task information (mock data)
+        const taskData: Record<string, string> = {
+          "1": "Edgerton - Quote",
+          "2": "Downtown Renovation",
+          "3": "HVAC Installation",
+          "4": "Electrical Rewiring",
+          "5": "Plumbing Repairs",
+          "6": "Roof Inspection",
+          "7": "Window Replacement",
+          "8": "Door Repairs",
+          "9": "Painting Project",
+          "10": "Foundation Work",
+        };
+        items.push({ label: taskData[taskId] || `Task ${taskId}` });
+      }
+    } else if (path.includes("/property/")) {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
         const propertyId = match[1];
@@ -164,6 +184,8 @@ export default function Header() {
       items.push({ label: "Field Team Orders" });
     } else if (path === "/work-orders") {
       items.push({ label: "Work Orders" });
+    } else if (path === "/recurring-tasks") {
+      items.push({ label: "Recurring Tasks" });
     }
 
     return items;
