@@ -940,9 +940,12 @@ export default function Sidebar() {
         <div className="flex flex-col">
           <div className="flex flex-col gap-1.5">
             {navigationItems.map((item) => (
-              <div key={item.id}>
+              <div
+                key={item.id}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
                 <button
-                  onClick={() => item.hasSubmenu && toggleExpanded(item.id)}
                   className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                   style={{ minHeight: "38px" }}
                 >
@@ -954,7 +957,7 @@ export default function Sidebar() {
                       {item.label}
                     </span>
                   </div>
-                  {item.hasSubmenu && expandedItems.has(item.id) && (
+                  {item.hasSubmenu && hoveredItem === item.id && (
                     <svg
                       className="w-4 h-4 text-gray-900"
                       fill="none"
@@ -971,7 +974,7 @@ export default function Sidebar() {
                   )}
                 </button>
 
-                {item.hasSubmenu && expandedItems.has(item.id) && (
+                {item.hasSubmenu && hoveredItem === item.id && (
                   <div className="ml-6 mt-1 flex flex-col gap-0">
                     {(submenuMap[item.id] || []).map((subitem, idx) => (
                       <Link
