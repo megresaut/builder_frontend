@@ -300,7 +300,9 @@ export default function CreateWorkOrderModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
+                    <SelectItem value="property1">
+                      22 Indian Chase Dr
+                    </SelectItem>
                     <SelectItem value="property2">Property 2</SelectItem>
                   </SelectContent>
                 </Select>
@@ -342,7 +344,10 @@ export default function CreateWorkOrderModal({
                 </SelectContent>
               </Select>
               <label className="text-[#303030] font-medium text-sm leading-5">
-                <span className="text-[#2463EB] cursor-pointer hover:underline" onClick={() => setShowCreateTaskModal(true)}>
+                <span
+                  className="text-[#2463EB] cursor-pointer hover:underline"
+                  onClick={() => setShowCreateTaskModal(true)}
+                >
                   + Create New Task
                 </span>
               </label>
@@ -369,7 +374,9 @@ export default function CreateWorkOrderModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
+                    <SelectItem value="property1">
+                      22 Indian Chase Dr
+                    </SelectItem>
                     <SelectItem value="property2">Property 2</SelectItem>
                   </SelectContent>
                 </Select>

@@ -115,7 +115,9 @@ export default function AddPropertyModal({
   useEffect(() => {
     if (editData) {
       setStreetAddress(editData.address.split(",")[0]);
-      const locationParts = editData.location.split(",").map((part) => part.trim());
+      const locationParts = editData.location
+        .split(",")
+        .map((part) => part.trim());
       if (locationParts.length >= 1) {
         setCity(locationParts[0]);
       }
