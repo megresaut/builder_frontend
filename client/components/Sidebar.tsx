@@ -49,11 +49,10 @@ export default function Sidebar() {
 
   const activeSection = getActiveSection();
 
-  // Determine which icon to show (dark when expanded or active)
+  // Determine which icon to show (dark only when hovered)
   const getIcon = (item: SidebarItem): React.ReactNode => {
-    const isExpanded = expandedItems.has(item.id);
-    const isActive = activeSection === item.id;
-    return isExpanded || isActive ? item.iconDark : item.iconLight;
+    const isHoveredItem = hoveredItem === item.id;
+    return isHoveredItem ? item.iconDark : item.iconLight;
   };
 
   const navigationItems: SidebarItem[] = [
