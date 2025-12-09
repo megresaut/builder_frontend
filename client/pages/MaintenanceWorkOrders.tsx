@@ -1036,7 +1036,18 @@ export default function MaintenanceWorkOrders() {
       {/* Create Work Order Modal */}
       <CreateWorkOrderModal
         open={isCreateWorkOrderModalOpen}
-        onOpenChange={setIsCreateWorkOrderModalOpen}
+        onOpenChange={(open) => {
+          setIsCreateWorkOrderModalOpen(open);
+          if (!open) {
+            setEditingWorkOrder(null);
+          }
+        }}
+        editData={editingWorkOrder ? {
+          task: editingWorkOrder.task,
+          dueDate: editingWorkOrder.dueDate,
+          priority: editingWorkOrder.priority,
+          status: editingWorkOrder.status,
+        } : undefined}
       />
     </div>
   );
