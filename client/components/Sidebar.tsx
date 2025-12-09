@@ -12,7 +12,7 @@ interface SidebarItem {
 }
 
 export default function Sidebar() {
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([]));
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
