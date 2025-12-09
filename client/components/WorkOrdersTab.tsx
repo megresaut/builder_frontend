@@ -227,6 +227,76 @@ export default function WorkOrdersTab() {
     null
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showPageSizeDropdown && dropdownButtonRef.current) {
+        const rect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showPageSizeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      updateDropdownPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showPageSizeDropdown]);
+
+  const totalPages = Math.ceil(mockWorkOrders.length / itemsPerPage);
+
+  const getPaginationNumbers = () => {
+    const pages: (number | string)[] = [];
+
+    if (totalPages <= 1) {
+      return [1];
+    }
+
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    const leftStart = currentPage;
+    const leftEnd = Math.min(currentPage + 2, totalPages);
+
+    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
+    const rightEnd = totalPages;
+
+    for (let i = leftStart; i <= leftEnd; i++) {
+      pages.push(i);
+    }
+
+    if (rightStart > leftEnd + 1) {
+      pages.push("...");
+    }
+
+    for (let i = rightStart; i <= rightEnd; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
 
   // Show detail view when a work order is selected
   if (selectedWorkOrderId) {
