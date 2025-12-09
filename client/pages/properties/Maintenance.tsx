@@ -2108,7 +2108,18 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {/* Create Recurring Task Modal */}
       <CreateRecurringTaskModal
         open={showCreateRecurringTaskModal}
-        onOpenChange={setShowCreateRecurringTaskModal}
+        onOpenChange={(open) => {
+          setShowCreateRecurringTaskModal(open);
+          if (!open) {
+            setEditingRecurringTask(null);
+          }
+        }}
+        editData={editingRecurringTask ? {
+          task: editingRecurringTask.task,
+          nextDate: editingRecurringTask.nextDate,
+          priority: editingRecurringTask.priority,
+          category: editingRecurringTask.category,
+        } : undefined}
       />
 
       {/* Create Work Order Modal */}
