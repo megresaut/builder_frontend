@@ -22,7 +22,32 @@ export default function Header() {
   } | null => {
     const path = location.pathname;
 
-    if (path.includes("/property/")) {
+    // Handle task detail pages (/tasks/:taskId)
+    if (path.includes("/tasks/")) {
+      const match = path.match(/\/tasks\/(\d+)/);
+      if (match) {
+        const taskId = match[1];
+        // Map taskId to task information (mock data)
+        const taskData: Record<string, string> = {
+          "1": "Edgerton - Quote",
+          "2": "Downtown Renovation",
+          "3": "HVAC Installation",
+          "4": "Electrical Rewiring",
+          "5": "Plumbing Repairs",
+          "6": "Roof Inspection",
+          "7": "Window Replacement",
+          "8": "Door Repairs",
+          "9": "Painting Project",
+          "10": "Foundation Work",
+        };
+        const label = taskData[taskId] || `Task ${taskId}`;
+        return {
+          label,
+          path,
+          id: `task-${taskId}`,
+        };
+      }
+    } else if (path.includes("/property/")) {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
         const propertyId = match[1];
@@ -54,6 +79,8 @@ export default function Header() {
         }
         return { label, path, id: `property-${propertyId}` };
       }
+    } else if (path === "/blank") {
+      return { label: "New Tab", path, id: "blank" };
     } else if (path === "/all-properties") {
       return { label: "All Properties", path, id: "all-properties" };
     } else if (path === "/all-tasks") {
@@ -66,6 +93,10 @@ export default function Header() {
       return { label: "Field Team Orders", path, id: "field-team-orders" };
     } else if (path === "/work-orders") {
       return { label: "Work Orders", path, id: "work-orders" };
+    } else if (path === "/recurring-tasks") {
+      return { label: "Recurring Tasks", path, id: "recurring-tasks" };
+    } else if (path === "/") {
+      return { label: "All Tasks", path, id: "all-tasks" };
     }
 
     return null;
