@@ -34,7 +34,7 @@ export const RecordBill = () => {
         {/* File Upload Section */}
         <div className="flex flex-col flex-1 min-w-[240px] text-base font-normal w-[462px]">
           <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center">
-            <div className="self-center flex flex-col items-center">
+            <div className="self-center flex flex-col items-center mt-[350px]">
               <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                 <div>Choose a file or drag & drop it here</div>
                 <div className="mt-2">JPEG, PNG and PDF formats, up to 50 MB.</div>
@@ -58,7 +58,7 @@ export const RecordBill = () => {
                 <span>Browse Files</span>
               </button>
             </div>
-            <div className="flex min-h-[692px] mt-6 w-full" />
+            <div className="flex min-h-[337px] mt-6 w-full" />
           </div>
         </div>
 
@@ -68,14 +68,14 @@ export const RecordBill = () => {
             {/* Bill Details Header */}
             <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
               <div>Bill Details</div>
-              <div className="w-full h-px bg-gray-200 mt-5" />
+              <div className="w-[790px] h-px bg-gray-200 mt-5" />
             </div>
 
             {/* Form Fields */}
             <div className="flex mt-3 w-full flex-col">
               <div className="flex w-full flex-col">
                 {/* Vendor and Invoice # Row */}
-                <div className="flex w-full items-start gap-5 flex-wrap">
+                <div className="flex w-[790px] items-start gap-5 flex-wrap">
                   <div className="flex flex-col flex-1 min-w-[240px] basis-0">
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                       Vendor
@@ -112,7 +112,7 @@ export const RecordBill = () => {
                 </div>
 
                 {/* Invoice Date and Due Date Row */}
-                <div className="flex mt-5 w-full items-start gap-5 flex-wrap">
+                <div className="flex mt-5 w-[790px] items-start gap-5 flex-wrap">
                   <div className="flex flex-col flex-1 min-w-[240px] basis-0">
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                       Invoice Date
@@ -204,7 +204,7 @@ export const RecordBill = () => {
                 </div>
 
                 {/* Memo/Notes */}
-                <div className="flex mt-5 w-full flex-col">
+                <div className="flex mt-5 w-[790px] flex-col">
                   <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                     Memo/Notes
                   </label>
