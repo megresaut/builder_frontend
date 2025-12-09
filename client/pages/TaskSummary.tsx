@@ -546,9 +546,7 @@ export default function TaskSummary() {
           {activeTab === "workorders" && (
             <WorkOrdersTab
               initialSelectedWorkOrderId={selectedWorkOrderId}
-              onWorkOrderSelect={(workOrderId) =>
-                setSelectedWorkOrderId(workOrderId)
-              }
+              onWorkOrderSelect={handleWorkOrderSelect}
             />
           )}
 
