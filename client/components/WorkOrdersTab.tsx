@@ -223,9 +223,17 @@ const ActionButton = ({
   );
 };
 
-export default function WorkOrdersTab() {
+interface WorkOrdersTabProps {
+  initialSelectedWorkOrderId?: number | null;
+  onWorkOrderSelect?: (workOrderId: number | null) => void;
+}
+
+export default function WorkOrdersTab({
+  initialSelectedWorkOrderId = null,
+  onWorkOrderSelect,
+}: WorkOrdersTabProps) {
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
-    null
+    initialSelectedWorkOrderId
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
