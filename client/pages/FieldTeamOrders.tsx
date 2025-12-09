@@ -21,6 +21,7 @@ interface FieldTeamOrder {
 const fieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Oct 2, 2025",
@@ -33,6 +34,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 2,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 29, 2025",
@@ -45,6 +47,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 3,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 10, 2025",
@@ -57,6 +60,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 4,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 6, 2025",
@@ -69,6 +73,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 5,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 5, 2025",
@@ -81,6 +86,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 6,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 4, 2025",
@@ -93,6 +99,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 7,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 4, 2025",
@@ -105,6 +112,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 8,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 3, 2025",
@@ -117,6 +125,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 9,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
@@ -129,6 +138,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 10,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
