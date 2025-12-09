@@ -59,7 +59,7 @@ export default function App() {
                   path="/"
                   element={
                     <ShellLayout>
-                      <TabContent />
+                      <AllTasks />
                     </ShellLayout>
                   }
                 />
