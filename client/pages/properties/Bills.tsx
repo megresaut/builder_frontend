@@ -898,7 +898,11 @@ export const Bills: React.FC<BillsProps> = ({
                           backgroundColor: "white",
                         }}
                       >
-                        <ActionButton />
+                        <ActionButton
+                          itemId={bill.id}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                        />
                       </td>
                     </tr>
                   );
