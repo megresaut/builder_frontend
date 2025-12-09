@@ -174,10 +174,14 @@ const ActionButton = ({
   itemId,
   openMenuId,
   setOpenMenuId,
+  onApprove,
+  isFTO,
 }: {
   itemId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onApprove?: () => void;
+  isFTO?: boolean;
 }) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
