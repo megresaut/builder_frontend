@@ -710,8 +710,14 @@ export default function Vendors() {
                             {vendor.insurance}
                           </span>
                         ) : (
-                          <span className="text-gray-400 font-normal text-base">
-                            None
+                          <span
+                            onClick={() => {
+                              setUploadDocumentType("insurance");
+                              setIsFileUploadModalOpen(true);
+                            }}
+                            className="text-gray-400 font-normal text-base underline cursor-pointer hover:text-gray-600"
+                          >
+                            Add
                           </span>
                         )}
                       </td>
