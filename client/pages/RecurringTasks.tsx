@@ -313,6 +313,7 @@ export default function RecurringTasks() {
   const [isCreateRecurringTaskModalOpen, setIsCreateRecurringTaskModalOpen] =
     usePageState("isCreateRecurringTaskModalOpen", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   const handleTaskEdit = (task: RecurringTask) => {
@@ -346,6 +347,27 @@ export default function RecurringTasks() {
         cancelAnimationFrame(animationFrameId);
       }
     };
+  }, [showPageSizeDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
+
+        if (isClickOutside) {
+          setShowPageSizeDropdown(false);
+        }
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
   }, [showPageSizeDropdown]);
 
   const totalTasks = mockRecurringTasks.length;
@@ -879,6 +901,7 @@ export default function RecurringTasks() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",

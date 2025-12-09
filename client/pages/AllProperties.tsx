@@ -310,6 +310,7 @@ export default function AllProperties() {
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = usePageState(
     "isAddPropertyModalOpen",
@@ -347,6 +348,27 @@ export default function AllProperties() {
         cancelAnimationFrame(animationFrameId);
       }
     };
+  }, [showPageSizeDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
+
+        if (isClickOutside) {
+          setShowPageSizeDropdown(false);
+        }
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
   }, [showPageSizeDropdown]);
 
   const totalProperties = properties.length;
@@ -911,6 +933,7 @@ export default function AllProperties() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",
