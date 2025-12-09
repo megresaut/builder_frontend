@@ -222,7 +222,7 @@ export default function CreateTaskModal({
         <div className="flex flex-col gap-4 p-6">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            Create Task
+            {editData ? "Edit Task" : "Create Task"}
           </DialogTitle>
 
           {/* Property and Unit Row */}
