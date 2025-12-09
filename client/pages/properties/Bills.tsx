@@ -6,6 +6,12 @@ import RecordBillModal from "@/components/RecordBillModal";
 import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
 
+interface BillsProps {
+  propertyAddress: string;
+  propertyType?: string;
+  propertyUnits?: number;
+}
+
 interface Bill {
   id: number;
   vendor: string;
