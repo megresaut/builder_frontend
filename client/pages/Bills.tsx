@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import RecordBillModal from "@/components/RecordBillModal";
 import AddVendorModal from "@/components/AddVendorModal";
+import { usePageState } from "@/hooks/usePageState";
 
 interface Bill {
   id: number;
