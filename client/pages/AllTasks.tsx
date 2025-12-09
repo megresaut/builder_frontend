@@ -393,12 +393,18 @@ export default function AllTasks() {
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = usePageState(
     "isCreateTaskModalOpen",
     false,
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  const handleTaskEdit = (task: Task) => {
+    setEditingTask(task);
+    setIsCreateTaskModalOpen(true);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
