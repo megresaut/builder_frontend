@@ -1702,6 +1702,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             )}
         </div>
       )}
+
+      {/* FTO Approval Modal */}
+      <FTOApprovalModal
+        open={showApprovalModal}
+        onOpenChange={setShowApprovalModal}
+      />
     </div>
   );
 };
