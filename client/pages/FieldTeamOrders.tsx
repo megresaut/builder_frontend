@@ -253,9 +253,8 @@ const ActionButton = ({
             </button>
             <button
               onClick={() => {
-                console.log("Edit clicked for order", orderId);
                 setOpenMenuId(null);
-                onEdit();
+                onEdit(order);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
