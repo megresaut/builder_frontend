@@ -317,10 +317,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   propertyType,
   propertyUnits,
 }) => {
-  const [activeTab, setActiveTab] = useState<
+  const [activeTab, setActiveTab] = usePageState<
     "tasks" | "recurring" | "workorders" | "fieldteam"
-  >("recurring");
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  >("activeTab", "recurring");
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
 
   const tabs = [
     { id: "tasks" as const, label: "Tasks" },
