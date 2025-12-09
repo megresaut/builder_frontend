@@ -437,6 +437,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   );
   const [showCreateRecurringTaskModal, setShowCreateRecurringTaskModal] =
     usePageState<boolean>("showCreateRecurringTaskModal", false);
+  const [editingRecurringTask, setEditingRecurringTask] = usePageState<RecurringTask | null>(
+    "editingRecurringTask",
+    null,
+  );
   const [showCreateWorkOrderModal, setShowCreateWorkOrderModal] =
     usePageState<boolean>("showCreateWorkOrderModal", false);
   const [showCreateFTOModal, setShowCreateFTOModal] = usePageState<boolean>(
