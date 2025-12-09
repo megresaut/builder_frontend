@@ -301,7 +301,10 @@ export const Bills: React.FC<BillsProps> = ({
           <div className="flex items-center justify-between w-full bg-white gap-6">
             <div className="flex bg-gray-50 rounded-lg shadow-[0_0_0_0.5px_#D2D1CF] p-0.5">
               <button
-                onClick={() => setSelectedTab("approved")}
+                onClick={() => {
+                  setSelectedTab("approved");
+                  setCurrentPage(1);
+                }}
                 className={cn(
                   "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
                   selectedTab === "approved"
@@ -314,7 +317,10 @@ export const Bills: React.FC<BillsProps> = ({
                 </span>
               </button>
               <button
-                onClick={() => setSelectedTab("drafts")}
+                onClick={() => {
+                  setSelectedTab("drafts");
+                  setCurrentPage(1);
+                }}
                 className={cn(
                   "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
                   selectedTab === "drafts"
