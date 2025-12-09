@@ -278,9 +278,9 @@ export const RecordBill = () => {
         <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-y-auto">
           <div className="flex flex-col h-full">
             {/* File Upload Section */}
-            <div className="flex flex-col flex-1 text-base font-normal">
-              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center" style={{ padding: "28px 80px 0100px" }}>
-                <div className="self-center flex flex-col items-center mt-[200px]">
+            <div className="flex flex-col text-base font-normal">
+              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center" style={{ padding: "28px 80px" }}>
+                <div className="self-center flex flex-col items-center">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                     <div>Choose a file or drag & drop it here</div>
                     <div className="mt-2">JPEG, PNG and PDF formats, up to 50 MB.</div>
@@ -304,7 +304,6 @@ export const RecordBill = () => {
                     <span>Browse Files</span>
                   </button>
                 </div>
-                <div className="flex min-h-[337px] mt-6 w-full" />
               </div>
             </div>
           </div>
