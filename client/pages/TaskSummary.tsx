@@ -341,21 +341,15 @@ const ActionButton = ({
 
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
-  const { tabMetadata, setTabMetadata } = useTabContext();
-  const currentTabId = `task-${taskId}`;
-  const currentMetadata = tabMetadata[currentTabId];
-
-  const [activeTab, setActiveTab] = useState(currentMetadata?.activeTab || "workorders");
-  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
-    currentMetadata?.selectedWorkOrderId || null
-  );
+  const [activeTab, setActiveTab] = usePageState<"summary" | "workorders" | "fieldteam">("activeTab", "workorders");
+  const [selectedWorkOrderId, setSelectedWorkOrderId] = usePageState<number | null>("selectedWorkOrderId", null);
   const [messageText, setMessageText] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [showFTOModal, setShowFTOModal] = useState(false);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState("showPageSizeDropdown", false);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
+  const [showApprovalModal, setShowApprovalModal] = usePageState("showApprovalModal", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
