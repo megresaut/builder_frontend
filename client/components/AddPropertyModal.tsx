@@ -98,6 +98,7 @@ const US_STATES = [
 export default function AddPropertyModal({
   open,
   onOpenChange,
+  editData,
 }: AddPropertyModalProps) {
   const [country, setCountry] = useState("United States");
   const [streetAddress, setStreetAddress] = useState("");
@@ -116,6 +117,16 @@ export default function AddPropertyModal({
     top: 0,
     left: 0,
   });
+
+  useEffect(() => {
+    if (editData) {
+      setStreetAddress(editData.address.split(",")[0]);
+      setCity(editData.location.split(",")[0]);
+      setPropertyType(editData.type);
+      setSelectedManagers(editData.managers);
+      setStatus(editData.status === "active" ? "Active" : "Inactive");
+    }
+  }, [editData]);
 
   useEffect(() => {
     let animationFrameId: number;
