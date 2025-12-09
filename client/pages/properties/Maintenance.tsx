@@ -1162,7 +1162,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     if ((e.target as HTMLElement).closest('td:last-child')) {
                       return;
                     }
-                    navigate(`/tasks/${workOrder.taskId}`);
+                    navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
                   };
                   return (
                   <tr
