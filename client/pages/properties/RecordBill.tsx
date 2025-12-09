@@ -279,7 +279,7 @@ export const RecordBill = () => {
           <div className="flex flex-col h-full">
             {/* File Upload Section */}
             <div className="flex flex-col text-base font-normal">
-              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center" style={{ padding: "28px 80px" }}>
+              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center" style={{ padding: "28px 80px", minHeight: "989px" }}>
                 <div className="self-center flex flex-col items-center">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                     <div>Choose a file or drag & drop it here</div>
