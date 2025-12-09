@@ -353,6 +353,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const fieldteamDropdownRef = useRef<HTMLButtonElement>(null);
   const [fieldteamDropdownPos, setFieldteamDropdownPos] = useState({ top: 0, left: 0 });
 
+  // FTO Approval Modal state
+  const [showApprovalModal, setShowApprovalModal] = usePageState<boolean>("showApprovalModal", false);
+  const [selectedFTOId, setSelectedFTOId] = usePageState<number | null>("selectedFTOId", null);
+
   // Update dropdown position for tasks
   useEffect(() => {
     let animationFrameId: number;
