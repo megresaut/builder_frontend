@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import CreateFTOModal from "@/components/CreateFTOModal";
