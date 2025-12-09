@@ -153,6 +153,7 @@ const mockPropertyWorkOrders: WorkOrder[] = [
 const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "Emergency Water Damage",
     dueDate: "Oct 2, 2025",
@@ -164,6 +165,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
   },
   {
     id: 2,
+    taskId: 6,
     property: "22 Indian Chase Dr",
     description: "HVAC Installation",
     dueDate: "Sep 29, 2025",
