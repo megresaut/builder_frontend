@@ -664,11 +664,15 @@ export const ActionButton = ({
 };
 
 export default function Utilities() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openUtilityMenuId, setOpenUtilityMenuId] = usePageState<number | null>(
+    "openUtilityMenuId",
     null,
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
