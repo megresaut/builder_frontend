@@ -140,10 +140,25 @@ export const RecordBill = () => {
     document.querySelectorAll('[data-measure-width]').forEach((element) => {
       const columnName = element.getAttribute('data-measure-width') as keyof typeof defaultColumnWidths;
       const padding = 24; // px-3 = 12px * 2
+      let requiredWidth = defaultColumnWidths[columnName];
 
-      // Measure the scrollWidth of the element (accounts for actual content)
-      const scrollWidth = (element as HTMLElement).scrollWidth;
-      const requiredWidth = scrollWidth + padding;
+      if (element instanceof HTMLInputElement) {
+        // For input elements, measure text content using canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const computedStyle = window.getComputedStyle(element);
+          const font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+          ctx.font = font;
+          const value = element.value || '';
+          const textWidth = ctx.measureText(value).width;
+          requiredWidth = textWidth + padding;
+        }
+      } else {
+        // For select triggers and other elements, use scrollWidth
+        const scrollWidth = (element as HTMLElement).scrollWidth;
+        requiredWidth = scrollWidth + padding;
+      }
 
       // Set to the maximum of default or required width - allows both expanding and contracting
       newWidths[columnName] = Math.max(defaultColumnWidths[columnName], requiredWidth);
