@@ -322,6 +322,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   >("activeTab", "recurring");
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
 
+  // Pagination state for each table
+  const [tasksPage, setTasksPage] = usePageState<number>("tasksPage", 1);
+  const [recurringPage, setRecurringPage] = usePageState<number>("recurringPage", 1);
+  const [workordersPage, setWorkordersPage] = usePageState<number>("workordersPage", 1);
+  const [fieldteamPage, setFieldteamPage] = usePageState<number>("fieldteamPage", 1);
+
+  const itemsPerPage = 10;
+
   const tabs = [
     { id: "tasks" as const, label: "Tasks" },
     { id: "recurring" as const, label: "Recurring Tasks" },
