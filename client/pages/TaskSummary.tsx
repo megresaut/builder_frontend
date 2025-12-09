@@ -1793,6 +1793,7 @@ export default function TaskSummary() {
           <FTOApprovalModal
             open={showApprovalModal}
             onOpenChange={setShowApprovalModal}
+            selectedFTOId={selectedFTOId}
           />
         </div>
       </div>
