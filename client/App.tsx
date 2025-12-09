@@ -159,6 +159,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/tasks/:taskId/:tab"
+                  element={
+                    <ShellLayout>
+                      <TaskSummary />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/blank"
                   element={
                     <ShellLayout>
