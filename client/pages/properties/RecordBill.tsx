@@ -425,7 +425,7 @@ export const RecordBill = () => {
                       </label>
                       <Select>
                         <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
-                          <SelectValue placeholder="Select vendor..." />
+                          <SelectValue placeholder="Select Work Order..." />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="task1">Task 1</SelectItem>
