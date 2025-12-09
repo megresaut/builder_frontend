@@ -325,11 +325,116 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
 
   // Pagination state for each table
   const [tasksPage, setTasksPage] = usePageState<number>("tasksPage", 1);
-  const [recurringPage, setRecurringPage] = usePageState<number>("recurringPage", 1);
-  const [workordersPage, setWorkordersPage] = usePageState<number>("workordersPage", 1);
-  const [fieldteamPage, setFieldteamPage] = usePageState<number>("fieldteamPage", 1);
+  const [tasksItemsPerPage, setTasksItemsPerPage] = usePageState<number>("tasksItemsPerPage", 10);
+  const [tasksShowDropdown, setTasksShowDropdown] = useState(false);
+  const tasksDropdownRef = useRef<HTMLButtonElement>(null);
+  const [tasksDropdownPos, setTasksDropdownPos] = useState({ top: 0, left: 0 });
 
-  const itemsPerPage = 10;
+  const [recurringPage, setRecurringPage] = usePageState<number>("recurringPage", 1);
+  const [recurringItemsPerPage, setRecurringItemsPerPage] = usePageState<number>("recurringItemsPerPage", 10);
+  const [recurringShowDropdown, setRecurringShowDropdown] = useState(false);
+  const recurringDropdownRef = useRef<HTMLButtonElement>(null);
+  const [recurringDropdownPos, setRecurringDropdownPos] = useState({ top: 0, left: 0 });
+
+  const [workordersPage, setWorkordersPage] = usePageState<number>("workordersPage", 1);
+  const [workordersItemsPerPage, setWorkordersItemsPerPage] = usePageState<number>("workordersItemsPerPage", 10);
+  const [workordersShowDropdown, setWorkordersShowDropdown] = useState(false);
+  const workordersDropdownRef = useRef<HTMLButtonElement>(null);
+  const [workordersDropdownPos, setWorkordersDropdownPos] = useState({ top: 0, left: 0 });
+
+  const [fieldteamPage, setFieldteamPage] = usePageState<number>("fieldteamPage", 1);
+  const [fieldteamItemsPerPage, setFieldteamItemsPerPage] = usePageState<number>("fieldteamItemsPerPage", 10);
+  const [fieldteamShowDropdown, setFieldteamShowDropdown] = useState(false);
+  const fieldteamDropdownRef = useRef<HTMLButtonElement>(null);
+  const [fieldteamDropdownPos, setFieldteamDropdownPos] = useState({ top: 0, left: 0 });
+
+  // Update dropdown position for tasks
+  useEffect(() => {
+    let animationFrameId: number;
+    const updateDropdownPos = () => {
+      if (tasksShowDropdown && tasksDropdownRef.current) {
+        const rect = tasksDropdownRef.current.getBoundingClientRect();
+        setTasksDropdownPos({ top: rect.bottom + 8, left: rect.left });
+      }
+    };
+    updateDropdownPos();
+    if (tasksShowDropdown) {
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      window.addEventListener("scroll", updateDropdownPos);
+    }
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", updateDropdownPos);
+      window.removeEventListener("scroll", updateDropdownPos);
+    };
+  }, [tasksShowDropdown]);
+
+  // Update dropdown position for recurring
+  useEffect(() => {
+    let animationFrameId: number;
+    const updateDropdownPos = () => {
+      if (recurringShowDropdown && recurringDropdownRef.current) {
+        const rect = recurringDropdownRef.current.getBoundingClientRect();
+        setRecurringDropdownPos({ top: rect.bottom + 8, left: rect.left });
+      }
+    };
+    updateDropdownPos();
+    if (recurringShowDropdown) {
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      window.addEventListener("scroll", updateDropdownPos);
+    }
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", updateDropdownPos);
+      window.removeEventListener("scroll", updateDropdownPos);
+    };
+  }, [recurringShowDropdown]);
+
+  // Update dropdown position for workorders
+  useEffect(() => {
+    let animationFrameId: number;
+    const updateDropdownPos = () => {
+      if (workordersShowDropdown && workordersDropdownRef.current) {
+        const rect = workordersDropdownRef.current.getBoundingClientRect();
+        setWorkordersDropdownPos({ top: rect.bottom + 8, left: rect.left });
+      }
+    };
+    updateDropdownPos();
+    if (workordersShowDropdown) {
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      window.addEventListener("scroll", updateDropdownPos);
+    }
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", updateDropdownPos);
+      window.removeEventListener("scroll", updateDropdownPos);
+    };
+  }, [workordersShowDropdown]);
+
+  // Update dropdown position for fieldteam
+  useEffect(() => {
+    let animationFrameId: number;
+    const updateDropdownPos = () => {
+      if (fieldteamShowDropdown && fieldteamDropdownRef.current) {
+        const rect = fieldteamDropdownRef.current.getBoundingClientRect();
+        setFieldteamDropdownPos({ top: rect.bottom + 8, left: rect.left });
+      }
+    };
+    updateDropdownPos();
+    if (fieldteamShowDropdown) {
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      window.addEventListener("scroll", updateDropdownPos);
+    }
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", updateDropdownPos);
+      window.removeEventListener("scroll", updateDropdownPos);
+    };
+  }, [fieldteamShowDropdown]);
 
   const tabs = [
     { id: "tasks" as const, label: "Tasks" },
