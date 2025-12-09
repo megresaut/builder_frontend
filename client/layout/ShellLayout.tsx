@@ -13,6 +13,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const { tabMetadata, setTabMetadata } = useTabContext();
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastTabIdRef = useRef<string>();
 
   // Get the current tab ID based on the route
   const getCurrentTabId = (): string => {
@@ -38,7 +39,24 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const currentTabId = getCurrentTabId();
   const currentMetadata = tabMetadata[currentTabId];
 
-  // Save scroll position when scrolling
+  // Save scroll position immediately when leaving a tab
+  useEffect(() => {
+    const prevTabId = lastTabIdRef.current;
+    if (prevTabId && prevTabId !== currentTabId) {
+      const mainContent = mainContentRef.current;
+      if (mainContent) {
+        // Save scroll position for the previous tab immediately
+        const prevMetadata = tabMetadata[prevTabId];
+        setTabMetadata(prevTabId, {
+          ...prevMetadata,
+          scrollPosition: mainContent.scrollTop,
+        });
+      }
+    }
+    lastTabIdRef.current = currentTabId;
+  }, [currentTabId, tabMetadata, setTabMetadata]);
+
+  // Save scroll position when scrolling (debounced)
   useEffect(() => {
     const mainContent = mainContentRef.current;
     if (!mainContent) return;
@@ -50,30 +68,33 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
 
       scrollTimeoutRef.current = setTimeout(() => {
         const scrollPos = mainContent.scrollTop;
-        setTabMetadata(currentTabId, {
-          ...currentMetadata,
+        setTabMetadata(currentTabId, (prevMetadata) => ({
+          ...prevMetadata,
           scrollPosition: scrollPos,
-        });
-      }, 100); // Debounce scroll updates
+        }));
+      }, 200); // Debounce scroll updates
     };
 
-    mainContent.addEventListener("scroll", handleScroll);
+    mainContent.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       mainContent.removeEventListener("scroll", handleScroll);
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [currentTabId, currentMetadata, setTabMetadata]);
+  }, [currentTabId, setTabMetadata]);
 
-  // Restore scroll position when tab changes
+  // Restore scroll position when tab changes or metadata updates
   useEffect(() => {
     const mainContent = mainContentRef.current;
     if (!mainContent) return;
 
     const scrollPos = currentMetadata?.scrollPosition ?? 0;
-    mainContent.scrollTop = scrollPos;
-  }, [currentTabId, currentMetadata?.scrollPosition]);
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      mainContent.scrollTop = scrollPos;
+    });
+  }, [currentTabId]);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
