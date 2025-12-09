@@ -19,6 +19,7 @@ import WorkOrders from "./WorkOrders";
 import WorkOrdersTab from "@/components/WorkOrdersTab";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
+import { useTabContext } from "@/hooks/useTabContext";
 
 interface FieldTeamOrder {
   id: number;
