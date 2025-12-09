@@ -393,6 +393,10 @@ export default function TaskSummary() {
     "showApprovalModal",
     false,
   );
+  const [selectedFTOId, setSelectedFTOId] = usePageState<number | null>(
+    "selectedFTOId",
+    null,
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
