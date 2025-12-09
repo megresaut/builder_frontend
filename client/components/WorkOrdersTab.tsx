@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, Search, ChevronDown, MoreVertical } from "lucide-react";
-import { cn } from "@/lib/utils";
 import WorkOrders from "../pages/WorkOrders";
 
 interface Assignee {
