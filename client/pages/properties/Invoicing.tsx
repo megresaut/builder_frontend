@@ -539,7 +539,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
 
                 {/* Status Column */}
                 <div className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1" style={{ borderLeftColor: "transparent" }}>
-                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3">
+                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3" style={{ borderLeftColor: "transparent" }}>
                     <img
                       loading="lazy"
                       src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/84b06677254b5f24ffac8eebc8e159037bc09802?placeholderIfAbsent=true"
@@ -551,7 +551,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                     </div>
                   </div>
                   {paginatedHistory.map((item) => (
-                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3">
+                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3" style={{ borderLeftColor: "transparent" }}>
                       <div
                         className="flex items-center gap-1.5 rounded-2xl px-3 py-1"
                         style={{
