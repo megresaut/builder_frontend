@@ -322,6 +322,7 @@ export default function Bills() {
     "isAddVendorModalOpen",
     false,
   );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
