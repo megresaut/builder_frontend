@@ -183,7 +183,11 @@ const ActionButton = () => (
   </button>
 );
 
-export default function Bills() {
+export const Bills: React.FC<BillsProps> = ({
+  propertyAddress,
+  propertyType,
+  propertyUnits,
+}) => {
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
     "selectedTab",
     "approved",
