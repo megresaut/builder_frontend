@@ -587,31 +587,30 @@ export default function Sidebar() {
 
   // Mobile: show collapsed sidebar with hover behavior
   if (isCollapsed) {
+    const handleMouseMove = (e: React.MouseEvent) => {
+      // Only expand if cursor is within 5px of the left edge
+      if (e.clientX < 5) {
+        setIsHovered(true);
+      }
+    };
+
     return (
       <div
         className="relative h-screen flex-shrink-0 group transition-all"
-        style={{ width: isHovered ? "262px" : "0px", position: "relative" }}
+        style={{ width: isHovered ? "262px" : "60px", position: "relative" }}
+        onMouseMove={handleMouseMove}
         onMouseLeave={() => {
           setIsHovered(false);
           setActiveDropdown(null);
         }}
       >
-        {/* Narrow trigger zone on far left edge */}
-        <div
-          className="absolute left-0 top-0 h-screen z-50"
-          style={{
-            width: "8px",
-            cursor: "pointer",
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-        />
         <aside
           className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col justify-between z-10 ${
             isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
           style={{
-            width: "40px",
-            padding: "20px 0px",
+            width: "60px",
+            padding: "20px 12px",
             transition: "opacity 0.3s ease",
             overflow: "hidden",
           }}
