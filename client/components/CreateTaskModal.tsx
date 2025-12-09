@@ -592,10 +592,10 @@ export default function CreateTaskModal({
             />
           </div>
 
-          {/* Create Task Button */}
+          {/* Create/Update Task Button */}
           <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
             <span className="text-white font-medium text-base">
-              Create Task
+              {editData ? "Update Task" : "Create Task"}
             </span>
           </button>
         </div>
