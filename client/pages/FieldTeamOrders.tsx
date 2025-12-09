@@ -726,7 +726,7 @@ export default function FieldTeamOrders() {
                       if ((e.target as HTMLElement).closest("td:last-child")) {
                         return;
                       }
-                      navigate(`/tasks/${order.id}`);
+                      navigate(`/tasks/${order.taskId}/fieldteam`);
                     };
                     return (
                       <tr
