@@ -307,12 +307,17 @@ export default function WorkOrdersTab({
     return pages;
   };
 
+  const handleSelectWorkOrder = (workOrderId: number | null) => {
+    setSelectedWorkOrderId(workOrderId);
+    onWorkOrderSelect?.(workOrderId);
+  };
+
   // Show detail view when a work order is selected
   if (selectedWorkOrderId) {
     return (
       <div className="flex flex-col w-full gap-6">
         <button
-          onClick={() => setSelectedWorkOrderId(null)}
+          onClick={() => handleSelectWorkOrder(null)}
           className="flex items-center gap-2 text-[#2463eb] hover:underline"
         >
           <ChevronLeft className="w-4 h-4" />
