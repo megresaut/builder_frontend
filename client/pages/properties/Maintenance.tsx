@@ -560,29 +560,45 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <span className="font-medium text-sm text-gray-700">
-                      Status
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 4.33341H13.137C13.4228 4.33341 13.5657 4.33341 13.6517 4.3936C13.7268 4.44615 13.777 4.52732 13.7904 4.61803C13.8058 4.7219 13.7419 4.84969 13.6141 5.10526L12.7792 6.77496C12.7379 6.85769 12.7172 6.89905 12.7084 6.94253C12.7006 6.98105 12.6997 7.02064 12.7058 7.05947C12.7125 7.1033 12.7313 7.14556 12.7689 7.23008L13.6667 9.25014C13.7778 9.50008 13.8333 9.62504 13.8151 9.72593C13.7992 9.81409 13.7485 9.89214 13.6744 9.94248C13.5896 10.0001 13.4528 10.0001 13.1793 10.0001H8.06667C7.6933 10.0001 7.50661 10.0001 7.36401 9.92742C7.23856 9.8635 7.13658 9.76152 7.07266 9.63607C7 9.49347 7 9.30678 7 8.93341V7.33341M2 14.0001L2 2.33341M2 7.33341H7.93333C8.3067 7.33341 8.49339 7.33341 8.63599 7.26075C8.76143 7.19684 8.86342 7.09485 8.92734 6.96941C9 6.8268 9 6.64012 9 6.26675V2.73341C9 2.36005 9 2.17336 8.92734 2.03075C8.86342 1.90531 8.76143 1.80333 8.63599 1.73941C8.49339 1.66675 8.3067 1.66675 7.93333 1.66675L3.06667 1.66675C2.6933 1.66675 2.50661 1.66675 2.36401 1.73941C2.23856 1.80333 2.13658 1.90531 2.07266 2.03075C2 2.17336 2 2.36005 2 2.73341V7.33341Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="font-medium text-sm text-gray-700">Status</span>
+                    </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <span className="font-medium text-sm text-gray-700">
-                      Task
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.00065 7.33333H3.06732C2.69395 7.33333 2.50727 7.33333 2.36466 7.406C2.23922 7.46991 2.13723 7.5719 2.07331 7.69734C2.00065 7.83995 2.00065 8.02663 2.00065 8.4V14M11.0007 7.33333H12.934C13.3074 7.33333 13.494 7.33333 13.6366 7.406C13.7621 7.46991 13.8641 7.5719 13.928 7.69734C14.0007 7.83995 14.0007 8.02663 14.0007 8.4V14M11.0007 14V4.13333C11.0007 3.3866 11.0007 3.01323 10.8553 2.72801C10.7275 2.47713 10.5235 2.27316 10.2726 2.14532C9.98742 2 9.61405 2 8.86732 2H7.13398C6.38725 2 6.01388 2 5.72866 2.14532C5.47778 2.27316 5.27381 2.47713 5.14598 2.72801C5.00065 3.01323 5.00065 3.3866 5.00065 4.13333V14M14.6673 14H1.33398M7.33398 4.66667H8.66732M7.33398 7.33333H8.66732M7.33398 10H8.66732" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="font-medium text-sm text-gray-700">Task</span>
+                    </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <span className="font-medium text-sm text-gray-700">
-                      Due
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 6.66658H2M10.6667 1.33325V3.99992M5.33333 1.33325V3.99992M5.2 14.6666H10.8C11.9201 14.6666 12.4802 14.6666 12.908 14.4486C13.2843 14.2569 13.5903 13.9509 13.782 13.5746C14 13.1467 14 12.5867 14 11.4666V5.86659C14 4.74648 14 4.18643 13.782 3.7586C13.5903 3.38228 13.2843 3.07632 12.908 2.88457C12.4802 2.66659 11.9201 2.66659 10.8 2.66659H5.2C4.0799 2.66659 3.51984 2.66659 3.09202 2.88457C2.71569 3.07632 2.40973 3.38228 2.21799 3.7586C2 4.18643 2 4.74648 2 5.86658V11.4666C2 12.5867 2 13.1467 2.21799 13.5746C2.40973 13.9509 2.71569 14.2569 3.09202 14.4486C3.51984 14.6666 4.0799 14.6666 5.2 14.6666Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="font-medium text-sm text-gray-700">Due</span>
+                    </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <span className="font-medium text-sm text-gray-700">
-                      Priority
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 6.66658H2M10.6667 1.33325V3.99992M5.33333 1.33325V3.99992M5.2 14.6666H10.8C11.9201 14.6666 12.4802 14.6666 12.908 14.4486C13.2843 14.2569 13.5903 13.9509 13.782 13.5746C14 13.1467 14 12.5867 14 11.4666V5.86659C14 4.74648 14 4.18643 13.782 3.7586C13.5903 3.38228 13.2843 3.07632 12.908 2.88457C12.4802 2.66659 11.9201 2.66659 10.8 2.66659H5.2C4.0799 2.66659 3.51984 2.66659 3.09202 2.88457C2.71569 3.07632 2.40973 3.38228 2.21799 3.7586C2 4.18643 2 4.74648 2 5.86658V11.4666C2 12.5867 2 13.1467 2.21799 13.5746C2.40973 13.9509 2.71569 14.2569 3.09202 14.4486C3.51984 14.6666 4.0799 14.6666 5.2 14.6666Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="font-medium text-sm text-gray-700">Priority</span>
+                    </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <span className="font-medium text-sm text-gray-700">
-                      Assignees
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M2.66722 4.99992C2.66722 2.97487 4.30884 1.33325 6.33388 1.33325C8.35893 1.33325 10.0005 2.97487 10.0005 4.99992C10.0005 7.02496 8.35893 8.66659 6.33388 8.66659C4.30884 8.66659 2.66722 7.02496 2.66722 4.99992Z" fill="#525252"/>
+                        <path fillRule="evenodd" clipRule="evenodd" d="M6.33388 9.33325C8.46471 9.33325 10.3696 10.536 11.532 12.28C11.6344 12.4336 11.7436 12.5975 11.8199 12.7532C11.9118 12.9407 11.9778 13.156 11.9624 13.4131C11.9501 13.6182 11.882 13.8085 11.8012 13.9596C11.7203 14.1107 11.5996 14.2728 11.4357 14.3967C11.2162 14.5627 10.9796 14.6209 10.7705 14.6453C10.5863 14.6667 10.3682 14.6666 10.1485 14.6666C7.60641 14.6661 5.06234 14.6661 2.51926 14.6666C2.29957 14.6666 2.08147 14.6667 1.89731 14.6453C1.68818 14.6209 1.45158 14.5627 1.23204 14.3967C1.06816 14.2728 0.947505 14.1107 0.86661 13.9596C0.785715 13.8085 0.71768 13.6182 0.705369 13.4131C0.689933 13.156 0.755933 12.9407 0.847831 12.7532C0.924183 12.5975 1.03339 12.4336 1.1358 12.28C2.29819 10.536 4.20306 9.33325 6.33388 9.33325Z" fill="#525252"/>
+                      </svg>
+                      <span className="font-medium text-sm text-gray-700">Assignees</span>
+                    </div>
                   </th>
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">
