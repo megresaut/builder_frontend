@@ -9,8 +9,7 @@ interface InvoicingProps {
 export const Invoicing: React.FC<InvoicingProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [openInvoiceActionId, setOpenInvoiceActionId] = useState<number | null>(null);
-  const [openHistoryActionId, setOpenHistoryActionId] = useState<number | null>(null);
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const invoiceItems = [
     {
