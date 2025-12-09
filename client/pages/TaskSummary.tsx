@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import WorkOrders from "./WorkOrders";
+import WorkOrdersTab from "@/components/WorkOrdersTab";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 
@@ -556,8 +557,8 @@ export default function TaskSummary() {
 
         {/* Main Content Area */}
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
-          {/* Show WorkOrders component when work orders tab is active */}
-          {activeTab === "workorders" && <WorkOrders />}
+          {/* Show WorkOrdersTab component when work orders tab is active */}
+          {activeTab === "workorders" && <WorkOrdersTab />}
 
           {/* Show summary content when summary tab is active */}
           {activeTab === "summary" && (
