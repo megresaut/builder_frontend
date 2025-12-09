@@ -369,7 +369,7 @@ export default function Sidebar() {
                           {item.label}
                         </span>
                       </div>
-                      {item.hasSubmenu && expandedItems.has(item.id) && (
+                      {item.hasSubmenu && hoveredItem === item.id && (
                         <svg
                           className="w-4 h-4 text-gray-900"
                           fill="none"
@@ -386,7 +386,7 @@ export default function Sidebar() {
                       )}
                     </button>
 
-                    {item.hasSubmenu && expandedItems.has(item.id) && (
+                    {item.hasSubmenu && hoveredItem === item.id && (
                       <div className="ml-6 mt-1 flex flex-col gap-0">
                         {(submenuMap[item.id] || []).map((subitem, idx) => (
                           <Link
