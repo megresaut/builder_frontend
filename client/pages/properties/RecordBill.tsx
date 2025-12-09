@@ -234,7 +234,7 @@ export const RecordBill = () => {
             </div>
 
             {/* Table */}
-            <div className="flex w-full max-w-[727px] flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
+            <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
               <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white w-full">
                 {/* Table Header */}
                 <div className="flex items-center w-full">
