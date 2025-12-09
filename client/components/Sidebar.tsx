@@ -271,7 +271,11 @@ export default function Sidebar() {
       <div
         className="relative h-screen flex-shrink-0 transition-all"
         style={{ width: isExpanded ? "262px" : "0px" }}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseMove={(e) => {
+          if (e.clientX < 10) {
+            setIsHovered(true);
+          }
+        }}
         onMouseLeave={() => {
           if (!isPinned) {
             setIsHovered(false);
@@ -280,9 +284,8 @@ export default function Sidebar() {
         }}
       >
         <div
-          className="fixed left-0 top-0 h-screen w-16 z-10"
-          onMouseEnter={() => setIsHovered(true)}
-          style={{ cursor: "default" }}
+          className="fixed left-0 top-0 h-screen z-10"
+          style={{ width: "5px", pointerEvents: "none", cursor: "default" }}
         />
 
         <aside
