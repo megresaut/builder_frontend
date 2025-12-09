@@ -51,6 +51,7 @@ interface WorkOrder {
 
 interface FieldTeamOrder {
   id: number;
+  taskId: number;
   property: string;
   description: string;
   dueDate: string;
