@@ -10,9 +10,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface Manager {
+  id: string;
+  name: string;
+  initials: string;
+}
+
 interface AddPropertyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editData?: {
+    address: string;
+    location: string;
+    type: string;
+    buildingId: string;
+    status: "active" | "inactive";
+    managers: Manager[];
+  };
 }
 
 interface Manager {
