@@ -542,6 +542,11 @@ export default function Vendors() {
                           {vendor.email}
                         </span>
                       </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <span className="text-gray-900 font-normal text-base">
+                          {vendor.notes}
+                        </span>
+                      </td>
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
                         style={{
