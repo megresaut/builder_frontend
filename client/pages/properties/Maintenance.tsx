@@ -1974,6 +1974,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                           setSelectedFTOId(order.id);
                           setShowApprovalModal(true);
                         }}
+                        onEdit={() => {
+                          setShowCreateFTOModal(true);
+                        }}
                       />
                     </td>
                   </tr>
