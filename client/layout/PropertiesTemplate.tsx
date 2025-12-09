@@ -187,6 +187,24 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
           {children}
         </div>
       </div>
+
+      {/* Edit Property Modal */}
+      {property && (
+        <AddPropertyModal
+          open={isEditModalOpen}
+          onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+          }}
+          editData={{
+            address: property.address,
+            location: property.location,
+            type: property.type,
+            buildingId: property.buildingId,
+            status: property.status,
+            managers: property.managers,
+          }}
+        />
+      )}
     </div>
   );
 };
