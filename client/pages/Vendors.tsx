@@ -676,7 +676,7 @@ export default function Vendors() {
                               setUploadDocumentType("w9");
                               setIsFileUploadModalOpen(true);
                             }}
-                            className="text-blue-600 font-normal text-base hover:underline cursor-pointer"
+                            className="text-blue-600 font-normal text-base underline cursor-pointer hover:opacity-70"
                           >
                             {vendor.w9}
                           </span>
