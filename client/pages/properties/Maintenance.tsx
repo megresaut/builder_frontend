@@ -33,6 +33,7 @@ interface RecurringTask {
 interface WorkOrder {
   id: number;
   task: string;
+  taskId: number;
   dueDate: string;
   updatedDate: string;
   age: string;
@@ -118,6 +119,7 @@ const mockPropertyWorkOrders: WorkOrder[] = [
   {
     id: 1,
     task: "Doors need to be repaired",
+    taskId: 1,
     dueDate: "Oct 2, 2025",
     updatedDate: "Oct 2, 2025",
     age: "6 days 5 hours",
@@ -130,6 +132,7 @@ const mockPropertyWorkOrders: WorkOrder[] = [
   {
     id: 2,
     task: "Windows need to be sealed",
+    taskId: 2,
     dueDate: "Sep 29, 2025",
     updatedDate: "Sep 29, 2025",
     age: "6 days 5 hours",
@@ -1159,7 +1162,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     if ((e.target as HTMLElement).closest('td:last-child')) {
                       return;
                     }
-                    navigate(`/work-order/${workOrder.id}`);
+                    navigate(`/tasks/${workOrder.taskId}`);
                   };
                   return (
                   <tr
