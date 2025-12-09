@@ -309,10 +309,16 @@ export default function RecurringTasks() {
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [editingTask, setEditingTask] = useState<RecurringTask | null>(null);
   const [isCreateRecurringTaskModalOpen, setIsCreateRecurringTaskModalOpen] =
     usePageState("isCreateRecurringTaskModalOpen", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  const handleTaskEdit = (task: RecurringTask) => {
+    setEditingTask(task);
+    setIsCreateRecurringTaskModalOpen(true);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
