@@ -374,38 +374,22 @@ export const RecordBill = () => {
                           Invoice Date{" "}
                           <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
-                            >
-                              <input
-                                type="text"
-                                value={invoiceDateInput}
-                                onChange={(e) =>
-                                  handleInvoiceDateInputChange(e.target.value)
-                                }
-                                placeholder="mm/dd/yyyy"
-                                className="flex-1 bg-transparent outline-none text-[#303030]"
-                                maxLength={10}
-                              />
-                              <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent side="bottom" align="start" className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={invoiceDate || undefined}
-                              onSelect={handleInvoiceDateSelect}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <input
+                          type="date"
+                          value={invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const date = new Date(e.target.value);
+                              setInvoiceDate(date);
+                              setInvoiceDateInput(format(date, "MM/dd/yyyy"));
+                              setInvoiceDateError("");
+                            } else {
+                              setInvoiceDate(null);
+                              setInvoiceDateInput("");
+                            }
+                          }}
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                        />
                         {invoiceDateError && (
                           <div className="text-red-500 text-xs mt-1">
                             {invoiceDateError}
@@ -417,37 +401,22 @@ export const RecordBill = () => {
                           Due Date{" "}
                           <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
-                            >
-                              <input
-                                type="text"
-                                value={dueDateInput}
-                                onChange={(e) =>
-                                  handleDueDateInputChange(e.target.value)
-                                }
-                                placeholder="mm/dd/yyyy"
-                                className="flex-1 bg-transparent outline-none text-[#303030]"
-                                maxLength={10}
-                              />
-                              <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent side="bottom" align="start" className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={dueDate || undefined}
-                              onSelect={handleDueDateSelect}
-                              disabled={(date) =>
-                                date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <input
+                          type="date"
+                          value={dueDate ? format(dueDate, "yyyy-MM-dd") : ""}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const date = new Date(e.target.value);
+                              setDueDate(date);
+                              setDueDateInput(format(date, "MM/dd/yyyy"));
+                              setDueDateError("");
+                            } else {
+                              setDueDate(null);
+                              setDueDateInput("");
+                            }
+                          }}
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                        />
                         {dueDateError && (
                           <div className="text-red-500 text-xs mt-1">
                             {dueDateError}
