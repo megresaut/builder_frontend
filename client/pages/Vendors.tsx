@@ -11,10 +11,6 @@ interface Vendor {
   name: string;
   phone: string;
   email: string;
-  insuranceProvider: string;
-  expires: string;
-  w9: string | null;
-  insurance: string | null;
 }
 
 const mockVendors: Vendor[] = [
@@ -23,100 +19,60 @@ const mockVendors: Vendor[] = [
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Oct 2, 2025",
-    w9: "View",
-    insurance: "View",
   },
   {
     id: 2,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 29, 2025",
-    w9: null,
-    insurance: "View",
   },
   {
     id: 3,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "hiscox",
-    expires: "Sep 10, 2025",
-    w9: "View",
-    insurance: "View",
   },
   {
     id: 4,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 6, 2025",
-    w9: null,
-    insurance: "View",
   },
   {
     id: 5,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 5, 2025",
-    w9: null,
-    insurance: "View",
   },
   {
     id: 6,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 4, 2025",
-    w9: "View",
-    insurance: "View",
   },
   {
     id: 7,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 4, 2025",
-    w9: "View",
-    insurance: "View",
   },
   {
     id: 8,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 3, 2025",
-    w9: "View",
-    insurance: "View",
   },
   {
     id: 9,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 1, 2025",
-    w9: "View",
-    insurance: "View",
   },
   {
     id: 10,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 1, 2025",
-    w9: "View",
-    insurance: "View",
   },
 ];
 
