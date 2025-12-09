@@ -727,7 +727,7 @@ export default function MaintenanceWorkOrders() {
                   {mockWorkOrders.map((workOrder) => (
                     <tr
                       key={workOrder.id}
-                      onClick={() => navigate(`/work-orders/${workOrder.id}`)}
+                      onClick={() => navigate(`/tasks/${workOrder.id}`)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
