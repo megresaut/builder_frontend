@@ -9,8 +9,39 @@ interface InvoicingProps {
 
 export const Invoicing: React.FC<InvoicingProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showPageSizeDropdown && dropdownButtonRef.current) {
+        const rect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    updateDropdownPos();
+
+    if (showPageSizeDropdown) {
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      window.addEventListener("scroll", updateDropdownPos);
+    }
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", updateDropdownPos);
+      window.removeEventListener("scroll", updateDropdownPos);
+    };
+  }, [showPageSizeDropdown]);
 
   useEffect(() => {
     const handleClickAnywhere = () => {
