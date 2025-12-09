@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { useFavorites } from "@/hooks/FavoritesContext";
 import {
   Select,
   SelectContent,
@@ -13,9 +14,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Star, ChevronRight } from "lucide-react";
 
 interface Vendor {
   id: number;
@@ -63,8 +70,11 @@ const mockVendors: Vendor[] = [
   },
 ];
 
+const NAVIGATION_HISTORY_KEY = "recordbill_navigation_history";
+
 export const RecordBill = () => {
   const navigate = useNavigate();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [referenceNumber, setReferenceNumber] = useState<string>("");
@@ -75,6 +85,35 @@ export const RecordBill = () => {
   const [memo, setMemo] = useState<string>("");
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
+  const [previousPage, setPreviousPage] = useState<{
+    label: string;
+    path: string;
+  } | null>(null);
+
+  const isPageFavorited = isFavorite("record-bill-page");
+
+  useEffect(() => {
+    // Store that we're on this page and get previous navigation
+    const history = localStorage.getItem(NAVIGATION_HISTORY_KEY);
+    let parsed = null;
+    try {
+      parsed = history ? JSON.parse(history) : null;
+    } catch {
+      parsed = null;
+    }
+
+    if (parsed) {
+      setPreviousPage(parsed.from);
+    }
+
+    localStorage.setItem(
+      NAVIGATION_HISTORY_KEY,
+      JSON.stringify({
+        from: parsed,
+        to: { label: "Record Bill", path: "/record-bill" },
+      })
+    );
+  }, []);
 
   const handleCancel = () => {
     navigate(-1);
@@ -83,6 +122,18 @@ export const RecordBill = () => {
   const handleRecordBill = () => {
     // Handle record bill logic here
     navigate(-1);
+  };
+
+  const toggleFavorite = () => {
+    if (isPageFavorited) {
+      removeFavorite("record-bill-page");
+    } else {
+      addFavorite({
+        id: "record-bill-page",
+        label: "Record Bill",
+        path: "/record-bill",
+      });
+    }
   };
 
   const validateDateFormat = (dateString: string): Date | null => {
@@ -147,8 +198,27 @@ export const RecordBill = () => {
     setDueDateError("");
   };
 
+  const handleDeleteLineItem = (rowIndex: number) => {
+    // Handle delete logic here
+    console.log(`Delete row ${rowIndex}`);
+  };
+
   return (
-    <div className="bg-white flex flex-col px-8 py-6 font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
+    <div className="bg-white flex flex-col px-8 py-6 font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] border-l-4 border-l-[#E5E7EB] min-h-screen">
+      {/* Breadcrumbs */}
+      {previousPage && (
+        <div className="flex items-center gap-2 mb-4 text-sm text-[#71717A]">
+          <button
+            onClick={() => navigate(previousPage.path)}
+            className="hover:text-[#303030] transition-colors"
+          >
+            ← {previousPage.label}
+          </button>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-[#303030] font-medium">Record Bill</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex w-full items-center justify-between gap-24 flex-wrap">
         <div className="flex flex-col min-w-[240px]">
@@ -159,7 +229,17 @@ export const RecordBill = () => {
             Upload an invoice and record a new bill
           </p>
         </div>
-        <div className="flex min-h-9 gap-4" />
+        <button
+          onClick={toggleFavorite}
+          className="flex items-center justify-center min-h-9 min-w-9 rounded-lg hover:bg-gray-100 transition-colors"
+          title={isPageFavorited ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star
+            className="w-5 h-5"
+            fill={isPageFavorited ? "#303030" : "none"}
+            color={isPageFavorited ? "#303030" : "#71717A"}
+          />
+        </button>
       </div>
 
       {/* Main Content */}
@@ -273,7 +353,7 @@ export const RecordBill = () => {
                           <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-3" align="start">
                         <Calendar
                           mode="single"
                           selected={invoiceDate || undefined}
@@ -283,6 +363,7 @@ export const RecordBill = () => {
                             date < new Date("1900-01-01")
                           }
                           initialFocus
+                          className="p-3"
                         />
                       </PopoverContent>
                     </Popover>
@@ -315,7 +396,7 @@ export const RecordBill = () => {
                           <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-3" align="start">
                         <Calendar
                           mode="single"
                           selected={dueDate || undefined}
@@ -324,6 +405,7 @@ export const RecordBill = () => {
                             date < new Date("1900-01-01")
                           }
                           initialFocus
+                          className="p-3"
                         />
                       </PopoverContent>
                     </Popover>
@@ -461,37 +543,23 @@ export const RecordBill = () => {
                     </span>
                   </div>
                   <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-200 transition-colors">
+                          <span className="text-[#525252] font-bold text-lg leading-none">
+                            ×
+                          </span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteLineItem(0)}
+                          className="text-red-600 cursor-pointer"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -544,37 +612,23 @@ export const RecordBill = () => {
                     </span>
                   </div>
                   <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-200 transition-colors">
+                          <span className="text-[#525252] font-bold text-lg leading-none">
+                            ×
+                          </span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteLineItem(1)}
+                          className="text-red-600 cursor-pointer"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -627,37 +681,23 @@ export const RecordBill = () => {
                     </span>
                   </div>
                   <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-200 transition-colors">
+                          <span className="text-[#525252] font-bold text-lg leading-none">
+                            ×
+                          </span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteLineItem(2)}
+                          className="text-red-600 cursor-pointer"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
