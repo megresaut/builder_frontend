@@ -551,6 +551,44 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between w-full gap-4 flex-wrap px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center gap-2">
+              <div className="text-[#525252] text-base font-medium">Showing</div>
+              <div className="text-[#0A0A0A] text-base font-medium">{itemsPerPage}</div>
+              <div className="text-[#525252] text-base font-medium">of {mockPropertyTasks.length}</div>
+            </div>
+            <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
+              <div
+                className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                onClick={() => setTasksPage(Math.max(1, tasksPage - 1))}
+              >
+                <img
+                  loading="lazy"
+                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/dc8342cc7d9ed7372ff27293ef7c08e463e9fba7?placeholderIfAbsent=true"
+                  className="w-5 h-5"
+                  alt=""
+                />
+                <div className="text-[#525252] text-base font-medium">Previous</div>
+              </div>
+              <div className="flex items-center justify-center min-h-10 min-w-10 px-2 gap-2 border-r border-[#E5E5E5] bg-white">
+                <div className="text-[#0A0A0A] text-base font-medium">{tasksPage}</div>
+              </div>
+              <div
+                className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                onClick={() => setTasksPage(tasksPage + 1)}
+              >
+                <div className="text-[#525252] text-base font-medium">Next</div>
+                <img
+                  loading="lazy"
+                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/34c281f37936da4ccce4bfe5d47937be9d7ed9c7?placeholderIfAbsent=true"
+                  className="w-5 h-5"
+                  alt=""
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
