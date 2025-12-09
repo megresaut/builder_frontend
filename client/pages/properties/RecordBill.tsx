@@ -279,7 +279,7 @@ export const RecordBill = () => {
           <div className="flex flex-col h-full">
             {/* File Upload Section */}
             <div className="flex flex-col flex-1 text-base font-normal">
-              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center">
+              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center" style={{ padding: "28px 80px 0100px" }}>
                 <div className="self-center flex flex-col items-center mt-[200px]">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                     <div>Choose a file or drag & drop it here</div>
@@ -670,7 +670,7 @@ export const RecordBill = () => {
           {/* Sticky Footer - Bill Total and Action Buttons */}
           <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0" style={{ marginTop: "200px" }}>
             {/* Bill Total */}
-            <div className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]">
+            <div className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]" style={{ padding: "16px 150px 16px 32px" }}>
               <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
                 <div>Bill Total:</div>
               </div>
@@ -683,7 +683,7 @@ export const RecordBill = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex px-8 py-5 items-center gap-2.5 text-base justify-end flex-wrap bg-white">
+            <div className="flex px-8 py-5 items-center gap-2.5 text-base justify-end flex-wrap bg-white" style={{ padding: "20px 150px 20px 32px" }}>
               <button
                 onClick={handleCancel}
                 className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
