@@ -47,7 +47,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
           padding: "32px 32px 150px",
         }}
       >
-        <div className="max-w-full mx-auto flex flex-col gap-6">
+        <div className="max-w-full flex flex-col gap-6">
           {/* Property Header */}
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
