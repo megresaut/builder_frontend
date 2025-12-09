@@ -192,8 +192,8 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
             <div className="flex w-full items-center flex-wrap" style={{ borderLeftColor: "transparent" }}>
               <div className="flex min-w-60 items-center flex-wrap flex-1" style={{ borderLeftColor: "transparent" }}>
                 {/* Vendor Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[151px]">
-                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3">
+                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[151px]" style={{ borderLeftColor: "transparent" }}>
+                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3" style={{ borderLeftColor: "transparent" }}>
                     <img
                       loading="lazy"
                       src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5a259bd11d9f5abd6e662f6fa1e8a2e63fa7a635?placeholderIfAbsent=true"
@@ -205,7 +205,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                     </div>
                   </div>
                   {invoiceItems.map((item) => (
-                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3">
+                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3" style={{ borderLeftColor: "transparent" }}>
                       <div
                         className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center"
                         style={{
