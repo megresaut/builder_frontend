@@ -661,9 +661,10 @@ export default function Header() {
     setTabs([...tabs, newTab]);
     setOpenTabs(new Set([...openTabs, newTabId]));
     setSelectedTab(newTabId);
-    tabContext.setTabMetadata(newTabId, { label: "New Tab" });
+    // Initialize metadata for new tab with no route (blank page)
+    tabContext.setTabMetadata(newTabId, { label: "New Tab", route: undefined });
     setNextNewTabId(nextNewTabId + 1);
-    navigate("/");
+    // Don't navigate - keep the user on a blank new tab
   };
 
   return (
