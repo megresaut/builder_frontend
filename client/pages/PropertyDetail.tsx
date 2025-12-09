@@ -265,6 +265,7 @@ export default function PropertyDetail() {
 
   return (
     <PropertiesTemplate
+      property={property}
       propertyAddress={property.address}
       propertyType={property.type}
       propertyUnits={property.units}
