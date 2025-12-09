@@ -47,6 +47,7 @@ const AVAILABLE_ASSIGNEES: Assignee[] = [
 export default function CreateFTOModal({
   open,
   onOpenChange,
+  editData,
 }: CreateFTOModalProps) {
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
@@ -63,6 +64,14 @@ export default function CreateFTOModal({
     top: 0,
     left: 0,
   });
+
+  useEffect(() => {
+    if (editData) {
+      setDueDate(editData.dueDate);
+      setPriority(editData.priority.toLowerCase());
+      setTimesheetStatus(editData.timesheetStatus);
+    }
+  }, [editData]);
 
   useEffect(() => {
     let animationFrameId: number;
