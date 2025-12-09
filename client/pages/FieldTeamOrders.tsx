@@ -723,7 +723,9 @@ export default function FieldTeamOrders() {
                 <tbody>
                   {fieldTeamOrders.map((order) => {
                     const handleRowClick = (e: React.MouseEvent) => {
-                      if ((e.target as HTMLElement).closest("td:last-child")) {
+                      const target = e.target as HTMLElement;
+                      // Don't navigate if clicking on actions cell or any button inside it
+                      if (target.closest("td:last-child") || target.closest("button")) {
                         return;
                       }
                       navigate(`/tasks/${order.taskId}/fieldteam`);
