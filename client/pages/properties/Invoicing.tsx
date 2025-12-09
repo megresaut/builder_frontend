@@ -575,7 +575,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative z-10">
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative">
                 <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-20 gap-2 overflow-hidden px-3 py-3">
                   <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                     Actions
