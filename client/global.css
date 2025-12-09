@@ -1,5 +1,7 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap");
+/* ⚠️  GOOGLE FONTS IMPORT REMOVED - STATIC MODE */
+/* Using system fonts instead of external network calls */
+/* @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap"); */
 
 @tailwind base;
 @tailwind components;
