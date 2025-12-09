@@ -203,9 +203,9 @@ export const RecordBill = () => {
   };
 
   return (
-    <div className="bg-white flex flex-col px-8 py-6 font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] border-l-4 border-l-[#E5E7EB] min-h-screen">
+    <div className="bg-white flex flex-col h-screen border-l-4 border-l-[#E5E7EB] font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
       {/* Header */}
-      <div className="flex w-full items-center justify-between gap-24 flex-wrap">
+      <div className="flex w-full items-center justify-between gap-24 flex-wrap px-8 py-6 flex-shrink-0">
         <div className="flex flex-col min-w-[240px]">
           <h1 className="text-[#303030] text-2xl font-semibold leading-[1.25]">
             Record Bill
@@ -217,420 +217,427 @@ export const RecordBill = () => {
         <div className="flex min-h-9 gap-4" />
       </div>
 
-      {/* Main Content */}
-      <div className="flex mt-5 w-full items-start gap-7 flex-wrap">
-        {/* File Upload Section */}
-        <div className="flex flex-col flex-1 min-w-[240px] text-base font-normal w-[462px]">
-          <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center">
-            <div className="self-center flex flex-col items-center mt-[350px]">
-              <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
-                <div>Choose a file or drag & drop it here</div>
-                <div className="mt-2">JPEG, PNG and PDF formats, up to 50 MB.</div>
+      {/* Two-Column Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Column - File Upload (Fixed) */}
+        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-y-auto">
+          <div className="flex flex-col h-full">
+            {/* File Upload Section */}
+            <div className="flex flex-col flex-1 text-base font-normal">
+              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center">
+                <div className="self-center flex flex-col items-center mt-[350px]">
+                  <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
+                    <div>Choose a file or drag & drop it here</div>
+                    <div className="mt-2">JPEG, PNG and PDF formats, up to 50 MB.</div>
+                  </div>
+                  <button className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>Browse Files</span>
+                  </button>
+                </div>
+                <div className="flex min-h-[337px] mt-6 w-full" />
               </div>
-              <button className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span>Browse Files</span>
-              </button>
             </div>
-            <div className="flex min-h-[337px] mt-6 w-full" />
           </div>
         </div>
 
-        {/* Bill Details Section */}
-        <div className="flex flex-col flex-1 min-w-[240px] justify-between w-[410px]">
-          <div className="flex max-w-full w-[511px] flex-col">
-            {/* Bill Details Header */}
-            <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-              <div>Bill Details</div>
-              <div className="w-[790px] h-px bg-gray-200 mt-5" />
-            </div>
+        {/* Right Column - Scrollable Content */}
+        <div className="flex-1 overflow-x-auto">
+          <div className="px-8 py-6 min-w-min">
+            {/* Bill Details Section */}
+            <div className="flex flex-col w-full">
+              {/* Bill Details Header */}
+              <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                <div>Bill Details</div>
+                <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
+              </div>
 
-            {/* Form Fields */}
-            <div className="flex mt-3 w-full flex-col">
-              <div className="flex w-full flex-col">
-                {/* Vendor and Reference Number Row */}
-                <div className="flex w-[790px] items-start gap-5 flex-wrap">
-                  <div className="flex flex-col flex-1 min-w-[240px] basis-0">
-                    <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                      Vendor
-                    </label>
-                    <Select
-                      value={selectedVendor?.id.toString() || ""}
-                      onValueChange={(vendorId) => {
-                        const vendor = mockVendors.find(
-                          (v) => v.id.toString() === vendorId
-                        );
-                        setSelectedVendor(vendor || null);
-                      }}
-                    >
-                      <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
-                        <SelectValue placeholder="Select vendor..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockVendors.map((vendor) => (
-                          <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                            {vendor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+              {/* Form Fields */}
+              <div className="flex mt-3 w-full flex-col">
+                <div className="flex w-full flex-col">
+                  {/* Vendor and Reference Number Row */}
+                  <div className="flex items-start gap-5 flex-wrap" style={{ width: "790px" }}>
+                    <div className="flex flex-col flex-1 min-w-[240px]">
+                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                        Vendor
+                      </label>
+                      <Select
+                        value={selectedVendor?.id.toString() || ""}
+                        onValueChange={(vendorId) => {
+                          const vendor = mockVendors.find(
+                            (v) => v.id.toString() === vendorId
+                          );
+                          setSelectedVendor(vendor || null);
+                        }}
+                      >
+                        <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
+                          <SelectValue placeholder="Select vendor..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockVendors.map((vendor) => (
+                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                              {vendor.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-[240px]">
+                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                        Reference Number
+                      </label>
+                      <input
+                        type="text"
+                        value={referenceNumber}
+                        onChange={(e) => setReferenceNumber(e.target.value)}
+                        placeholder="INV-2024-001"
+                        className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-col flex-1 min-w-[240px] basis-0">
+
+                  {/* Invoice Date and Due Date Row */}
+                  <div className="flex mt-5 items-start gap-5 flex-wrap" style={{ width: "790px" }}>
+                    <div className="flex flex-col flex-1 min-w-[240px]">
+                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                        Invoice Date
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
+                          >
+                            <input
+                              type="text"
+                              value={invoiceDateInput}
+                              onChange={(e) =>
+                                handleInvoiceDateInputChange(e.target.value)
+                              }
+                              placeholder="mm/dd/yyyy"
+                              className="flex-1 bg-transparent outline-none text-[#303030]"
+                              maxLength={10}
+                            />
+                            <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent side="bottom" align="start" className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={invoiceDate || undefined}
+                            onSelect={handleInvoiceDateSelect}
+                            disabled={(date) =>
+                              date > new Date() ||
+                              date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {invoiceDateError && (
+                        <div className="text-red-500 text-xs mt-1">
+                          {invoiceDateError}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-[240px]">
+                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                        Due Date
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
+                          >
+                            <input
+                              type="text"
+                              value={dueDateInput}
+                              onChange={(e) =>
+                                handleDueDateInputChange(e.target.value)
+                              }
+                              placeholder="mm/dd/yyyy"
+                              className="flex-1 bg-transparent outline-none text-[#303030]"
+                              maxLength={10}
+                            />
+                            <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent side="bottom" align="start" className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={dueDate || undefined}
+                            onSelect={handleDueDateSelect}
+                            disabled={(date) =>
+                              date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {dueDateError && (
+                        <div className="text-red-500 text-xs mt-1">
+                          {dueDateError}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Memo/Notes */}
+                  <div className="flex mt-5 w-full flex-col" style={{ width: "790px" }}>
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                      Reference Number
+                      Memo/Notes
                     </label>
-                    <input
-                      type="text"
-                      value={referenceNumber}
-                      onChange={(e) => setReferenceNumber(e.target.value)}
-                      placeholder="INV-2024-001"
-                      className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                    <textarea
+                      value={memo}
+                      onChange={(e) => setMemo(e.target.value)}
+                      placeholder="Additional notes..."
+                      className="rounded-lg bg-white border border-[#E5E5E5] mt-2 min-h-[81px] w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6]"
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* Invoice Date and Due Date Row */}
-                <div className="flex mt-5 w-[790px] items-start gap-5 flex-wrap">
-                  <div className="flex flex-col flex-1 min-w-[240px] basis-0">
-                    <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                      Invoice Date
-                    </label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
-                        >
+              {/* Line Items Section */}
+              <div className="flex mt-[60px] w-full flex-col gap-6">
+                {/* Header */}
+                <div className="flex h-9 justify-between items-start">
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                      <div className="font-semibold">
+                        Line Items
+                      </div>
+                      <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
+                    </div>
+                  </div>
+                  <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors flex-shrink-0">
+                    <span className="text-white text-base font-medium">
+                      Add Line Items
+                    </span>
+                  </button>
+                </div>
+
+                {/* Table */}
+                <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
+                  <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                    {/* Table Header */}
+                    <div className="flex items-center">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[151px] flex-shrink-0">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Property / Ledger
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[60px] flex-shrink-0">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Unit
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[120px] flex-shrink-0">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Work Order
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Description
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[120px] flex-shrink-0">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          GL Account
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Total
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Actions
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table Rows */}
+                    {lineItems.map((item) => (
+                      <div key={item.id} className="flex items-center">
+                        {/* Property */}
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px] flex-shrink-0">
+                          <Select
+                            value={item.property}
+                            onValueChange={(value) =>
+                              handleUpdateLineItem(item.id, "property", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {mockProperties.map((prop) => (
+                                <SelectItem key={prop} value={prop}>
+                                  {prop}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Unit */}
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px] flex-shrink-0">
+                          <Select
+                            value={item.unit}
+                            onValueChange={(value) =>
+                              handleUpdateLineItem(item.id, "unit", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {mockUnits.map((unit) => (
+                                <SelectItem key={unit} value={unit}>
+                                  {unit}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Work Order */}
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px] flex-shrink-0">
+                          <Select
+                            value={item.workOrder}
+                            onValueChange={(value) =>
+                              handleUpdateLineItem(item.id, "workOrder", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {mockWorkOrders.map((wo) => (
+                                <SelectItem key={wo} value={wo}>
+                                  {wo}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Description */}
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 flex-1 min-w-[200px]">
                           <input
                             type="text"
-                            value={invoiceDateInput}
+                            value={item.description}
                             onChange={(e) =>
-                              handleInvoiceDateInputChange(e.target.value)
+                              handleUpdateLineItem(item.id, "description", e.target.value)
                             }
-                            placeholder="mm/dd/yyyy"
-                            className="flex-1 bg-transparent outline-none text-[#303030]"
-                            maxLength={10}
+                            className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
                           />
-                          <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent side="bottom" align="start" className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={invoiceDate || undefined}
-                          onSelect={handleInvoiceDateSelect}
-                          disabled={(date) =>
-                            date > new Date() ||
-                            date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {invoiceDateError && (
-                      <div className="text-red-500 text-xs mt-1">
-                        {invoiceDateError}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col flex-1 min-w-[240px] basis-0">
-                    <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                      Due Date
-                    </label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
-                        >
+                        </div>
+
+                        {/* GL Account */}
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px] flex-shrink-0">
+                          <Select
+                            value={item.glAccount}
+                            onValueChange={(value) =>
+                              handleUpdateLineItem(item.id, "glAccount", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {mockGLAccounts.map((account) => (
+                                <SelectItem key={account} value={account}>
+                                  {account}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Total */}
+                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px] flex-shrink-0">
                           <input
                             type="text"
-                            value={dueDateInput}
-                            onChange={(e) =>
-                              handleDueDateInputChange(e.target.value)
-                            }
-                            placeholder="mm/dd/yyyy"
-                            className="flex-1 bg-transparent outline-none text-[#303030]"
-                            maxLength={10}
+                            value={item.total}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(value)) {
+                                const formatted = value.startsWith("$") ? value : "$" + value;
+                                handleUpdateLineItem(item.id, "total", formatted);
+                              }
+                            }}
+                            placeholder="$0.00"
+                            className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
                           />
-                          <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent side="bottom" align="start" className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={dueDate || undefined}
-                          onSelect={handleDueDateSelect}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {dueDateError && (
-                      <div className="text-red-500 text-xs mt-1">
-                        {dueDateError}
+                        </div>
+
+                        {/* Delete Button */}
+                        <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 h-14 w-[80px] flex-shrink-0">
+                          <button
+                            onClick={() => handleDeleteLineItem(item.id)}
+                            className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
+                            title="Delete row"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-
-                {/* Memo/Notes */}
-                <div className="flex mt-5 w-[790px] flex-col">
-                  <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                    Memo/Notes
-                  </label>
-                  <textarea
-                    value={memo}
-                    onChange={(e) => setMemo(e.target.value)}
-                    placeholder="Additional notes..."
-                    className="rounded-lg bg-white border border-[#E5E5E5] mt-2 min-h-[81px] w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6]"
-                  />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Line Items Section */}
-          <div className="flex mt-[60px] w-full flex-col gap-6">
-            {/* Header */}
-            <div className="flex h-9 justify-between items-start w-full">
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px] w-[625px]">
-                  <div className="font-semibold">
-                    Line Items
+              <div className="flex min-h-[2px] mt-[60px] w-full bg-white" />
+
+              {/* Bill Total */}
+              <div className="bg-[#FBFBFB] flex mt-[60px] px-4 py-4 items-center gap-24 justify-between flex-wrap">
+                <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                  <div>Bill Total:</div>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
+                  <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
+                    Total: $1,620.00
                   </div>
-                  <div className="w-[790px] h-px bg-gray-200 mt-5" />
                 </div>
               </div>
-              <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors">
-                <span className="text-white text-base font-medium">
-                  Add Line Items
-                </span>
-              </button>
-            </div>
 
-            {/* Table */}
-            <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
-              <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white w-full">
-                {/* Table Header */}
-                <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[151px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      Property / Ledger
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[60px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      Unit
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[120px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      Work Order
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[193px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      Description
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[100px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      GL Account
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      Total
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px]">
-                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
-                      Actions
-                    </span>
-                  </div>
-                </div>
-
-                {/* Table Rows */}
-                {lineItems.map((item) => (
-                  <div key={item.id} className="flex items-center w-full">
-                    {/* Property */}
-                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
-                      <Select
-                        value={item.property}
-                        onValueChange={(value) =>
-                          handleUpdateLineItem(item.id, "property", value)
-                        }
-                      >
-                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockProperties.map((prop) => (
-                            <SelectItem key={prop} value={prop}>
-                              {prop}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Unit */}
-                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
-                      <Select
-                        value={item.unit}
-                        onValueChange={(value) =>
-                          handleUpdateLineItem(item.id, "unit", value)
-                        }
-                      >
-                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockUnits.map((unit) => (
-                            <SelectItem key={unit} value={unit}>
-                              {unit}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Work Order */}
-                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
-                      <Select
-                        value={item.workOrder}
-                        onValueChange={(value) =>
-                          handleUpdateLineItem(item.id, "workOrder", value)
-                        }
-                      >
-                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockWorkOrders.map((wo) => (
-                            <SelectItem key={wo} value={wo}>
-                              {wo}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Description */}
-                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
-                      <input
-                        type="text"
-                        value={item.description}
-                        onChange={(e) =>
-                          handleUpdateLineItem(item.id, "description", e.target.value)
-                        }
-                        className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
-                      />
-                    </div>
-
-                    {/* GL Account */}
-                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
-                      <Select
-                        value={item.glAccount}
-                        onValueChange={(value) =>
-                          handleUpdateLineItem(item.id, "glAccount", value)
-                        }
-                      >
-                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockGLAccounts.map((account) => (
-                            <SelectItem key={account} value={account}>
-                              {account}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Total */}
-                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                      <input
-                        type="text"
-                        value={item.total}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Only allow $ and numbers
-                          if (value === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(value)) {
-                            const formatted = value.startsWith("$") ? value : "$" + value;
-                            handleUpdateLineItem(item.id, "total", formatted);
-                          }
-                        }}
-                        placeholder="$0.00"
-                        className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
-                      />
-                    </div>
-
-                    {/* Delete Button */}
-                    <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 h-14 w-[80px]">
-                      <button
-                        onClick={() => handleDeleteLineItem(item.id)}
-                        className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
-                        title="Delete row"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex min-h-[2px] mt-[60px] w-full bg-white" />
-
-          {/* Bill Total */}
-          <div className="bg-[#FBFBFB] flex mt-[60px] w-full px-4 py-4 items-center gap-24 justify-between flex-wrap">
-            <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-              <div>Bill Total:</div>
-            </div>
-            <div className="flex flex-col items-center justify-center">
-              <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
-              <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
-                Total: $1,620.00
+              {/* Action Buttons */}
+              <div className="flex mt-5 items-center gap-2.5 text-base justify-end flex-wrap pb-6">
+                <button
+                  onClick={handleCancel}
+                  className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+                >
+                  <span>Cancel</span>
+                </button>
+                <button
+                  onClick={handleRecordBill}
+                  className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
+                >
+                  <span>Record Bill</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex mt-5 w-full items-center gap-2.5 text-base justify-end flex-wrap">
-        <button
-          onClick={handleCancel}
-          className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
-        >
-          <span>Cancel</span>
-        </button>
-        <button
-          onClick={handleRecordBill}
-          className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
-        >
-          <span>Record Bill</span>
-        </button>
       </div>
     </div>
   );
