@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { usePageState } from "@/hooks/usePageState";
-import { useRef, useState, useEffect } from "react";
 
 interface Assignee {
   id: number;
