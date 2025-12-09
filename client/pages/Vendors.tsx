@@ -80,10 +80,12 @@ const ActionButton = ({
   vendorId,
   openMenuId,
   setOpenMenuId,
+  onEdit,
 }: {
   vendorId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onEdit: () => void;
 }) => {
   const showMenu = openMenuId === vendorId;
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -161,8 +163,8 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                console.log("Edit clicked for vendor", vendorId);
                 setOpenMenuId(null);
+                onEdit();
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
@@ -515,6 +517,7 @@ export default function Vendors() {
                           vendorId={vendor.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEdit={() => setIsAddVendorModalOpen(true)}
                         />
                       </td>
                     </tr>
