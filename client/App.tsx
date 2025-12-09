@@ -10,7 +10,6 @@ import TabContent from "./components/TabContent";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import WorkOrders from "./pages/WorkOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
-import WorkOrderDetail from "./pages/WorkOrderDetail";
 import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
@@ -77,14 +76,6 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <MaintenanceWorkOrders />
-                    </ShellLayout>
-                  }
-                />
-                <Route
-                  path="/work-orders/:workOrderId"
-                  element={
-                    <ShellLayout>
-                      <WorkOrderDetail />
                     </ShellLayout>
                   }
                 />
