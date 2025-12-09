@@ -110,7 +110,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
   return (
     <div className="flex flex-col gap-0">
       {/* Alert Banner */}
-      <div className="rounded-2xl bg-white flex w-full px-6 py-3 items-center gap-4 flex-wrap justify-between">
+      <div className="rounded-2xl bg-[#F3F1FE] flex w-full px-6 py-3 items-center gap-4 flex-wrap justify-between">
         <div className="flex min-w-60 items-center gap-2.5 flex-wrap">
           <img
             loading="lazy"
