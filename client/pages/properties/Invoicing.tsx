@@ -142,8 +142,8 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
             </defs>
           </svg>
           <div className="text-base font-medium leading-[1.4] tracking-[-0.32px] capitalize">
-            <span className="font-bold">High Usage</span>
-            <span className="font-medium"> - Electric usage increased 23% compared to last month</span>
+            <span className="font-bold">unapproved Expenses</span>
+            <span className="font-medium"> - There are unapproved Field Team Expenses Outstanding. Please Review before invoicing client.</span>
           </div>
         </div>
         <div className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap">
