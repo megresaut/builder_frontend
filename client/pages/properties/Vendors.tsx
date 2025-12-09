@@ -329,15 +329,7 @@ export const Vendors: React.FC<VendorsProps> = ({
   };
 
   return (
-    <div
-      className="bg-white"
-      style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
-        padding: "32px 32px 150px",
-      }}
-    >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-center gap-10 justify-between flex-wrap">
           {/* Title and Description */}
@@ -894,7 +886,6 @@ export const Vendors: React.FC<VendorsProps> = ({
             </div>
           </div>
         </div>
-      </div>
 
       {/* File Upload Modal */}
       <FileUploadModal
