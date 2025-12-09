@@ -6,11 +6,15 @@ interface InvoicingProps {
   propertyUnits: number;
 }
 
+import { useRef } from "react";
+
 export const Invoicing: React.FC<InvoicingProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [openInvoiceActionId, setOpenInvoiceActionId] = useState<number | null>(null);
   const [openHistoryActionId, setOpenHistoryActionId] = useState<number | null>(null);
+  const invoiceButtonRefs = useRef<{ [key: number]: HTMLButtonElement }>({});
+  const historyButtonRefs = useRef<{ [key: number]: HTMLButtonElement }>({});
 
   const invoiceItems = [
     {
