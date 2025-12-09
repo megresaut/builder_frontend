@@ -469,32 +469,32 @@ export const RecordBill = () => {
                   <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                     {/* Table Header */}
                     <div className="flex items-center">
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[151px] flex-shrink-0">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
                         <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                           Property / Ledger
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[60px] flex-shrink-0">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
                         <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                           Unit
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[120px] flex-shrink-0">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
                         <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                           Work Order
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
                         <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                           Description
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[120px] flex-shrink-0">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
                         <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                           GL Account
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
+                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
                         <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                           Total
                         </span>
