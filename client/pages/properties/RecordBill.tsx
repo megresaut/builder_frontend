@@ -672,7 +672,7 @@ export const RecordBill = () => {
               <div className="flex flex-col items-center justify-center">
                 <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
                 <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
-                  Total: {calculateTotal()}
+                  {calculateTotal()}
                 </div>
               </div>
             </div>
