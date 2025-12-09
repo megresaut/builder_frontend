@@ -244,7 +244,9 @@ export const Bills: React.FC<BillsProps> = ({
   }, [showPageSizeDropdown]);
 
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
-  const totalPages = Math.ceil(225 / itemsPerPage);
+  const displayedBills = selectedTab === "approved" ? approvedBills : bills;
+  const totalBills = displayedBills.length;
+  const totalPages = Math.ceil(totalBills / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
