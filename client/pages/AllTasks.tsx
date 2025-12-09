@@ -1144,7 +1144,17 @@ export default function AllTasks() {
       {/* Create Task Modal */}
       <CreateTaskModal
         open={isCreateTaskModalOpen}
-        onOpenChange={setIsCreateTaskModalOpen}
+        onOpenChange={(open) => {
+          setIsCreateTaskModalOpen(open);
+          if (!open) {
+            setEditingTask(null);
+          }
+        }}
+        editData={editingTask ? {
+          title: editingTask.title,
+          due: editingTask.due,
+          priority: editingTask.priority,
+        } : undefined}
       />
     </div>
   );
