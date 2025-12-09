@@ -662,7 +662,7 @@ export const RecordBill = () => {
           </div>
 
           {/* Sticky Footer - Bill Total and Action Buttons */}
-          <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0" style={{ marginTop: "60px" }}>
+          <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0" style={{ marginTop: "220px" }}>
             {/* Bill Total */}
             <div className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]" style={{ padding: "16px 150px 16px 32px" }}>
               <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
