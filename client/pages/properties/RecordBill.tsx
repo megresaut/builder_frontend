@@ -313,7 +313,7 @@ export const RecordBill = () => {
         {/* Right Column - Scrollable Content with Sticky Footer */}
         <div className="flex-1 flex flex-col">
           {/* Scrollable Content Area */}
-          <div className="overflow-y-auto overflow-x-auto" style={{ maxHeight: "calc(100vh - 250px)" }}>
+          <div className="flex-shrink overflow-y-auto overflow-x-auto">
             <div className="px-8 py-6 min-w-min">
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
