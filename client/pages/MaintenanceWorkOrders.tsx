@@ -12,133 +12,158 @@ interface Assignee {
   color: string;
 }
 
-interface RecurringTask {
+interface WorkOrder {
   id: number;
   task: string;
-  nextDate: string;
+  dueDate: string;
+  updatedDate: string;
+  age: string;
   priority: "High" | "Low" | "Normal";
-  category: string;
-  status: "active" | "inactive";
+  status: "In progress" | "Completed";
+  billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
+  billTotal: string;
   assignees: Assignee[];
 }
 
-const mockRecurringTasks: RecurringTask[] = [
+const mockWorkOrders: WorkOrder[] = [
   {
     id: 1,
     task: "Doors need to be repaired",
-    nextDate: "Oct 2, 2025",
+    dueDate: "Oct 2, 2025",
+    updatedDate: "Oct 2, 2025",
+    age: "6 days 5 hours",
     priority: "High",
-    category: "Cansaas",
-    status: "active",
+    status: "In progress",
+    billStatus: "Paid",
+    billTotal: "$420",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
     ],
   },
   {
     id: 2,
     task: "Doors need to be repaired",
-    nextDate: "Sep 29, 2025",
+    dueDate: "Sep 29, 2025",
+    updatedDate: "Sep 29, 2025",
+    age: "6 days 5 hours",
     priority: "Low",
-    category: "Cansaas",
-    status: "active",
+    status: "In progress",
+    billStatus: "Awaiting Invoice",
+    billTotal: "No invoice",
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
   },
   {
     id: 3,
     task: "Doors need to be repaired",
-    nextDate: "Sep 10, 2025",
+    dueDate: "Sep 10, 2025",
+    updatedDate: "Sep 10, 2025",
+    age: "6 days 5 hours",
     priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$95",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
   },
   {
     id: 4,
     task: "Doors need to be repaired",
-    nextDate: "Sep 6, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 6, 2025",
+    updatedDate: "Sep 6, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$112",
     assignees: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
   },
   {
     id: 5,
     task: "Doors need to be repaired",
-    nextDate: "Sep 5, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 5, 2025",
+    updatedDate: "Sep 5, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$93",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
   },
   {
     id: 6,
     task: "Doors need to be repaired",
-    nextDate: "Sep 4, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 4, 2025",
+    updatedDate: "Sep 4, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$75",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
   },
   {
     id: 7,
     task: "Doors need to be repaired",
-    nextDate: "Sep 4, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 4, 2025",
+    updatedDate: "Sep 4, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$101",
     assignees: [
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
   },
   {
     id: 8,
     task: "Doors need to be repaired",
-    nextDate: "Sep 3, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 3, 2025",
+    updatedDate: "Sep 3, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$124",
     assignees: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
   },
   {
     id: 9,
     task: "Doors need to be repaired",
-    nextDate: "Sep 1, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 1, 2025",
+    updatedDate: "Sep 1, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$67",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
   },
   {
     id: 10,
     task: "Doors need to be repaired",
-    nextDate: "Sep 1, 2025",
-    priority: "Normal",
-    category: "Cansaas",
-    status: "active",
+    dueDate: "Sep 1, 2025",
+    updatedDate: "Sep 1, 2025",
+    age: "6 days 5 hours",
+    priority: "High",
+    status: "Completed",
+    billStatus: "Unpaid",
+    billTotal: "$118",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
   },
 ];
