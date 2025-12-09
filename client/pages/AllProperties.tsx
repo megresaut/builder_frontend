@@ -662,11 +662,18 @@ export default function AllProperties() {
                 <tbody>
                   {properties
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((property) => (
+                    .map((property) => {
+                      const handleRowClick = (e: React.MouseEvent) => {
+                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                          return;
+                        }
+                        navigate(`/property/${property.id}`);
+                      };
+                      return (
                     <tr
                       key={property.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={() => navigate(`/property/${property.id}`)}
+                      onClick={handleRowClick}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
@@ -738,7 +745,8 @@ export default function AllProperties() {
                         />
                       </td>
                     </tr>
-                  ))}
+                  );
+                    })}
                 </tbody>
               </table>
             </div>
