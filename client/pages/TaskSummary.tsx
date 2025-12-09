@@ -381,27 +381,6 @@ export default function TaskSummary() {
     };
   }, [showPageSizeDropdown]);
 
-  // Sync local state when metadata changes (switching back to this tab)
-  useEffect(() => {
-    if (currentMetadata?.activeTab !== undefined && currentMetadata.activeTab !== activeTab) {
-      setActiveTab(currentMetadata.activeTab);
-    }
-    if (
-      currentMetadata?.selectedWorkOrderId !== undefined &&
-      currentMetadata.selectedWorkOrderId !== selectedWorkOrderId
-    ) {
-      setSelectedWorkOrderId(currentMetadata.selectedWorkOrderId);
-    }
-  }, [currentMetadata?.activeTab, currentMetadata?.selectedWorkOrderId]);
-
-  // Update tab metadata when activeTab or selectedWorkOrderId changes
-  useEffect(() => {
-    setTabMetadata(currentTabId, {
-      ...currentMetadata,
-      activeTab,
-      selectedWorkOrderId,
-    });
-  }, [activeTab, selectedWorkOrderId, currentTabId, setTabMetadata, currentMetadata]);
 
   const totalPages = Math.ceil(225 / itemsPerPage);
 
