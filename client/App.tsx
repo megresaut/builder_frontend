@@ -151,7 +151,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/tasks/:taskId"
+                  path="/tasks/:taskId/:tab"
                   element={
                     <ShellLayout>
                       <TaskSummary />
@@ -159,7 +159,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/tasks/:taskId/:tab"
+                  path="/tasks/:taskId"
                   element={
                     <ShellLayout>
                       <TaskSummary />
