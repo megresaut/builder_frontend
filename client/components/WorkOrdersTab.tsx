@@ -519,6 +519,186 @@ export default function WorkOrdersTab() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination Footer */}
+            <div
+              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+              style={{ position: "relative", zIndex: 1, overflow: "visible" }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700 text-sm font-medium">
+                  Showing
+                </span>
+                <div
+                  className="relative"
+                  style={{ position: "relative", zIndex: 10 }}
+                >
+                  <button
+                    ref={dropdownButtonRef}
+                    onClick={() =>
+                      setShowPageSizeDropdown(!showPageSizeDropdown)
+                    }
+                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
+                    style={{
+                      borderColor: "rgb(218, 218, 218)",
+                      borderWidth: "0.909091px",
+                      boxShadow:
+                        "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                    }}
+                  >
+                    <div className="text-gray-900 font-medium text-sm">
+                      {itemsPerPage}
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </div>
+                <span className="text-gray-700 text-sm font-medium">
+                  of {mockWorkOrders.length}
+                </span>
+              </div>
+              <div
+                className="flex items-center rounded-lg border bg-white overflow-hidden"
+                style={{
+                  borderColor: "rgb(218, 218, 218)",
+                  borderWidth: "0.909091px",
+                  boxShadow:
+                    "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                }}
+              >
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50",
+                  )}
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={
+                      currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
+                    }
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m12 19-7-7 7-7" />
+                    <path d="M19 12H5" />
+                  </svg>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === 1 ? "text-gray-400" : "text-gray-700",
+                    )}
+                  >
+                    Previous
+                  </div>
+                </button>
+                {getPaginationNumbers().map((page, idx) => {
+                  if (page === "...") {
+                    return (
+                      <button
+                        key={`ellipsis-${idx}`}
+                        disabled
+                        className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                        style={{
+                          borderRightWidth: "0.909091px",
+                          borderRightColor: "rgb(229, 229, 229)",
+                          backgroundColor: "rgba(0, 0, 0, 0)",
+                        }}
+                      >
+                        <div className="text-gray-500 font-medium text-sm">
+                          ...
+                        </div>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page as number)}
+                      className={cn(
+                        "flex items-center justify-center h-10 min-w-10 transition-colors",
+                        currentPage === page
+                          ? "hover:bg-gray-50"
+                          : "hover:bg-gray-50",
+                      )}
+                      style={{
+                        borderRightWidth: "0.909091px",
+                        borderRightColor: "rgb(229, 229, 229)",
+                        backgroundColor:
+                          currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      <div
+                        className={cn(
+                          "font-medium text-sm",
+                          currentPage === page
+                            ? "text-gray-900 font-bold"
+                            : "text-gray-500",
+                        )}
+                      >
+                        {page}
+                      </div>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+                  )}
+                  style={{
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div className={cn("font-medium text-sm text-gray-700")}>
+                    Next
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={
+                      currentPage === totalPages
+                        ? "rgb(163, 163, 163)"
+                        : "currentColor"
+                    }
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
