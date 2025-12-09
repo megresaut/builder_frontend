@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, Search, ChevronDown, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import WorkOrders from "../pages/WorkOrders";
+import CreateWorkOrderModal from "./CreateWorkOrderModal";
 
 interface Assignee {
   id: number;
@@ -239,6 +240,8 @@ export default function WorkOrdersTab({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const [showCreateWorkOrderModal, setShowCreateWorkOrderModal] =
+    useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -400,6 +403,29 @@ export default function WorkOrdersTab({
               </h2>
             </div>
             <div className="flex items-start gap-2.5">
+              <button
+                onClick={() => setShowCreateWorkOrderModal(true)}
+                className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10 4.16667V15.8333M4.16667 10H15.8333"
+                    stroke="white"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-white font-medium text-base leading-normal">
+                  Create Work Order
+                </span>
+              </button>
               <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white">
                 <Search className="w-5 h-5 text-gray-600" />
                 <input
@@ -955,6 +981,12 @@ export default function WorkOrdersTab({
           </div>
         </div>
       </div>
+
+      {/* Create Work Order Modal */}
+      <CreateWorkOrderModal
+        open={showCreateWorkOrderModal}
+        onOpenChange={setShowCreateWorkOrderModal}
+      />
     </div>
   );
 }
