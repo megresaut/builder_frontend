@@ -318,6 +318,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   propertyType,
   propertyUnits,
 }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = usePageState<
     "tasks" | "recurring" | "workorders" | "fieldteam"
   >("activeTab", "recurring");
