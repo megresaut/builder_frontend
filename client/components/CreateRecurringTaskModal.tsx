@@ -776,10 +776,10 @@ export default function CreateRecurringTaskModal({
             </div>
           </div>
 
-          {/* Create Recurring Task Button */}
+          {/* Create/Update Recurring Task Button */}
           <button className="flex h-9 justify-center items-center gap-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0">
             <span className="text-white font-medium text-base">
-              Create Recurring Task
+              {editData ? "Update Recurring Task" : "Create Recurring Task"}
             </span>
           </button>
         </div>
