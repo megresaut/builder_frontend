@@ -348,7 +348,8 @@ export default function RecurringTasks() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(mockRecurringTasks.length / itemsPerPage);
+  const totalTasks = mockRecurringTasks.length;
+  const totalPages = Math.ceil(totalTasks / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
