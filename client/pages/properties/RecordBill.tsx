@@ -481,11 +481,6 @@ export const RecordBill = () => {
                         <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
                       </div>
                     </div>
-                    <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors flex-shrink-0">
-                      <span className="text-white text-base font-medium">
-                        Add Line Items
-                      </span>
-                    </button>
                   </div>
 
                   {/* Table */}
