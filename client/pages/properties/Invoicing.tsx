@@ -118,7 +118,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
   };
 
   return (
-    <div className="flex flex-col gap-0">
+    <div ref={containerRef} className="flex flex-col gap-0">
       {/* Alert Banner */}
       <div
         className="flex items-center justify-between self-stretch rounded-2xl border border-[#E5E5FF] p-3 px-4"
