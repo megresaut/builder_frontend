@@ -188,6 +188,8 @@ export default function Header() {
       items.push({ label: "Work Orders" });
     } else if (path === "/recurring-tasks") {
       items.push({ label: "Recurring Tasks" });
+    } else if (path === "/vendors") {
+      items.push({ label: "Vendors" });
     }
 
     return items;
