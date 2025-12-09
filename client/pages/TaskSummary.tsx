@@ -1530,7 +1530,10 @@ export default function TaskSummary() {
                               orderId={order.id}
                               openMenuId={openMenuId}
                               setOpenMenuId={setOpenMenuId}
-                              onApprove={() => setShowApprovalModal(true)}
+                              onApprove={() => {
+                                setSelectedFTOId(order.id);
+                                setShowApprovalModal(true);
+                              }}
                               onEdit={() => setShowFTOModal(true)}
                             />
                           </td>
