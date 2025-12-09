@@ -291,7 +291,8 @@ export const Vendors: React.FC<VendorsProps> = ({
     setIsAddVendorModalOpen(true);
   };
 
-  const totalPages = Math.ceil(mockVendors.length / itemsPerPage);
+  const totalVendors = mockVendors.length;
+  const totalPages = Math.ceil(totalVendors / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -300,28 +301,25 @@ export const Vendors: React.FC<VendorsProps> = ({
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
@@ -608,7 +606,9 @@ export const Vendors: React.FC<VendorsProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {mockVendors.map((vendor) => (
+                  {mockVendors
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((vendor) => (
                     <tr
                       key={vendor.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
@@ -759,7 +759,7 @@ export const Vendors: React.FC<VendorsProps> = ({
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {mockVendors.length}
+                  of {totalVendors}
                 </span>
               </div>
               <div
@@ -861,19 +861,27 @@ export const Vendors: React.FC<VendorsProps> = ({
                   );
                 })}
                 <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50",
                   )}
                 >
-                  <div className="font-medium text-sm text-gray-700">Next</div>
+                  <div className={cn("font-medium text-sm", currentPage === totalPages ? "text-gray-400" : "text-gray-700")}>Next</div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
+                    stroke={
+                      currentPage === totalPages
+                        ? "rgb(163, 163, 163)"
+                        : "currentColor"
+                    }
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
