@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "../Utilities";
-import RecordBillModal from "@/components/RecordBillModal";
 import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
 
@@ -312,6 +312,8 @@ export const Bills: React.FC<BillsProps> = ({
   propertyType,
   propertyUnits,
 }) => {
+  const navigate = useNavigate();
+  const { propertyId } = useParams<{ propertyId: string }>();
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
     "selectedTab",
     "approved",
@@ -320,10 +322,6 @@ export const Bills: React.FC<BillsProps> = ({
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
     "showPageSizeDropdown",
-    false,
-  );
-  const [isRecordBillModalOpen, setIsRecordBillModalOpen] = usePageState(
-    "isRecordBillModalOpen",
     false,
   );
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
@@ -537,7 +535,13 @@ export const Bills: React.FC<BillsProps> = ({
             </button>
 
             <button
-              onClick={() => setIsRecordBillModalOpen(true)}
+              onClick={() => {
+                if (propertyId) {
+                  navigate(`/property/${propertyId}/bills/record`);
+                } else {
+                  navigate("/bills/record");
+                }
+              }}
               className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
             >
               <svg
@@ -840,7 +844,11 @@ export const Bills: React.FC<BillsProps> = ({
                       if ((e.target as HTMLElement).closest("td:last-child")) {
                         return;
                       }
-                      setIsRecordBillModalOpen(true);
+                      if (propertyId) {
+                        navigate(`/property/${propertyId}/bills/record`);
+                      } else {
+                        navigate("/bills/record");
+                      }
                     };
                     return (
                       <tr
@@ -1154,12 +1162,6 @@ export const Bills: React.FC<BillsProps> = ({
           </div>,
           document.body,
         )}
-
-      {/* Record Bill Modal */}
-      <RecordBillModal
-        open={isRecordBillModalOpen}
-        onOpenChange={setIsRecordBillModalOpen}
-      />
 
       {/* Add Vendor Modal */}
       <AddVendorModal
