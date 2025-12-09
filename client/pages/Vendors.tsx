@@ -478,6 +478,35 @@ export default function Vendors() {
                         </span>
                       </div>
                     </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M2.5 4.16667C2.5 3.54624 3.03726 3.04167 3.66667 3.04167H16.3333C16.9627 3.04167 17.5 3.54624 17.5 4.16667V15.8333C17.5 16.4538 16.9627 16.9583 16.3333 16.9583H3.66667C3.03726 16.9583 2.5 16.4538 2.5 15.8333V4.16667Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M5.83301 6.70825H14.1663M5.83301 10H14.1663M5.83301 13.2917H10.833"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Notes
+                        </span>
+                      </div>
+                    </th>
                     <th
                       className="sticky right-0 px-2 py-3 text-center w-20"
                       style={{
