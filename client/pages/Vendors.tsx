@@ -11,6 +11,7 @@ interface Vendor {
   name: string;
   phone: string;
   email: string;
+  notes: string;
 }
 
 const mockVendors: Vendor[] = [
@@ -19,60 +20,70 @@ const mockVendors: Vendor[] = [
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Reliable vendor, quick turnaround",
   },
   {
     id: 2,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Good quality work",
   },
   {
     id: 3,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Preferred for electrical work",
   },
   {
     id: 4,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "",
   },
   {
     id: 5,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Great communication",
   },
   {
     id: 6,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Specializes in plumbing",
   },
   {
     id: 7,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "",
   },
   {
     id: 8,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Budget-friendly option",
   },
   {
     id: 9,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Certified professional",
   },
   {
     id: 10,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
+    notes: "Excellent references",
   },
 ];
 
