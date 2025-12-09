@@ -709,9 +709,10 @@ export default function AllProperties() {
                         }}
                       >
                         <ActionButton
-                          propertyId={property.id}
+                          property={property}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEditClick={handlePropertyEdit}
                         />
                       </td>
                     </tr>
