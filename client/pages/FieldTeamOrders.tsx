@@ -733,11 +733,17 @@ export default function FieldTeamOrders() {
                         }}
                       >
                         <ActionButton
-                          orderId={order.id}
+                          order={order}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
-                          onApprove={() => setShowApprovalModal(true)}
-                          onEdit={() => setShowFTOModal(true)}
+                          onApprove={(selectedOrder) => {
+                            setEditingOrder(selectedOrder);
+                            setShowApprovalModal(true);
+                          }}
+                          onEdit={(selectedOrder) => {
+                            setEditingOrder(selectedOrder);
+                            setShowFTOModal(true);
+                          }}
                         />
                       </td>
                     </tr>
