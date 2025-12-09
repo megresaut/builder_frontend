@@ -930,7 +930,18 @@ export default function RecurringTasks() {
       {/* Create Recurring Task Modal */}
       <CreateRecurringTaskModal
         open={isCreateRecurringTaskModalOpen}
-        onOpenChange={setIsCreateRecurringTaskModalOpen}
+        onOpenChange={(open) => {
+          setIsCreateRecurringTaskModalOpen(open);
+          if (!open) {
+            setEditingTask(null);
+          }
+        }}
+        editData={editingTask ? {
+          task: editingTask.task,
+          nextDate: editingTask.nextDate,
+          priority: editingTask.priority,
+          category: editingTask.category,
+        } : undefined}
       />
     </div>
   );
