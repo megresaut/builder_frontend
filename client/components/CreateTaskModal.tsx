@@ -47,7 +47,9 @@ const AVAILABLE_ASSIGNEES: Assignee[] = [
 export default function CreateTaskModal({
   open,
   onOpenChange,
+  editData,
 }: CreateTaskModalProps) {
+  const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -62,6 +64,14 @@ export default function CreateTaskModal({
     top: 0,
     left: 0,
   });
+
+  useEffect(() => {
+    if (editData) {
+      setTitle(editData.title);
+      setDueDate(editData.due);
+      setPriority(editData.priority.toLowerCase());
+    }
+  }, [editData]);
 
   useEffect(() => {
     let animationFrameId: number;
