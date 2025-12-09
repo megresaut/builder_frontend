@@ -235,22 +235,6 @@ export default function Sidebar() {
     ],
   };
 
-  const toggleExpanded = (id: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedItems(newExpanded);
-  };
-
-  const handleIconClick = (id: string) => {
-    if (submenuMap[id]) {
-      setActiveDropdown(activeDropdown === id ? null : id);
-      toggleExpanded(id);
-    }
-  };
 
   const tabContext = useContext(TabContext);
 
