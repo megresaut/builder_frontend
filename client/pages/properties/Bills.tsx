@@ -282,15 +282,7 @@ export const Bills: React.FC<BillsProps> = ({
   };
 
   return (
-    <div
-      className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
-      style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
-        paddingBottom: "150px",
-      }}
-    >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
+    <div className="max-w-full mx-auto flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
           {/* Title and Description */}
@@ -928,7 +920,6 @@ export const Bills: React.FC<BillsProps> = ({
             </div>
           </div>
         </div>
-      </div>
       {/* Dropdown Menu - Rendered via Portal at body level */}
       {showPageSizeDropdown &&
         createPortal(
