@@ -106,8 +106,8 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 3, 2025",
     fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
+      { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
+      { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
     amount: 124,
@@ -118,8 +118,8 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
     fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
+      { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
+      { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
     amount: 67,
@@ -130,8 +130,8 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
     fieldTeam: [
-      { initials: "CH", color: "bg-blue-500" },
-      { initials: "CS", color: "bg-blue-500" },
+      { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
+      { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
     amount: 118,
