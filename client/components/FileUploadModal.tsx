@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { X, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FileUploadModalProps {
