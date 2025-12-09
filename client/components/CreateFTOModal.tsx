@@ -20,15 +20,20 @@ import {
   getDay,
 } from "date-fns";
 
-interface CreateFTOModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 interface Assignee {
   id: string;
   name: string;
   initials: string;
+}
+
+interface CreateFTOModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editData?: {
+    dueDate: string;
+    priority: string;
+    timesheetStatus: string;
+  };
 }
 
 const AVAILABLE_ASSIGNEES: Assignee[] = [
