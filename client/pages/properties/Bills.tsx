@@ -275,7 +275,7 @@ export function Bills() {
     <div
       className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
       style={{
-        borderLeftWidth: "1px",
+        borderLeftWidth: "0px",
         borderLeftColor: "rgb(210, 209, 207)",
         paddingBottom: "150px",
       }}
@@ -624,7 +624,7 @@ export function Bills() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap" style={{ borderRightColor: "transparent" }}>
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
