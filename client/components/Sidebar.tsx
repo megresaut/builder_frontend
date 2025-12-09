@@ -590,7 +590,7 @@ export default function Sidebar() {
     return (
       <div
         className="relative h-screen flex-shrink-0 group transition-all"
-        style={{ width: isHovered ? "262px" : "30px" }}
+        style={{ width: isHovered ? "262px" : "40px" }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
