@@ -376,6 +376,15 @@ export default function Bills() {
     }
   }, [showPageSizeDropdown]);
 
+  useEffect(() => {
+    const handleClickAnywhere = () => {
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickAnywhere);
+    return () => document.removeEventListener("mousedown", handleClickAnywhere);
+  }, []);
+
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
   const totalBills = approvedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
