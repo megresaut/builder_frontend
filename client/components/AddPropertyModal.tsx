@@ -196,7 +196,7 @@ export default function AddPropertyModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-8 gap-0">
         <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-          Add Property
+          {editData ? "Edit Property" : "Add Property"}
         </DialogTitle>
 
         <div className="flex flex-col gap-4">
