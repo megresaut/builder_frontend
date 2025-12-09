@@ -783,7 +783,7 @@ export const Bills: React.FC<BillsProps> = ({
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of 225
+                  of {totalBills}
                 </span>
               </div>
               <div
