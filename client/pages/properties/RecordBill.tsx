@@ -234,6 +234,33 @@ export const RecordBill = () => {
         item.id === id ? { ...item, [field]: value } : item
       )
     );
+
+    // Trigger width measurement after state update
+    setTimeout(() => {
+      measureAndUpdateColumnWidths();
+    }, 0);
+  };
+
+  const measureAndUpdateColumnWidths = () => {
+    const newWidths = { ...columnWidths };
+    let hasChanges = false;
+
+    // Measure all select triggers and inputs
+    document.querySelectorAll('[data-measure-width]').forEach((element) => {
+      const columnName = element.getAttribute('data-measure-width') as keyof typeof columnWidths;
+      const scrollWidth = (element as HTMLElement).scrollWidth;
+      const padding = 24; // px-3 = 12px * 2
+      const requiredWidth = scrollWidth + padding;
+
+      if (requiredWidth > newWidths[columnName]) {
+        newWidths[columnName] = requiredWidth;
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      setColumnWidths(newWidths);
+    }
   };
 
   const handleDeleteLineItem = (id: number) => {
