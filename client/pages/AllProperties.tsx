@@ -955,7 +955,13 @@ export default function AllProperties() {
 
       <AddPropertyModal
         open={isAddPropertyModalOpen}
-        onOpenChange={setIsAddPropertyModalOpen}
+        onOpenChange={(open) => {
+          setIsAddPropertyModalOpen(open);
+          if (!open) {
+            setEditingProperty(null);
+          }
+        }}
+        editData={editingProperty || undefined}
       />
     </div>
   );
