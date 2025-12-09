@@ -385,6 +385,15 @@ export default function TaskSummary() {
     };
   }, [showPageSizeDropdown]);
 
+  // Update tab metadata when activeTab or selectedWorkOrderId changes
+  useEffect(() => {
+    setTabMetadata(currentTabId, {
+      ...currentMetadata,
+      activeTab,
+      selectedWorkOrderId,
+    });
+  }, [activeTab, selectedWorkOrderId, currentTabId, setTabMetadata, currentMetadata]);
+
   const totalPages = Math.ceil(225 / itemsPerPage);
 
   const getPaginationNumbers = () => {
