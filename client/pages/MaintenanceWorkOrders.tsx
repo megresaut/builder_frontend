@@ -360,7 +360,7 @@ export default function MaintenanceWorkOrders() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(mockRecurringTasks.length / itemsPerPage);
+  const totalPages = Math.ceil(mockWorkOrders.length / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -485,128 +485,49 @@ export default function MaintenanceWorkOrders() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                          <path d="M10 6h4" />
-                          <path d="M10 10h4" />
-                          <path d="M10 14h4" />
-                          <path d="M10 18h4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Work Order
-                        </span>
-                      </div>
+                      <span className="font-medium text-sm text-gray-700">
+                        Work Order
+                      </span>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect x="3" y="4" width="18" height="18" rx="2" />
-                          <path d="M16 2v4" />
-                          <path d="M8 2v4" />
-                          <path d="M3 10h18" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Scheduled Date
-                        </span>
-                      </div>
+                      <span className="font-medium text-sm text-gray-700">
+                        Updated
+                      </span>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Priority
-                        </span>
-                      </div>
+                      <span className="font-medium text-sm text-gray-700">
+                        Age
+                      </span>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M2.66667 14V7.33333L8 2L13.3333 7.33333V14H10V10H6V14H2.66667Z" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Category
-                        </span>
-                      </div>
+                      <span className="font-medium text-sm text-gray-700">
+                        Status
+                      </span>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Assignees
-                        </span>
-                      </div>
+                      <span className="font-medium text-sm text-gray-700">
+                        Due
+                      </span>
                     </th>
-                    <th
-                      className="px-3 py-3 text-left whitespace-nowrap"
-                      style={{
-                        borderBottomWidth: "1px",
-                        borderColor:
-                          "rgba(0, 0, 0, 0) rgb(231, 232, 236) rgb(231, 232, 236) rgba(0, 0, 0, 0)",
-                        borderRightWidth: "1px",
-                        borderTopWidth: "1px",
-                        borderWidth: "1px 1px 1px 0px",
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Status
-                        </span>
-                      </div>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <span className="font-medium text-sm text-gray-700">
+                        Priority
+                      </span>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <span className="font-medium text-sm text-gray-700">
+                        Bill Status
+                      </span>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <span className="font-medium text-sm text-gray-700">
+                        Bill Total
+                      </span>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <span className="font-medium text-sm text-gray-700">
+                        Assignees
+                      </span>
                     </th>
                     <th
                       className="sticky right-0 px-2 py-3 text-center w-20"
@@ -623,38 +544,72 @@ export default function MaintenanceWorkOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockRecurringTasks.map((task) => (
+                  {mockWorkOrders.map((workOrder) => (
                     <tr
-                      key={task.id}
+                      key={workOrder.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {task.task}
+                          {workOrder.task}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {task.nextDate}
+                          {workOrder.updatedDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-base">
+                          {workOrder.age}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPriorityBadgeColor(
-                            task.priority,
-                          )}`}
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
+                            workOrder.status === "Completed"
+                              ? "bg-emerald-100 text-emerald-600"
+                              : "bg-blue-100 text-blue-600"
+                          }`}
                         >
-                          {task.priority}
+                          {workOrder.status}
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {task.category}
+                          {workOrder.dueDate}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <div
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityBadgeColor(
+                            workOrder.priority,
+                          )}`}
+                        >
+                          {workOrder.priority}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <div
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
+                            workOrder.billStatus === "Paid"
+                              ? "bg-green-100 text-green-600"
+                              : workOrder.billStatus === "Unpaid"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-yellow-100 text-yellow-600"
+                          }`}
+                        >
+                          {workOrder.billStatus}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-base">
+                          {workOrder.billTotal}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          {task.assignees.map((assignee) => (
+                          {workOrder.assignees.map((assignee) => (
                             <div
                               key={assignee.id}
                               className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
@@ -671,15 +626,6 @@ export default function MaintenanceWorkOrders() {
                         </div>
                       </td>
                       <td
-                        className="px-3 py-3 whitespace-nowrap"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
-                      >
-                        <StatusBadge status={task.status} />
-                      </td>
-                      <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
                         style={{
                           borderLeftWidth: "2px",
@@ -691,7 +637,7 @@ export default function MaintenanceWorkOrders() {
                         }}
                       >
                         <ActionButton
-                          taskId={task.id}
+                          taskId={workOrder.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
                         />
@@ -747,7 +693,7 @@ export default function MaintenanceWorkOrders() {
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {mockRecurringTasks.length}
+                  of {mockWorkOrders.length}
                 </span>
               </div>
               <div
