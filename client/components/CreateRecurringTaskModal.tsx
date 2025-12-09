@@ -48,8 +48,11 @@ const AVAILABLE_ASSIGNEES: Assignee[] = [
 export default function CreateRecurringTaskModal({
   open,
   onOpenChange,
+  editData,
 }: CreateRecurringTaskModalProps) {
+  const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("normal");
+  const [category, setCategory] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
@@ -71,6 +74,15 @@ export default function CreateRecurringTaskModal({
     top: 0,
     left: 0,
   });
+
+  useEffect(() => {
+    if (editData) {
+      setTaskName(editData.task);
+      setStartDate(editData.nextDate);
+      setPriority(editData.priority.toLowerCase());
+      setCategory(editData.category);
+    }
+  }, [editData]);
 
   useEffect(() => {
     let animationFrameId: number;
