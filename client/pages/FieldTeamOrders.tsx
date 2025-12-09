@@ -323,6 +323,7 @@ const ActionButton = ({
 };
 
 export default function FieldTeamOrders() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
