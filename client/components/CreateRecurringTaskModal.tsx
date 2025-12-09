@@ -253,7 +253,7 @@ export default function CreateRecurringTaskModal({
         <div className="flex flex-col gap-4">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            Create Recurring Task
+            {editData ? "Edit Recurring Task" : "Create Recurring Task"}
           </DialogTitle>
 
           {/* Task Name */}
