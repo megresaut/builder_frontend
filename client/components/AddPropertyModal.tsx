@@ -349,7 +349,7 @@ export default function AddPropertyModal({
                     >
                       {AVAILABLE_MANAGERS.map((manager) => {
                         const isSelected = selectedManagers.some(
-                          (m) => m.id === manager.id,
+                          (m) => String(m.id) === String(manager.id),
                         );
                         return (
                           <button
