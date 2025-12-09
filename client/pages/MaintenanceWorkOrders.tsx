@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
-import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
+import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
 
 interface Assignee {
   id: number;
@@ -327,7 +327,7 @@ export default function MaintenanceWorkOrders() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [isCreateRecurringTaskModalOpen, setIsCreateRecurringTaskModalOpen] =
+  const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -437,10 +437,10 @@ export default function MaintenanceWorkOrders() {
             </div>
           </div>
 
-          {/* Create Task Button */}
+          {/* Create Work Order Button */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsCreateRecurringTaskModalOpen(true)}
+              onClick={() => setIsCreateWorkOrderModalOpen(true)}
               className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <Plus className="w-5 h-5 text-white" />
@@ -1010,9 +1010,9 @@ export default function MaintenanceWorkOrders() {
       </div>
 
       {/* Create Work Order Modal */}
-      <CreateRecurringTaskModal
-        open={isCreateRecurringTaskModalOpen}
-        onOpenChange={setIsCreateRecurringTaskModalOpen}
+      <CreateWorkOrderModal
+        open={isCreateWorkOrderModalOpen}
+        onOpenChange={setIsCreateWorkOrderModalOpen}
       />
     </div>
   );
