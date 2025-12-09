@@ -1590,6 +1590,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         itemId={order.id}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
+                        isFTO={true}
+                        onApprove={() => {
+                          setSelectedFTOId(order.id);
+                          setShowApprovalModal(true);
+                        }}
                       />
                     </td>
                   </tr>
