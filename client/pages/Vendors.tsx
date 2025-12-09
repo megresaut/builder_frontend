@@ -281,6 +281,8 @@ export default function Vendors() {
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
+  const [uploadDocumentType, setUploadDocumentType] = useState<"w9" | "insurance">("w9");
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -669,7 +671,13 @@ export default function Vendors() {
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         {vendor.w9 ? (
-                          <span className="text-blue-600 font-normal text-base hover:underline cursor-pointer">
+                          <span
+                            onClick={() => {
+                              setUploadDocumentType("w9");
+                              setIsFileUploadModalOpen(true);
+                            }}
+                            className="text-blue-600 font-normal text-base hover:underline cursor-pointer"
+                          >
                             {vendor.w9}
                           </span>
                         ) : (
@@ -686,7 +694,13 @@ export default function Vendors() {
                         }}
                       >
                         {vendor.insurance ? (
-                          <span className="text-blue-600 font-normal text-base hover:underline cursor-pointer">
+                          <span
+                            onClick={() => {
+                              setUploadDocumentType("insurance");
+                              setIsFileUploadModalOpen(true);
+                            }}
+                            className="text-blue-600 font-normal text-base hover:underline cursor-pointer"
+                          >
                             {vendor.insurance}
                           </span>
                         ) : (
