@@ -111,10 +111,9 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
     <div className="flex flex-col gap-0">
       {/* Alert Banner */}
       <div
-        className="flex items-center justify-between rounded-4xl border border-[#E5E5FF] p-3 px-4"
+        className="flex items-center justify-between self-stretch rounded-2xl border border-[#E5E5FF] p-3 px-4"
         style={{
-          background: "rgb(243, 241, 254)",
-          boxShadow: "rgba(0, 28, 237, 0.07) 4px -4px 14px 0px inset, rgba(237, 0, 217, 0.07) -4px 4px 14px 0px inset"
+          boxShadow: "4px -4px 14px 0 rgba(0, 28, 237, 0.07) inset, -4px 4px 14px 0 rgba(237, 0, 217, 0.07) inset"
         }}
       >
         <div className="flex items-center gap-2.5">
@@ -125,9 +124,9 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <g clipPath="url(#clip0_star)">
+            <g clipPath="url(#clip0_10950_5031)">
               <path
-                d="M3 14.6668V11.3335M3 4.66683V1.3335M1.33333 3.00016H4.66667M1.33333 13.0002H4.66667M8.66667 2.00016L7.51047 5.00607C7.32246 5.49489 7.22845 5.7393 7.08227 5.94489C6.95271 6.12709 6.79352 6.28629 6.61131 6.41585C6.40572 6.56203 6.16131 6.65604 5.67249 6.84404L2.66659 8.00016L5.67249 9.15628C6.16131 9.34429 6.40572 9.43829 6.61131 9.58448C6.79352 9.71404 6.95271 9.87323 7.08227 10.0554C7.22845 10.261 7.32246 10.5054 7.51047 10.9943L8.66659 14.0002L9.8227 10.9943C10.0107 10.5054 10.1047 10.261 10.2509 10.0554C10.3805 9.87323 10.5397 9.71404 10.7219 9.58448C10.9274 9.43829 11.1719 9.34429 11.6607 9.15628L14.6666 8.00016L11.6607 6.84404C11.1719 6.65604 10.9274 6.56203 10.7219 6.41585C10.5397 6.28629 10.3805 6.12709 10.2509 5.94489C10.1047 5.7393 10.0107 5.49489 9.8227 5.00607L8.66667 2.00016Z"
+                d="M3.00065 14.6668V11.3335M3.00065 4.66683V1.3335M1.33398 3.00016H4.66732M1.33398 13.0002H4.66732M8.66732 2.00016L7.5112 5.00607C7.32319 5.49489 7.22919 5.7393 7.083 5.94489C6.95344 6.12709 6.79425 6.28629 6.61204 6.41585C6.40646 6.56203 6.16204 6.65604 5.67322 6.84404L2.66732 8.00016L5.67323 9.15628C6.16205 9.34429 6.40646 9.43829 6.61204 9.58448C6.79425 9.71404 6.95344 9.87323 7.083 10.0554C7.22919 10.261 7.32319 10.5054 7.5112 10.9943L8.66732 14.0002L9.82344 10.9943C10.0114 10.5054 10.1054 10.261 10.2516 10.0554C10.3812 9.87323 10.5404 9.71404 10.7226 9.58448C10.9282 9.43829 11.1726 9.34429 11.6614 9.15628L14.6673 8.00016L11.6614 6.84404C11.1726 6.65604 10.9282 6.56203 10.7226 6.41585C10.5404 6.28629 10.3812 6.12709 10.2516 5.94489C10.1054 5.7393 10.0114 5.49489 9.82344 5.00607L8.66732 2.00016Z"
                 stroke="#1D407F"
                 strokeWidth="1.5"
                 strokeLinecap="round"
@@ -135,26 +134,19 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               />
             </g>
             <defs>
-              <clipPath id="clip0_star">
+              <clipPath id="clip0_10950_5031">
                 <rect width="16" height="16" fill="white" />
               </clipPath>
             </defs>
           </svg>
           <div className="text-base font-medium leading-[1.4] tracking-[-0.32px] capitalize">
-            <span className="font-bold" style={{ backgroundColor: "rgb(243, 241, 254)" }}>
-              Unapproved Expenses
-            </span>
-            <span className="font-medium" style={{ backgroundColor: "rgb(243, 241, 254)" }}>
-              {" - There are unapproved Field Team Expenses Outstanding. Please Review before invoicing client."}
-            </span>
+            <span className="font-bold">High Usage</span>
+            <span className="font-medium"> - Electric usage increased 23% compared to last month</span>
           </div>
         </div>
-        <a
-          href="#"
-          className="text-[#013764] underline font-medium tracking-[-0.32px] capitalize whitespace-nowrap ml-4"
-        >
-          View
-        </a>
+        <div className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap">
+          View 2 Insights
+        </div>
       </div>
 
       {/* This Month's Invoice */}
