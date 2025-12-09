@@ -229,7 +229,8 @@ const ActionButton = ({
             onMouseLeave={() => setOpenMenuId(null)}
           >
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onEditClick(property);
                 setOpenMenuId(null);
               }}
