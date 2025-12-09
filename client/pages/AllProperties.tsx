@@ -307,7 +307,10 @@ export default function AllProperties() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
@@ -352,7 +355,11 @@ export default function AllProperties() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
         const isClickOutside =
           !dropdownMenuRef.current.contains(event.target as Node) &&
           !dropdownButtonRef.current.contains(event.target as Node);
@@ -661,91 +668,99 @@ export default function AllProperties() {
                 </thead>
                 <tbody>
                   {properties
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .slice(
+                      (currentPage - 1) * itemsPerPage,
+                      currentPage * itemsPerPage,
+                    )
                     .map((property) => {
                       const handleRowClick = (e: React.MouseEvent) => {
-                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                        if (
+                          (e.target as HTMLElement).closest("td:last-child")
+                        ) {
                           return;
                         }
                         navigate(`/property/${property.id}`);
                       };
                       return (
-                    <tr
-                      key={property.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={handleRowClick}
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.address}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.location}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {property.managers.map((manager) => (
-                            <div key={manager.id} className="relative group">
-                              <div
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                                style={{
-                                  backgroundColor: "rgb(59, 130, 246)",
-                                  borderColor: "rgb(209, 213, 219)",
-                                  borderWidth: "1px",
-                                }}
-                                title={manager.name}
-                              >
-                                {manager.initials}
-                              </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {manager.name}
-                              </div>
+                        <tr
+                          key={property.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                          onClick={handleRowClick}
+                        >
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.address}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.location}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {property.managers.map((manager) => (
+                                <div
+                                  key={manager.id}
+                                  className="relative group"
+                                >
+                                  <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                    style={{
+                                      backgroundColor: "rgb(59, 130, 246)",
+                                      borderColor: "rgb(209, 213, 219)",
+                                      borderWidth: "1px",
+                                    }}
+                                    title={manager.name}
+                                  >
+                                    {manager.initials}
+                                  </div>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {manager.name}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.type}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.buildingId}
-                        </span>
-                      </td>
-                      <td
-                        className="px-3 py-3 whitespace-nowrap"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
-                      >
-                        <StatusBadge status={property.status} />
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "2px",
-                          width: "80px",
-                          border:
-                            "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                          borderLeftColor: "transparent",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton
-                          property={property}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          onEditClick={handlePropertyEdit}
-                        />
-                      </td>
-                    </tr>
-                  );
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.type}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.buildingId}
+                            </span>
+                          </td>
+                          <td
+                            className="px-3 py-3 whitespace-nowrap"
+                            style={{
+                              borderRightWidth: "1px",
+                              border: "1px solid #e7e8ec",
+                            }}
+                          >
+                            <StatusBadge status={property.status} />
+                          </td>
+                          <td
+                            className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                            style={{
+                              borderLeftWidth: "2px",
+                              width: "80px",
+                              border:
+                                "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                              borderLeftColor: "transparent",
+                              backgroundColor: "white",
+                            }}
+                          >
+                            <ActionButton
+                              property={property}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                              onEditClick={handlePropertyEdit}
+                            />
+                          </td>
+                        </tr>
+                      );
                     })}
                 </tbody>
               </table>
@@ -899,7 +914,9 @@ export default function AllProperties() {
                 })}
                 <button
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
                   className={cn(
                     "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
                     currentPage === totalPages
@@ -910,7 +927,14 @@ export default function AllProperties() {
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn("font-medium text-sm", currentPage === totalPages ? "text-gray-400" : "text-gray-700")}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === totalPages
+                        ? "text-gray-400"
+                        : "text-gray-700",
+                    )}
+                  >
                     Next
                   </div>
                   <svg

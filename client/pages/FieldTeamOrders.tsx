@@ -328,7 +328,10 @@ export default function FieldTeamOrders() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [editingOrder, setEditingOrder] = useState<FieldTeamOrder | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [showApprovalModal, setShowApprovalModal] = usePageState(
@@ -369,7 +372,11 @@ export default function FieldTeamOrders() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
         const isClickOutside =
           !dropdownMenuRef.current.contains(event.target as Node) &&
           !dropdownButtonRef.current.contains(event.target as Node);
@@ -702,82 +709,82 @@ export default function FieldTeamOrders() {
                 </thead>
                 <tbody>
                   {fieldTeamOrders.map((order) => {
-                      const handleRowClick = (e: React.MouseEvent) => {
-                        if ((e.target as HTMLElement).closest('td:last-child')) {
-                          return;
-                        }
-                        navigate(`/tasks/${order.id}`);
-                      };
-                      return (
-                    <tr
-                      key={order.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={handleRowClick}
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.property}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.description}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.dueDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {order.fieldTeam.map((member, idx) => (
-                            <div key={idx} className="relative group">
-                              <div
-                                className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                                title={member.name}
-                              >
-                                {member.initials}
-                              </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {member.name}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <StatusBadge status={order.status as any} />
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          ${order.amount}
-                        </span>
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "1px",
-                          backgroundColor: "white",
-                        }}
+                    const handleRowClick = (e: React.MouseEvent) => {
+                      if ((e.target as HTMLElement).closest("td:last-child")) {
+                        return;
+                      }
+                      navigate(`/tasks/${order.id}`);
+                    };
+                    return (
+                      <tr
+                        key={order.id}
+                        className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                        onClick={handleRowClick}
                       >
-                        <ActionButton
-                          order={order}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          onApprove={(selectedOrder) => {
-                            setEditingOrder(selectedOrder);
-                            setShowApprovalModal(true);
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-base">
+                            {order.property}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-base">
+                            {order.description}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-base">
+                            {order.dueDate}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {order.fieldTeam.map((member, idx) => (
+                              <div key={idx} className="relative group">
+                                <div
+                                  className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                  title={member.name}
+                                >
+                                  {member.initials}
+                                </div>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                  {member.name}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <StatusBadge status={order.status as any} />
+                        </td>
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-base">
+                            ${order.amount}
+                          </span>
+                        </td>
+                        <td
+                          className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
+                          style={{
+                            borderLeftWidth: "1px",
+                            backgroundColor: "white",
                           }}
-                          onEdit={(selectedOrder) => {
-                            setEditingOrder(selectedOrder);
-                            setShowFTOModal(true);
-                          }}
-                        />
-                      </td>
-                    </tr>
-                  );
-                    })}
+                        >
+                          <ActionButton
+                            order={order}
+                            openMenuId={openMenuId}
+                            setOpenMenuId={setOpenMenuId}
+                            onApprove={(selectedOrder) => {
+                              setEditingOrder(selectedOrder);
+                              setShowApprovalModal(true);
+                            }}
+                            onEdit={(selectedOrder) => {
+                              setEditingOrder(selectedOrder);
+                              setShowFTOModal(true);
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1024,11 +1031,15 @@ export default function FieldTeamOrders() {
             setEditingOrder(null);
           }
         }}
-        editData={editingOrder ? {
-          dueDate: editingOrder.dueDate,
-          priority: "Normal",
-          timesheetStatus: editingOrder.status,
-        } : undefined}
+        editData={
+          editingOrder
+            ? {
+                dueDate: editingOrder.dueDate,
+                priority: "Normal",
+                timesheetStatus: editingOrder.status,
+              }
+            : undefined
+        }
       />
 
       {/* FTO Approval Modal */}

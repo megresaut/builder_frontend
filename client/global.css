@@ -112,7 +112,12 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Geist', -apple-system, Roboto, Helvetica, sans-serif;
+    font-family:
+      "Geist",
+      -apple-system,
+      Roboto,
+      Helvetica,
+      sans-serif;
   }
 
   :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {

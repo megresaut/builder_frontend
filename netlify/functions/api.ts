@@ -16,6 +16,8 @@
 export const handler = async (event: any) => {
   return {
     statusCode: 404,
-    body: JSON.stringify({ error: "API endpoints are disabled in static mode" }),
+    body: JSON.stringify({
+      error: "API endpoints are disabled in static mode",
+    }),
   };
 };

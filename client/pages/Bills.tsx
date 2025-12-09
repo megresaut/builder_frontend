@@ -164,7 +164,11 @@ interface ActionButtonProps {
   setOpenMenuId: (id: number | null) => void;
 }
 
-const ActionButton = ({ itemId, openMenuId, setOpenMenuId }: ActionButtonProps) => {
+const ActionButton = ({
+  itemId,
+  openMenuId,
+  setOpenMenuId,
+}: ActionButtonProps) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -302,14 +306,8 @@ export default function Bills() {
     "selectedTab",
     "approved",
   );
-  const [currentPage, setCurrentPage] = usePageState(
-    "currentPage",
-    1,
-  );
-  const [itemsPerPage, setItemsPerPage] = usePageState(
-    "itemsPerPage",
-    50,
-  );
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
     "showPageSizeDropdown",
     false,
@@ -322,7 +320,10 @@ export default function Bills() {
     "isAddVendorModalOpen",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -357,7 +358,11 @@ export default function Bills() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
         const isClickOutside =
           !dropdownMenuRef.current.contains(event.target as Node) &&
           !dropdownButtonRef.current.contains(event.target as Node);
@@ -822,81 +827,86 @@ export default function Bills() {
                 </thead>
                 <tbody>
                   {approvedBills
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .slice(
+                      (currentPage - 1) * itemsPerPage,
+                      currentPage * itemsPerPage,
+                    )
                     .map((bill) => {
                       const handleRowClick = (e: React.MouseEvent) => {
-                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                        if (
+                          (e.target as HTMLElement).closest("td:last-child")
+                        ) {
                           return;
                         }
                         setIsRecordBillModalOpen(true);
                       };
                       return (
-                    <tr
-                      key={bill.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={handleRowClick}
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <VendorAvatar
-                            name={bill.vendor}
-                            color={bill.vendorColor}
-                          />
-                          <span className="text-gray-900 font-normal text-base">
-                            {bill.vendor}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.property}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.statementDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.dueDate}
-                        </span>
-                      </td>
-                      {selectedTab !== "approved" && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <StatusBadge status={bill.status} />
-                        </td>
-                      )}
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
-                          {bill.memo}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.invoiceNumber}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          ${bill.amount}
-                        </span>
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "1px",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton
-                          itemId={bill.id}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                        />
-                      </td>
-                    </tr>
-                  );
+                        <tr
+                          key={bill.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                          onClick={handleRowClick}
+                        >
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <VendorAvatar
+                                name={bill.vendor}
+                                color={bill.vendorColor}
+                              />
+                              <span className="text-gray-900 font-normal text-base">
+                                {bill.vendor}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.property}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.statementDate}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.dueDate}
+                            </span>
+                          </td>
+                          {selectedTab !== "approved" && (
+                            <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                              <StatusBadge status={bill.status} />
+                            </td>
+                          )}
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
+                              {bill.memo}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.invoiceNumber}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              ${bill.amount}
+                            </span>
+                          </td>
+                          <td
+                            className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
+                            style={{
+                              borderLeftWidth: "1px",
+                              backgroundColor: "white",
+                            }}
+                          >
+                            <ActionButton
+                              itemId={bill.id}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                            />
+                          </td>
+                        </tr>
+                      );
                     })}
                 </tbody>
               </table>
@@ -1050,7 +1060,9 @@ export default function Bills() {
                 })}
                 <button
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
                   className={cn(
                     "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
                     currentPage === totalPages
@@ -1061,7 +1073,14 @@ export default function Bills() {
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn("font-medium text-sm", currentPage === totalPages ? "text-gray-400" : "text-gray-700")}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === totalPages
+                        ? "text-gray-400"
+                        : "text-gray-700",
+                    )}
+                  >
                     Next
                   </div>
                   <svg

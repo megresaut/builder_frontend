@@ -308,7 +308,10 @@ export default function RecurringTasks() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [editingTask, setEditingTask] = useState<RecurringTask | null>(null);
   const [isCreateRecurringTaskModalOpen, setIsCreateRecurringTaskModalOpen] =
     usePageState("isCreateRecurringTaskModalOpen", false);
@@ -351,7 +354,11 @@ export default function RecurringTasks() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
         const isClickOutside =
           !dropdownMenuRef.current.contains(event.target as Node) &&
           !dropdownButtonRef.current.contains(event.target as Node);
@@ -957,12 +964,16 @@ export default function RecurringTasks() {
             setEditingTask(null);
           }
         }}
-        editData={editingTask ? {
-          task: editingTask.task,
-          nextDate: editingTask.nextDate,
-          priority: editingTask.priority,
-          category: editingTask.category,
-        } : undefined}
+        editData={
+          editingTask
+            ? {
+                task: editingTask.task,
+                nextDate: editingTask.nextDate,
+                priority: editingTask.priority,
+                category: editingTask.category,
+              }
+            : undefined
+        }
       />
     </div>
   );

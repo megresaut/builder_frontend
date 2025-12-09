@@ -392,7 +392,10 @@ export default function AllTasks() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = usePageState(
     "isCreateTaskModalOpen",
@@ -437,7 +440,11 @@ export default function AllTasks() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
         const isClickOutside =
           !dropdownMenuRef.current.contains(event.target as Node) &&
           !dropdownButtonRef.current.contains(event.target as Node);
@@ -1171,11 +1178,15 @@ export default function AllTasks() {
             setEditingTask(null);
           }
         }}
-        editData={editingTask ? {
-          title: editingTask.title,
-          due: editingTask.due,
-          priority: editingTask.priority,
-        } : undefined}
+        editData={
+          editingTask
+            ? {
+                title: editingTask.title,
+                due: editingTask.due,
+                priority: editingTask.priority,
+              }
+            : undefined
+        }
       />
     </div>
   );

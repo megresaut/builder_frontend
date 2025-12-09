@@ -339,13 +339,17 @@ const ActionButton = ({
 };
 
 export default function TaskSummary() {
-  const { taskId, tab, workOrderId } = useParams<{ taskId: string; tab?: string; workOrderId?: string }>();
+  const { taskId, tab, workOrderId } = useParams<{
+    taskId: string;
+    tab?: string;
+    workOrderId?: string;
+  }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"summary" | "workorders" | "fieldteam">(
-    (tab as "summary" | "workorders" | "fieldteam") || "summary"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "summary" | "workorders" | "fieldteam"
+  >((tab as "summary" | "workorders" | "fieldteam") || "summary");
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
-    workOrderId ? parseInt(workOrderId) : null
+    workOrderId ? parseInt(workOrderId) : null,
   );
 
   // Sync activeTab with URL params
@@ -376,10 +380,19 @@ export default function TaskSummary() {
   const [messageText, setMessageText] = useState("");
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState("showPageSizeDropdown", false);
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
-  const [showApprovalModal, setShowApprovalModal] = usePageState("showApprovalModal", false);
+  const [showApprovalModal, setShowApprovalModal] = usePageState(
+    "showApprovalModal",
+    false,
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -410,7 +423,6 @@ export default function TaskSummary() {
       }
     };
   }, [showPageSizeDropdown]);
-
 
   const totalOrders = fieldTeamOrders.length;
   const totalPages = Math.ceil(totalOrders / itemsPerPage);

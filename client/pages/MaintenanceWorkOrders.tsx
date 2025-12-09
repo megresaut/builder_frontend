@@ -349,8 +349,13 @@ export default function MaintenanceWorkOrders() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
-  const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
+  const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(
+    null,
+  );
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
@@ -750,120 +755,130 @@ export default function MaintenanceWorkOrders() {
                 </thead>
                 <tbody>
                   {mockWorkOrders
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .slice(
+                      (currentPage - 1) * itemsPerPage,
+                      currentPage * itemsPerPage,
+                    )
                     .map((workOrder) => {
                       const handleRowClick = (e: React.MouseEvent) => {
-                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                        if (
+                          (e.target as HTMLElement).closest("td:last-child")
+                        ) {
                           return;
                         }
-                        navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
+                        navigate(
+                          `/tasks/${workOrder.taskId}/workorders/${workOrder.id}`,
+                        );
                       };
                       return (
-                    <tr
-                      key={workOrder.id}
-                      onClick={handleRowClick}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {workOrder.task}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {workOrder.updatedDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {workOrder.age}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                            workOrder.status === "Completed"
-                              ? "bg-emerald-100 text-emerald-600"
-                              : "bg-blue-100 text-blue-600"
-                          }`}
+                        <tr
+                          key={workOrder.id}
+                          onClick={handleRowClick}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                         >
-                          {workOrder.status}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {workOrder.dueDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityBadgeColor(
-                            workOrder.priority,
-                          )}`}
-                        >
-                          {workOrder.priority}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                            workOrder.billStatus === "Paid"
-                              ? "bg-green-100 text-green-600"
-                              : workOrder.billStatus === "Unpaid"
-                                ? "bg-red-100 text-red-600"
-                                : "bg-yellow-100 text-yellow-600"
-                          }`}
-                        >
-                          {workOrder.billStatus}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {workOrder.billTotal}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {workOrder.assignees.map((assignee) => (
-                            <div key={assignee.id} className="relative group">
-                              <div
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                                style={{
-                                  backgroundColor: "rgb(59, 130, 246)",
-                                  borderColor: "rgb(209, 213, 219)",
-                                  borderWidth: "1px",
-                                }}
-                                title={assignee.name}
-                              >
-                                {assignee.initials}
-                              </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {assignee.name}
-                              </div>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {workOrder.task}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {workOrder.updatedDate}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {workOrder.age}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
+                                workOrder.status === "Completed"
+                                  ? "bg-emerald-100 text-emerald-600"
+                                  : "bg-blue-100 text-blue-600"
+                              }`}
+                            >
+                              {workOrder.status}
                             </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "2px",
-                          width: "80px",
-                          border:
-                            "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                          borderLeftColor: "transparent",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton
-                          workOrder={workOrder}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          onEditClick={handleWorkOrderEdit}
-                        />
-                      </td>
-                    </tr>
-                  );
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {workOrder.dueDate}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityBadgeColor(
+                                workOrder.priority,
+                              )}`}
+                            >
+                              {workOrder.priority}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
+                                workOrder.billStatus === "Paid"
+                                  ? "bg-green-100 text-green-600"
+                                  : workOrder.billStatus === "Unpaid"
+                                    ? "bg-red-100 text-red-600"
+                                    : "bg-yellow-100 text-yellow-600"
+                              }`}
+                            >
+                              {workOrder.billStatus}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {workOrder.billTotal}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {workOrder.assignees.map((assignee) => (
+                                <div
+                                  key={assignee.id}
+                                  className="relative group"
+                                >
+                                  <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                    style={{
+                                      backgroundColor: "rgb(59, 130, 246)",
+                                      borderColor: "rgb(209, 213, 219)",
+                                      borderWidth: "1px",
+                                    }}
+                                    title={assignee.name}
+                                  >
+                                    {assignee.initials}
+                                  </div>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {assignee.name}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td
+                            className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                            style={{
+                              borderLeftWidth: "2px",
+                              width: "80px",
+                              border:
+                                "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                              borderLeftColor: "transparent",
+                              backgroundColor: "white",
+                            }}
+                          >
+                            <ActionButton
+                              workOrder={workOrder}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                              onEditClick={handleWorkOrderEdit}
+                            />
+                          </td>
+                        </tr>
+                      );
                     })}
                 </tbody>
               </table>
@@ -1017,7 +1032,9 @@ export default function MaintenanceWorkOrders() {
                 })}
                 <button
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
                   className={cn(
                     "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
                     currentPage === totalPages
@@ -1028,7 +1045,14 @@ export default function MaintenanceWorkOrders() {
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn("font-medium text-sm", currentPage === totalPages ? "text-gray-400" : "text-gray-700")}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === totalPages
+                        ? "text-gray-400"
+                        : "text-gray-700",
+                    )}
+                  >
                     Next
                   </div>
                   <svg
@@ -1115,12 +1139,16 @@ export default function MaintenanceWorkOrders() {
             setEditingWorkOrder(null);
           }
         }}
-        editData={editingWorkOrder ? {
-          task: editingWorkOrder.task,
-          dueDate: editingWorkOrder.dueDate,
-          priority: editingWorkOrder.priority,
-          status: editingWorkOrder.status,
-        } : undefined}
+        editData={
+          editingWorkOrder
+            ? {
+                task: editingWorkOrder.task,
+                dueDate: editingWorkOrder.dueDate,
+                priority: editingWorkOrder.priority,
+                status: editingWorkOrder.status,
+              }
+            : undefined
+        }
       />
     </div>
   );

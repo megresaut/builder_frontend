@@ -1,9 +1,5 @@
 import { useState, useRef } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -72,9 +68,7 @@ export default function FileUploadModal({
           <div
             className={cn(
               "border-dashed border rounded-lg bg-white p-7 flex flex-col items-center justify-center transition-colors",
-              isDragging
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-400"
+              isDragging ? "border-blue-500 bg-blue-50" : "border-gray-400",
             )}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}

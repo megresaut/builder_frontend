@@ -171,7 +171,9 @@ export default function Header() {
               "9": "Doors Need To Be Repaired",
               "10": "Doors Need To Be Repaired",
             };
-            items.push({ label: workOrderData[workOrderId] || `Work Order ${workOrderId}` });
+            items.push({
+              label: workOrderData[workOrderId] || `Work Order ${workOrderId}`,
+            });
           }
         }
       }

@@ -40,7 +40,10 @@ export default function App() {
     portfolio: { label: "Portfolio", route: "/" },
     screening: { label: "Screening", route: "/" },
     bills: { label: "Bills", route: "/bills" },
-    "field-team-orders": { label: "Field Team Orders", route: "/field-team-orders" },
+    "field-team-orders": {
+      label: "Field Team Orders",
+      route: "/field-team-orders",
+    },
     "work-orders": { label: "Work Orders", route: "/work-orders" },
   });
 

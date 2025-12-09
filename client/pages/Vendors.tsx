@@ -281,9 +281,14 @@ export default function Vendors() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
-  const [uploadDocumentType, setUploadDocumentType] = useState<"w9" | "insurance">("w9");
+  const [uploadDocumentType, setUploadDocumentType] = useState<
+    "w9" | "insurance"
+  >("w9");
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
     "isAddVendorModalOpen",
     false,
@@ -925,7 +930,11 @@ export default function Vendors() {
       <FileUploadModal
         open={isFileUploadModalOpen}
         onOpenChange={setIsFileUploadModalOpen}
-        title={uploadDocumentType === "w9" ? "Upload W9 Document" : "Upload Insurance Document"}
+        title={
+          uploadDocumentType === "w9"
+            ? "Upload W9 Document"
+            : "Upload Insurance Document"
+        }
       />
 
       {/* Add Vendor Modal */}

@@ -670,7 +670,10 @@ export default function Utilities() {
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [openUtilityMenuId, setOpenUtilityMenuId] = usePageState<number | null>(
     "openUtilityMenuId",
     null,

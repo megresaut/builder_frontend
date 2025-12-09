@@ -51,7 +51,8 @@ const mockWorkOrderDetails: Record<number, WorkOrderDetailData> = {
     vendor: "ABC Repairs Inc.",
     property: "22 Indian Chase Dr",
     unit: "Unit 101",
-    notes: "Replace damaged door frames and hinges. Sand and refinish to match existing doors.",
+    notes:
+      "Replace damaged door frames and hinges. Sand and refinish to match existing doors.",
     parentTaskId: 1,
   },
   2: {
@@ -126,7 +127,7 @@ export default function WorkOrderDetail() {
   const { workOrderId } = useParams<{ workOrderId: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "ftos">(
-    "overview"
+    "overview",
   );
 
   const id = parseInt(workOrderId || "1", 10);
@@ -338,9 +339,7 @@ export default function WorkOrderDetail() {
                   Parent Task
                 </label>
                 <button
-                  onClick={() =>
-                    navigate(`/tasks/${workOrder.parentTaskId}`)
-                  }
+                  onClick={() => navigate(`/tasks/${workOrder.parentTaskId}`)}
                   className="text-[#013764] font-medium text-base hover:underline text-left"
                 >
                   {workOrder.task} →

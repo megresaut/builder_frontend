@@ -235,7 +235,6 @@ export default function Sidebar() {
     ],
   };
 
-
   const tabContext = useContext(TabContext);
 
   const handleNavigation = (
