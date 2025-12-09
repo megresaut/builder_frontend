@@ -535,14 +535,14 @@ export const RecordBill = () => {
                         </div>
 
                         {/* Description */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 flex-1 min-w-[200px]">
+                        <div className="flex items-start border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1 min-w-[200px]">
                           <input
                             type="text"
                             value={item.description}
                             onChange={(e) =>
                               handleUpdateLineItem(item.id, "description", e.target.value)
                             }
-                            className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
+                            className="w-full bg-transparent outline-none text-[13px]"
                           />
                         </div>
 
