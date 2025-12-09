@@ -229,9 +229,8 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                console.log("Approve clicked for order", orderId);
                 setOpenMenuId(null);
-                onApprove();
+                onApprove(order);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
