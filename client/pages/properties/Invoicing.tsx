@@ -110,7 +110,8 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
     { id: 10, date: "Aug 10, 2025", dueDate: "Oct 15, 2025", amount: "$416", status: "Overdue", statusColor: "#C61916", statusBg: "#FFE4DF", statusIcon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5aa3241bd0405b27426830e308be0fbe085ebae0?placeholderIfAbsent=true" },
   ];
 
-  const totalPages = Math.ceil(invoiceHistory.length / itemsPerPage);
+  const totalInvoices = invoiceHistory.length;
+  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const paginatedHistory = invoiceHistory.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -118,9 +119,11 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
-    
-    if (totalPages <= 1) return [1];
-    
+
+    if (totalPages <= 1) {
+      return [1];
+    }
+
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -128,21 +131,21 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
       return pages;
     }
 
-    pages.push(1, 2, 3);
-    
-    if (currentPage > 5) {
-      pages.push("...");
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
+
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
-    
-    if (totalPages > 3) {
-      const lastPages = [totalPages - 2, totalPages - 1, totalPages];
-      lastPages.forEach(p => {
-        if (!pages.includes(p) && p > 3) {
-          pages.push(p);
-        }
-      });
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
     }
-    
+
     return pages;
   };
 
@@ -648,7 +651,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                   alt=""
                 />
               </button>
-              <div className="text-[#525252] text-base font-medium">of 225</div>
+              <div className="text-[#525252] text-base font-medium">of {totalInvoices}</div>
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
