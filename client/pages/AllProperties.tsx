@@ -308,12 +308,18 @@ export default function AllProperties() {
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = usePageState(
     "isAddPropertyModalOpen",
     false,
   );
+
+  const handlePropertyEdit = (property: Property) => {
+    setEditingProperty(property);
+    setIsAddPropertyModalOpen(true);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
