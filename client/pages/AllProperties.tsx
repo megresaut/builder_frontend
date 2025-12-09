@@ -230,7 +230,7 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                console.log("Edit clicked for property", propertyId);
+                onEditClick(property);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
