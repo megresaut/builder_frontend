@@ -590,13 +590,21 @@ export default function Sidebar() {
     return (
       <div
         className="relative h-screen flex-shrink-0 group transition-all"
-        style={{ width: isHovered ? "262px" : "40px" }}
-        onMouseEnter={() => setIsHovered(true)}
+        style={{ width: isHovered ? "262px" : "0px", position: "relative" }}
         onMouseLeave={() => {
           setIsHovered(false);
           setActiveDropdown(null);
         }}
       >
+        {/* Narrow trigger zone on far left edge */}
+        <div
+          className="absolute left-0 top-0 h-screen z-50"
+          style={{
+            width: "8px",
+            cursor: "pointer",
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+        />
         <aside
           className={`bg-[#F7F7F7] absolute left-0 top-0 h-screen flex flex-col justify-between z-10 ${
             isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
