@@ -570,7 +570,10 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                 {paginatedHistory.map((item) => (
                   <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative">
                     <button
-                      onClick={() => setOpenActionId(openActionId === `history-${item.id}` ? null : `history-${item.id}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenActionId(openActionId === `history-${item.id}` ? null : `history-${item.id}`);
+                      }}
                       className="rounded-md bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-7 w-7 px-1.5 items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 relative"
                     >
                       <img
