@@ -580,7 +580,7 @@ export const RecordBill = () => {
                             onChange={(e) =>
                               handleUpdateLineItem(item.id, "description", e.target.value)
                             }
-                            className="w-full bg-transparent outline-none text-[13px]"
+                            className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
                           />
                         </div>
 
@@ -618,7 +618,7 @@ export const RecordBill = () => {
                               }
                             }}
                             placeholder="$0.00"
-                            className="w-full bg-transparent outline-none text-[13px]"
+                            className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
                           />
                         </div>
 
