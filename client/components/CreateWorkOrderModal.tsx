@@ -268,7 +268,7 @@ export default function CreateWorkOrderModal({
           {/* Header */}
           <div className="flex flex-col gap-1">
             <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              Create Work Order
+              {editData ? "Edit Work Order" : "Create Work Order"}
             </DialogTitle>
             <p className="text-[#717179] font-medium text-base leading-4">
               Create task before a new work order, or connect to an existing
