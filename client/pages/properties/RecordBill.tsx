@@ -120,6 +120,44 @@ export const RecordBill = () => {
     },
   ]);
 
+  // Dynamic column width tracking
+  const [columnWidths, setColumnWidths] = useState({
+    property: 151,
+    unit: 60,
+    workOrder: 120,
+    description: 200,
+    glAccount: 120,
+    total: 80,
+  });
+
+  const contentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Measure and update column widths
+  useEffect(() => {
+    const newWidths = { ...columnWidths };
+    let hasChanges = false;
+
+    Object.entries(contentRefs.current).forEach(([key, element]) => {
+      if (element) {
+        const scrollWidth = element.scrollWidth;
+        const padding = 24; // px-3 = 12px * 2
+        const requiredWidth = scrollWidth + padding;
+
+        const [column] = key.split('-');
+        const minWidth = 60; // Minimum column width
+
+        if (requiredWidth > newWidths[column as keyof typeof columnWidths] && requiredWidth > minWidth) {
+          newWidths[column as keyof typeof columnWidths] = requiredWidth;
+          hasChanges = true;
+        }
+      }
+    });
+
+    if (hasChanges) {
+      setColumnWidths(newWidths);
+    }
+  }, [lineItems]);
+
   const handleCancel = () => {
     navigate(-1);
   };
