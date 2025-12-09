@@ -267,28 +267,6 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                   ))}
                 </div>
 
-                {/* Category Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[108px]">
-                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3">
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/235ac6b3fec1e32b1b99b6ed9d9bbcd860cdf2ae?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Category
-                    </div>
-                  </div>
-                  {invoiceItems.map((item) => (
-                    <div key={item.id} className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2 px-3">
-                      <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
-                        {item.category}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
                 {/* Amount Column */}
                 <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[92px]">
                   <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 px-3 py-3">
