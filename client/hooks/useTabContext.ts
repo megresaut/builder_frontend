@@ -5,6 +5,8 @@ interface TabMetadata {
   sectionId?: string; // The section being viewed (e.g., "bills", "field-team-orders")
   route?: string; // Current route/page for this tab
   scrollPosition?: number; // Scroll position within the tab
+  selectedWorkOrderId?: number | null; // Track which work order is being viewed
+  activeTab?: string; // Track which tab within a page is active (e.g., "summary", "workorders")
 }
 
 interface TabContextType {
