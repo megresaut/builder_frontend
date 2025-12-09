@@ -51,6 +51,7 @@ export default function CreateWorkOrderModal({
   editData,
 }: CreateWorkOrderModalProps) {
   const [activeTab, setActiveTab] = useState<"new" | "existing">("new");
+  const [task, setTask] = useState("");
   const [status, setStatus] = useState("inprogress");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
@@ -72,6 +73,15 @@ export default function CreateWorkOrderModal({
     top: 0,
     left: 0,
   });
+
+  useEffect(() => {
+    if (editData) {
+      setTask(editData.task);
+      setDueDate(editData.dueDate);
+      setPriority(editData.priority.toLowerCase());
+      setStatus(editData.status === "In progress" ? "inprogress" : "completed");
+    }
+  }, [editData]);
 
   useEffect(() => {
     let animationFrameId: number;
