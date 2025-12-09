@@ -544,7 +544,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "property", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="property">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -565,7 +565,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "unit", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="unit">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -586,7 +586,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "workOrder", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="workOrder">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -607,6 +607,7 @@ export const RecordBill = () => {
                             onChange={(e) =>
                               handleUpdateLineItem(item.id, "description", e.target.value)
                             }
+                            data-measure-width="description"
                             className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
                           />
                         </div>
@@ -619,7 +620,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "glAccount", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="glAccount">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -645,6 +646,7 @@ export const RecordBill = () => {
                               }
                             }}
                             placeholder="$0.00"
+                            data-measure-width="total"
                             className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
                           />
                         </div>
