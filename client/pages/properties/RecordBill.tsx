@@ -129,20 +129,22 @@ export const RecordBill = () => {
     const newWidths = { ...defaultColumnWidths };
 
     // Get all measurements from the DOM
-    document.querySelectorAll('[data-measure-width]').forEach((element) => {
-      const columnName = element.getAttribute('data-measure-width') as keyof typeof defaultColumnWidths;
+    document.querySelectorAll("[data-measure-width]").forEach((element) => {
+      const columnName = element.getAttribute(
+        "data-measure-width",
+      ) as keyof typeof defaultColumnWidths;
       const padding = 24; // px-3 = 12px * 2
       let requiredWidth = defaultColumnWidths[columnName];
 
       if (element instanceof HTMLInputElement) {
         // For input elements, measure text content using canvas
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
         if (ctx) {
           const computedStyle = window.getComputedStyle(element);
           const font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
           ctx.font = font;
-          const value = element.value || '';
+          const value = element.value || "";
           const textWidth = ctx.measureText(value).width;
           requiredWidth = textWidth + padding;
         }
@@ -153,7 +155,10 @@ export const RecordBill = () => {
       }
 
       // Set to the maximum of default or required width - allows both expanding and contracting
-      newWidths[columnName] = Math.max(defaultColumnWidths[columnName], requiredWidth);
+      newWidths[columnName] = Math.max(
+        defaultColumnWidths[columnName],
+        requiredWidth,
+      );
     });
 
     setColumnWidths(newWidths);
@@ -240,9 +245,7 @@ export const RecordBill = () => {
 
   const handleUpdateLineItem = (id: number, field: string, value: string) => {
     setLineItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
     // Measure immediately on update
     setTimeout(() => {
@@ -256,7 +259,9 @@ export const RecordBill = () => {
 
   const calculateTotal = (): string => {
     const total = lineItems.reduce((sum, item) => {
-      const value = parseFloat(item.total.replace("$", "").replace(",", "") || "0");
+      const value = parseFloat(
+        item.total.replace("$", "").replace(",", "") || "0",
+      );
       return sum + value;
     }, 0);
     return `$${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -271,11 +276,16 @@ export const RecordBill = () => {
           <div className="flex flex-col h-full">
             {/* File Upload Section */}
             <div className="flex flex-col text-base font-normal">
-              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center" style={{ padding: "28px 80px", minHeight: "965px" }}>
+              <div
+                className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
+                style={{ padding: "28px 80px", minHeight: "965px" }}
+              >
                 <div className="self-center flex flex-col items-center">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                     <div>Choose a file or drag & drop it here</div>
-                    <div className="mt-2">JPEG, PNG and PDF formats, up to 50 MB.</div>
+                    <div className="mt-2">
+                      JPEG, PNG and PDF formats, up to 50 MB.
+                    </div>
                   </div>
                   <button className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors">
                     <svg
@@ -311,14 +321,20 @@ export const RecordBill = () => {
                 {/* Bill Details Header */}
                 <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
                   <div>Bill Details</div>
-                  <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
+                  <div
+                    className="h-px bg-gray-200 mt-5"
+                    style={{ width: "790px" }}
+                  />
                 </div>
 
                 {/* Form Fields */}
                 <div className="flex mt-3 w-full flex-col">
                   <div className="flex w-full flex-col">
                     {/* Vendor and Reference Number Row */}
-                    <div className="flex items-start flex-wrap" style={{ width: "790px", marginBottom: "-10px" }}>
+                    <div
+                      className="flex items-start flex-wrap"
+                      style={{ width: "790px", marginBottom: "-10px" }}
+                    >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                           Vendor{" "}
@@ -328,7 +344,7 @@ export const RecordBill = () => {
                           value={selectedVendor?.id.toString() || ""}
                           onValueChange={(vendorId) => {
                             const vendor = mockVendors.find(
-                              (v) => v.id.toString() === vendorId
+                              (v) => v.id.toString() === vendorId,
                             );
                             setSelectedVendor(vendor || null);
                           }}
@@ -338,7 +354,10 @@ export const RecordBill = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {mockVendors.map((vendor) => (
-                              <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                              <SelectItem
+                                key={vendor.id}
+                                value={vendor.id.toString()}
+                              >
                                 {vendor.name}
                               </SelectItem>
                             ))}
@@ -360,7 +379,10 @@ export const RecordBill = () => {
                     </div>
 
                     {/* Invoice Date and Due Date Row */}
-                    <div className="flex mt-5 items-start gap-5 flex-wrap" style={{ width: "790px" }}>
+                    <div
+                      className="flex mt-5 items-start gap-5 flex-wrap"
+                      style={{ width: "790px" }}
+                    >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                           Invoice Date{" "}
@@ -368,7 +390,9 @@ export const RecordBill = () => {
                         </label>
                         <input
                           type="date"
-                          value={invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""}
+                          value={
+                            invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
+                          }
                           onChange={(e) => {
                             if (e.target.value) {
                               const date = new Date(e.target.value);
@@ -418,7 +442,10 @@ export const RecordBill = () => {
                     </div>
 
                     {/* Memo/Notes */}
-                    <div className="flex mt-5 w-full flex-col" style={{ width: "790px" }}>
+                    <div
+                      className="flex mt-5 w-full flex-col"
+                      style={{ width: "790px" }}
+                    >
                       <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                         Memo/Notes
                       </label>
@@ -438,10 +465,11 @@ export const RecordBill = () => {
                   <div className="flex h-9 justify-between items-start">
                     <div className="flex flex-col gap-5">
                       <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                        <div className="font-semibold">
-                          Line Items
-                        </div>
-                        <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
+                        <div className="font-semibold">Line Items</div>
+                        <div
+                          className="h-px bg-gray-200 mt-5"
+                          style={{ width: "790px" }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -450,175 +478,252 @@ export const RecordBill = () => {
                   <div className="overflow-x-auto">
                     <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] min-w-min">
                       <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
-                      {/* Table Header */}
-                      <div className="flex items-center">
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Property / Ledger
-                          </span>
+                        {/* Table Header */}
+                        <div className="flex items-center">
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                            style={{ width: `${columnWidths.property}px` }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Property / Ledger
+                            </span>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                            style={{ width: `${columnWidths.unit}px` }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Unit
+                            </span>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                            style={{ width: `${columnWidths.workOrder}px` }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Work Order
+                            </span>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1"
+                            style={{
+                              minWidth: `${columnWidths.description}px`,
+                            }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Description
+                            </span>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                            style={{ width: `${columnWidths.glAccount}px` }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              GL Account
+                            </span>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                            style={{ width: `${columnWidths.total}px` }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Total
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Actions
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Unit
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Work Order
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Description
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            GL Account
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Total
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Actions
-                          </span>
-                        </div>
-                      </div>
 
-                      {/* Table Rows */}
-                      {lineItems.map((item) => (
-                        <div key={item.id} className="flex items-center">
-                          {/* Property */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
-                            <Select
-                              value={item.property}
-                              onValueChange={(value) =>
-                                handleUpdateLineItem(item.id, "property", value)
-                              }
+                        {/* Table Rows */}
+                        {lineItems.map((item) => (
+                          <div key={item.id} className="flex items-center">
+                            {/* Property */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{ width: `${columnWidths.property}px` }}
                             >
-                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="property">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mockProperties.map((prop) => (
-                                  <SelectItem key={prop} value={prop}>
-                                    {prop}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Unit */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
-                            <Select
-                              value={item.unit}
-                              onValueChange={(value) =>
-                                handleUpdateLineItem(item.id, "unit", value)
-                              }
-                            >
-                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="unit">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mockUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit}>
-                                    {unit}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Work Order */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
-                            <Select
-                              value={item.workOrder}
-                              onValueChange={(value) =>
-                                handleUpdateLineItem(item.id, "workOrder", value)
-                              }
-                            >
-                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="workOrder">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mockWorkOrders.map((wo) => (
-                                  <SelectItem key={wo} value={wo}>
-                                    {wo}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Description */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
-                            <input
-                              type="text"
-                              value={item.description}
-                              onChange={(e) =>
-                                handleUpdateLineItem(item.id, "description", e.target.value)
-                              }
-                              data-measure-width="description"
-                              className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
-                            />
-                          </div>
-
-                          {/* GL Account */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
-                            <Select
-                              value={item.glAccount}
-                              onValueChange={(value) =>
-                                handleUpdateLineItem(item.id, "glAccount", value)
-                              }
-                            >
-                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="glAccount">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mockGLAccounts.map((account) => (
-                                  <SelectItem key={account} value={account}>
-                                    {account}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Total */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
-                            <input
-                              type="text"
-                              value={item.total}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(value)) {
-                                  const formatted = value.startsWith("$") ? value : "$" + value;
-                                  handleUpdateLineItem(item.id, "total", formatted);
+                              <Select
+                                value={item.property}
+                                onValueChange={(value) =>
+                                  handleUpdateLineItem(
+                                    item.id,
+                                    "property",
+                                    value,
+                                  )
                                 }
-                              }}
-                              placeholder="$0.00"
-                              data-measure-width="total"
-                              className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
-                            />
-                          </div>
+                              >
+                                <SelectTrigger
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
+                                  data-measure-width="property"
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {mockProperties.map((prop) => (
+                                    <SelectItem key={prop} value={prop}>
+                                      {prop}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
 
-                          {/* Delete Button */}
-                          <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
-                            <button
-                              onClick={() => handleDeleteLineItem(item.id)}
-                              className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
-                              title="Delete row"
+                            {/* Unit */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{ width: `${columnWidths.unit}px` }}
                             >
-                              ×
-                            </button>
+                              <Select
+                                value={item.unit}
+                                onValueChange={(value) =>
+                                  handleUpdateLineItem(item.id, "unit", value)
+                                }
+                              >
+                                <SelectTrigger
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
+                                  data-measure-width="unit"
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {mockUnits.map((unit) => (
+                                    <SelectItem key={unit} value={unit}>
+                                      {unit}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Work Order */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{ width: `${columnWidths.workOrder}px` }}
+                            >
+                              <Select
+                                value={item.workOrder}
+                                onValueChange={(value) =>
+                                  handleUpdateLineItem(
+                                    item.id,
+                                    "workOrder",
+                                    value,
+                                  )
+                                }
+                              >
+                                <SelectTrigger
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
+                                  data-measure-width="workOrder"
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {mockWorkOrders.map((wo) => (
+                                    <SelectItem key={wo} value={wo}>
+                                      {wo}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Description */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1"
+                              style={{
+                                minWidth: `${columnWidths.description}px`,
+                              }}
+                            >
+                              <input
+                                type="text"
+                                value={item.description}
+                                onChange={(e) =>
+                                  handleUpdateLineItem(
+                                    item.id,
+                                    "description",
+                                    e.target.value,
+                                  )
+                                }
+                                data-measure-width="description"
+                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
+                              />
+                            </div>
+
+                            {/* GL Account */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{ width: `${columnWidths.glAccount}px` }}
+                            >
+                              <Select
+                                value={item.glAccount}
+                                onValueChange={(value) =>
+                                  handleUpdateLineItem(
+                                    item.id,
+                                    "glAccount",
+                                    value,
+                                  )
+                                }
+                              >
+                                <SelectTrigger
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
+                                  data-measure-width="glAccount"
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {mockGLAccounts.map((account) => (
+                                    <SelectItem key={account} value={account}>
+                                      {account}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Total */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{ width: `${columnWidths.total}px` }}
+                            >
+                              <input
+                                type="text"
+                                value={item.total}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (
+                                    value === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(value)
+                                  ) {
+                                    const formatted = value.startsWith("$")
+                                      ? value
+                                      : "$" + value;
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "total",
+                                      formatted,
+                                    );
+                                  }
+                                }}
+                                placeholder="$0.00"
+                                data-measure-width="total"
+                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
+                              />
+                            </div>
+
+                            {/* Delete Button */}
+                            <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
+                              <button
+                                onClick={() => handleDeleteLineItem(item.id)}
+                                className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
+                                title="Delete row"
+                              >
+                                ×
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -628,9 +733,15 @@ export const RecordBill = () => {
           </div>
 
           {/* Sticky Footer - Bill Total and Action Buttons */}
-          <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0" style={{ marginTop: "150px" }}>
+          <div
+            className="border-t border-[#E5E7EB] bg-white flex-shrink-0"
+            style={{ marginTop: "150px" }}
+          >
             {/* Bill Total */}
-            <div className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]" style={{ padding: "16px 150px 16px 32px" }}>
+            <div
+              className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]"
+              style={{ padding: "16px 150px 16px 32px" }}
+            >
               <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
                 <div>Bill Total:</div>
               </div>
@@ -643,7 +754,10 @@ export const RecordBill = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex px-8 py-5 items-center gap-2.5 text-base justify-end flex-wrap bg-white" style={{ padding: "20px 150px 20px 32px" }}>
+            <div
+              className="flex px-8 py-5 items-center gap-2.5 text-base justify-end flex-wrap bg-white"
+              style={{ padding: "20px 150px 20px 32px" }}
+            >
               <button
                 onClick={handleCancel}
                 className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
