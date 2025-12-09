@@ -1241,6 +1241,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         itemId={task.id}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
+                        onEdit={() => {
+                          setEditingRecurringTask(task);
+                          setShowCreateRecurringTaskModal(true);
+                        }}
                       />
                     </td>
                   </tr>
