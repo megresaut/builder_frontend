@@ -179,12 +179,14 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   onApprove,
+  onEdit,
   isFTO,
 }: {
   itemId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   onApprove?: () => void;
+  onEdit?: () => void;
   isFTO?: boolean;
 }) => {
   const showMenu = openMenuId === itemId;
