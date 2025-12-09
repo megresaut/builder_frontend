@@ -17,6 +17,7 @@ interface Assignee {
 interface WorkOrder {
   id: number;
   task: string;
+  taskId: number;
   dueDate: string;
   updatedDate: string;
   age: string;
