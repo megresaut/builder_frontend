@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import AddPropertyModal from "@/components/AddPropertyModal";
+import { usePageState } from "@/hooks/usePageState";
 
 interface Manager {
   id: number;
