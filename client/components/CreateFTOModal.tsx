@@ -315,14 +315,33 @@ export default function CreateFTOModal({
             </div>
           </div>
 
-          {/* Task Name and Priority Row */}
+          {/* Select Task Section */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+              Select Task&nbsp;
+            </label>
+            <Select>
+              <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
+                <SelectValue
+                  placeholder="Select Task"
+                  className="text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="task1">Task 1</SelectItem>
+                <SelectItem value="task2">Task 2</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* FTO Name and Priority Row */}
           <div className="flex gap-3 w-full flex-wrap">
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-                Task Name <span className="text-red-600">*</span>
+                FTO Name <span className="text-red-600">*</span>
               </label>
               <Input
-                placeholder="Type Task Name"
+                placeholder="Type FTO Name"
                 className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
               />
             </div>
