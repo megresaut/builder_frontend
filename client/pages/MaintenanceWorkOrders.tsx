@@ -751,10 +751,17 @@ export default function MaintenanceWorkOrders() {
                 <tbody>
                   {mockWorkOrders
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((workOrder) => (
+                    .map((workOrder) => {
+                      const handleRowClick = (e: React.MouseEvent) => {
+                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                          return;
+                        }
+                        navigate(`/tasks/${workOrder.taskId}`);
+                      };
+                      return (
                     <tr
                       key={workOrder.id}
-                      onClick={() => navigate(`/tasks/${workOrder.taskId}`)}
+                      onClick={handleRowClick}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -856,7 +863,8 @@ export default function MaintenanceWorkOrders() {
                         />
                       </td>
                     </tr>
-                  ))}
+                  );
+                    })}
                 </tbody>
               </table>
             </div>
