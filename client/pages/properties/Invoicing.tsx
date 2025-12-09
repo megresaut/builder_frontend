@@ -109,23 +109,6 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
 
   return (
     <div className="flex flex-col gap-0">
-      {/* Alert Banner */}
-      <div className="rounded-2xl bg-white flex w-full px-6 py-3 items-center gap-4 flex-wrap justify-between mb-6">
-        <div className="flex min-w-60 items-center gap-2.5 flex-wrap">
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/17dce073730d1fd47c6705dc3f67f87cd7d0b686?placeholderIfAbsent=true"
-            className="w-4 h-4"
-            alt=""
-          />
-          <div className="text-base font-medium leading-[1.4] tracking-[-0.32px]">
-            <span className="font-bold">unapproved Expenses</span>
-            {" - There are unapproved Field Team Expenses Outstanding. Please Review before invoicing client."}
-          </div>
-        </div>
-        <div className="text-[#013764] underline cursor-pointer">View</div>
-      </div>
-
       {/* This Month's Invoice */}
       <div className="bg-white flex w-full flex-col mt-6">
         <div className="rounded-xl border border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] flex w-full flex-col overflow-hidden">
