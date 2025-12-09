@@ -35,9 +35,11 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   propertyAddress = "3 Hekma Road, Greenwich, CT 06831",
   propertyType = "Single-Family",
   propertyUnits = 1,
+  property,
 }) => {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const tabs = [
     "Overview",
