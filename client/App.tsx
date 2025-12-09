@@ -15,6 +15,7 @@ import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import TaskSummary from "./pages/TaskSummary";
 import RecurringTasks from "./pages/RecurringTasks";
+import Vendors from "./pages/Vendors";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
@@ -138,6 +139,14 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <RecurringTasks />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/vendors"
+                  element={
+                    <ShellLayout>
+                      <Vendors />
                     </ShellLayout>
                   }
                 />

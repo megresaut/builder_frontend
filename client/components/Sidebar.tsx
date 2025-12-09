@@ -228,6 +228,11 @@ export default function Sidebar() {
         path: "/work-orders",
         sectionId: "work-orders",
       },
+      {
+        label: "Vendors",
+        path: "/vendors",
+        sectionId: "vendors",
+      },
     ],
   };
 
