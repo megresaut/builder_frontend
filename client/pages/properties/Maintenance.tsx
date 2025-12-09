@@ -559,8 +559,19 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           ))}
         </div>
 
-        {/* Add Button */}
+        {/* Add Button - Dynamic based on active tab */}
         <button
+          onClick={() => {
+            if (activeTab === "tasks") {
+              setShowCreateTaskModal(true);
+            } else if (activeTab === "recurring") {
+              setShowCreateRecurringTaskModal(true);
+            } else if (activeTab === "workorders") {
+              setShowCreateWorkOrderModal(true);
+            } else if (activeTab === "fieldteam") {
+              setShowCreateFTOModal(true);
+            }
+          }}
           className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] text-white font-medium text-base overflow-hidden transition-colors hover:bg-[#002D5A]"
           style={{ boxShadow: "0px 0px 0px 1px #002D5A" }}
         >
@@ -570,7 +581,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             alt=""
             className="w-5 h-5 object-contain"
           />
-          <span>Add Item</span>
+          <span>
+            {activeTab === "tasks" && "Add Task"}
+            {activeTab === "recurring" && "Add Recurring Task"}
+            {activeTab === "workorders" && "Add Work Order"}
+            {activeTab === "fieldteam" && "Add Field Team Order"}
+          </span>
         </button>
       </div>
 
