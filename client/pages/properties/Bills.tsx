@@ -294,7 +294,7 @@ export const Bills: React.FC<BillsProps> = ({
               className="text-[#717179] font-medium text-base leading-4"
               style={{ marginTop: "-3px" }}
             >
-              All your bills, in one place
+              All bills associated to this property, in one place
             </p>
           </div>
 
