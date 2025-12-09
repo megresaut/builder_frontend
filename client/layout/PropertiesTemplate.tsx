@@ -1,5 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import AddPropertyModal from "@/components/AddPropertyModal";
+
+interface Manager {
+  id: number;
+  name: string;
+  initials: string;
+  color: string;
+}
+
+interface Property {
+  id: number;
+  address: string;
+  location: string;
+  managers: Manager[];
+  type: string;
+  buildingId: string;
+  status: "active" | "inactive";
+  units: number;
+}
 
 interface PropertiesTemplateProps {
   children: React.ReactNode;
@@ -7,6 +26,7 @@ interface PropertiesTemplateProps {
   propertyAddress?: string;
   propertyType?: string;
   propertyUnits?: number;
+  property?: Property;
 }
 
 export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
