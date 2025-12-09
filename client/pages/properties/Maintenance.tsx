@@ -1732,6 +1732,30 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         open={showApprovalModal}
         onOpenChange={setShowApprovalModal}
       />
+
+      {/* Create Task Modal */}
+      <CreateTaskModal
+        open={showCreateTaskModal}
+        onOpenChange={setShowCreateTaskModal}
+      />
+
+      {/* Create Recurring Task Modal */}
+      <CreateRecurringTaskModal
+        open={showCreateRecurringTaskModal}
+        onOpenChange={setShowCreateRecurringTaskModal}
+      />
+
+      {/* Create Work Order Modal */}
+      <CreateWorkOrderModal
+        open={showCreateWorkOrderModal}
+        onOpenChange={setShowCreateWorkOrderModal}
+      />
+
+      {/* Create FTO Modal */}
+      <CreateFTOModal
+        open={showCreateFTOModal}
+        onOpenChange={setShowCreateFTOModal}
+      />
     </div>
   );
 };
