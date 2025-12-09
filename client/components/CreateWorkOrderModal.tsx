@@ -19,6 +19,7 @@ import {
   startOfMonth,
   getDay,
 } from "date-fns";
+import CreateTaskModal from "./CreateTaskModal";
 
 interface Assignee {
   id: string;
@@ -50,7 +51,7 @@ export default function CreateWorkOrderModal({
   onOpenChange,
   editData,
 }: CreateWorkOrderModalProps) {
-  const [activeTab, setActiveTab] = useState<"new" | "existing">("new");
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [task, setTask] = useState("");
   const [status, setStatus] = useState("inprogress");
   const [priority, setPriority] = useState("normal");
