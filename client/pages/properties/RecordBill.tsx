@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { useFavorites } from "@/hooks/FavoritesContext";
 import {
   Select,
   SelectContent,
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Star, ChevronRight } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 
 interface Vendor {
   id: number;
@@ -70,11 +69,8 @@ const mockVendors: Vendor[] = [
   },
 ];
 
-const NAVIGATION_HISTORY_KEY = "recordbill_navigation_history";
-
 export const RecordBill = () => {
   const navigate = useNavigate();
-  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [referenceNumber, setReferenceNumber] = useState<string>("");
@@ -85,35 +81,6 @@ export const RecordBill = () => {
   const [memo, setMemo] = useState<string>("");
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
-  const [previousPage, setPreviousPage] = useState<{
-    label: string;
-    path: string;
-  } | null>(null);
-
-  const isPageFavorited = isFavorite("record-bill-page");
-
-  useEffect(() => {
-    // Store that we're on this page and get previous navigation
-    const history = localStorage.getItem(NAVIGATION_HISTORY_KEY);
-    let parsed = null;
-    try {
-      parsed = history ? JSON.parse(history) : null;
-    } catch {
-      parsed = null;
-    }
-
-    if (parsed) {
-      setPreviousPage(parsed.from);
-    }
-
-    localStorage.setItem(
-      NAVIGATION_HISTORY_KEY,
-      JSON.stringify({
-        from: parsed,
-        to: { label: "Record Bill", path: "/record-bill" },
-      })
-    );
-  }, []);
 
   const handleCancel = () => {
     navigate(-1);
@@ -122,18 +89,6 @@ export const RecordBill = () => {
   const handleRecordBill = () => {
     // Handle record bill logic here
     navigate(-1);
-  };
-
-  const toggleFavorite = () => {
-    if (isPageFavorited) {
-      removeFavorite("record-bill-page");
-    } else {
-      addFavorite({
-        id: "record-bill-page",
-        label: "Record Bill",
-        path: "/record-bill",
-      });
-    }
   };
 
   const validateDateFormat = (dateString: string): Date | null => {
@@ -205,20 +160,6 @@ export const RecordBill = () => {
 
   return (
     <div className="bg-white flex flex-col px-8 py-6 font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] border-l-4 border-l-[#E5E7EB] min-h-screen">
-      {/* Breadcrumbs */}
-      {previousPage && (
-        <div className="flex items-center gap-2 mb-4 text-sm text-[#71717A]">
-          <button
-            onClick={() => navigate(previousPage.path)}
-            className="hover:text-[#303030] transition-colors"
-          >
-            ← {previousPage.label}
-          </button>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-[#303030] font-medium">Record Bill</span>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex w-full items-center justify-between gap-24 flex-wrap">
         <div className="flex flex-col min-w-[240px]">
@@ -229,17 +170,7 @@ export const RecordBill = () => {
             Upload an invoice and record a new bill
           </p>
         </div>
-        <button
-          onClick={toggleFavorite}
-          className="flex items-center justify-center min-h-9 min-w-9 rounded-lg hover:bg-gray-100 transition-colors"
-          title={isPageFavorited ? "Remove from favorites" : "Add to favorites"}
-        >
-          <Star
-            className="w-5 h-5"
-            fill={isPageFavorited ? "#303030" : "none"}
-            color={isPageFavorited ? "#303030" : "#71717A"}
-          />
-        </button>
+        <div className="flex min-h-9 gap-4" />
       </div>
 
       {/* Main Content */}
@@ -353,18 +284,19 @@ export const RecordBill = () => {
                           <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={invoiceDate || undefined}
-                          onSelect={handleInvoiceDateSelect}
-                          disabled={(date) =>
-                            date > new Date() ||
-                            date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                          className="p-3"
-                        />
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <div className="p-3">
+                          <Calendar
+                            mode="single"
+                            selected={invoiceDate || undefined}
+                            onSelect={handleInvoiceDateSelect}
+                            disabled={(date) =>
+                              date > new Date() ||
+                              date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                     {invoiceDateError && (
@@ -396,17 +328,18 @@ export const RecordBill = () => {
                           <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={dueDate || undefined}
-                          onSelect={handleDueDateSelect}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                          className="p-3"
-                        />
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <div className="p-3">
+                          <Calendar
+                            mode="single"
+                            selected={dueDate || undefined}
+                            onSelect={handleDueDateSelect}
+                            disabled={(date) =>
+                              date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                     {dueDateError && (
