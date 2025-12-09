@@ -610,10 +610,18 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {mockPropertyTasks.map((task) => (
+                {mockPropertyTasks.map((task) => {
+                  const handleRowClick = (e: React.MouseEvent) => {
+                    if ((e.target as HTMLElement).closest('td:last-child')) {
+                      return;
+                    }
+                    navigate(`/tasks/${task.id}`);
+                  };
+                  return (
                   <tr
                     key={task.id}
-                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                    onClick={handleRowClick}
                   >
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <div
@@ -670,7 +678,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       />
                     </td>
                   </tr>
-                ))}
+                );
+                })}
               </tbody>
             </table>
           </div>
@@ -1145,10 +1154,18 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {mockPropertyWorkOrders.map((workOrder) => (
+                {mockPropertyWorkOrders.map((workOrder) => {
+                  const handleRowClick = (e: React.MouseEvent) => {
+                    if ((e.target as HTMLElement).closest('td:last-child')) {
+                      return;
+                    }
+                    navigate(`/work-orders/${workOrder.id}`);
+                  };
+                  return (
                   <tr
                     key={workOrder.id}
-                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                    onClick={handleRowClick}
                   >
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
@@ -1217,7 +1234,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       />
                     </td>
                   </tr>
-                ))}
+                );
+                })}
               </tbody>
             </table>
           </div>
