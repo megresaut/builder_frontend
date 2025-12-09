@@ -340,8 +340,16 @@ const ActionButton = ({
 };
 
 export default function TaskSummary() {
-  const { taskId } = useParams<{ taskId: string }>();
-  const [activeTab, setActiveTab] = usePageState<"summary" | "workorders" | "fieldteam">("activeTab", "workorders");
+  const { taskId, tab } = useParams<{ taskId: string; tab?: string }>();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"summary" | "workorders" | "fieldteam">(
+    (tab as "summary" | "workorders" | "fieldteam") || "summary"
+  );
+
+  const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
+    setActiveTab(newTab);
+    navigate(`/tasks/${taskId}/${newTab}`);
+  };
   const [selectedWorkOrderId, setSelectedWorkOrderId] = usePageState<number | null>("selectedWorkOrderId", null);
   const [messageText, setMessageText] = useState("");
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
