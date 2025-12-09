@@ -10,59 +10,150 @@ import { Bills } from "./properties/Bills";
 import { Notes } from "./properties/Notes";
 import { Invoicing } from "./properties/Invoicing";
 
+interface Manager {
+  id: number;
+  name: string;
+  initials: string;
+  color: string;
+}
+
+interface Property {
+  id: number;
+  address: string;
+  location: string;
+  managers: Manager[];
+  type: string;
+  buildingId: string;
+  status: "active" | "inactive";
+  units: number;
+}
+
 // Mock property data - in a real app, this would come from an API
-const propertyData: Record<
-  string,
-  { address: string; type: string; units: number }
-> = {
+const propertyData: Record<string, Property> = {
   "1": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 1,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
     type: "Concierge",
+    buildingId: "624090",
+    status: "inactive",
     units: 1,
   },
   "2": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 2,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
     type: "Rental",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "3": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 3,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "Commercial",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "4": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 4,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
     type: "OR",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "5": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 5,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "HOA",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "6": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 6,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
     type: "Concierge",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "7": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 7,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
     type: "Concierge",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "8": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 8,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "Concierge",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "9": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 9,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
     type: "Concierge",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
   "10": {
-    address: "22 Indian Chase Dr, Greenwich, CT",
+    id: 10,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
     type: "Concierge",
+    buildingId: "624090",
+    status: "active",
     units: 1,
   },
 };
