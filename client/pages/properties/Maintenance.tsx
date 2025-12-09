@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { usePageState } from "@/hooks/usePageState";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
+import CreateTaskModal from "@/components/CreateTaskModal";
+import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
+import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
+import CreateFTOModal from "@/components/CreateFTOModal";
 
 interface Assignee {
   id: number;
