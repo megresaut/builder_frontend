@@ -252,6 +252,10 @@ export const RecordBill = () => {
         item.id === id ? { ...item, [field]: value } : item
       )
     );
+    // Measure immediately on update
+    setTimeout(() => {
+      measureAndUpdateColumnWidths();
+    }, 0);
   };
 
   const handleDeleteLineItem = (id: number) => {
