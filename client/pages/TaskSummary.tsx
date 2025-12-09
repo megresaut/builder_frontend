@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronDown,
   Calendar,
@@ -13,12 +13,148 @@ import {
   Paperclip,
 } from "lucide-react";
 import WorkOrders from "./WorkOrders";
+import { fetchJSON } from "@/api/fetchJSON";
+
+
+function renderUpdateDescription(u) {
+  switch (u.update_type) {
+    case "task_created":
+      return <>created this task</>;
+
+    case "status_changed":
+      return (
+        <>
+          updated status from{" "}
+          <span className="text-[#2463eb] font-medium">
+            {u.old_value?.status}
+          </span>{" "}
+          to{" "}
+          <span className="text-[#059669] font-medium">
+            {u.new_value?.status}
+          </span>
+        </>
+      );
+
+    case "priority_changed":
+      return (
+        <>
+          updated priority from{" "}
+          <span className="text-[#2463eb] font-medium">
+            {u.old_value?.priority}
+          </span>{" "}
+          to{" "}
+          <span className="text-[#059669] font-medium">
+            {u.new_value?.priority}
+          </span>
+        </>
+      );
+
+    case "fto_created":
+      return (
+        <>
+          created Field Team Order{" "}
+          <span className="text-[#2463eb] font-medium">
+            #{u.new_value?.fto_id}
+          </span>
+        </>
+      );
+
+    default:
+      return <>made an update</>;
+  }
+}
 
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
   const [activeTab, setActiveTab] = useState("workorders");
   const [messageText, setMessageText] = useState("");
+  const [summary, setSummary] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [attachments, setAttachments] = useState([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(true);
+  const [updates, setUpdates] = useState([]);
+  const [loadingUpdates, setLoadingUpdates] = useState(true);
+  
+  useEffect(() => {
+    async function loadAttachments() {
+      try {
+        const list = await fetchJSON(`/maintenance/attachments/tasks/${taskId}`);
+        setAttachments(list || []);
+      } catch (err) {
+        console.error("Failed to load attachments:", err);
+      } finally {
+        setLoadingAttachments(false);
+      }
+    }
+  
+    loadAttachments();
+  }, [taskId]);
+  
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await fetchJSON(`/maintenance/tasks/summary?id=${taskId}`);
+        setSummary(data);
+      } catch (err) {
+        console.error("Failed to load summary:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [taskId]);
+  
 
+  useEffect(() => {
+    async function loadUpdates() {
+      try {
+        const data = await fetchJSON(`/maintenance/tasks/updates/${taskId}`);
+        setUpdates(data || []);
+      } catch (err) {
+        console.error("Failed to load updates:", err);
+      } finally {
+        setLoadingUpdates(false);
+      }
+    }
+  
+    loadUpdates();
+  }, [taskId]);
+  
+  if (loading || !summary) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  async function handleFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const form = new FormData();
+    form.append("file", file);
+  
+    try {
+      const res = await fetch(`/maintenance/attachments/tasks/${taskId}`, {
+        method: "POST",
+        body: form,
+      });
+  
+      if (!res.ok) {
+        console.error("Upload failed:", await res.text());
+        return;
+      }
+  
+      const newFile = await res.json();
+  
+      // Update the UI immediately
+      setAttachments((prev) => [...prev, newFile]);
+    } catch (err) {
+      console.error("Upload error:", err);
+    } finally {
+      // Reset so user can re-upload same file if needed
+      e.target.value = "";
+    }
+  }
+  
+  
   return (
     <div
       className="flex flex-col px-6 py-9 pb-6 bg-white border-l"
@@ -27,14 +163,14 @@ export default function TaskSummary() {
       {/* Header Section */}
       <div className="flex items-center justify-between gap-10 flex-wrap w-full">
         <div className="flex flex-col justify-start font-['Geist',sans-serif]">
-          <div className="text-[#303030] text-[28px] font-semibold leading-[1.07]">
-            Edgerton - Quote
-          </div>
-          <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
-            <span>Resident Request</span>
-            <span>/</span>
-            <span>10244381</span>
-          </div>
+        <div className="text-[#303030] text-[28px] font-semibold leading-[1.07]">
+          {summary.title}
+        </div>
+        <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
+          <span>ID</span>
+          <span>/</span>
+          <span>{summary.reference_number}</span>
+        </div>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 min-h-[40px] px-4 py-2.5 bg-[#013764] text-white rounded-lg shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] font-['Geist',sans-serif] text-base font-medium hover:bg-[#014777] transition-colors">
@@ -182,7 +318,7 @@ export default function TaskSummary() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span>Completed</span>
+                    <span>{summary.status}</span>
                   </div>
                   <ChevronDown className="w-4 h-4" />
                 </div>
@@ -206,7 +342,7 @@ export default function TaskSummary() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span>Normal</span>
+                    <span>{summary.priority}</span>
                   </div>
                   <ChevronDown className="w-4 h-4" />
                 </div>
@@ -214,14 +350,14 @@ export default function TaskSummary() {
               <div className="flex items-center gap-2 text-[#303030] flex-1 min-w-0">
                 <div className="text-sm font-medium">Due Date</div>
                 <div className="flex items-center justify-between gap-4 px-3 py-1.5 bg-white border border-[#dadada] rounded-lg shadow-sm text-base tracking-[-0.32px] w-[149px]">
-                  <span>mm/dd/yyyy</span>
+                  <span>{summary.due_date ? new Date(summary.due_date).toLocaleDateString() : "None"}</span>
                   <Calendar className="w-4 h-4" />
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-1 text-sm text-[#303030] tracking-[-0.28px]">
               <span className="font-normal">Last Updated</span>
-              <span className="font-medium">11/12/2025 9:22 PM</span>
+              <span className="font-medium">{summary.last_updated ? new Date(summary.last_updated).toLocaleDateString() : "None"}</span>
             </div>
           </div>
         </div>
@@ -248,17 +384,17 @@ export default function TaskSummary() {
                   <div className="mt-2 text-sm text-[#717179] font-medium">
                     Created by{" "}
                     <span className="font-bold text-[#2463eb]">
-                      Julia LoSchiavo
+                      {summary.created_by?.name}
                     </span>{" "}
                     for{" "}
                     <span className="font-bold text-[#2463eb]">
-                      (C) 51 Willowmere Circle, Riverside CT 06878 -1
+                      {summary.property.name}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">
                   <span>Created</span>
-                  <span>11/12/2025 9:22 PM</span>
+                  <span>{summary.date_requested ? new Date(summary.date_requested).toLocaleDateString() : "None"}</span>
                   <Edit className="w-4 h-4 ml-2 text-[#2463eb]" />
                   <span className="text-[#2463eb] font-medium">Edit</span>
                 </div>
@@ -267,7 +403,7 @@ export default function TaskSummary() {
               <div className="flex flex-col mt-5 w-full items-start text-sm text-[#717179]">
                 <div className="flex items-center gap-1">
                   <span className="font-semibold">Category:</span>
-                  <span className="font-medium">Uncategorized</span>
+                  <span className="font-medium">{summary.category}</span>
                 </div>
               </div>
 
@@ -275,33 +411,28 @@ export default function TaskSummary() {
                 Description:
               </div>
               <div className="mt-5 text-sm text-[#717179] font-medium leading-4">
-                We have been experiencing issues with the water heater. At first
-                we thought the issue was due to us just moving in and maybe the
-                water heater needed time to heat up after no tenants. It has
-                been 3 days in a row now that we lose hot water mid shower. My
-                wife and I both timed it and we lose hot water in the shower
-                after about 5 min. It also takes about 3-4 min to even heat up.
+                {summary.description}
               </div>
 
-              <div className="w-full h-px bg-[#e5e5e5] mt-5"></div>
+              <div className="w-full h-px bg-[#e5e5e5] mt-5"></div>   
 
               <div className="flex items-center gap-8 mt-5 flex-wrap">
                 <div className="flex flex-col items-center">
                   <div className="text-sm text-[#717179]">TOTAL EXPENSE</div>
                   <div className="mt-1 text-2xl text-[#303030] font-medium">
-                    $1,450.50
+                    ${summary.total_expense.toFixed(2)}
                   </div>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="text-sm text-[#717179]">WORK ORDERS</div>
                   <div className="mt-1 text-2xl text-[#303030] font-medium">
-                    5
+                    {summary.work_order_count}
                   </div>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="text-sm text-[#717179]">FTOs</div>
                   <div className="mt-1 text-2xl text-[#303030] font-medium">
-                    3
+                    {summary.fto_count}
                   </div>
                 </div>
               </div>
@@ -321,7 +452,16 @@ export default function TaskSummary() {
             <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
               <div className="text-base text-[#303030] font-medium">Files</div>
               <div className="mt-4 flex flex-col items-center px-52 py-7 bg-white border border-dashed border-[rgba(18,18,18,0.4)] rounded-lg">
-                <button className="flex items-center gap-2 min-h-[36px] px-3 py-1.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm text-base text-[#303030] tracking-[-0.32px] hover:bg-gray-50 transition-colors">
+                <input
+                  type="file"
+                  id="task-file-input"
+                  className="hidden"
+                  onChange={(e) => handleFileUpload(e)}
+                />
+                <button
+                  onClick={() => document.getElementById("task-file-input").click()}
+                  className="flex items-center gap-2 min-h-[36px] px-3 py-1.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm text-base text-[#303030] tracking-[-0.32px] hover:bg-gray-50 transition-colors"
+                >
                   <Upload className="w-4 h-4" />
                   Upload
                 </button>
@@ -336,74 +476,54 @@ export default function TaskSummary() {
                 <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif] font-medium">
                   <span>Files</span>
                 </div>
-                <div className="mt-2 flex flex-col gap-2 w-full">
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">
-                          PDF
-                        </span>
-                      </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <div className="text-sm text-[#303030] font-medium truncate">
-                          Lorem Ipsum.PDF
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
-                          <span>PDF</span>
-                          <span>112KB</span>
-                        </div>
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
+
+                {loadingAttachments ? (
+                  <div className="mt-2 text-gray-500 text-sm">Loading files...</div>
+                ) : attachments.length === 0 ? (
+                  <div className="mt-2 text-gray-500 text-sm">No files uploaded</div>
+                ) : (
+                  <div className="mt-2 flex flex-col gap-2 w-full">
+                    {attachments.map((file) => (
+                      <button
+                        key={file.id}
+                        onClick={() => window.open(file.storage_path, "_blank")}
+                        className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        <path
-                          d="M2 14L14 2M14 14L2 2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">
-                          PDF
-                        </span>
-                      </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <div className="text-sm text-[#303030] font-medium truncate">
-                          Lorem Ipsum.PDF
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {/* Icon */}
+                          <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">
+                              {file.file_type.startsWith("image") ? "IMG" : "FILE"}
+                            </span>
+                          </div>
+
+                          {/* File info */}
+                          <div className="flex flex-col min-w-0 flex-1 text-left">
+                            <div className="text-sm text-[#303030] font-medium truncate">
+                              {file.file_name}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
+                              <span>{file.file_type}</span>
+                              <span>{Math.round(file.file_size / 1024)} KB</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
-                          <span>PDF</span>
-                          <span>112KB</span>
+
+                        {/* Delete button - we'll wire up later */}
+                        <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path
+                              d="M2 14L14 2M14 14L2 2"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                            />
+                          </svg>
                         </div>
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          d="M2 14L14 2M14 14L2 2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </button>
+                      </button>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -446,241 +566,108 @@ export default function TaskSummary() {
               <div className="text-base text-[#303030] font-['Geist',sans-serif] font-medium mb-4">
                 Updates
               </div>
+
+              {/* 2-COLUMN LAYOUT */}
               <div className="flex gap-4">
-                {/* Timeline Icons */}
-                <div className="flex flex-col items-center gap-2">
-                  <button className="flex items-center justify-center w-10 h-10 bg-[#013764] rounded-full shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] text-white hover:bg-[#014777] transition-colors">
-                    <span className="text-lg font-semibold">+</span>
-                  </button>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm"></div>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm"></div>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-full text-gray-600 font-semibold text-sm"></div>
-                  <div className="w-1 h-12 bg-gray-200"></div>
-                  <div className="flex items-center justify-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-full text-gray-600 font-semibold text-sm"></div>
+
+                {/* LEFT FIXED TIMELINE COLUMN */}
+                <div className="flex flex-col items-center w-[72px] pt-[4px]">
+
+                  {/* + BUTTON DOT */}
+                  <div className="w-10 h-10 rounded-full bg-[#013764]/10 border-[3px] border-[#013764]/40"></div>
+
+                  {/* CONNECTOR */}
+                  <div className="w-[2px] h-10 bg-gray-200 mt-1 mb-1"></div>
+
+                  {/* UPDATE DOTS BELOW */}
+                  {updates.map((u, idx) => {
+                    let bg = "bg-gray-200";
+                    let border = "border-gray-300";
+                    let text = "text-gray-600";
+
+                    if (u.update_type === "task_created" || u.update_type === "fto_created") {
+                      bg = "bg-[#dbe9fe]";
+                      border = "border-[#2463eb]";
+                      text = "text-[#2463eb]";
+                    } else if (u.update_type === "status_changed" || u.update_type === "priority_changed") {
+                      bg = "bg-[#d1fae5]";
+                      border = "border-[#059669]";
+                      text = "text-[#059669]";
+                    }
+
+                    return (
+                      <div key={u.id} className="flex flex-col items-center">
+                        <div className={`w-10 h-10 rounded-full border ${bg} ${border} ${text}`}></div>
+
+                        {idx < updates.length - 1 && (
+                          <div className="w-[2px] h-10 bg-gray-200 my-1"></div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Update Items */}
+                {/* RIGHT CONTENT COLUMN */}
                 <div className="flex flex-col flex-1 gap-3">
-                  <div className="px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif]">
-                    Update task
-                  </div>
 
-                  {/* Update 1 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      JL
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span>{" "}
-                        submitted an{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          8.0 Hour
-                        </span>{" "}
-                        <span>Field Team Submission</span>
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="w-4 h-4" />
+                  {/* === UPDATE TASK CARD === */}
+                  <div className="flex items-center gap-3 pl-[12px] pr-5 py-4 bg-white border border-[#e5e5e5] rounded-xl">
+                    <button className="flex items-center justify-center w-10 h-10 bg-[#013764] rounded-full text-white">
+                      <span className="text-lg font-semibold">+</span>
                     </button>
-                  </div>
 
-                  {/* Update 2 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      MK
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">
-                          Meghashyam Krishnasamy
-                        </span>{" "}
-                        updated the priority from{" "}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-xs text-[#2463eb]">
-                          Normal
-                        </span>{" "}
-                        to{" "}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">
-                          Low
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Update 3 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      JL
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span>{" "}
-                        updated status to{" "}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">
-                          ✓ Completed
-                        </span>{" "}
-                        for{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          Work Order #1024431
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Update 4 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      MK
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">
-                          Meghashyam Krishnasamy
-                        </span>{" "}
-                        sent a payment of{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          $1,450.00
-                        </span>{" "}
-                        for{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          Work Order #1024431
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Update 5 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      JL
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span>{" "}
-                        added a vendor estimate of{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          $1,450.00
-                        </span>{" "}
-                        for{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          Work Order #1024431
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
-                    </div>
-                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Update 6 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      JL
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span>{" "}
-                        created a work order for{" "}
-                        <span className="text-[#2463eb] font-medium">
-                          Edgerton Inc.
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
+                    <div className="text-lg font-medium text-[#013764]">
+                      Update Task
                     </div>
                   </div>
 
-                  {/* Update 7 */}
-                  <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                      JL
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm text-[#303030]">
-                        <span className="font-medium">Julia LoSchiavo</span>{" "}
-                        created a new task
-                      </div>
-                      <div className="text-xs text-[#a1a1a9] mt-1">
-                        11/12/2025 9:22 PM
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-[#e5e5e5] space-y-2">
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-[#059669]">
-                            ✓ Completed
-                          </span>
+                  {/* === UPDATE CARDS === */}
+                  {!loadingUpdates &&
+                    updates.map((u) => (
+                      <div
+                        key={u.id}
+                        className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg"
+                      >
+                        {/* Actor bubble */}
+                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
+                          {u.actor?.initials || "?"}
                         </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-[#2463eb]">
-                            Normal
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className="text-[#303030] font-medium">
-                            Collaborators:
-                          </span>
-                          <div className="flex gap-1">
-                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
-                              JL
-                            </div>
-                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
-                              CH
-                            </div>
-                            <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
-                              CS
-                            </div>
+
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <div className="text-sm text-[#303030]">
+                            <span className="font-medium">{u.actor?.name || "System"}</span>{" "}
+                            {renderUpdateDescription(u)}
                           </div>
+
+                          <div className="text-xs text-[#a1a1a9] mt-1">
+                            {new Date(u.created_at).toLocaleString()}
+                          </div>
+
+                          {u.attachments && u.attachments.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-[#e5e5e5] space-y-2">
+                              {u.attachments.map((a) => (
+                                <button
+                                  key={a.id}
+                                  onClick={() => window.open(a.storage_path, "_blank")}
+                                  className="flex items-center gap-2 text-xs text-[#2463eb] hover:underline"
+                                >
+                                  <Paperclip className="w-3 h-3" />
+                                  {a.file_name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-xs text-[#717179]">
-                          <span className="font-medium">Description:</span> We
-                          have been experiencing issues with the water heater.
-                          At first we thought the issue was due to us just
-                          moving in and maybe the water heater needed time to
-                          heat up after no tenants. It has been 3 days in a row
-                          now that we lose hot water mid shower...
-                        </div>
+
+                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
                       </div>
-                    </div>
-                    <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
+                    ))}
                 </div>
               </div>
             </div>
+
           </div>
 
           {/* Right Sidebar */}
@@ -699,11 +686,11 @@ export default function TaskSummary() {
                 <div className="mt-4 w-full">
                   <div className="text-sm font-['Inter',sans-serif] font-medium">
                     <span className="font-['Geist',sans-serif] font-bold text-[#2463eb]">
-                      (C) 51 Willowmere Circle, Riverside CT 06878 -1
+                      (C) {summary.property.address_line1}, {summary.property.city}, {summary.property.state} {summary.property.postal_code}
                     </span>
                   </div>
                   <div className="mt-2 text-sm text-[#717179] font-['Geist',sans-serif]">
-                    51 Willowmere Circle Greenwich, CT 06878
+                    {summary.property.full_address}
                   </div>
                 </div>
                 <img
@@ -742,7 +729,7 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 text-sm">
                       <div className="text-[#2463eb] font-medium tracking-[-0.28px]">
-                        Julia LoSchiavo
+                        Julia LoSchiavo   
                       </div>
                       <div className="mt-1 text-[#a1a1a9]">Staff member</div>
                     </div>
@@ -804,12 +791,12 @@ export default function TaskSummary() {
                     </div>
                     <div className="flex flex-col flex-1 text-sm">
                       <div className="text-[#2463eb] font-medium tracking-[-0.28px]">
-                        Julia LoSchiavo
+                        {summary.created_by?.name}
                       </div>
                       <div className="mt-1 text-[#a1a1a9]">Staff member</div>
                     </div>
                   </div>
-                  <div className="text-sm text-[#a1a1a9]">(203) 927-1280</div>
+                  <div className="text-sm text-[#a1a1a9]">{summary.created_by?.email || "No email"}</div>
                 </div>
               </div>
 
@@ -840,7 +827,27 @@ export default function TaskSummary() {
             </div>
 
             {/* Client Communication Section */}
-            <div className="flex flex-col mt-[18px] min-h-[534px]">
+            <div className="flex flex-col mt-[18px] min-h-[200px]">
+              <div className="flex flex-col w-full max-w-[376px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden px-4 py-6">
+                
+                <div className="text-lg font-semibold text-[#303030] tracking-[-0.32px]">
+                  Client Communication
+                </div>
+
+                <div className="flex items-center justify-center mt-6 mb-4">
+                  <div className="px-4 py-2 bg-[#e5e5e5] text-[#717179] text-sm rounded-lg font-medium">
+                    Coming soon
+                  </div>
+                </div>
+
+                <div className="text-center text-sm text-[#a1a1a9] font-medium">
+                  This feature is currently under development.
+                </div>
+
+              </div>
+            </div>
+
+            {/* <div className="flex flex-col mt-[18px] min-h-[534px]">
               <div className="flex flex-col w-full max-w-[376px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between gap-10 px-4 py-4 bg-white border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#303030]">
                   <div className="font-medium">Client Communication</div>
@@ -853,7 +860,6 @@ export default function TaskSummary() {
                   </div>
                 </div>
 
-                {/* Message List */}
                 <div className="px-4 space-y-4 mt-4 font-['Geist',sans-serif]">
                   <div className="flex gap-3">
                     <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
@@ -912,7 +918,6 @@ export default function TaskSummary() {
                   </div>
                 </div>
 
-                {/* Message Input */}
                 <div className="flex flex-col mt-4 w-full">
                   <div className="flex flex-col px-4 py-4 bg-white border-b border-[#e5e5e5]">
                     <div className="flex min-h-[98px] w-full max-w-[345px] px-5 py-[17px] bg-white border border-[#2463eb] rounded-lg font-['Geist',sans-serif] text-sm text-black leading-4">
@@ -936,7 +941,7 @@ export default function TaskSummary() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
             </>
           )}

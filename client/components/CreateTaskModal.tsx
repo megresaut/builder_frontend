@@ -19,6 +19,7 @@ import {
   startOfMonth,
   getDay,
 } from "date-fns";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface CreateTaskModalProps {
   open: boolean;
@@ -31,6 +32,14 @@ interface Assignee {
   initials: string;
 }
 
+type SimpleProperty = {
+  id: number;
+  name?: string | null;
+  address_line1?: string | null;
+  city?: string | null;
+  state?: string | null;
+};
+
 const AVAILABLE_ASSIGNEES: Assignee[] = [
   { id: "1", name: "David Harris", initials: "DH" },
   { id: "2", name: "Sarah Johnson", initials: "SJ" },
@@ -38,6 +47,11 @@ const AVAILABLE_ASSIGNEES: Assignee[] = [
   { id: "4", name: "Emily Rodriguez", initials: "ER" },
   { id: "5", name: "James Wilson", initials: "JW" },
 ];
+
+const renderPropertyLabel = (p: SimpleProperty) =>
+  p.name ||
+  [p.address_line1, p.city, p.state].filter(Boolean).join(", ") ||
+  `Property #${p.id}`;
 
 export default function CreateTaskModal({
   open,
@@ -57,7 +71,32 @@ export default function CreateTaskModal({
     top: 0,
     left: 0,
   });
+  const [properties, setProperties] = useState<SimpleProperty[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
+  const [taskName, setTaskName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
 
+  useEffect(() => {
+    if (!open) return;
+  
+    let cancelled = false;
+  
+    const loadProps = async () => {
+      try {
+        const props = await fetchJSON("/properties").catch(() => []);
+        if (!cancelled) setProperties(props || []);
+      } catch (err) {
+        console.error("Error loading properties:", err);
+      }
+    };
+  
+    loadProps();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+  
   useEffect(() => {
     let animationFrameId: number;
 
@@ -201,6 +240,42 @@ export default function CreateTaskModal({
     );
   };
 
+  const handleCreate = async () => {
+    if (!selectedProperty) {
+      alert("Please select a property.");
+      return;
+    }
+    if (!taskName.trim()) {
+      alert("Task name is required.");
+      return;
+    }
+
+    const payload = {
+      property_id: Number(selectedProperty),
+      name: taskName,
+      description,
+      priority,
+      category,
+      due_date: selectedDate ? selectedDate.toISOString() : null,
+      requested_by: 1,
+      assignee: selectedAssignees[0]
+        ? Number(selectedAssignees[0].id)
+        : null,
+      tags: [],
+    };
+
+    console.log("Sending payload:", payload);
+
+    await fetch("/maintenance/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    onOpenChange(false);
+  };
+
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-0 gap-0">
@@ -216,16 +291,24 @@ export default function CreateTaskModal({
               <label className="text-[#303030] font-medium text-sm leading-5">
                 Property <span className="text-red-600">*</span>
               </label>
-              <Select>
+              <Select
+                value={selectedProperty || ""}
+                onValueChange={setSelectedProperty}
+                >
                 <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Property"
-                    className="text-[#A1A1A9] capitalize"
-                  />
+                  <SelectValue placeholder="Select Property" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
-                  <SelectItem value="property2">Property 2</SelectItem>
+                  {properties.length === 0 && (
+                    <SelectItem value="none" disabled>
+                      No properties found
+                    </SelectItem>
+                  )}
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {renderPropertyLabel(p)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -578,11 +661,13 @@ export default function CreateTaskModal({
           </div>
 
           {/* Create Task Button */}
-          <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
-            <span className="text-white font-medium text-base">
-              Create Task
-            </span>
+          <button
+            onClick={handleCreate}
+            className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
+          >
+            <span className="text-white font-medium text-base">Create Task</span>
           </button>
+
         </div>
       </DialogContent>
     </Dialog>

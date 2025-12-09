@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
+import { fetchJSON } from "../api/fetchJSON";
 
 interface Assignee {
   id: number;
@@ -12,140 +13,63 @@ interface Assignee {
 
 interface Task {
   id: number;
+  property_id: number;
+  name: string;
+  description: string;
   status: string;
-  title: string;
-  property: string;
-  due: string;
-  updated: string;
-  age: string;
   priority: string;
-  assignees: Assignee[];
+  property_name: string;
+  property_address: string;
+  category: string;
+
+  due_date: string | null;
+  date_requested: string;
+  last_updated: string;
+
+  requested_by: number | null;
+  assignee: number | null;
+
+  work_order_id: number | null;
+  fto_id: number | null;
+
+  tags: string[];
+
+  closed_by: number | null;
+  closed_at: string | null;
+  reopened_at: string | null;
+
+  parent_task_id: number | null;
+  is_template: boolean;
 }
 
-const tasks: Task[] = [
-  {
-    id: 1,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Oct 2, 2025",
-    updated: "Oct 2, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [{ id: 1, name: "John Doe", initials: "JD" }],
-  },
-  {
-    id: 2,
-    status: "In Progress",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 25, 2025",
-    updated: "Sep 25, 2025",
-    age: "6 Days",
-    priority: "Low",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JMS" }],
-  },
-  {
-    id: 3,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 12, 2025",
-    updated: "Sep 12, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [
-      { id: 1, name: "John Doe", initials: "JD" },
-      { id: 2, name: "Jane Smith", initials: "JMS" },
-    ],
-  },
-  {
-    id: 4,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 6, 2025",
-    updated: "Sep 6, 2025",
-    age: "6 Days",
-    priority: "High",
-    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
-  },
-  {
-    id: 5,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 5, 2025",
-    updated: "Sep 5, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [
-      { id: 2, name: "Jane Smith", initials: "JMS" },
-      { id: 3, name: "Mike Johnson", initials: "MJ" },
-    ],
-  },
-  {
-    id: 6,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 4, 2025",
-    updated: "Sep 4, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [{ id: 1, name: "John Doe", initials: "JD" }],
-  },
-  {
-    id: 7,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 3, 2025",
-    updated: "Sep 3, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [
-      { id: 3, name: "Mike Johnson", initials: "MJ" },
-      { id: 1, name: "John Doe", initials: "JD" },
-    ],
-  },
-  {
-    id: 8,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 2, 2025",
-    updated: "Sep 2, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JMS" }],
-  },
-  {
-    id: 9,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 1, 2025",
-    updated: "Sep 1, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [
-      { id: 1, name: "John Doe", initials: "JD" },
-      { id: 2, name: "Jane Smith", initials: "JMS" },
-    ],
-  },
-  {
-    id: 10,
-    status: "Completed",
-    title: "Doors Need To Be Repaired",
-    property: "22 Indian Chase Dr",
-    due: "Sep 1, 2025",
-    updated: "Sep 1, 2025",
-    age: "6 Days",
-    priority: "Normal",
-    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
-  },
-];
+interface AssigneeInfo {
+  id: number;
+  name: string;
+  initials: string;
+}
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "--";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function calculateAge(dateRequested: string) {
+  const req = new Date(dateRequested);
+  const now = new Date();
+  const days = Math.floor((now.getTime() - req.getTime()) / (1000 * 60 * 60 * 24));
+  return days <= 1 ? `${days} Day` : `${days} Days`;
+}
+
+function toInitials(name: string) {
+  if (!name) return "";
+  return name
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+}
+
 
 const StatusBadge = ({ status }: { status: string }) => {
   if (status === "Completed") {
@@ -461,7 +385,52 @@ export default function AllTasks() {
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [assignees, setAssignees] = useState<Record<number, AssigneeInfo>>({});
+  
 
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const rawTasks = await fetchJSON("/maintenance/tasks?limit=200");
+  
+        // Fetch assignee user objects
+        const uniqueUserIds = Array.from(
+          new Set(
+            rawTasks
+              .map((t: any) => t.assignee)
+              .filter((id: number | null) => id !== null)
+          )
+        );
+  
+        const userMap: Record<number, AssigneeInfo> = {};
+  
+        // Load each user
+        for (const userId of uniqueUserIds) {
+          const uid = userId as number;
+          try {
+            const user = await fetchJSON(`/users/${userId}`);
+            userMap[uid] = {
+              id: uid,
+              name: user.name,
+              initials: toInitials(user.name)
+            };
+          } catch (e) {
+            console.error("Failed loading user", userId, e);
+          }
+        }
+  
+        setAssignees(userMap);
+        setTasks(rawTasks);
+      } catch (err) {
+        console.error("Error loading tasks", err);
+      }
+    }
+  
+    load();
+  }, []);
+  
   useEffect(() => {
     let animationFrameId: number;
 
@@ -887,27 +856,27 @@ export default function AllTasks() {
                           onClick={() => navigate(`/tasks/${task.id}`)}
                           className="text-blue-600 font-normal text-base hover:underline cursor-pointer transition-colors"
                         >
-                          {task.title}
+                          {task.name}
                         </button>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {task.property}
+                          {task.property_address}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {task.due}
+                          {formatDate(task.due_date)}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-blue-600 font-normal text-base hover:underline cursor-pointer">
-                          {task.updated}
+                          {formatDate(task.last_updated)}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {task.age}
+                          {calculateAge(task.date_requested)}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -921,20 +890,22 @@ export default function AllTasks() {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          {task.assignees.map((assignee) => (
+                          {task.assignee && assignees[task.assignee] ? (
                             <div
-                              key={assignee.id}
+                              key={task.assignee}
                               className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
                               style={{
                                 backgroundColor: "rgb(59, 130, 246)",
                                 borderColor: "rgb(209, 213, 219)",
                                 borderWidth: "1px",
                               }}
-                              title={assignee.name}
+                              title={assignees[task.assignee].name}
                             >
-                              {assignee.initials}
+                              {assignees[task.assignee].initials}
                             </div>
-                          ))}
+                          ) : (
+                            <span className="text-gray-400 text-sm">--</span>
+                          )}
                         </div>
                       </td>
                       <td
