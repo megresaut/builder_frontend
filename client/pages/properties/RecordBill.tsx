@@ -120,43 +120,35 @@ export const RecordBill = () => {
     },
   ]);
 
-  // Dynamic column width tracking
-  const [columnWidths, setColumnWidths] = useState({
+  // Dynamic column width tracking with default minimum widths
+  const defaultColumnWidths = {
     property: 151,
     unit: 60,
     workOrder: 120,
     description: 200,
     glAccount: 120,
     total: 80,
-  });
+  };
 
-  const contentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [columnWidths, setColumnWidths] = useState(defaultColumnWidths);
 
-  // Measure and update column widths
-  useEffect(() => {
-    const newWidths = { ...columnWidths };
-    let hasChanges = false;
+  // Measure and update column widths - expands and shrinks as needed
+  const measureAndUpdateColumnWidths = useCallback(() => {
+    const newWidths = { ...defaultColumnWidths };
 
-    Object.entries(contentRefs.current).forEach(([key, element]) => {
-      if (element) {
-        const scrollWidth = element.scrollWidth;
-        const padding = 24; // px-3 = 12px * 2
-        const requiredWidth = scrollWidth + padding;
+    // Get all measurements from the DOM
+    document.querySelectorAll('[data-measure-width]').forEach((element) => {
+      const columnName = element.getAttribute('data-measure-width') as keyof typeof defaultColumnWidths;
+      const scrollWidth = (element as HTMLElement).scrollWidth;
+      const padding = 24; // px-3 = 12px * 2
+      const requiredWidth = scrollWidth + padding;
 
-        const [column] = key.split('-');
-        const minWidth = 60; // Minimum column width
-
-        if (requiredWidth > newWidths[column as keyof typeof columnWidths] && requiredWidth > minWidth) {
-          newWidths[column as keyof typeof columnWidths] = requiredWidth;
-          hasChanges = true;
-        }
-      }
+      // Always set to the maximum of default or required width
+      newWidths[columnName] = Math.max(defaultColumnWidths[columnName], requiredWidth);
     });
 
-    if (hasChanges) {
-      setColumnWidths(newWidths);
-    }
-  }, [lineItems]);
+    setColumnWidths(newWidths);
+  }, []);
 
   const handleCancel = () => {
     navigate(-1);
