@@ -329,6 +329,7 @@ export default function FieldTeamOrders() {
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [editingOrder, setEditingOrder] = useState<FieldTeamOrder | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [showApprovalModal, setShowApprovalModal] = usePageState(
     "showApprovalModal",
