@@ -517,7 +517,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "property", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -538,7 +538,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "unit", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -559,7 +559,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "workOrder", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -592,7 +592,7 @@ export const RecordBill = () => {
                               handleUpdateLineItem(item.id, "glAccount", value)
                             }
                           >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
