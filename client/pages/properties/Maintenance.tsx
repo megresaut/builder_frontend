@@ -985,6 +985,40 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {/* Field Team Orders Table */}
       {activeTab === "fieldteam" && (
         <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap border-b border-gray-200">
+            <div className="flex items-center gap-4">
+              <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
+                Field Team Orders
+              </div>
+            </div>
+            <div className="flex min-w-60 items-start gap-2.5">
+              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
+                <img
+                  loading="lazy"
+                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
+                  className="w-5 h-5"
+                  alt=""
+                />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
+                />
+              </div>
+              <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100">
+                <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
+                  Filter
+                </div>
+                <img
+                  loading="lazy"
+                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/81afa4c88f6177ebdc84321a1f0691342b9fcd92?placeholderIfAbsent=true"
+                  className="w-[18px] h-[18px]"
+                  alt=""
+                />
+              </div>
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
