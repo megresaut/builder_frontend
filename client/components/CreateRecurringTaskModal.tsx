@@ -20,15 +20,21 @@ import {
   getDay,
 } from "date-fns";
 
-interface CreateRecurringTaskModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 interface Assignee {
   id: string;
   name: string;
   initials: string;
+}
+
+interface CreateRecurringTaskModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editData?: {
+    task: string;
+    nextDate: string;
+    priority: string;
+    category: string;
+  };
 }
 
 const AVAILABLE_ASSIGNEES: Assignee[] = [
