@@ -159,6 +159,40 @@ export default function CreateWorkOrderModal({
     return labels[priority] || "Normal";
   };
 
+  const getStatusBgColor = () => {
+    const colors: Record<string, string> = {
+      inprogress: "#dbe9fe",
+      completed: "#d1fae5",
+    };
+    return colors[status] || "#dbe9fe";
+  };
+
+  const getStatusTextColor = () => {
+    const colors: Record<string, string> = {
+      inprogress: "#2463eb",
+      completed: "#059669",
+    };
+    return colors[status] || "#2463eb";
+  };
+
+  const getPriorityBgColor = () => {
+    const colors: Record<string, string> = {
+      low: "#d1fae5",
+      normal: "#dbe9fe",
+      high: "#fef3c7",
+    };
+    return colors[priority] || "#dbe9fe";
+  };
+
+  const getPriorityTextColor = () => {
+    const colors: Record<string, string> = {
+      low: "#059669",
+      normal: "#2463eb",
+      high: "#d97706",
+    };
+    return colors[priority] || "#2463eb";
+  };
+
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
       const isSelected = prev.some((a) => a.id === assignee.id);
@@ -525,9 +559,17 @@ export default function CreateWorkOrderModal({
               </label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-2xl bg-[#dbe9fe]">
+                  <div
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
+                    style={{
+                      backgroundColor: getStatusBgColor(),
+                    }}
+                  >
                     {getStatusIcon()}
-                    <span className="text-sm text-[#2463eb]">
+                    <span
+                      className="text-sm"
+                      style={{ color: getStatusTextColor() }}
+                    >
                       {getStatusLabel()}
                     </span>
                   </div>
@@ -544,9 +586,17 @@ export default function CreateWorkOrderModal({
               </label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-2xl bg-[#dbe9fe]">
+                  <div
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
+                    style={{
+                      backgroundColor: getPriorityBgColor(),
+                    }}
+                  >
                     {getPriorityIcon()}
-                    <span className="text-sm text-[#2463eb]">
+                    <span
+                      className="text-sm"
+                      style={{ color: getPriorityTextColor() }}
+                    >
                       {getPriorityLabel()}
                     </span>
                   </div>
