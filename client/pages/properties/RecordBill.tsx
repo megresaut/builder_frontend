@@ -310,388 +310,392 @@ export const RecordBill = () => {
           </div>
         </div>
 
-        {/* Right Column - Scrollable Content */}
-        <div className="flex-1 overflow-x-auto">
-          <div className="px-8 py-6 min-w-min">
-            {/* Bill Details Section */}
-            <div className="flex flex-col w-full">
-              {/* Bill Details Header */}
-              <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                <div>Bill Details</div>
-                <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
-              </div>
+        {/* Right Column - Scrollable Content with Sticky Footer */}
+        <div className="flex-1 flex flex-col">
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-x-auto">
+            <div className="px-8 py-6 min-w-min">
+              {/* Bill Details Section */}
+              <div className="flex flex-col w-full">
+                {/* Bill Details Header */}
+                <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                  <div>Bill Details</div>
+                  <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
+                </div>
 
-              {/* Form Fields */}
-              <div className="flex mt-3 w-full flex-col">
-                <div className="flex w-full flex-col">
-                  {/* Vendor and Reference Number Row */}
-                  <div className="flex items-start gap-5 flex-wrap" style={{ width: "790px" }}>
-                    <div className="flex flex-col flex-1 min-w-[240px]">
-                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Vendor
-                      </label>
-                      <Select
-                        value={selectedVendor?.id.toString() || ""}
-                        onValueChange={(vendorId) => {
-                          const vendor = mockVendors.find(
-                            (v) => v.id.toString() === vendorId
-                          );
-                          setSelectedVendor(vendor || null);
-                        }}
-                      >
-                        <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
-                          <SelectValue placeholder="Select vendor..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockVendors.map((vendor) => (
-                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                              {vendor.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                {/* Form Fields */}
+                <div className="flex mt-3 w-full flex-col">
+                  <div className="flex w-full flex-col">
+                    {/* Vendor and Reference Number Row */}
+                    <div className="flex items-start gap-5 flex-wrap" style={{ width: "790px" }}>
+                      <div className="flex flex-col flex-1 min-w-[240px]">
+                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                          Vendor
+                        </label>
+                        <Select
+                          value={selectedVendor?.id.toString() || ""}
+                          onValueChange={(vendorId) => {
+                            const vendor = mockVendors.find(
+                              (v) => v.id.toString() === vendorId
+                            );
+                            setSelectedVendor(vendor || null);
+                          }}
+                        >
+                          <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
+                            <SelectValue placeholder="Select vendor..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {mockVendors.map((vendor) => (
+                              <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                                {vendor.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col flex-1 min-w-[240px]">
+                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                          Reference Number
+                        </label>
+                        <input
+                          type="text"
+                          value={referenceNumber}
+                          onChange={(e) => setReferenceNumber(e.target.value)}
+                          placeholder="INV-2024-001"
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-col flex-1 min-w-[240px]">
+
+                    {/* Invoice Date and Due Date Row */}
+                    <div className="flex mt-5 items-start gap-5 flex-wrap" style={{ width: "790px" }}>
+                      <div className="flex flex-col flex-1 min-w-[240px]">
+                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                          Invoice Date
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
+                            >
+                              <input
+                                type="text"
+                                value={invoiceDateInput}
+                                onChange={(e) =>
+                                  handleInvoiceDateInputChange(e.target.value)
+                                }
+                                placeholder="mm/dd/yyyy"
+                                className="flex-1 bg-transparent outline-none text-[#303030]"
+                                maxLength={10}
+                              />
+                              <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent side="bottom" align="start" className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={invoiceDate || undefined}
+                              onSelect={handleInvoiceDateSelect}
+                              disabled={(date) =>
+                                date > new Date() ||
+                                date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        {invoiceDateError && (
+                          <div className="text-red-500 text-xs mt-1">
+                            {invoiceDateError}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col flex-1 min-w-[240px]">
+                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                          Due Date
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
+                            >
+                              <input
+                                type="text"
+                                value={dueDateInput}
+                                onChange={(e) =>
+                                  handleDueDateInputChange(e.target.value)
+                                }
+                                placeholder="mm/dd/yyyy"
+                                className="flex-1 bg-transparent outline-none text-[#303030]"
+                                maxLength={10}
+                              />
+                              <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent side="bottom" align="start" className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={dueDate || undefined}
+                              onSelect={handleDueDateSelect}
+                              disabled={(date) =>
+                                date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        {dueDateError && (
+                          <div className="text-red-500 text-xs mt-1">
+                            {dueDateError}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Memo/Notes */}
+                    <div className="flex mt-5 w-full flex-col" style={{ width: "790px" }}>
                       <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Reference Number
+                        Memo/Notes
                       </label>
-                      <input
-                        type="text"
-                        value={referenceNumber}
-                        onChange={(e) => setReferenceNumber(e.target.value)}
-                        placeholder="INV-2024-001"
-                        className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                      <textarea
+                        value={memo}
+                        onChange={(e) => setMemo(e.target.value)}
+                        placeholder="Additional notes..."
+                        className="rounded-lg bg-white border border-[#E5E5E5] mt-2 min-h-[81px] w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6]"
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* Invoice Date and Due Date Row */}
-                  <div className="flex mt-5 items-start gap-5 flex-wrap" style={{ width: "790px" }}>
-                    <div className="flex flex-col flex-1 min-w-[240px]">
-                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Invoice Date
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
-                          >
+                {/* Line Items Section */}
+                <div className="flex mt-[60px] w-full flex-col gap-6">
+                  {/* Header */}
+                  <div className="flex h-9 justify-between items-start">
+                    <div className="flex flex-col gap-5">
+                      <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                        <div className="font-semibold">
+                          Line Items
+                        </div>
+                        <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
+                      </div>
+                    </div>
+                    <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors flex-shrink-0">
+                      <span className="text-white text-base font-medium">
+                        Add Line Items
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Table */}
+                  <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
+                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                      {/* Table Header */}
+                      <div className="flex items-center">
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Property / Ledger
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Unit
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Work Order
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Description
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            GL Account
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Total
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Actions
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Table Rows */}
+                      {lineItems.map((item) => (
+                        <div key={item.id} className="flex items-center">
+                          {/* Property */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
+                            <Select
+                              value={item.property}
+                              onValueChange={(value) =>
+                                handleUpdateLineItem(item.id, "property", value)
+                              }
+                            >
+                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="property">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {mockProperties.map((prop) => (
+                                  <SelectItem key={prop} value={prop}>
+                                    {prop}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Unit */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
+                            <Select
+                              value={item.unit}
+                              onValueChange={(value) =>
+                                handleUpdateLineItem(item.id, "unit", value)
+                              }
+                            >
+                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="unit">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {mockUnits.map((unit) => (
+                                  <SelectItem key={unit} value={unit}>
+                                    {unit}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Work Order */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
+                            <Select
+                              value={item.workOrder}
+                              onValueChange={(value) =>
+                                handleUpdateLineItem(item.id, "workOrder", value)
+                              }
+                            >
+                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="workOrder">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {mockWorkOrders.map((wo) => (
+                                  <SelectItem key={wo} value={wo}>
+                                    {wo}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Description */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
                             <input
                               type="text"
-                              value={invoiceDateInput}
+                              value={item.description}
                               onChange={(e) =>
-                                handleInvoiceDateInputChange(e.target.value)
+                                handleUpdateLineItem(item.id, "description", e.target.value)
                               }
-                              placeholder="mm/dd/yyyy"
-                              className="flex-1 bg-transparent outline-none text-[#303030]"
-                              maxLength={10}
+                              data-measure-width="description"
+                              className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
                             />
-                            <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent side="bottom" align="start" className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={invoiceDate || undefined}
-                            onSelect={handleInvoiceDateSelect}
-                            disabled={(date) =>
-                              date > new Date() ||
-                              date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {invoiceDateError && (
-                        <div className="text-red-500 text-xs mt-1">
-                          {invoiceDateError}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-[240px]">
-                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Due Date
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
-                          >
+                          </div>
+
+                          {/* GL Account */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
+                            <Select
+                              value={item.glAccount}
+                              onValueChange={(value) =>
+                                handleUpdateLineItem(item.id, "glAccount", value)
+                              }
+                            >
+                              <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="glAccount">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {mockGLAccounts.map((account) => (
+                                  <SelectItem key={account} value={account}>
+                                    {account}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Total */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
                             <input
                               type="text"
-                              value={dueDateInput}
-                              onChange={(e) =>
-                                handleDueDateInputChange(e.target.value)
-                              }
-                              placeholder="mm/dd/yyyy"
-                              className="flex-1 bg-transparent outline-none text-[#303030]"
-                              maxLength={10}
+                              value={item.total}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(value)) {
+                                  const formatted = value.startsWith("$") ? value : "$" + value;
+                                  handleUpdateLineItem(item.id, "total", formatted);
+                                }
+                              }}
+                              placeholder="$0.00"
+                              data-measure-width="total"
+                              className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
                             />
-                            <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent side="bottom" align="start" className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={dueDate || undefined}
-                            onSelect={handleDueDateSelect}
-                            disabled={(date) =>
-                              date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {dueDateError && (
-                        <div className="text-red-500 text-xs mt-1">
-                          {dueDateError}
+                          </div>
+
+                          {/* Delete Button */}
+                          <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
+                            <button
+                              onClick={() => handleDeleteLineItem(item.id)}
+                              className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
+                              title="Delete row"
+                            >
+                              ×
+                            </button>
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
-
-                  {/* Memo/Notes */}
-                  <div className="flex mt-5 w-full flex-col" style={{ width: "790px" }}>
-                    <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                      Memo/Notes
-                    </label>
-                    <textarea
-                      value={memo}
-                      onChange={(e) => setMemo(e.target.value)}
-                      placeholder="Additional notes..."
-                      className="rounded-lg bg-white border border-[#E5E5E5] mt-2 min-h-[81px] w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6]"
-                    />
-                  </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Line Items Section */}
-              <div className="flex mt-[60px] w-full flex-col gap-6">
-                {/* Header */}
-                <div className="flex h-9 justify-between items-start">
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                      <div className="font-semibold">
-                        Line Items
-                      </div>
-                      <div className="h-px bg-gray-200 mt-5" style={{ width: "790px" }} />
-                    </div>
-                  </div>
-                  <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors flex-shrink-0">
-                    <span className="text-white text-base font-medium">
-                      Add Line Items
-                    </span>
-                  </button>
-                </div>
-
-                {/* Table */}
-                <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
-                  <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
-                    {/* Table Header */}
-                    <div className="flex items-center">
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          Property / Ledger
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          Unit
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          Work Order
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          Description
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          GL Account
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          Total
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
-                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                          Actions
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Table Rows */}
-                    {lineItems.map((item) => (
-                      <div key={item.id} className="flex items-center">
-                        {/* Property */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.property}px` }}>
-                          <Select
-                            value={item.property}
-                            onValueChange={(value) =>
-                              handleUpdateLineItem(item.id, "property", value)
-                            }
-                          >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="property">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {mockProperties.map((prop) => (
-                                <SelectItem key={prop} value={prop}>
-                                  {prop}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Unit */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.unit}px` }}>
-                          <Select
-                            value={item.unit}
-                            onValueChange={(value) =>
-                              handleUpdateLineItem(item.id, "unit", value)
-                            }
-                          >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="unit">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {mockUnits.map((unit) => (
-                                <SelectItem key={unit} value={unit}>
-                                  {unit}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Work Order */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.workOrder}px` }}>
-                          <Select
-                            value={item.workOrder}
-                            onValueChange={(value) =>
-                              handleUpdateLineItem(item.id, "workOrder", value)
-                            }
-                          >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="workOrder">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {mockWorkOrders.map((wo) => (
-                                <SelectItem key={wo} value={wo}>
-                                  {wo}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Description */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1" style={{ minWidth: `${columnWidths.description}px` }}>
-                          <input
-                            type="text"
-                            value={item.description}
-                            onChange={(e) =>
-                              handleUpdateLineItem(item.id, "description", e.target.value)
-                            }
-                            data-measure-width="description"
-                            className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
-                          />
-                        </div>
-
-                        {/* GL Account */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.glAccount}px` }}>
-                          <Select
-                            value={item.glAccount}
-                            onValueChange={(value) =>
-                              handleUpdateLineItem(item.id, "glAccount", value)
-                            }
-                          >
-                            <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap" data-measure-width="glAccount">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {mockGLAccounts.map((account) => (
-                                <SelectItem key={account} value={account}>
-                                  {account}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Total */}
-                        <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0" style={{ width: `${columnWidths.total}px` }}>
-                          <input
-                            type="text"
-                            value={item.total}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(value)) {
-                                const formatted = value.startsWith("$") ? value : "$" + value;
-                                handleUpdateLineItem(item.id, "total", formatted);
-                              }
-                            }}
-                            placeholder="$0.00"
-                            data-measure-width="total"
-                            className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
-                          />
-                        </div>
-
-                        {/* Delete Button */}
-                        <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
-                          <button
-                            onClick={() => handleDeleteLineItem(item.id)}
-                            className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
-                            title="Delete row"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+          {/* Sticky Footer - Bill Total and Action Buttons */}
+          <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0">
+            {/* Bill Total */}
+            <div className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]">
+              <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                <div>Bill Total:</div>
+              </div>
+              <div className="flex flex-col items-center justify-center">
+                <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
+                <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
+                  Total: {calculateTotal()}
                 </div>
               </div>
+            </div>
 
-              <div className="flex min-h-[2px] mt-[60px] w-full bg-white" />
-
-              {/* Bill Total */}
-              <div className="bg-[#FBFBFB] flex mt-[60px] px-4 py-4 items-center gap-24 justify-between flex-wrap">
-                <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                  <div>Bill Total:</div>
-                </div>
-                <div className="flex flex-col items-center justify-center">
-                  <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
-                  <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
-                    Total: {calculateTotal()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex mt-5 items-center gap-2.5 text-base justify-end flex-wrap pb-6">
-                <button
-                  onClick={handleCancel}
-                  className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
-                >
-                  <span>Cancel</span>
-                </button>
-                <button
-                  onClick={handleRecordBill}
-                  className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
-                >
-                  <span>Record Bill</span>
-                </button>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex px-8 py-5 items-center gap-2.5 text-base justify-end flex-wrap bg-white">
+              <button
+                onClick={handleCancel}
+                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+              >
+                <span>Cancel</span>
+              </button>
+              <button
+                onClick={handleRecordBill}
+                className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
+              >
+                <span>Record Bill</span>
+              </button>
             </div>
           </div>
         </div>
