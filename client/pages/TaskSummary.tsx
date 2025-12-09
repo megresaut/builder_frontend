@@ -346,8 +346,14 @@ export default function TaskSummary() {
     (tab as "summary" | "workorders" | "fieldteam") || "summary"
   );
 
+  // Sync activeTab with URL params
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab as "summary" | "workorders" | "fieldteam");
+    }
+  }, [tab]);
+
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    setActiveTab(newTab);
     navigate(`/tasks/${taskId}/${newTab}`);
   };
   const [selectedWorkOrderId, setSelectedWorkOrderId] = usePageState<number | null>("selectedWorkOrderId", null);
