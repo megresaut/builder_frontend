@@ -701,10 +701,18 @@ export default function FieldTeamOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {fieldTeamOrders.map((order) => (
+                  {fieldTeamOrders.map((order) => {
+                      const handleRowClick = (e: React.MouseEvent) => {
+                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                          return;
+                        }
+                        navigate(`/tasks/${order.id}`);
+                      };
+                      return (
                     <tr
                       key={order.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                      onClick={handleRowClick}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
@@ -768,7 +776,8 @@ export default function FieldTeamOrders() {
                         />
                       </td>
                     </tr>
-                  ))}
+                  );
+                    })}
                 </tbody>
               </table>
             </div>
