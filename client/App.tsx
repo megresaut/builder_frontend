@@ -34,7 +34,12 @@ export default function App() {
   const [tabMetadata, setTabMetadataState] = useState<
     Record<string, TabMetadata>
   >({
-    properties: { label: "Properties" },
+    properties: { label: "Properties", route: "/all-properties" },
+    portfolio: { label: "Portfolio", route: "/" },
+    screening: { label: "Screening", route: "/" },
+    bills: { label: "Bills", route: "/bills" },
+    "field-team-orders": { label: "Field Team Orders", route: "/field-team-orders" },
+    "work-orders": { label: "Work Orders", route: "/work-orders" },
   });
 
   const setTabMetadata = (tabId: string, metadata: TabMetadata) => {
