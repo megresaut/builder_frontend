@@ -683,9 +683,10 @@ export default function RecurringTasks() {
                         }}
                       >
                         <ActionButton
-                          taskId={task.id}
+                          task={task}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEditClick={handleTaskEdit}
                         />
                       </td>
                     </tr>
