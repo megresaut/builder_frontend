@@ -95,6 +95,8 @@ export default function Header() {
       return { label: "Work Orders", path, id: "work-orders" };
     } else if (path === "/recurring-tasks") {
       return { label: "Recurring Tasks", path, id: "recurring-tasks" };
+    } else if (path === "/vendors") {
+      return { label: "Vendors", path, id: "vendors" };
     } else if (path === "/") {
       return { label: "All Tasks", path, id: "all-tasks" };
     }
