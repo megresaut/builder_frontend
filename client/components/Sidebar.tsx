@@ -23,7 +23,7 @@ export default function Sidebar() {
   const location = useLocation();
 
   // Detect screen size changes
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
