@@ -288,7 +288,7 @@ export const Bills: React.FC<BillsProps> = ({
           {/* Title and Description */}
           <div className="flex flex-col gap-1">
             <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Bills
+              Property Bills
             </h1>
             <p
               className="text-[#717179] font-medium text-base leading-4"
