@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
-import FileUploadModal from "@/components/FileUploadModal";
 import AddVendorModal from "@/components/AddVendorModal";
 
 interface Vendor {
