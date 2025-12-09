@@ -386,6 +386,15 @@ export const Bills: React.FC<BillsProps> = ({
     }
   }, [showPageSizeDropdown]);
 
+  useEffect(() => {
+    const handleClickAnywhere = () => {
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickAnywhere);
+    return () => document.removeEventListener("mousedown", handleClickAnywhere);
+  }, []);
+
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
   const displayedBills = selectedTab === "approved" ? approvedBills : bills;
   const totalBills = displayedBills.length;
