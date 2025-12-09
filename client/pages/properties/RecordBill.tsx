@@ -13,12 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
@@ -29,6 +23,16 @@ interface Vendor {
   phone: string;
   email: string;
   notes: string;
+}
+
+interface LineItem {
+  id: number;
+  property: string;
+  unit: string;
+  workOrder: string;
+  description: string;
+  glAccount: string;
+  total: string;
 }
 
 const mockVendors: Vendor[] = [
@@ -69,6 +73,11 @@ const mockVendors: Vendor[] = [
   },
 ];
 
+const mockProperties = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
+const mockUnits = ["1", "2", "3", "4", "5"];
+const mockWorkOrders = ["123456-1", "123456-2", "789012-1"];
+const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
+
 export const RecordBill = () => {
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -81,13 +90,41 @@ export const RecordBill = () => {
   const [memo, setMemo] = useState<string>("");
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
+  const [lineItems, setLineItems] = useState<LineItem[]>([
+    {
+      id: 1,
+      property: "22 Indian Creek Dr",
+      unit: "2",
+      workOrder: "123456-1",
+      description: "ConEd - 1,220 kWh",
+      glAccount: "Utilities",
+      total: "$462",
+    },
+    {
+      id: 2,
+      property: "22 Indian Creek Dr",
+      unit: "2",
+      workOrder: "123456-1",
+      description: "Unit 48 Thermostat",
+      glAccount: "Maintenance",
+      total: "$380",
+    },
+    {
+      id: 3,
+      property: "22 Indian Creek Dr",
+      unit: "2",
+      workOrder: "123456-1",
+      description: "Tools for common area",
+      glAccount: "Other",
+      total: "$120",
+    },
+  ]);
 
   const handleCancel = () => {
     navigate(-1);
   };
 
   const handleRecordBill = () => {
-    // Handle record bill logic here
     navigate(-1);
   };
 
@@ -153,9 +190,16 @@ export const RecordBill = () => {
     setDueDateError("");
   };
 
-  const handleDeleteLineItem = (rowIndex: number) => {
-    // Handle delete logic here
-    console.log(`Delete row ${rowIndex}`);
+  const handleUpdateLineItem = (id: number, field: string, value: string) => {
+    setLineItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const handleDeleteLineItem = (id: number) => {
+    setLineItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   return (
@@ -284,19 +328,17 @@ export const RecordBill = () => {
                           <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <div className="p-3">
-                          <Calendar
-                            mode="single"
-                            selected={invoiceDate || undefined}
-                            onSelect={handleInvoiceDateSelect}
-                            disabled={(date) =>
-                              date > new Date() ||
-                              date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </div>
+                      <PopoverContent side="bottom" align="start" className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={invoiceDate || undefined}
+                          onSelect={handleInvoiceDateSelect}
+                          disabled={(date) =>
+                            date > new Date() ||
+                            date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
                       </PopoverContent>
                     </Popover>
                     {invoiceDateError && (
@@ -328,18 +370,16 @@ export const RecordBill = () => {
                           <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <div className="p-3">
-                          <Calendar
-                            mode="single"
-                            selected={dueDate || undefined}
-                            onSelect={handleDueDateSelect}
-                            disabled={(date) =>
-                              date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </div>
+                      <PopoverContent side="bottom" align="start" className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={dueDate || undefined}
+                          onSelect={handleDueDateSelect}
+                          disabled={(date) =>
+                            date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
                       </PopoverContent>
                     </Popover>
                     {dueDateError && (
@@ -373,7 +413,7 @@ export const RecordBill = () => {
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px] w-[625px]">
                   <div className="font-semibold">
-                    Bill Details
+                    Line Items
                   </div>
                   <div className="w-[790px] h-px bg-gray-200 mt-5" />
                 </div>
@@ -427,212 +467,135 @@ export const RecordBill = () => {
                   </div>
                 </div>
 
-                {/* Row 1 */}
-                <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      22 Indian Creek Dr
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      2
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
-                    <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] px-3 py-2">
-                      <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                        123456-1
-                      </span>
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                {/* Table Rows */}
+                {lineItems.map((item) => (
+                  <div key={item.id} className="flex items-center w-full">
+                    {/* Property */}
+                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
+                      <Select
+                        value={item.property}
+                        onValueChange={(value) =>
+                          handleUpdateLineItem(item.id, "property", value)
+                        }
                       >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M4.41009 6.91058C4.73553 6.58514 5.26317 6.58514 5.5886 6.91058L9.99935 11.3213L14.4101 6.91058C14.7355 6.58514 15.2632 6.58514 15.5886 6.91058C15.914 7.23602 15.914 7.76366 15.5886 8.08909L10.5886 13.0891C10.2632 13.4145 9.73553 13.4145 9.41009 13.0891L4.41009 8.08909C4.08466 7.76366 4.08466 7.23602 4.41009 6.91058Z"
-                          fill="black"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      ConEd - 1,220 kWh
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      Utilities
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      $462
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-200 transition-colors">
-                          <span className="text-[#525252] font-bold text-lg leading-none">
-                            ×
-                          </span>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteLineItem(0)}
-                          className="text-red-600 cursor-pointer"
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockProperties.map((prop) => (
+                            <SelectItem key={prop} value={prop}>
+                              {prop}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                {/* Row 2 */}
-                <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      22 Indian Creek Dr
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      2
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
-                    <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] px-3 py-2">
-                      <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                        123456-1
-                      </span>
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                    {/* Unit */}
+                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
+                      <Select
+                        value={item.unit}
+                        onValueChange={(value) =>
+                          handleUpdateLineItem(item.id, "unit", value)
+                        }
                       >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M4.41009 6.91058C4.73553 6.58514 5.26317 6.58514 5.5886 6.91058L9.99935 11.3213L14.4101 6.91058C14.7355 6.58514 15.2632 6.58514 15.5886 6.91058C15.914 7.23602 15.914 7.76366 15.5886 8.08909L10.5886 13.0891C10.2632 13.4145 9.73553 13.4145 9.41009 13.0891L4.41009 8.08909C4.08466 7.76366 4.08466 7.23602 4.41009 6.91058Z"
-                          fill="black"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      Unit 48 Thermostat
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      Maintenance
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      $380
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-200 transition-colors">
-                          <span className="text-[#525252] font-bold text-lg leading-none">
-                            ×
-                          </span>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteLineItem(1)}
-                          className="text-red-600 cursor-pointer"
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockUnits.map((unit) => (
+                            <SelectItem key={unit} value={unit}>
+                              {unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                {/* Row 3 */}
-                <div className="flex items-center w-full">
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[151px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      22 Indian Creek Dr
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      2
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
-                    <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] px-3 py-2">
-                      <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                        123456-1
-                      </span>
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                    {/* Work Order */}
+                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
+                      <Select
+                        value={item.workOrder}
+                        onValueChange={(value) =>
+                          handleUpdateLineItem(item.id, "workOrder", value)
+                        }
                       >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M4.41009 6.91058C4.73553 6.58514 5.26317 6.58514 5.5886 6.91058L9.99935 11.3213L14.4101 6.91058C14.7355 6.58514 15.2632 6.58514 15.5886 6.91058C15.914 7.23602 15.914 7.76366 15.5886 8.08909L10.5886 13.0891C10.2632 13.4145 9.73553 13.4145 9.41009 13.0891L4.41009 8.08909C4.08466 7.76366 4.08466 7.23602 4.41009 6.91058Z"
-                          fill="black"
-                        />
-                      </svg>
-                    </button>
+                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockWorkOrders.map((wo) => (
+                            <SelectItem key={wo} value={wo}>
+                              {wo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Description */}
+                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
+                      <input
+                        type="text"
+                        value={item.description}
+                        onChange={(e) =>
+                          handleUpdateLineItem(item.id, "description", e.target.value)
+                        }
+                        className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
+                      />
+                    </div>
+
+                    {/* GL Account */}
+                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
+                      <Select
+                        value={item.glAccount}
+                        onValueChange={(value) =>
+                          handleUpdateLineItem(item.id, "glAccount", value)
+                        }
+                      >
+                        <SelectTrigger className="w-full h-8 px-2 py-1 text-[13px] border-0 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockGLAccounts.map((account) => (
+                            <SelectItem key={account} value={account}>
+                              {account}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Total */}
+                    <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                      <input
+                        type="text"
+                        value={item.total}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Only allow $ and numbers
+                          if (value === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(value)) {
+                            const formatted = value.startsWith("$") ? value : "$" + value;
+                            handleUpdateLineItem(item.id, "total", formatted);
+                          }
+                        }}
+                        placeholder="$0.00"
+                        className="w-full h-8 px-2 py-1 text-[13px] border border-[#E5E5E5] rounded bg-white focus:outline-none focus:border-[#3b82f6]"
+                      />
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 h-14 w-[80px]">
+                      <button
+                        onClick={() => handleDeleteLineItem(item.id)}
+                        className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
+                        title="Delete row"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      Tools for common area
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      Other
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
-                      $120
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-200 transition-colors">
-                          <span className="text-[#525252] font-bold text-lg leading-none">
-                            ×
-                          </span>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteLineItem(2)}
-                          className="text-red-600 cursor-pointer"
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
