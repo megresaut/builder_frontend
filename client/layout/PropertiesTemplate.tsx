@@ -48,24 +48,6 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
         }}
       >
         <div className="max-w-full flex flex-col gap-6">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-sm">
-            <button
-              onClick={() => navigate("/all-properties")}
-              className="text-[#1357D5] hover:underline font-medium"
-            >
-              Properties
-            </button>
-            <span className="text-[#717179]">/</span>
-            <span className="text-[#717179] font-medium">{propertyAddress}</span>
-            {activeTab && activeTab !== "Overview" && (
-              <>
-                <span className="text-[#717179]">/</span>
-                <span className="text-[#303030] font-medium">{activeTab}</span>
-              </>
-            )}
-          </div>
-
           {/* Property Header */}
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
