@@ -336,6 +336,7 @@ export default function FieldTeamOrders() {
     false,
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -364,6 +365,27 @@ export default function FieldTeamOrders() {
         cancelAnimationFrame(animationFrameId);
       }
     };
+  }, [showPageSizeDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showPageSizeDropdown && dropdownMenuRef.current && dropdownButtonRef.current) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
+
+        if (isClickOutside) {
+          setShowPageSizeDropdown(false);
+        }
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
   }, [showPageSizeDropdown]);
 
   const totalOrders = fieldTeamOrders.length;
@@ -937,6 +959,7 @@ export default function FieldTeamOrders() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",
