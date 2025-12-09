@@ -905,6 +905,13 @@ export default function Vendors() {
           </div>
         </div>
       </div>
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        open={isFileUploadModalOpen}
+        onOpenChange={setIsFileUploadModalOpen}
+        title={uploadDocumentType === "w9" ? "Upload W9 Document" : "Upload Insurance Document"}
+      />
     </div>
   );
 }
