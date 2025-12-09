@@ -702,10 +702,18 @@ export const Bills: React.FC<BillsProps> = ({
                 <tbody>
                   {displayedBills
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((bill) => (
+                    .map((bill) => {
+                      const handleRowClick = (e: React.MouseEvent) => {
+                        if ((e.target as HTMLElement).closest('td:last-child')) {
+                          return;
+                        }
+                        setIsRecordBillModalOpen(true);
+                      };
+                      return (
                     <tr
                       key={bill.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                      onClick={handleRowClick}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -763,7 +771,8 @@ export const Bills: React.FC<BillsProps> = ({
                         <ActionButton />
                       </td>
                     </tr>
-                  ))}
+                  );
+                    })}
                 </tbody>
               </table>
             </div>
