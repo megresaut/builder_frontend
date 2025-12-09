@@ -262,7 +262,8 @@ const ActionButton = ({
               </svg>
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 console.log("Delete clicked for property", propertyId);
                 setOpenMenuId(null);
               }}
