@@ -188,7 +188,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
           </div>
 
           {/* Table */}
-          <div className="border-[0.5px] border-[#DADADA] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-hidden">
+          <div className="border-[0.5px] border-[#DADADA] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-hidden" style={{ borderLeftWidth: "0px", borderBottomWidth: "0px", borderRightWidth: "0px" }}>
             <div className="flex w-full items-center flex-wrap" style={{ borderLeftColor: "transparent" }}>
               <div className="flex min-w-60 items-center flex-wrap flex-1" style={{ borderLeftColor: "transparent" }}>
                 {/* Vendor Column */}
