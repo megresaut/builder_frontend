@@ -58,7 +58,7 @@ export const RecordBill = () => {
                 <span>Browse Files</span>
               </button>
             </div>
-            <div className="flex min-h-[124px] mt-6 w-full" />
+            <div className="flex min-h-[692px] mt-6 w-full" />
           </div>
         </div>
 
@@ -218,159 +218,316 @@ export const RecordBill = () => {
           </div>
 
           {/* Line Items Section */}
-          <div className="flex mt-[60px] w-full flex-col overflow-hidden">
-            <div className="flex h-9 w-full items-start justify-between">
-              <div className="flex flex-col min-w-[240px] text-xl text-[#303030] font-semibold leading-[1.3] w-[974px]">
-                Line Items
-                <div className="w-full h-px bg-gray-200 mt-5" />
+          <div className="flex mt-[60px] w-full flex-col gap-6">
+            {/* Header */}
+            <div className="flex h-9 justify-between items-start w-full">
+              <div className="flex flex-col gap-5">
+                <h2 className="text-[#303030] text-xl font-semibold leading-[26px]">
+                  Line Items
+                </h2>
               </div>
-              <button className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-base text-white font-medium hover:bg-[#002a4f] transition-colors">
-                <span>Add Line Items</span>
+              <button className="flex h-9 items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] px-4 hover:bg-[#001f3f] transition-colors">
+                <span className="text-white text-base font-medium">
+                  Add Line Items
+                </span>
               </button>
             </div>
 
-            {/* Line Items Table */}
-            <div className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] flex mt-6 w-full flex-col overflow-hidden text-[13px] text-[#303030] font-normal tracking-[-0.26px] leading-[1.4]">
-              <div className="border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-[1130px] flex-col overflow-hidden">
-                <div className="flex w-full items-center">
-                  <div className="flex flex-wrap min-w-[240px] w-full items-center flex-1 basis-0">
-                    {/* Property/Ledger Column */}
-                    <div className="border-r border-[#DADADA] flex flex-col overflow-hidden w-[132px]">
-                      <div className="border-b border-[#DADADA]/50 bg-[#FBFBFB] flex w-full gap-2 overflow-hidden text-[#525252] font-medium px-3 py-3 items-center">
-                        <span>Property / Ledger</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span>22 Indian Creek Dr</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span>22 Indian Creek Dr</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span>22 Indian Creek Dr</span>
-                      </div>
-                    </div>
+            {/* Table */}
+            <div className="flex w-full max-w-[727px] flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
+              <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white w-full">
+                {/* Table Header */}
+                <div className="flex items-center w-full">
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[140px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      Property / Ledger
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[60px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      Unit
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[120px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      Work Order
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[193px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      Description
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[100px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      GL Account
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      Total
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px]">
+                    <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px]">
+                      Actions
+                    </span>
+                  </div>
+                </div>
 
-                    {/* Unit Column */}
-                    <div className="border-r border-[#DADADA] flex flex-col overflow-hidden whitespace-nowrap w-12">
-                      <div className="border-b border-[#DADADA]/50 bg-[#FBFBFB] flex w-full gap-2 overflow-hidden text-[#525252] font-medium px-3 py-3 items-center">
-                        <span>Unit</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span>2</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span>2</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span>2</span>
-                      </div>
-                    </div>
+                {/* Row 1 */}
+                <div className="flex items-center w-full">
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[140px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      22 Indian Creek Dr
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      2
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
+                    <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] px-3 py-2">
+                      <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                        123456-1
+                      </span>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M4.41009 6.91058C4.73553 6.58514 5.26317 6.58514 5.5886 6.91058L9.99935 11.3213L14.4101 6.91058C14.7355 6.58514 15.2632 6.58514 15.5886 6.91058C15.914 7.23602 15.914 7.76366 15.5886 8.08909L10.5886 13.0891C10.2632 13.4145 9.73553 13.4145 9.41009 13.0891L4.41009 8.08909C4.08466 7.76366 4.08466 7.23602 4.41009 6.91058Z"
+                          fill="black"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      ConEd - 1,220 kWh
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      Utilities
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      $462
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                    <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
 
-                    {/* Work Order Column */}
-                    <div className="border-r border-[#DADADA] flex flex-col overflow-hidden w-[130px]">
-                      <div className="border-b border-[#DADADA]/50 bg-[#FBFBFB] flex w-full gap-2 overflow-hidden text-[#525252] font-medium px-3 py-3 items-center">
-                        <span>Work Order</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center justify-center whitespace-nowrap">
-                        <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-2 items-center gap-2">
-                          <span>123456-1</span>
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M5 7.5L10 12.5L15 7.5"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center justify-center whitespace-nowrap">
-                        <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-2 items-center gap-2">
-                          <span>123456-1</span>
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M5 7.5L10 12.5L15 7.5"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center justify-center whitespace-nowrap">
-                        <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-2 items-center gap-2">
-                          <span>123456-1</span>
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M5 7.5L10 12.5L15 7.5"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
+                {/* Row 2 */}
+                <div className="flex items-center w-full">
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[140px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      22 Indian Creek Dr
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      2
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
+                    <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] px-3 py-2">
+                      <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                        123456-1
+                      </span>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M4.41009 6.91058C4.73553 6.58514 5.26317 6.58514 5.5886 6.91058L9.99935 11.3213L14.4101 6.91058C14.7355 6.58514 15.2632 6.58514 15.5886 6.91058C15.914 7.23602 15.914 7.76366 15.5886 8.08909L10.5886 13.0891C10.2632 13.4145 9.73553 13.4145 9.41009 13.0891L4.41009 8.08909C4.08466 7.76366 4.08466 7.23602 4.41009 6.91058Z"
+                          fill="black"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      Unit 48 Thermostat
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      Maintenance
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      $380
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                    <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
 
-                    {/* Description Column */}
-                    <div className="border-r border-[#DADADA] flex flex-col overflow-hidden w-[193px]">
-                      <div className="border-b border-[#DADADA]/50 bg-[#FBFBFB] flex w-full gap-2 overflow-hidden text-[#525252] font-medium whitespace-nowrap px-3 py-3 items-center">
-                        <span>Description</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span className="flex-1">ConEd - 1,220 kWh</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span className="flex-1">Unit 48 Thermostat</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2.5 px-3 items-center">
-                        <span className="flex-1">Tools for common area</span>
-                      </div>
-                    </div>
-
-                    {/* GL Account Column */}
-                    <div className="border-r border-[#DADADA] flex flex-col overflow-hidden w-[99px]">
-                      <div className="border-b border-[#DADADA]/50 bg-[#FBFBFB] flex w-full gap-2 overflow-hidden text-[#525252] font-medium px-3 py-3 items-center">
-                        <span>GL Account</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2 whitespace-nowrap px-3 items-center">
-                        <span>Utilities</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2 whitespace-nowrap px-3 items-center">
-                        <span>Maintenance</span>
-                      </div>
-                      <div className="border-b border-[#DADADA]/50 flex min-h-14 w-full gap-2 whitespace-nowrap px-3 items-center">
-                        <span>Other</span>
-                      </div>
-                    </div>
+                {/* Row 3 */}
+                <div className="flex items-center w-full">
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[140px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      22 Indian Creek Dr
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[60px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      2
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[120px]">
+                    <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] px-3 py-2">
+                      <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                        123456-1
+                      </span>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M4.41009 6.91058C4.73553 6.58514 5.26317 6.58514 5.5886 6.91058L9.99935 11.3213L14.4101 6.91058C14.7355 6.58514 15.2632 6.58514 15.5886 6.91058C15.914 7.23602 15.914 7.76366 15.5886 8.08909L10.5886 13.0891C10.2632 13.4145 9.73553 13.4145 9.41009 13.0891L4.41009 8.08909C4.08466 7.76366 4.08466 7.23602 4.41009 6.91058Z"
+                          fill="black"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[193px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      Tools for common area
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[100px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      Other
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                    <span className="text-[#303030] text-[13px] font-normal leading-[140%] tracking-[-0.26px] line-clamp-1">
+                      $120
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2.5 border-b border-r border-[#DADADA]/50 px-3 h-14 w-[80px]">
+                    <button className="flex w-7 h-7 justify-center items-center gap-2 rounded-md border border-[#DADADA]/50 bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex min-h-[266px] mt-[60px] w-full bg-white" />
+          <div className="flex min-h-[2px] mt-[60px] w-full bg-white" />
 
           {/* Bill Total */}
           <div className="bg-[#FBFBFB] flex mt-[60px] w-full px-4 py-4 items-center gap-24 justify-between flex-wrap">
