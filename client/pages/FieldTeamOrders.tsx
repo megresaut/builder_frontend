@@ -9,6 +9,7 @@ import { usePageState } from "@/hooks/usePageState";
 
 interface FieldTeamOrder {
   id: number;
+  taskId: number;
   property: string;
   description: string;
   dueDate: string;
