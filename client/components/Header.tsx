@@ -128,9 +128,10 @@ export default function Header() {
     const items: { label: string; href?: string }[] = [];
 
     if (path.includes("/tasks/")) {
-      const match = path.match(/\/tasks\/(\d+)/);
+      const match = path.match(/\/tasks\/(\d+)(?:\/(\w+))?/);
       if (match) {
         const taskId = match[1];
+        const tab = match[2];
         items.push({ label: "Tasks", href: "/all-tasks" });
         // Map taskId to task information (mock data)
         const taskData: Record<string, string> = {
@@ -146,6 +147,15 @@ export default function Header() {
           "10": "Foundation Work",
         };
         items.push({ label: taskData[taskId] || `Task ${taskId}` });
+
+        // Add tab to breadcrumbs if present
+        if (tab && tab !== "summary") {
+          const tabLabels: Record<string, string> = {
+            workorders: "Work Orders",
+            fieldteam: "Field Team Orders",
+          };
+          items.push({ label: tabLabels[tab] || tab });
+        }
       }
     } else if (path.includes("/property/")) {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
