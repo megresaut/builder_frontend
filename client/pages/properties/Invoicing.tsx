@@ -635,17 +635,19 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
           <div className="flex items-center justify-between w-full gap-4 flex-wrap px-6 py-4">
             <div className="flex items-center gap-2">
               <div className="text-[#525252] text-base font-medium">Showing</div>
-              <div className="items-start rounded-lg border border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] flex overflow-hidden">
-                <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer">
-                  <div className="text-[#0A0A0A] text-base font-medium">{itemsPerPage}</div>
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/cc5507ba17118962f81e4f61a415adb6e3ee75ee?placeholderIfAbsent=true"
-                    className="w-[18px] h-[18px]"
-                    alt=""
-                  />
-                </div>
-              </div>
+              <button
+                ref={dropdownButtonRef}
+                onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
+                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+              >
+                <div className="text-[#0A0A0A] text-base font-medium">{itemsPerPage}</div>
+                <img
+                  loading="lazy"
+                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/cc5507ba17118962f81e4f61a415adb6e3ee75ee?placeholderIfAbsent=true"
+                  className="w-[18px] h-[18px]"
+                  alt=""
+                />
+              </button>
               <div className="text-[#525252] text-base font-medium">of 225</div>
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
