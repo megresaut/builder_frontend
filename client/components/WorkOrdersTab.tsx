@@ -403,6 +403,20 @@ export default function WorkOrdersTab({
               </h2>
             </div>
             <div className="flex items-start gap-2.5">
+              <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white">
+                <Search className="w-5 h-5 text-gray-600" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="text-[#303030] font-normal text-base bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                />
+              </div>
+              <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-50 transition-colors">
+                <span className="text-[#303030] font-normal text-base">
+                  Filter
+                </span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => setShowCreateWorkOrderModal(true)}
                 className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
@@ -425,20 +439,6 @@ export default function WorkOrdersTab({
                 <span className="text-white font-medium text-base leading-normal">
                   Create Work Order
                 </span>
-              </button>
-              <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white">
-                <Search className="w-5 h-5 text-gray-600" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="text-[#303030] font-normal text-base bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-                />
-              </div>
-              <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-50 transition-colors">
-                <span className="text-[#303030] font-normal text-base">
-                  Filter
-                </span>
-                <ChevronDown className="w-4 h-4" />
               </button>
             </div>
           </div>
