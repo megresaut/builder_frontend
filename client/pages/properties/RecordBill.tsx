@@ -459,7 +459,7 @@ export const RecordBill = () => {
                     {/* Select Task */}
                     <div className="flex flex-col flex-1 min-w-[240px]" style={{ marginRight: "23px", marginTop: "10px" }}>
                       <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Select Task{" "}
+                        Select Work Order{" "}
                         <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                       </label>
                       <Select>
