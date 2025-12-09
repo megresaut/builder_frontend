@@ -339,10 +339,13 @@ const ActionButton = ({
 };
 
 export default function TaskSummary() {
-  const { taskId, tab } = useParams<{ taskId: string; tab?: string }>();
+  const { taskId, tab, workOrderId } = useParams<{ taskId: string; tab?: string; workOrderId?: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"summary" | "workorders" | "fieldteam">(
     (tab as "summary" | "workorders" | "fieldteam") || "summary"
+  );
+  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
+    workOrderId ? parseInt(workOrderId) : null
   );
 
   // Sync activeTab with URL params
@@ -352,10 +355,24 @@ export default function TaskSummary() {
     }
   }, [tab]);
 
+  // Sync selectedWorkOrderId with URL params
+  useEffect(() => {
+    if (workOrderId) {
+      setSelectedWorkOrderId(parseInt(workOrderId));
+    }
+  }, [workOrderId]);
+
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
     navigate(`/tasks/${taskId}/${newTab}`);
   };
-  const [selectedWorkOrderId, setSelectedWorkOrderId] = usePageState<number | null>("selectedWorkOrderId", null);
+
+  const handleWorkOrderSelect = (woId: number | null) => {
+    if (woId) {
+      navigate(`/tasks/${taskId}/${tab}/${woId}`);
+    } else {
+      navigate(`/tasks/${taskId}/${tab}`);
+    }
+  };
   const [messageText, setMessageText] = useState("");
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
