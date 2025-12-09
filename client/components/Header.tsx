@@ -222,6 +222,9 @@ export default function Header() {
       items.push({ label: "Recurring Tasks" });
     } else if (path === "/vendors") {
       items.push({ label: "Vendors" });
+    } else if (path === "/record-bill") {
+      items.push({ label: "Bills", href: "/bills" });
+      items.push({ label: "Record Bill" });
     }
 
     return items;
