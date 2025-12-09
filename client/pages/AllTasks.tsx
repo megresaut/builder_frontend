@@ -225,14 +225,17 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
 };
 
 const ActionButton = ({
-  taskId,
+  task,
   openMenuId,
   setOpenMenuId,
+  onEditClick,
 }: {
-  taskId: number;
+  task: Task;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onEditClick: (data: Task) => void;
 }) => {
+  const taskId = task.id;
   const showMenu = openMenuId === taskId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
