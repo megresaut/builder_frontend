@@ -279,7 +279,7 @@ export const RecordBill = () => {
           <div className="flex flex-col h-full">
             {/* File Upload Section */}
             <div className="flex flex-col text-base font-normal">
-              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center" style={{ padding: "28px 80px", minHeight: "989px" }}>
+              <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center" style={{ padding: "28px 80px", minHeight: "965px" }}>
                 <div className="self-center flex flex-col items-center">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                     <div>Choose a file or drag & drop it here</div>
@@ -326,10 +326,11 @@ export const RecordBill = () => {
                 <div className="flex mt-3 w-full flex-col">
                   <div className="flex w-full flex-col">
                     {/* Vendor and Reference Number Row */}
-                    <div className="flex items-start gap-5 flex-wrap" style={{ width: "790px" }}>
+                    <div className="flex items-start flex-wrap" style={{ width: "790px", marginBottom: "-10px" }}>
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Vendor
+                          Vendor{" "}
+                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
                         <Select
                           value={selectedVendor?.id.toString() || ""}
@@ -370,7 +371,8 @@ export const RecordBill = () => {
                     <div className="flex mt-5 items-start gap-5 flex-wrap" style={{ width: "790px" }}>
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Invoice Date
+                          Invoice Date{" "}
+                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
                         <Popover>
                           <PopoverTrigger asChild>
@@ -412,7 +414,8 @@ export const RecordBill = () => {
                       </div>
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Due Date
+                          Due Date{" "}
+                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
                         <Popover>
                           <PopoverTrigger asChild>
@@ -451,6 +454,24 @@ export const RecordBill = () => {
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Select Task */}
+                    <div className="flex flex-col flex-1 min-w-[240px]" style={{ marginRight: "23px", marginTop: "10px" }}>
+                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                        Select Task{" "}
+                        <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                      </label>
+                      <Select>
+                        <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
+                          <SelectValue placeholder="Select vendor..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="task1">Task 1</SelectItem>
+                          <SelectItem value="task2">Task 2</SelectItem>
+                          <SelectItem value="task3">Task 3</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Memo/Notes */}
@@ -662,7 +683,7 @@ export const RecordBill = () => {
           </div>
 
           {/* Sticky Footer - Bill Total and Action Buttons */}
-          <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0" style={{ marginTop: "220px" }}>
+          <div className="border-t border-[#E5E7EB] bg-white flex-shrink-0" style={{ marginTop: "150px" }}>
             {/* Bill Total */}
             <div className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]" style={{ padding: "16px 150px 16px 32px" }}>
               <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
