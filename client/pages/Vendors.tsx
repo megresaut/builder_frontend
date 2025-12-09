@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
 import FileUploadModal from "@/components/FileUploadModal";
+import AddVendorModal from "@/components/AddVendorModal";
 
 interface Vendor {
   id: number;
@@ -283,6 +284,10 @@ export default function Vendors() {
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
   const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
   const [uploadDocumentType, setUploadDocumentType] = useState<"w9" | "insurance">("w9");
+  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
+    "isAddVendorModalOpen",
+    false,
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -381,7 +386,7 @@ export default function Vendors() {
           {/* Add Vendor Button */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => console.log("Add vendor clicked")}
+              onClick={() => setIsAddVendorModalOpen(true)}
               className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <Plus className="w-5 h-5 text-white" />
@@ -923,6 +928,12 @@ export default function Vendors() {
         open={isFileUploadModalOpen}
         onOpenChange={setIsFileUploadModalOpen}
         title={uploadDocumentType === "w9" ? "Upload W9 Document" : "Upload Insurance Document"}
+      />
+
+      {/* Add Vendor Modal */}
+      <AddVendorModal
+        open={isAddVendorModalOpen}
+        onOpenChange={setIsAddVendorModalOpen}
       />
     </div>
   );
