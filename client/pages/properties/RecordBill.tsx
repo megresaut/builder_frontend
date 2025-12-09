@@ -166,7 +166,7 @@ export const RecordBill = () => {
     });
 
     setColumnWidths(newWidths);
-  }, [defaultColumnWidths]);
+  }, []);
 
   const handleCancel = () => {
     navigate(-1);
