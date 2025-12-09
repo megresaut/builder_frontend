@@ -256,6 +256,40 @@ const ActionButton = ({
             }}
             onMouseLeave={() => setOpenMenuId(null)}
           >
+            {isFTO && (
+              <button
+                onClick={() => {
+                  onApprove?.();
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  Approve
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.25 8.97L6.75 13.47L15.75 4.47"
+                    stroke="#0A7F2F"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
             <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
