@@ -20,15 +20,20 @@ import {
   getDay,
 } from "date-fns";
 
-interface CreateTaskModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 interface Assignee {
   id: string;
   name: string;
   initials: string;
+}
+
+interface CreateTaskModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editData?: {
+    title: string;
+    due: string;
+    priority: string;
+  };
 }
 
 const AVAILABLE_ASSIGNEES: Assignee[] = [
