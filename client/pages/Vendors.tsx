@@ -681,8 +681,14 @@ export default function Vendors() {
                             {vendor.w9}
                           </span>
                         ) : (
-                          <span className="text-gray-400 font-normal text-base">
-                            None
+                          <span
+                            onClick={() => {
+                              setUploadDocumentType("w9");
+                              setIsFileUploadModalOpen(true);
+                            }}
+                            className="text-gray-400 font-normal text-base underline cursor-pointer hover:text-gray-600"
+                          >
+                            Add
                           </span>
                         )}
                       </td>
