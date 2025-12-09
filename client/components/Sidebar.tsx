@@ -1,5 +1,4 @@
-import React, { useState, useContext } from "react";
-import React, { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
