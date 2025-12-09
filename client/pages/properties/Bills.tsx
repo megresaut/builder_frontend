@@ -177,7 +177,7 @@ const ActionButton = () => (
   </button>
 );
 
-export default function Bills() {
+export function Bills() {
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
     "selectedTab",
     "approved",
