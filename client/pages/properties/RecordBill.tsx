@@ -220,7 +220,7 @@ export const RecordBill = () => {
             {/* File Upload Section */}
             <div className="flex flex-col flex-1 text-base font-normal">
               <div className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden flex-1 px-20 py-7 justify-center">
-                <div className="self-center flex flex-col items-center mt-[350px]">
+                <div className="self-center flex flex-col items-center mt-[200px]">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
                     <div>Choose a file or drag & drop it here</div>
                     <div className="mt-2">JPEG, PNG and PDF formats, up to 50 MB.</div>
