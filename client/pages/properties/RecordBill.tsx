@@ -1,9 +1,80 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+
+interface Vendor {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  notes: string;
+}
+
+const mockVendors: Vendor[] = [
+  {
+    id: 1,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Reliable vendor, quick turnaround",
+  },
+  {
+    id: 2,
+    name: "Elite HVAC",
+    phone: "724.705.2991",
+    email: "info@hvac.com",
+    notes: "Good quality work",
+  },
+  {
+    id: 3,
+    name: "ABC Plumbing",
+    phone: "724.705.2992",
+    email: "contact@plumbing.com",
+    notes: "Preferred for electrical work",
+  },
+  {
+    id: 4,
+    name: "Green Lawn Services",
+    phone: "724.705.2993",
+    email: "lawn@green.com",
+    notes: "Great communication",
+  },
+  {
+    id: 5,
+    name: "Spark Electrical",
+    phone: "724.705.2994",
+    email: "spark@electric.com",
+    notes: "Specializes in plumbing",
+  },
+];
 
 export const RecordBill = () => {
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [referenceNumber, setReferenceNumber] = useState<string>("");
+  const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [invoiceDateInput, setInvoiceDateInput] = useState<string>("");
+  const [dueDateInput, setDueDateInput] = useState<string>("");
+  const [memo, setMemo] = useState<string>("");
+  const [invoiceDateError, setInvoiceDateError] = useState<string>("");
+  const [dueDateError, setDueDateError] = useState<string>("");
 
   const handleCancel = () => {
     navigate(-1);
@@ -12,6 +83,68 @@ export const RecordBill = () => {
   const handleRecordBill = () => {
     // Handle record bill logic here
     navigate(-1);
+  };
+
+  const validateDateFormat = (dateString: string): Date | null => {
+    if (!dateString) return null;
+
+    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+    if (!dateRegex.test(dateString)) {
+      return null;
+    }
+
+    const [month, day, year] = dateString.split("/").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return null;
+    }
+
+    return date;
+  };
+
+  const handleInvoiceDateInputChange = (value: string) => {
+    setInvoiceDateInput(value);
+    setInvoiceDateError("");
+
+    if (value.length === 10) {
+      const parsedDate = validateDateFormat(value);
+      if (parsedDate) {
+        setInvoiceDate(parsedDate);
+      } else {
+        setInvoiceDateError("Invalid date format. Use mm/dd/yyyy");
+      }
+    }
+  };
+
+  const handleDueDateInputChange = (value: string) => {
+    setDueDateInput(value);
+    setDueDateError("");
+
+    if (value.length === 10) {
+      const parsedDate = validateDateFormat(value);
+      if (parsedDate) {
+        setDueDate(parsedDate);
+      } else {
+        setDueDateError("Invalid date format. Use mm/dd/yyyy");
+      }
+    }
+  };
+
+  const handleInvoiceDateSelect = (date: Date) => {
+    setInvoiceDate(date);
+    setInvoiceDateInput(format(date, "MM/dd/yyyy"));
+    setInvoiceDateError("");
+  };
+
+  const handleDueDateSelect = (date: Date) => {
+    setDueDate(date);
+    setDueDateInput(format(date, "MM/dd/yyyy"));
+    setDueDateError("");
   };
 
   return (
@@ -74,37 +207,41 @@ export const RecordBill = () => {
             {/* Form Fields */}
             <div className="flex mt-3 w-full flex-col">
               <div className="flex w-full flex-col">
-                {/* Vendor and Invoice # Row */}
+                {/* Vendor and Reference Number Row */}
                 <div className="flex w-[790px] items-start gap-5 flex-wrap">
                   <div className="flex flex-col flex-1 min-w-[240px] basis-0">
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                       Vendor
                     </label>
-                    <div className="rounded-lg bg-white border border-[#E5E5E5] flex mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
-                      <span className="flex-1">Select vendor...</span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M4 6L8 10L12 6"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    <Select
+                      value={selectedVendor?.id.toString() || ""}
+                      onValueChange={(vendorId) => {
+                        const vendor = mockVendors.find(
+                          (v) => v.id.toString() === vendorId
+                        );
+                        setSelectedVendor(vendor || null);
+                      }}
+                    >
+                      <SelectTrigger className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
+                        <SelectValue placeholder="Select vendor..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockVendors.map((vendor) => (
+                          <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                            {vendor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex flex-col flex-1 min-w-[240px] basis-0">
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                      Invoice #
+                      Reference Number
                     </label>
                     <input
                       type="text"
+                      value={referenceNumber}
+                      onChange={(e) => setReferenceNumber(e.target.value)}
                       placeholder="INV-2024-001"
                       className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
                     />
@@ -117,89 +254,84 @@ export const RecordBill = () => {
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                       Invoice Date
                     </label>
-                    <div className="rounded-lg bg-white border border-[#E5E5E5] flex mt-2 w-full px-3 py-2 items-center gap-24 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] justify-between">
-                      <span>mm/dd/yyyy</span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4C14 3.26362 13.403 2.66667 12.6667 2.66667Z"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
+                        >
+                          <input
+                            type="text"
+                            value={invoiceDateInput}
+                            onChange={(e) =>
+                              handleInvoiceDateInputChange(e.target.value)
+                            }
+                            placeholder="mm/dd/yyyy"
+                            className="flex-1 bg-transparent outline-none text-[#303030]"
+                            maxLength={10}
+                          />
+                          <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={invoiceDate || undefined}
+                          onSelect={handleInvoiceDateSelect}
+                          disabled={(date) =>
+                            date > new Date() ||
+                            date < new Date("1900-01-01")
+                          }
+                          initialFocus
                         />
-                        <path
-                          d="M10.6667 1.33333V4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M5.33333 1.33333V4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M2 6.66667H14"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                      </PopoverContent>
+                    </Popover>
+                    {invoiceDateError && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {invoiceDateError}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col flex-1 min-w-[240px] basis-0">
                     <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                       Due Date
                     </label>
-                    <div className="rounded-lg bg-white border border-[#E5E5E5] flex mt-2 w-full px-3 py-2 items-center gap-24 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] justify-between">
-                      <span>mm/dd/yyyy</span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4C14 3.26362 13.403 2.66667 12.6667 2.66667Z"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4] justify-between h-auto"
+                        >
+                          <input
+                            type="text"
+                            value={dueDateInput}
+                            onChange={(e) =>
+                              handleDueDateInputChange(e.target.value)
+                            }
+                            placeholder="mm/dd/yyyy"
+                            className="flex-1 bg-transparent outline-none text-[#303030]"
+                            maxLength={10}
+                          />
+                          <CalendarIcon className="w-4 h-4 text-[#A1A1A9]" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dueDate || undefined}
+                          onSelect={handleDueDateSelect}
+                          disabled={(date) =>
+                            date < new Date("1900-01-01")
+                          }
+                          initialFocus
                         />
-                        <path
-                          d="M10.6667 1.33333V4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M5.33333 1.33333V4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M2 6.66667H14"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                      </PopoverContent>
+                    </Popover>
+                    {dueDateError && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {dueDateError}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -209,6 +341,8 @@ export const RecordBill = () => {
                     Memo/Notes
                   </label>
                   <textarea
+                    value={memo}
+                    onChange={(e) => setMemo(e.target.value)}
                     placeholder="Additional notes..."
                     className="rounded-lg bg-white border border-[#E5E5E5] mt-2 min-h-[81px] w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6]"
                   />
