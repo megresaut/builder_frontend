@@ -202,21 +202,16 @@ export const RecordBill = () => {
     setLineItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const calculateTotal = (): string => {
+    const total = lineItems.reduce((sum, item) => {
+      const value = parseFloat(item.total.replace("$", "").replace(",", "") || "0");
+      return sum + value;
+    }, 0);
+    return `$${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   return (
     <div className="bg-white flex flex-col h-screen border-l-4 border-l-[#E5E7EB] font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
-      {/* Header */}
-      <div className="flex w-full items-center justify-between gap-24 flex-wrap px-8 py-6 flex-shrink-0">
-        <div className="flex flex-col min-w-[240px]">
-          <h1 className="text-[#303030] text-2xl font-semibold leading-[1.25]">
-            Record Bill
-          </h1>
-          <p className="mt-1 text-[#71717A] text-base font-medium leading-[1]">
-            Upload an invoice and record a new bill
-          </p>
-        </div>
-        <div className="flex min-h-9 gap-4" />
-      </div>
-
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
