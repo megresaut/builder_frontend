@@ -322,6 +322,16 @@ export const RecordBill = () => {
     return () => clearTimeout(timer);
   }, [lineItems, measureAndUpdateColumnWidths]);
 
+  // Auto-open PDF in read-only mode if there's only one file
+  useEffect(() => {
+    if (isReadOnly && uploadedFiles.length === 1 && !viewingFileUrl) {
+      const file = uploadedFiles[0].file;
+      const url = URL.createObjectURL(file);
+      setViewingFileUrl(url);
+      setViewingFileIndex(0);
+    }
+  }, [isReadOnly, uploadedFiles, viewingFileUrl]);
+
   const handleUpdateLineItem = (id: number, field: string, value: string) => {
     setLineItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
