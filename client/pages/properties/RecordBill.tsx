@@ -186,6 +186,29 @@ export const RecordBill = () => {
   };
 
   const handleRecordBill = () => {
+    // Validate all line items have required fields
+    for (const item of lineItems) {
+      if (!item.property.trim()) {
+        alert("All line items must have a Property/Ledger selected");
+        return;
+      }
+      if (!item.unit.trim()) {
+        alert("All line items must have a Unit selected");
+        return;
+      }
+      if (!item.workOrder.trim()) {
+        alert("All line items must have a Work Order selected");
+        return;
+      }
+      if (!item.glAccount.trim()) {
+        alert("All line items must have a GL Account selected");
+        return;
+      }
+      if (!item.total.trim()) {
+        alert("All line items must have a Total amount");
+        return;
+      }
+    }
     navigate(-1);
   };
 
