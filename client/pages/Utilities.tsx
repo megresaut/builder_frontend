@@ -405,7 +405,7 @@ export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
+    <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
       <svg
         width="16"
         height="16"
@@ -416,7 +416,7 @@ export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
         <g clipPath="url(#clip0_inactive)">
           <path
             d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-            stroke="#D97706"
+            stroke="#DC2626"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
