@@ -986,26 +986,37 @@ export default function Utilities() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  const handleColumnDragStart = (columnId: string, source: "bills" | "utility") => {
+  const handleColumnDragStart = (e: React.DragEvent<HTMLTableHeaderCellElement>, columnId: string, source: "bills" | "utility") => {
+    e.dataTransfer!.effectAllowed = "move";
+    e.dataTransfer!.setData("columnId", columnId);
+    e.dataTransfer!.setData("source", source);
     setDraggedColumn(columnId);
     setDragSource(source);
   };
 
-  const handleColumnDragOver = (e: React.DragEvent<HTMLTableCellElement>) => {
+  const handleColumnDragOver = (e: React.DragEvent<HTMLTableHeaderCellElement>) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer!.dropEffect = "move";
   };
 
-  const handleColumnDrop = (targetColumnId: string, source: "bills" | "utility") => {
-    if (!draggedColumn || dragSource !== source || draggedColumn === targetColumnId) {
+  const handleColumnDrop = (e: React.DragEvent<HTMLTableHeaderCellElement>, targetColumnId: string, source: "bills" | "utility") => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const draggedId = e.dataTransfer!.getData("columnId");
+    const dragSource = e.dataTransfer!.getData("source") as "bills" | "utility";
+
+    if (!draggedId || dragSource !== source || draggedId === targetColumnId) {
       setDraggedColumn(null);
       setDragSource(null);
       return;
     }
 
     if (source === "bills") {
-      const draggedIndex = billsColumns.findIndex((col) => col.id === draggedColumn);
+      const draggedIndex = billsColumns.findIndex((col) => col.id === draggedId);
       const targetIndex = billsColumns.findIndex((col) => col.id === targetColumnId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
 
       const newColumns = [...billsColumns];
       const [removed] = newColumns.splice(draggedIndex, 1);
@@ -1013,8 +1024,10 @@ export default function Utilities() {
 
       setBillsColumns(newColumns);
     } else {
-      const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedColumn);
+      const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedId);
       const targetIndex = utilityColumns.findIndex((col) => col.id === targetColumnId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
 
       const newColumns = [...utilityColumns];
       const [removed] = newColumns.splice(draggedIndex, 1);
