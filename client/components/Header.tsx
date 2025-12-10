@@ -142,18 +142,14 @@ export default function Header() {
 
   const getBreadcrumbItems = () => {
     const path = location.pathname;
-    const searchParams = new URLSearchParams(location.search);
-    const isFromUtilities = searchParams.get("from") === "utilities";
     const items: { label: string; href?: string }[] = [];
 
-    if (path === "/record-bill" || path.includes("/bills/record")) {
-      if (isFromUtilities) {
-        items.push({ label: "Utilities", href: "/utilities" });
-        items.push({ label: "View Bill" });
-      } else {
-        items.push({ label: "Bills", href: "/bills" });
-        items.push({ label: "Record Bill" });
-      }
+    if (path === "/utilities/view-bill") {
+      items.push({ label: "Utilities", href: "/utilities" });
+      items.push({ label: "View Bill" });
+    } else if (path === "/record-bill" || path.includes("/bills/record")) {
+      items.push({ label: "Bills", href: "/bills" });
+      items.push({ label: "Record Bill" });
     } else if (path.includes("/tasks/")) {
       const match = path.match(/\/tasks\/(\d+)(?:\/(\w+))?(?:\/(\d+))?/);
       if (match) {
