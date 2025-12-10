@@ -24,6 +24,7 @@ import Utilities from "./pages/Utilities";
 import PropertyDetail from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
+import { Auth } from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -210,6 +211,7 @@ export default function App() {
                     </ShellLayout>
                   }
                 />
+                <Route path="/auth" element={<Auth />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
