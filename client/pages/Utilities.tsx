@@ -513,10 +513,12 @@ export const ActionButton = ({
   propertyId,
   openMenuId,
   setOpenMenuId,
+  onEdit,
 }: {
   propertyId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onEdit?: () => void;
 }) => {
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
