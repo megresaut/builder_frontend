@@ -1662,7 +1662,7 @@ export default function Utilities() {
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
                         onView={() => {
-                          navigate("/bills/record?readOnly=true&from=utilities");
+                          navigate("/utilities/view-bill?readOnly=true");
                         }}
                       />
                     </td>
