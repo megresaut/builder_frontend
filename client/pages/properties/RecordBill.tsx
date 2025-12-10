@@ -667,8 +667,13 @@ export const RecordBill = () => {
                     Download
                   </button>
                   <button
-                    onClick={handleDeleteFile}
-                    className="rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
+                    onClick={() => !isReadOnly && handleDeleteFile()}
+                    disabled={isReadOnly}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
+                      isReadOnly
+                        ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                        : "bg-red-600 text-white hover:bg-red-700"
+                    }`}
                     title="Delete"
                   >
                     <svg
