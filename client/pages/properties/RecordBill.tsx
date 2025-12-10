@@ -708,6 +708,7 @@ export const RecordBill = () => {
                         </label>
                         <input
                           type="date"
+                          placeholder="mm/dd/yyyy"
                           value={
                             invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
                           }
@@ -727,7 +728,7 @@ export const RecordBill = () => {
                               setInvoiceDateInput("");
                             }
                           }}
-                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] ${
+                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
                             formErrors.has("invoiceDate") ? "border-red-500 border-2" : "border-[#E5E5E5]"
                           }`}
                         />
