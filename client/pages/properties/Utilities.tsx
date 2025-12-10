@@ -1164,6 +1164,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
       {showBillsPageSizeDropdown &&
         createPortal(
           <div
+            ref={billsDropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",
