@@ -1408,39 +1408,29 @@ export default function Utilities() {
                         : "border-b border-gray-200",
                     )}
                   >
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                          {account.icon}
-                        </div>
-                        <span className="text-gray-900 font-normal text-base">
-                          {account.provider}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.account}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <StatusBadge status={account.status} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.lastBillDate}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.lastBillAmount}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.lastImport}
-                      </span>
-                    </td>
+                    {utilityColumns.map((column) => (
+                      <td
+                        key={`${account.id}-${column.id}`}
+                        className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                      >
+                        {column.id === "provider" ? (
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                              {account.icon}
+                            </div>
+                            <span className="text-gray-900 font-normal text-base">
+                              {account[column.key]}
+                            </span>
+                          </div>
+                        ) : column.renderCell ? (
+                          column.renderCell(account)
+                        ) : (
+                          <span className="text-gray-900 font-normal text-base">
+                            {account[column.key]}
+                          </span>
+                        )}
+                      </td>
+                    ))}
                     <td
                       className="sticky right-0 px-2 py-3 flex items-center justify-center"
                       style={{
