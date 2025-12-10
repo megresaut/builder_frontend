@@ -774,7 +774,7 @@ export const RecordBill = () => {
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
                                   data-measure-width="property"
                                 >
-                                  <SelectValue />
+                                  <SelectValue placeholder="Select a Property" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {mockProperties.map((prop) => (
@@ -801,7 +801,7 @@ export const RecordBill = () => {
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
                                   data-measure-width="unit"
                                 >
-                                  <SelectValue />
+                                  <SelectValue placeholder="Select a Unit" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {mockUnits.map((unit) => (
@@ -832,7 +832,7 @@ export const RecordBill = () => {
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
                                   data-measure-width="workOrder"
                                 >
-                                  <SelectValue />
+                                  <SelectValue placeholder="Select a Work Order" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {mockWorkOrders.map((wo) => (
@@ -861,8 +861,9 @@ export const RecordBill = () => {
                                     e.target.value,
                                   )
                                 }
+                                placeholder="Enter description"
                                 data-measure-width="description"
-                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
+                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
 
@@ -885,7 +886,7 @@ export const RecordBill = () => {
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
                                   data-measure-width="glAccount"
                                 >
-                                  <SelectValue />
+                                  <SelectValue placeholder="Select an Account" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {mockGLAccounts.map((account) => (
@@ -923,7 +924,7 @@ export const RecordBill = () => {
                                 }}
                                 placeholder="$0.00"
                                 data-measure-width="total"
-                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap"
+                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
 
