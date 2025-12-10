@@ -520,6 +520,7 @@ export const ActionButton = ({
 }) => {
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -550,6 +551,27 @@ export const ActionButton = ({
       }
     };
   }, [showMenu]);
+
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        menuRef.current &&
+        buttonRef.current &&
+        !menuRef.current.contains(target) &&
+        !buttonRef.current.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu, setOpenMenuId]);
 
   return (
     <>
