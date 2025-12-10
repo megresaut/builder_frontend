@@ -1210,6 +1210,24 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           </div>,
           document.body,
         )}
+
+      {/* Edit Utility Account Modal */}
+      <EditUtilityAccountModal
+        open={isEditUtilityModalOpen}
+        onOpenChange={(open) => {
+          setIsEditUtilityModalOpen(open);
+          if (!open) {
+            setEditingUtilityAccount(null);
+          }
+        }}
+        editData={editingUtilityAccount ? {
+          provider: editingUtilityAccount.provider,
+          accountNumber: editingUtilityAccount.account,
+          status: editingUtilityAccount.status,
+          username: "",
+          password: "",
+        } : null}
+      />
     </div>
   );
 };
