@@ -988,8 +988,7 @@ export default function Utilities() {
 
   const handleColumnDragStart = (e: React.DragEvent<HTMLTableHeaderCellElement>, columnId: string, source: "bills" | "utility") => {
     e.dataTransfer!.effectAllowed = "move";
-    e.dataTransfer!.setData("columnId", columnId);
-    e.dataTransfer!.setData("source", source);
+    e.dataTransfer!.setData("text/plain", `${source}:${columnId}`);
     setDraggedColumn(columnId);
     setDragSource(source);
   };
@@ -1003,8 +1002,8 @@ export default function Utilities() {
     e.preventDefault();
     e.stopPropagation();
 
-    const draggedId = e.dataTransfer!.getData("columnId");
-    const dragSource = e.dataTransfer!.getData("source") as "bills" | "utility";
+    const dragData = e.dataTransfer!.getData("text/plain");
+    const [dragSource, draggedId] = dragData.split(":");
 
     if (!draggedId || dragSource !== source || draggedId === targetColumnId) {
       setDraggedColumn(null);
@@ -1016,9 +1015,13 @@ export default function Utilities() {
       const draggedIndex = billsColumns.findIndex((col) => col.id === draggedId);
       const targetIndex = billsColumns.findIndex((col) => col.id === targetColumnId);
 
-      if (draggedIndex === -1 || targetIndex === -1) return;
+      if (draggedIndex === -1 || targetIndex === -1) {
+        setDraggedColumn(null);
+        setDragSource(null);
+        return;
+      }
 
-      const newColumns = [...billsColumns];
+      const newColumns = Array.from(billsColumns);
       const [removed] = newColumns.splice(draggedIndex, 1);
       newColumns.splice(targetIndex, 0, removed);
 
@@ -1027,9 +1030,13 @@ export default function Utilities() {
       const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedId);
       const targetIndex = utilityColumns.findIndex((col) => col.id === targetColumnId);
 
-      if (draggedIndex === -1 || targetIndex === -1) return;
+      if (draggedIndex === -1 || targetIndex === -1) {
+        setDraggedColumn(null);
+        setDragSource(null);
+        return;
+      }
 
-      const newColumns = [...utilityColumns];
+      const newColumns = Array.from(utilityColumns);
       const [removed] = newColumns.splice(draggedIndex, 1);
       newColumns.splice(targetIndex, 0, removed);
 
