@@ -579,35 +579,39 @@ export const RecordBill = () => {
                               >
                                 View
                               </button>
-                              <button
-                                onClick={() => handleRemoveFile(index)}
-                                className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
-                                title="Remove file"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                              {!isReadOnly && (
+                                <button
+                                  onClick={() => handleRemoveFile(index)}
+                                  className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+                                  title="Remove file"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
-                      >
-                        Add more files
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
+                        >
+                          Add more files
+                        </button>
+                      )}
                     </div>
                   )}
                   <input
