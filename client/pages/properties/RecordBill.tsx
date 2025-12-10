@@ -656,8 +656,13 @@ export const RecordBill = () => {
                   </button>
                   <div className="flex-1" />
                   <button
-                    onClick={handleDownloadFile}
-                    className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
+                    onClick={() => !isReadOnly && handleDownloadFile()}
+                    disabled={isReadOnly}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
+                      isReadOnly
+                        ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                        : "bg-gray-600 text-white hover:bg-gray-500"
+                    }`}
                     title="Download"
                   >
                     <svg
