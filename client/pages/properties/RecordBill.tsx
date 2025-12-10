@@ -321,7 +321,7 @@ export const RecordBill = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
-        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-y-auto" style={{ alignSelf: "stretch" }}>
+        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column" }}>
           <div className="flex flex-col" style={{ flexGrow: "0" }}>
             {/* File Upload Section */}
             <div className="flex flex-col text-base font-normal" style={{ flexGrow: "0" }}>
