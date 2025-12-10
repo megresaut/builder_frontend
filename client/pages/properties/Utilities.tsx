@@ -7,6 +7,7 @@ import {
   AIInsightBadge,
   ActionButton,
 } from "../Utilities";
+import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
 
 interface UtilityAccount {
   id: number;
