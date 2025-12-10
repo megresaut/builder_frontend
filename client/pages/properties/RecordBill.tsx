@@ -82,6 +82,7 @@ export const RecordBill = () => {
   const [memo, setMemo] = useState<string>("");
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
   const [lineItems, setLineItems] = useState<LineItem[]>([
     {
       id: 1,
@@ -272,6 +273,7 @@ export const RecordBill = () => {
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
+        {isLeftPanelOpen && (
         <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-y-auto" style={{ alignSelf: "stretch" }}>
           <div className="flex flex-col" style={{ flexGrow: "0" }}>
             {/* File Upload Section */}
@@ -310,6 +312,27 @@ export const RecordBill = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Collapse Button */}
+        <button
+          onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+          className="w-6 h-full border-r border-[#E5E7EB] bg-white hover:bg-gray-50 flex items-center justify-center transition-colors"
+          title={isLeftPanelOpen ? "Collapse" : "Expand"}
+        >
+          <svg
+            className="w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {isLeftPanelOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            )}
+          </svg>
+        </button>
 
         {/* Right Column - Scrollable Content with Sticky Footer */}
         <div className="flex flex-col" style={{ flexGrow: "0", width: "auto", height: "auto", alignSelf: "stretch" }}>
