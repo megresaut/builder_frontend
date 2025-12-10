@@ -515,12 +515,14 @@ export const ActionButton = ({
   setOpenMenuId,
   onEdit,
   onImport,
+  onView,
 }: {
   propertyId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   onEdit?: () => void;
   onImport?: () => void;
+  onView?: () => void;
 }) => {
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
