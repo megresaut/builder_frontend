@@ -321,9 +321,9 @@ export const RecordBill = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
-        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column" }}>
+        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-hidden" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column" }}>
           {!viewingFileUrl ? (
-            <div className="flex flex-col" style={{ flexGrow: "1", overflow: "auto" }}>
+            <div className="flex flex-col" style={{ flexGrow: "0", overflow: "hidden" }}>
               {/* File Upload Section */}
               <div className="flex flex-col text-base font-normal" style={{ flexGrow: "0" }}>
                 {uploadedFiles.length === 0 ? (
@@ -422,21 +422,17 @@ export const RecordBill = () => {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col flex-1" style={{ display: "flex", flexDirection: "column" }}>
-              {/* PDF Viewer - Embedded in left panel */}
-              <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
-                <h2 className="text-lg font-semibold text-[#303030]">Document Preview</h2>
-                <button
-                  onClick={closeViewer}
-                  className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
-                  title="Close"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="flex-1 overflow-auto">
+            <div className="flex flex-col flex-1 w-full h-full" style={{ display: "flex", flexDirection: "column" }}>
+              <button
+                onClick={closeViewer}
+                className="text-[#A1A1A9] hover:text-[#303030] transition-colors mb-2 self-end"
+                title="Close"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="flex-1 overflow-auto w-full">
                 <iframe
                   src={viewingFileUrl}
                   className="w-full h-full border-0"
