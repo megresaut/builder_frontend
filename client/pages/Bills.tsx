@@ -556,7 +556,7 @@ export default function Bills() {
               <div className="flex items-center gap-4">
                 <h2 className="text-[#303030] font-medium text-[22px] leading-6">
                   {selectedTab === "approved"
-                    ? "Approved Bills"
+                    ? "Approved & Exported Bills"
                     : "Draft Bills"}
                 </h2>
                 <div className="flex items-center gap-2 h-6">
