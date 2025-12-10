@@ -54,7 +54,8 @@ export const Auth = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      navigate("/properties");
+      // Redirect to welcome page for sign-up, properties for login
+      navigate(isSignUp ? "/welcome" : "/all-properties");
     }, 1500);
   };
 
