@@ -254,9 +254,14 @@ export const Login = () => {
                 />
                 <span className="text-base text-gray-600">Remember me</span>
               </label>
-              <a href="#" className="text-base font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+              <button
+                type="button"
+                onClick={handleForgotPasswordClick}
+                className="text-base font-medium hover:opacity-80 transition-opacity"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Forgot password?
-              </a>
+              </button>
             </div>
 
             {/* Submit Button */}
