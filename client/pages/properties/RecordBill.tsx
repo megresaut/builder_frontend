@@ -657,6 +657,11 @@ export const RecordBill = () => {
                               (v) => v.id.toString() === vendorId,
                             );
                             setSelectedVendor(vendor || null);
+                            setFormErrors((prev) => {
+                              const newErrors = new Set(prev);
+                              newErrors.delete("vendor");
+                              return newErrors;
+                            });
                           }}
                         >
                           <SelectTrigger className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] ${
