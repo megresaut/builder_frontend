@@ -1521,19 +1521,15 @@ export default function Utilities() {
                   {billsColumns.map((column) => (
                     <th
                       key={column.id}
-                      draggable
-                      onDragStart={(e) => handleColumnDragStart(e, column.id, "bills")}
-                      onDragOver={handleColumnDragOver}
-                      onDrop={(e) => handleColumnDrop(e, column.id, "bills")}
-                      onDragEnd={() => {
-                        setDraggedColumn(null);
-                        setDragSource(null);
-                      }}
-                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-move select-none transition-colors ${
-                        draggedColumn === column.id && dragSource === "bills" ? "bg-blue-100 opacity-50" : "hover:bg-gray-100"
+                      onMouseDown={() => handleColumnMouseDown(column.id, "bills")}
+                      onMouseEnter={() => handleColumnMouseEnter(column.id, "bills")}
+                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap user-select-none transition-colors ${
+                        draggedColumn?.id === column.id && draggedColumn?.source === "bills"
+                          ? "bg-blue-100 opacity-50 cursor-grabbing"
+                          : "cursor-grab hover:bg-gray-100"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 select-none pointer-events-auto">
                         {column.icon}
                         <span className="font-medium text-sm text-gray-700">
                           {column.label}
