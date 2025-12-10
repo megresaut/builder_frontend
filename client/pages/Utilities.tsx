@@ -935,7 +935,12 @@ const DEFAULT_BILLS_COLUMNS: BillsColumn[] = [
         loading="lazy"
         src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f3223e08811539f2913d760c3f845a57c3ae8328?placeholderIfAbsent=true"
         alt=""
-        className="w-4 h-4 object-contain"
+        style={{
+          display: "block",
+          height: "14px",
+          width: "14px",
+          objectFit: "contain",
+        }}
       />
     ),
   },
