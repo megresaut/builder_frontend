@@ -303,6 +303,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
   const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] = useState<boolean>(false);
   const [editingUtilityAccount, setEditingUtilityAccount] = useState<UtilityAccount | null>(null);
+  const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">("edit");
 
   useEffect(() => {
     let animationFrameId: number;
