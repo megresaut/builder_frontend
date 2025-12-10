@@ -412,6 +412,16 @@ export const Bills: React.FC<BillsProps> = ({
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
+  const handleSync = () => {
+    setSyncState("syncing");
+    setTimeout(() => {
+      setSyncState("synced");
+      setTimeout(() => {
+        setSyncState("idle");
+      }, 2000);
+    }, 1500);
+  };
+
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
   const displayedBills = selectedTab === "approved" ? approvedBills : bills;
   const totalBills = displayedBills.length;
