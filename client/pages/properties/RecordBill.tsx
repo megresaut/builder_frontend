@@ -323,13 +323,13 @@ export const RecordBill = () => {
         {isLeftPanelOpen && (
         <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-hidden" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column" }}>
           {!viewingFileUrl ? (
-            <div className="flex flex-col" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
+            <div className="flex flex-col flex-1" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
               {/* File Upload Section */}
-              <div className="flex flex-col text-base font-normal" style={{ overflow: "hidden" }}>
+              <div className="flex flex-col text-base font-normal flex-1" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 {uploadedFiles.length === 0 ? (
                   <div
-                    className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center flex-1"
-                    style={{ padding: "28px 80px" }}
+                    className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
+                    style={{ padding: "28px 80px", flex: 1 }}
                   >
                     <div className="self-center flex flex-col items-center">
                       <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
@@ -362,14 +362,14 @@ export const RecordBill = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col" style={{ padding: "24px 0" }}>
+                  <div className="flex flex-col flex-1" style={{ padding: "24px 0", overflow: "hidden", display: "flex", flexDirection: "column" }}>
                     <div className="text-sm text-[#A1A1A9] mb-4">
                       Limited to 10 files. Max file size is 20MB.
                     </div>
                     <div className="text-sm text-[#303030] mb-4">
                       Drag & drop files here or <button onClick={() => fileInputRef.current?.click()} className="text-blue-600 hover:underline">browse</button>
                     </div>
-                    <div className="space-y-3 mb-6" style={{ overflow: "hidden" }}>
+                    <div className="space-y-3 mb-6 flex-1" style={{ overflow: "hidden" }}>
                       {uploadedFiles.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]">
                           <div className="flex items-center gap-3 flex-1">
@@ -405,7 +405,7 @@ export const RecordBill = () => {
                     </div>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-blue-600 hover:underline text-sm font-medium text-center"
+                      className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
                     >
                       Add more files
                     </button>
