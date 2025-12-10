@@ -401,6 +401,16 @@ export default function Bills() {
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
+  const handleSync = () => {
+    setSyncState("syncing");
+    setTimeout(() => {
+      setSyncState("synced");
+      setTimeout(() => {
+        setSyncState("idle");
+      }, 2000);
+    }, 1500);
+  };
+
   const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
   const totalBills = approvedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
