@@ -481,12 +481,12 @@ export const RecordBill = () => {
                 </div>
 
                 {/* Form Fields */}
-                <div className="flex mt-3 flex-col">
-                  <div className="flex w-full flex-col" style={{ marginRight: "-2px" }}>
+                <div className="flex mt-3 flex-col" style={{ width: "auto", alignSelf: "start" }}>
+                  <div className="flex flex-col" style={{ marginRight: "-2px", width: "auto", alignSelf: "start" }}>
                     {/* Vendor and Reference Number Row */}
                     <div
                       className="flex items-start flex-wrap"
-                      style={{ width: "790px", marginBottom: "-10px", gap: "20px" }}
+                      style={{ width: "665px", marginBottom: "-10px", gap: "20px" }}
                     >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
@@ -534,7 +534,7 @@ export const RecordBill = () => {
                     {/* Invoice Date and Due Date Row */}
                     <div
                       className="flex mt-5 items-start gap-5 flex-wrap"
-                      style={{ width: "790px" }}
+                      style={{ width: "665px" }}
                     >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
@@ -597,7 +597,7 @@ export const RecordBill = () => {
                     {/* Memo/Notes */}
                     <div
                       className="flex mt-5 w-full flex-col"
-                      style={{ width: "790px" }}
+                      style={{ width: "665px" }}
                     >
                       <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                         Memo/Notes
