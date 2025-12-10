@@ -77,54 +77,54 @@ export const Auth = () => {
   return (
     <div className="flex min-h-screen bg-white">
       {/* Left Hero Section with Geometric Background */}
-      <div className="hidden lg:flex lg:w-1/2 bg-white flex-col justify-between p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between relative overflow-hidden">
+        {/* Background with Primary Navy Color */}
+        <div className="absolute inset-0 bg-[#033763]" />
+
         {/* Geometric Background Pattern */}
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1000 1000"
           preserveAspectRatio="xMidYMid slice"
-          style={{ zIndex: 0 }}
+          style={{ zIndex: 1 }}
         >
           {/* Large Navy Triangle - Top Right */}
-          <polygon points="800,0 1000,0 1000,400" fill="#003f7f" />
+          <polygon points="700,0 1000,0 1000,500" fill="#033763" />
 
-          {/* Medium Navy Triangle - Bottom Left */}
-          <polygon points="0,600 0,1000 400,1000" fill="#003f7f" />
+          {/* Large Beige Triangle - Center extending full width */}
+          <polygon points="0,150 800,150 1000,600 1000,1000 0,1000" fill="#DBD7CA" />
 
-          {/* Light Beige Triangle - Center */}
-          <polygon points="300,200 600,200 450,500" fill="#e8dcc8" />
+          {/* Navy Triangle - Bottom Left */}
+          <polygon points="0,700 0,1000 400,1000" fill="#033763" />
 
-          {/* Another Navy Triangle - Bottom Right */}
-          <polygon points="900,700 1000,600 1000,1000" fill="#003f7f" opacity="0.8" />
+          {/* Navy Triangle - Top Left overlapping */}
+          <polygon points="0,0 300,0 0,400" fill="#033763" opacity="0.9" />
 
-          {/* Accent Navy Triangle - Top Left */}
-          <polygon points="0,0 250,0 0,250" fill="#003f7f" opacity="0.6" />
+          {/* Accent Navy - Bottom Right corner */}
+          <polygon points="850,850 1000,700 1000,1000" fill="#033763" />
         </svg>
 
         {/* Content - Relative to overlay the background */}
-        <div className="relative z-10 flex flex-col justify-between h-full">
+        <div className="relative z-20 flex flex-col justify-between h-full p-8">
           {/* Logo and Company Name */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3">
               <img
                 alt="AVM Logo"
                 src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
-                className="w-12 h-12"
+                className="w-10 h-10"
               />
-              <span className="text-3xl font-semibold text-gray-900">AVM</span>
+              <span className="text-2xl font-bold text-white">AVM</span>
             </div>
-            <p className="text-sm text-gray-600 ml-0">Property Management</p>
+            <p className="text-xs text-gray-200 ml-0">Property Management</p>
           </div>
 
-          {/* Center spacer */}
-          <div />
-
           {/* Footer with Credits */}
-          <div className="space-y-2 text-sm">
-            <p className="text-gray-600">
+          <div className="space-y-1 text-xs">
+            <p className="text-gray-200">
               © 2025 AVM. All rights reserved.
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-300">
               Developed by Reasonable Automations
             </p>
           </div>
