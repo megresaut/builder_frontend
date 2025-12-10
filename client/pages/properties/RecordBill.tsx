@@ -303,6 +303,17 @@ export const RecordBill = () => {
     setLineItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
+    // Clear error for this field when user updates it
+    setLineItemErrors((prev) => {
+      const itemErrors = new Set(prev[id]);
+      itemErrors.delete(field);
+      if (itemErrors.size === 0) {
+        const newErrors = { ...prev };
+        delete newErrors[id];
+        return newErrors;
+      }
+      return { ...prev, [id]: itemErrors };
+    });
     // Measure immediately on update
     setTimeout(() => {
       measureAndUpdateColumnWidths();
