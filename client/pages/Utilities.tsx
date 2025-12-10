@@ -977,12 +977,18 @@ export default function Utilities() {
     "billsColumns",
     DEFAULT_BILLS_COLUMNS,
   );
+  const [utilityColumns, setUtilityColumns] = usePageState<UtilityColumn[]>(
+    "utilityColumns",
+    DEFAULT_UTILITY_COLUMNS,
+  );
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const [dragSource, setDragSource] = useState<"bills" | "utility" | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  const handleColumnDragStart = (columnId: string) => {
+  const handleColumnDragStart = (columnId: string, source: "bills" | "utility") => {
     setDraggedColumn(columnId);
+    setDragSource(source);
   };
 
   const handleColumnDragOver = (e: React.DragEvent<HTMLTableCellElement>) => {
@@ -990,21 +996,35 @@ export default function Utilities() {
     e.dataTransfer.dropEffect = "move";
   };
 
-  const handleColumnDrop = (targetColumnId: string) => {
-    if (!draggedColumn || draggedColumn === targetColumnId) {
+  const handleColumnDrop = (targetColumnId: string, source: "bills" | "utility") => {
+    if (!draggedColumn || dragSource !== source || draggedColumn === targetColumnId) {
       setDraggedColumn(null);
+      setDragSource(null);
       return;
     }
 
-    const draggedIndex = billsColumns.findIndex((col) => col.id === draggedColumn);
-    const targetIndex = billsColumns.findIndex((col) => col.id === targetColumnId);
+    if (source === "bills") {
+      const draggedIndex = billsColumns.findIndex((col) => col.id === draggedColumn);
+      const targetIndex = billsColumns.findIndex((col) => col.id === targetColumnId);
 
-    const newColumns = [...billsColumns];
-    const [removed] = newColumns.splice(draggedIndex, 1);
-    newColumns.splice(targetIndex, 0, removed);
+      const newColumns = [...billsColumns];
+      const [removed] = newColumns.splice(draggedIndex, 1);
+      newColumns.splice(targetIndex, 0, removed);
 
-    setBillsColumns(newColumns);
+      setBillsColumns(newColumns);
+    } else {
+      const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedColumn);
+      const targetIndex = utilityColumns.findIndex((col) => col.id === targetColumnId);
+
+      const newColumns = [...utilityColumns];
+      const [removed] = newColumns.splice(draggedIndex, 1);
+      newColumns.splice(targetIndex, 0, removed);
+
+      setUtilityColumns(newColumns);
+    }
+
     setDraggedColumn(null);
+    setDragSource(null);
   };
 
   useEffect(() => {
