@@ -103,14 +103,19 @@ export default function Header() {
       path.includes("/bills/record")
     ) {
       // Handle /bills/record, /property/:id/bills/record, etc.
+      const searchParams = new URLSearchParams(location.search);
+      const isFromUtilities = searchParams.get("from") === "utilities";
+
       let pageId = "record-bill";
+      let label = isFromUtilities ? "View Bill" : "Record Bill";
+
       if (path.includes("/property/")) {
         const match = path.match(/\/property\/(\d+)/);
         if (match) {
           pageId = `record-bill-property-${match[1]}`;
         }
       }
-      return { label: "Record Bill", path, id: pageId };
+      return { label, path, id: pageId };
     } else if (path === "/") {
       return { label: "All Tasks", path, id: "all-tasks" };
     }
