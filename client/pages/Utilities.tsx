@@ -882,6 +882,7 @@ const DEFAULT_BILLS_COLUMNS: BillsColumn[] = [
 ];
 
 export default function Utilities() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
