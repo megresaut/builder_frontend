@@ -250,7 +250,7 @@ const ActionButton = ({
                     "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 }}
               >
-                Edit
+                View Bill
               </span>
               <svg
                 width="18"
@@ -786,8 +786,8 @@ export default function Bills() {
                           <line x1="16" x2="14" y1="3" y2="21" />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Invoice #
-                        </span>
+                        Reference #
+                      </span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">

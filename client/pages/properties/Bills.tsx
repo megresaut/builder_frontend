@@ -256,7 +256,7 @@ const ActionButton = ({
                     "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 }}
               >
-                Edit
+                View Bill
               </span>
               <svg
                 width="18"
@@ -572,7 +572,7 @@ export const Bills: React.FC<BillsProps> = ({
             <div className="flex items-center gap-4">
               <h2 className="text-[#303030] font-medium text-[22px] leading-6">
                 {selectedTab === "approved"
-                  ? `Approved Bills (${approvedBills.length})`
+                  ? `Approved & Exported Bills (${approvedBills.length})`
                   : `Draft Bills (${bills.length - approvedBills.length})`}
               </h2>
               <div className="flex items-center gap-2 h-6">
@@ -797,7 +797,7 @@ export const Bills: React.FC<BillsProps> = ({
                         <line x1="16" x2="14" y1="3" y2="21" />
                       </svg>
                       <span className="font-medium text-sm text-gray-700">
-                        Invoice #
+                        Reference #
                       </span>
                     </div>
                   </th>
