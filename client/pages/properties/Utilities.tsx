@@ -578,7 +578,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 2.5H13C13.8284 2.5 14.5 3.17157 14.5 4V12C14.5 12.8284 13.8284 13.5 13 13.5H3C2.17157 13.5 1.5 12.8284 1.5 12V4C1.5 3.17157 2.17157 2.5 3 2.5ZM3 4V12H13V4H3Z" fill="#4B5563"/>
+                      <path d="M12.6673 3.3335L3.33398 12.6668M6.00065 4.66683C6.00065 5.40321 5.4037 6.00016 4.66732 6.00016C3.93094 6.00016 3.33398 5.40321 3.33398 4.66683C3.33398 3.93045 3.93094 3.3335 4.66732 3.3335C5.4037 3.3335 6.00065 3.93045 6.00065 4.66683ZM12.6673 11.3335C12.6673 12.0699 12.0704 12.6668 11.334 12.6668C10.5976 12.6668 10.0007 12.0699 10.0007 11.3335C10.0007 10.5971 10.5976 10.0002 11.334 10.0002C12.0704 10.0002 12.6673 10.5971 12.6673 11.3335Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     Account
                   </span>
