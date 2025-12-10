@@ -177,10 +177,10 @@ export const Auth = () => {
 
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-5xl font-bold text-gray-900 mb-4">
               Create Account
             </h2>
-            <p className="text-gray-600">
+            <p className="text-xl text-gray-600">
               Join AVM and start managing your properties efficiently
             </p>
           </div>
@@ -189,7 +189,7 @@ export const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-lg font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <input
@@ -221,7 +221,7 @@ export const Auth = () => {
 
             {/* Phone Number Field */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="phone" className="block text-lg font-medium text-gray-700 mb-2">
                 Phone Number
               </label>
               <input
@@ -253,7 +253,7 @@ export const Auth = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-lg font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
@@ -285,7 +285,7 @@ export const Auth = () => {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="confirmPassword" className="block text-lg font-medium text-gray-700 mb-2">
                 Confirm Password
               </label>
               <input
@@ -317,7 +317,7 @@ export const Auth = () => {
 
             {/* Profile Photo Field */}
             <div>
-              <label htmlFor="profilePhoto" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="profilePhoto" className="block text-lg font-medium text-gray-700 mb-2">
                 Profile Photo (Optional)
               </label>
               <div className="flex items-end gap-4">
@@ -360,7 +360,7 @@ export const Auth = () => {
                   className="w-4 h-4 rounded border-gray-300 mt-1"
                   style={{ accentColor: "rgb(36, 99, 235)" }}
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-base text-gray-600">
                   I agree to the{" "}
                   <a href="/terms-of-service" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                     Terms of Service
@@ -380,7 +380,7 @@ export const Auth = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white font-semibold py-2.5 px-4 rounded-lg transition-colors mt-6 disabled:bg-gray-400"
+              className="w-full text-white font-semibold py-3 px-4 text-lg rounded-lg transition-colors mt-6 disabled:bg-gray-400"
               style={{
                 backgroundColor: "rgb(36, 99, 235)",
               }}
@@ -401,7 +401,7 @@ export const Auth = () => {
 
           {/* Sign In Link */}
           <div className="mt-8 text-center border-t border-gray-200 pt-8">
-            <p className="text-gray-600">
+            <p className="text-lg text-gray-600">
               Already have an account?{" "}
               <a href="/login" className="font-semibold" style={{ color: "rgb(36, 99, 235)" }}>
                 Sign In
@@ -410,7 +410,7 @@ export const Auth = () => {
           </div>
 
           {/* Footer Links */}
-          <div className="mt-8 space-y-2 text-center text-sm">
+          <div className="mt-8 space-y-2 text-center text-base">
             <p>
               <a href="mailto:matt@reasonableautomations.com" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Contact Support
