@@ -570,7 +570,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 8.5C9.24264 8.5 10.25 7.49264 10.25 6.25C10.25 5.00736 9.24264 4 8 4C6.75736 4 5.75 5.00736 5.75 6.25C5.75 7.49264 6.75736 8.5 8 8.5ZM8 9.5C6.46875 9.5 3.5 10.3125 3.5 11.875V13H12.5V11.875C12.5 10.3125 9.53125 9.5 8 9.5Z" fill="#4B5563"/>
+                      <path d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     Provider
                   </span>
@@ -578,7 +578,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12.6673 3.3335L3.33398 12.6668M6.00065 4.66683C6.00065 5.40321 5.4037 6.00016 4.66732 6.00016C3.93094 6.00016 3.33398 5.40321 3.33398 4.66683C3.33398 3.93045 3.93094 3.3335 4.66732 3.3335C5.4037 3.3335 6.00065 3.93045 6.00065 4.66683ZM12.6673 11.3335C12.6673 12.0699 12.0704 12.6668 11.334 12.6668C10.5976 12.6668 10.0007 12.0699 10.0007 11.3335C10.0007 10.5971 10.5976 10.0002 11.334 10.0002C12.0704 10.0002 12.6673 10.5971 12.6673 11.3335Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     Account
                   </span>
