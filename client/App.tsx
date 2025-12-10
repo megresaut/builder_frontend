@@ -23,6 +23,7 @@ import { FavoritesProvider } from "./hooks/FavoritesContext";
 import Utilities from "./pages/Utilities";
 import PropertyDetail from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
+import { RecordBill } from "./pages/properties/RecordBill";
 
 const queryClient = new QueryClient();
 
@@ -126,6 +127,22 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <PropertyDetail />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/property/:propertyId/bills/record"
+                  element={
+                    <ShellLayout>
+                      <RecordBill />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/bills/record"
+                  element={
+                    <ShellLayout>
+                      <RecordBill />
                     </ShellLayout>
                   }
                 />

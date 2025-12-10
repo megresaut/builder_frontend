@@ -258,9 +258,9 @@ export default function AddPropertyModal({
 
   const toggleManager = (manager: Manager) => {
     setSelectedManagers((prev) => {
-      const isSelected = prev.some((m) => m.id === manager.id);
+      const isSelected = prev.some((m) => String(m.id) === String(manager.id));
       if (isSelected) {
-        return prev.filter((m) => m.id !== manager.id);
+        return prev.filter((m) => String(m.id) !== String(manager.id));
       } else {
         return [...prev, manager];
       }
@@ -514,7 +514,7 @@ export default function AddPropertyModal({
                     >
                       {availableManagers.map((manager) => {
                         const isSelected = selectedManagers.some(
-                          (m) => m.id === manager.id,
+                          (m) => String(m.id) === String(manager.id),
                         );
                         return (
                           <button
