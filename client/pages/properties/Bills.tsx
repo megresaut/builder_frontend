@@ -492,6 +492,14 @@ export const Bills: React.FC<BillsProps> = ({
     }
   }, [showPageSizeDropdown]);
 
+  useEffect(() => {
+    const handleClickAnywhere = () => {
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickAnywhere);
+    return () => document.removeEventListener("mousedown", handleClickAnywhere);
+  }, []);
 
   const handleSync = () => {
     setSyncState("syncing");
