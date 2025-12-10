@@ -292,6 +292,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   propertyType,
   propertyUnits,
 }) => {
+  const navigate = useNavigate();
   const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(
     null,
   );
