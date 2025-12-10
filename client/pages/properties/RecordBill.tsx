@@ -188,28 +188,43 @@ export const RecordBill = () => {
 
   const handleRecordBill = () => {
     // Validate all line items have required fields
+    const errors: { [key: number]: Set<string> } = {};
+    let hasErrors = false;
+
     for (const item of lineItems) {
+      const itemErrors = new Set<string>();
+
       if (!item.property.trim()) {
-        alert("All line items must have a Property/Ledger selected");
-        return;
+        itemErrors.add("property");
+        hasErrors = true;
       }
       if (!item.unit.trim()) {
-        alert("All line items must have a Unit selected");
-        return;
+        itemErrors.add("unit");
+        hasErrors = true;
       }
       if (!item.workOrder.trim()) {
-        alert("All line items must have a Work Order selected");
-        return;
+        itemErrors.add("workOrder");
+        hasErrors = true;
       }
       if (!item.glAccount.trim()) {
-        alert("All line items must have a GL Account selected");
-        return;
+        itemErrors.add("glAccount");
+        hasErrors = true;
       }
       if (!item.total.trim()) {
-        alert("All line items must have a Total amount");
-        return;
+        itemErrors.add("total");
+        hasErrors = true;
+      }
+
+      if (itemErrors.size > 0) {
+        errors[item.id] = itemErrors;
       }
     }
+
+    if (hasErrors) {
+      setLineItemErrors(errors);
+      return;
+    }
+
     navigate(-1);
   };
 
