@@ -785,6 +785,10 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       propertyId={account.id}
                       openMenuId={openUtilityMenuId}
                       setOpenMenuId={setOpenUtilityMenuId}
+                      onEdit={() => {
+                        setEditingUtilityAccount(account);
+                        setIsEditUtilityModalOpen(true);
+                      }}
                     />
                   </td>
                 </tr>
