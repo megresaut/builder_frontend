@@ -333,7 +333,7 @@ export const RecordBill = () => {
                     {/* Vendor and Reference Number Row */}
                     <div
                       className="flex items-start flex-wrap"
-                      style={{ width: "790px", marginBottom: "-10px" }}
+                      style={{ width: "790px", marginBottom: "-10px", gap: "20px" }}
                     >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
