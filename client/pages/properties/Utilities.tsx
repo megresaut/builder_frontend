@@ -955,7 +955,220 @@ export const Utilities: React.FC<UtilitiesProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer */}
+        <div
+          className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative border-t border-gray-200"
+          style={{ position: "relative", zIndex: 1, overflow: "visible" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700 text-sm font-medium">Showing</span>
+            <div
+              className="relative"
+              style={{ position: "relative", zIndex: 10 }}
+            >
+              <button
+                ref={billsDropdownButtonRef}
+                onClick={() => setShowBillsPageSizeDropdown(!showBillsPageSizeDropdown)}
+                className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
+                style={{
+                  borderColor: "rgb(218, 218, 218)",
+                  borderWidth: "0.909091px",
+                  boxShadow:
+                    "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                }}
+              >
+                <div className="text-gray-900 font-medium text-sm">
+                  {billsItemsPerPage}
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+            </div>
+            <span className="text-gray-700 text-sm font-medium">
+              of {bills.length}
+            </span>
+          </div>
+          <div
+            className="flex items-center rounded-lg border bg-white overflow-hidden"
+            style={{
+              borderColor: "rgb(218, 218, 218)",
+              borderWidth: "0.909091px",
+              boxShadow:
+                "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+            }}
+          >
+            <button
+              disabled={billsCurrentPage === 1}
+              onClick={() => setBillsCurrentPage(Math.max(1, billsCurrentPage - 1))}
+              className={cn(
+                "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                billsCurrentPage === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-50",
+              )}
+              style={{
+                borderRightWidth: "0.909091px",
+                borderRightColor: "rgb(229, 229, 229)",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={
+                  billsCurrentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
+                }
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
+              <div
+                className={cn(
+                  "font-medium text-sm",
+                  billsCurrentPage === 1 ? "text-gray-400" : "text-gray-700",
+                )}
+              >
+                Previous
+              </div>
+            </button>
+            {getBillsPaginationNumbers().map((page, idx) => {
+              if (page === "...") {
+                return (
+                  <button
+                    key={`ellipsis-${idx}`}
+                    disabled
+                    className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                    style={{
+                      borderRightWidth: "0.909091px",
+                      borderRightColor: "rgb(229, 229, 229)",
+                      backgroundColor: "rgba(0, 0, 0, 0)",
+                    }}
+                  >
+                    <div className="text-gray-500 font-medium text-sm">
+                      ...
+                    </div>
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  key={page}
+                  onClick={() => setBillsCurrentPage(page as number)}
+                  className={cn(
+                    "flex items-center justify-center h-10 min-w-10 transition-colors",
+                    billsCurrentPage === page
+                      ? "hover:bg-gray-50"
+                      : "hover:bg-gray-50",
+                  )}
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor:
+                      billsCurrentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      billsCurrentPage === page
+                        ? "text-gray-900 font-bold"
+                        : "text-gray-500",
+                    )}
+                  >
+                    {page}
+                  </div>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setBillsCurrentPage(billsCurrentPage + 1)}
+              className={cn(
+                "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+              )}
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0)",
+              }}
+            >
+              <div className={cn("font-medium text-sm text-gray-700")}>
+                Next
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={
+                  billsCurrentPage === billsTotalPages
+                    ? "rgb(163, 163, 163)"
+                    : "currentColor"
+                }
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Dropdown Menu - Rendered via Portal at body level */}
+      {showBillsPageSizeDropdown &&
+        createPortal(
+          <div
+            className="bg-white overflow-hidden"
+            style={{
+              border: "0.5px solid #DADADA",
+              borderRadius: "8px",
+              boxShadow:
+                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+              zIndex: 99999,
+              minWidth: "56px",
+              width: "56px",
+              position: "fixed",
+              top: billsDropdownPos.top + "px",
+              left: billsDropdownPos.left + "px",
+              pointerEvents: "auto",
+            }}
+            onMouseLeave={() => setShowBillsPageSizeDropdown(false)}
+          >
+            {[10, 25, 50].map((size) => (
+              <button
+                key={size}
+                onClick={() => {
+                  setBillsItemsPerPage(size);
+                  setBillsCurrentPage(1);
+                  setShowBillsPageSizeDropdown(false);
+                }}
+                className="w-full px-3 py-2 text-left hover:bg-gray-100 text-gray-700 font-medium text-sm"
+              >
+                {size}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
