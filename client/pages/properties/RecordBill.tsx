@@ -944,8 +944,9 @@ export const RecordBill = () => {
                       </label>
                       <textarea
                         value={memo}
-                        onChange={(e) => setMemo(e.target.value)}
+                        onChange={(e) => !isReadOnly && setMemo(e.target.value)}
                         placeholder="Additional notes..."
+                        disabled={isReadOnly}
                         className="rounded-lg bg-white border border-[#E5E7EB] mt-2 min-h-[81px] w-full px-3 py-2 overflow-hidden text-base text-[#303030] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9]"
                       />
                     </div>
