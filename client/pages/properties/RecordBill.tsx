@@ -751,12 +751,19 @@ export const RecordBill = () => {
                               setDueDate(date);
                               setDueDateInput(format(date, "MM/dd/yyyy"));
                               setDueDateError("");
+                              setFormErrors((prev) => {
+                                const newErrors = new Set(prev);
+                                newErrors.delete("dueDate");
+                                return newErrors;
+                              });
                             } else {
                               setDueDate(null);
                               setDueDateInput("");
                             }
                           }}
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] cursor-pointer"
+                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] ${
+                            formErrors.has("dueDate") ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                          }`}
                         />
                         {dueDateError && (
                           <div className="text-red-500 text-xs mt-1">
