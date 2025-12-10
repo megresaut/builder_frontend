@@ -301,6 +301,8 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
   const billsDropdownMenuRef = useRef<HTMLDivElement>(null);
   const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
+  const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] = useState<boolean>(false);
+  const [editingUtilityAccount, setEditingUtilityAccount] = useState<UtilityAccount | null>(null);
 
   useEffect(() => {
     let animationFrameId: number;
