@@ -268,17 +268,17 @@ export const RecordBill = () => {
   };
 
   return (
-    <div className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]" style={{ height: "1000px", borderLeftWidth: "1px", border: "1px solid #d5d4d2" }}>
+    <div className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]" style={{ height: "900px", borderLeftWidth: "1px", border: "1px solid #d5d4d2" }}>
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
-        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-y-auto">
-          <div className="flex flex-col h-full">
+        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-y-auto" style={{ alignSelf: "stretch" }}>
+          <div className="flex flex-col" style={{ flexGrow: "0" }}>
             {/* File Upload Section */}
-            <div className="flex flex-col text-base font-normal">
+            <div className="flex flex-col text-base font-normal" style={{ flexGrow: "0" }}>
               <div
                 className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
-                style={{ padding: "28px 80px", minHeight: "965px" }}
+                style={{ padding: "28px 80px", minHeight: "308px" }}
               >
                 <div className="self-center flex flex-col items-center">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
@@ -312,7 +312,7 @@ export const RecordBill = () => {
         </div>
 
         {/* Right Column - Scrollable Content with Sticky Footer */}
-        <div className="flex flex-col" style={{ flexGrow: "0", width: "auto" }}>
+        <div className="flex flex-col" style={{ flexGrow: "0", width: "auto", height: "auto", alignSelf: "stretch" }}>
           {/* Scrollable Content Area */}
           <div className="overflow-y-auto" style={{ maxHeight: "65vh", width: "100%" }}>
             <div className="px-8 py-6 min-w-min">
