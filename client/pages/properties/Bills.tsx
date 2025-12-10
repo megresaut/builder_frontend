@@ -180,6 +180,10 @@ interface ActionButtonProps {
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   tab?: "approved" | "drafts";
+  onEditBill?: () => void;
+  onExportBill?: () => void;
+  onDeleteBill?: () => void;
+  onViewBill?: () => void;
 }
 
 const ActionButton = ({
@@ -187,10 +191,15 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   tab = "approved",
+  onEditBill,
+  onExportBill,
+  onDeleteBill,
+  onViewBill,
 }: ActionButtonProps) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     let animationFrameId: number;
