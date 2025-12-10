@@ -362,7 +362,17 @@ const ActionButton = ({
                 </button>
               </>
             ) : (
-              <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
+              <button
+                onClick={() => {
+                  setOpenMenuId(null);
+                  if (propertyId) {
+                    navigate(`/property/${propertyId}/bills/record`);
+                  } else {
+                    navigate("/bills/record");
+                  }
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
                 <span
                   className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
                   style={{
