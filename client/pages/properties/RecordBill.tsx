@@ -188,9 +188,27 @@ export const RecordBill = () => {
   };
 
   const handleRecordBill = () => {
-    // Validate all line items have required fields
-    const errors: { [key: number]: Set<string> } = {};
+    // Validate top-level form fields
+    const formFieldErrors = new Set<string>();
     let hasErrors = false;
+
+    if (!selectedVendor) {
+      formFieldErrors.add("vendor");
+      hasErrors = true;
+    }
+    if (!invoiceDate) {
+      formFieldErrors.add("invoiceDate");
+      hasErrors = true;
+    }
+    if (!dueDate) {
+      formFieldErrors.add("dueDate");
+      hasErrors = true;
+    }
+
+    setFormErrors(formFieldErrors);
+
+    // Validate all line items have required fields
+    const lineItemsErrors: { [key: number]: Set<string> } = {};
 
     for (const item of lineItems) {
       const itemErrors = new Set<string>();
@@ -217,12 +235,12 @@ export const RecordBill = () => {
       }
 
       if (itemErrors.size > 0) {
-        errors[item.id] = itemErrors;
+        lineItemsErrors[item.id] = itemErrors;
       }
     }
 
     if (hasErrors) {
-      setLineItemErrors(errors);
+      setLineItemErrors(lineItemsErrors);
       return;
     }
 
