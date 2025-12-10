@@ -973,17 +973,49 @@ export default function Utilities() {
     "openUtilityMenuId",
     null,
   );
-  const [billsColumns, setBillsColumns] = usePageState<BillsColumn[]>(
-    "billsColumns",
-    DEFAULT_BILLS_COLUMNS,
-  );
-  const [utilityColumns, setUtilityColumns] = usePageState<UtilityColumn[]>(
-    "utilityColumns",
-    DEFAULT_UTILITY_COLUMNS,
-  );
+  const [billsColumns, setBillsColumns] = useState<BillsColumn[]>(DEFAULT_BILLS_COLUMNS);
+  const [utilityColumns, setUtilityColumns] = useState<UtilityColumn[]>(DEFAULT_UTILITY_COLUMNS);
   const [draggedColumn, setDraggedColumn] = useState<{id: string; source: "bills" | "utility"} | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    const savedBillsOrder = localStorage.getItem("table-columns:bills");
+    const savedUtilityOrder = localStorage.getItem("table-columns:utility");
+
+    if (savedBillsOrder) {
+      try {
+        const columnIds = JSON.parse(savedBillsOrder);
+        const reorderedColumns = columnIds
+          .map((id: string) => DEFAULT_BILLS_COLUMNS.find((col) => col.id === id))
+          .filter((col): col is BillsColumn => col !== undefined);
+        if (reorderedColumns.length === DEFAULT_BILLS_COLUMNS.length) {
+          setBillsColumns(reorderedColumns);
+        }
+      } catch {
+        setBillsColumns(DEFAULT_BILLS_COLUMNS);
+      }
+    }
+
+    if (savedUtilityOrder) {
+      try {
+        const columnIds = JSON.parse(savedUtilityOrder);
+        const reorderedColumns = columnIds
+          .map((id: string) => DEFAULT_UTILITY_COLUMNS.find((col) => col.id === id))
+          .filter((col): col is UtilityColumn => col !== undefined);
+        if (reorderedColumns.length === DEFAULT_UTILITY_COLUMNS.length) {
+          setUtilityColumns(reorderedColumns);
+        }
+      } catch {
+        setUtilityColumns(DEFAULT_UTILITY_COLUMNS);
+      }
+    }
+  }, []);
+
+  const saveColumnsToLocalStorage = (columns: BillsColumn[] | UtilityColumn[], source: "bills" | "utility") => {
+    const columnIds = columns.map((col) => col.id);
+    localStorage.setItem(`table-columns:${source}`, JSON.stringify(columnIds));
+  };
 
   const handleColumnMouseDown = (columnId: string, source: "bills" | "utility") => {
     setDraggedColumn({ id: columnId, source });
@@ -1005,6 +1037,7 @@ export default function Utilities() {
       newColumns.splice(targetIndex, 0, removed);
 
       setBillsColumns(newColumns);
+      saveColumnsToLocalStorage(newColumns, "bills");
       setDraggedColumn({ id: targetColumnId, source });
     } else {
       const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedColumn.id);
@@ -1017,6 +1050,7 @@ export default function Utilities() {
       newColumns.splice(targetIndex, 0, removed);
 
       setUtilityColumns(newColumns);
+      saveColumnsToLocalStorage(newColumns, "utility");
       setDraggedColumn({ id: targetColumnId, source });
     }
   };
