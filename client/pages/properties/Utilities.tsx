@@ -298,6 +298,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   const [billsItemsPerPage, setBillsItemsPerPage] = useState<number>(10);
   const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] = useState<boolean>(false);
   const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const billsDropdownMenuRef = useRef<HTMLDivElement>(null);
   const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -325,6 +326,27 @@ export const Utilities: React.FC<UtilitiesProps> = ({
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
+    };
+  }, [showBillsPageSizeDropdown]);
+
+  useEffect(() => {
+    if (!showBillsPageSizeDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        billsDropdownMenuRef.current &&
+        billsDropdownButtonRef.current &&
+        !billsDropdownMenuRef.current.contains(target) &&
+        !billsDropdownButtonRef.current.contains(target)
+      ) {
+        setShowBillsPageSizeDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showBillsPageSizeDropdown]);
 
