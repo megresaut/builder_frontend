@@ -447,6 +447,15 @@ export default function Bills() {
   }, [showPageSizeDropdown]);
 
   useEffect(() => {
+    const handleClickAnywhere = () => {
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickAnywhere);
+    return () => document.removeEventListener("mousedown", handleClickAnywhere);
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         showPageSizeDropdown &&
