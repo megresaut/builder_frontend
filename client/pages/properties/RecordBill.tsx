@@ -627,8 +627,13 @@ export const RecordBill = () => {
               >
                 <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="rounded-lg bg-white text-gray-900 hover:bg-gray-100 transition-colors px-3 py-2 text-sm font-medium"
+                    onClick={() => !isReadOnly && fileInputRef.current?.click()}
+                    disabled={isReadOnly}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isReadOnly
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-white text-gray-900 hover:bg-gray-100"
+                    }`}
                     title="Upload files"
                   >
                     Upload files
