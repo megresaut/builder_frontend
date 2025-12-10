@@ -717,12 +717,19 @@ export const RecordBill = () => {
                               setInvoiceDate(date);
                               setInvoiceDateInput(format(date, "MM/dd/yyyy"));
                               setInvoiceDateError("");
+                              setFormErrors((prev) => {
+                                const newErrors = new Set(prev);
+                                newErrors.delete("invoiceDate");
+                                return newErrors;
+                              });
                             } else {
                               setInvoiceDate(null);
                               setInvoiceDateInput("");
                             }
                           }}
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] cursor-pointer"
+                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] ${
+                            formErrors.has("invoiceDate") ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                          }`}
                         />
                         {invoiceDateError && (
                           <div className="text-red-500 text-xs mt-1">
