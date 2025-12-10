@@ -322,104 +322,129 @@ export const RecordBill = () => {
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
         <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column" }}>
-          <div className="flex flex-col" style={{ flexGrow: "0" }}>
-            {/* File Upload Section */}
-            <div className="flex flex-col text-base font-normal" style={{ flexGrow: "0" }}>
-              {uploadedFiles.length === 0 ? (
-                <div
-                  className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
-                  style={{ padding: "28px 80px", minHeight: "732px" }}
-                >
-                  <div className="self-center flex flex-col items-center">
-                    <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
-                      <div>Choose a file or drag & drop it here</div>
-                      <div className="mt-2">
-                        JPEG, PNG and PDF formats, up to 50 MB.
+          {!viewingFileUrl ? (
+            <div className="flex flex-col" style={{ flexGrow: "1", overflow: "auto" }}>
+              {/* File Upload Section */}
+              <div className="flex flex-col text-base font-normal" style={{ flexGrow: "0" }}>
+                {uploadedFiles.length === 0 ? (
+                  <div
+                    className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
+                    style={{ padding: "28px 80px", minHeight: "732px" }}
+                  >
+                    <div className="self-center flex flex-col items-center">
+                      <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
+                        <div>Choose a file or drag & drop it here</div>
+                        <div className="mt-2">
+                          JPEG, PNG and PDF formats, up to 50 MB.
+                        </div>
                       </div>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Browse Files</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col" style={{ padding: "24px 0" }}>
+                    <div className="text-sm text-[#A1A1A9] mb-4">
+                      Limited to 10 files. Max file size is 20MB.
+                    </div>
+                    <div className="text-sm text-[#303030] mb-4">
+                      Drag & drop files here or <button onClick={() => fileInputRef.current?.click()} className="text-blue-600 hover:underline">browse</button>
+                    </div>
+                    <div className="space-y-3 mb-6">
+                      {uploadedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]">
+                          <div className="flex items-center gap-3 flex-1">
+                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-[#303030] truncate">
+                                {file.name} <span className="text-[#A1A1A9]">({formatFileSize(file.size)})</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={() => handleViewFile(file.file)}
+                              className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+                              title="View file"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleRemoveFile(index)}
+                              className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+                              title="Remove file"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
+                      className="text-blue-600 hover:underline text-sm font-medium text-center"
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span>Browse Files</span>
+                      Add more files
                     </button>
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col" style={{ padding: "24px 0" }}>
-                  <div className="text-sm text-[#A1A1A9] mb-4">
-                    Limited to 10 files. Max file size is 20MB.
-                  </div>
-                  <div className="text-sm text-[#303030] mb-4">
-                    Drag & drop files here or <button onClick={() => fileInputRef.current?.click()} className="text-blue-600 hover:underline">browse</button>
-                  </div>
-                  <div className="space-y-3 mb-6">
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]">
-                        <div className="flex items-center gap-3 flex-1">
-                          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                          </svg>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-[#303030] truncate">
-                              {file.name} <span className="text-[#A1A1A9]">({formatFileSize(file.size)})</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <button
-                            onClick={() => handleViewFile(file.file)}
-                            className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
-                            title="View file"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleRemoveFile(index)}
-                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
-                            title="Remove file"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-blue-600 hover:underline text-sm font-medium text-center"
-                  >
-                    Add more files
-                  </button>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col flex-1" style={{ display: "flex", flexDirection: "column" }}>
+              {/* PDF Viewer - Embedded in left panel */}
+              <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
+                <h2 className="text-lg font-semibold text-[#303030]">Document Preview</h2>
+                <button
+                  onClick={closeViewer}
+                  className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+                  title="Close"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <iframe
+                  src={viewingFileUrl}
+                  className="w-full h-full border-0"
+                  title="Document Preview"
+                />
+              </div>
+            </div>
+          )}
         </div>
         )}
 
