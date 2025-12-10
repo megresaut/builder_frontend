@@ -87,9 +87,13 @@ export const RecordBill = () => {
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileIndex, setViewingFileIndex] = useState<number | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [lineItemErrors, setLineItemErrors] = useState<{ [key: number]: Set<string> }>({});
+  const [lineItemErrors, setLineItemErrors] = useState<{
+    [key: number]: Set<string>;
+  }>({});
   const [formErrors, setFormErrors] = useState<Set<string>>(new Set());
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Array<{ name: string; size: number; file: File }>
+  >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>([
     {
@@ -342,7 +346,10 @@ export const RecordBill = () => {
   };
 
   const handleAddLineItem = () => {
-    const newId = lineItems.length > 0 ? Math.max(...lineItems.map((item) => item.id)) + 1 : 1;
+    const newId =
+      lineItems.length > 0
+        ? Math.max(...lineItems.map((item) => item.id)) + 1
+        : 1;
     setLineItems((prev) => [
       ...prev,
       {
@@ -383,7 +390,7 @@ export const RecordBill = () => {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + sizes[i];
   };
 
   const handleViewFile = (file: File) => {
@@ -407,7 +414,13 @@ export const RecordBill = () => {
       const url = URL.createObjectURL(file.file);
       const a = document.createElement("a");
       a.href = url;
-      a.download = file.name + (file.name.endsWith(".pdf") || file.name.endsWith(".jpg") || file.name.endsWith(".png") ? "" : ".pdf");
+      a.download =
+        file.name +
+        (file.name.endsWith(".pdf") ||
+        file.name.endsWith(".jpg") ||
+        file.name.endsWith(".png")
+          ? ""
+          : ".pdf");
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -433,169 +446,269 @@ export const RecordBill = () => {
   };
 
   return (
-    <div className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative" style={{ minHeight: "100vh" }}>
+    <div
+      className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
+      style={{ minHeight: "100vh" }}
+    >
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
-        <div className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-hidden" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column" }}>
-          {!viewingFileUrl ? (
-            <div className="flex flex-col flex-1" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-              {/* File Upload Section */}
-              <div className="flex flex-col text-base font-normal flex-1" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                {uploadedFiles.length === 0 ? (
-                  <div
-                    className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
-                    style={{ padding: "28px 80px", flex: 1 }}
-                  >
-                    <div className="self-center flex flex-col items-center">
-                      <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
-                        <div>Choose a file or drag & drop it here</div>
-                        <div className="mt-2">
-                          JPEG, PNG and PDF formats, up to 50 MB.
+          <div
+            className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-hidden"
+            style={{
+              alignSelf: "stretch",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {!viewingFileUrl ? (
+              <div
+                className="flex flex-col flex-1"
+                style={{
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {/* File Upload Section */}
+                <div
+                  className="flex flex-col text-base font-normal flex-1"
+                  style={{
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  {uploadedFiles.length === 0 ? (
+                    <div
+                      className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
+                      style={{ padding: "28px 80px", flex: 1 }}
+                    >
+                      <div className="self-center flex flex-col items-center">
+                        <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
+                          <div>Choose a file or drag & drop it here</div>
+                          <div className="mt-2">
+                            JPEG, PNG and PDF formats, up to 50 MB.
+                          </div>
                         </div>
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Browse Files</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex flex-col flex-1"
+                      style={{
+                        padding: "24px 0",
+                        overflow: "hidden",
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <div className="text-sm text-[#A1A1A9] mb-4">
+                        Limited to 10 files. Max file size is 20MB.
+                      </div>
+                      <div className="text-sm text-[#303030] mb-4">
+                        Drag & drop files here or{" "}
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="text-blue-600 hover:underline"
+                        >
+                          browse
+                        </button>
+                      </div>
+                      <div
+                        className="space-y-3 mb-6 flex-1"
+                        style={{ overflow: "hidden" }}
+                      >
+                        {uploadedFiles.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              <svg
+                                className="w-5 h-5 text-red-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                              </svg>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm text-[#303030] truncate">
+                                  {file.name}{" "}
+                                  <span className="text-[#A1A1A9]">
+                                    ({formatFileSize(file.size)})
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+                                onClick={() => handleViewFile(file.file)}
+                                className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+                                title="View file"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={() => handleRemoveFile(index)}
+                                className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+                                title="Remove file"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
+                        className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>Browse Files</span>
+                        Add more files
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col flex-1" style={{ padding: "24px 0", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                    <div className="text-sm text-[#A1A1A9] mb-4">
-                      Limited to 10 files. Max file size is 20MB.
-                    </div>
-                    <div className="text-sm text-[#303030] mb-4">
-                      Drag & drop files here or <button onClick={() => fileInputRef.current?.click()} className="text-blue-600 hover:underline">browse</button>
-                    </div>
-                    <div className="space-y-3 mb-6 flex-1" style={{ overflow: "hidden" }}>
-                      {uploadedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]">
-                          <div className="flex items-center gap-3 flex-1">
-                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm text-[#303030] truncate">
-                                {file.name} <span className="text-[#A1A1A9]">({formatFileSize(file.size)})</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 ml-4">
-                            <button
-                              onClick={() => handleViewFile(file.file)}
-                              className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
-                              title="View file"
-                            >
-                              View
-                            </button>
-                            <button
-                              onClick={() => handleRemoveFile(index)}
-                              className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
-                              title="Remove file"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div
+                className="flex flex-col flex-1 w-full h-full"
+                style={{ display: "flex", flexDirection: "column" }}
+              >
+                <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-lg bg-white text-gray-900 hover:bg-gray-100 transition-colors px-3 py-2 text-sm font-medium"
+                    title="Upload files"
+                  >
+                    Upload files
+                  </button>
+                  <button
+                    onClick={() => {}}
+                    className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium"
+                    title="Autofill from file"
+                  >
+                    Autofill from file
+                  </button>
+                  <div className="flex-1" />
+                  <button
+                    onClick={handleDownloadFile}
+                    className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
+                    title="Download"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      Add more files
-                    </button>
-                  </div>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Download
+                  </button>
+                  <button
+                    onClick={handleDeleteFile}
+                    className="rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
+                    title="Delete"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Delete
+                  </button>
+                  <button
+                    onClick={closeViewer}
+                    className="text-white hover:text-gray-300 transition-colors"
+                    title="Close"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex-1 overflow-auto w-full">
+                  <iframe
+                    src={viewingFileUrl}
+                    className="w-full h-full border-0"
+                    title="Document Preview"
+                  />
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col flex-1 w-full h-full" style={{ display: "flex", flexDirection: "column" }}>
-              <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="rounded-lg bg-white text-gray-900 hover:bg-gray-100 transition-colors px-3 py-2 text-sm font-medium"
-                  title="Upload files"
-                >
-                  Upload files
-                </button>
-                <button
-                  onClick={() => {}}
-                  className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium"
-                  title="Autofill from file"
-                >
-                  Autofill from file
-                </button>
-                <div className="flex-1" />
-                <button
-                  onClick={handleDownloadFile}
-                  className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
-                  title="Download"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download
-                </button>
-                <button
-                  onClick={handleDeleteFile}
-                  className="rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
-                  title="Delete"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Delete
-                </button>
-                <button
-                  onClick={closeViewer}
-                  className="text-white hover:text-gray-300 transition-colors"
-                  title="Close"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="flex-1 overflow-auto w-full">
-                <iframe
-                  src={viewingFileUrl}
-                  className="w-full h-full border-0"
-                  title="Document Preview"
-                />
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         )}
 
         {/* Collapse Button */}
@@ -612,9 +725,19 @@ export const RecordBill = () => {
             strokeWidth={2.5}
           >
             {isLeftPanelOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             )}
           </svg>
         </button>
@@ -622,7 +745,10 @@ export const RecordBill = () => {
         {/* Right Column - Scrollable Content */}
         <div className="flex flex-col flex-1" style={{ overflow: "hidden" }}>
           {/* Scrollable Content Area */}
-          <div className="overflow-auto" style={{ width: "100%", height: "100%", paddingBottom: "72px" }}>
+          <div
+            className="overflow-auto"
+            style={{ width: "100%", height: "100%", paddingBottom: "72px" }}
+          >
             <div className="px-8 py-6" style={{ minWidth: "fit-content" }}>
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
@@ -636,12 +762,26 @@ export const RecordBill = () => {
                 </div>
 
                 {/* Form Fields */}
-                <div className="flex mt-3 flex-col" style={{ width: "auto", alignSelf: "start" }}>
-                  <div className="flex flex-col" style={{ marginRight: "-2px", width: "auto", alignSelf: "start" }}>
+                <div
+                  className="flex mt-3 flex-col"
+                  style={{ width: "auto", alignSelf: "start" }}
+                >
+                  <div
+                    className="flex flex-col"
+                    style={{
+                      marginRight: "-2px",
+                      width: "auto",
+                      alignSelf: "start",
+                    }}
+                  >
                     {/* Vendor and Reference Number Row */}
                     <div
                       className="flex items-start flex-wrap"
-                      style={{ width: "665px", marginBottom: "-10px", gap: "20px" }}
+                      style={{
+                        width: "665px",
+                        marginBottom: "-10px",
+                        gap: "20px",
+                      }}
                     >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
@@ -662,9 +802,13 @@ export const RecordBill = () => {
                             });
                           }}
                         >
-                          <SelectTrigger className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] ${
-                            formErrors.has("vendor") ? "border-red-500 border-2" : "border-[#E5E5E5]"
-                          }`}>
+                          <SelectTrigger
+                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] ${
+                              formErrors.has("vendor")
+                                ? "border-red-500 border-2"
+                                : "border-[#E5E5E5]"
+                            }`}
+                          >
                             <SelectValue placeholder="Select vendor..." />
                           </SelectTrigger>
                           <SelectContent>
@@ -689,7 +833,12 @@ export const RecordBill = () => {
                           onChange={(e) => setReferenceNumber(e.target.value)}
                           placeholder="INV-2024-001"
                           className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
-                          style={{ '--tw-placeholder-opacity': '1', '--tw-placeholder-color': 'rgb(161, 161, 169)' } as React.CSSProperties}
+                          style={
+                            {
+                              "--tw-placeholder-opacity": "1",
+                              "--tw-placeholder-color": "rgb(161, 161, 169)",
+                            } as React.CSSProperties
+                          }
                         />
                       </div>
                     </div>
@@ -727,7 +876,9 @@ export const RecordBill = () => {
                             }
                           }}
                           className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
-                            formErrors.has("invoiceDate") ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                            formErrors.has("invoiceDate")
+                              ? "border-red-500 border-2"
+                              : "border-[#E5E5E5]"
                           }`}
                         />
                         {invoiceDateError && (
@@ -762,7 +913,9 @@ export const RecordBill = () => {
                             }
                           }}
                           className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
-                            formErrors.has("dueDate") ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                            formErrors.has("dueDate")
+                              ? "border-red-500 border-2"
+                              : "border-[#E5E5E5]"
                           }`}
                         />
                         {dueDateError && (
@@ -808,7 +961,10 @@ export const RecordBill = () => {
 
                   {/* Table */}
                   <div>
-                    <div className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]" style={{ minWidth: "fit-content" }}>
+                    <div
+                      className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
+                      style={{ minWidth: "fit-content" }}
+                    >
                       <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                         {/* Table Header */}
                         <div className="flex items-center">
@@ -1090,17 +1246,23 @@ export const RecordBill = () => {
               </div>
             </div>
           </div>
-
         </div>
       </div>
       {/* Fixed Bottom Bar - Always visible at viewport bottom, accounting for sidebar */}
       <div
         className="fixed bottom-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
-        style={{ padding: "16px 32px", left: sidebarVisible ? "262px" : "0px", transition: "left 0.3s ease" }}
+        style={{
+          padding: "16px 32px",
+          left: sidebarVisible ? "262px" : "0px",
+          transition: "left 0.3s ease",
+        }}
       >
         <div className="flex items-center justify-between">
           <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-            <div>Bill Total: <span className="font-semibold">{calculateTotal()}</span></div>
+            <div>
+              Bill Total:{" "}
+              <span className="font-semibold">{calculateTotal()}</span>
+            </div>
           </div>
           <div className="flex items-center gap-2.5">
             <button
