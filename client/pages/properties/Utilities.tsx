@@ -789,7 +789,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
-                      {account.lastImport}
+                      {accountLastImport[account.id] || account.lastImport}
                     </span>
                   </td>
                   <td
@@ -810,6 +810,15 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         setEditingUtilityAccount(account);
                         setUtilityModalMode("edit");
                         setIsEditUtilityModalOpen(true);
+                      }}
+                      onImport={() => {
+                        setAccountLastImport(prev => ({ ...prev, [account.id]: "Importing..." }));
+                        setTimeout(() => {
+                          setAccountLastImport(prev => ({ ...prev, [account.id]: "Imported" }));
+                          setTimeout(() => {
+                            setAccountLastImport(prev => ({ ...prev, [account.id]: "1 min ago" }));
+                          }, 1500);
+                        }, 1500);
                       }}
                     />
                   </td>
