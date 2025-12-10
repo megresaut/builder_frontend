@@ -8,9 +8,12 @@ export const Auth = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    phone: "",
+    profilePhoto: null as File | null,
     rememberMe: false,
     agreeToTerms: false,
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,6 +37,12 @@ export const Auth = () => {
         newErrors.confirmPassword = "Confirm password is required";
       } else if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Passwords do not match";
+      }
+
+      if (!formData.phone) {
+        newErrors.phone = "Phone number is required";
+      } else if (!/^[\d\-\+\(\)\s]{10,}$/.test(formData.phone.replace(/\s/g, ""))) {
+        newErrors.phone = "Invalid phone number format";
       }
 
       if (!formData.agreeToTerms) {
@@ -71,6 +80,47 @@ export const Auth = () => {
         ...prev,
         [name]: "",
       }));
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({
+          ...prev,
+          profilePhoto: "Please select a valid image file",
+        }));
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          profilePhoto: "File size must be less than 5MB",
+        }));
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        profilePhoto: file,
+      }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      if (errors.profilePhoto) {
+        setErrors((prev) => ({
+          ...prev,
+          profilePhoto: "",
+        }));
+      }
     }
   };
 
@@ -340,9 +390,12 @@ export const Auth = () => {
                     email: "",
                     password: "",
                     confirmPassword: "",
+                    phone: "",
+                    profilePhoto: null,
                     rememberMe: false,
                     agreeToTerms: false,
                   });
+                  setPhotoPreview(null);
                   setErrors({});
                 }}
                 className="font-semibold"
