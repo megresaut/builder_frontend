@@ -299,17 +299,31 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [billsCurrentPage, setBillsCurrentPage] = useState<number>(1);
   const [billsItemsPerPage, setBillsItemsPerPage] = useState<number>(10);
-  const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] = useState<boolean>(false);
+  const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] =
+    useState<boolean>(false);
   const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
   const billsDropdownMenuRef = useRef<HTMLDivElement>(null);
   const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
-  const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] = useState<boolean>(false);
-  const [editingUtilityAccount, setEditingUtilityAccount] = useState<UtilityAccount | null>(null);
-  const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">("edit");
-  const [importStatus, setImportStatus] = useState<"idle" | "importing" | "imported" | "failed">("idle");
-  const [accountImportStatus, setAccountImportStatus] = useState<{ [key: number]: "idle" | "importing" | "imported" | "failed" }>({});
-  const [accountLastImport, setAccountLastImport] = useState<{ [key: number]: string }>(
-    utilityAccounts.reduce((acc, account) => ({ ...acc, [account.id]: account.lastImport }), {})
+  const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] =
+    useState<boolean>(false);
+  const [editingUtilityAccount, setEditingUtilityAccount] =
+    useState<UtilityAccount | null>(null);
+  const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">(
+    "edit",
+  );
+  const [importStatus, setImportStatus] = useState<
+    "idle" | "importing" | "imported" | "failed"
+  >("idle");
+  const [accountImportStatus, setAccountImportStatus] = useState<{
+    [key: number]: "idle" | "importing" | "imported" | "failed";
+  }>({});
+  const [accountLastImport, setAccountLastImport] = useState<{
+    [key: number]: string;
+  }>(
+    utilityAccounts.reduce(
+      (acc, account) => ({ ...acc, [account.id]: account.lastImport }),
+      {},
+    ),
   );
 
   useEffect(() => {
@@ -667,8 +681,14 @@ export const Utilities: React.FC<UtilitiesProps> = ({
 
                 // Trigger import for all utility accounts
                 utilityAccounts.forEach((account) => {
-                  setAccountImportStatus(prev => ({ ...prev, [account.id]: "importing" }));
-                  setAccountLastImport(prev => ({ ...prev, [account.id]: "Importing..." }));
+                  setAccountImportStatus((prev) => ({
+                    ...prev,
+                    [account.id]: "importing",
+                  }));
+                  setAccountLastImport((prev) => ({
+                    ...prev,
+                    [account.id]: "Importing...",
+                  }));
                 });
 
                 setTimeout(() => {
@@ -680,14 +700,32 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                     const accountFailure = Math.random() < 0.3;
                     if (accountFailure) {
                       hasFailures = true;
-                      setAccountImportStatus(prev => ({ ...prev, [account.id]: "failed" }));
-                      setAccountLastImport(prev => ({ ...prev, [account.id]: "failed" }));
+                      setAccountImportStatus((prev) => ({
+                        ...prev,
+                        [account.id]: "failed",
+                      }));
+                      setAccountLastImport((prev) => ({
+                        ...prev,
+                        [account.id]: "failed",
+                      }));
                     } else {
-                      setAccountImportStatus(prev => ({ ...prev, [account.id]: "imported" }));
-                      setAccountLastImport(prev => ({ ...prev, [account.id]: "Imported" }));
+                      setAccountImportStatus((prev) => ({
+                        ...prev,
+                        [account.id]: "imported",
+                      }));
+                      setAccountLastImport((prev) => ({
+                        ...prev,
+                        [account.id]: "Imported",
+                      }));
                       setTimeout(() => {
-                        setAccountImportStatus(prev => ({ ...prev, [account.id]: "idle" }));
-                        setAccountLastImport(prev => ({ ...prev, [account.id]: "1 min ago" }));
+                        setAccountImportStatus((prev) => ({
+                          ...prev,
+                          [account.id]: "idle",
+                        }));
+                        setAccountLastImport((prev) => ({
+                          ...prev,
+                          [account.id]: "1 min ago",
+                        }));
                       }, 1500);
                     }
                   });
@@ -708,7 +746,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 "flex h-9 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] transition-colors disabled:opacity-70",
                 importStatus === "failed"
                   ? "bg-red-700 hover:bg-red-800"
-                  : "bg-[#013564] hover:bg-[#012a4d]"
+                  : "bg-[#013564] hover:bg-[#012a4d]",
               )}
             >
               <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
@@ -728,29 +766,65 @@ export const Utilities: React.FC<UtilitiesProps> = ({
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Provider
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Account
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <g clipPath="url(#clip0_status)">
-                        <path d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path
+                          d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                          stroke="#525252"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </g>
                       <defs>
                         <clipPath id="clip0_status">
-                          <rect width="16" height="16" fill="white"/>
+                          <rect width="16" height="16" fill="white" />
                         </clipPath>
                       </defs>
                     </svg>
@@ -759,24 +833,60 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Last Bill Date
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Last Bill Amount
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Last Import
                   </span>
@@ -830,9 +940,21 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     {accountImportStatus[account.id] === "failed" ? (
                       <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
                           <g clipPath="url(#clip0_failed)">
-                            <path d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path
+                              d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                              stroke="#DC2626"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
                           </g>
                         </svg>
                         Import Failed
@@ -863,19 +985,43 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         setIsEditUtilityModalOpen(true);
                       }}
                       onImport={() => {
-                        setAccountImportStatus(prev => ({ ...prev, [account.id]: "importing" }));
-                        setAccountLastImport(prev => ({ ...prev, [account.id]: "Importing..." }));
+                        setAccountImportStatus((prev) => ({
+                          ...prev,
+                          [account.id]: "importing",
+                        }));
+                        setAccountLastImport((prev) => ({
+                          ...prev,
+                          [account.id]: "Importing...",
+                        }));
                         setTimeout(() => {
                           const randomFailure = Math.random() < 0.3;
                           if (randomFailure) {
-                            setAccountImportStatus(prev => ({ ...prev, [account.id]: "failed" }));
-                            setAccountLastImport(prev => ({ ...prev, [account.id]: "failed" }));
+                            setAccountImportStatus((prev) => ({
+                              ...prev,
+                              [account.id]: "failed",
+                            }));
+                            setAccountLastImport((prev) => ({
+                              ...prev,
+                              [account.id]: "failed",
+                            }));
                           } else {
-                            setAccountImportStatus(prev => ({ ...prev, [account.id]: "imported" }));
-                            setAccountLastImport(prev => ({ ...prev, [account.id]: "Imported" }));
+                            setAccountImportStatus((prev) => ({
+                              ...prev,
+                              [account.id]: "imported",
+                            }));
+                            setAccountLastImport((prev) => ({
+                              ...prev,
+                              [account.id]: "Imported",
+                            }));
                             setTimeout(() => {
-                              setAccountImportStatus(prev => ({ ...prev, [account.id]: "idle" }));
-                              setAccountLastImport(prev => ({ ...prev, [account.id]: "1 min ago" }));
+                              setAccountImportStatus((prev) => ({
+                                ...prev,
+                                [account.id]: "idle",
+                              }));
+                              setAccountLastImport((prev) => ({
+                                ...prev,
+                                [account.id]: "1 min ago",
+                              }));
                             }, 1500);
                           }
                         }, 1500);
@@ -951,24 +1097,57 @@ export const Utilities: React.FC<UtilitiesProps> = ({
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Provider
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Statement Date
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3.66602 1.33317C3.66602 0.964981 3.36754 0.666504 2.99935 0.666504C2.63116 0.666504 2.33268 0.964981 2.33268 1.33317V2.33317H1.33268C0.964492 2.33317 0.666016 2.63165 0.666016 2.99984C0.666016 3.36803 0.964492 3.6665 1.33268 3.6665H2.33268V4.6665C2.33268 5.03469 2.63116 5.33317 2.99935 5.33317C3.36754 5.33317 3.66602 5.03469 3.66602 4.6665V3.6665H4.66602C5.03421 3.6665 5.33268 3.36803 5.33268 2.99984C5.33268 2.63165 5.03421 2.33317 4.66602 2.33317H3.66602V1.33317ZM3.66602 11.3332C3.66602 10.965 3.36754 10.6665 2.99935 10.6665C2.63116 10.6665 2.33268 10.965 2.33268 11.3332V12.3332H1.33268C0.964492 12.3332 0.666016 12.6316 0.666016 12.9998C0.666016 13.368 0.964492 13.6665 1.33268 13.6665H2.33268V14.6665C2.33268 15.0347 2.63116 15.3332 2.99935 15.3332C3.36754 15.3332 3.66602 15.0347 3.66602 14.6665V13.6665H4.66602C5.03421 13.6665 5.33268 13.368 5.33268 12.9998C5.33268 12.6316 5.03421 12.3332 4.66602 12.3332H3.66602V11.3332ZM9.28825 1.76052C9.18922 1.50306 8.94186 1.33317 8.66602 1.33317C8.39017 1.33317 8.14281 1.50306 8.04378 1.76052L6.88767 4.76643C6.6874 5.28712 6.62447 5.43717 6.53838 5.55823C6.45201 5.6797 6.34588 5.78583 6.22441 5.87221C6.10335 5.95829 5.9533 6.02122 5.4326 6.22149L2.4267 7.37761C2.16923 7.47663 1.99935 7.72399 1.99935 7.99984C1.99935 8.27569 2.16923 8.52304 2.4267 8.62207L5.43261 9.77819C5.9533 9.97845 6.10335 10.0414 6.22441 10.1275C6.34588 10.2138 6.45201 10.32 6.53838 10.4414C6.62447 10.5625 6.6874 10.7126 6.88767 11.2332L8.04379 14.2392C8.14281 14.4966 8.39017 14.6665 8.66602 14.6665C8.94186 14.6665 9.18922 14.4966 9.28825 14.2392L10.4444 11.2332C10.6446 10.7126 10.7076 10.5625 10.7936 10.4414C10.88 10.32 10.9862 10.2138 11.1076 10.1275C11.2287 10.0414 11.3787 9.97845 11.8994 9.77819L14.9053 8.62207C15.1628 8.52304 15.3327 8.27569 15.3327 7.99984C15.3327 7.72399 15.1628 7.47663 14.9053 7.37761L11.8994 6.22149C11.3787 6.02122 11.2287 5.95829 11.1076 5.87221C10.9861 5.78583 10.88 5.6797 10.7936 5.55823C10.7076 5.43717 10.6446 5.28712 10.4444 4.76643L9.28825 1.76052Z" fill="#037DFF"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M3.66602 1.33317C3.66602 0.964981 3.36754 0.666504 2.99935 0.666504C2.63116 0.666504 2.33268 0.964981 2.33268 1.33317V2.33317H1.33268C0.964492 2.33317 0.666016 2.63165 0.666016 2.99984C0.666016 3.36803 0.964492 3.6665 1.33268 3.6665H2.33268V4.6665C2.33268 5.03469 2.63116 5.33317 2.99935 5.33317C3.36754 5.33317 3.66602 5.03469 3.66602 4.6665V3.6665H4.66602C5.03421 3.6665 5.33268 3.36803 5.33268 2.99984C5.33268 2.63165 5.03421 2.33317 4.66602 2.33317H3.66602V1.33317ZM3.66602 11.3332C3.66602 10.965 3.36754 10.6665 2.99935 10.6665C2.63116 10.6665 2.33268 10.965 2.33268 11.3332V12.3332H1.33268C0.964492 12.3332 0.666016 12.6316 0.666016 12.9998C0.666016 13.368 0.964492 13.6665 1.33268 13.6665H2.33268V14.6665C2.33268 15.0347 2.63116 15.3332 2.99935 15.3332C3.36754 15.3332 3.66602 15.0347 3.66602 14.6665V13.6665H4.66602C5.03421 13.6665 5.33268 13.368 5.33268 12.9998C5.33268 12.6316 5.03421 12.3332 4.66602 12.3332H3.66602V11.3332ZM9.28825 1.76052C9.18922 1.50306 8.94186 1.33317 8.66602 1.33317C8.39017 1.33317 8.14281 1.50306 8.04378 1.76052L6.88767 4.76643C6.6874 5.28712 6.62447 5.43717 6.53838 5.55823C6.45201 5.6797 6.34588 5.78583 6.22441 5.87221C6.10335 5.95829 5.9533 6.02122 5.4326 6.22149L2.4267 7.37761C2.16923 7.47663 1.99935 7.72399 1.99935 7.99984C1.99935 8.27569 2.16923 8.52304 2.4267 8.62207L5.43261 9.77819C5.9533 9.97845 6.10335 10.0414 6.22441 10.1275C6.34588 10.2138 6.45201 10.32 6.53838 10.4414C6.62447 10.5625 6.6874 10.7126 6.88767 11.2332L8.04379 14.2392C8.14281 14.4966 8.39017 14.6665 8.66602 14.6665C8.94186 14.6665 9.18922 14.4966 9.28825 14.2392L10.4444 11.2332C10.6446 10.7126 10.7076 10.5625 10.7936 10.4414C10.88 10.32 10.9862 10.2138 11.1076 10.1275C11.2287 10.0414 11.3787 9.97845 11.8994 9.77819L14.9053 8.62207C15.1628 8.52304 15.3327 8.27569 15.3327 7.99984C15.3327 7.72399 15.1628 7.47663 14.9053 7.37761L11.8994 6.22149C11.3787 6.02122 11.2287 5.95829 11.1076 5.87221C10.9861 5.78583 10.88 5.6797 10.7936 5.55823C10.7076 5.43717 10.6446 5.28712 10.4444 4.76643L9.28825 1.76052Z"
+                        fill="#037DFF"
+                      />
                     </svg>
                     AI Usage Insight
                   </span>
@@ -986,13 +1165,25 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <g clipPath="url(#clip0_status)">
-                        <path d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path
+                          d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                          stroke="#525252"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </g>
                       <defs>
                         <clipPath id="clip0_status">
-                          <rect width="16" height="16" fill="white"/>
+                          <rect width="16" height="16" fill="white" />
                         </clipPath>
                       </defs>
                     </svg>
@@ -1001,8 +1192,20 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Amount
                   </span>
@@ -1025,7 +1228,12 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                     key={bill.id}
                     className={cn(
                       "hover:bg-gray-50 transition-colors h-12",
-                      index === bills.slice((billsCurrentPage - 1) * billsItemsPerPage, billsCurrentPage * billsItemsPerPage).length - 1
+                      index ===
+                        bills.slice(
+                          (billsCurrentPage - 1) * billsItemsPerPage,
+                          billsCurrentPage * billsItemsPerPage,
+                        ).length -
+                          1
                         ? "border-b-0"
                         : "border-b border-gray-200",
                     )}
@@ -1088,7 +1296,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       />
                     </td>
                   </tr>
-              ))}
+                ))}
             </tbody>
           </table>
         </div>
@@ -1106,7 +1314,9 @@ export const Utilities: React.FC<UtilitiesProps> = ({
             >
               <button
                 ref={billsDropdownButtonRef}
-                onClick={() => setShowBillsPageSizeDropdown(!showBillsPageSizeDropdown)}
+                onClick={() =>
+                  setShowBillsPageSizeDropdown(!showBillsPageSizeDropdown)
+                }
                 className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
                 style={{
                   borderColor: "rgb(218, 218, 218)",
@@ -1148,7 +1358,9 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           >
             <button
               disabled={billsCurrentPage === 1}
-              onClick={() => setBillsCurrentPage(Math.max(1, billsCurrentPage - 1))}
+              onClick={() =>
+                setBillsCurrentPage(Math.max(1, billsCurrentPage - 1))
+              }
               className={cn(
                 "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
                 billsCurrentPage === 1
@@ -1198,9 +1410,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       backgroundColor: "rgba(0, 0, 0, 0)",
                     }}
                   >
-                    <div className="text-gray-500 font-medium text-sm">
-                      ...
-                    </div>
+                    <div className="text-gray-500 font-medium text-sm">...</div>
                   </button>
                 );
               }
@@ -1319,13 +1529,17 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           }
         }}
         mode={utilityModalMode}
-        editData={editingUtilityAccount ? {
-          provider: editingUtilityAccount.provider,
-          accountNumber: editingUtilityAccount.account,
-          status: editingUtilityAccount.status,
-          username: "",
-          password: "",
-        } : null}
+        editData={
+          editingUtilityAccount
+            ? {
+                provider: editingUtilityAccount.provider,
+                accountNumber: editingUtilityAccount.account,
+                status: editingUtilityAccount.status,
+                username: "",
+                password: "",
+              }
+            : null
+        }
       />
     </div>
   );

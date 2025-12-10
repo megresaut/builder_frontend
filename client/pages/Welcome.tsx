@@ -33,9 +33,11 @@ export const Welcome = () => {
   }, [navigate]);
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden relative transition-all duration-[2000ms] ${
-      isFadingOut ? "opacity-0" : "opacity-100"
-    }`}>
+    <div
+      className={`min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden relative transition-all duration-[2000ms] ${
+        isFadingOut ? "opacity-0" : "opacity-100"
+      }`}
+    >
       {/* Animated wave gradient background */}
       <svg
         className="absolute inset-0 w-full h-full z-0"
@@ -51,8 +53,20 @@ export const Welcome = () => {
             <stop offset="100%" stopColor="#051620" stopOpacity="1" />
           </linearGradient>
           <filter id="waveFilter">
-            <feTurbulence type="fractalNoise" baseFrequency="0.002" numOctaves="3" result="noise" seed="2" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G" />
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.002"
+              numOctaves="3"
+              result="noise"
+              seed="2"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="50"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
           </filter>
         </defs>
         <rect width="1200" height="800" fill="url(#waveGradient)" />
@@ -78,7 +92,7 @@ export const Welcome = () => {
             isWelcomeVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+            transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
           }}
         >
           Welcome

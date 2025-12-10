@@ -149,17 +149,19 @@ export const RecordBill = () => {
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>(
-    isReadOnly ? placeholderBill.lineItems : [
-      {
-        id: 1,
-        property: "",
-        unit: "",
-        workOrder: "",
-        description: "",
-        glAccount: "",
-        total: "",
-      },
-    ],
+    isReadOnly
+      ? placeholderBill.lineItems
+      : [
+          {
+            id: 1,
+            property: "",
+            unit: "",
+            workOrder: "",
+            description: "",
+            glAccount: "",
+            total: "",
+          },
+        ],
   );
 
   // Dynamic column width tracking with default minimum widths
@@ -704,101 +706,103 @@ export const RecordBill = () => {
               >
                 {!isReadOnly && (
                   <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
-                  <button
-                    onClick={() => !isReadOnly && fileInputRef.current?.click()}
-                    disabled={isReadOnly}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      isReadOnly
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-white text-gray-900 hover:bg-gray-100"
-                    }`}
-                    title="Upload files"
-                  >
-                    Upload files
-                  </button>
-                  <button
-                    onClick={() => {}}
-                    disabled={isReadOnly}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      isReadOnly
-                        ? "bg-gray-400 text-gray-300 cursor-not-allowed"
-                        : "bg-gray-600 text-white hover:bg-gray-500"
-                    }`}
-                    title="Autofill from file"
-                  >
-                    Autofill from file
-                  </button>
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => !isReadOnly && handleDownloadFile()}
-                    disabled={isReadOnly}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
-                      isReadOnly
-                        ? "bg-gray-400 text-gray-300 cursor-not-allowed"
-                        : "bg-gray-600 text-white hover:bg-gray-500"
-                    }`}
-                    title="Download"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <button
+                      onClick={() =>
+                        !isReadOnly && fileInputRef.current?.click()
+                      }
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-white text-gray-900 hover:bg-gray-100"
+                      }`}
+                      title="Upload files"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    Download
-                  </button>
-                  <button
-                    onClick={() => !isReadOnly && handleDeleteFile()}
-                    disabled={isReadOnly}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
-                      isReadOnly
-                        ? "bg-gray-400 text-gray-300 cursor-not-allowed"
-                        : "bg-red-600 text-white hover:bg-red-700"
-                    }`}
-                    title="Delete"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      Upload files
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                          : "bg-gray-600 text-white hover:bg-gray-500"
+                      }`}
+                      title="Autofill from file"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    Delete
-                  </button>
-                  <button
-                    onClick={closeViewer}
-                    className="text-white hover:text-gray-300 transition-colors"
-                    title="Close"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      Autofill from file
+                    </button>
+                    <div className="flex-1" />
+                    <button
+                      onClick={() => !isReadOnly && handleDownloadFile()}
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                          : "bg-gray-600 text-white hover:bg-gray-500"
+                      }`}
+                      title="Download"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                      Download
+                    </button>
+                    <button
+                      onClick={() => !isReadOnly && handleDeleteFile()}
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                          : "bg-red-600 text-white hover:bg-red-700"
+                      }`}
+                      title="Delete"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                    <button
+                      onClick={closeViewer}
+                      className="text-white hover:text-gray-300 transition-colors"
+                      title="Close"
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 )}
                 <div className="flex-1 overflow-auto w-full">
                   <iframe
@@ -934,7 +938,9 @@ export const RecordBill = () => {
                         <input
                           type="text"
                           value={referenceNumber}
-                          onChange={(e) => !isReadOnly && setReferenceNumber(e.target.value)}
+                          onChange={(e) =>
+                            !isReadOnly && setReferenceNumber(e.target.value)
+                          }
                           placeholder="INV-2024-001"
                           disabled={isReadOnly}
                           className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
@@ -1187,7 +1193,11 @@ export const RecordBill = () => {
                                 value={item.unit}
                                 onValueChange={(value) => {
                                   if (!isReadOnly) {
-                                    handleUpdateLineItem(item.id, "unit", value);
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "unit",
+                                      value,
+                                    );
                                   }
                                 }}
                                 disabled={isReadOnly}
@@ -1324,10 +1334,11 @@ export const RecordBill = () => {
                                 value={item.total}
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  if (!isReadOnly && (
-                                    value === "" ||
-                                    /^\$?[\d,]*\.?\d{0,2}$/.test(value)
-                                  )) {
+                                  if (
+                                    !isReadOnly &&
+                                    (value === "" ||
+                                      /^\$?[\d,]*\.?\d{0,2}$/.test(value))
+                                  ) {
                                     const formatted = value.startsWith("$")
                                       ? value
                                       : "$" + value;
@@ -1386,7 +1397,8 @@ export const RecordBill = () => {
           borderRight: "none",
           borderBottom: "none",
           bottom: "0px",
-          boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
+          boxShadow:
+            "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
           fontWeight: "400",
           left: sidebarVisible ? "262px" : "0px",
           position: "fixed",

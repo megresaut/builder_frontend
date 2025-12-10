@@ -117,7 +117,10 @@ export const Login = () => {
         />
 
         {/* Overlay for content visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" style={{ zIndex: 1 }} />
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30"
+          style={{ zIndex: 1 }}
+        />
 
         {/* Content - Relative to overlay the background */}
         <div className="relative z-20 flex flex-col justify-between h-full p-8">
@@ -135,19 +138,17 @@ export const Login = () => {
             />
             {/* Text */}
             <div>
-              <h1 className="text-8xl font-bold text-white mb-2 leading-tight">AVM</h1>
+              <h1 className="text-8xl font-bold text-white mb-2 leading-tight">
+                AVM
+              </h1>
               <p className="text-3xl text-gray-100">Property Management</p>
             </div>
           </div>
 
           {/* Footer with Credits */}
           <div className="space-y-1 text-xs">
-            <p className="text-gray-200">
-              © 2025 AVM. All rights reserved.
-            </p>
-            <p className="text-gray-300">
-              Developed by Reasonable Automations
-            </p>
+            <p className="text-gray-200">© 2025 AVM. All rights reserved.</p>
+            <p className="text-gray-300">Developed by Reasonable Automations</p>
           </div>
         </div>
       </div>
@@ -170,16 +171,17 @@ export const Login = () => {
             <h2 className="text-5xl font-bold text-gray-900 mb-4">
               Welcome Back
             </h2>
-            <p className="text-xl text-gray-600">
-              Sign in to your AVM account
-            </p>
+            <p className="text-xl text-gray-600">Sign in to your AVM account</p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Email Address
               </label>
               <input
@@ -194,10 +196,18 @@ export const Login = () => {
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
                     : "border-gray-300"
                 }`}
-                style={!errors.email ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                style={
+                  !errors.email
+                    ? {
+                        borderColor: "rgb(36, 99, 235)",
+                        outlineColor: "rgb(36, 99, 235)",
+                      }
+                    : {}
+                }
                 onFocus={(e) => {
                   if (!errors.email) {
-                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
                   }
                 }}
                 onBlur={(e) => {
@@ -211,7 +221,10 @@ export const Login = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Password
               </label>
               <input
@@ -226,10 +239,18 @@ export const Login = () => {
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
                     : "border-gray-300"
                 }`}
-                style={!errors.password ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                style={
+                  !errors.password
+                    ? {
+                        borderColor: "rgb(36, 99, 235)",
+                        outlineColor: "rgb(36, 99, 235)",
+                      }
+                    : {}
+                }
                 onFocus={(e) => {
                   if (!errors.password) {
-                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
                   }
                 }}
                 onBlur={(e) => {
@@ -313,16 +334,28 @@ export const Login = () => {
           {/* Footer Links */}
           <div className="mt-8 space-y-2 text-center text-base">
             <p>
-              <a href="mailto:matt@reasonableautomations.com" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a
+                href="mailto:matt@reasonableautomations.com"
+                className="transition-colors"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Contact Support
               </a>
             </p>
             <p>
-              <a href="/privacy-policy" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a
+                href="/privacy-policy"
+                className="transition-colors"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Privacy Policy
               </a>
               {" • "}
-              <a href="/terms-of-service" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a
+                href="/terms-of-service"
+                className="transition-colors"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Terms of Service
               </a>
             </p>
@@ -334,9 +367,12 @@ export const Login = () => {
       {showForgotPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Reset Password
+            </h2>
             <p className="text-gray-600 mb-6">
-              Enter your email address and we'll send you instructions to reset your password.
+              Enter your email address and we'll send you instructions to reset
+              your password.
             </p>
 
             {forgotPasswordSuccess ? (
@@ -348,7 +384,10 @@ export const Login = () => {
             ) : (
               <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="forgot-email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email Address
                   </label>
                   <input
@@ -365,10 +404,18 @@ export const Login = () => {
                         ? "border-red-300 focus:ring-red-200 bg-red-50"
                         : "border-gray-300"
                     }`}
-                    style={!forgotPasswordError ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                    style={
+                      !forgotPasswordError
+                        ? {
+                            borderColor: "rgb(36, 99, 235)",
+                            outlineColor: "rgb(36, 99, 235)",
+                          }
+                        : {}
+                    }
                     onFocus={(e) => {
                       if (!forgotPasswordError) {
-                        e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                        e.target.style.boxShadow =
+                          "0 0 0 2px rgba(36, 99, 235, 0.1)";
                       }
                     }}
                     onBlur={(e) => {
@@ -376,7 +423,9 @@ export const Login = () => {
                     }}
                   />
                   {forgotPasswordError && (
-                    <p className="mt-1 text-sm text-red-600">{forgotPasswordError}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {forgotPasswordError}
+                    </p>
                   )}
                 </div>
 
@@ -393,16 +442,20 @@ export const Login = () => {
                     disabled={forgotPasswordLoading}
                     className="flex-1 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors disabled:bg-gray-400"
                     style={{
-                      backgroundColor: forgotPasswordLoading ? "rgb(156, 163, 175)" : "rgb(36, 99, 235)",
+                      backgroundColor: forgotPasswordLoading
+                        ? "rgb(156, 163, 175)"
+                        : "rgb(36, 99, 235)",
                     }}
                     onMouseEnter={(e) => {
                       if (!forgotPasswordLoading) {
-                        e.currentTarget.style.backgroundColor = "rgb(30, 87, 207)";
+                        e.currentTarget.style.backgroundColor =
+                          "rgb(30, 87, 207)";
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!forgotPasswordLoading) {
-                        e.currentTarget.style.backgroundColor = "rgb(36, 99, 235)";
+                        e.currentTarget.style.backgroundColor =
+                          "rgb(36, 99, 235)";
                       }
                     }}
                   >

@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -33,8 +29,12 @@ export default function EditUtilityAccountModal({
   editData,
 }: EditUtilityAccountModalProps) {
   const [provider, setProvider] = useState(editData?.provider || "");
-  const [accountNumber, setAccountNumber] = useState(editData?.accountNumber || "");
-  const [status, setStatus] = useState<"active" | "inactive">(editData?.status || "active");
+  const [accountNumber, setAccountNumber] = useState(
+    editData?.accountNumber || "",
+  );
+  const [status, setStatus] = useState<"active" | "inactive">(
+    editData?.status || "active",
+  );
   const [username, setUsername] = useState(editData?.username || "");
   const [password, setPassword] = useState(editData?.password || "");
 
@@ -88,7 +88,9 @@ export default function EditUtilityAccountModal({
             </label>
             <Select value={provider} onValueChange={setProvider}>
               <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] data-[state=open]:text-[#303030]">
-                <SelectValue placeholder="Select Provider">{provider && provider}</SelectValue>
+                <SelectValue placeholder="Select Provider">
+                  {provider && provider}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="National Grid">National Grid</SelectItem>
@@ -117,21 +119,48 @@ export default function EditUtilityAccountModal({
               <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                 Status <span className="text-red-600">*</span>
               </label>
-              <Select value={status} onValueChange={(val) => setStatus(val as "active" | "inactive")}>
+              <Select
+                value={status}
+                onValueChange={(val) => setStatus(val as "active" | "inactive")}
+              >
                 <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-[5px] min-h-[38px] text-sm text-[#059669] font-normal tracking-[-0.28px] leading-[1.4]">
                   <SelectValue>
                     {status === "active" ? (
                       <div className="flex items-center gap-1.5 bg-[#D1FAE5] rounded-2xl px-3 py-1 w-fit">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M13.3334 4L6.00002 11.3333L2.66669 8" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M13.3334 4L6.00002 11.3333L2.66669 8"
+                            stroke="#059669"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                         <span className="text-[#059669] text-sm">Active</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 bg-red-100 rounded-2xl px-3 py-1 w-fit">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
                           <g clipPath="url(#clip0_inactive)">
-                            <path d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path
+                              d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                              stroke="#DC2626"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
                           </g>
                         </svg>
                         <span className="text-red-700 text-sm">Inactive</span>
@@ -151,7 +180,8 @@ export default function EditUtilityAccountModal({
           <div className="flex gap-3 flex-wrap">
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                Utility Provider Username <span className="text-red-600">*</span>
+                Utility Provider Username{" "}
+                <span className="text-red-600">*</span>
               </label>
               <Input
                 value={username}
@@ -163,7 +193,8 @@ export default function EditUtilityAccountModal({
 
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                Utility Provider Password <span className="text-red-600">*</span>
+                Utility Provider Password{" "}
+                <span className="text-red-600">*</span>
               </label>
               <Input
                 type="password"

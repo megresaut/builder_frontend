@@ -38,7 +38,9 @@ export const Auth = () => {
 
     if (!formData.phone) {
       newErrors.phone = "Phone number is required";
-    } else if (!/^[\d\-\+\(\)\s]{10,}$/.test(formData.phone.replace(/\s/g, ""))) {
+    } else if (
+      !/^[\d\-\+\(\)\s]{10,}$/.test(formData.phone.replace(/\s/g, ""))
+    ) {
       newErrors.phone = "Invalid phone number format";
     }
 
@@ -133,7 +135,10 @@ export const Auth = () => {
         />
 
         {/* Overlay for content visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" style={{ zIndex: 1 }} />
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30"
+          style={{ zIndex: 1 }}
+        />
 
         {/* Content - Relative to overlay the background */}
         <div className="relative z-20 flex flex-col justify-between h-full p-8">
@@ -151,19 +156,17 @@ export const Auth = () => {
             />
             {/* Text */}
             <div>
-              <h1 className="text-8xl font-bold text-white mb-2 leading-tight">AVM</h1>
+              <h1 className="text-8xl font-bold text-white mb-2 leading-tight">
+                AVM
+              </h1>
               <p className="text-3xl text-gray-100">Property Management</p>
             </div>
           </div>
 
           {/* Footer with Credits */}
           <div className="space-y-1 text-xs">
-            <p className="text-gray-200">
-              © 2025 AVM. All rights reserved.
-            </p>
-            <p className="text-gray-300">
-              Developed by Reasonable Automations
-            </p>
+            <p className="text-gray-200">© 2025 AVM. All rights reserved.</p>
+            <p className="text-gray-300">Developed by Reasonable Automations</p>
           </div>
         </div>
       </div>
@@ -195,7 +198,10 @@ export const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Email Address
               </label>
               <input
@@ -210,10 +216,18 @@ export const Auth = () => {
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
                     : "border-gray-300"
                 }`}
-                style={!errors.email ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                style={
+                  !errors.email
+                    ? {
+                        borderColor: "rgb(36, 99, 235)",
+                        outlineColor: "rgb(36, 99, 235)",
+                      }
+                    : {}
+                }
                 onFocus={(e) => {
                   if (!errors.email) {
-                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
                   }
                 }}
                 onBlur={(e) => {
@@ -227,7 +241,10 @@ export const Auth = () => {
 
             {/* Phone Number Field */}
             <div>
-              <label htmlFor="phone" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="phone"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Phone Number
               </label>
               <input
@@ -242,10 +259,18 @@ export const Auth = () => {
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
                     : "border-gray-300"
                 }`}
-                style={!errors.phone ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                style={
+                  !errors.phone
+                    ? {
+                        borderColor: "rgb(36, 99, 235)",
+                        outlineColor: "rgb(36, 99, 235)",
+                      }
+                    : {}
+                }
                 onFocus={(e) => {
                   if (!errors.phone) {
-                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
                   }
                 }}
                 onBlur={(e) => {
@@ -259,7 +284,10 @@ export const Auth = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Password
               </label>
               <input
@@ -274,10 +302,18 @@ export const Auth = () => {
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
                     : "border-gray-300"
                 }`}
-                style={!errors.password ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                style={
+                  !errors.password
+                    ? {
+                        borderColor: "rgb(36, 99, 235)",
+                        outlineColor: "rgb(36, 99, 235)",
+                      }
+                    : {}
+                }
                 onFocus={(e) => {
                   if (!errors.password) {
-                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
                   }
                 }}
                 onBlur={(e) => {
@@ -291,7 +327,10 @@ export const Auth = () => {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Confirm Password
               </label>
               <input
@@ -306,10 +345,18 @@ export const Auth = () => {
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
                     : "border-gray-300"
                 }`}
-                style={!errors.confirmPassword ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                style={
+                  !errors.confirmPassword
+                    ? {
+                        borderColor: "rgb(36, 99, 235)",
+                        outlineColor: "rgb(36, 99, 235)",
+                      }
+                    : {}
+                }
                 onFocus={(e) => {
                   if (!errors.confirmPassword) {
-                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
                   }
                 }}
                 onBlur={(e) => {
@@ -317,13 +364,18 @@ export const Auth = () => {
                 }}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 
             {/* Profile Photo Field */}
             <div>
-              <label htmlFor="profilePhoto" className="block text-lg font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="profilePhoto"
+                className="block text-lg font-medium text-gray-700 mb-2"
+              >
                 Profile Photo (Optional)
               </label>
               <div className="flex items-end gap-4">
@@ -340,7 +392,9 @@ export const Auth = () => {
                     }}
                   />
                   {errors.profilePhoto && (
-                    <p className="mt-1 text-sm text-red-600">{errors.profilePhoto}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.profilePhoto}
+                    </p>
                   )}
                 </div>
                 {photoPreview && (
@@ -368,17 +422,27 @@ export const Auth = () => {
                 />
                 <span className="text-base text-gray-600">
                   I agree to the{" "}
-                  <a href="/terms-of-service" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+                  <a
+                    href="/terms-of-service"
+                    className="font-medium"
+                    style={{ color: "rgb(36, 99, 235)" }}
+                  >
                     Terms of Service
                   </a>{" "}
                   and{" "}
-                  <a href="/privacy-policy" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+                  <a
+                    href="/privacy-policy"
+                    className="font-medium"
+                    style={{ color: "rgb(36, 99, 235)" }}
+                  >
                     Privacy Policy
                   </a>
                 </span>
               </label>
               {errors.agreeToTerms && (
-                <p className="mt-1 text-sm text-red-600">{errors.agreeToTerms}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.agreeToTerms}
+                </p>
               )}
             </div>
 
@@ -408,16 +472,28 @@ export const Auth = () => {
           {/* Footer Links */}
           <div className="mt-8 space-y-2 text-center text-base">
             <p>
-              <a href="mailto:matt@reasonableautomations.com" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a
+                href="mailto:matt@reasonableautomations.com"
+                className="transition-colors"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Contact Support
               </a>
             </p>
             <p>
-              <a href="/privacy-policy" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a
+                href="/privacy-policy"
+                className="transition-colors"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Privacy Policy
               </a>
               {" • "}
-              <a href="/terms-of-service" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a
+                href="/terms-of-service"
+                className="transition-colors"
+                style={{ color: "rgb(36, 99, 235)" }}
+              >
                 Terms of Service
               </a>
             </p>
