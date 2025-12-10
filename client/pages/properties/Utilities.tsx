@@ -789,6 +789,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       setOpenMenuId={setOpenUtilityMenuId}
                       onEdit={() => {
                         setEditingUtilityAccount(account);
+                        setUtilityModalMode("edit");
                         setIsEditUtilityModalOpen(true);
                       }}
                     />
