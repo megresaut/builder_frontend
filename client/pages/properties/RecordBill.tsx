@@ -1386,7 +1386,7 @@ export const RecordBill = () => {
             {isReadOnly && (
               <button
                 onClick={handleCancel}
-                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 bg-blue-600 text-white font-medium whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-blue-700 transition-colors"
+                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 bg-white border border-gray-300 text-gray-700 font-medium whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-50 transition-colors"
               >
                 <span>Close</span>
               </button>
