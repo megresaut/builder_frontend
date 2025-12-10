@@ -1383,6 +1383,14 @@ export const RecordBill = () => {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
+            {isReadOnly && (
+              <button
+                onClick={handleCancel}
+                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 bg-blue-600 text-white font-medium whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-blue-700 transition-colors"
+              >
+                <span>Close</span>
+              </button>
+            )}
             {!isReadOnly && (
               <button
                 onClick={handleCancel}
@@ -1408,14 +1416,6 @@ export const RecordBill = () => {
             >
               <span>{isReadOnly ? "Exported to Buildium" : "Record Bill"}</span>
             </button>
-            {isReadOnly && (
-              <button
-                onClick={handleCancel}
-                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
-              >
-                <span>Close</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
