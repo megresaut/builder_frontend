@@ -148,7 +148,7 @@ export default function EditUtilityAccountModal({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Input Admin Password to see Password"
+                placeholder={passwordPlaceholder}
                 className="rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] placeholder:text-[#A1A1A9]"
               />
             </div>
