@@ -329,6 +329,91 @@ export const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h2>
+            <p className="text-gray-600 mb-6">
+              Enter your email address and we'll send you instructions to reset your password.
+            </p>
+
+            {forgotPasswordSuccess ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 text-center">
+                  Check your email for password reset instructions!
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    id="forgot-email"
+                    type="email"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => {
+                      setForgotPasswordEmail(e.target.value);
+                      setForgotPasswordError("");
+                    }}
+                    placeholder="you@example.com"
+                    className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
+                      forgotPasswordError
+                        ? "border-red-300 focus:ring-red-200 bg-red-50"
+                        : "border-gray-300"
+                    }`}
+                    style={!forgotPasswordError ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                    onFocus={(e) => {
+                      if (!forgotPasswordError) {
+                        e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                      }
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.boxShadow = "";
+                    }}
+                  />
+                  {forgotPasswordError && (
+                    <p className="mt-1 text-sm text-red-600">{forgotPasswordError}</p>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={closeForgotPasswordModal}
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotPasswordLoading}
+                    className="flex-1 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors disabled:bg-gray-400"
+                    style={{
+                      backgroundColor: forgotPasswordLoading ? "rgb(156, 163, 175)" : "rgb(36, 99, 235)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!forgotPasswordLoading) {
+                        e.currentTarget.style.backgroundColor = "rgb(30, 87, 207)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!forgotPasswordLoading) {
+                        e.currentTarget.style.backgroundColor = "rgb(36, 99, 235)";
+                      }
+                    }}
+                  >
+                    {forgotPasswordLoading ? "Sending..." : "Send Reset Link"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
