@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
+=======
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
+>>>>>>> origin/builder-sync
 import { cn } from "@/lib/utils";
 import {
   StatusBadge,
@@ -6,9 +12,13 @@ import {
   AIInsightBadge,
   ActionButton,
 } from "../Utilities";
+<<<<<<< HEAD
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
+=======
+import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
+>>>>>>> origin/builder-sync
 
 interface UtilityAccount {
   id: number;
@@ -606,10 +616,12 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   propertyType,
   propertyUnits,
 }) => {
+  const navigate = useNavigate();
   const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(
     null,
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+<<<<<<< HEAD
   const { propertyId } = useParams<{ propertyId: string }>();
   const [error, setError] = useState<string | null>(null);
 
@@ -873,6 +885,117 @@ const safeBills = Array.isArray(bills)
   const [showCreateModal, setShowCreateModal] = useState(false);
   const queryClient = useQueryClient();
 
+=======
+  const [billsCurrentPage, setBillsCurrentPage] = useState<number>(1);
+  const [billsItemsPerPage, setBillsItemsPerPage] = useState<number>(10);
+  const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] =
+    useState<boolean>(false);
+  const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const billsDropdownMenuRef = useRef<HTMLDivElement>(null);
+  const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
+  const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] =
+    useState<boolean>(false);
+  const [editingUtilityAccount, setEditingUtilityAccount] =
+    useState<UtilityAccount | null>(null);
+  const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">(
+    "edit",
+  );
+  const [importStatus, setImportStatus] = useState<
+    "idle" | "importing" | "imported" | "failed"
+  >("idle");
+  const [accountImportStatus, setAccountImportStatus] = useState<{
+    [key: number]: "idle" | "importing" | "imported" | "failed";
+  }>({});
+  const [accountLastImport, setAccountLastImport] = useState<{
+    [key: number]: string;
+  }>(
+    utilityAccounts.reduce(
+      (acc, account) => ({ ...acc, [account.id]: account.lastImport }),
+      {},
+    ),
+  );
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showBillsPageSizeDropdown && billsDropdownButtonRef.current) {
+        const rect = billsDropdownButtonRef.current.getBoundingClientRect();
+        setBillsDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showBillsPageSizeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
+    };
+
+    if (showBillsPageSizeDropdown) {
+      updateDropdownPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showBillsPageSizeDropdown]);
+
+  useEffect(() => {
+    if (!showBillsPageSizeDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        billsDropdownMenuRef.current &&
+        billsDropdownButtonRef.current &&
+        !billsDropdownMenuRef.current.contains(target) &&
+        !billsDropdownButtonRef.current.contains(target)
+      ) {
+        setShowBillsPageSizeDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showBillsPageSizeDropdown]);
+
+  const billsTotalPages = Math.ceil(bills.length / billsItemsPerPage);
+
+  const getBillsPaginationNumbers = () => {
+    const pages: (number | string)[] = [];
+
+    if (billsTotalPages <= 1) {
+      return [1];
+    }
+
+    if (billsTotalPages <= 7) {
+      for (let i = 1; i <= billsTotalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    const windowSize = 7;
+    let start = Math.max(1, billsCurrentPage - 2);
+    let end = start + windowSize - 1;
+
+    if (end > billsTotalPages) {
+      end = billsTotalPages;
+      start = Math.max(1, end - windowSize + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+>>>>>>> origin/builder-sync
 
   return (
     <div className="flex flex-col gap-6">
@@ -1096,15 +1219,434 @@ const safeBills = Array.isArray(bills)
       {/* Utility Accounts Table */}
       <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             <h2 className="text-[#303030] font-medium text-[22px] leading-6">
               Utility Accounts
             </h2>
           </div>
+<<<<<<< HEAD
 
           <div className="flex items-center gap-2.5">
             {/* Search */}
+=======
+          <div className="flex items-start gap-2.5">
+            <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+              <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                Filter
+              </span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.5 6.75L9 11.25L13.5 6.75"
+                  stroke="#303030"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                setEditingUtilityAccount(null);
+                setUtilityModalMode("add");
+                setIsEditUtilityModalOpen(true);
+              }}
+              className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-[#fbfbfb] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#303030] w-5 h-5"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+              Add Account
+            </button>
+            <button
+              onClick={() => {
+                setImportStatus("importing");
+
+                // Trigger import for all utility accounts
+                utilityAccounts.forEach((account) => {
+                  setAccountImportStatus((prev) => ({
+                    ...prev,
+                    [account.id]: "importing",
+                  }));
+                  setAccountLastImport((prev) => ({
+                    ...prev,
+                    [account.id]: "Importing...",
+                  }));
+                });
+
+                setTimeout(() => {
+                  const randomFailure = Math.random() < 0.3;
+                  let hasFailures = false;
+
+                  // Process each account
+                  utilityAccounts.forEach((account) => {
+                    const accountFailure = Math.random() < 0.3;
+                    if (accountFailure) {
+                      hasFailures = true;
+                      setAccountImportStatus((prev) => ({
+                        ...prev,
+                        [account.id]: "failed",
+                      }));
+                      setAccountLastImport((prev) => ({
+                        ...prev,
+                        [account.id]: "failed",
+                      }));
+                    } else {
+                      setAccountImportStatus((prev) => ({
+                        ...prev,
+                        [account.id]: "imported",
+                      }));
+                      setAccountLastImport((prev) => ({
+                        ...prev,
+                        [account.id]: "Imported",
+                      }));
+                      setTimeout(() => {
+                        setAccountImportStatus((prev) => ({
+                          ...prev,
+                          [account.id]: "idle",
+                        }));
+                        setAccountLastImport((prev) => ({
+                          ...prev,
+                          [account.id]: "1 min ago",
+                        }));
+                      }, 1500);
+                    }
+                  });
+
+                  // Set universal button status based on overall results
+                  if (hasFailures) {
+                    setImportStatus("failed");
+                  } else {
+                    setImportStatus("imported");
+                    setTimeout(() => {
+                      setImportStatus("idle");
+                    }, 2000);
+                  }
+                }, 1500);
+              }}
+              disabled={importStatus === "importing"}
+              className={cn(
+                "flex h-9 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] transition-colors disabled:opacity-70",
+                importStatus === "failed"
+                  ? "bg-red-700 hover:bg-red-800"
+                  : "bg-[#013564] hover:bg-[#012a4d]",
+              )}
+            >
+              <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
+                {importStatus === "idle" && "Import"}
+                {importStatus === "importing" && "Importing..."}
+                {importStatus === "imported" && "Imported"}
+                {importStatus === "failed" && "Import Failed"}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Table Content */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50 h-12">
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Provider
+                  </span>
+                </th>
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Account
+                  </span>
+                </th>
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clipPath="url(#clip0_status)">
+                        <path
+                          d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                          stroke="#525252"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_status">
+                          <rect width="16" height="16" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                    Status
+                  </span>
+                </th>
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Last Bill Date
+                  </span>
+                </th>
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Last Bill Amount
+                  </span>
+                </th>
+                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Last Import
+                  </span>
+                </th>
+                <th className="sticky right-0 px-2 py-3 text-center w-20">
+                  <span className="font-medium text-sm text-gray-700">
+                    Actions
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {utilityAccounts.map((account, index) => (
+                <tr
+                  key={account.id}
+                  className={cn(
+                    "hover:bg-gray-50 transition-colors h-12",
+                    index === utilityAccounts.length - 1
+                      ? "border-b-0"
+                      : "border-b border-gray-200",
+                  )}
+                >
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                        {account.icon}
+                      </div>
+                      <span className="text-gray-900 font-normal text-base">
+                        {account.provider}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <span className="text-gray-900 font-normal text-base">
+                      {account.account}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <StatusBadge status={account.status} />
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <span className="text-gray-900 font-normal text-base">
+                      {account.lastBillDate}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <span className="text-gray-900 font-normal text-base">
+                      {account.lastBillAmount}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    {accountImportStatus[account.id] === "failed" ? (
+                      <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g clipPath="url(#clip0_failed)">
+                            <path
+                              d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                              stroke="#DC2626"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </g>
+                        </svg>
+                        Import Failed
+                      </span>
+                    ) : (
+                      <span className="text-gray-900 font-normal text-base">
+                        {accountLastImport[account.id] || account.lastImport}
+                      </span>
+                    )}
+                  </td>
+                  <td
+                    className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                    style={{
+                      borderLeftWidth: "2px",
+                      width: "80px",
+                      border:
+                        "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                      borderLeftColor: "transparent",
+                    }}
+                  >
+                    <ActionButton
+                      propertyId={account.id}
+                      openMenuId={openUtilityMenuId}
+                      setOpenMenuId={setOpenUtilityMenuId}
+                      onEdit={() => {
+                        setEditingUtilityAccount(account);
+                        setUtilityModalMode("edit");
+                        setIsEditUtilityModalOpen(true);
+                      }}
+                      onImport={() => {
+                        setAccountImportStatus((prev) => ({
+                          ...prev,
+                          [account.id]: "importing",
+                        }));
+                        setAccountLastImport((prev) => ({
+                          ...prev,
+                          [account.id]: "Importing...",
+                        }));
+                        setTimeout(() => {
+                          const randomFailure = Math.random() < 0.3;
+                          if (randomFailure) {
+                            setAccountImportStatus((prev) => ({
+                              ...prev,
+                              [account.id]: "failed",
+                            }));
+                            setAccountLastImport((prev) => ({
+                              ...prev,
+                              [account.id]: "failed",
+                            }));
+                          } else {
+                            setAccountImportStatus((prev) => ({
+                              ...prev,
+                              [account.id]: "imported",
+                            }));
+                            setAccountLastImport((prev) => ({
+                              ...prev,
+                              [account.id]: "Imported",
+                            }));
+                            setTimeout(() => {
+                              setAccountImportStatus((prev) => ({
+                                ...prev,
+                                [account.id]: "idle",
+                              }));
+                              setAccountLastImport((prev) => ({
+                                ...prev,
+                                [account.id]: "1 min ago",
+                              }));
+                            }, 1500);
+                          }
+                        }, 1500);
+                      }}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Bills Table */}
+      <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+        {/* Table Header */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center gap-4">
+            <h2 className="text-[#303030] font-medium text-[22px] leading-6">
+              Bills Exported to Buildium
+            </h2>
+          </div>
+          <div className="flex items-start gap-2.5">
+>>>>>>> origin/builder-sync
             <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
               <svg
                 width="20"
@@ -1196,16 +1738,47 @@ const safeBills = Array.isArray(bills)
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                     Provider
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Type
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Statement Date
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+<<<<<<< HEAD
                   <span className="font-medium text-sm text-gray-700">
                     Account
                   </span>
@@ -1363,21 +1936,79 @@ const safeBills = Array.isArray(bills)
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="font-medium text-sm text-gray-700">
+=======
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M3.66602 1.33317C3.66602 0.964981 3.36754 0.666504 2.99935 0.666504C2.63116 0.666504 2.33268 0.964981 2.33268 1.33317V2.33317H1.33268C0.964492 2.33317 0.666016 2.63165 0.666016 2.99984C0.666016 3.36803 0.964492 3.6665 1.33268 3.6665H2.33268V4.6665C2.33268 5.03469 2.63116 5.33317 2.99935 5.33317C3.36754 5.33317 3.66602 5.03469 3.66602 4.6665V3.6665H4.66602C5.03421 3.6665 5.33268 3.36803 5.33268 2.99984C5.33268 2.63165 5.03421 2.33317 4.66602 2.33317H3.66602V1.33317ZM3.66602 11.3332C3.66602 10.965 3.36754 10.6665 2.99935 10.6665C2.63116 10.6665 2.33268 10.965 2.33268 11.3332V12.3332H1.33268C0.964492 12.3332 0.666016 12.6316 0.666016 12.9998C0.666016 13.368 0.964492 13.6665 1.33268 13.6665H2.33268V14.6665C2.33268 15.0347 2.63116 15.3332 2.99935 15.3332C3.36754 15.3332 3.66602 15.0347 3.66602 14.6665V13.6665H4.66602C5.03421 13.6665 5.33268 13.368 5.33268 12.9998C5.33268 12.6316 5.03421 12.3332 4.66602 12.3332H3.66602V11.3332ZM9.28825 1.76052C9.18922 1.50306 8.94186 1.33317 8.66602 1.33317C8.39017 1.33317 8.14281 1.50306 8.04378 1.76052L6.88767 4.76643C6.6874 5.28712 6.62447 5.43717 6.53838 5.55823C6.45201 5.6797 6.34588 5.78583 6.22441 5.87221C6.10335 5.95829 5.9533 6.02122 5.4326 6.22149L2.4267 7.37761C2.16923 7.47663 1.99935 7.72399 1.99935 7.99984C1.99935 8.27569 2.16923 8.52304 2.4267 8.62207L5.43261 9.77819C5.9533 9.97845 6.10335 10.0414 6.22441 10.1275C6.34588 10.2138 6.45201 10.32 6.53838 10.4414C6.62447 10.5625 6.6874 10.7126 6.88767 11.2332L8.04379 14.2392C8.14281 14.4966 8.39017 14.6665 8.66602 14.6665C8.94186 14.6665 9.18922 14.4966 9.28825 14.2392L10.4444 11.2332C10.6446 10.7126 10.7076 10.5625 10.7936 10.4414C10.88 10.32 10.9862 10.2138 11.1076 10.1275C11.2287 10.0414 11.3787 9.97845 11.8994 9.77819L14.9053 8.62207C15.1628 8.52304 15.3327 8.27569 15.3327 7.99984C15.3327 7.72399 15.1628 7.47663 14.9053 7.37761L11.8994 6.22149C11.3787 6.02122 11.2287 5.95829 11.1076 5.87221C10.9861 5.78583 10.88 5.6797 10.7936 5.55823C10.7076 5.43717 10.6446 5.28712 10.4444 4.76643L9.28825 1.76052Z"
+                        fill="#037DFF"
+                      />
+                    </svg>
+>>>>>>> origin/builder-sync
                     AI Usage Insight
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <img
+                      loading="lazy"
+                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f3223e08811539f2913d760c3f845a57c3ae8328?placeholderIfAbsent=true"
+                      alt=""
+                      className="w-4 h-4 object-contain"
+                    />
                     Change from Last Bill
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clipPath="url(#clip0_status)">
+                        <path
+                          d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+                          stroke="#525252"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_status">
+                          <rect width="16" height="16" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
                     Status
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+                        stroke="#525252"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                     Amount
                   </span>
                 </th>
@@ -1389,6 +2020,7 @@ const safeBills = Array.isArray(bills)
               </tr>
             </thead>
             <tbody>
+<<<<<<< HEAD
               {mappedBills.map((bill, index) => (
                 <tr
                   key={bill.id}
@@ -1446,19 +2078,270 @@ const safeBills = Array.isArray(bills)
                         "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
                       borderLeftColor: "transparent",
                     }}
+=======
+              {bills
+                .slice(
+                  (billsCurrentPage - 1) * billsItemsPerPage,
+                  billsCurrentPage * billsItemsPerPage,
+                )
+                .map((bill, index) => (
+                  <tr
+                    key={bill.id}
+                    className={cn(
+                      "hover:bg-gray-50 transition-colors h-12",
+                      index ===
+                        bills.slice(
+                          (billsCurrentPage - 1) * billsItemsPerPage,
+                          billsCurrentPage * billsItemsPerPage,
+                        ).length -
+                          1
+                        ? "border-b-0"
+                        : "border-b border-gray-200",
+                    )}
+>>>>>>> origin/builder-sync
                   >
-                    <ActionButton
-                      propertyId={bill.id}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                    />
-                  </td>
-                </tr>
-              ))}
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                          {bill.icon}
+                        </div>
+                        <span className="text-gray-900 font-normal text-base">
+                          {bill.provider}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <span className="text-gray-900 font-normal text-base">
+                        {bill.date}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <AIInsightBadge insight={bill.aiUsageInsight} />
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <span
+                        className={cn(
+                          "text-sm font-medium",
+                          bill.changeFromLastBill.startsWith("↑")
+                            ? "text-red-600"
+                            : "text-green-600",
+                        )}
+                      >
+                        {bill.changeFromLastBill}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <BillStatusBadge status={bill.status} />
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <span className="text-gray-900 font-normal text-base">
+                        {bill.amount}
+                      </span>
+                    </td>
+                    <td
+                      className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                      style={{
+                        borderLeftWidth: "2px",
+                        width: "80px",
+                        border:
+                          "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                        borderLeftColor: "transparent",
+                      }}
+                    >
+                      <ActionButton
+                        propertyId={bill.id}
+                        openMenuId={openMenuId}
+                        setOpenMenuId={setOpenMenuId}
+                        onView={() => {
+                          navigate("/utilities/view-bill?readOnly=true");
+                        }}
+                      />
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer */}
+        <div
+          className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative border-t border-gray-200"
+          style={{ position: "relative", zIndex: 1, overflow: "visible" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700 text-sm font-medium">Showing</span>
+            <div
+              className="relative"
+              style={{ position: "relative", zIndex: 10 }}
+            >
+              <button
+                ref={billsDropdownButtonRef}
+                onClick={() =>
+                  setShowBillsPageSizeDropdown(!showBillsPageSizeDropdown)
+                }
+                className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
+                style={{
+                  borderColor: "rgb(218, 218, 218)",
+                  borderWidth: "0.909091px",
+                  boxShadow:
+                    "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+                }}
+              >
+                <div className="text-gray-900 font-medium text-sm">
+                  {billsItemsPerPage}
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+            </div>
+            <span className="text-gray-700 text-sm font-medium">
+              of {bills.length}
+            </span>
+          </div>
+          <div
+            className="flex items-center rounded-lg border bg-white overflow-hidden"
+            style={{
+              borderColor: "rgb(218, 218, 218)",
+              borderWidth: "0.909091px",
+              boxShadow:
+                "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
+            }}
+          >
+            <button
+              disabled={billsCurrentPage === 1}
+              onClick={() =>
+                setBillsCurrentPage(Math.max(1, billsCurrentPage - 1))
+              }
+              className={cn(
+                "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                billsCurrentPage === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-50",
+              )}
+              style={{
+                borderRightWidth: "0.909091px",
+                borderRightColor: "rgb(229, 229, 229)",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={
+                  billsCurrentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
+                }
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
+              <div
+                className={cn(
+                  "font-medium text-sm",
+                  billsCurrentPage === 1 ? "text-gray-400" : "text-gray-700",
+                )}
+              >
+                Previous
+              </div>
+            </button>
+            {getBillsPaginationNumbers().map((page, idx) => {
+              if (page === "...") {
+                return (
+                  <button
+                    key={`ellipsis-${idx}`}
+                    disabled
+                    className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
+                    style={{
+                      borderRightWidth: "0.909091px",
+                      borderRightColor: "rgb(229, 229, 229)",
+                      backgroundColor: "rgba(0, 0, 0, 0)",
+                    }}
+                  >
+                    <div className="text-gray-500 font-medium text-sm">...</div>
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  key={page}
+                  onClick={() => setBillsCurrentPage(page as number)}
+                  className={cn(
+                    "flex items-center justify-center h-10 min-w-10 transition-colors",
+                    billsCurrentPage === page
+                      ? "hover:bg-gray-50"
+                      : "hover:bg-gray-50",
+                  )}
+                  style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
+                    backgroundColor:
+                      billsCurrentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                  }}
+                >
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      billsCurrentPage === page
+                        ? "text-gray-900 font-bold"
+                        : "text-gray-500",
+                    )}
+                  >
+                    {page}
+                  </div>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setBillsCurrentPage(billsCurrentPage + 1)}
+              className={cn(
+                "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+              )}
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0)",
+              }}
+            >
+              <div className={cn("font-medium text-sm text-gray-700")}>
+                Next
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={
+                  billsCurrentPage === billsTotalPages
+                    ? "rgb(163, 163, 163)"
+                    : "currentColor"
+                }
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
+<<<<<<< HEAD
       {showCreateModal && propertyId && (
         <CreateAccountModal
           propertyId={Number(propertyId)}
@@ -1472,6 +2355,70 @@ const safeBills = Array.isArray(bills)
           }}
         />
       )}
+=======
+
+      {/* Dropdown Menu - Rendered via Portal at body level */}
+      {showBillsPageSizeDropdown &&
+        createPortal(
+          <div
+            ref={billsDropdownMenuRef}
+            className="bg-white overflow-hidden"
+            style={{
+              border: "0.5px solid #DADADA",
+              borderRadius: "8px",
+              boxShadow:
+                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+              zIndex: 99999,
+              minWidth: "56px",
+              width: "56px",
+              position: "fixed",
+              top: billsDropdownPos.top + "px",
+              left: billsDropdownPos.left + "px",
+              pointerEvents: "auto",
+            }}
+            onMouseLeave={() => setShowBillsPageSizeDropdown(false)}
+          >
+            {[10, 25, 50].map((size) => (
+              <button
+                key={size}
+                onClick={() => {
+                  setBillsItemsPerPage(size);
+                  setBillsCurrentPage(1);
+                  setShowBillsPageSizeDropdown(false);
+                }}
+                className="w-full px-3 py-2 text-left hover:bg-gray-100 text-gray-700 font-medium text-sm"
+              >
+                {size}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
+
+      {/* Edit/Add Utility Account Modal */}
+      <EditUtilityAccountModal
+        open={isEditUtilityModalOpen}
+        onOpenChange={(open) => {
+          setIsEditUtilityModalOpen(open);
+          if (!open) {
+            setEditingUtilityAccount(null);
+            setUtilityModalMode("edit");
+          }
+        }}
+        mode={utilityModalMode}
+        editData={
+          editingUtilityAccount
+            ? {
+                provider: editingUtilityAccount.provider,
+                accountNumber: editingUtilityAccount.account,
+                status: editingUtilityAccount.status,
+                username: "",
+                password: "",
+              }
+            : null
+        }
+      />
+>>>>>>> origin/builder-sync
     </div>
   );
 };

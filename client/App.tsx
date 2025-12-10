@@ -24,6 +24,11 @@ import Utilities from "./pages/Utilities";
 import PropertyDetail from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
+import { Auth } from "./pages/Auth";
+import { Login } from "./pages/Login";
+import { Welcome } from "./pages/Welcome";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import { TermsOfService } from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -115,6 +120,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/utilities/view-bill"
+                  element={
+                    <ShellLayout>
+                      <RecordBill />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/property/:propertyId"
                   element={
                     <ShellLayout>
@@ -202,6 +215,11 @@ export default function App() {
                     </ShellLayout>
                   }
                 />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Select,
@@ -71,16 +71,69 @@ const mockUnits = ["1", "2", "3", "4", "5"];
 const mockWorkOrders = ["123456-1", "123456-2", "789012-1"];
 const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
 
+const placeholderBill = {
+  vendor: mockVendors[0],
+  referenceNumber: "INV-2024-001",
+  invoiceDate: new Date(2024, 0, 15),
+  dueDate: new Date(2024, 1, 15),
+  memo: "Monthly utility billing for business operations. CRS Inspection Process documentation and compliance materials.",
+  lineItems: [
+    {
+      id: 1,
+      property: "22 Indian Creek Dr",
+      unit: "1",
+      workOrder: "123456-1",
+      description: "Monthly electric service charge and consumption",
+      glAccount: "Utilities",
+      total: "$450.00",
+    },
+    {
+      id: 2,
+      property: "22 Indian Creek Dr",
+      unit: "2",
+      workOrder: "123456-2",
+      description: "Water and sewer service",
+      glAccount: "Utilities",
+      total: "$125.50",
+    },
+    {
+      id: 3,
+      property: "25 Park Ave",
+      unit: "1",
+      workOrder: "789012-1",
+      description: "Gas heating service",
+      glAccount: "Utilities",
+      total: "$275.00",
+    },
+  ],
+};
+
 export const RecordBill = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isReadOnly = searchParams.get("readOnly") === "true";
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
-  const [referenceNumber, setReferenceNumber] = useState<string>("");
-  const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
-  const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [invoiceDateInput, setInvoiceDateInput] = useState<string>("");
-  const [dueDateInput, setDueDateInput] = useState<string>("");
-  const [memo, setMemo] = useState<string>("");
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
+    isReadOnly ? placeholderBill.vendor : null,
+  );
+  const [referenceNumber, setReferenceNumber] = useState<string>(
+    isReadOnly ? placeholderBill.referenceNumber : "",
+  );
+  const [invoiceDate, setInvoiceDate] = useState<Date | null>(
+    isReadOnly ? placeholderBill.invoiceDate : null,
+  );
+  const [dueDate, setDueDate] = useState<Date | null>(
+    isReadOnly ? placeholderBill.dueDate : null,
+  );
+  const [invoiceDateInput, setInvoiceDateInput] = useState<string>(
+    isReadOnly ? format(placeholderBill.invoiceDate, "MM/dd/yyyy") : "",
+  );
+  const [dueDateInput, setDueDateInput] = useState<string>(
+    isReadOnly ? format(placeholderBill.dueDate, "MM/dd/yyyy") : "",
+  );
+  const [memo, setMemo] = useState<string>(
+    isReadOnly ? placeholderBill.memo : "",
+  );
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
@@ -95,17 +148,21 @@ export const RecordBill = () => {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    {
-      id: 1,
-      property: "",
-      unit: "",
-      workOrder: "",
-      description: "",
-      glAccount: "",
-      total: "",
-    },
-  ]);
+  const [lineItems, setLineItems] = useState<LineItem[]>(
+    isReadOnly
+      ? placeholderBill.lineItems
+      : [
+          {
+            id: 1,
+            property: "",
+            unit: "",
+            workOrder: "",
+            description: "",
+            glAccount: "",
+            total: "",
+          },
+        ],
+  );
 
   // Dynamic column width tracking with default minimum widths
   const defaultColumnWidths = {
@@ -320,6 +377,16 @@ export const RecordBill = () => {
     return () => clearTimeout(timer);
   }, [lineItems, measureAndUpdateColumnWidths]);
 
+  // Auto-open PDF in read-only mode if there's only one file
+  useEffect(() => {
+    if (isReadOnly && uploadedFiles.length === 1 && !viewingFileUrl) {
+      const file = uploadedFiles[0].file;
+      const url = URL.createObjectURL(file);
+      setViewingFileUrl(url);
+      setViewingFileIndex(0);
+    }
+  }, [isReadOnly, uploadedFiles, viewingFileUrl]);
+
   const handleUpdateLineItem = (id: number, field: string, value: string) => {
     setLineItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
@@ -448,18 +515,28 @@ export const RecordBill = () => {
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
-      style={{ minHeight: "100vh" }}
+      style={{
+        display: "flex",
+        backgroundColor: "rgb(255, 255, 255)",
+        borderBottom: "1.33333px solid rgb(210, 209, 207)",
+        borderLeft: "1px solid rgb(210, 209, 207)",
+        flexDirection: "column",
+        fontWeight: "400",
+        minHeight: "1365px",
+        position: "relative",
+      }}
     >
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
           <div
-            className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-hidden"
+            className="w-1/2 border-r border-[#E5E7EB] flex-shrink-0 overflow-hidden"
             style={{
               alignSelf: "stretch",
               display: "flex",
               flexDirection: "column",
+              padding: "24px 32px",
             }}
           >
             {!viewingFileUrl ? (
@@ -577,35 +654,39 @@ export const RecordBill = () => {
                               >
                                 View
                               </button>
-                              <button
-                                onClick={() => handleRemoveFile(index)}
-                                className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
-                                title="Remove file"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                              {!isReadOnly && (
+                                <button
+                                  onClick={() => handleRemoveFile(index)}
+                                  className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+                                  title="Remove file"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
-                      >
-                        Add more files
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
+                        >
+                          Add more files
+                        </button>
+                      )}
                     </div>
                   )}
                   <input
@@ -623,82 +704,106 @@ export const RecordBill = () => {
                 className="flex flex-col flex-1 w-full h-full"
                 style={{ display: "flex", flexDirection: "column" }}
               >
-                <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="rounded-lg bg-white text-gray-900 hover:bg-gray-100 transition-colors px-3 py-2 text-sm font-medium"
-                    title="Upload files"
-                  >
-                    Upload files
-                  </button>
-                  <button
-                    onClick={() => {}}
-                    className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium"
-                    title="Autofill from file"
-                  >
-                    Autofill from file
-                  </button>
-                  <div className="flex-1" />
-                  <button
-                    onClick={handleDownloadFile}
-                    className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
-                    title="Download"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                {!isReadOnly && (
+                  <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
+                    <button
+                      onClick={() =>
+                        !isReadOnly && fileInputRef.current?.click()
+                      }
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-white text-gray-900 hover:bg-gray-100"
+                      }`}
+                      title="Upload files"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    Download
-                  </button>
-                  <button
-                    onClick={handleDeleteFile}
-                    className="rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
-                    title="Delete"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      Upload files
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                          : "bg-gray-600 text-white hover:bg-gray-500"
+                      }`}
+                      title="Autofill from file"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    Delete
-                  </button>
-                  <button
-                    onClick={closeViewer}
-                    className="text-white hover:text-gray-300 transition-colors"
-                    title="Close"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      Autofill from file
+                    </button>
+                    <div className="flex-1" />
+                    <button
+                      onClick={() => !isReadOnly && handleDownloadFile()}
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                          : "bg-gray-600 text-white hover:bg-gray-500"
+                      }`}
+                      title="Download"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                      Download
+                    </button>
+                    <button
+                      onClick={() => !isReadOnly && handleDeleteFile()}
+                      disabled={isReadOnly}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
+                        isReadOnly
+                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                          : "bg-red-600 text-white hover:bg-red-700"
+                      }`}
+                      title="Delete"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                    <button
+                      onClick={closeViewer}
+                      className="text-white hover:text-gray-300 transition-colors"
+                      title="Close"
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <div className="flex-1 overflow-auto w-full">
                   <iframe
                     src={viewingFileUrl}
@@ -791,16 +896,19 @@ export const RecordBill = () => {
                         <Select
                           value={selectedVendor?.id.toString() || ""}
                           onValueChange={(vendorId) => {
-                            const vendor = mockVendors.find(
-                              (v) => v.id.toString() === vendorId,
-                            );
-                            setSelectedVendor(vendor || null);
-                            setFormErrors((prev) => {
-                              const newErrors = new Set(prev);
-                              newErrors.delete("vendor");
-                              return newErrors;
-                            });
+                            if (!isReadOnly) {
+                              const vendor = mockVendors.find(
+                                (v) => v.id.toString() === vendorId,
+                              );
+                              setSelectedVendor(vendor || null);
+                              setFormErrors((prev) => {
+                                const newErrors = new Set(prev);
+                                newErrors.delete("vendor");
+                                return newErrors;
+                              });
+                            }
                           }}
+                          disabled={isReadOnly}
                         >
                           <SelectTrigger
                             className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] ${
@@ -830,8 +938,11 @@ export const RecordBill = () => {
                         <input
                           type="text"
                           value={referenceNumber}
-                          onChange={(e) => setReferenceNumber(e.target.value)}
+                          onChange={(e) =>
+                            !isReadOnly && setReferenceNumber(e.target.value)
+                          }
                           placeholder="INV-2024-001"
+                          disabled={isReadOnly}
                           className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
                           style={
                             {
@@ -860,7 +971,7 @@ export const RecordBill = () => {
                             invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
                           }
                           onChange={(e) => {
-                            if (e.target.value) {
+                            if (!isReadOnly && e.target.value) {
                               const date = new Date(e.target.value);
                               setInvoiceDate(date);
                               setInvoiceDateInput(format(date, "MM/dd/yyyy"));
@@ -870,11 +981,12 @@ export const RecordBill = () => {
                                 newErrors.delete("invoiceDate");
                                 return newErrors;
                               });
-                            } else {
+                            } else if (!isReadOnly) {
                               setInvoiceDate(null);
                               setInvoiceDateInput("");
                             }
                           }}
+                          disabled={isReadOnly}
                           className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
                             formErrors.has("invoiceDate")
                               ? "border-red-500 border-2"
@@ -897,7 +1009,7 @@ export const RecordBill = () => {
                           placeholder="mm/dd/yyyy"
                           value={dueDate ? format(dueDate, "yyyy-MM-dd") : ""}
                           onChange={(e) => {
-                            if (e.target.value) {
+                            if (!isReadOnly && e.target.value) {
                               const date = new Date(e.target.value);
                               setDueDate(date);
                               setDueDateInput(format(date, "MM/dd/yyyy"));
@@ -907,11 +1019,12 @@ export const RecordBill = () => {
                                 newErrors.delete("dueDate");
                                 return newErrors;
                               });
-                            } else {
+                            } else if (!isReadOnly) {
                               setDueDate(null);
                               setDueDateInput("");
                             }
                           }}
+                          disabled={isReadOnly}
                           className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
                             formErrors.has("dueDate")
                               ? "border-red-500 border-2"
@@ -936,8 +1049,9 @@ export const RecordBill = () => {
                       </label>
                       <textarea
                         value={memo}
-                        onChange={(e) => setMemo(e.target.value)}
+                        onChange={(e) => !isReadOnly && setMemo(e.target.value)}
                         placeholder="Additional notes..."
+                        disabled={isReadOnly}
                         className="rounded-lg bg-white border border-[#E5E7EB] mt-2 min-h-[81px] w-full px-3 py-2 overflow-hidden text-base text-[#303030] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9]"
                       />
                     </div>
@@ -1039,13 +1153,16 @@ export const RecordBill = () => {
                             >
                               <Select
                                 value={item.property}
-                                onValueChange={(value) =>
-                                  handleUpdateLineItem(
-                                    item.id,
-                                    "property",
-                                    value,
-                                  )
-                                }
+                                onValueChange={(value) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "property",
+                                      value,
+                                    );
+                                  }
+                                }}
+                                disabled={isReadOnly}
                               >
                                 <SelectTrigger
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
@@ -1074,9 +1191,16 @@ export const RecordBill = () => {
                             >
                               <Select
                                 value={item.unit}
-                                onValueChange={(value) =>
-                                  handleUpdateLineItem(item.id, "unit", value)
-                                }
+                                onValueChange={(value) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "unit",
+                                      value,
+                                    );
+                                  }
+                                }}
+                                disabled={isReadOnly}
                               >
                                 <SelectTrigger
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
@@ -1105,13 +1229,16 @@ export const RecordBill = () => {
                             >
                               <Select
                                 value={item.workOrder}
-                                onValueChange={(value) =>
-                                  handleUpdateLineItem(
-                                    item.id,
-                                    "workOrder",
-                                    value,
-                                  )
-                                }
+                                onValueChange={(value) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "workOrder",
+                                      value,
+                                    );
+                                  }
+                                }}
+                                disabled={isReadOnly}
                               >
                                 <SelectTrigger
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
@@ -1139,15 +1266,18 @@ export const RecordBill = () => {
                               <input
                                 type="text"
                                 value={item.description}
-                                onChange={(e) =>
-                                  handleUpdateLineItem(
-                                    item.id,
-                                    "description",
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "description",
+                                      e.target.value,
+                                    );
+                                  }
+                                }}
                                 placeholder="Enter description"
                                 data-measure-width="description"
+                                disabled={isReadOnly}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
@@ -1163,13 +1293,16 @@ export const RecordBill = () => {
                             >
                               <Select
                                 value={item.glAccount}
-                                onValueChange={(value) =>
-                                  handleUpdateLineItem(
-                                    item.id,
-                                    "glAccount",
-                                    value,
-                                  )
-                                }
+                                onValueChange={(value) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "glAccount",
+                                      value,
+                                    );
+                                  }
+                                }}
+                                disabled={isReadOnly}
                               >
                                 <SelectTrigger
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
@@ -1202,8 +1335,9 @@ export const RecordBill = () => {
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   if (
-                                    value === "" ||
-                                    /^\$?[\d,]*\.?\d{0,2}$/.test(value)
+                                    !isReadOnly &&
+                                    (value === "" ||
+                                      /^\$?[\d,]*\.?\d{0,2}$/.test(value))
                                   ) {
                                     const formatted = value.startsWith("$")
                                       ? value
@@ -1217,31 +1351,36 @@ export const RecordBill = () => {
                                 }}
                                 placeholder="$0.00"
                                 data-measure-width="total"
+                                disabled={isReadOnly}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
 
                             {/* Delete Button */}
                             <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
-                              <button
-                                onClick={() => handleDeleteLineItem(item.id)}
-                                className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
-                                title="Delete row"
-                              >
-                                ×
-                              </button>
+                              {!isReadOnly && (
+                                <button
+                                  onClick={() => handleDeleteLineItem(item.id)}
+                                  className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
+                                  title="Delete row"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={handleAddLineItem}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-4"
-                  >
-                    + Add Line Item
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      onClick={handleAddLineItem}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-4"
+                    >
+                      + Add Line Item
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1250,11 +1389,24 @@ export const RecordBill = () => {
       </div>
       {/* Fixed Bottom Bar - Always visible at viewport bottom, accounting for sidebar */}
       <div
-        className="fixed bottom-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
+        className="fixed bottom-0 right-0 bg-white z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
         style={{
-          padding: "16px 32px",
+          backgroundColor: "rgb(255, 255, 255)",
+          borderTop: "1.33333px solid #d2d1cf",
+          borderLeft: "1.33333px solid #d2d1cf",
+          borderRight: "none",
+          borderBottom: "none",
+          bottom: "0px",
+          boxShadow:
+            "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
+          fontWeight: "400",
           left: sidebarVisible ? "262px" : "0px",
-          transition: "left 0.3s ease",
+          position: "fixed",
+          right: "0px",
+          transitionDuration: "0.3s",
+          transitionProperty: "left",
+          zIndex: "40",
+          padding: "16px 32px",
         }}
       >
         <div className="flex items-center justify-between">
@@ -1265,17 +1417,38 @@ export const RecordBill = () => {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
+            {isReadOnly && (
+              <button
+                onClick={handleCancel}
+                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 bg-white border border-gray-300 text-gray-700 font-medium whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-50 transition-colors"
+              >
+                <span>Close</span>
+              </button>
+            )}
+            {!isReadOnly && (
+              <button
+                onClick={handleCancel}
+                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+              >
+                <span>Cancel</span>
+              </button>
+            )}
             <button
-              onClick={handleCancel}
-              className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+              onClick={() => {
+                if (!isReadOnly) {
+                  handleRecordBill();
+                } else {
+                  handleCancel();
+                }
+              }}
+              disabled={isReadOnly ? false : false}
+              className={`rounded-lg shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors ${
+                isReadOnly
+                  ? "bg-gray-400 text-white opacity-60 cursor-default"
+                  : "bg-[#013764] text-white hover:bg-[#002a4f]"
+              }`}
             >
-              <span>Cancel</span>
-            </button>
-            <button
-              onClick={handleRecordBill}
-              className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
-            >
-              <span>Record Bill</span>
+              <span>{isReadOnly ? "Exported to Buildium" : "Record Bill"}</span>
             </button>
           </div>
         </div>
