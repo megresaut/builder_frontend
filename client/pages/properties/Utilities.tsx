@@ -662,9 +662,36 @@ export const Utilities: React.FC<UtilitiesProps> = ({
             <button
               onClick={() => {
                 setImportStatus("importing");
+
+                // Trigger import for all utility accounts
+                utilityAccounts.forEach((account) => {
+                  setAccountImportStatus(prev => ({ ...prev, [account.id]: "importing" }));
+                  setAccountLastImport(prev => ({ ...prev, [account.id]: "Importing..." }));
+                });
+
                 setTimeout(() => {
                   const randomFailure = Math.random() < 0.3;
-                  if (randomFailure) {
+                  let hasFailures = false;
+
+                  // Process each account
+                  utilityAccounts.forEach((account) => {
+                    const accountFailure = Math.random() < 0.3;
+                    if (accountFailure) {
+                      hasFailures = true;
+                      setAccountImportStatus(prev => ({ ...prev, [account.id]: "failed" }));
+                      setAccountLastImport(prev => ({ ...prev, [account.id]: "failed" }));
+                    } else {
+                      setAccountImportStatus(prev => ({ ...prev, [account.id]: "imported" }));
+                      setAccountLastImport(prev => ({ ...prev, [account.id]: "Imported" }));
+                      setTimeout(() => {
+                        setAccountImportStatus(prev => ({ ...prev, [account.id]: "idle" }));
+                        setAccountLastImport(prev => ({ ...prev, [account.id]: "1 min ago" }));
+                      }, 1500);
+                    }
+                  });
+
+                  // Set universal button status based on overall results
+                  if (hasFailures) {
                     setImportStatus("failed");
                   } else {
                     setImportStatus("imported");
