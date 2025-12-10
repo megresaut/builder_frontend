@@ -16,6 +16,7 @@ import {
 interface EditUtilityAccountModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode?: "add" | "edit";
   editData?: {
     provider: string;
     accountNumber: string;
@@ -28,16 +29,25 @@ interface EditUtilityAccountModalProps {
 export default function EditUtilityAccountModal({
   open,
   onOpenChange,
+  mode = "edit",
   editData,
 }: EditUtilityAccountModalProps) {
-  const [provider, setProvider] = useState(editData?.provider || "");
+  const [provider, setProvider] = useState(mode === "add" ? "" : editData?.provider || "");
   const [accountNumber, setAccountNumber] = useState(editData?.accountNumber || "");
   const [status, setStatus] = useState<"active" | "inactive">(editData?.status || "active");
   const [username, setUsername] = useState(editData?.username || "");
   const [password, setPassword] = useState(editData?.password || "");
 
+  const isAddMode = mode === "add";
+  const title = isAddMode ? "Add Utility Account" : "Edit Utility Account";
+  const buttonText = isAddMode ? "Add Account" : "Save Changes";
+  const passwordPlaceholder = isAddMode
+    ? "Input Utility Provider Password"
+    : "Input Admin Password to see Password";
+
   const handleSave = () => {
-    console.log("Saving utility account:", {
+    const action = isAddMode ? "Adding" : "Saving";
+    console.log(`${action} utility account:`, {
       provider,
       accountNumber,
       status,
