@@ -278,7 +278,7 @@ export const RecordBill = () => {
             <div className="flex flex-col text-base font-normal" style={{ flexGrow: "0" }}>
               <div
                 className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden px-20 py-7 justify-center"
-                style={{ padding: "28px 80px", minHeight: "848px" }}
+                style={{ padding: "28px 80px", minHeight: "500px" }}
               >
                 <div className="self-center flex flex-col items-center">
                   <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
