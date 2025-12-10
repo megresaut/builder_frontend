@@ -405,16 +405,6 @@ export const Auth = () => {
             </button>
           </form>
 
-          {/* Sign In Link */}
-          <div className="mt-8 text-center border-t border-gray-200 pt-8">
-            <p className="text-lg text-gray-600">
-              Already have an account?{" "}
-              <a href="/login" className="font-semibold" style={{ color: "rgb(36, 99, 235)" }}>
-                Sign In
-              </a>
-            </p>
-          </div>
-
           {/* Footer Links */}
           <div className="mt-8 space-y-2 text-center text-base">
             <p>
