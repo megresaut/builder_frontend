@@ -932,6 +932,12 @@ export const RecordBill = () => {
                       </div>
                     </div>
                   </div>
+                  <button
+                    onClick={handleAddLineItem}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-4"
+                  >
+                    + Add Line Item
+                  </button>
                 </div>
               </div>
             </div>
