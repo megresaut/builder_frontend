@@ -241,6 +241,40 @@ export const Auth = () => {
               )}
             </div>
 
+            {/* Phone Number Field (Sign Up Only) */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="(555) 123-4567"
+                  className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
+                    errors.phone
+                      ? "border-red-300 focus:ring-red-200 bg-red-50"
+                      : "border-gray-300"
+                  }`}
+                  style={!errors.phone ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                  onFocus={(e) => {
+                    if (!errors.phone) {
+                      e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = "";
+                  }}
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                )}
+              </div>
+            )}
+
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
@@ -303,40 +337,6 @@ export const Auth = () => {
                 />
                 {errors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-                )}
-              </div>
-            )}
-
-            {/* Phone Number Field (Sign Up Only) */}
-            {isSignUp && (
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="(555) 123-4567"
-                  className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
-                    errors.phone
-                      ? "border-red-300 focus:ring-red-200 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  style={!errors.phone ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
-                  onFocus={(e) => {
-                    if (!errors.phone) {
-                      e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
-                    }
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.boxShadow = "";
-                  }}
-                />
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                 )}
               </div>
             )}
