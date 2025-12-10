@@ -568,37 +568,50 @@ export const Utilities: React.FC<UtilitiesProps> = ({
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 8.5C9.24264 8.5 10.25 7.49264 10.25 6.25C10.25 5.00736 9.24264 4 8 4C6.75736 4 5.75 5.00736 5.75 6.25C5.75 7.49264 6.75736 8.5 8 8.5ZM8 9.5C6.46875 9.5 3.5 10.3125 3.5 11.875V13H12.5V11.875C12.5 10.3125 9.53125 9.5 8 9.5Z" fill="#4B5563"/>
+                    </svg>
                     Provider
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Type
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 2.5H13C13.8284 2.5 14.5 3.17157 14.5 4V12C14.5 12.8284 13.8284 13.5 13 13.5H3C2.17157 13.5 1.5 12.8284 1.5 12V4C1.5 3.17157 2.17157 2.5 3 2.5ZM3 4V12H13V4H3Z" fill="#4B5563"/>
+                    </svg>
                     Account
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM8 12.5C5.51472 12.5 3.5 10.4853 3.5 8C3.5 5.51472 5.51472 3.5 8 3.5C10.4853 3.5 12.5 5.51472 12.5 8C12.5 10.4853 10.4853 12.5 8 12.5Z" fill="#4B5563"/>
+                    </svg>
                     Status
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 1.5H12C12.8284 1.5 13.5 2.17157 13.5 3V13C13.5 13.8284 12.8284 14.5 12 14.5H4C3.17157 14.5 2.5 13.8284 2.5 13V3C2.5 2.17157 3.17157 1.5 4 1.5ZM4 3V13H12V3H4Z" fill="#4B5563"/>
+                    </svg>
                     Last Bill Date
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8.5 1V3M2.5 8H14.5M2 5C1.44772 5 1 5.44772 1 6V13C1 13.5523 1.44772 14 2 14H14C14.5523 14 15 13.5523 15 13V6C15 5.44772 14.5523 5 14 5H2ZM5 8H6V9H5V8ZM9 8H10V9H9V8Z" fill="#4B5563"/>
+                    </svg>
                     Last Bill Amount
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 2.5C5.51472 2.5 3.5 4.51472 3.5 7V11C3.5 12.3807 4.61929 13.5 6 13.5H10C11.3807 13.5 12.5 12.3807 12.5 11V7C12.5 4.51472 10.4853 2.5 8 2.5ZM8 4C9.93307 4 11.5 5.56693 11.5 7.5V11C11.5 11.8284 10.8284 12.5 10 12.5H6C5.17157 12.5 4.5 11.8284 4.5 11V7.5C4.5 5.56693 6.06693 4 8 4Z" fill="#4B5563"/>
+                    </svg>
                     Last Import
                   </span>
                 </th>
@@ -629,11 +642,6 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         {account.provider}
                       </span>
                     </div>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      Electric
-                    </span>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
@@ -722,32 +730,50 @@ export const Utilities: React.FC<UtilitiesProps> = ({
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 h-12">
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 8.5C9.24264 8.5 10.25 7.49264 10.25 6.25C10.25 5.00736 9.24264 4 8 4C6.75736 4 5.75 5.00736 5.75 6.25C5.75 7.49264 6.75736 8.5 8 8.5ZM8 9.5C6.46875 9.5 3.5 10.3125 3.5 11.875V13H12.5V11.875C12.5 10.3125 9.53125 9.5 8 9.5Z" fill="#4B5563"/>
+                    </svg>
                     Provider
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 1.5H12C12.8284 1.5 13.5 2.17157 13.5 3V13C13.5 13.8284 12.8284 14.5 12 14.5H4C3.17157 14.5 2.5 13.8284 2.5 13V3C2.5 2.17157 3.17157 1.5 4 1.5ZM4 3V13H12V3H4Z" fill="#4B5563"/>
+                    </svg>
                     Date
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 2C10.7614 2 13 4.23858 13 7C13 9.76142 10.7614 12 8 12C5.23858 12 3 9.76142 3 7C3 4.23858 5.23858 2 8 2ZM8 3C5.79086 3 4 4.79086 4 7C4 9.20914 5.79086 11 8 11C10.2091 11 12 9.20914 12 7C12 4.79086 10.2091 3 8 3Z" fill="#4B5563"/>
+                    </svg>
                     AI Usage Insight
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 1L9.55228 5.5H14.5L10.9887 8.5L12.5 13L8 10L3.5 13L5.01128 8.5L1.5 5.5H6.44772L8 1Z" fill="#4B5563"/>
+                    </svg>
                     Change from Last Bill
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM8 12.5C5.51472 12.5 3.5 10.4853 3.5 8C3.5 5.51472 5.51472 3.5 8 3.5C10.4853 3.5 12.5 5.51472 12.5 8C12.5 10.4853 10.4853 12.5 8 12.5Z" fill="#4B5563"/>
+                    </svg>
                     Status
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
+                  <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8.5 1V3M2.5 8H14.5M2 5C1.44772 5 1 5.44772 1 6V13C1 13.5523 1.44772 14 2 14H14C14.5523 14 15 13.5523 15 13V6C15 5.44772 14.5523 5 14 5H2ZM5 8H6V9H5V8ZM9 8H10V9H9V8Z" fill="#4B5563"/>
+                    </svg>
                     Amount
                   </span>
                 </th>
