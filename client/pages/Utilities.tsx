@@ -981,71 +981,54 @@ export default function Utilities() {
     "utilityColumns",
     DEFAULT_UTILITY_COLUMNS,
   );
-  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
-  const [dragSource, setDragSource] = useState<"bills" | "utility" | null>(null);
+  const [draggedColumn, setDraggedColumn] = useState<{id: string; source: "bills" | "utility"} | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  const handleColumnDragStart = (e: React.DragEvent<HTMLTableHeaderCellElement>, columnId: string, source: "bills" | "utility") => {
-    e.dataTransfer!.effectAllowed = "move";
-    e.dataTransfer!.setData("text/plain", `${source}:${columnId}`);
-    setDraggedColumn(columnId);
-    setDragSource(source);
+  const handleColumnMouseDown = (columnId: string, source: "bills" | "utility") => {
+    setDraggedColumn({ id: columnId, source });
   };
 
-  const handleColumnDragOver = (e: React.DragEvent<HTMLTableHeaderCellElement>) => {
-    e.preventDefault();
-    e.dataTransfer!.dropEffect = "move";
-  };
-
-  const handleColumnDrop = (e: React.DragEvent<HTMLTableHeaderCellElement>, targetColumnId: string, source: "bills" | "utility") => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const dragData = e.dataTransfer!.getData("text/plain");
-    const [dragSource, draggedId] = dragData.split(":");
-
-    if (!draggedId || dragSource !== source || draggedId === targetColumnId) {
-      setDraggedColumn(null);
-      setDragSource(null);
+  const handleColumnMouseEnter = (targetColumnId: string, source: "bills" | "utility") => {
+    if (!draggedColumn || draggedColumn.source !== source || draggedColumn.id === targetColumnId) {
       return;
     }
 
     if (source === "bills") {
-      const draggedIndex = billsColumns.findIndex((col) => col.id === draggedId);
+      const draggedIndex = billsColumns.findIndex((col) => col.id === draggedColumn.id);
       const targetIndex = billsColumns.findIndex((col) => col.id === targetColumnId);
 
-      if (draggedIndex === -1 || targetIndex === -1) {
-        setDraggedColumn(null);
-        setDragSource(null);
-        return;
-      }
+      if (draggedIndex === -1 || targetIndex === -1) return;
 
       const newColumns = Array.from(billsColumns);
       const [removed] = newColumns.splice(draggedIndex, 1);
       newColumns.splice(targetIndex, 0, removed);
 
       setBillsColumns(newColumns);
+      setDraggedColumn({ id: targetColumnId, source });
     } else {
-      const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedId);
+      const draggedIndex = utilityColumns.findIndex((col) => col.id === draggedColumn.id);
       const targetIndex = utilityColumns.findIndex((col) => col.id === targetColumnId);
 
-      if (draggedIndex === -1 || targetIndex === -1) {
-        setDraggedColumn(null);
-        setDragSource(null);
-        return;
-      }
+      if (draggedIndex === -1 || targetIndex === -1) return;
 
       const newColumns = Array.from(utilityColumns);
       const [removed] = newColumns.splice(draggedIndex, 1);
       newColumns.splice(targetIndex, 0, removed);
 
       setUtilityColumns(newColumns);
+      setDraggedColumn({ id: targetColumnId, source });
     }
-
-    setDraggedColumn(null);
-    setDragSource(null);
   };
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      setDraggedColumn(null);
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
 
   useEffect(() => {
     let animationFrameId: number;
