@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   StatusBadge,
@@ -6,7 +6,7 @@ import {
   AIInsightBadge,
   ActionButton,
 } from "../Utilities";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
 
@@ -53,6 +53,112 @@ type MappedBill = {
   amount: string;
   icon?: React.ReactNode;
   type: string | null | undefined;
+};
+
+
+// --- Utilities import types & helpers ---
+
+// Simple delay helper for polling
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Types for the utilities job endpoints
+type UtilityJobEnqueueResponse = {
+  job_id: number;
+  status: string;
+  account?: number;
+  period?: string;
+  requested_by?: string;
+};
+
+type UtilityJobStatusDTO = {
+  job_id: number;
+  status: "queued" | "running" | "succeeded" | "failed" | string;
+  provider?: string;
+  ts?: string;
+  message?: string | null;
+};
+
+/**
+ * Turn a raw job error string into a friendly message.
+ * - If it's the duplicate-bill unique constraint → "Bill already scraped and pushed to Buildium."
+ * - Otherwise → generic scrape failure message.
+ */
+const prettifyImportError = (msg: string | null | undefined): string => {
+  if (msg) {
+    const lower = msg.toLowerCase();
+
+    const isDuplicate =
+      lower.includes("duplicate key value violates unique constraint") &&
+      lower.includes(
+        "bills_utility_account_id_provider_id_statement_date_amount__key".toLowerCase(),
+      );
+
+    if (isDuplicate) {
+      return "Bill already scraped and pushed to Buildium.";
+    }
+  }
+
+  return "Scrape failed. Please try again. If you’ve already tried this twice, contact support.";
+};
+
+// Poll a utilities job until it is succeeded/failed or times out
+const pollJobStatus = async (
+  jobId: number,
+  timeoutMs = 60000,
+  intervalMs = 2000,
+): Promise<UtilityJobStatusDTO> => {
+  const start = Date.now();
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const job = await fetchJSON(
+      `/utilities/jobs/${jobId}`,
+    );
+
+    if (job.status === "succeeded" || job.status === "failed") {
+      return job;
+    }
+
+    if (Date.now() - start > timeoutMs) {
+      // Timed out; return the last seen status
+      return job;
+    }
+
+    await delay(intervalMs);
+  }
+};
+
+// Poll a batch until it's done
+const pollBatchStatus = async (
+  batchId: number,
+  timeoutMs = 60000,
+  intervalMs = 2000,
+): Promise<{
+  status: string;
+  done: number;
+  total: number;
+  failed: number;
+}> => {
+  const start = Date.now();
+
+  while (true) {
+    const batch = await fetchJSON(`/utilities/import/batch/${batchId}`);
+
+    const done = batch.done_items ?? 0;
+    const total = batch.total_items ?? 0;
+    const failed = batch.failed ?? 0;
+    const status = batch.status ?? "running";
+
+    if (status === "succeeded" || status === "partial") {
+      return { status, done, total, failed };
+    }
+
+    if (Date.now() - start > timeoutMs) {
+      return { status, done, total, failed };
+    }
+
+    await delay(intervalMs);
+  }
 };
 
 const getCategoryIcon = (category: string | null | undefined) => {
@@ -102,6 +208,391 @@ const getCategoryIcon = (category: string | null | undefined) => {
   }
 };
 
+// Provider type for dropdown
+type ProviderDTO = {
+  id: number;
+  display_name: string;
+};
+
+interface CreateAccountModalProps {
+  propertyId: number;
+  onClose: () => void;
+  onCreated: (account: any) => void;
+}
+
+const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
+  propertyId,
+  onClose,
+  onCreated,
+}) => {
+  const [providers, setProviders] = useState<ProviderDTO[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(false);
+
+  const [providerId, setProviderId] = useState<number | "">("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [serviceAddress, setServiceAddress] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [active, setActive] = useState(true);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // load providers on open
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoadingProviders(true);
+        const data = await fetchJSON("/providers");
+        if (!cancelled) {
+          setProviders(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load providers", err);
+          setError("Failed to load providers.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingProviders(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!providerId) {
+      setError("Please select a provider.");
+      return;
+    }
+    if (!accountNumber || !serviceAddress || !username || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        provider_id: providerId,
+        property_id: propertyId,
+        account_number: accountNumber.trim(),
+        service_address: serviceAddress.trim(),
+        username: username.trim(),
+        password,
+        active,
+      };
+
+      const created = await fetchJSON("/utilities/accounts", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      onCreated(created);
+    } catch (err: any) {
+      console.error("Failed to create utility account", err);
+      const msg =
+        err?.message && typeof err.message === "string"
+          ? err.message
+          : "Failed to create account.";
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="modal"
+        style={{
+          background: "var(--bg-card, #ffffff)",
+          borderRadius: "0.75rem",
+          border: "1px solid var(--border-subtle, #e5e7eb)",
+          padding: "1.5rem",
+          width: "100%",
+          maxWidth: 520,
+          boxShadow: "0 18px 45px rgba(15, 23, 42, 0.35)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: "1rem",
+          }}
+        >
+          <div>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: "1.05rem",
+                fontWeight: 600,
+                color: "var(--text-main, #111827)",
+              }}
+            >
+              Add utility account
+            </h3>
+            <p
+              style={{
+                margin: 0,
+                marginTop: 4,
+                fontSize: "0.85rem",
+                color: "var(--text-muted, #6b7280)",
+              }}
+            >
+              Connect a provider so AVM can automatically pull bills.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-ghost"
+            style={{ padding: "0 0.25rem", fontSize: 18 }}
+          >
+            ×
+          </button>
+        </div>
+
+        {error && (
+          <div
+            style={{
+              marginBottom: "0.75rem",
+              padding: "0.5rem 0.75rem",
+              borderRadius: 6,
+              border: "1px solid var(--danger, #b91c1c)",
+              background: "var(--danger-soft, #fef2f2)",
+              color: "var(--danger, #b91c1c)",
+              fontSize: "0.8rem",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "0.75rem",
+          }}
+        >
+          {/* Provider */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                color: "var(--text-muted, #6b7280)",
+              }}
+            >
+              Provider
+            </label>
+            <select
+              value={providerId}
+              onChange={(e) =>
+                setProviderId(
+                  e.target.value ? Number(e.target.value) : ("" as "")
+                )
+              }
+              disabled={loadingProviders}
+              style={{
+                height: 36,
+                borderRadius: 8,
+                border: "1px solid var(--border-subtle, #e5e7eb)",
+                padding: "0 0.5rem",
+                fontSize: "0.85rem",
+              }}
+            >
+              <option value="">
+                {loadingProviders ? "Loading providers…" : "Select provider"}
+              </option>
+              {providers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.display_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Account number */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                color: "var(--text-muted, #6b7280)",
+              }}
+            >
+              Account number
+            </label>
+            <input
+              type="text"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder="e.g. 123456789"
+              style={{
+                height: 36,
+                borderRadius: 8,
+                border: "1px solid var(--border-subtle, #e5e7eb)",
+                padding: "0 0.5rem",
+                fontSize: "0.85rem",
+              }}
+            />
+          </div>
+
+          {/* Service address */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                color: "var(--text-muted, #6b7280)",
+              }}
+            >
+              Service address
+            </label>
+            <input
+              type="text"
+              value={serviceAddress}
+              onChange={(e) => setServiceAddress(e.target.value)}
+              placeholder="e.g. 3 Hekma Rd, Greenwich CT 06831"
+              style={{
+                height: 36,
+                borderRadius: 8,
+                border: "1px solid var(--border-subtle, #e5e7eb)",
+                padding: "0 0.5rem",
+                fontSize: "0.85rem",
+              }}
+            />
+          </div>
+
+          {/* Username */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                color: "var(--text-muted, #6b7280)",
+              }}
+            >
+              Portal username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Login username for this account"
+              style={{
+                height: 36,
+                borderRadius: 8,
+                border: "1px solid var(--border-subtle, #e5e7eb)",
+                padding: "0 0.5rem",
+                fontSize: "0.85rem",
+              }}
+            />
+          </div>
+
+          {/* Password */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                color: "var(--text-muted, #6b7280)",
+              }}
+            >
+              Portal password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Login password for this account"
+              style={{
+                height: 36,
+                borderRadius: 8,
+                border: "1px solid var(--border-subtle, #e5e7eb)",
+                padding: "0 0.5rem",
+                fontSize: "0.85rem",
+              }}
+            />
+          </div>
+
+          {/* Active toggle */}
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: "0.8rem",
+              color: "var(--text-muted, #6b7280)",
+              marginTop: 2,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+            />
+            Mark account as active
+          </label>
+
+          {/* Actions */}
+          <div
+            style={{
+              marginTop: "0.5rem",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 8,
+            }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-outline"
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting || loadingProviders}
+            >
+              {submitting ? "Saving…" : "Save account"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 
 interface UtilitiesProps {
@@ -120,6 +611,20 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const { propertyId } = useParams<{ propertyId: string }>();
+  const [error, setError] = useState<string | null>(null);
+
+  // per-account import state
+  const [importingAccountId, setImportingAccountId] = useState<number | null>(
+    null,
+  );
+
+  // batch import state
+  const [batchImporting, setBatchImporting] = useState(false);
+  const [batchId, setBatchId] = useState<number | null>(null);
+  const [batchJobs, setBatchJobs] = useState<Record<string, number>>({});
+  const [batchErrors, setBatchErrors] = useState<
+    { accountId: number; provider: string; message: string }[]
+  >([]);
 
   const { data: utilityAccounts = [], isLoading: utilLoading } = useQuery({
     queryKey: ["utility-accounts", propertyId],
@@ -216,11 +721,168 @@ const safeBills = Array.isArray(bills)
   }, 0);
 
   const totalSpend = `$${(totalSpendCents / 100).toFixed(2)}`;
+  const handleImportAccount = async (utilityAccountId: number) => {
+    if (!utilityAccountId) return;
+
+    try {
+      setImportingAccountId(utilityAccountId);
+      setError(null);
+
+      // 1) Enqueue the job and get the job_id back
+      const enqueue = await fetchJSON(
+        `/utilities/import/${utilityAccountId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            billing_period: "latest",
+            requested_by: "admin", // TODO: use current user when auth wired
+          }),
+        },
+      );
+
+      const jobId = enqueue.job_id;
+
+      if (!jobId) {
+        setError(
+          "Scrape failed. Please try again. If you’ve already tried this twice, contact support.",
+        );
+        return;
+      }
+
+      // 2) Poll until done
+      const job = await pollJobStatus(jobId);
+
+      if (job.status === "failed") {
+        const friendly = prettifyImportError(job.message ?? null);
+        setError(friendly);
+        return;
+      }
+
+      // 3) On success, refresh bills/accounts via react-query
+      if (propertyId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["utility-bills", propertyId],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["utility-accounts", propertyId],
+        });
+      }
+
+      setError(null);
+      alert("Import completed for this account.");
+    } catch (err: any) {
+      const raw =
+        err?.message && typeof err.message === "string" ? err.message : null;
+      setError(prettifyImportError(raw));
+    } finally {
+      setImportingAccountId(null);
+    }
+  };
+
+  const handleBatchImport = async () => {
+    if (!propertyId) return;
+
+    try {
+      setBatchImporting(true);
+      setError(null);
+      setBatchErrors([]);
+      setBatchId(null);
+      setBatchJobs({});
+
+      // 1) Trigger batch import
+      const resp = await fetchJSON(
+        `/utilities/import/batch`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            scope: "property",
+            ref_id: Number(propertyId),
+            billing_period: "latest",
+            requested_by: "admin",
+          }),
+        }
+      );
+
+      const id = resp.batch_id;
+      setBatchId(id);
+      setBatchJobs(resp.jobs || {});
+
+      // 2) Poll until done
+      const result = await pollBatchStatus(id);
+
+      // 3) Determine which jobs failed
+      const failures: {
+        accountId: number;
+        provider: string;
+        message: string;
+      }[] = [];
+
+      for (const [accountIdStr, jobId] of Object.entries(resp.jobs || {})) {
+        const accountId = Number(accountIdStr);
+
+        const jobStatus = await fetchJSON(`/utilities/jobs/${jobId}`);
+
+        if (jobStatus.status === "failed") {
+          const acct = safeAccounts.find((a: any) => a.id === accountId);
+          failures.push({
+            accountId,
+            provider: acct ? acct.provider_name : "Unknown",
+            message: prettifyImportError(jobStatus.message),
+          });
+        }
+      }
+
+      setBatchErrors(failures);
+
+      // 4) Refresh bills/accounts
+      if (propertyId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["utility-bills", propertyId],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["utility-accounts", propertyId],
+        });
+      }
+
+      // 5) Error / success message
+      if (failures.length > 0) {
+        setError(
+          `Some accounts failed (${failures.length}). Check details or try again.`,
+        );
+      } else {
+        setError(null);
+        alert("Import completed for all accounts.");
+      }
+    } catch (err: any) {
+      const msg =
+        err?.message && typeof err.message === "string"
+          ? err.message
+          : "Batch import failed unexpectedly.";
+      setError(msg);
+    } finally {
+      setBatchImporting(false);
+    }
+  };
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const queryClient = useQueryClient();
 
 
   return (
     <div className="flex flex-col gap-6">
       {/* High Usage Insight Banner */}
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
       <div
         className="flex justify-between items-center self-stretch rounded-2xl border border-[#E5E5FF] px-4 py-3"
         style={{
@@ -440,7 +1102,9 @@ const safeBills = Array.isArray(bills)
               Utility Accounts
             </h2>
           </div>
-          <div className="flex items-start gap-2.5">
+
+          <div className="flex items-center gap-2.5">
+            {/* Search */}
             <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
               <svg
                 width="20"
@@ -463,6 +1127,8 @@ const safeBills = Array.isArray(bills)
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
               />
             </div>
+
+            {/* Filter */}
             <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
               <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                 Filter
@@ -482,6 +1148,44 @@ const safeBills = Array.isArray(bills)
                   strokeLinejoin="round"
                 />
               </svg>
+            </button>
+
+            {/* Add Account (primary blue pill) */}
+            <button
+              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#0A2A57] text-white hover:bg-[#0C3A75] transition-colors border border-[#0A2A57]"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8 3.333v9.334M3.333 8h9.334"
+                  stroke="white"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="text-sm font-medium">Add Account</span>
+            </button>
+
+
+            {/* Import (secondary) */}
+            <button
+              className={cn(
+                "flex h-9 items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white text-[#303030] hover:bg-gray-50 transition-colors",
+                batchImporting && "opacity-70 cursor-not-allowed",
+              )}
+              onClick={handleBatchImport}
+              disabled={batchImporting}
+            >
+              <span className="text-sm font-medium">
+                {batchImporting ? "Importing…" : "Import"}
+              </span>
             </button>
           </div>
         </div>
@@ -596,6 +1300,8 @@ const safeBills = Array.isArray(bills)
                       propertyId={account.id}
                       openMenuId={openUtilityMenuId}
                       setOpenMenuId={setOpenUtilityMenuId}
+                      onImport={handleImportAccount}  
+                      importing={importingAccountId === account.id}
                     />
                   </td>
                 </tr>
@@ -753,6 +1459,19 @@ const safeBills = Array.isArray(bills)
           </table>
         </div>
       </div>
+      {showCreateModal && propertyId && (
+        <CreateAccountModal
+          propertyId={Number(propertyId)}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={(_acct) => {
+            // re-fetch accounts so the new one shows up
+            queryClient.invalidateQueries({
+              queryKey: ["utility-accounts", propertyId],
+            });
+            setShowCreateModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

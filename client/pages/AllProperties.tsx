@@ -4,25 +4,64 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import { fetchJSON } from "@/api/fetchJSON";
+import AddPropertyModal from "@/components/AddPropertyModal";
+import { usePageState } from "@/hooks/usePageState";
+import { EnumToPropertyType } from "@/utils/propertyTypeMap";
+
+interface Manager {
+  id: number;
+  name: string;
+  initials: string;
+  color: string;
+}
+
 interface Property {
   id: number;
   address: string;
   location: string;
-  manager: string;
+  manager: string;  
   type: string;
   buildingId: string;
   status: "active" | "inactive";
 }
 
+type EditPropertyDTO = {
+  id: number;
+  name: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  property_type: string;
+  buildium_property_id: string;
+  active: boolean;
+
+  management_fee_cents: number | null;
+  hourly_rate_cents: number | null;
+  emergency_hourly_rate_cents: number | null;
+
+  manager_ids: number[];
+  manager_names: string[];
+};
+
+
+
+
 const ActionButton = ({
-  propertyId,
+  property,
   openMenuId,
   setOpenMenuId,
+  onEditClick,
+  onDeleteClick,
 }: {
-  propertyId: number;
+  property: Property;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onEditClick: (data: Property) => void;
+  onDeleteClick: (id: number) => void
 }) => {
+  const propertyId = property.id;
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -60,7 +99,10 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : propertyId)}
+        onClick={(e) => {
+          e.stopPropagation();              // <-- CRITICAL FIX
+          setOpenMenuId(showMenu ? null : propertyId);
+        }}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
@@ -82,7 +124,7 @@ const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
-            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
+            className="action-menu bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
               border: "0.5px solid #DADADA",
@@ -98,8 +140,9 @@ const ActionButton = ({
             onMouseLeave={() => setOpenMenuId(null)}
           >
             <button
-              onClick={() => {
-                console.log("Edit clicked for property", propertyId);
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClick(property);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -130,8 +173,10 @@ const ActionButton = ({
               </svg>
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
                 console.log("Delete clicked for property", propertyId);
+                e.stopPropagation();
+                onDeleteClick(propertyId);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -170,11 +215,19 @@ const ActionButton = ({
 
 export default function AllProperties() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
+  const [editingProperty, setEditingProperty] = useState<EditPropertyDTO | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,6 +235,22 @@ export default function AllProperties() {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const handlePropertyDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this property?")) return;
+  
+    try {
+      await fetchJSON(`/properties/${id}`, { method: "DELETE" });
+  
+      // Remove it from the UI
+      const updated = properties.filter((p) => p.id !== id);
+  
+      setProperties(updated);
+      setFilteredProperties(updated);
+    } catch (err: any) {
+      alert("Failed to delete: " + err.message);
+    }
+  };
+  
   // Load properties from backend
   useEffect(() => {
     async function load() {
@@ -193,11 +262,12 @@ export default function AllProperties() {
           id: p.id,
           address: p.address_line1,
           location: `${p.city}, ${p.state}`,
-          manager: "Carter Hughes",  // hardcoded per your request
-          type: p.property_type,
+          manager: p.manager_names?.join(", ") ?? "",
+          type: EnumToPropertyType[p.property_type] ?? p.property_type,
           buildingId: p.buildium_property_id,
           status: p.active ? "active" : "inactive",
         }));
+        
 
         setProperties(mapped);
         setFilteredProperties(mapped);   // NEW
@@ -224,6 +294,40 @@ export default function AllProperties() {
     setFilteredProperties(filtered);
     setCurrentPage(1); // reset pagination to page 1
   }, [searchTerm, properties]);
+  
+  const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = usePageState(
+    "isAddPropertyModalOpen",
+    false,
+  );
+
+  const handlePropertyEdit = async (property: Property) => {
+    try {
+      const full = await fetchJSON(`/properties/${property.id}`);
+  
+      setEditingProperty({
+        id: full.id,
+        name: full.name,
+        address_line1: full.address_line1,
+        address_line2: full.address_line2 ?? "",
+        city: full.city,
+        state: full.state,
+        postal_code: full.postal_code,
+        property_type: full.property_type,   
+        buildium_property_id: full.buildium_property_id,
+        active: full.active,
+        manager_ids: full.manager_ids,
+        manager_names: full.manager_names,
+        hourly_rate_cents: full.hourly_rate_cents,
+        emergency_hourly_rate_cents: full.emergency_hourly_rate_cents,
+        management_fee_cents: full.management_fee_cents,
+      });
+  
+      setIsAddPropertyModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load property.");
+    }
+  };
   
 
   useEffect(() => {
@@ -263,28 +367,25 @@ export default function AllProperties() {
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
@@ -325,7 +426,10 @@ export default function AllProperties() {
 
           {/* Add Property Button */}
           <div className="flex items-center gap-4">
-            <button className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors">
+            <button
+              onClick={() => setIsAddPropertyModalOpen(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+            >
               <svg
                 width="20"
                 height="20"
@@ -553,14 +657,13 @@ export default function AllProperties() {
                     <tr
                       key={property.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={() =>
+                      onClick={(e) => {
+                        // If the click came from the menu or the button, do nothing
+                        if ((e.target as HTMLElement).closest(".action-menu")) return;
                         navigate(`/property/${property.id}`, {
-                          state: {
-                            address: property.address,        // Street address
-                            location: property.location,      // City, State
-                          },
-                        })
-                      }
+                          state: { address: property.address, location: property.location },
+                        });
+                      }}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
@@ -605,9 +708,11 @@ export default function AllProperties() {
                         }}
                       >
                         <ActionButton
-                          propertyId={property.id}
+                          property={property}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEditClick={handlePropertyEdit}
+                          onDeleteClick={handlePropertyDelete}
                         />
                       </td>
                     </tr>
@@ -764,15 +869,28 @@ export default function AllProperties() {
                   );
                 })}
                 <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50",
                   )}
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn("font-medium text-sm text-gray-700")}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === totalPages
+                        ? "text-gray-400"
+                        : "text-gray-700",
+                    )}
+                  >
                     Next
                   </div>
                   <svg
@@ -803,6 +921,7 @@ export default function AllProperties() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",
@@ -848,6 +967,17 @@ export default function AllProperties() {
           </div>,
           document.body,
         )}
+
+      <AddPropertyModal
+        open={isAddPropertyModalOpen}
+        onOpenChange={(open) => {
+          setIsAddPropertyModalOpen(open);
+          if (!open) {
+            setEditingProperty(null);
+          }
+        }}
+        editData={editingProperty || undefined}
+      />
     </div>
   );
 }

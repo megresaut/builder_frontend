@@ -8,17 +8,21 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from "react";
 import TabContent from "./components/TabContent";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
+import WorkOrders from "./pages/WorkOrders";
+import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import TaskSummary from "./pages/TaskSummary";
 import RecurringTasks from "./pages/RecurringTasks";
+import Vendors from "./pages/Vendors";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
 import Utilities from "./pages/Utilities";
 import PropertyDetail from "./pages/PropertyDetail";
+import BlankPage from "./pages/BlankPage";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +36,15 @@ export default function App() {
   const [tabMetadata, setTabMetadataState] = useState<
     Record<string, TabMetadata>
   >({
-    properties: { label: "Properties" },
+    properties: { label: "Properties", route: "/all-properties" },
+    portfolio: { label: "Portfolio", route: "/" },
+    screening: { label: "Screening", route: "/" },
+    bills: { label: "Bills", route: "/bills" },
+    "field-team-orders": {
+      label: "Field Team Orders",
+      route: "/field-team-orders",
+    },
+    "work-orders": { label: "Work Orders", route: "/work-orders" },
   });
 
   const setTabMetadata = (tabId: string, metadata: TabMetadata) => {
@@ -57,7 +69,7 @@ export default function App() {
                   path="/"
                   element={
                     <ShellLayout>
-                      <TabContent />
+                      <AllTasks />
                     </ShellLayout>
                   }
                 />
@@ -66,6 +78,14 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <FieldTeamOrders />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/work-orders"
+                  element={
+                    <ShellLayout>
+                      <MaintenanceWorkOrders />
                     </ShellLayout>
                   }
                 />
@@ -126,10 +146,42 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/vendors"
+                  element={
+                    <ShellLayout>
+                      <Vendors />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/tasks/:taskId/:tab/:workOrderId"
+                  element={
+                    <ShellLayout>
+                      <TaskSummary />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/tasks/:taskId/:tab"
+                  element={
+                    <ShellLayout>
+                      <TaskSummary />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/tasks/:taskId"
                   element={
                     <ShellLayout>
                       <TaskSummary />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/blank"
+                  element={
+                    <ShellLayout>
+                      <BlankPage />
                     </ShellLayout>
                   }
                 />

@@ -1,309 +1,371 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
-import {
-  StatusBadge,
-  BillStatusBadge,
-  AIInsightBadge,
-  ActionButton,
-} from "../Utilities";
-import { AlertBanner } from "@/components/AlertBanner";
+import { fetchJSON } from "@/api/fetchJSON";
 import { InvoiceTable } from "@/components/InvoiceTable";
 import { InvoiceHistoryTable } from "@/components/InvoiceHistoryTable";
-
-interface UtilityAccount {
-  id: number;
-  provider: string;
-  account: string;
-  status: "active" | "inactive";
-  lastBillDate: string;
-  lastBillAmount: string;
-  lastImport: string;
-  icon?: React.ReactNode;
-}
-
-interface Bill {
-  id: number;
-  provider: string;
-  date: string;
-  aiUsageInsight: "High" | "Normal" | "Low";
-  changeFromLastBill: string;
-  status: "Pushed" | "Push Failed";
-  amount: string;
-  icon?: React.ReactNode;
-}
-
-const getProviderIcon = (provider: string) => {
-  switch (provider) {
-    case "National Grid":
-      return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M11.2558 18.9774C14.2023 18.3873 18.0123 16.2674 18.0123 10.7863C18.0123 5.79907 14.3616 2.47739 11.7365 0.951337C11.1531 0.612005 10.4716 1.05785 10.4716 1.7318V3.45485C10.4716 4.81406 9.90036 7.29495 8.31305 8.32709C7.50242 8.85399 6.62581 8.06505 6.52778 7.10361L6.44672 6.31372C6.35246 5.39564 5.41742 4.83857 4.68408 5.39847C3.3654 6.40232 1.98828 8.16496 1.98828 10.7854C1.98828 17.4881 6.97363 19.165 9.46583 19.165C9.61162 19.165 9.76369 19.1602 9.92204 19.1508C8.69102 19.0462 6.70122 18.2827 6.70122 15.8131C6.70122 13.8808 8.11039 12.5753 9.18117 11.9391C9.4696 11.7694 9.8061 11.9909 9.8061 12.3255V12.8817C9.8061 13.3058 9.97106 13.9704 10.3622 14.4247C10.8052 14.9393 11.4547 14.4002 11.5065 13.7234C11.5235 13.5104 11.7384 13.3746 11.9232 13.4821C12.5274 13.8356 13.2993 14.5896 13.2993 15.8131C13.2993 17.7435 12.2352 18.6315 11.2558 18.9774Z"
-            fill="#BC423E"
-          />
-        </svg>
-      );
-    case "ConEd":
-      return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M11.6593 1.77024C11.7052 1.40316 11.5036 1.04977 11.1642 0.902458C10.8249 0.755151 10.429 0.849194 10.1922 1.13339L2.751 10.0628C2.6224 10.2171 2.49215 10.3733 2.39732 10.5107C2.30763 10.6405 2.14387 10.8958 2.13881 11.2314C2.13302 11.6155 2.3042 11.981 2.60301 12.2224C2.86402 12.4334 3.16499 12.471 3.32217 12.4852C3.48835 12.5003 3.69176 12.5002 3.89258 12.5002L9.05509 12.5002L8.33884 18.2302C8.29295 18.5973 8.49456 18.9507 8.83391 19.098C9.17326 19.2453 9.56909 19.1512 9.80592 18.867L17.2471 9.93758C17.3757 9.78332 17.506 9.62707 17.6008 9.48977C17.6905 9.35991 17.8543 9.1046 17.8593 8.76906C17.8651 8.38491 17.6939 8.01945 17.3951 7.77798C17.1341 7.56705 16.8331 7.52941 16.676 7.51518C16.5098 7.50013 16.3064 7.50017 16.1055 7.50021L10.9431 7.50021L11.6593 1.77024Z"
-            fill="#EBA524"
-          />
-        </svg>
-      );
-    case "Greenwich Water":
-      return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M10.0005 19.165C7.85413 19.165 6.06437 18.4286 4.63119 16.956C3.198 15.4833 2.4811 13.6503 2.48047 11.457C2.48047 10.4856 2.6998 9.5143 3.13847 8.54297C3.57713 7.57163 4.12547 6.63947 4.78347 5.74647C5.44147 4.85347 6.1543 4.0153 6.92197 3.23197C7.68963 2.44864 8.40246 1.76714 9.06046 1.18747C9.1858 1.06214 9.33087 0.972211 9.49568 0.917691C9.6605 0.863171 9.82876 0.835598 10.0005 0.834971C10.1722 0.834345 10.3407 0.861918 10.5062 0.917691C10.6716 0.973465 10.8164 1.06339 10.9405 1.18747C11.5985 1.76714 12.3113 2.44864 13.079 3.23197C13.8466 4.0153 14.5595 4.85347 15.2175 5.74647C15.8755 6.63947 16.4238 7.57163 16.8625 8.54297C17.3011 9.5143 17.5205 10.4856 17.5205 11.457C17.5205 13.6503 16.8039 15.4833 15.3707 16.956C13.9375 18.4286 12.1474 19.165 10.0005 19.165ZM10.259 16.345C10.447 16.3293 10.6077 16.2547 10.7412 16.1212C10.8747 15.9878 10.9411 15.8273 10.9405 15.64C10.9405 15.4206 10.87 15.2445 10.729 15.1117C10.588 14.9788 10.4078 14.9199 10.1885 14.935C9.54613 14.982 8.86463 14.8059 8.14396 14.4067C7.4233 14.0075 6.96897 13.2828 6.78097 12.2325C6.74963 12.0601 6.66754 11.9191 6.53469 11.8095C6.40183 11.6998 6.24893 11.645 6.07597 11.645C5.85663 11.645 5.67647 11.7274 5.53547 11.8922C5.39447 12.057 5.34747 12.2488 5.39447 12.4675C5.6608 13.8931 6.28747 14.9115 7.27447 15.5225C8.26147 16.1335 9.2563 16.4076 10.259 16.345Z"
-            fill="#2463EB"
-          />
-        </svg>
-      );
-    case "Optium":
-      return (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M12.9469 5.87503C13.2724 5.54959 13.8 5.54959 14.1254 5.87503C16.4035 8.15308 16.4035 11.8465 14.1254 14.1246C13.8 14.45 13.2724 14.45 12.9469 14.1246C12.6215 13.7992 12.6215 13.2715 12.9469 12.9461C14.5741 11.3189 14.5741 8.68072 12.9469 7.05354C12.6215 6.7281 12.6215 6.20046 12.9469 5.87503Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M7.05437 5.875C7.37981 6.20043 7.37981 6.72807 7.05437 7.05351C5.42719 8.68069 5.42719 11.3189 7.05437 12.9461C7.37981 13.2715 7.37981 13.7991 7.05437 14.1246C6.72894 14.45 6.2013 14.45 5.87586 14.1246C3.5978 11.8465 3.5978 8.15306 5.87586 5.875C6.2013 5.54956 6.72894 5.54956 7.05437 5.875Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M4.69735 3.518C5.02279 3.84344 5.02279 4.37108 4.69735 4.69651C1.76842 7.62545 1.76842 12.3742 4.69735 15.3031C5.02279 15.6286 5.02279 16.1562 4.69735 16.4816C4.37191 16.8071 3.84428 16.8071 3.51884 16.4816C-0.0609673 12.9018 -0.0609673 7.09781 3.51884 3.518C3.84428 3.19257 4.37191 3.19257 4.69735 3.518Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M15.304 3.51804C15.6294 3.1926 16.157 3.1926 16.4825 3.51804C20.0623 7.09785 20.0623 12.9019 16.4825 16.4817C16.157 16.8071 15.6294 16.8071 15.304 16.4817C14.9785 16.1562 14.9785 15.6286 15.304 15.3032C18.2329 12.3742 18.2329 7.62549 15.304 4.69655C14.9785 4.37112 14.9785 3.84348 15.304 3.51804Z"
-            fill="#059669"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M7.50065 9.99982C7.50065 8.6191 8.61994 7.49982 10.0007 7.49982C11.3814 7.49982 12.5007 8.6191 12.5007 9.99982C12.5007 11.3805 11.3814 12.4998 10.0007 12.4998C8.61994 12.4998 7.50065 11.3805 7.50065 9.99982Z"
-            fill="#059669"
-          />
-        </svg>
-      );
-    default:
-      return null;
-  }
-};
-
-const utilityAccounts: UtilityAccount[] = [
-  {
-    id: 1,
-    provider: "National Grid",
-    account: "#28591-03",
-    status: "active",
-    lastBillDate: "Oct 1, 2025",
-    lastBillAmount: "$420",
-    lastImport: "2h ago",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 2,
-    provider: "ConEd",
-    account: "#19374-09",
-    status: "inactive",
-    lastBillDate: "Sep 28, 2025",
-    lastBillAmount: "$180",
-    lastImport: "4h ago",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 3,
-    provider: "Greenwich Water",
-    account: "#57392-02",
-    status: "active",
-    lastBillDate: "Sep 9, 2025",
-    lastBillAmount: "$95",
-    lastImport: "2 days ago",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 4,
-    provider: "Optium",
-    account: "#95738-08",
-    status: "active",
-    lastBillDate: "Sep 5, 2025",
-    lastBillAmount: "$89",
-    lastImport: "3 days ago",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 5,
-    provider: "Optium",
-    account: "#36829-05",
-    status: "active",
-    lastBillDate: "Sep 2, 2025",
-    lastBillAmount: "$89",
-    lastImport: "4 days ago",
-    icon: getProviderIcon("Optium"),
-  },
-];
-
-const bills: Bill[] = [
-  {
-    id: 1,
-    provider: "ConEd",
-    date: "Oct 4, 2025",
-    aiUsageInsight: "High",
-    changeFromLastBill: "↑ 8%",
-    status: "Push Failed",
-    amount: "$234",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 2,
-    provider: "National Grid",
-    date: "Oct 3, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 1.3%",
-    status: "Pushed",
-    amount: "$287",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 3,
-    provider: "Greenwich Water",
-    date: "Oct 2, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 9%",
-    status: "Pushed",
-    amount: "$156",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 4,
-    provider: "Optium",
-    date: "Oct 1, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 7.2%",
-    status: "Pushed",
-    amount: "$234",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 5,
-    provider: "ConEd",
-    date: "Oct 1, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 5%",
-    status: "Push Failed",
-    amount: "$167",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 6,
-    provider: "National Grid",
-    date: "Sep 30, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 9.4%",
-    status: "Pushed",
-    amount: "$312",
-    icon: getProviderIcon("National Grid"),
-  },
-  {
-    id: 7,
-    provider: "Greenwich Water",
-    date: "Sep 29, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 0.8%",
-    status: "Pushed",
-    amount: "$256",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-  {
-    id: 8,
-    provider: "Optium",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Low",
-    changeFromLastBill: "↓ 8.5%",
-    status: "Pushed",
-    amount: "$178",
-    icon: getProviderIcon("Optium"),
-  },
-  {
-    id: 9,
-    provider: "ConEd",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↑ 2.1%",
-    status: "Pushed",
-    amount: "$213",
-    icon: getProviderIcon("ConEd"),
-  },
-  {
-    id: 10,
-    provider: "Greenwich Water",
-    date: "Sep 28, 2025",
-    aiUsageInsight: "Normal",
-    changeFromLastBill: "↓ 5%",
-    status: "Pushed",
-    amount: "$145",
-    icon: getProviderIcon("Greenwich Water"),
-  },
-];
-
+import { useParams } from "react-router-dom";
 interface InvoicingProps {
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
 }
 
-export const Invoicing: React.FC<InvoicingProps> = ({
-  propertyAddress,
-  propertyType,
-  propertyUnits,
+function mapBackendToUI(li: any) {
+  // 1. UI Source
+  const source =
+    {
+      utility: "Utility",
+      vendor: "Vendor",
+      fto_hours: "FTO (Hours)",
+      fto_expense: "FTO (Expense)",
+      management_fee: "Management Fee",
+      other: "Other"
+    }[li.source_type] || "Other";
+
+  // 2. UI Status rules
+  const status =
+    li.source_type === "vendor"
+      ? "Paid"
+      : li.source_type === "utility"
+      ? "Approved"
+      : (li.source_type === "fto_hours" || li.source_type === "fto_expense")
+      ? "Pending"
+      : "Pending";
+
+  // 3. Amount formatting
+  const amount =
+    li.amount != null ? `$${li.amount.toFixed(2)}` : "—";
+
+  return {
+    id: li.id,
+    vendor: li.source || li.description,
+    glAccount: "—",
+    description: li.description,
+    amount,
+    source,
+    status
+  };
+}
+
+
+function mapHistoryToUI(inv: any) {
+  const date = new Date(inv.invoice_month);
+  const dateStr = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  // We don't have due_date now → placeholder for now
+  const dueDateStr = "—";
+
+  // Amount formatting
+  const amountStr = inv.total_amount != null ? `$${inv.total_amount.toFixed(2)}` : "—";
+
+  // Status: raw DB status is “finalized”
+  const status = "Paid";
+
+  return {
+    id: inv.id,
+    date: dateStr,
+    dueDate: dueDateStr,
+    amount: amountStr,
+    status,
+  };
+}
+
+const ActionButton = ({
+  itemId,
+  openMenuId,
+  setOpenMenuId,
+}: {
+  itemId: string;
+  openMenuId: string | null;
+  setOpenMenuId: (id: string | null) => void;
 }) => {
-  const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(
-    null,
+  const showMenu = openMenuId === itemId;
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateMenuPos = () => {
+      if (showMenu && buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setMenuPos({
+          top: rect.bottom + 8,
+          left: rect.right - 145,
+        });
+      }
+
+      if (showMenu) {
+        animationFrameId = requestAnimationFrame(updateMenuPos);
+      }
+    };
+
+    if (showMenu) {
+      updateMenuPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showMenu]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={() => setOpenMenuId(showMenu ? null : itemId)}
+        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="1" />
+          <circle cx="19" cy="12" r="1" />
+          <circle cx="5" cy="12" r="1" />
+        </svg>
+      </button>
+
+      {showMenu &&
+        createPortal(
+          <div
+            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
+            style={{
+              width: "145px",
+              border: "0.5px solid #DADADA",
+              borderRadius: "8px",
+              boxShadow:
+                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+              zIndex: 99999,
+              position: "fixed",
+              top: menuPos.top + "px",
+              left: menuPos.left + "px",
+              pointerEvents: "auto",
+            }}
+            onMouseLeave={() => setOpenMenuId(null)}
+          >
+            <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
+              >
+                Edit
+              </span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                  stroke="#525252"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
+              >
+                Delete
+              </span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                  stroke="#982740"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>,
+          document.body,
+        )}
+    </>
   );
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+};
+
+export const Invoicing: React.FC<InvoicingProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [invoiceHistory, setInvoiceHistory] = useState([]);
+  const { propertyId } = useParams();
+  const [propertyAddress, setPropertyAddress] = useState("");
 
-  const totalPages = Math.ceil(bills.length / itemsPerPage);
+  useEffect(() => {
+    async function loadProperty() {
+      if (!propertyId) return;
+      try {
+        const prop = await fetchJSON(`/properties/${propertyId}`);
+        setPropertyAddress(prop.address);
+      } catch (err) {
+        console.error("Failed to load property", err);
+      }
+    }
+    loadProperty();
+  }, [propertyId]);
+
+  
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showPageSizeDropdown && dropdownButtonRef.current) {
+        const rect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    updateDropdownPos();
+
+    if (showPageSizeDropdown) {
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
+      window.addEventListener("resize", updateDropdownPos);
+      window.addEventListener("scroll", updateDropdownPos);
+    }
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", updateDropdownPos);
+      window.removeEventListener("scroll", updateDropdownPos);
+    };
+  }, [showPageSizeDropdown]);
+
+
+  useEffect(() => {
+    async function loadHistory() {
+      if (!propertyId) return;
+      try {
+        const hist = await fetchJSON(`/invoicing/history?property_id=${propertyId}`);
+        setInvoiceHistory(hist.map((h: any) => mapHistoryToUI(h)));
+      } catch (err) {
+        console.error("Failed to load invoice history", err);
+      }
+    }
+  
+    loadHistory();
+  }, [propertyId]);
+  
+  useEffect(() => {
+    const handleClickAnywhere = () => {
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickAnywhere);
+    return () => document.removeEventListener("mousedown", handleClickAnywhere);
+  }, []);
+
+  const invoiceItems = [
+    {
+      id: 1,
+      vendor: "Elite HVAC",
+      vendorIcon:
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390?placeholderIfAbsent=true",
+      vendorBg: "#FFF0EF",
+      vendorBorder: "rgba(188, 66, 62, 0.22)",
+      glAccount: "ConEd - 1,220 kWh",
+      description: "ConEd - 1,220 kWh",
+      amount: "$420",
+      source: "Auto-Import",
+      status: "Paid",
+      statusColor: "#059669",
+      statusBg: "#D1FAE5",
+    },
+    {
+      id: 2,
+      vendor: "ABC Plumbing",
+      vendorIcon:
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/6a406e4d9d31a0d96e167fc376208ee79f53def5?placeholderIfAbsent=true",
+      vendorBg: "#FEFCDB",
+      vendorBorder: "rgba(235, 165, 36, 0.22)",
+      glAccount: "Unit 48 Thermostat",
+      description: "Unit 48 Thermostat",
+      amount: "$380",
+      source: "Vendor",
+      status: "Pending",
+      statusColor: "#D97706",
+      statusBg: "#FEF3C7",
+    },
+    {
+      id: 3,
+      vendor: "Elite HVAC",
+      vendorIcon:
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/c163c3bcaa194a5f948a36680b0501ecd8569640?placeholderIfAbsent=true",
+      vendorBg: "#DBE9FE",
+      vendorBorder: "rgba(36, 99, 235, 0.22)",
+      glAccount: "Tools for common area",
+      description: "Tools for common area",
+      amount: "$120",
+      source: "Manual",
+      status: "Approved",
+      statusColor: "#2463EB",
+      statusBg: "#DBE9FE",
+    },
+  ];
+  const [lineItems, setLineItems] = useState([]);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        // STEP 1 — get current draft invoice id
+        const inv = await fetchJSON(`/invoicing/current-draft?property_id=${propertyId}`);
+        const invoiceId = inv.invoice_id;
+  
+        // STEP 2 — fetch line items
+        const data = await fetchJSON(`/invoicing/line-items-expanded?id=${invoiceId}`);
+        setLineItems(data.map((li: any) => mapBackendToUI(li)));
+      } catch (err) {
+        console.error("Failed to load invoice items", err);
+      }
+    }
+  
+    load();
+  }, []);
+  
+
+  const totalInvoices = invoiceHistory.length;
+  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
+  const paginatedHistory = invoiceHistory.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -312,78 +374,83 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
     return pages;
   };
 
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateDropdownPos = () => {
-      if (dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + window.scrollY,
-          left: rect.left + window.scrollX,
-        });
-      }
-    };
-
-    if (showPageSizeDropdown) {
-      updateDropdownPos();
-    }
-
-    window.addEventListener("scroll", () => {
-      if (showPageSizeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
-      }
-    });
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showPageSizeDropdown]);
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-0">
       {/* Alert Banner */}
-      <AlertBanner
-        title="Unapproved Expenses "
-        message="There Are Unapproved Field Team Expenses Outstanding. Please Review Before Invoicing Client."
-        actionText="View"
-      />
+      <div
+        className="flex items-center justify-between self-stretch rounded-2xl border border-[#E5E5FF] p-3 px-4"
+        style={{
+          boxShadow:
+            "4px -4px 14px 0 rgba(0, 28, 237, 0.07) inset, -4px 4px 14px 0 rgba(237, 0, 217, 0.07) inset",
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g clipPath="url(#clip0_10950_5031)">
+              <path
+                d="M3.00065 14.6668V11.3335M3.00065 4.66683V1.3335M1.33398 3.00016H4.66732M1.33398 13.0002H4.66732M8.66732 2.00016L7.5112 5.00607C7.32319 5.49489 7.22919 5.7393 7.083 5.94489C6.95344 6.12709 6.79425 6.28629 6.61204 6.41585C6.40646 6.56203 6.16204 6.65604 5.67322 6.84404L2.66732 8.00016L5.67323 9.15628C6.16205 9.34429 6.40646 9.43829 6.61204 9.58448C6.79425 9.71404 6.95344 9.87323 7.083 10.0554C7.22919 10.261 7.32319 10.5054 7.5112 10.9943L8.66732 14.0002L9.82344 10.9943C10.0114 10.5054 10.1054 10.261 10.2516 10.0554C10.3812 9.87323 10.5404 9.71404 10.7226 9.58448C10.9282 9.43829 11.1726 9.34429 11.6614 9.15628L14.6673 8.00016L11.6614 6.84404C11.1726 6.65604 10.9282 6.56203 10.7226 6.41585C10.5404 6.28629 10.3812 6.12709 10.2516 5.94489C10.1054 5.7393 10.0114 5.49489 9.82344 5.00607L8.66732 2.00016Z"
+                stroke="#1D407F"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
+            <defs>
+              <clipPath id="clip0_10950_5031">
+                <rect width="16" height="16" fill="white" />
+              </clipPath>
+            </defs>
+          </svg>
+          <div className="text-base font-medium leading-[1.4] tracking-[-0.32px] capitalize">
+            <span className="font-bold">unapproved Expenses</span>
+            <span className="font-medium">
+              {" "}
+              - There are unapproved Field Team Expenses Outstanding. Please
+              Review before invoicing client.
+            </span>
+          </div>
+        </div>
+        <div className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap">
+          View 2 Insights
+        </div>
+      </div>
 
       {/* This Month's Invoice */}
-      <InvoiceTable />
+      <InvoiceTable items={lineItems} propertyAddress={propertyAddress} />
 
       {/* Invoice History */}
-      <InvoiceHistoryTable />
+      <InvoiceHistoryTable items={invoiceHistory} />
 
       {/* Dropdown Menu - Rendered via Portal at body level */}
       {showPageSizeDropdown &&
@@ -401,22 +468,31 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               position: "fixed",
               top: dropdownPos.top + "px",
               left: dropdownPos.left + "px",
+              pointerEvents: "auto",
             }}
+            onMouseLeave={() => setShowPageSizeDropdown(false)}
           >
-            {[5, 10, 15, 20].map((size) => (
+            {[10, 25, 50].map((size, index) => (
               <button
                 key={size}
                 onClick={() => {
                   setItemsPerPage(size);
-                  setShowPageSizeDropdown(false);
                   setCurrentPage(1);
+                  setShowPageSizeDropdown(false);
                 }}
-                className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors",
+                className={`w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap ${
                   itemsPerPage === size
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-700 hover:bg-gray-50",
-                )}
+                    ? "bg-gray-50 font-medium text-gray-900"
+                    : "text-[#303030] hover:bg-gray-50"
+                }`}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "16px",
+                  lineHeight: "140%",
+                  letterSpacing: "-0.32px",
+                  borderRadius: index === 2 ? "0 0 8px 8px" : "0",
+                }}
               >
                 {size}
               </button>

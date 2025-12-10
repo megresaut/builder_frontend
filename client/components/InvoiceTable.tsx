@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { VendorAvatar } from "./VendorAvatar";
 import { StatusBadge } from "./StatusBadge";
+import { InvoicePreviewModal } from "./invoicing/InvoicePreviewModal";
 
 interface InvoiceLineItem {
   id: number;
@@ -12,38 +13,13 @@ interface InvoiceLineItem {
   status: "Paid" | "Pending" | "Approved" | "Overdue" | "Draft";
 }
 
-const invoiceItems: InvoiceLineItem[] = [
-  {
-    id: 1,
-    vendor: "Elite HVAC",
-    glAccount: "ConEd - 1,220 kWh",
-    description: "ConEd - 1,220 kWh",
-    amount: "$420",
-    source: "Auto-Import",
-    status: "Paid",
-  },
-  {
-    id: 2,
-    vendor: "ABC Plumbing",
-    glAccount: "Unit 48 Thermostat",
-    description: "Unit 48 Thermostat",
-    amount: "$380",
-    source: "Vendor",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    vendor: "Elite HVAC",
-    glAccount: "Tools for common area",
-    description: "Tools for common area",
-    amount: "$120",
-    source: "Manual",
-    status: "Approved",
-  },
-];
 
-export const InvoiceTable: React.FC = () => {
+export const InvoiceTable: React.FC<{
+  items: InvoiceLineItem[];
+  propertyAddress: string;
+}> = ({ items, propertyAddress }) => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   return (
     <div
@@ -492,12 +468,12 @@ export const InvoiceTable: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {invoiceItems.map((item, index) => (
+            {items.map((item, index) => (
               <tr
                 key={item.id}
                 style={{
                   borderBottom:
-                    index === invoiceItems.length - 1
+                    index === items.length - 1
                       ? "none"
                       : "1px solid rgb(218, 218, 218)",
                   height: "56px",
@@ -623,6 +599,7 @@ export const InvoiceTable: React.FC = () => {
             Save Draft
           </button>
           <button
+            onClick={() => setShowPreview(true)}
             style={{
               display: "flex",
               alignItems: "center",
@@ -639,11 +616,23 @@ export const InvoiceTable: React.FC = () => {
               fontWeight: "500",
               color: "rgb(255, 255, 255)",
             }}
-          >
+            > 
             Preview PDF
           </button>
         </div>
       </div>
+      {showPreview && (
+        <InvoicePreviewModal
+          onClose={() => setShowPreview(false)}
+          invoice={{
+            clientName: "Client Name",    // Or real value
+            propertyName: propertyAddress, // Your property.name
+            propertyAddress: propertyAddress,
+            invoiceDate: new Date()
+          }}
+          items={items}
+        />
+      )}
     </div>
   );
 };

@@ -9,83 +9,14 @@ interface InvoiceHistory {
   status: "Paid" | "Pending" | "Overdue" | "Draft";
 }
 
-const invoiceHistory: InvoiceHistory[] = [
-  {
-    id: 1,
-    date: "Oct 1, 2025",
-    dueDate: "Dec 17, 2025",
-    amount: "$237",
-    status: "Paid",
-  },
-  {
-    id: 2,
-    date: "Oct 1, 2025",
-    dueDate: "Dec 10, 2025",
-    amount: "$639",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    date: "Sep 28, 2025",
-    dueDate: "Dec 3, 2025",
-    amount: "$482",
-    status: "Overdue",
-  },
-  {
-    id: 4,
-    date: "Sep 21, 2025",
-    dueDate: "Nov 26, 2025",
-    amount: "$183",
-    status: "Pending",
-  },
-  {
-    id: 5,
-    date: "Sep 14, 2025",
-    dueDate: "Nov 19, 2025",
-    amount: "$711",
-    status: "Overdue",
-  },
-  {
-    id: 6,
-    date: "Sep 7, 2025",
-    dueDate: "Nov 12, 2025",
-    amount: "$335",
-    status: "Overdue",
-  },
-  {
-    id: 7,
-    date: "Aug 31, 2025",
-    dueDate: "Nov 5, 2025",
-    amount: "$558",
-    status: "Paid",
-  },
-  {
-    id: 8,
-    date: "Aug 24, 2025",
-    dueDate: "Oct 29, 2025",
-    amount: "$294",
-    status: "Paid",
-  },
-  {
-    id: 9,
-    date: "Aug 17, 2025",
-    dueDate: "Oct 22, 2025",
-    amount: "$672",
-    status: "Pending",
-  },
-  {
-    id: 10,
-    date: "Aug 10, 2025",
-    dueDate: "Oct 15, 2025",
-    amount: "$416",
-    status: "Pending",
-  },
-];
 
-export const InvoiceHistoryTable: React.FC = () => {
+export const InvoiceHistoryTable: React.FC<{ items: InvoiceHistory[] }> = ({
+  items,
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(invoiceHistory.length / itemsPerPage);
+  const totalInvoices = items.length;
+  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -94,28 +25,25 @@ export const InvoiceHistoryTable: React.FC = () => {
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
@@ -123,7 +51,7 @@ export const InvoiceHistoryTable: React.FC = () => {
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedItems = invoiceHistory.slice(
+  const paginatedItems = items.slice(
     startIndex,
     startIndex + itemsPerPage,
   );
@@ -607,7 +535,7 @@ export const InvoiceHistoryTable: React.FC = () => {
                 color: "rgb(82, 82, 82)",
               }}
             >
-              of {invoiceHistory.length}
+              of {items.length}
             </span>
           </div>
 

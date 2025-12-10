@@ -12,6 +12,7 @@ function formatDate(value: string | null | undefined): string {
   // value: "2025-09-08T00:00:00Z" → take only YYYY-MM-DD
   return value.split("T")[0];
 }
+import { usePageState } from "@/hooks/usePageState";
 
 interface Bill {
   id: number;
@@ -74,15 +75,30 @@ function getVendorColor(vendor: string) {
 }
 
 export default function Bills() {
-  const [selectedTab, setSelectedTab] = useState<"approved" | "drafts">(
+  const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
+    "selectedTab",
     "approved",
   );
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [isRecordBillModalOpen, setIsRecordBillModalOpen] = useState(false);
-  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [isRecordBillModalOpen, setIsRecordBillModalOpen] = usePageState(
+    "isRecordBillModalOpen",
+    false,
+  );
+  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
+    "isAddVendorModalOpen",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [bills, setBills] = useState<Bill[]>([]);
   const [filteredBills, setFilteredBills] = useState<Bill[]>([]);
@@ -199,28 +215,25 @@ export default function Bills() {
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
@@ -842,15 +855,28 @@ export default function Bills() {
                   );
                 })}
                 <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    currentPage === totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50",
                   )}
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0)",
                   }}
                 >
-                  <div className={cn("font-medium text-sm text-gray-700")}>
+                  <div
+                    className={cn(
+                      "font-medium text-sm",
+                      currentPage === totalPages
+                        ? "text-gray-400"
+                        : "text-gray-700",
+                    )}
+                  >
                     Next
                   </div>
                   <svg
@@ -881,6 +907,7 @@ export default function Bills() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",

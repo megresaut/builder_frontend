@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import FTOApprovalModal from "@/components/FTOApprovalModal";
+import { usePageState } from "@/hooks/usePageState";
 
 
 export function StatusBadge({ status }: { status: string }) {
@@ -143,18 +145,19 @@ interface FieldTeamOrder {
 
 
 const ActionButton = ({
-  orderId,
+  order,
   openMenuId,
   setOpenMenuId,
   setEditingFTOId,
   setShowFTOModal,
 }: {
-  orderId: number;
+  order: FieldTeamOrder;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   setEditingFTOId: (id: number | null) => void;
   setShowFTOModal: (open: boolean) => void;
 }) => {
+  const orderId = order.id;
   const showMenu = openMenuId === orderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -244,6 +247,30 @@ const ActionButton = ({
                     "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 }}
               >
+                Approve
+              </span>
+              <img
+                loading="lazy"
+                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b13c8f79f0bbe495c159d6f52432780ef6582cfb?placeholderIfAbsent=true"
+                className="w-4 h-4"
+                alt=""
+              />
+            </button>
+            <button
+              onClick={() => {
+                setOpenMenuId(null);
+                setEditingFTOId(orderId);
+                setShowFTOModal(true);
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+            >
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
+              >
                 Edit
               </span>
               <svg
@@ -309,6 +336,7 @@ export default function FieldTeamOrders() {
   const [showFTOModal, setShowFTOModal] = useState(false);
   const [editingFTOId, setEditingFTOId] = useState<number | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
 
@@ -347,7 +375,33 @@ export default function FieldTeamOrders() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(225 / itemsPerPage);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
+
+        if (isClickOutside) {
+          setShowPageSizeDropdown(false);
+        }
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showPageSizeDropdown]);
+
+  const totalOrders = fieldTeamOrders.length;
+  const totalPages = Math.ceil(totalOrders / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -356,28 +410,25 @@ export default function FieldTeamOrders() {
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
@@ -721,7 +772,7 @@ export default function FieldTeamOrders() {
                         }}
                       >
                         <ActionButton
-                          orderId={order.id}
+                          order={order}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
                           setEditingFTOId={setEditingFTOId}
@@ -920,6 +971,7 @@ export default function FieldTeamOrders() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",

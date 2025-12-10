@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
+import { usePageState } from "@/hooks/usePageState";
+
 interface Property {
   id: number;
   address: string;
@@ -266,10 +268,15 @@ export const ActionButton = ({
   propertyId,
   openMenuId,
   setOpenMenuId,
+  onImport,         // ✅ NEW
+  importing = false // ✅ NEW
 }: {
   propertyId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+
+  onImport?: (accountId: number) => Promise<void>; // NEW
+  importing?: boolean; // NEW
 }) => {
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -293,34 +300,20 @@ export const ActionButton = ({
       }
     };
 
-    if (showMenu) {
-      updateMenuPos();
-    }
+    if (showMenu) updateMenuPos();
 
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
+    return () => animationFrameId && cancelAnimationFrame(animationFrameId);
   }, [showMenu]);
 
   return (
     <>
+      {/* Dot menu button */}
       <button
         ref={buttonRef}
         onClick={() => setOpenMenuId(showMenu ? null : propertyId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="1" />
           <circle cx="19" cy="12" r="1" />
           <circle cx="5" cy="12" r="1" />
@@ -336,7 +329,7 @@ export const ActionButton = ({
               border: "0.5px solid #DADADA",
               borderRadius: "8px",
               boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                "0 38px 11px 0 rgba(0,0,0,0.00), 0 24px 10px 0 rgba(0,0,0,0.01), 0 14px 8px 0 rgba(0,0,0,0.04), 0 6px 6px 0 rgba(0,0,0,0.06), 0 2px 3px 0 rgba(0,0,0,0.07)",
               zIndex: 99999,
               position: "fixed",
               top: menuPos.top + "px",
@@ -345,6 +338,47 @@ export const ActionButton = ({
             }}
             onMouseLeave={() => setOpenMenuId(null)}
           >
+
+            {/* ---------------------- */}
+            {/*   IMPORT BUTTON        */}
+            {/* ---------------------- */}
+            <button
+              disabled={!onImport}
+              onClick={async () => {
+                setOpenMenuId(null);
+                if (onImport) {
+                  await onImport(propertyId);
+                }
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity disabled:opacity-40"
+            >
+              <span
+                className="text-[#303030] font-normal text-base"
+                style={{ fontFamily: "Geist, -apple-system, Roboto" }}
+              >
+                {importing ? "Importing…" : "Import"}
+              </span>
+
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 2.25V12.75M9 12.75L12.75 9M9 12.75L5.25 9"
+                  stroke="#0A2A57"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+
+            {/* ---------------------- */}
+            {/*   EDIT BUTTON          */}
+            {/* ---------------------- */}
             <button
               onClick={() => {
                 console.log("Edit clicked for property", propertyId);
@@ -352,31 +386,21 @@ export const ActionButton = ({
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
+              <span className="text-[#303030] font-normal text-base">
                 Edit
               </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path
-                  d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                  d="M15.75 15.75H9.75M1.875 16.125L6.037 14.524..."
                   stroke="#525252"
                   strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                 />
               </svg>
             </button>
+
+            {/* ---------------------- */}
+            {/*   DELETE BUTTON        */}
+            {/* ---------------------- */}
             <button
               onClick={() => {
                 console.log("Delete clicked for property", propertyId);
@@ -384,44 +408,39 @@ export const ActionButton = ({
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
+              <span className="text-[#303030] font-normal text-base">
                 Delete
               </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                  d="M6.75 2.25H11.25M2.25 4.5H15.75..."
                   stroke="#982740"
                   strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                 />
               </svg>
             </button>
+
           </div>,
-          document.body,
+          document.body
         )}
     </>
   );
 };
 
+
 export default function Utilities() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [openUtilityMenuId, setOpenUtilityMenuId] = useState<number | null>(
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
+  const [openUtilityMenuId, setOpenUtilityMenuId] = usePageState<number | null>(
+    "openUtilityMenuId",
     null,
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
@@ -531,28 +550,25 @@ export default function Utilities() {
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 

@@ -25,6 +25,11 @@ interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingFTOId: number | null;
+  editData?: {
+    dueDate: string;
+    priority: string;
+    timesheetStatus: string;
+  };
 }
 
 // --- Simple DTOs for dropdowns (same shape as FTOModal) ---
@@ -56,6 +61,7 @@ export default function CreateFTOModal({
   open,
   onOpenChange,
   editingFTOId,
+  editData,
 }: CreateFTOModalProps) {
   // --- dropdown data loaded from API ---
   const [tasks, setTasks] = useState<SimpleTask[]>([]);
@@ -134,6 +140,14 @@ export default function CreateFTOModal({
     `Property #${p.id}`;
 
   // --------- POSITIONING PORTAL POPOVERS ----------
+  useEffect(() => {
+    if (editData) {
+      setDueDate(editData.dueDate);
+      setPriority(editData.priority.toLowerCase());
+      setTimesheetStatus(editData.timesheetStatus);
+    }
+  }, [editData]);
+
   useEffect(() => {
     let animationFrameId: number;
 

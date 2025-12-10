@@ -21,11 +21,6 @@ import {
 } from "date-fns";
 import { fetchJSON } from "@/api/fetchJSON";
 
-interface CreateTaskModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 interface Assignee {
   id: string;
   name: string;
@@ -39,6 +34,15 @@ type SimpleProperty = {
   city?: string | null;
   state?: string | null;
 };
+interface CreateTaskModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editData?: {
+    title: string;
+    due: string;
+    priority: string;
+  };
+}
 
 const AVAILABLE_ASSIGNEES: Assignee[] = [
   { id: "1", name: "David Harris", initials: "DH" },
@@ -56,7 +60,9 @@ const renderPropertyLabel = (p: SimpleProperty) =>
 export default function CreateTaskModal({
   open,
   onOpenChange,
+  editData,
 }: CreateTaskModalProps) {
+  const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -282,7 +288,7 @@ export default function CreateTaskModal({
         <div className="flex flex-col gap-4 p-6">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            Create Task
+            {editData ? "Edit Task" : "Create Task"}
           </DialogTitle>
 
           {/* Property and Unit Row */}
@@ -660,12 +666,11 @@ export default function CreateTaskModal({
             />
           </div>
 
-          {/* Create Task Button */}
-          <button
-            onClick={handleCreate}
-            className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
-          >
-            <span className="text-white font-medium text-base">Create Task</span>
+          {/* Create/Update Task Button */}
+          <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
+            <span className="text-white font-medium text-base">
+              {editData ? "Update Task" : "Create Task"}
+            </span>
           </button>
 
         </div>

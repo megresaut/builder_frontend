@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { fetchJSON } from "../api/fetchJSON";
+import { usePageState } from "@/hooks/usePageState";
 
 interface Assignee {
   id: number;
@@ -104,25 +105,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 
   if (status === "In Progress") {
     return (
-      <div className="flex items-center bg-blue-50 rounded-2xl text-blue-600 gap-1 h-[30px] px-2">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M2.91602 7H11.0827"
-            stroke="currentColor"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
-          {status}
-        </div>
+      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-normal leading-5">
+        {status}
       </div>
     );
   }
@@ -137,82 +121,24 @@ const StatusBadge = ({ status }: { status: string }) => {
 const PriorityBadge = ({ priority }: { priority: string }) => {
   if (priority === "Low") {
     return (
-      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2 bg-emerald-50 text-emerald-600">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M6.99935 2.91675V11.0834M6.99935 11.0834L11.0827 7.00008M6.99935 11.0834L2.91602 7.00008"
-            stroke="#059669"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
-          {priority}
-        </div>
+      <div className="inline-flex items-center bg-green-100 rounded-full text-green-600 py-1 px-3 text-sm font-normal leading-5">
+        {priority}
       </div>
     );
   }
 
   if (priority === "Normal") {
     return (
-      <div className="flex items-center bg-blue-50 rounded-2xl text-blue-600 gap-1 h-[30px] px-2">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M2.91602 7H11.0827"
-            stroke="currentColor"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-sm font-normal tracking-[-0.28px] capitalize overflow-hidden text-ellipsis whitespace-nowrap">
-          {priority}
-        </div>
+      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-normal leading-5">
+        {priority}
       </div>
     );
   }
 
   if (priority === "High") {
     return (
-      <div className="flex items-center gap-1 rounded-2xl h-[30px] px-2">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g clipPath="url(#clip0_high_priority)">
-            <path
-              d="M8.00065 5.33325V7.99992M8.00065 10.6666H8.00732M14.6673 7.99992C14.6673 11.6818 11.6825 14.6666 8.00065 14.6666C4.31875 14.6666 1.33398 11.6818 1.33398 7.99992C1.33398 4.31802 4.31875 1.33325 8.00065 1.33325C11.6825 1.33325 14.6673 4.31802 14.6673 7.99992Z"
-              stroke="#D97706"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-          <defs>
-            <clipPath id="clip0_high_priority">
-              <rect width="16" height="16" fill="white" />
-            </clipPath>
-          </defs>
-        </svg>
-        <div className="text-base font-normal tracking-[-0.32px] capitalize overflow-hidden text-ellipsis whitespace-nowrap text-[#D97706]">
-          {priority}
-        </div>
+      <div className="inline-flex items-center bg-yellow-100 rounded-full text-amber-600 py-1 px-3 text-sm font-normal leading-5">
+        {priority}
       </div>
     );
   }
@@ -223,14 +149,17 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
 };
 
 const ActionButton = ({
-  taskId,
+  task,
   openMenuId,
   setOpenMenuId,
+  onEditClick,
 }: {
-  taskId: number;
+  task: Task;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  onEditClick: (data: Task) => void;
 }) => {
+  const taskId = task.id;
   const showMenu = openMenuId === taskId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -268,7 +197,10 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : taskId)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpenMenuId(showMenu ? null : taskId);
+        }}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
@@ -307,7 +239,7 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                console.log("Edit clicked for task", taskId);
+                onEditClick(task);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -378,12 +310,23 @@ const ActionButton = ({
 
 export default function AllTasks() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = usePageState(
+    "isCreateTaskModalOpen",
+    false,
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [assignees, setAssignees] = useState<Record<number, AssigneeInfo>>({});
@@ -459,7 +402,33 @@ export default function AllTasks() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(tasks.length / itemsPerPage);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
+
+        if (isClickOutside) {
+          setShowPageSizeDropdown(false);
+        }
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showPageSizeDropdown]);
+
+  const totalTasks = tasks.length;
+  const totalPages = Math.ceil(totalTasks / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -468,28 +437,25 @@ export default function AllTasks() {
       return [1];
     }
 
-    if (totalPages <= 6) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    const leftStart = currentPage;
-    const leftEnd = Math.min(currentPage + 2, totalPages);
+    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
+    const windowSize = 7;
+    let start = Math.max(1, currentPage - 2);
+    let end = start + windowSize - 1;
 
-    const rightStart = Math.max(leftEnd + 5, totalPages - 2);
-    const rightEnd = totalPages;
-
-    for (let i = leftStart; i <= leftEnd; i++) {
-      pages.push(i);
+    // Adjust if we're near the end to keep showing 7 pages
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - windowSize + 1);
     }
 
-    if (rightStart > leftEnd + 1) {
-      pages.push("...");
-    }
-
-    for (let i = rightStart; i <= rightEnd; i++) {
+    for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
@@ -920,9 +886,13 @@ export default function AllTasks() {
                         }}
                       >
                         <ActionButton
-                          taskId={task.id}
+                          task={task}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEditClick={() => {
+                            setEditingTask(task);
+                            setIsCreateTaskModalOpen(true);
+                          }}
                         />
                       </td>
                     </tr>
@@ -1117,6 +1087,7 @@ export default function AllTasks() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",
@@ -1166,7 +1137,21 @@ export default function AllTasks() {
       {/* Create Task Modal */}
       <CreateTaskModal
         open={isCreateTaskModalOpen}
-        onOpenChange={setIsCreateTaskModalOpen}
+        onOpenChange={(open) => {
+          setIsCreateTaskModalOpen(open);
+          if (!open) {
+            setEditingTask(null);
+          }
+        }}
+        editData={
+          editingTask
+            ? {
+                title: editingTask.name,
+                due: editingTask.due_date,
+                priority: editingTask.priority,
+              }
+            : undefined
+        }
       />
     </div>
   );
