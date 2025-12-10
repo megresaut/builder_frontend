@@ -886,16 +886,21 @@ export const Utilities: React.FC<UtilitiesProps> = ({
               </tr>
             </thead>
             <tbody>
-              {bills.map((bill, index) => (
-                <tr
-                  key={bill.id}
-                  className={cn(
-                    "hover:bg-gray-50 transition-colors h-12",
-                    index === bills.length - 1
-                      ? "border-b-0"
-                      : "border-b border-gray-200",
-                  )}
-                >
+              {bills
+                .slice(
+                  (billsCurrentPage - 1) * billsItemsPerPage,
+                  billsCurrentPage * billsItemsPerPage,
+                )
+                .map((bill, index) => (
+                  <tr
+                    key={bill.id}
+                    className={cn(
+                      "hover:bg-gray-50 transition-colors h-12",
+                      index === bills.slice((billsCurrentPage - 1) * billsItemsPerPage, billsCurrentPage * billsItemsPerPage).length - 1
+                        ? "border-b-0"
+                        : "border-b border-gray-200",
+                    )}
+                  >
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
