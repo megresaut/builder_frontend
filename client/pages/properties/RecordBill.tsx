@@ -517,12 +517,14 @@ export const RecordBill = () => {
         display: "flex",
         backgroundColor: "rgb(255, 255, 255)",
         borderColor: "rgb(210, 209, 207)",
-        borderWidth: "1.33333px",
+        borderTopWidth: "0px",
+        borderRightWidth: "1.33333px",
+        borderBottomWidth: "1.33333px",
+        borderLeftWidth: "1.33333px",
         flexDirection: "column",
         fontWeight: "400",
         minHeight: "1365px",
         position: "relative",
-        borderTopWidth: "0px",
       }}
     >
       {/* Two-Column Layout */}
