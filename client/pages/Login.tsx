@@ -79,18 +79,19 @@ export const Login = () => {
           {/* Empty top section */}
           <div />
 
-          {/* Center Branding with Icon */}
-          <div className="flex flex-col items-center justify-center gap-6 mb-12">
+          {/* Center Branding with Icon - Off-centered */}
+          <div className="flex flex-col items-start justify-center gap-6 mb-12 ml-8">
             {/* AVM Icon */}
             <img
               src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2Fcfcebb746e114b489185ee38a951cabb?format=webp&width=800"
               alt="AVM Icon"
-              className="w-24 h-24"
+              className="w-40 h-40"
+              style={{ filter: "brightness(0) invert(1)" }}
             />
             {/* Text */}
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-white mb-1">AVM</h1>
-              <p className="text-lg text-gray-100">Property Management</p>
+            <div>
+              <h1 className="text-8xl font-bold text-white mb-2 leading-tight">AVM</h1>
+              <p className="text-3xl text-gray-100">Property Management</p>
             </div>
           </div>
 
