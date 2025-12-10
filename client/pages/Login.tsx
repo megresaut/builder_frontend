@@ -1,0 +1,294 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+export const Login = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false,
+  });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSignUpTooltip, setShowSignUpTooltip] = useState(false);
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate("/all-properties");
+    }, 1500);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-white">
+      {/* Left Hero Section with Geometric Background */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between relative overflow-hidden">
+        {/* Background with Primary Navy Color */}
+        <div className="absolute inset-0 bg-[#033763]" />
+
+        {/* Geometric Background Pattern - Diagonal Lines Only */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="none"
+          style={{ zIndex: 1 }}
+        >
+          {/* Background base */}
+          <rect width="1000" height="1000" fill="#033763" />
+
+          {/* Large diagonal stripe - Light Beige */}
+          <polygon points="0,200 400,0 1000,0 1000,600 200,1000 0,1000" fill="#DBD7CA" />
+
+          {/* Diagonal line - creates definition on top */}
+          <line x1="0" y1="200" x2="400" y2="0" stroke="#033763" strokeWidth="35" />
+
+          {/* Diagonal line - creates definition on bottom */}
+          <line x1="200" y1="1000" x2="1000" y2="600" stroke="#033763" strokeWidth="35" />
+
+          {/* Additional subtle diagonal accent lines */}
+          <line x1="0" y1="350" x2="350" y2="0" stroke="white" strokeWidth="8" opacity="0.15" />
+          <line x1="150" y1="1000" x2="950" y2="150" stroke="white" strokeWidth="8" opacity="0.15" />
+        </svg>
+
+        {/* Content - Relative to overlay the background */}
+        <div className="relative z-20 flex flex-col justify-between h-full p-8">
+          {/* Logo and Company Name */}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <img
+                alt="AVM Logo"
+                src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
+                className="w-10 h-10"
+              />
+              <span className="text-2xl font-bold text-white">AVM</span>
+            </div>
+            <p className="text-xs text-gray-200 ml-0">Property Management</p>
+          </div>
+
+          {/* Footer with Credits */}
+          <div className="space-y-1 text-xs">
+            <p className="text-gray-200">
+              © 2025 AVM. All rights reserved.
+            </p>
+            <p className="text-gray-300">
+              Developed by Reasonable Automations
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Form Section */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-12 sm:py-0">
+        <div className="w-full max-w-md mx-auto">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-2 mb-8">
+            <img
+              alt="AVM Logo"
+              src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
+              className="w-8 h-8"
+            />
+            <span className="text-xl font-semibold text-gray-900">AVM</span>
+          </div>
+
+          {/* Header */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-gray-600">
+              Sign in to your AVM account
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="you@example.com"
+                className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
+                  errors.email
+                    ? "border-red-300 focus:ring-red-200 bg-red-50"
+                    : "border-gray-300"
+                }`}
+                style={!errors.email ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                onFocus={(e) => {
+                  if (!errors.email) {
+                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = "";
+                }}
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="••••••••"
+                className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
+                  errors.password
+                    ? "border-red-300 focus:ring-red-200 bg-red-50"
+                    : "border-gray-300"
+                }`}
+                style={!errors.password ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                onFocus={(e) => {
+                  if (!errors.password) {
+                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = "";
+                }}
+              />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Remember Me / Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  name="rememberMe"
+                  type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 rounded border-gray-300"
+                  style={{ accentColor: "rgb(36, 99, 235)" }}
+                />
+                <span className="text-sm text-gray-600">Remember me</span>
+              </label>
+              <a href="#" className="text-sm font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+                Forgot password?
+              </a>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full text-white font-semibold py-2.5 px-4 rounded-lg transition-colors mt-6 disabled:bg-gray-400"
+              style={{
+                backgroundColor: "rgb(36, 99, 235)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = "rgb(30, 87, 207)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = "rgb(36, 99, 235)";
+                }
+              }}
+            >
+              {isLoading ? "Loading..." : "Sign In"}
+            </button>
+          </form>
+
+          {/* Sign Up Info */}
+          <div className="mt-8 text-center border-t border-gray-200 pt-8">
+            <p className="text-gray-600 flex items-center justify-center gap-2">
+              Don't have an account?
+              <div className="relative">
+                <button
+                  onMouseEnter={() => setShowSignUpTooltip(true)}
+                  onMouseLeave={() => setShowSignUpTooltip(false)}
+                  className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-gray-400 text-gray-600 hover:border-gray-500 hover:text-gray-700 transition-colors"
+                  type="button"
+                >
+                  <span className="text-xs font-semibold">?</span>
+                </button>
+                {showSignUpTooltip && (
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-10">
+                    Contact your administrator to create an account
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                )}
+              </div>
+            </p>
+          </div>
+
+          {/* Footer Links */}
+          <div className="mt-8 space-y-2 text-center text-sm">
+            <p>
+              <a href="mailto:matt@reasonableautomations.com" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+                Contact Support
+              </a>
+            </p>
+            <p>
+              <a href="/privacy-policy" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+                Privacy Policy
+              </a>
+              {" • "}
+              <a href="/terms-of-service" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+                Terms of Service
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
