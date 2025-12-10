@@ -644,7 +644,12 @@ export const RecordBill = () => {
                   </button>
                   <button
                     onClick={() => {}}
-                    className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium"
+                    disabled={isReadOnly}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isReadOnly
+                        ? "bg-gray-400 text-gray-300 cursor-not-allowed"
+                        : "bg-gray-600 text-white hover:bg-gray-500"
+                    }`}
                     title="Autofill from file"
                   >
                     Autofill from file
