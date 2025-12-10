@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 export const Welcome = () => {
   const navigate = useNavigate();
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(false);
-  const [isContinueVisible, setIsContinueVisible] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
     // Mark that user has seen the welcome page
@@ -15,23 +15,27 @@ export const Welcome = () => {
       setIsWelcomeVisible(true);
     }, 300);
 
-    // Continue text fades in after welcome
-    const continueTimer = setTimeout(() => {
-      setIsContinueVisible(true);
-    }, 2500);
+    // After displaying the welcome page, fade out and navigate
+    const fadeOutTimer = setTimeout(() => {
+      setIsFadingOut(true);
+    }, 4000);
+
+    // Navigate to all-properties after fade out completes
+    const navigationTimer = setTimeout(() => {
+      navigate("/all-properties");
+    }, 6500);
 
     return () => {
       clearTimeout(welcomeTimer);
-      clearTimeout(continueTimer);
+      clearTimeout(fadeOutTimer);
+      clearTimeout(navigationTimer);
     };
-  }, []);
-
-  const handleContinue = () => {
-    navigate("/all-properties");
-  };
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden relative">
+    <div className={`min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden relative transition-all duration-[2000ms] ${
+      isFadingOut ? "opacity-0" : "opacity-100"
+    }`}>
       {/* Animated wave gradient background */}
       <svg
         className="absolute inset-0 w-full h-full z-0"
@@ -70,7 +74,7 @@ export const Welcome = () => {
       <div className="relative z-10 flex flex-col items-center justify-center">
         {/* Welcome Text - Slow fade in */}
         <h1
-          className={`text-6xl md:text-8xl font-bold text-white mb-16 leading-tight tracking-tight transition-all duration-[2500ms] ${
+          className={`text-6xl md:text-8xl font-bold text-white leading-tight tracking-tight transition-all duration-[2500ms] ${
             isWelcomeVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
@@ -79,19 +83,6 @@ export const Welcome = () => {
         >
           Welcome
         </h1>
-
-        {/* Continue Text - Fade in after Welcome */}
-        <div
-          onClick={handleContinue}
-          className={`cursor-pointer text-xl md:text-2xl text-white transition-all duration-[2000ms] hover:opacity-80 ${
-            isContinueVisible ? "opacity-100" : "opacity-0"
-          }`}
-          style={{
-            transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-          }}
-        >
-          Continue to Platform
-        </div>
       </div>
 
       {/* Animation styles */}
