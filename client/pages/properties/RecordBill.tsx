@@ -90,7 +90,17 @@ export const RecordBill = () => {
     { name: "Brex_Expenses_2025-11-23_091108_PM", size: 30720, file: new File([], "Brex_Expenses_2025-11-23_091108_PM.pdf") },
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const [lineItems, setLineItems] = useState<LineItem[]>([
+    {
+      id: 1,
+      property: "",
+      unit: "",
+      workOrder: "",
+      description: "",
+      glAccount: "",
+      total: "",
+    },
+  ]);
 
   // Dynamic column width tracking with default minimum widths
   const defaultColumnWidths = {
