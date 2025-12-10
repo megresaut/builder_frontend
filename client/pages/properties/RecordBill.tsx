@@ -90,35 +90,7 @@ export const RecordBill = () => {
     { name: "Brex_Expenses_2025-11-23_091108_PM", size: 30720, file: new File([], "Brex_Expenses_2025-11-23_091108_PM.pdf") },
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    {
-      id: 1,
-      property: "22 Indian Creek Dr",
-      unit: "2",
-      workOrder: "123456-1",
-      description: "ConEd - 1,220 kWh",
-      glAccount: "Utilities",
-      total: "$462",
-    },
-    {
-      id: 2,
-      property: "22 Indian Creek Dr",
-      unit: "2",
-      workOrder: "123456-1",
-      description: "Unit 48 Thermostat",
-      glAccount: "Maintenance",
-      total: "$380",
-    },
-    {
-      id: 3,
-      property: "22 Indian Creek Dr",
-      unit: "2",
-      workOrder: "123456-1",
-      description: "Tools for common area",
-      glAccount: "Other",
-      total: "$120",
-    },
-  ]);
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
 
   // Dynamic column width tracking with default minimum widths
   const defaultColumnWidths = {
