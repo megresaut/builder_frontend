@@ -61,34 +61,18 @@ export const Login = () => {
 
   return (
     <div className="flex min-h-screen bg-white">
-      {/* Left Hero Section with Geometric Background */}
+      {/* Left Hero Section with Background Image */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between relative overflow-hidden">
-        {/* Background with Primary Navy Color */}
-        <div className="absolute inset-0 bg-[#033763]" />
+        {/* Background Image */}
+        <img
+          src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F2b245f83eda342b5a4ad43495095989f?format=webp&width=800"
+          alt="AVM Branding"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 0 }}
+        />
 
-        {/* Geometric Background Pattern - Diagonal Lines Only */}
-        <svg
-          className="absolute inset-0 w-full h-full"
-          viewBox="0 0 1000 1000"
-          preserveAspectRatio="none"
-          style={{ zIndex: 1 }}
-        >
-          {/* Background base */}
-          <rect width="1000" height="1000" fill="#033763" />
-
-          {/* Large diagonal stripe - Light Beige */}
-          <polygon points="0,200 400,0 1000,0 1000,600 200,1000 0,1000" fill="#DBD7CA" />
-
-          {/* Diagonal line - creates definition on top */}
-          <line x1="0" y1="200" x2="400" y2="0" stroke="#033763" strokeWidth="35" />
-
-          {/* Diagonal line - creates definition on bottom */}
-          <line x1="200" y1="1000" x2="1000" y2="600" stroke="#033763" strokeWidth="35" />
-
-          {/* Additional subtle diagonal accent lines */}
-          <line x1="0" y1="350" x2="350" y2="0" stroke="white" strokeWidth="8" opacity="0.15" />
-          <line x1="150" y1="1000" x2="950" y2="150" stroke="white" strokeWidth="8" opacity="0.15" />
-        </svg>
+        {/* Overlay for content visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" style={{ zIndex: 1 }} />
 
         {/* Content - Relative to overlay the background */}
         <div className="relative z-20 flex flex-col justify-between h-full p-8">
