@@ -187,7 +187,7 @@ export const Auth = () => {
               Create Account
             </h2>
             <p className="text-xl text-gray-600">
-              Join AVM and start managing your properties efficiently
+              Welcome to Your New Property Management Software
             </p>
           </div>
 
