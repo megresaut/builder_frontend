@@ -81,27 +81,34 @@ export const Auth = () => {
         {/* Background with Primary Navy Color */}
         <div className="absolute inset-0 bg-[#033763]" />
 
-        {/* Geometric Background Pattern */}
+        {/* Geometric Background Pattern - Clean Lines and Triangles */}
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1000 1000"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="none"
           style={{ zIndex: 1 }}
         >
-          {/* Large Navy Triangle - Top Right */}
-          <polygon points="700,0 1000,0 1000,500" fill="#033763" />
+          {/* Background base */}
+          <rect width="1000" height="1000" fill="#033763" />
 
-          {/* Large Beige Triangle - Center extending full width */}
-          <polygon points="0,150 800,150 1000,600 1000,1000 0,1000" fill="#DBD7CA" />
+          {/* Large diagonal stripe - Light Beige */}
+          <polygon points="0,250 350,0 1000,0 1000,350 200,1000 0,1000" fill="#DBD7CA" />
 
-          {/* Navy Triangle - Bottom Left */}
-          <polygon points="0,700 0,1000 400,1000" fill="#033763" />
+          {/* Structured Navy triangle - Top right */}
+          <polygon points="700,0 1000,0 1000,300" fill="#033763" />
 
-          {/* Navy Triangle - Top Left overlapping */}
-          <polygon points="0,0 300,0 0,400" fill="#033763" opacity="0.9" />
+          {/* Structured Navy triangle - Bottom left */}
+          <polygon points="0,700 400,1000 0,1000" fill="#033763" />
 
-          {/* Accent Navy - Bottom Right corner */}
-          <polygon points="850,850 1000,700 1000,1000" fill="#033763" />
+          {/* Clean diagonal line - creates separation */}
+          <line x1="0" y1="250" x2="350" y2="0" stroke="#033763" strokeWidth="40" />
+          <line x1="200" y1="1000" x2="1000" y2="350" stroke="#033763" strokeWidth="40" />
+
+          {/* Accent triangle - structured right side */}
+          <polygon points="900,600 1000,500 1000,700" fill="#DBD7CA" opacity="0.8" />
+
+          {/* Small accent triangle - bottom right structured */}
+          <polygon points="800,900 900,800 1000,900 1000,1000 800,1000" fill="#033763" opacity="0.6" />
         </svg>
 
         {/* Content - Relative to overlay the background */}
