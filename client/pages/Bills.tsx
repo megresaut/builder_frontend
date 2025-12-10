@@ -1017,6 +1017,7 @@ export default function Bills() {
                               itemId={bill.id}
                               openMenuId={openMenuId}
                               setOpenMenuId={setOpenMenuId}
+                              tab={selectedTab}
                             />
                           </td>
                         </tr>
