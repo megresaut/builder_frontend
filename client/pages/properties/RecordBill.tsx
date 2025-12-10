@@ -89,9 +89,7 @@ export const RecordBill = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [lineItemErrors, setLineItemErrors] = useState<{ [key: number]: Set<string> }>({});
   const [formErrors, setFormErrors] = useState<Set<string>>(new Set());
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>>([
-    { name: "Brex_Expenses_2025-11-23_091108_PM", size: 30720, file: new File([], "Brex_Expenses_2025-11-23_091108_PM.pdf") },
-  ]);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>([
     {
