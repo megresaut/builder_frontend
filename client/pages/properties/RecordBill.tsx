@@ -1048,13 +1048,16 @@ export const RecordBill = () => {
                             >
                               <Select
                                 value={item.property}
-                                onValueChange={(value) =>
-                                  handleUpdateLineItem(
-                                    item.id,
-                                    "property",
-                                    value,
-                                  )
-                                }
+                                onValueChange={(value) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "property",
+                                      value,
+                                    );
+                                  }
+                                }}
+                                disabled={isReadOnly}
                               >
                                 <SelectTrigger
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
