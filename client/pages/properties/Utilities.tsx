@@ -1077,6 +1077,9 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         propertyId={bill.id}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
+                        onView={() => {
+                          console.log("View bill clicked for bill", bill.id);
+                        }}
                       />
                     </td>
                   </tr>
