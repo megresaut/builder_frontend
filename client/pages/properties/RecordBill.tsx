@@ -105,10 +105,10 @@ export const RecordBill = () => {
   // Dynamic column width tracking with default minimum widths
   const defaultColumnWidths = {
     property: 151,
-    unit: 100,
-    workOrder: 120,
+    unit: 130,
+    workOrder: 150,
     description: 200,
-    glAccount: 140,
+    glAccount: 170,
     total: 80,
   };
 
