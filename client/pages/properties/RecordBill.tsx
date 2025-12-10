@@ -139,9 +139,17 @@ export const RecordBill = () => {
           requiredWidth = textWidth + padding;
         }
       } else {
-        // For select triggers and other elements, use scrollWidth
-        const scrollWidth = (element as HTMLElement).scrollWidth;
-        requiredWidth = scrollWidth + padding;
+        // For select triggers and other elements, use offsetWidth (actual rendered width)
+        const offsetWidth = (element as HTMLElement).offsetWidth;
+        if (offsetWidth > 0) {
+          requiredWidth = offsetWidth + padding;
+        } else {
+          // Fallback to scrollWidth if offsetWidth is not available
+          const scrollWidth = (element as HTMLElement).scrollWidth;
+          if (scrollWidth > 0) {
+            requiredWidth = scrollWidth + padding;
+          }
+        }
       }
 
       // Set to the maximum of default or required width - allows both expanding and contracting
