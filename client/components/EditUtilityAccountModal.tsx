@@ -128,8 +128,13 @@ export default function EditUtilityAccountModal({
                         <span className="text-[#059669] text-sm">Active</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 bg-gray-200 rounded-2xl px-3 py-1 w-fit">
-                        <span className="text-gray-600 text-sm">Inactive</span>
+                      <div className="flex items-center gap-1.5 bg-red-100 rounded-2xl px-3 py-1 w-fit">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clipPath="url(#clip0_inactive)">
+                            <path d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </g>
+                        </svg>
+                        <span className="text-red-700 text-sm">Inactive</span>
                       </div>
                     )}
                   </SelectValue>
