@@ -1157,15 +1157,18 @@ export const RecordBill = () => {
                               <input
                                 type="text"
                                 value={item.description}
-                                onChange={(e) =>
-                                  handleUpdateLineItem(
-                                    item.id,
-                                    "description",
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => {
+                                  if (!isReadOnly) {
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "description",
+                                      e.target.value,
+                                    );
+                                  }
+                                }}
                                 placeholder="Enter description"
                                 data-measure-width="description"
+                                disabled={isReadOnly}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
