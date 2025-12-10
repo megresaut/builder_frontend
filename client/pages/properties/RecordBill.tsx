@@ -866,7 +866,7 @@ export const RecordBill = () => {
                             invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
                           }
                           onChange={(e) => {
-                            if (e.target.value) {
+                            if (!isReadOnly && e.target.value) {
                               const date = new Date(e.target.value);
                               setInvoiceDate(date);
                               setInvoiceDateInput(format(date, "MM/dd/yyyy"));
@@ -876,11 +876,12 @@ export const RecordBill = () => {
                                 newErrors.delete("invoiceDate");
                                 return newErrors;
                               });
-                            } else {
+                            } else if (!isReadOnly) {
                               setInvoiceDate(null);
                               setInvoiceDateInput("");
                             }
                           }}
+                          disabled={isReadOnly}
                           className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
                             formErrors.has("invoiceDate")
                               ? "border-red-500 border-2"
