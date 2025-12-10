@@ -1402,11 +1402,11 @@ export const RecordBill = () => {
               disabled={isReadOnly ? false : false}
               className={`rounded-lg shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors ${
                 isReadOnly
-                  ? "bg-[#013764] text-white hover:bg-[#002a4f]"
+                  ? "bg-gray-400 text-white cursor-not-allowed"
                   : "bg-[#013764] text-white hover:bg-[#002a4f]"
               }`}
             >
-              <span>{isReadOnly ? "Close" : "Record Bill"}</span>
+              <span>{isReadOnly ? "Exported to Buildium" : "Record Bill"}</span>
             </button>
           </div>
         </div>
