@@ -97,17 +97,15 @@ export default function Header() {
       return { label: "Recurring Tasks", path, id: "recurring-tasks" };
     } else if (path === "/vendors") {
       return { label: "Vendors", path, id: "vendors" };
+    } else if (path === "/utilities/view-bill") {
+      return { label: "View Bill", path, id: "utilities-view-bill" };
     } else if (
       path === "/record-bill" ||
       path === "/bills/record" ||
       path.includes("/bills/record")
     ) {
       // Handle /bills/record, /property/:id/bills/record, etc.
-      const searchParams = new URLSearchParams(location.search);
-      const isFromUtilities = searchParams.get("from") === "utilities";
-
       let pageId = "record-bill";
-      let label = isFromUtilities ? "View Bill" : "Record Bill";
 
       if (path.includes("/property/")) {
         const match = path.match(/\/property\/(\d+)/);
@@ -115,7 +113,7 @@ export default function Header() {
           pageId = `record-bill-property-${match[1]}`;
         }
       }
-      return { label, path, id: pageId };
+      return { label: "Record Bill", path, id: pageId };
     } else if (path === "/") {
       return { label: "All Tasks", path, id: "all-tasks" };
     }
