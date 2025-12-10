@@ -1214,15 +1214,17 @@ export const Utilities: React.FC<UtilitiesProps> = ({
           document.body,
         )}
 
-      {/* Edit Utility Account Modal */}
+      {/* Edit/Add Utility Account Modal */}
       <EditUtilityAccountModal
         open={isEditUtilityModalOpen}
         onOpenChange={(open) => {
           setIsEditUtilityModalOpen(open);
           if (!open) {
             setEditingUtilityAccount(null);
+            setUtilityModalMode("edit");
           }
         }}
+        mode={utilityModalMode}
         editData={editingUtilityAccount ? {
           provider: editingUtilityAccount.provider,
           accountNumber: editingUtilityAccount.account,
