@@ -537,7 +537,7 @@ export const RecordBill = () => {
         <div className="flex flex-col flex-1" style={{ overflow: "hidden" }}>
           {/* Scrollable Content Area */}
           <div className="overflow-auto flex flex-col" style={{ width: "100%", height: "100%" }}>
-            <div className="px-8 py-6" style={{ minWidth: "fit-content" }}>
+            <div className="px-8 py-6 flex-1" style={{ minWidth: "fit-content" }}>
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
                 {/* Bill Details Header */}
