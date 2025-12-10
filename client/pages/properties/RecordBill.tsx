@@ -516,11 +516,8 @@ export const RecordBill = () => {
       style={{
         display: "flex",
         backgroundColor: "rgb(255, 255, 255)",
-        borderColor: "rgb(210, 209, 207)",
-        borderTopWidth: "0px",
-        borderBottomWidth: "1.33333px",
-        borderLeftWidth: "1px",
-        borderRightWidth: "0px",
+        borderBottom: "1.33333px solid rgb(210, 209, 207)",
+        borderLeft: "1px solid rgb(210, 209, 207)",
         flexDirection: "column",
         fontWeight: "400",
         minHeight: "1365px",
