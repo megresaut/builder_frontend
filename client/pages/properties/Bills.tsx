@@ -343,6 +343,9 @@ export const Bills: React.FC<BillsProps> = ({
     "openMenuId",
     null,
   );
+  const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
+    "idle",
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
