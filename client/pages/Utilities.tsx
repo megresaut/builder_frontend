@@ -655,6 +655,40 @@ export const ActionButton = ({
             </button>
             <button
               onClick={() => {
+                if (onImport) {
+                  onImport();
+                }
+                setOpenMenuId(null);
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+            >
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
+              >
+                Import
+              </span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 1.5V11.25M9 1.5L5.25 5.25M9 1.5L12.75 5.25M2.25 8.25V14.25C2.25 14.8023 2.48705 15.3 2.9051 15.6239C3.32315 15.9477 3.88437 16.125 4.5 16.125H13.5C14.1156 16.125 14.6768 15.9477 15.0949 15.6239C15.513 15.3 15.75 14.8023 15.75 14.25V8.25"
+                  stroke="#525252"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
                 console.log("Delete clicked for property", propertyId);
                 setOpenMenuId(null);
               }}
