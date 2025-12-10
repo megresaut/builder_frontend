@@ -756,28 +756,6 @@ export const RecordBill = () => {
             </div>
           </div>
 
-          {/* Sticky Footer - Bill Total and Action Buttons */}
-          <div
-            className="border-t border-[#E5E7EB] bg-white flex-shrink-0"
-            style={{ marginTop: "40px", width: "701px" }}
-          >
-            {/* Bill Total */}
-            <div
-              className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]"
-              style={{ padding: "16px 32px" }}
-            >
-              <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                <div>Bill Total:</div>
-              </div>
-              <div className="flex flex-col items-center justify-center">
-                <div className="flex items-start gap-4 text-sm text-[#6B7280] font-normal leading-[1.14]" />
-                <div className="text-[#303030] text-xl font-semibold leading-[1.3] mt-2">
-                  {calculateTotal()}
-                </div>
-              </div>
-            </div>
-
-          </div>
         </div>
       </div>
       {/* Sticky Bottom Bar - Absolute positioned inside RecordBill */}
