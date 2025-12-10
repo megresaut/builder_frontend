@@ -188,10 +188,7 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   tab = "approved",
-  onEditBill,
-  onExportBill,
-  onDeleteBill,
-  onViewBill,
+  propertyId,
 }: ActionButtonProps) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
