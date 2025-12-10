@@ -1565,11 +1565,19 @@ export default function Utilities() {
                       key={column.id}
                       onMouseDown={() => handleColumnMouseDown(column.id, "bills")}
                       onMouseEnter={() => handleColumnMouseEnter(column.id, "bills")}
-                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap user-select-none transition-colors ${
+                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap user-select-none transition-all select-none ${
                         draggedColumn?.id === column.id && draggedColumn?.source === "bills"
-                          ? "bg-blue-100 opacity-50 cursor-grabbing"
+                          ? "bg-blue-50 border-l-4 border-l-blue-500 opacity-75 cursor-grabbing"
+                          : draggedColumn && draggedColumn?.source === "bills"
+                          ? "opacity-60 cursor-grab hover:bg-gray-200"
                           : "cursor-grab hover:bg-gray-100"
                       }`}
+                      style={{
+                        backgroundColor:
+                          draggedColumn?.id === column.id && draggedColumn?.source === "bills"
+                            ? "rgb(219, 234, 254)"
+                            : undefined,
+                      }}
                     >
                       <div className="flex items-center gap-2 select-none pointer-events-auto">
                         {column.icon}
