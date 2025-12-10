@@ -629,7 +629,8 @@ export const RecordBill = () => {
                 className="flex flex-col flex-1 w-full h-full"
                 style={{ display: "flex", flexDirection: "column" }}
               >
-                <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
+                {!isReadOnly && (
+                  <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
                   <button
                     onClick={() => !isReadOnly && fileInputRef.current?.click()}
                     disabled={isReadOnly}
@@ -725,6 +726,7 @@ export const RecordBill = () => {
                     </svg>
                   </button>
                 </div>
+                )}
                 <div className="flex-1 overflow-auto w-full">
                   <iframe
                     src={viewingFileUrl}
