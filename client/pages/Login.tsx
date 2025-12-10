@@ -116,10 +116,10 @@ export const Login = () => {
 
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-5xl font-bold text-gray-900 mb-4">
               Welcome Back
             </h2>
-            <p className="text-gray-600">
+            <p className="text-xl text-gray-600">
               Sign in to your AVM account
             </p>
           </div>
@@ -128,7 +128,7 @@ export const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-lg font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <input
@@ -160,7 +160,7 @@ export const Login = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-lg font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
@@ -201,9 +201,9 @@ export const Login = () => {
                   className="w-4 h-4 rounded border-gray-300"
                   style={{ accentColor: "rgb(36, 99, 235)" }}
                 />
-                <span className="text-sm text-gray-600">Remember me</span>
+                <span className="text-base text-gray-600">Remember me</span>
               </label>
-              <a href="#" className="text-sm font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+              <a href="#" className="text-base font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                 Forgot password?
               </a>
             </div>
@@ -212,7 +212,7 @@ export const Login = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white font-semibold py-2.5 px-4 rounded-lg transition-colors mt-6 disabled:bg-gray-400"
+              className="w-full text-white font-semibold py-3 px-4 text-lg rounded-lg transition-colors mt-6 disabled:bg-gray-400"
               style={{
                 backgroundColor: "rgb(36, 99, 235)",
               }}
@@ -233,7 +233,7 @@ export const Login = () => {
 
           {/* Sign Up Info */}
           <div className="mt-8 text-center border-t border-gray-200 pt-8">
-            <p className="text-gray-600 flex items-center justify-center gap-2">
+            <p className="text-lg text-gray-600 flex items-center justify-center gap-2">
               Don't have an account?
               <div className="relative">
                 <button
@@ -245,7 +245,7 @@ export const Login = () => {
                   <span className="text-xs font-semibold">?</span>
                 </button>
                 {showSignUpTooltip && (
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-10">
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap z-10">
                     Contact your administrator to create an account
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                   </div>
@@ -255,7 +255,7 @@ export const Login = () => {
           </div>
 
           {/* Footer Links */}
-          <div className="mt-8 space-y-2 text-center text-sm">
+          <div className="mt-8 space-y-2 text-center text-base">
             <p>
               <a href="mailto:matt@reasonableautomations.com" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Contact Support
