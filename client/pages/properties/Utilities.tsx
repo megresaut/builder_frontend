@@ -294,6 +294,71 @@ export const Utilities: React.FC<UtilitiesProps> = ({
     null,
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [billsCurrentPage, setBillsCurrentPage] = useState<number>(1);
+  const [billsItemsPerPage, setBillsItemsPerPage] = useState<number>(10);
+  const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] = useState<boolean>(false);
+  const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateDropdownPos = () => {
+      if (showBillsPageSizeDropdown && billsDropdownButtonRef.current) {
+        const rect = billsDropdownButtonRef.current.getBoundingClientRect();
+        setBillsDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+
+      if (showBillsPageSizeDropdown) {
+        animationFrameId = requestAnimationFrame(updateDropdownPos);
+      }
+    };
+
+    if (showBillsPageSizeDropdown) {
+      updateDropdownPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showBillsPageSizeDropdown]);
+
+  const billsTotalPages = Math.ceil(bills.length / billsItemsPerPage);
+
+  const getBillsPaginationNumbers = () => {
+    const pages: (number | string)[] = [];
+
+    if (billsTotalPages <= 1) {
+      return [1];
+    }
+
+    if (billsTotalPages <= 7) {
+      for (let i = 1; i <= billsTotalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    const windowSize = 7;
+    let start = Math.max(1, billsCurrentPage - 2);
+    let end = start + windowSize - 1;
+
+    if (end > billsTotalPages) {
+      end = billsTotalPages;
+      start = Math.max(1, end - windowSize + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
 
   return (
     <div className="flex flex-col gap-6">
