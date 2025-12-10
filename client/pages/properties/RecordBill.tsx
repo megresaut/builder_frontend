@@ -858,7 +858,11 @@ export const RecordBill = () => {
 
                             {/* Unit */}
                             <div
-                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
+                                lineItemErrors[item.id]?.has("unit")
+                                  ? "border-red-500 border-2"
+                                  : "border-[#DADADA]/50"
+                              }`}
                               style={{ width: `${columnWidths.unit}px` }}
                             >
                               <Select
