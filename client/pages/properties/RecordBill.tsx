@@ -237,6 +237,22 @@ export const RecordBill = () => {
     setLineItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleAddLineItem = () => {
+    const newId = lineItems.length > 0 ? Math.max(...lineItems.map((item) => item.id)) + 1 : 1;
+    setLineItems((prev) => [
+      ...prev,
+      {
+        id: newId,
+        property: "",
+        unit: "",
+        workOrder: "",
+        description: "",
+        glAccount: "",
+        total: "",
+      },
+    ]);
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
