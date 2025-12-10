@@ -448,35 +448,6 @@ export const RecordBill = () => {
         </div>
         )}
 
-        {/* PDF Viewer Modal */}
-        {viewingFileUrl && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={closeViewer}>
-            <div className="bg-white rounded-lg shadow-lg flex flex-col h-[90vh] w-[90vw] max-w-4xl" onClick={(e) => e.stopPropagation()}>
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
-                <h2 className="text-lg font-semibold text-[#303030]">Document Preview</h2>
-                <button
-                  onClick={closeViewer}
-                  className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
-                  title="Close"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              {/* Content */}
-              <div className="flex-1 overflow-auto">
-                <iframe
-                  src={viewingFileUrl}
-                  className="w-full h-full border-0"
-                  title="Document Preview"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Collapse Button */}
         <button
           onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
