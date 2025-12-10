@@ -32,7 +32,7 @@ export default function EditUtilityAccountModal({
   mode = "edit",
   editData,
 }: EditUtilityAccountModalProps) {
-  const [provider, setProvider] = useState(mode === "add" ? "" : editData?.provider || "");
+  const [provider, setProvider] = useState(editData?.provider || "");
   const [accountNumber, setAccountNumber] = useState(editData?.accountNumber || "");
   const [status, setStatus] = useState<"active" | "inactive">(editData?.status || "active");
   const [username, setUsername] = useState(editData?.username || "");
@@ -44,6 +44,22 @@ export default function EditUtilityAccountModal({
   const passwordPlaceholder = isAddMode
     ? "Input Utility Provider Password"
     : "Input Admin Password to see Password";
+
+  useEffect(() => {
+    if (mode === "add") {
+      setProvider("");
+      setAccountNumber("");
+      setStatus("active");
+      setUsername("");
+      setPassword("");
+    } else if (editData) {
+      setProvider(editData.provider || "");
+      setAccountNumber(editData.accountNumber || "");
+      setStatus(editData.status || "active");
+      setUsername(editData.username || "");
+      setPassword(editData.password || "");
+    }
+  }, [mode, editData]);
 
   const handleSave = () => {
     const action = isAddMode ? "Adding" : "Saving";
