@@ -1083,7 +1083,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
                         onView={() => {
-                          navigate("/bills/record?readOnly=true");
+                          navigate("/utilities/view-bill?readOnly=true");
                         }}
                       />
                     </td>
