@@ -514,13 +514,15 @@ export const RecordBill = () => {
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
       style={{
-        minHeight: "100vh",
-        borderLeftColor: "rgb(229,231,235)",
-        borderLeftWidth: "1px",
+        display: "flex",
+        backgroundColor: "rgb(255, 255, 255)",
+        borderColor: "rgb(210, 209, 207)",
+        borderWidth: "1.33333px",
+        flexDirection: "column",
+        fontWeight: "400",
+        minHeight: "1365px",
+        position: "relative",
         borderTopWidth: "0px",
-        borderBottomWidth: "0px",
-        borderRightWidth: "0px",
-        border: "1px solid #d2d1cf",
       }}
     >
       {/* Two-Column Layout */}
@@ -1379,19 +1381,20 @@ export const RecordBill = () => {
       <div
         className="fixed bottom-0 right-0 bg-white z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
         style={{
+          backgroundColor: "rgb(255, 255, 255)",
+          borderLeftWidth: "1.33333px",
           borderTopWidth: "1.33333px",
           bottom: "0px",
           boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
           fontWeight: "400",
-          left: sidebarVisible ? "262px" : "0px",
+          left: "0px",
           position: "fixed",
           right: "0px",
           transitionDuration: "0.3s",
           transitionProperty: "left",
           zIndex: "40",
-          borderLeftWidth: "1px",
           padding: "16px 32px",
-          border: "1.33333px 0px 0px solid #d2d1cf",
+          border: "1.33333px 0px 0px 1.33333px solid #d2d1cf",
         }}
       >
         <div className="flex items-center justify-between">
