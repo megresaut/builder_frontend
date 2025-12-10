@@ -115,6 +115,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/utilities/view-bill"
+                  element={
+                    <ShellLayout>
+                      <RecordBill />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/property/:propertyId"
                   element={
                     <ShellLayout>
