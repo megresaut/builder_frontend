@@ -1381,11 +1381,15 @@ export default function Utilities() {
                     <th
                       key={column.id}
                       draggable
-                      onDragStart={() => handleColumnDragStart(column.id, "utility")}
+                      onDragStart={(e) => handleColumnDragStart(e, column.id, "utility")}
                       onDragOver={handleColumnDragOver}
-                      onDrop={() => handleColumnDrop(column.id, "utility")}
-                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-move transition-colors ${
-                        draggedColumn === column.id && dragSource === "utility" ? "bg-blue-100" : "hover:bg-gray-100"
+                      onDrop={(e) => handleColumnDrop(e, column.id, "utility")}
+                      onDragEnd={() => {
+                        setDraggedColumn(null);
+                        setDragSource(null);
+                      }}
+                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-move select-none transition-colors ${
+                        draggedColumn === column.id && dragSource === "utility" ? "bg-blue-100 opacity-50" : "hover:bg-gray-100"
                       }`}
                     >
                       <div className="flex items-center gap-2">
