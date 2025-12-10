@@ -85,7 +85,7 @@ export const RecordBill = () => {
   const [dueDateError, setDueDateError] = useState<string>("");
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>([
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>>([
     { name: "Brex_Expenses_2025-11-23_091108_PM", size: 30720, file: new File([], "Brex_Expenses_2025-11-23_091108_PM.pdf") },
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
