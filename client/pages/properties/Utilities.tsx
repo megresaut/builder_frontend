@@ -788,9 +788,20 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                     </span>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {accountLastImport[account.id] || account.lastImport}
-                    </span>
+                    {accountImportStatus[account.id] === "failed" ? (
+                      <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clipPath="url(#clip0_failed)">
+                            <path d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </g>
+                        </svg>
+                        Import Failed
+                      </span>
+                    ) : (
+                      <span className="text-gray-900 font-normal text-base">
+                        {accountLastImport[account.id] || account.lastImport}
+                      </span>
+                    )}
                   </td>
                   <td
                     className="sticky right-0 px-2 py-3 flex items-center justify-center"
