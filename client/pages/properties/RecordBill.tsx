@@ -965,7 +965,7 @@ export const RecordBill = () => {
         </div>
       </div>
       {/* Fixed Bottom Bar - Sticky to viewport bottom */}
-      <div className="fixed bottom-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]" style={{ height: "auto", padding: "16px 32px", left: isLeftPanelOpen ? "calc(50% + 6px)" : "6px" }}>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]" style={{ height: "auto", padding: "16px 32px", pointerEvents: "auto" }}>
         <div className="flex items-center justify-between">
           <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
             <div>Bill Total: <span className="font-semibold">{calculateTotal()}</span></div>
