@@ -895,7 +895,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
         <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-              BillExported to Buildium
+              Bills Exported to Buildium
             </h2>
           </div>
           <div className="flex items-start gap-2.5">
