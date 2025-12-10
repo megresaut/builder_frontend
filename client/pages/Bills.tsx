@@ -526,7 +526,11 @@ export default function Bills() {
                 </span>
               </button>
 
-              <button className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+              <button
+                onClick={handleSync}
+                disabled={syncState !== "idle"}
+                className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] disabled:opacity-50"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -544,7 +548,9 @@ export default function Bills() {
                   <path d="M8 16H3v5" />
                 </svg>
                 <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
-                  Sync
+                  {syncState === "idle" && "Sync"}
+                  {syncState === "syncing" && "Syncing..."}
+                  {syncState === "synced" && "Synced"}
                 </span>
               </button>
 
