@@ -216,7 +216,7 @@ export default function App() {
                   }
                 />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/login" element={<Auth />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-of-service" element={<TermsOfService />} />
