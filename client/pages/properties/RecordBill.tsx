@@ -228,7 +228,7 @@ export const RecordBill = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       measureAndUpdateColumnWidths();
-    }, 0);
+    }, 50);
 
     return () => clearTimeout(timer);
   }, [lineItems, measureAndUpdateColumnWidths]);
@@ -240,7 +240,7 @@ export const RecordBill = () => {
     // Measure immediately on update
     setTimeout(() => {
       measureAndUpdateColumnWidths();
-    }, 0);
+    }, 50);
   };
 
   const handleDeleteLineItem = (id: number) => {
