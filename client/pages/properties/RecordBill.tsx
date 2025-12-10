@@ -1258,13 +1258,15 @@ export const RecordBill = () => {
 
                             {/* Delete Button */}
                             <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
-                              <button
-                                onClick={() => handleDeleteLineItem(item.id)}
-                                className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
-                                title="Delete row"
-                              >
-                                ×
-                              </button>
+                              {!isReadOnly && (
+                                <button
+                                  onClick={() => handleDeleteLineItem(item.id)}
+                                  className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
+                                  title="Delete row"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
