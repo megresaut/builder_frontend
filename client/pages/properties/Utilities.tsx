@@ -663,19 +663,30 @@ export const Utilities: React.FC<UtilitiesProps> = ({
               onClick={() => {
                 setImportStatus("importing");
                 setTimeout(() => {
-                  setImportStatus("imported");
-                  setTimeout(() => {
-                    setImportStatus("idle");
-                  }, 2000);
+                  const randomFailure = Math.random() < 0.3;
+                  if (randomFailure) {
+                    setImportStatus("failed");
+                  } else {
+                    setImportStatus("imported");
+                    setTimeout(() => {
+                      setImportStatus("idle");
+                    }, 2000);
+                  }
                 }, 1500);
               }}
               disabled={importStatus === "importing"}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013564] shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] hover:bg-[#012a4d] transition-colors disabled:opacity-70"
+              className={cn(
+                "flex h-9 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] transition-colors disabled:opacity-70",
+                importStatus === "failed"
+                  ? "bg-red-700 hover:bg-red-800"
+                  : "bg-[#013564] hover:bg-[#012a4d]"
+              )}
             >
               <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
                 {importStatus === "idle" && "Import"}
                 {importStatus === "importing" && "Importing..."}
                 {importStatus === "imported" && "Imported"}
+                {importStatus === "failed" && "Import Failed"}
               </span>
             </button>
           </div>
