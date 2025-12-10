@@ -6,7 +6,15 @@ export const Welcome = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
+    // Mark that user has seen the welcome page
+    localStorage.setItem("hasSeenWelcome", "true");
+
+    // Start fade-in animation after a short delay
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleContinue = () => {
@@ -16,42 +24,37 @@ export const Welcome = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden relative">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#1e5a7f] via-[#164a6a] to-[#0d3a54] z-0">
-        <div className="absolute inset-0 opacity-50">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#2d7ba8" stopOpacity="0.3" />
-                <stop offset="50%" stopColor="#1a4d68" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#0d2a3a" stopOpacity="0.1" />
-              </linearGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grad1)" />
-          </svg>
-        </div>
+      <div className="absolute inset-0 z-0 animate-gradient-shift">
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(135deg, #1e5a7f 0%, #164a6a 25%, #0d3a54 50%, #0a2a40 75%, #051620 100%)",
+          animation: "colorShift 8s ease-in-out infinite"
+        }}></div>
       </div>
 
-      {/* Animated color shift effect */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-transparent to-[rgba(13,42,84,0.3)]"></div>
-      </div>
+      {/* Overlay for depth */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(5,22,32,0.4)]"></div>
 
       {/* Content */}
-      <div className={`relative z-10 flex flex-col items-center justify-center transition-all duration-1000 transform ${
-        isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-      }`}>
-        {/* Welcome Text */}
-        <h1 className="text-6xl md:text-8xl font-bold text-white mb-12 leading-tight tracking-tight">
+      <div className="relative z-10 flex flex-col items-center justify-center">
+        {/* Welcome Text - Slow fade in */}
+        <h1
+          className={`text-6xl md:text-8xl font-bold text-white mb-12 leading-tight tracking-tight transition-all duration-[2000ms] transform ${
+            isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          }`}
+          style={{
+            transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+          }}
+        >
           Welcome
         </h1>
 
-        {/* Continue Button */}
+        {/* Continue Button - Fade in after text */}
         <button
           onClick={handleContinue}
-          className={`inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-[#0d3a54] font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl ${
+          className={`inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-[#0d3a54] font-semibold py-3 px-8 rounded-lg transition-all duration-1000 transform hover:scale-105 shadow-lg hover:shadow-2xl ${
             isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
-          style={{ transitionDelay: "300ms" }}
+          style={{ transitionDelay: "800ms" }}
         >
           <span>Continue to Platform</span>
           <svg
@@ -69,6 +72,21 @@ export const Welcome = () => {
           </svg>
         </button>
       </div>
+
+      {/* Animation styles */}
+      <style>{`
+        @keyframes colorShift {
+          0% {
+            background: linear-gradient(135deg, #1e5a7f 0%, #164a6a 25%, #0d3a54 50%, #0a2a40 75%, #051620 100%);
+          }
+          50% {
+            background: linear-gradient(135deg, #2d7ba8 0%, #1a5a7a 25%, #0f4a60 50%, #0a3a50 75%, #051e30 100%);
+          }
+          100% {
+            background: linear-gradient(135deg, #1e5a7f 0%, #164a6a 25%, #0d3a54 50%, #0a2a40 75%, #051620 100%);
+          }
+        }
+      `}</style>
     </div>
   );
 };
