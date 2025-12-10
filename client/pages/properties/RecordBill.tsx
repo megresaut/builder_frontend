@@ -835,8 +835,9 @@ export const RecordBill = () => {
                         <input
                           type="text"
                           value={referenceNumber}
-                          onChange={(e) => setReferenceNumber(e.target.value)}
+                          onChange={(e) => !isReadOnly && setReferenceNumber(e.target.value)}
                           placeholder="INV-2024-001"
+                          disabled={isReadOnly}
                           className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
                           style={
                             {
