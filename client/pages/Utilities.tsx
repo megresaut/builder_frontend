@@ -1503,6 +1503,12 @@ export default function Utilities() {
                         propertyId={account.id}
                         openMenuId={openUtilityMenuId}
                         setOpenMenuId={setOpenUtilityMenuId}
+                        onEdit={() => {
+                          console.log("Edit utility account", account.id);
+                        }}
+                        onImport={() => {
+                          console.log("Import utility account", account.id);
+                        }}
                       />
                     </td>
                   </tr>
