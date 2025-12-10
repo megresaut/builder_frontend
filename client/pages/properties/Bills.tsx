@@ -269,7 +269,11 @@ const ActionButton = ({
                 <button
                   onClick={() => {
                     setOpenMenuId(null);
-                    navigate(`/property/${undefined}/bills/record`);
+                    if (propertyId) {
+                      navigate(`/property/${propertyId}/bills/record`);
+                    } else {
+                      navigate("/bills/record");
+                    }
                   }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
