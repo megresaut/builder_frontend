@@ -81,7 +81,7 @@ export const Auth = () => {
         {/* Background with Primary Navy Color */}
         <div className="absolute inset-0 bg-[#033763]" />
 
-        {/* Geometric Background Pattern - Clean Lines and Triangles */}
+        {/* Geometric Background Pattern - Diagonal Lines Only */}
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1000 1000"
@@ -92,23 +92,17 @@ export const Auth = () => {
           <rect width="1000" height="1000" fill="#033763" />
 
           {/* Large diagonal stripe - Light Beige */}
-          <polygon points="0,250 350,0 1000,0 1000,350 200,1000 0,1000" fill="#DBD7CA" />
+          <polygon points="0,200 400,0 1000,0 1000,600 200,1000 0,1000" fill="#DBD7CA" />
 
-          {/* Structured Navy triangle - Top right */}
-          <polygon points="700,0 1000,0 1000,300" fill="#033763" />
+          {/* Diagonal line - creates definition on top */}
+          <line x1="0" y1="200" x2="400" y2="0" stroke="#033763" strokeWidth="35" />
 
-          {/* Structured Navy triangle - Bottom left */}
-          <polygon points="0,700 400,1000 0,1000" fill="#033763" />
+          {/* Diagonal line - creates definition on bottom */}
+          <line x1="200" y1="1000" x2="1000" y2="600" stroke="#033763" strokeWidth="35" />
 
-          {/* Clean diagonal line - creates separation */}
-          <line x1="0" y1="250" x2="350" y2="0" stroke="#033763" strokeWidth="40" />
-          <line x1="200" y1="1000" x2="1000" y2="350" stroke="#033763" strokeWidth="40" />
-
-          {/* Accent triangle - structured right side */}
-          <polygon points="900,600 1000,500 1000,700" fill="#DBD7CA" opacity="0.8" />
-
-          {/* Small accent triangle - bottom right structured */}
-          <polygon points="800,900 900,800 1000,900 1000,1000 800,1000" fill="#033763" opacity="0.6" />
+          {/* Additional subtle diagonal accent lines */}
+          <line x1="0" y1="350" x2="350" y2="0" stroke="white" strokeWidth="8" opacity="0.15" />
+          <line x1="150" y1="1000" x2="950" y2="150" stroke="white" strokeWidth="8" opacity="0.15" />
         </svg>
 
         {/* Content - Relative to overlay the background */}
