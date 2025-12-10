@@ -510,35 +510,13 @@ export const Utilities: React.FC<UtilitiesProps> = ({
       {/* Utility Accounts Table */}
       <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             <h2 className="text-[#303030] font-medium text-[22px] leading-6">
               Utility Accounts
             </h2>
           </div>
           <div className="flex items-start gap-2.5">
-            <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
-                  stroke="#303030"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search..."
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-              />
-            </div>
             <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
               <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                 Filter
@@ -559,6 +537,29 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 />
               </svg>
             </button>
+            <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-[#fbfbfb] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#303030] w-5 h-5"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+              Add Account
+            </button>
+            <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013564] shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)]">
+              <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
+                Import
+              </span>
+            </div>
           </div>
         </div>
 
@@ -699,7 +700,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
       {/* Bills Table */}
       <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             <h2 className="text-[#303030] font-medium text-[22px] leading-6">
               Bills
