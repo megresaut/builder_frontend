@@ -64,6 +64,46 @@ export const Login = () => {
     }
   };
 
+  const handleForgotPasswordClick = () => {
+    setShowForgotPasswordModal(true);
+    setForgotPasswordError("");
+    setForgotPasswordSuccess(false);
+    setForgotPasswordEmail("");
+  };
+
+  const closeForgotPasswordModal = () => {
+    setShowForgotPasswordModal(false);
+    setForgotPasswordError("");
+    setForgotPasswordSuccess(false);
+    setForgotPasswordEmail("");
+  };
+
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordError("");
+
+    // Validate email
+    if (!forgotPasswordEmail) {
+      setForgotPasswordError("Email is required");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotPasswordEmail)) {
+      setForgotPasswordError("Invalid email format");
+      return;
+    }
+
+    setForgotPasswordLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setForgotPasswordLoading(false);
+      setForgotPasswordSuccess(true);
+      // Auto-close modal after 3 seconds
+      setTimeout(() => {
+        closeForgotPasswordModal();
+      }, 3000);
+    }, 1500);
+  };
+
   return (
     <div className="flex min-h-screen bg-white">
       {/* Left Hero Section with Background Image */}
