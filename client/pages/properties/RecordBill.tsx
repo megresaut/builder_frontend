@@ -513,18 +513,27 @@ export const RecordBill = () => {
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
-      style={{ minHeight: "100vh" }}
+      style={{
+        minHeight: "100vh",
+        borderLeftColor: "rgb(229,231,235)",
+        borderLeftWidth: "1px",
+        borderTopWidth: "0px",
+        borderBottomWidth: "0px",
+        borderRightWidth: "0px",
+        border: "1px solid #d2d1cf",
+      }}
     >
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
           <div
-            className="w-1/2 border-r border-[#E5E7EB] px-8 py-6 flex-shrink-0 overflow-hidden"
+            className="w-1/2 border-r border-[#E5E7EB] flex-shrink-0 overflow-hidden"
             style={{
               alignSelf: "stretch",
               display: "flex",
               flexDirection: "column",
+              padding: "24px 32px",
             }}
           >
             {!viewingFileUrl ? (
@@ -1368,11 +1377,21 @@ export const RecordBill = () => {
       </div>
       {/* Fixed Bottom Bar - Always visible at viewport bottom, accounting for sidebar */}
       <div
-        className="fixed bottom-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
+        className="fixed bottom-0 right-0 bg-white z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
         style={{
-          padding: "16px 32px",
+          borderTopWidth: "1.33333px",
+          bottom: "0px",
+          boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
+          fontWeight: "400",
           left: sidebarVisible ? "262px" : "0px",
-          transition: "left 0.3s ease",
+          position: "fixed",
+          right: "0px",
+          transitionDuration: "0.3s",
+          transitionProperty: "left",
+          zIndex: "40",
+          borderLeftWidth: "1px",
+          padding: "16px 32px",
+          border: "1.33333px 0px 0px solid #d2d1cf",
         }}
       >
         <div className="flex items-center justify-between">
