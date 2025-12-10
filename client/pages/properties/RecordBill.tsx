@@ -73,6 +73,8 @@ const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
 
 export const RecordBill = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isReadOnly = searchParams.get("readOnly") === "true";
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [referenceNumber, setReferenceNumber] = useState<string>("");
