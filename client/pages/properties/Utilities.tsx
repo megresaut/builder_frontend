@@ -655,11 +655,25 @@ export const Utilities: React.FC<UtilitiesProps> = ({
               </svg>
               Add Account
             </button>
-            <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013564] shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)]">
+            <button
+              onClick={() => {
+                setImportStatus("importing");
+                setTimeout(() => {
+                  setImportStatus("imported");
+                  setTimeout(() => {
+                    setImportStatus("idle");
+                  }, 2000);
+                }, 1500);
+              }}
+              disabled={importStatus === "importing"}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013564] shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] hover:bg-[#012a4d] transition-colors disabled:opacity-70"
+            >
               <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
-                Import
+                {importStatus === "idle" && "Import"}
+                {importStatus === "importing" && "Importing..."}
+                {importStatus === "imported" && "Imported"}
               </span>
-            </div>
+            </button>
           </div>
         </div>
 
