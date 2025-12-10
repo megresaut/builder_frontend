@@ -25,72 +25,148 @@ export const PrivacyPolicy = () => {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="prose prose-lg max-w-none text-gray-700 space-y-8">
+          <div className="border-b-2 border-gray-300 pb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">PRIVACY POLICY</h1>
+            <p className="text-gray-600 text-sm">Reasonable Automations Dashboard</p>
+            <p className="text-gray-600 text-sm">Last Updated: December 2025</p>
+          </div>
+
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Introduction</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Scope & Roles</h2>
             <p>
-              AVM ("we," "us," "our," or "Company") operates the property management platform. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
+              This Privacy Policy describes how data is handled within the Platform.
             </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Information Collection</h2>
-            <p>We collect several different types of information for various purposes to provide and improve our Service to you.</p>
-            
-            <h3 className="text-xl font-semibold text-gray-900 mt-6 mb-3">Personal Data</h3>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Email address</li>
-              <li>Password and authentication credentials</li>
-              <li>Property information and addresses</li>
-              <li>Utility account details and usage data</li>
-              <li>Maintenance records and work orders</li>
-              <li>Financial information and billing records</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-900 mt-6 mb-3">Usage Data</h3>
-            <p>
-              We may also collect information how your device accesses the Service ("Usage Data"). This may include information such as your computer's Internet Protocol address (e.g. IP address), browser type, browser version, the pages you visit, the time and date of your visit, and other diagnostic data.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Use of Data</h2>
-            <p>AVM uses the collected data for various purposes:</p>
-            <ul className="list-disc list-inside space-y-2">
-              <li>To provide and maintain the Service</li>
-              <li>To notify you about changes to our Service</li>
-              <li>To allow you to participate in interactive features of our Service</li>
-              <li>To gather analysis or valuable information for improving the Service</li>
-              <li>To monitor the usage of the Service</li>
-              <li>To detect, prevent and address technical issues</li>
+            <ul className="list-disc list-inside space-y-2 mt-3">
+              <li>AVM is the data controller for all information entered into the Platform.</li>
+              <li>Reasonable Automations acts as a data processor, processing information solely at AVM's direction and for Platform operation.</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Data Protection</h2>
-            <p>
-              The security of your data is important to us, but remember that no method of transmission over the Internet or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your personal data, we cannot guarantee its absolute security.
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Information Processed</h2>
+            <div className="ml-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">a. User & Account Data</h3>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Names</li>
+                <li>Email addresses</li>
+                <li>Roles and permissions</li>
+                <li>Authentication and access metadata</li>
+              </ul>
+
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4">b. Client-Provided Operational Data</h3>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Property, unit, lease, vendor, and maintenance records</li>
+                <li>Invoices, bills, and related financial documents</li>
+                <li>Files, notes, and internal workflow information</li>
+              </ul>
+
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4">c. Integration Data</h3>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Data retrieved from third-party systems connected at AVM's request</li>
+              </ul>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Purpose of Processing</h2>
+            <p>Data is processed solely to:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Operate and maintain the Platform</li>
+              <li>Perform workflow automation and reporting</li>
+              <li>Provide technical support and troubleshooting</li>
+              <li>Improve system performance and reliability</li>
+            </ul>
+            <p className="mt-3">
+              Reasonable Automations does not use AVM data for advertising, resale, or unrelated commercial purposes.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Rights</h2>
-            <p>You have the right to:</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Infrastructure & Hosting</h2>
+            <p>
+              Platform data is stored and processed using third-party cloud and infrastructure providers that meet industry-standard security and reliability practices.
+            </p>
+            <p className="mt-3">
+              Reasonable Automations does not independently operate physical data centers and does not control the underlying infrastructure operated by such providers.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Data Security</h2>
+            <p>
+              Reasonable Automations employs commercially reasonable administrative, technical, and organizational safeguards. Sensitive information is encrypted in transit and at rest using industry-standard encryption methods.
+            </p>
+            <p className="mt-3 font-semibold">However, AVM acknowledges:</p>
             <ul className="list-disc list-inside space-y-2">
-              <li>Access your personal data</li>
-              <li>Correct inaccurate data</li>
-              <li>Request deletion of your data</li>
-              <li>Opt-out of certain communications</li>
-              <li>Data portability in certain circumstances</li>
+              <li>No system can be guaranteed to be completely secure</li>
+              <li>Reasonable Automations does not warrant absolute security or regulatory compliance</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Us</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Client Responsibilities</h2>
+            <p>AVM is responsible for:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Accuracy, legality, and appropriateness of all data submitted</li>
+              <li>Compliance with applicable privacy, property, tenant, and financial laws</li>
+              <li>Managing user access, credentials, and permissions</li>
+              <li>Determining retention requirements for its data</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Data Sharing</h2>
+            <p>Reasonable Automations does not sell Client data.</p>
+            <p className="mt-3">Data may be shared only with:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Authorized AVM users</li>
+              <li>Infrastructure or service providers supporting Platform operations under confidentiality obligations</li>
+              <li>Third-party systems explicitly configured by AVM</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Data Retention & Deletion</h2>
             <p>
-              If you have any questions about this Privacy Policy, please contact us at:
+              Data is retained for the duration of the engagement.
+            </p>
+            <p className="mt-3">
+              Upon termination, AVM may request data export.
+            </p>
+            <p className="mt-3">
+              Data deletion or archival will be handled subject to written instruction, contractual obligations, and applicable law.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Reusable Components</h2>
+            <p>
+              Reasonable Automations may develop and reuse generalized software modules across clients. Client data is never reused, incorporated, or disclosed in connection with such components.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Compliance & Limitation</h2>
+            <p>
+              Reasonable Automations does not provide legal, regulatory, accounting, or compliance advice. AVM remains solely responsible for determining whether use of the Platform satisfies applicable regulatory obligations.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Policy Updates</h2>
+            <p>
+              This Privacy Policy may be updated periodically. Material changes will be communicated to AVM.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Contact</h2>
+            <p>
+              Questions regarding these Terms or privacy practices may be directed to:
             </p>
             <p className="mt-3 font-semibold">
-              Email: <a href="mailto:matt@reasonableautomations.com" className="text-blue-600 hover:text-blue-700">matt@reasonableautomations.com</a>
+              Reasonable Automations<br />
+              <a href="mailto:matt@reasonableautomations.com" className="text-blue-600 hover:text-blue-700">matt@reasonableautomations.com</a>
             </p>
           </section>
         </div>
