@@ -632,6 +632,7 @@ export const RecordBill = () => {
                         </label>
                         <input
                           type="date"
+                          readOnly
                           value={
                             invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
                           }
@@ -646,7 +647,7 @@ export const RecordBill = () => {
                               setInvoiceDateInput("");
                             }
                           }}
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] cursor-pointer"
                         />
                         {invoiceDateError && (
                           <div className="text-red-500 text-xs mt-1">
@@ -661,6 +662,7 @@ export const RecordBill = () => {
                         </label>
                         <input
                           type="date"
+                          readOnly
                           value={dueDate ? format(dueDate, "yyyy-MM-dd") : ""}
                           onChange={(e) => {
                             if (e.target.value) {
@@ -673,7 +675,7 @@ export const RecordBill = () => {
                               setDueDateInput("");
                             }
                           }}
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] cursor-pointer"
                         />
                         {dueDateError && (
                           <div className="text-red-500 text-xs mt-1">
