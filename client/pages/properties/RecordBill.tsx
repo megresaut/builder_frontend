@@ -270,8 +270,7 @@ export const RecordBill = () => {
   };
 
   return (
-    <>
-    <div className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]" style={{ minHeight: "100vh", paddingBottom: "120px" }}>
+    <div className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative" style={{ minHeight: "100vh" }}>
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
@@ -339,7 +338,7 @@ export const RecordBill = () => {
         {/* Right Column - Scrollable Content */}
         <div className="flex flex-col flex-1">
           {/* Scrollable Content Area */}
-          <div className="overflow-y-auto" style={{ width: "100%" }}>
+          <div className="overflow-y-auto" style={{ width: "100%", paddingBottom: "120px" }}>
             <div className="px-8 py-6 min-w-min">
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
@@ -781,29 +780,28 @@ export const RecordBill = () => {
           </div>
         </div>
       </div>
-    </div>
-    {/* Fixed Sticky Bottom Bar */}
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]" style={{ height: "auto", padding: "16px 32px" }}>
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-          <div>Bill Total: <span className="font-semibold">{calculateTotal()}</span></div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={handleCancel}
-            className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
-          >
-            <span>Cancel</span>
-          </button>
-          <button
-            onClick={handleRecordBill}
-            className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
-          >
-            <span>Record Bill</span>
-          </button>
+      {/* Sticky Bottom Bar - Absolute positioned inside RecordBill */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]" style={{ height: "auto", padding: "16px 32px" }}>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+            <div>Bill Total: <span className="font-semibold">{calculateTotal()}</span></div>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleCancel}
+              className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+            >
+              <span>Cancel</span>
+            </button>
+            <button
+              onClick={handleRecordBill}
+              className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium hover:bg-[#002a4f] transition-colors"
+            >
+              <span>Record Bill</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-    </>
   );
 };
