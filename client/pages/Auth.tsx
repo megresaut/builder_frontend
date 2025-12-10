@@ -291,11 +291,11 @@ export const Auth = () => {
                   />
                   <span className="text-sm text-gray-600">
                     I agree to the{" "}
-                    <a href="#" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+                    <a href="/terms-of-service" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                       Terms of Service
                     </a>{" "}
                     and{" "}
-                    <a href="#" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
+                    <a href="/privacy-policy" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                       Privacy Policy
                     </a>
                   </span>
@@ -356,16 +356,16 @@ export const Auth = () => {
           {/* Footer Links */}
           <div className="mt-8 space-y-2 text-center text-sm">
             <p>
-              <a href="#" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a href="mailto:matt@reasonableautomations.com" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Contact Support
               </a>
             </p>
             <p>
-              <a href="#" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a href="/privacy-policy" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Privacy Policy
               </a>
               {" • "}
-              <a href="#" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
+              <a href="/terms-of-service" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Terms of Service
               </a>
             </p>
