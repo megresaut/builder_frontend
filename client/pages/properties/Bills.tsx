@@ -38,6 +38,7 @@ const bills: Bill[] = [
     memo: "Heater Not Working, Call For Service",
     invoiceNumber: "REF-2024-934",
     amount: 234,
+    glAccount: "6200 - HVAC Services",
   },
   {
     id: 2,
@@ -50,6 +51,7 @@ const bills: Bill[] = [
     memo: "Leaky Faucet, Plumber Scheduled For Tomorrow",
     invoiceNumber: "REF-2024-582",
     amount: 287,
+    glAccount: "6100 - Plumbing",
   },
   {
     id: 3,
@@ -62,6 +64,7 @@ const bills: Bill[] = [
     memo: "High Bill, Check For Leaks And Wastage",
     invoiceNumber: "REF-2024-195",
     amount: 156,
+    glAccount: "6300 - Utilities",
   },
   {
     id: 4,
@@ -74,6 +77,7 @@ const bills: Bill[] = [
     memo: "Slow Connection, Contact ISP For Assistance",
     invoiceNumber: "REF-2024-732",
     amount: 234,
+    glAccount: "6350 - Internet & Phone",
   },
   {
     id: 5,
@@ -86,6 +90,7 @@ const bills: Bill[] = [
     memo: "Pilot Light Out, Schedule Safety Inspection",
     invoiceNumber: "REF-2024-268",
     amount: 167,
+    glAccount: "6200 - HVAC Services",
   },
   {
     id: 6,
@@ -98,6 +103,7 @@ const bills: Bill[] = [
     memo: "Outage Reported, Check Breaker And Connections",
     invoiceNumber: "REF-2024-694",
     amount: 312,
+    glAccount: "6400 - Electrical",
   },
   {
     id: 7,
@@ -110,6 +116,7 @@ const bills: Bill[] = [
     memo: "Clogged Drain, Use Drain Cleaner Carefully",
     invoiceNumber: "REF-2024-319",
     amount: 256,
+    glAccount: "6500 - Maintenance",
   },
   {
     id: 8,
@@ -122,6 +129,7 @@ const bills: Bill[] = [
     memo: "Low Pressure, Check Supply And Aerators",
     invoiceNumber: "REF-2024-851",
     amount: 178,
+    glAccount: "6100 - Plumbing",
   },
   {
     id: 9,
@@ -134,6 +142,7 @@ const bills: Bill[] = [
     memo: "Intermittent Issues, Troubleshoot Router And Modem",
     invoiceNumber: "REF-2024-427",
     amount: 213,
+    glAccount: "6350 - Internet & Phone",
   },
   {
     id: 10,
@@ -146,6 +155,7 @@ const bills: Bill[] = [
     memo: "High Usage, Investigate Appliances And Settings",
     invoiceNumber: "REF-2024-934",
     amount: 145,
+    glAccount: "6500 - Maintenance",
   },
 ];
 
