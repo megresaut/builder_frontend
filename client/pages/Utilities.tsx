@@ -599,6 +599,7 @@ export const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
+            ref={menuRef}
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
