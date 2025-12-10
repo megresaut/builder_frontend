@@ -76,46 +76,58 @@ export const Auth = () => {
 
   return (
     <div className="flex min-h-screen bg-white">
-      {/* Left Hero Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0F5A7B] to-[#0A3D54] flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <img
-            alt="AVM Logo"
-            src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
-            className="w-10 h-10"
-          />
-          <span className="text-2xl font-semibold text-white">AVM</span>
-        </div>
+      {/* Left Hero Section with Geometric Background */}
+      <div className="hidden lg:flex lg:w-1/2 bg-white flex-col justify-between p-12 relative overflow-hidden">
+        {/* Geometric Background Pattern */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="xMidYMid slice"
+          style={{ zIndex: 0 }}
+        >
+          {/* Large Navy Triangle - Top Right */}
+          <polygon points="800,0 1000,0 1000,400" fill="#003f7f" />
 
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
-              Property Management Made Simple
-            </h1>
-            <p className="text-lg text-blue-100">
-              Manage utilities, maintenance, and finances all in one place. Streamline your property operations with AVM's comprehensive platform.
+          {/* Medium Navy Triangle - Bottom Left */}
+          <polygon points="0,600 0,1000 400,1000" fill="#003f7f" />
+
+          {/* Light Beige Triangle - Center */}
+          <polygon points="300,200 600,200 450,500" fill="#e8dcc8" />
+
+          {/* Another Navy Triangle - Bottom Right */}
+          <polygon points="900,700 1000,600 1000,1000" fill="#003f7f" opacity="0.8" />
+
+          {/* Accent Navy Triangle - Top Left */}
+          <polygon points="0,0 250,0 0,250" fill="#003f7f" opacity="0.6" />
+        </svg>
+
+        {/* Content - Relative to overlay the background */}
+        <div className="relative z-10 flex flex-col justify-between h-full">
+          {/* Logo and Company Name */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <img
+                alt="AVM Logo"
+                src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
+                className="w-12 h-12"
+              />
+              <span className="text-3xl font-semibold text-gray-900">AVM</span>
+            </div>
+            <p className="text-sm text-gray-600 ml-0">Property Management</p>
+          </div>
+
+          {/* Center spacer */}
+          <div />
+
+          {/* Footer with Credits */}
+          <div className="space-y-2 text-sm">
+            <p className="text-gray-600">
+              © 2025 AVM. All rights reserved.
+            </p>
+            <p className="text-gray-500 text-xs">
+              Developed by Reasonable Automations
             </p>
           </div>
-
-          <div className="space-y-6">
-            {[
-              { icon: "⚡", title: "Track Utilities", desc: "Monitor energy usage and costs in real-time" },
-              { icon: "🔧", title: "Manage Maintenance", desc: "Schedule and track all maintenance tasks" },
-              { icon: "💰", title: "Financial Insights", desc: "Get detailed reports on property spending" },
-            ].map((feature, idx) => (
-              <div key={idx} className="flex gap-4">
-                <span className="text-3xl flex-shrink-0">{feature.icon}</span>
-                <div>
-                  <h3 className="font-semibold text-white">{feature.title}</h3>
-                  <p className="text-blue-100 text-sm">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="text-sm text-blue-200">
-          © 2025 AVM. All rights reserved.
         </div>
       </div>
 
@@ -161,8 +173,17 @@ export const Auth = () => {
                 className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
                   errors.email
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
-                    : "border-gray-300 focus:ring-blue-200 focus:border-blue-400"
+                    : "border-gray-300"
                 }`}
+                style={!errors.email ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                onFocus={(e) => {
+                  if (!errors.email) {
+                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = "";
+                }}
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -184,8 +205,17 @@ export const Auth = () => {
                 className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
                   errors.password
                     ? "border-red-300 focus:ring-red-200 bg-red-50"
-                    : "border-gray-300 focus:ring-blue-200 focus:border-blue-400"
+                    : "border-gray-300"
                 }`}
+                style={!errors.password ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                onFocus={(e) => {
+                  if (!errors.password) {
+                    e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = "";
+                }}
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -208,8 +238,17 @@ export const Auth = () => {
                   className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
                     errors.confirmPassword
                       ? "border-red-300 focus:ring-red-200 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-200 focus:border-blue-400"
+                      : "border-gray-300"
                   }`}
+                  style={!errors.confirmPassword ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                  onFocus={(e) => {
+                    if (!errors.confirmPassword) {
+                      e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = "";
+                  }}
                 />
                 {errors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -226,11 +265,12 @@ export const Auth = () => {
                     type="checkbox"
                     checked={formData.rememberMe}
                     onChange={handleInputChange}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-gray-300"
+                    style={{ accentColor: "rgb(36, 99, 235)" }}
                   />
                   <span className="text-sm text-gray-600">Remember me</span>
                 </label>
-                <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <a href="#" className="text-sm font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                   Forgot password?
                 </a>
               </div>
@@ -245,15 +285,16 @@ export const Auth = () => {
                     type="checkbox"
                     checked={formData.agreeToTerms}
                     onChange={handleInputChange}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
+                    className="w-4 h-4 rounded border-gray-300 mt-1"
+                    style={{ accentColor: "rgb(36, 99, 235)" }}
                   />
                   <span className="text-sm text-gray-600">
                     I agree to the{" "}
-                    <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                    <a href="#" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                       Terms of Service
                     </a>{" "}
                     and{" "}
-                    <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                    <a href="#" className="font-medium" style={{ color: "rgb(36, 99, 235)" }}>
                       Privacy Policy
                     </a>
                   </span>
@@ -268,7 +309,20 @@ export const Auth = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors mt-6"
+              className="w-full text-white font-semibold py-2.5 px-4 rounded-lg transition-colors mt-6 disabled:bg-gray-400"
+              style={{
+                backgroundColor: "rgb(36, 99, 235)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = "rgb(30, 87, 207)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = "rgb(36, 99, 235)";
+                }
+              }}
             >
               {isLoading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
             </button>
@@ -290,7 +344,8 @@ export const Auth = () => {
                   });
                   setErrors({});
                 }}
-                className="text-blue-600 hover:text-blue-700 font-semibold"
+                className="font-semibold"
+                style={{ color: "rgb(36, 99, 235)" }}
               >
                 {isSignUp ? "Sign In" : "Sign Up"}
               </button>
@@ -298,18 +353,18 @@ export const Auth = () => {
           </div>
 
           {/* Footer Links */}
-          <div className="mt-8 space-y-2 text-center text-sm text-gray-500">
+          <div className="mt-8 space-y-2 text-center text-sm">
             <p>
-              <a href="#" className="hover:text-gray-700">
+              <a href="#" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Contact Support
               </a>
             </p>
             <p>
-              <a href="#" className="hover:text-gray-700">
+              <a href="#" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Privacy Policy
               </a>
               {" • "}
-              <a href="#" className="hover:text-gray-700">
+              <a href="#" className="transition-colors" style={{ color: "rgb(36, 99, 235)" }}>
                 Terms of Service
               </a>
             </p>
