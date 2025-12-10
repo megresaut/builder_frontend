@@ -17,6 +17,7 @@ interface Bill {
   memo: string;
   invoiceNumber: string;
   amount: number;
+  glAccount: string;
 }
 
 const bills: Bill[] = [
