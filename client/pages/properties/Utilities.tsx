@@ -812,12 +812,21 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         setIsEditUtilityModalOpen(true);
                       }}
                       onImport={() => {
+                        setAccountImportStatus(prev => ({ ...prev, [account.id]: "importing" }));
                         setAccountLastImport(prev => ({ ...prev, [account.id]: "Importing..." }));
                         setTimeout(() => {
-                          setAccountLastImport(prev => ({ ...prev, [account.id]: "Imported" }));
-                          setTimeout(() => {
-                            setAccountLastImport(prev => ({ ...prev, [account.id]: "1 min ago" }));
-                          }, 1500);
+                          const randomFailure = Math.random() < 0.3;
+                          if (randomFailure) {
+                            setAccountImportStatus(prev => ({ ...prev, [account.id]: "failed" }));
+                            setAccountLastImport(prev => ({ ...prev, [account.id]: "failed" }));
+                          } else {
+                            setAccountImportStatus(prev => ({ ...prev, [account.id]: "imported" }));
+                            setAccountLastImport(prev => ({ ...prev, [account.id]: "Imported" }));
+                            setTimeout(() => {
+                              setAccountImportStatus(prev => ({ ...prev, [account.id]: "idle" }));
+                              setAccountLastImport(prev => ({ ...prev, [account.id]: "1 min ago" }));
+                            }, 1500);
+                          }
                         }, 1500);
                       }}
                     />
