@@ -84,7 +84,8 @@ export const RecordBill = () => {
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>>([
+  const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; file: File }>([
     { name: "Brex_Expenses_2025-11-23_091108_PM", size: 30720, file: new File([], "Brex_Expenses_2025-11-23_091108_PM.pdf") },
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -292,6 +293,18 @@ export const RecordBill = () => {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + sizes[i];
   };
 
+  const handleViewFile = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setViewingFileUrl(url);
+  };
+
+  const closeViewer = () => {
+    if (viewingFileUrl) {
+      URL.revokeObjectURL(viewingFileUrl);
+    }
+    setViewingFileUrl(null);
+  };
+
   const calculateTotal = (): string => {
     const total = lineItems.reduce((sum, item) => {
       const value = parseFloat(
@@ -370,6 +383,13 @@ export const RecordBill = () => {
                         </div>
                         <div className="flex items-center gap-2 ml-4">
                           <button
+                            onClick={() => handleViewFile(file.file)}
+                            className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+                            title="View file"
+                          >
+                            View
+                          </button>
+                          <button
                             onClick={() => handleRemoveFile(index)}
                             className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
                             title="Remove file"
@@ -401,6 +421,35 @@ export const RecordBill = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {/* PDF Viewer Modal */}
+        {viewingFileUrl && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={closeViewer}>
+            <div className="bg-white rounded-lg shadow-lg flex flex-col h-[90vh] w-[90vw] max-w-4xl" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
+                <h2 className="text-lg font-semibold text-[#303030]">Document Preview</h2>
+                <button
+                  onClick={closeViewer}
+                  className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+                  title="Close"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {/* Content */}
+              <div className="flex-1 overflow-auto">
+                <iframe
+                  src={viewingFileUrl}
+                  className="w-full h-full border-0"
+                  title="Document Preview"
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Collapse Button */}
