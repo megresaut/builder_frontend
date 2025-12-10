@@ -964,8 +964,11 @@ export const RecordBill = () => {
 
         </div>
       </div>
-      {/* Fixed Bottom Bar - Always visible at viewport bottom, spanning entire Record Bills page */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]" style={{ padding: "16px 32px" }}>
+      {/* Fixed Bottom Bar - Always visible at viewport bottom, accounting for sidebar */}
+      <div
+        className="fixed bottom-0 right-0 bg-white border-t border-[#E5E7EB] z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]"
+        style={{ padding: "16px 32px", left: "0px" }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
             <div>Bill Total: <span className="font-semibold">{calculateTotal()}</span></div>
