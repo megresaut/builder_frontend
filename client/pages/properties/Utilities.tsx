@@ -901,7 +901,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         : "border-b border-gray-200",
                     )}
                   >
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                         {bill.icon}
