@@ -800,12 +800,6 @@ export default function Bills() {
                               backgroundColor: "white",
                             }}
                           >
-                            <ActionButton
-                              itemId={bill.id}
-                              openMenuId={openMenuId}
-                              setOpenMenuId={setOpenMenuId}
-                              tab={selectedTab}
-                            />
                           </td>
                         </tr>
                       );
