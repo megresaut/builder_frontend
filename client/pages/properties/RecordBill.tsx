@@ -295,8 +295,10 @@ export const RecordBill = () => {
   };
 
   const handleViewFile = (file: File) => {
+    const index = uploadedFiles.findIndex((f) => f.file === file);
     const url = URL.createObjectURL(file);
     setViewingFileUrl(url);
+    setViewingFileIndex(index);
   };
 
   const closeViewer = () => {
@@ -304,6 +306,28 @@ export const RecordBill = () => {
       URL.revokeObjectURL(viewingFileUrl);
     }
     setViewingFileUrl(null);
+    setViewingFileIndex(null);
+  };
+
+  const handleDownloadFile = () => {
+    if (viewingFileIndex !== null && uploadedFiles[viewingFileIndex]) {
+      const file = uploadedFiles[viewingFileIndex];
+      const url = URL.createObjectURL(file.file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name + (file.name.endsWith(".pdf") || file.name.endsWith(".jpg") || file.name.endsWith(".png") ? "" : ".pdf");
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const handleDeleteFile = () => {
+    if (viewingFileIndex !== null) {
+      handleRemoveFile(viewingFileIndex);
+      closeViewer();
+    }
   };
 
   const calculateTotal = (): string => {
