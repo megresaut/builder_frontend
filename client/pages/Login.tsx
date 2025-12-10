@@ -76,17 +76,22 @@ export const Login = () => {
 
         {/* Content - Relative to overlay the background */}
         <div className="relative z-20 flex flex-col justify-between h-full p-8">
-          {/* Logo and Company Name */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3">
-              <img
-                alt="AVM Logo"
-                src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F72e0b6d48d514377b9ff522722ec83c2?format=webp&width=800"
-                className="w-10 h-10"
-              />
-              <span className="text-2xl font-bold text-white">AVM</span>
+          {/* Empty top section */}
+          <div />
+
+          {/* Center Branding with Icon */}
+          <div className="flex flex-col items-center justify-center gap-6 mb-12">
+            {/* AVM Icon */}
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2Fcfcebb746e114b489185ee38a951cabb?format=webp&width=800"
+              alt="AVM Icon"
+              className="w-24 h-24"
+            />
+            {/* Text */}
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-white mb-1">AVM</h1>
+              <p className="text-lg text-gray-100">Property Management</p>
             </div>
-            <p className="text-xs text-gray-200 ml-0">Property Management</p>
           </div>
 
           {/* Footer with Credits */}
