@@ -180,10 +180,7 @@ interface ActionButtonProps {
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   tab?: "approved" | "drafts";
-  onEditBill?: () => void;
-  onExportBill?: () => void;
-  onDeleteBill?: () => void;
-  onViewBill?: () => void;
+  propertyId?: string;
 }
 
 const ActionButton = ({
