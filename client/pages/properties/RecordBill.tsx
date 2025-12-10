@@ -448,15 +448,52 @@ export const RecordBill = () => {
             </div>
           ) : (
             <div className="flex flex-col flex-1 w-full h-full" style={{ display: "flex", flexDirection: "column" }}>
-              <button
-                onClick={closeViewer}
-                className="text-[#A1A1A9] hover:text-[#303030] transition-colors mb-2 self-end"
-                title="Close"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-lg bg-white text-gray-900 hover:bg-gray-100 transition-colors px-3 py-2 text-sm font-medium"
+                  title="Upload files"
+                >
+                  Upload files
+                </button>
+                <button
+                  onClick={() => {}}
+                  className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium"
+                  title="Autofill from file"
+                >
+                  Autofill from file
+                </button>
+                <div className="flex-1" />
+                <button
+                  onClick={handleDownloadFile}
+                  className="rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
+                  title="Download"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download
+                </button>
+                <button
+                  onClick={handleDeleteFile}
+                  className="rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors px-3 py-2 text-sm font-medium flex items-center gap-2"
+                  title="Delete"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+                <button
+                  onClick={closeViewer}
+                  className="text-white hover:text-gray-300 transition-colors"
+                  title="Close"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               <div className="flex-1 overflow-auto w-full">
                 <iframe
                   src={viewingFileUrl}
