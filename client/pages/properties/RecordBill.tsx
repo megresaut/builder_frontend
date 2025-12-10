@@ -71,18 +71,69 @@ const mockUnits = ["1", "2", "3", "4", "5"];
 const mockWorkOrders = ["123456-1", "123456-2", "789012-1"];
 const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
 
+const placeholderBill = {
+  vendor: mockVendors[0],
+  referenceNumber: "INV-2024-001",
+  invoiceDate: new Date(2024, 0, 15),
+  dueDate: new Date(2024, 1, 15),
+  memo: "Monthly utility billing for business operations. CRS Inspection Process documentation and compliance materials.",
+  lineItems: [
+    {
+      id: 1,
+      property: "22 Indian Creek Dr",
+      unit: "1",
+      workOrder: "123456-1",
+      description: "Monthly electric service charge and consumption",
+      glAccount: "Utilities",
+      total: "$450.00",
+    },
+    {
+      id: 2,
+      property: "22 Indian Creek Dr",
+      unit: "2",
+      workOrder: "123456-2",
+      description: "Water and sewer service",
+      glAccount: "Utilities",
+      total: "$125.50",
+    },
+    {
+      id: 3,
+      property: "25 Park Ave",
+      unit: "1",
+      workOrder: "789012-1",
+      description: "Gas heating service",
+      glAccount: "Utilities",
+      total: "$275.00",
+    },
+  ],
+};
+
 export const RecordBill = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isReadOnly = searchParams.get("readOnly") === "true";
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
-  const [referenceNumber, setReferenceNumber] = useState<string>("");
-  const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
-  const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [invoiceDateInput, setInvoiceDateInput] = useState<string>("");
-  const [dueDateInput, setDueDateInput] = useState<string>("");
-  const [memo, setMemo] = useState<string>("");
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
+    isReadOnly ? placeholderBill.vendor : null,
+  );
+  const [referenceNumber, setReferenceNumber] = useState<string>(
+    isReadOnly ? placeholderBill.referenceNumber : "",
+  );
+  const [invoiceDate, setInvoiceDate] = useState<Date | null>(
+    isReadOnly ? placeholderBill.invoiceDate : null,
+  );
+  const [dueDate, setDueDate] = useState<Date | null>(
+    isReadOnly ? placeholderBill.dueDate : null,
+  );
+  const [invoiceDateInput, setInvoiceDateInput] = useState<string>(
+    isReadOnly ? format(placeholderBill.invoiceDate, "MM/dd/yyyy") : "",
+  );
+  const [dueDateInput, setDueDateInput] = useState<string>(
+    isReadOnly ? format(placeholderBill.dueDate, "MM/dd/yyyy") : "",
+  );
+  const [memo, setMemo] = useState<string>(
+    isReadOnly ? placeholderBill.memo : "",
+  );
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
@@ -97,17 +148,19 @@ export const RecordBill = () => {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    {
-      id: 1,
-      property: "",
-      unit: "",
-      workOrder: "",
-      description: "",
-      glAccount: "",
-      total: "",
-    },
-  ]);
+  const [lineItems, setLineItems] = useState<LineItem[]>(
+    isReadOnly ? placeholderBill.lineItems : [
+      {
+        id: 1,
+        property: "",
+        unit: "",
+        workOrder: "",
+        description: "",
+        glAccount: "",
+        total: "",
+      },
+    ],
+  );
 
   // Dynamic column width tracking with default minimum widths
   const defaultColumnWidths = {
