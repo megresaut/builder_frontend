@@ -814,6 +814,72 @@ export const ActionButton = ({
   );
 };
 
+interface BillsColumn {
+  id: string;
+  label: string;
+  key: keyof Bill;
+  icon?: React.ReactNode;
+  renderCell?: (bill: Bill) => React.ReactNode;
+}
+
+const DEFAULT_BILLS_COLUMNS: BillsColumn[] = [
+  {
+    id: "provider",
+    label: "Provider",
+    key: "provider",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    id: "date",
+    label: "Statement Date",
+    key: "date",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    id: "aiUsageInsight",
+    label: "AI Usage Insight",
+    key: "aiUsageInsight",
+    renderCell: (bill: Bill) => <AIInsightBadge insight={bill.aiUsageInsight} />,
+  },
+  {
+    id: "changeFromLastBill",
+    label: "Change from Last Bill",
+    key: "changeFromLastBill",
+    icon: (
+      <img
+        loading="lazy"
+        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f3223e08811539f2913d760c3f845a57c3ae8328?placeholderIfAbsent=true"
+        alt=""
+        className="w-4 h-4 object-contain"
+      />
+    ),
+  },
+  {
+    id: "status",
+    label: "Status",
+    key: "status",
+    renderCell: (bill: Bill) => <BillStatusBadge status={bill.status} />,
+  },
+  {
+    id: "amount",
+    label: "Amount",
+    key: "amount",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+];
+
 export default function Utilities() {
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -829,8 +895,39 @@ export default function Utilities() {
     "openUtilityMenuId",
     null,
   );
+  const [billsColumns, setBillsColumns] = usePageState<BillsColumn[]>(
+    "billsColumns",
+    DEFAULT_BILLS_COLUMNS,
+  );
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  const handleColumnDragStart = (columnId: string) => {
+    setDraggedColumn(columnId);
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent<HTMLTableCellElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleColumnDrop = (targetColumnId: string) => {
+    if (!draggedColumn || draggedColumn === targetColumnId) {
+      setDraggedColumn(null);
+      return;
+    }
+
+    const draggedIndex = billsColumns.findIndex((col) => col.id === draggedColumn);
+    const targetIndex = billsColumns.findIndex((col) => col.id === targetColumnId);
+
+    const newColumns = [...billsColumns];
+    const [removed] = newColumns.splice(draggedIndex, 1);
+    newColumns.splice(targetIndex, 0, removed);
+
+    setBillsColumns(newColumns);
+    setDraggedColumn(null);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
