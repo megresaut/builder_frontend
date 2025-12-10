@@ -628,7 +628,13 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 />
               </svg>
             </button>
-            <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-[#fbfbfb] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors">
+            <button
+              onClick={() => {
+                setEditingUtilityAccount(null);
+                setIsEditUtilityModalOpen(true);
+              }}
+              className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-[#fbfbfb] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
