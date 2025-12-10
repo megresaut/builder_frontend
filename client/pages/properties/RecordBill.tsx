@@ -1225,10 +1225,10 @@ export const RecordBill = () => {
                                 value={item.total}
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  if (
+                                  if (!isReadOnly && (
                                     value === "" ||
                                     /^\$?[\d,]*\.?\d{0,2}$/.test(value)
-                                  ) {
+                                  )) {
                                     const formatted = value.startsWith("$")
                                       ? value
                                       : "$" + value;
@@ -1241,6 +1241,7 @@ export const RecordBill = () => {
                                 }}
                                 placeholder="$0.00"
                                 data-measure-width="total"
+                                disabled={isReadOnly}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
