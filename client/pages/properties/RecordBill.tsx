@@ -1388,7 +1388,7 @@ export const RecordBill = () => {
           bottom: "0px",
           boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
           fontWeight: "400",
-          left: "0px",
+          left: sidebarVisible ? "262px" : "0px",
           position: "fixed",
           right: "0px",
           transitionDuration: "0.3s",
