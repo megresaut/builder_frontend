@@ -1586,44 +1586,40 @@ export default function Utilities() {
                         : "border-b border-gray-200",
                     )}
                   >
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                          {bill.icon}
-                        </div>
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.provider}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {bill.date}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <AIInsightBadge insight={bill.aiUsageInsight} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span
-                        className={cn(
-                          "text-sm font-medium",
-                          bill.changeFromLastBill.startsWith("↑")
-                            ? "text-red-600"
-                            : "text-green-600",
-                        )}
+                    {billsColumns.map((column) => (
+                      <td
+                        key={`${bill.id}-${column.id}`}
+                        className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
                       >
-                        {bill.changeFromLastBill}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <BillStatusBadge status={bill.status} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {bill.amount}
-                      </span>
-                    </td>
+                        {column.id === "provider" ? (
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                              {bill.icon}
+                            </div>
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill[column.key]}
+                            </span>
+                          </div>
+                        ) : column.id === "changeFromLastBill" ? (
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              (bill[column.key] as string).startsWith("↑")
+                                ? "text-red-600"
+                                : "text-green-600",
+                            )}
+                          >
+                            {bill[column.key]}
+                          </span>
+                        ) : column.renderCell ? (
+                          column.renderCell(bill)
+                        ) : (
+                          <span className="text-gray-900 font-normal text-base">
+                            {bill[column.key]}
+                          </span>
+                        )}
+                      </td>
+                    ))}
                     <td
                       className="sticky right-0 px-2 py-3 flex items-center justify-center"
                       style={{
@@ -1639,6 +1635,9 @@ export default function Utilities() {
                         propertyId={bill.id}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
+                        onView={() => {
+                          navigate("/bills/record?readOnly=true");
+                        }}
                       />
                     </td>
                   </tr>
