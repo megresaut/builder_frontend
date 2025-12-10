@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { usePageState } from "@/hooks/usePageState";
