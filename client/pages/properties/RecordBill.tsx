@@ -510,7 +510,7 @@ export const RecordBill = () => {
         <button
           onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
           className="w-6 h-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-          style={{ borderRight: "2px solid #303030" }}
+          style={{ borderRightWidth: "2px", borderRightColor: "#303030", borderRightStyle: "solid" }}
           title={isLeftPanelOpen ? "Collapse" : "Expand"}
         >
           <svg
