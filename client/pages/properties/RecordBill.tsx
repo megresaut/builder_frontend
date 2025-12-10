@@ -735,7 +735,7 @@ export const RecordBill = () => {
           {/* Sticky Footer - Bill Total and Action Buttons */}
           <div
             className="border-t border-[#E5E7EB] bg-white flex-shrink-0"
-            style={{ marginTop: "100px", width: "596px" }}
+            style={{ marginTop: "40px", width: "596px" }}
           >
             {/* Bill Total */}
             <div
