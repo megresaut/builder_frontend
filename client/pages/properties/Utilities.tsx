@@ -975,9 +975,12 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <img
+                      loading="lazy"
+                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f3223e08811539f2913d760c3f845a57c3ae8328?placeholderIfAbsent=true"
+                      alt=""
+                      className="w-4 h-4 object-contain"
+                    />
                     Change from Last Bill
                   </span>
                 </th>
