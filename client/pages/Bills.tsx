@@ -407,6 +407,10 @@ export default function Bills() {
     "isAddVendorModalOpen",
     false,
   );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
     "idle",
   );
