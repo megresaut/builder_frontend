@@ -304,6 +304,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] = useState<boolean>(false);
   const [editingUtilityAccount, setEditingUtilityAccount] = useState<UtilityAccount | null>(null);
   const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">("edit");
+  const [importStatus, setImportStatus] = useState<"idle" | "importing" | "imported">("idle");
 
   useEffect(() => {
     let animationFrameId: number;
