@@ -1,0 +1,41 @@
+name: Frontend Deploy (Manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build frontend
+      run: npm run build
+
+    - name: Upload dist/ to OVH
+      uses: burnett01/rsync-deployments@v2.2.2
+      with:
+        switches: -avz --delete
+        path: dist/
+        remote_path: /srv/ra-avm-test/frontend/dist
+        remote_host: ${{ secrets.OVH_HOST }}
+        remote_user: ${{ secrets.OVH_USER }}
+        remote_key: ${{ secrets.OVH_SSH_KEY }}
+
+    - name: Reload Caddy
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.OVH_HOST }}
+        username: ${{ secrets.OVH_USER }}
+        key: ${{ secrets.OVH_SSH_KEY }}
+        script: sudo systemctl reload caddy
