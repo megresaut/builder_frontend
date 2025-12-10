@@ -589,7 +589,8 @@ export const RecordBill = () => {
                           value={referenceNumber}
                           onChange={(e) => setReferenceNumber(e.target.value)}
                           placeholder="INV-2024-001"
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
+                          style={{ '--tw-placeholder-opacity': '1', '--tw-placeholder-color': 'rgb(161, 161, 169)' } as React.CSSProperties}
                         />
                       </div>
                     </div>
@@ -669,7 +670,7 @@ export const RecordBill = () => {
                         value={memo}
                         onChange={(e) => setMemo(e.target.value)}
                         placeholder="Additional notes..."
-                        className="rounded-lg bg-white border border-[#E5E5E5] mt-2 min-h-[81px] w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6]"
+                        className="rounded-lg bg-white border border-[#E5E7EB] mt-2 min-h-[81px] w-full px-3 py-2 overflow-hidden text-base text-[#303030] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9]"
                       />
                     </div>
                   </div>
