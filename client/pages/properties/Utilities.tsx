@@ -305,6 +305,10 @@ export const Utilities: React.FC<UtilitiesProps> = ({
   const [editingUtilityAccount, setEditingUtilityAccount] = useState<UtilityAccount | null>(null);
   const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">("edit");
   const [importStatus, setImportStatus] = useState<"idle" | "importing" | "imported">("idle");
+  const [accountImportStatus, setAccountImportStatus] = useState<{ [key: number]: "idle" | "importing" | "imported" }>({});
+  const [accountLastImport, setAccountLastImport] = useState<{ [key: number]: string }>(
+    utilityAccounts.reduce((acc, account) => ({ ...acc, [account.id]: account.lastImport }), {})
+  );
 
   useEffect(() => {
     let animationFrameId: number;
