@@ -307,6 +307,76 @@ export const Auth = () => {
               </div>
             )}
 
+            {/* Phone Number Field (Sign Up Only) */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="(555) 123-4567"
+                  className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
+                    errors.phone
+                      ? "border-red-300 focus:ring-red-200 bg-red-50"
+                      : "border-gray-300"
+                  }`}
+                  style={!errors.phone ? { borderColor: "rgb(36, 99, 235)", outlineColor: "rgb(36, 99, 235)" } : {}}
+                  onFocus={(e) => {
+                    if (!errors.phone) {
+                      e.target.style.boxShadow = "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = "";
+                  }}
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                )}
+              </div>
+            )}
+
+            {/* Profile Photo Field (Sign Up Only) */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="profilePhoto" className="block text-sm font-medium text-gray-700 mb-1">
+                  Profile Photo (Optional)
+                </label>
+                <div className="flex items-end gap-4">
+                  <div className="flex-1">
+                    <input
+                      id="profilePhoto"
+                      name="profilePhoto"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold"
+                      style={{
+                        colorScheme: "light",
+                      }}
+                    />
+                    {errors.profilePhoto && (
+                      <p className="mt-1 text-sm text-red-600">{errors.profilePhoto}</p>
+                    )}
+                  </div>
+                  {photoPreview && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={photoPreview}
+                        alt="Profile preview"
+                        className="w-16 h-16 rounded-lg object-cover border border-gray-300"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Remember Me / Forgot Password (Login Only) */}
             {!isSignUp && (
               <div className="flex items-center justify-between">
