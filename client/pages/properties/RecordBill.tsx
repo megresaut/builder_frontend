@@ -632,7 +632,6 @@ export const RecordBill = () => {
                         </label>
                         <input
                           type="date"
-                          readOnly
                           value={
                             invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
                           }
@@ -662,7 +661,6 @@ export const RecordBill = () => {
                         </label>
                         <input
                           type="date"
-                          readOnly
                           value={dueDate ? format(dueDate, "yyyy-MM-dd") : ""}
                           onChange={(e) => {
                             if (e.target.value) {
