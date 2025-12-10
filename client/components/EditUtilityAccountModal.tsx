@@ -61,7 +61,7 @@ export default function EditUtilityAccountModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-8 gap-0 rounded-2xl">
         <DialogTitle className="text-[#303030] text-2xl font-semibold leading-[1.25] mb-4">
-          Edit Utility Account
+          {title}
         </DialogTitle>
 
         <div className="flex flex-col gap-4">
