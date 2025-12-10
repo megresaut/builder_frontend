@@ -268,7 +268,7 @@ export const RecordBill = () => {
   };
 
   return (
-    <div className="bg-white flex flex-col h-screen border-l-4 border-l-[#E5E7EB] font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
+    <div className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]" style={{ height: "1000px", borderLeftWidth: "1px", border: "1px solid #d5d4d2" }}>
       {/* Two-Column Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column - File Upload (Fixed) */}
@@ -312,9 +312,9 @@ export const RecordBill = () => {
         </div>
 
         {/* Right Column - Scrollable Content with Sticky Footer */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-col" style={{ flexGrow: "0", width: "auto" }}>
           {/* Scrollable Content Area */}
-          <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
+          <div className="overflow-y-auto" style={{ maxHeight: "65vh", width: "100%" }}>
             <div className="px-8 py-6 min-w-min">
               {/* Bill Details Section */}
               <div className="flex flex-col w-full">
@@ -328,8 +328,8 @@ export const RecordBill = () => {
                 </div>
 
                 {/* Form Fields */}
-                <div className="flex mt-3 w-full flex-col">
-                  <div className="flex w-full flex-col">
+                <div className="flex mt-3 flex-col">
+                  <div className="flex w-full flex-col" style={{ marginRight: "-2px" }}>
                     {/* Vendor and Reference Number Row */}
                     <div
                       className="flex items-start flex-wrap"
@@ -735,12 +735,12 @@ export const RecordBill = () => {
           {/* Sticky Footer - Bill Total and Action Buttons */}
           <div
             className="border-t border-[#E5E7EB] bg-white flex-shrink-0"
-            style={{ marginTop: "150px" }}
+            style={{ marginTop: "150px", width: "596px" }}
           >
             {/* Bill Total */}
             <div
               className="bg-[#FBFBFB] flex px-8 py-4 items-center gap-24 justify-between flex-wrap border-b border-[#E5E7EB]"
-              style={{ padding: "16px 150px 16px 32px" }}
+              style={{ padding: "16px 32px" }}
             >
               <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
                 <div>Bill Total:</div>
@@ -756,7 +756,7 @@ export const RecordBill = () => {
             {/* Action Buttons */}
             <div
               className="flex px-8 py-5 items-center gap-2.5 text-base justify-end flex-wrap bg-white"
-              style={{ padding: "20px 150px 20px 32px" }}
+              style={{ padding: "20px 32px" }}
             >
               <button
                 onClick={handleCancel}
