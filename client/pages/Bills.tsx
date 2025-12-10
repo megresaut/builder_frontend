@@ -173,12 +173,14 @@ interface ActionButtonProps {
   itemId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  tab?: "approved" | "drafts";
 }
 
 const ActionButton = ({
   itemId,
   openMenuId,
   setOpenMenuId,
+  tab = "approved",
 }: ActionButtonProps) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
