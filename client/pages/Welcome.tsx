@@ -3,18 +3,27 @@ import { useEffect, useState } from "react";
 
 export const Welcome = () => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isWelcomeVisible, setIsWelcomeVisible] = useState(false);
+  const [isContinueVisible, setIsContinueVisible] = useState(false);
 
   useEffect(() => {
     // Mark that user has seen the welcome page
     localStorage.setItem("hasSeenWelcome", "true");
 
-    // Start fade-in animation after a short delay
-    const timer = setTimeout(() => {
-      setIsVisible(true);
+    // Welcome text fades in first
+    const welcomeTimer = setTimeout(() => {
+      setIsWelcomeVisible(true);
     }, 300);
 
-    return () => clearTimeout(timer);
+    // Continue text fades in after welcome
+    const continueTimer = setTimeout(() => {
+      setIsContinueVisible(true);
+    }, 2500);
+
+    return () => {
+      clearTimeout(welcomeTimer);
+      clearTimeout(continueTimer);
+    };
   }, []);
 
   const handleContinue = () => {
@@ -23,23 +32,46 @@ export const Welcome = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden relative">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 z-0 animate-gradient-shift">
-        <div className="absolute inset-0" style={{
-          background: "linear-gradient(135deg, #1e5a7f 0%, #164a6a 25%, #0d3a54 50%, #0a2a40 75%, #051620 100%)",
-          animation: "colorShift 8s ease-in-out infinite"
-        }}></div>
-      </div>
-
-      {/* Overlay for depth */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(5,22,32,0.4)]"></div>
+      {/* Animated wave gradient background */}
+      <svg
+        className="absolute inset-0 w-full h-full z-0"
+        preserveAspectRatio="none"
+        viewBox="0 0 1200 800"
+      >
+        <defs>
+          <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1e5a7f" stopOpacity="1" />
+            <stop offset="25%" stopColor="#164a6a" stopOpacity="1" />
+            <stop offset="50%" stopColor="#0d3a54" stopOpacity="1" />
+            <stop offset="75%" stopColor="#0a2a40" stopOpacity="1" />
+            <stop offset="100%" stopColor="#051620" stopOpacity="1" />
+          </linearGradient>
+          <filter id="waveFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.002" numOctaves="3" result="noise" seed="2" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+        <rect width="1200" height="800" fill="url(#waveGradient)" />
+        <g opacity="0.3" style={{ animation: "wave 15s ease-in-out infinite" }}>
+          <path
+            d="M 0,400 Q 300,350 600,400 T 1200,400 L 1200,800 L 0,800 Z"
+            fill="#0a4a70"
+            style={{ animation: "wavePath 8s ease-in-out infinite" }}
+          />
+          <path
+            d="M 0,450 Q 300,400 600,450 T 1200,450 L 1200,800 L 0,800 Z"
+            fill="#062a4a"
+            style={{ animation: "wavePath 10s ease-in-out infinite reverse" }}
+          />
+        </g>
+      </svg>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center">
         {/* Welcome Text - Slow fade in */}
         <h1
-          className={`text-6xl md:text-8xl font-bold text-white mb-12 leading-tight tracking-tight transition-all duration-[2000ms] transform ${
-            isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          className={`text-6xl md:text-8xl font-bold text-white mb-16 leading-tight tracking-tight transition-all duration-[2500ms] ${
+            isWelcomeVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
             transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
@@ -48,42 +80,37 @@ export const Welcome = () => {
           Welcome
         </h1>
 
-        {/* Continue Button - Fade in after text */}
-        <button
+        {/* Continue Text - Fade in after Welcome */}
+        <div
           onClick={handleContinue}
-          className={`inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-[#0d3a54] font-semibold py-3 px-8 rounded-lg transition-all duration-1000 transform hover:scale-105 shadow-lg hover:shadow-2xl ${
-            isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          className={`cursor-pointer text-xl md:text-2xl text-white transition-all duration-[2000ms] hover:opacity-80 ${
+            isContinueVisible ? "opacity-100" : "opacity-0"
           }`}
-          style={{ transitionDelay: "800ms" }}
+          style={{
+            transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+          }}
         >
-          <span>Continue to Platform</span>
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 7l5 5m0 0l-5 5m5-5H6"
-            />
-          </svg>
-        </button>
+          Continue to Platform
+        </div>
       </div>
 
       {/* Animation styles */}
       <style>{`
-        @keyframes colorShift {
-          0% {
-            background: linear-gradient(135deg, #1e5a7f 0%, #164a6a 25%, #0d3a54 50%, #0a2a40 75%, #051620 100%);
+        @keyframes wavePath {
+          0%, 100% {
+            d: path('M 0,400 Q 300,350 600,400 T 1200,400 L 1200,800 L 0,800 Z');
           }
           50% {
-            background: linear-gradient(135deg, #2d7ba8 0%, #1a5a7a 25%, #0f4a60 50%, #0a3a50 75%, #051e30 100%);
+            d: path('M 0,420 Q 300,360 600,420 T 1200,420 L 1200,800 L 0,800 Z');
           }
-          100% {
-            background: linear-gradient(135deg, #1e5a7f 0%, #164a6a 25%, #0d3a54 50%, #0a2a40 75%, #051620 100%);
+        }
+
+        @keyframes wave {
+          0%, 100% {
+            transform: translateX(0);
+          }
+          50% {
+            transform: translateX(50px);
           }
         }
       `}</style>
