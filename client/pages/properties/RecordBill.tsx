@@ -1386,6 +1386,9 @@ export const RecordBill = () => {
           backgroundColor: "rgb(255, 255, 255)",
           borderLeftWidth: "1.33333px",
           borderTopWidth: "1.33333px",
+          borderRightWidth: "0px",
+          borderBottomWidth: "0px",
+          borderColor: "#d2d1cf",
           bottom: "0px",
           boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
           fontWeight: "400",
@@ -1396,7 +1399,6 @@ export const RecordBill = () => {
           transitionProperty: "left",
           zIndex: "40",
           padding: "16px 32px",
-          border: "1.33333px 0px 0px 1.33333px solid #d2d1cf",
         }}
       >
         <div className="flex items-center justify-between">
