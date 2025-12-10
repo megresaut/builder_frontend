@@ -272,7 +272,13 @@ const ActionButton = ({
           >
             {tab === "drafts" ? (
               <>
-                <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
+                <button
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    navigate(`/property/${undefined}/bills/record`);
+                  }}
+                  className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+                >
                   <span
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
                     style={{
