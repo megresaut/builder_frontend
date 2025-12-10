@@ -71,7 +71,7 @@ export default function EditUtilityAccountModal({
               Utility Provider <span className="text-red-600">*</span>
             </label>
             <Select value={provider} onValueChange={setProvider}>
-              <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#A1A1A9] font-normal tracking-[-0.32px] leading-[1.4]">
+              <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] data-[state=open]:text-[#303030]">
                 <SelectValue placeholder="Select Provider" />
               </SelectTrigger>
               <SelectContent>
