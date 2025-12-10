@@ -902,60 +902,60 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                     )}
                   >
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                        {bill.icon}
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                          {bill.icon}
+                        </div>
+                        <span className="text-gray-900 font-normal text-base">
+                          {bill.provider}
+                        </span>
                       </div>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
-                        {bill.provider}
+                        {bill.date}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {bill.date}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <AIInsightBadge insight={bill.aiUsageInsight} />
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span
-                      className={cn(
-                        "text-sm font-medium",
-                        bill.changeFromLastBill.startsWith("↑")
-                          ? "text-red-600"
-                          : "text-green-600",
-                      )}
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <AIInsightBadge insight={bill.aiUsageInsight} />
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <span
+                        className={cn(
+                          "text-sm font-medium",
+                          bill.changeFromLastBill.startsWith("↑")
+                            ? "text-red-600"
+                            : "text-green-600",
+                        )}
+                      >
+                        {bill.changeFromLastBill}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <BillStatusBadge status={bill.status} />
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <span className="text-gray-900 font-normal text-base">
+                        {bill.amount}
+                      </span>
+                    </td>
+                    <td
+                      className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                      style={{
+                        borderLeftWidth: "2px",
+                        width: "80px",
+                        border:
+                          "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                        borderLeftColor: "transparent",
+                      }}
                     >
-                      {bill.changeFromLastBill}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <BillStatusBadge status={bill.status} />
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {bill.amount}
-                    </span>
-                  </td>
-                  <td
-                    className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                    style={{
-                      borderLeftWidth: "2px",
-                      width: "80px",
-                      border:
-                        "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                      borderLeftColor: "transparent",
-                    }}
-                  >
-                    <ActionButton
-                      propertyId={bill.id}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                    />
-                  </td>
-                </tr>
+                      <ActionButton
+                        propertyId={bill.id}
+                        openMenuId={openMenuId}
+                        setOpenMenuId={setOpenMenuId}
+                      />
+                    </td>
+                  </tr>
               ))}
             </tbody>
           </table>
