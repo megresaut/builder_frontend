@@ -163,6 +163,24 @@ export const RecordBill = () => {
     setColumnWidths(newWidths);
   }, []);
 
+  // Detect sidebar visibility
+  useEffect(() => {
+    const checkSidebarVisibility = () => {
+      const sidebar = document.querySelector('aside[style*="opacity"]');
+      if (sidebar) {
+        const opacity = window.getComputedStyle(sidebar).opacity;
+        setSidebarVisible(parseFloat(opacity) > 0.5);
+      }
+    };
+
+    // Check on mount and when sidebar might change
+    checkSidebarVisibility();
+
+    // Check periodically for sidebar state changes
+    const interval = setInterval(checkSidebarVisibility, 300);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleCancel = () => {
     navigate(-1);
   };
