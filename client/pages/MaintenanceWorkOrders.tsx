@@ -526,6 +526,28 @@ export default function MaintenanceWorkOrders() {
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <path
+                            d="M9 4.33341H13.137C13.4228 4.33341 13.5657 4.33341 13.6517 4.3936C13.7268 4.44615 13.777 4.52732 13.7904 4.61803C13.8058 4.7219 13.7419 4.84969 13.6141 5.10526L12.7792 6.77496C12.7379 6.85769 12.7172 6.89905 12.7084 6.94253C12.7006 6.98105 12.6997 7.02064 12.7058 7.05947C12.7125 7.1033 12.7313 7.14556 12.7689 7.23008L13.6667 9.25014C13.7778 9.50008 13.8333 9.62504 13.8151 9.72593C13.7992 9.81409 13.7485 9.89214 13.6744 9.94248C13.5896 10.0001 13.4528 10.0001 13.1793 10.0001H8.06667C7.6933 10.0001 7.50661 10.0001 7.36401 9.92742C7.23856 9.8635 7.13658 9.76152 7.07266 9.63607C7 9.49347 7 9.30678 7 8.93341V7.33341M2 14.0001L2 2.33341M2 7.33341H7.93333C8.3067 7.33341 8.49339 7.33341 8.63599 7.26075C8.76143 7.19684 8.86342 7.09485 8.92734 6.96941C9 6.8268 9 6.64012 9 6.26675V2.73341C9 2.36005 9 2.17336 8.92734 2.03075C8.86342 1.90531 8.76143 1.80333 8.63599 1.73941C8.49339 1.66675 8.3067 1.66675 7.93333 1.66675L3.06667 1.66675C2.6933 1.66675 2.50661 1.66675 2.36401 1.73941C2.23856 1.80333 2.13658 1.90531 2.07266 2.03075C2 2.17336 2 2.36005 2 2.73341V7.33341Z"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Priority
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
                             d="M5.00065 7.33333H3.06732C2.69395 7.33333 2.50727 7.33333 2.36466 7.406C2.23922 7.46991 2.13723 7.5719 2.07331 7.69734C2.00065 7.83995 2.00065 8.02663 2.00065 8.4V14M11.0007 7.33333H12.934C13.3074 7.33333 13.494 7.33333 13.6366 7.406C13.7621 7.46991 13.8641 7.5719 13.928 7.69734C14.0007 7.83995 14.0007 8.02663 14.0007 8.4V14M11.0007 14V4.13333C11.0007 3.3866 11.0007 3.01323 10.8553 2.72801C10.7275 2.47713 10.5235 2.27316 10.2726 2.14532C9.98742 2 9.61405 2 8.86732 2H7.13398C6.38725 2 6.01388 2 5.72866 2.14532C5.47778 2.27316 5.27381 2.47713 5.14598 2.72801C5.00065 3.01323 5.00065 3.3866 5.00065 4.13333V14M14.6673 14H1.33398M7.33398 4.66667H8.66732M7.33398 7.33333H8.66732M7.33398 10H8.66732"
                             stroke="#525252"
                             strokeWidth="1.5"
@@ -624,28 +646,6 @@ export default function MaintenanceWorkOrders() {
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
                           Due
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M9 4.33341H13.137C13.4228 4.33341 13.5657 4.33341 13.6517 4.3936C13.7268 4.44615 13.777 4.52732 13.7904 4.61803C13.8058 4.7219 13.7419 4.84969 13.6141 5.10526L12.7792 6.77496C12.7379 6.85769 12.7172 6.89905 12.7084 6.94253C12.7006 6.98105 12.6997 7.02064 12.7058 7.05947C12.7125 7.1033 12.7313 7.14556 12.7689 7.23008L13.6667 9.25014C13.7778 9.50008 13.8333 9.62504 13.8151 9.72593C13.7992 9.81409 13.7485 9.89214 13.6744 9.94248C13.5896 10.0001 13.4528 10.0001 13.1793 10.0001H8.06667C7.6933 10.0001 7.50661 10.0001 7.36401 9.92742C7.23856 9.8635 7.13658 9.76152 7.07266 9.63607C7 9.49347 7 9.30678 7 8.93341V7.33341M2 14.0001L2 2.33341M2 7.33341H7.93333C8.3067 7.33341 8.49339 7.33341 8.63599 7.26075C8.76143 7.19684 8.86342 7.09485 8.92734 6.96941C9 6.8268 9 6.64012 9 6.26675V2.73341C9 2.36005 9 2.17336 8.92734 2.03075C8.86342 1.90531 8.76143 1.80333 8.63599 1.73941C8.49339 1.66675 8.3067 1.66675 7.93333 1.66675L3.06667 1.66675C2.6933 1.66675 2.50661 1.66675 2.36401 1.73941C2.23856 1.80333 2.13658 1.90531 2.07266 2.03075C2 2.17336 2 2.36005 2 2.73341V7.33341Z"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Priority
                         </span>
                       </div>
                     </th>
@@ -777,6 +777,24 @@ export default function MaintenanceWorkOrders() {
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                         >
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    workOrder.priority === "High"
+                                      ? "#D97706"
+                                      : workOrder.priority === "Low"
+                                        ? "#059669"
+                                        : "#2463EB",
+                                }}
+                              />
+                              <span className="text-gray-900 font-normal text-sm capitalize">
+                                {workOrder.priority}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <span className="text-gray-900 font-normal text-base">
                               {workOrder.task}
                             </span>
@@ -809,24 +827,6 @@ export default function MaintenanceWorkOrders() {
                             <span className="text-gray-900 font-normal text-base">
                               {workOrder.dueDate}
                             </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    workOrder.priority === "High"
-                                      ? "#D97706"
-                                      : workOrder.priority === "Low"
-                                        ? "#059669"
-                                        : "#2463EB",
-                                }}
-                              />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
-                                {workOrder.priority}
-                              </span>
-                            </div>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <div className="flex items-center gap-2">
