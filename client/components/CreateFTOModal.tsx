@@ -642,39 +642,65 @@ export default function CreateFTOModal({
             </label>
             <Select value={ftoStatus} onValueChange={setFtoStatus}>
               <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <SelectValue>
-                  {ftoStatus === "pending-approval" && (
-                    <StatusBadge status="Pending" />
-                  )}
-                  {ftoStatus === "dispatched" && (
-                    <StatusBadge status="Dispatched" />
-                  )}
-                  {ftoStatus === "new" && (
-                    <StatusBadge status="New" />
-                  )}
-                  {ftoStatus === "completed" && (
-                    <StatusBadge status="Approved" />
-                  )}
-                  {ftoStatus === "cancelled" && (
-                    <StatusBadge status="Cancelled" />
-                  )}
-                </SelectValue>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor:
+                        ftoStatus === "pending-approval"
+                          ? "#1E40AF"
+                          : ftoStatus === "dispatched"
+                            ? "#B45309"
+                            : ftoStatus === "new"
+                              ? "#1E40AF"
+                              : ftoStatus === "completed"
+                                ? "#166534"
+                                : "#6B7280",
+                    }}
+                  />
+                  <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
+                    {ftoStatus === "pending-approval"
+                      ? "New"
+                      : ftoStatus === "dispatched"
+                        ? "Dispatched"
+                        : ftoStatus === "new"
+                          ? "New"
+                          : ftoStatus === "completed"
+                            ? "Completed"
+                            : "Cancelled"}
+                  </span>
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending-approval">
-                  <StatusBadge status="Pending" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#1E40AF]" />
+                    <span>New</span>
+                  </div>
                 </SelectItem>
                 <SelectItem value="dispatched">
-                  <StatusBadge status="Dispatched" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#B45309]" />
+                    <span>Dispatched</span>
+                  </div>
                 </SelectItem>
                 <SelectItem value="new">
-                  <StatusBadge status="New" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#1E40AF]" />
+                    <span>New</span>
+                  </div>
                 </SelectItem>
                 <SelectItem value="completed">
-                  <StatusBadge status="Approved" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#166534]" />
+                    <span>Completed</span>
+                  </div>
                 </SelectItem>
                 <SelectItem value="cancelled">
-                  <StatusBadge status="Cancelled" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#6B7280]" />
+                    <span>Cancelled</span>
+                  </div>
                 </SelectItem>
               </SelectContent>
             </Select>
