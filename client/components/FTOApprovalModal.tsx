@@ -534,7 +534,7 @@ export default function FTOApprovalModal({
                   {hourRows.map((row) => (
                     <div
                       key={row.id}
-                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
                     >
                       <EditableCell
                         value={row.upcharge}
