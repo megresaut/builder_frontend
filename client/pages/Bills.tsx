@@ -756,8 +756,8 @@ export default function Bills() {
                   </svg>
                   <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
                     {selectedTab === "approved"
-                      ? "Last exported 3 minutes ago"
-                      : "Updated 2 minutes ago"}
+                      ? `Last exported ${relativeTimeDisplay.approved}`
+                      : `Updated ${relativeTimeDisplay.drafts}`}
                   </span>
                 </div>
               </div>
