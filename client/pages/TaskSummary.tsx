@@ -907,7 +907,7 @@ export default function TaskSummary() {
                   <div className="flex gap-4">
                     {/* Timeline Icons */}
                     <div className="flex flex-col items-center gap-2">
-                      <button className="flex items-center justify-center w-10 h-10 bg-[#013764] rounded-full shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] text-white hover:bg-[#014777] transition-colors">
+                      <button className="flex items-center justify-center w-10 h-10 bg-[#013764] border border-white rounded-full text-white hover:bg-[#014777] transition-colors">
                         <span className="text-lg font-semibold">+</span>
                       </button>
                       <div className="w-1 h-12 bg-gray-200"></div>
@@ -1472,7 +1472,7 @@ export default function TaskSummary() {
                         setEditFTOData(null);
                         setShowFTOModal(true);
                       }}
-                      className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+                      className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] border border-white hover:bg-[#003a73] transition-colors"
                     >
                       <svg
                         width="20"
