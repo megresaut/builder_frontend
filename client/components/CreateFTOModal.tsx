@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StatusBadge } from "@/components/StatusBadge";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   format,
