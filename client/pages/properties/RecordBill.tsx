@@ -889,7 +889,7 @@ export const RecordBill = () => {
                     <div
                       className="flex items-start flex-wrap"
                       style={{
-                        width: "665px",
+                        width: "600px",
                         marginBottom: "-10px",
                         gap: "20px",
                       }}
