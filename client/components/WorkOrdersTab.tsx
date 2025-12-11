@@ -693,6 +693,24 @@ export default function WorkOrdersTab({
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                   >
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              workOrder.priority === "High"
+                                ? "#D97706"
+                                : workOrder.priority === "Low"
+                                  ? "#059669"
+                                  : "#2463EB",
+                          }}
+                        />
+                        <span className="text-gray-900 font-normal text-sm capitalize">
+                          {workOrder.priority}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {workOrder.task}
                       </span>
@@ -722,24 +740,6 @@ export default function WorkOrdersTab({
                       <span className="text-gray-900 font-normal text-base">
                         {workOrder.dueDate}
                       </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              workOrder.priority === "High"
-                                ? "#D97706"
-                                : workOrder.priority === "Low"
-                                  ? "#059669"
-                                  : "#2463EB",
-                          }}
-                        />
-                        <span className="text-gray-900 font-normal text-sm capitalize">
-                          {workOrder.priority}
-                        </span>
-                      </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
