@@ -38,6 +38,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Oct 2, 2025",
+    unit: "1",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
