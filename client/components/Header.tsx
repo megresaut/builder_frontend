@@ -949,12 +949,13 @@ export default function Header() {
 
       {/* Navigation & Search Section */}
       <div
-        className="flex items-center justify-between px-6 py-4 gap-6"
+        className="flex items-center justify-between px-6"
         style={{
           borderColor: "rgb(210, 209, 207)",
           borderWidth: "1px",
           borderRightWidth: "0px",
           borderBottomWidth: isFullscreen ? "0px" : "1px",
+          padding: "0 24px",
         }}
       >
         {!isFullscreen && (
