@@ -52,6 +52,7 @@ export default function CreateWorkOrderModal({
   editData,
 }: CreateWorkOrderModalProps) {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [property, setProperty] = useState("");
   const [task, setTask] = useState("");
   const [vendor, setVendor] = useState("");
   const [status, setStatus] = useState("inprogress");
