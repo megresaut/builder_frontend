@@ -50,7 +50,7 @@ export default function CreateFTOModal({
   editData,
 }: CreateFTOModalProps) {
   const [priority, setPriority] = useState("normal");
-  const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
+  const [timesheetStatus, setTimesheetStatus] = useState("awaiting-submission");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
