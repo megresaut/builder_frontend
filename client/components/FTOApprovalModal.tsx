@@ -342,6 +342,23 @@ export default function FTOApprovalModal({
     return allHoursValid && allExpensesValid;
   };
 
+  // Helper functions to check if a field is missing
+  const isHourFieldMissing = (row: HourRow, field: keyof HourRow): boolean => {
+    if (field === "date") return !row.date;
+    if (field === "hours") return !row.hours;
+    if (field === "note") return !row.note;
+    if (field === "amount") return !row.noFee && (row.amount === "$0" || row.amount === "$0.00" || !row.amount);
+    return false;
+  };
+
+  const isExpenseFieldMissing = (row: ExpenseRow, field: keyof ExpenseRow): boolean => {
+    if (field === "date") return !row.date;
+    if (field === "vendor") return !row.vendor;
+    if (field === "receiptNote") return !row.receiptNote;
+    if (field === "amount") return row.amount === "$0" || row.amount === "$0.00" || !row.amount;
+    return false;
+  };
+
   return (
     <Dialog
       open={open}
