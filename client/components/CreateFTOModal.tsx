@@ -49,6 +49,7 @@ export default function CreateFTOModal({
   onOpenChange,
   editData,
 }: CreateFTOModalProps) {
+  const [property, setProperty] = useState("");
   const [ftoName, setFtoName] = useState("");
   const [priority, setPriority] = useState("normal");
   const [ftoStatus, setFtoStatus] = useState("pending-approval");
