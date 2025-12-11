@@ -391,6 +391,9 @@ export default function CreateTaskModal({
                     if (isValid(parsed)) {
                       setSelectedDate(parsed);
                       setCalendarMonth(parsed);
+                      if (errors.dueDate) {
+                        setErrors((prev) => ({ ...prev, dueDate: false }));
+                      }
                     }
                   }}
                   maxLength={10}
