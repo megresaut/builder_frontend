@@ -53,6 +53,7 @@ export default function CreateWorkOrderModal({
 }: CreateWorkOrderModalProps) {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [task, setTask] = useState("");
+  const [vendor, setVendor] = useState("");
   const [status, setStatus] = useState("inprogress");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
@@ -77,6 +78,7 @@ export default function CreateWorkOrderModal({
   const [errors, setErrors] = useState<{
     task?: boolean;
     dueDate?: boolean;
+    vendor?: boolean;
   }>({});
 
   const validateForm = (): boolean => {
