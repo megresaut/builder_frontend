@@ -454,7 +454,13 @@ export default function FTOApprovalModal({
                     <EditableCell value={row.note} onChange={(value) => updateHourRow(row.id, "note", value)} type="text" placeholder="Enter note" />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <Checkbox checked={row.noFee} onCheckedChange={(checked) => updateHourRow(row.id, "noFee", checked)} className="w-[14px] h-[14px]" />
+                    <Checkbox checked={row.noFee} onCheckedChange={(checked) => {
+                      updateHourRow(row.id, "noFee", checked);
+                      if (checked) {
+                        updateHourRow(row.id, "amount", "$0");
+                        updateHourRow(row.id, "upcharge", "$0");
+                      }
+                    }} className="w-[14px] h-[14px]" />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
