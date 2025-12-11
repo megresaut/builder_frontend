@@ -159,7 +159,7 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                navigate(`/tasks/${taskId}/workorders`);
+                navigate(`/tasks/${taskId}/workorders/${workOrderId}`);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
