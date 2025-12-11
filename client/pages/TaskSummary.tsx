@@ -449,6 +449,11 @@ export default function TaskSummary() {
     null,
   );
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
+  const [editFTOData, setEditFTOData] = usePageState<{
+    dueDate: string;
+    priority: string;
+    ftoStatus?: string;
+  } | null>("editFTOData", null);
   const [showApprovalModal, setShowApprovalModal] = usePageState(
     "showApprovalModal",
     false,
