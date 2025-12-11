@@ -1259,6 +1259,19 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                   >
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor: task.priority === "low" ? "#059669" : task.priority === "normal" ? "#2463eb" : "#d97706",
+                          }}
+                        />
+                        <span className="text-gray-900 font-normal text-sm capitalize">
+                          {task.priority}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {task.task}
                       </span>
