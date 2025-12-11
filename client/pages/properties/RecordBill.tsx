@@ -1502,7 +1502,7 @@ export const RecordBill = () => {
                 disabled
                 className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
               >
-                <span>Export to Buildium</span>
+                <span>Exported to Buildium</span>
               </button>
             )}
             {!isReadOnly && (
