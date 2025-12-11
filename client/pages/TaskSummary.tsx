@@ -1405,7 +1405,7 @@ export default function TaskSummary() {
                               />
                             </svg>
                             <span className="font-medium text-sm text-gray-700">
-                              Description
+                              FTO Name
                             </span>
                           </div>
                         </th>
@@ -1467,6 +1467,47 @@ export default function TaskSummary() {
                             </svg>
                             <span className="font-medium text-sm text-gray-700">
                               Status
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                              <circle
+                                cx="7.5"
+                                cy="7.5"
+                                r=".5"
+                                fill="currentColor"
+                              />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              FTO Status
+                            </span>
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            <span className="font-medium text-sm text-gray-700">
+                              Timesheet Status
                             </span>
                           </div>
                         </th>
