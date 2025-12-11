@@ -477,18 +477,14 @@ export const Bills: React.FC<BillsProps> = ({
   }, [approvedTimestamp, draftsTimestamp]);
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      const timestamp = sessionStorage.getItem('approvedBillTimestamp');
-      if (timestamp) {
-        setApprovedTimestamp(parseInt(timestamp, 10));
-        sessionStorage.removeItem('approvedBillTimestamp');
-      }
+    const handleBillApproved = (event: Event) => {
+      const customEvent = event as CustomEvent<{ timestamp: number }>;
+      setApprovedTimestamp(customEvent.detail.timestamp);
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    handleStorageChange();
+    window.addEventListener('billApproved', handleBillApproved);
 
-    return () => window.removeEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('billApproved', handleBillApproved);
   }, []);
 
   useEffect(() => {
