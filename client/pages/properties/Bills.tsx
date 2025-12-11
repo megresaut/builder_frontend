@@ -1044,11 +1044,6 @@ export const Bills: React.FC<BillsProps> = ({
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <span className="text-gray-900 font-normal text-base">
-                            {bill.property}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
                             {bill.statementDate}
                           </span>
                         </td>
