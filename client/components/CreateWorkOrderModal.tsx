@@ -702,7 +702,10 @@ export default function CreateWorkOrderModal({
             </div>
 
             {/* Create/Update Button */}
-            <button className="flex h-9 justify-center items-center gap-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0">
+            <button
+              onClick={handleSubmit}
+              className="flex h-9 justify-center items-center gap-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <span className="text-white font-medium text-base">
                 {editData ? "Update Work Order" : "Create New Work Order"}
               </span>
