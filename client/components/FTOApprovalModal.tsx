@@ -419,14 +419,16 @@ export default function FTOApprovalModal({
         </div>
 
         {/* Description - Read Only */}
-        <div className="flex-1 min-w-[240px] flex flex-col gap-2 mb-5">
-          <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-            Description
-          </label>
-          <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-            <span className="text-[#303030] font-normal text-sm">{editingOrder?.description || ""}</span>
+        {editingOrder && (
+          <div className="flex-1 min-w-[240px] flex flex-col gap-2 mb-5">
+            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+              Description
+            </label>
+            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
+              <span className="text-[#303030] font-normal text-sm">{editingOrder.description}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Hours Section */}
         <div className="mb-4">
