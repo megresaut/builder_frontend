@@ -380,52 +380,22 @@ const bills: Bill[] = [
 ];
 
 export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
-  if (status === "active") {
-    return (
-      <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g clipPath="url(#clip0_approved)">
-            <path
-              d="M4.99967 8.00004L6.99967 10L10.9997 6.00004M14.6663 8.00004C14.6663 11.6819 11.6816 14.6667 7.99967 14.6667C4.31778 14.6667 1.33301 11.6819 1.33301 8.00004C1.33301 4.31814 4.31778 1.33337 7.99967 1.33337C11.6816 1.33337 14.6663 4.31814 14.6663 8.00004Z"
-              stroke="#059669"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-        </svg>
-        Active
-      </span>
-    );
-  }
+  const dotColor = status === "active" ? "#059669" : "#DC2626";
+  const label = status === "active" ? "Active" : "Inactive";
 
   return (
-    <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g clipPath="url(#clip0_inactive)">
-          <path
-            d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-            stroke="#DC2626"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      </svg>
-      Inactive
-    </span>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: dotColor, fontSize: "14px" }}>
+      <div
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          backgroundColor: dotColor,
+          flexShrink: 0,
+        }}
+      />
+      {label}
+    </div>
   );
 };
 
