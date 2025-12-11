@@ -388,20 +388,34 @@ export default function WorkOrderDetail() {
                         Due: {task.dueDate}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getStatusColor(
-                          task.status,
-                        )}`}
-                      >
-                        {task.status}
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              task.status === "Completed" ? "#059669" : "#2463EB",
+                          }}
+                        />
+                        <span className="text-sm text-gray-900">
+                          {task.status}
+                        </span>
                       </div>
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityColor(
-                          task.priority,
-                        )}`}
-                      >
-                        {task.priority}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              task.priority === "High"
+                                ? "#D97706"
+                                : task.priority === "Low"
+                                  ? "#059669"
+                                  : "#2463EB",
+                          }}
+                        />
+                        <span className="text-sm text-gray-900">
+                          {task.priority}
+                        </span>
                       </div>
                     </div>
                   </div>
