@@ -284,8 +284,12 @@ export default function CreateRecurringTaskModal({
             </label>
             <div className="relative">
               <Input
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
                 placeholder="Type Task Name"
-                className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:normal-case pr-10"
+                className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] placeholder:normal-case pr-10 ${
+                  errors.taskName ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                }`}
               />
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
