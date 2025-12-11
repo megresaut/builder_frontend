@@ -2067,6 +2067,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             setShowApprovalModal(true);
                           }}
                           onEdit={() => {
+                            setEditFTOData({
+                              dueDate: order.dueDate,
+                              priority: "normal",
+                              ftoStatus: order.status,
+                            });
                             setShowCreateFTOModal(true);
                           }}
                         />
