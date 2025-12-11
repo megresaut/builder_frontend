@@ -69,9 +69,11 @@ export default function CreateFTOModal({
     left: 0,
   });
   const [errors, setErrors] = useState<{
+    property?: boolean;
     ftoName?: boolean;
     dueDate?: boolean;
     selectedAssignees?: boolean;
+    ftoStatus?: boolean;
   }>({});
 
   useEffect(() => {
@@ -84,10 +86,15 @@ export default function CreateFTOModal({
 
   const validateForm = (): boolean => {
     const newErrors: {
+      property?: boolean;
       ftoName?: boolean;
       dueDate?: boolean;
       selectedAssignees?: boolean;
+      ftoStatus?: boolean;
     } = {};
+    if (!property.trim()) {
+      newErrors.property = true;
+    }
     if (!ftoName.trim()) {
       newErrors.ftoName = true;
     }
@@ -96,6 +103,9 @@ export default function CreateFTOModal({
     }
     if (selectedAssignees.length === 0) {
       newErrors.selectedAssignees = true;
+    }
+    if (!ftoStatus.trim()) {
+      newErrors.ftoStatus = true;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
