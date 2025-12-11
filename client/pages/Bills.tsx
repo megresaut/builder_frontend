@@ -34,6 +34,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-934",
     amount: 234,
     glAccount: "6200 - HVAC Services",
+    importedAt: Date.now() - 2 * 60 * 60 * 1000,
   },
   {
     id: 2,
@@ -47,6 +48,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-582",
     amount: 287,
     glAccount: "6100 - Plumbing",
+    importedAt: Date.now() - 3 * 60 * 60 * 1000,
   },
   {
     id: 3,
@@ -60,6 +62,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-195",
     amount: 156,
     glAccount: "6300 - Utilities",
+    importedAt: Date.now() - 4 * 60 * 60 * 1000,
   },
   {
     id: 4,
@@ -73,6 +76,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-732",
     amount: 234,
     glAccount: "6350 - Internet & Phone",
+    importedAt: Date.now() - 5 * 60 * 60 * 1000,
   },
   {
     id: 5,
@@ -86,6 +90,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-268",
     amount: 167,
     glAccount: "6200 - HVAC Services",
+    importedAt: Date.now() - 6 * 60 * 60 * 1000,
   },
   {
     id: 6,
@@ -99,6 +104,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-694",
     amount: 312,
     glAccount: "6400 - Electrical",
+    importedAt: Date.now() - 7 * 60 * 60 * 1000,
   },
   {
     id: 7,
@@ -112,6 +118,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-319",
     amount: 256,
     glAccount: "6500 - Maintenance",
+    importedAt: Date.now() - 8 * 60 * 60 * 1000,
   },
   {
     id: 8,
@@ -125,6 +132,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-851",
     amount: 178,
     glAccount: "6100 - Plumbing",
+    importedAt: Date.now() - 9 * 60 * 60 * 1000,
   },
   {
     id: 9,
@@ -138,6 +146,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-427",
     amount: 213,
     glAccount: "6350 - Internet & Phone",
+    importedAt: Date.now() - 10 * 60 * 60 * 1000,
   },
   {
     id: 10,
@@ -151,6 +160,7 @@ const bills: Bill[] = [
     invoiceNumber: "REF-2024-934",
     amount: 145,
     glAccount: "6500 - Maintenance",
+    importedAt: Date.now() - 11 * 60 * 60 * 1000,
   },
 ];
 
