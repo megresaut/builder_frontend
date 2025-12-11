@@ -268,7 +268,15 @@ export default function CreateTaskModal({
               <label className="text-[#303030] font-medium text-sm leading-5">
                 Property <span className="text-red-600">*</span>
               </label>
-              <Select value={property} onValueChange={setProperty}>
+              <Select
+                value={property}
+                onValueChange={(value) => {
+                  setProperty(value);
+                  if (errors.property && value.trim()) {
+                    setErrors((prev) => ({ ...prev, property: false }));
+                  }
+                }}
+              >
                 <SelectTrigger className={`h-11 rounded-lg ${
                   errors.property ? "border-red-500 border-2" : "border-[#E5E5E5]"
                 }`}>
