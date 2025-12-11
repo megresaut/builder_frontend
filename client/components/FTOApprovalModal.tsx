@@ -696,6 +696,13 @@ export default function FTOApprovalModal({
         {/* Approve and Reject Buttons */}
         <div className="flex gap-3">
           <button
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg bg-red-600 shadow-[0_0_0_1px_#b91c1c] hover:bg-red-700 transition-colors"
+          >
+            <span className="text-white font-medium text-base">
+              Reject
+            </span>
+          </button>
+          <button
             disabled={!isFormValid()}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg transition-colors ${
               isFormValid()
@@ -705,13 +712,6 @@ export default function FTOApprovalModal({
           >
             <span className="text-white font-medium text-base">
               Approve Field Team Order
-            </span>
-          </button>
-          <button
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg bg-red-600 shadow-[0_0_0_1px_#b91c1c] hover:bg-red-700 transition-colors"
-          >
-            <span className="text-white font-medium text-base">
-              Reject
             </span>
           </button>
         </div>
