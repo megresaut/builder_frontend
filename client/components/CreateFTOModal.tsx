@@ -670,7 +670,7 @@ export default function CreateFTOModal({
           {/* Create/Update Field Team Order Button */}
           <button className="flex min-h-[36px] justify-center items-center gap-2 px-4 py-2 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors">
             <span className="text-white font-medium text-base">
-              {editData ? "Update Field Team Order" : "Create FTO"}
+              {editData ? "Update FTO" : "Create FTO"}
             </span>
           </button>
         </div>
