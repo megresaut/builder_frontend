@@ -1818,9 +1818,15 @@ export default function TaskSummary() {
           {/* FTO Approval Modal */}
           <FTOApprovalModal
             open={showApprovalModal}
-            onOpenChange={setShowApprovalModal}
+            onOpenChange={(open) => {
+              setShowApprovalModal(open);
+              if (!open) {
+                setSelectedFTOId(null);
+              }
+            }}
             selectedFTOId={selectedFTOId}
             rowId={`fto-${selectedFTOId}`}
+            editingOrder={fieldTeamOrders.find((o) => o.id === selectedFTOId)}
             property={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.property}
             unit={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.unit}
             fieldTeamAssignee={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]?.name}
