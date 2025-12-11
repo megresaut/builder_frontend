@@ -708,11 +708,9 @@ export default function CreateFTOModal({
                       ? "New"
                       : ftoStatus === "dispatched"
                         ? "Dispatched"
-                        : ftoStatus === "new"
-                          ? "New"
-                          : ftoStatus === "completed"
-                            ? "Completed"
-                            : "Cancelled"}
+                        : ftoStatus === "completed"
+                          ? "Completed"
+                          : "Cancelled"}
                   </span>
                 </div>
               </SelectTrigger>
