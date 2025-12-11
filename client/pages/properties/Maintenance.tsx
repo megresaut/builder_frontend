@@ -29,7 +29,7 @@ interface RecurringTask {
   id: number;
   task: string;
   nextDate: string;
-  priority: "High" | "Low" | "Normal";
+  priority: "low" | "normal" | "high";
   category: string;
   status: "active" | "inactive";
   assignees: Array<{ id: number; name: string; initials: string }>;
@@ -42,7 +42,7 @@ interface WorkOrder {
   dueDate: string;
   updatedDate: string;
   age: string;
-  priority: "High" | "Low" | "Normal";
+  priority: "low" | "normal" | "high";
   status: "In progress" | "Completed";
   billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
   billTotal: string;
