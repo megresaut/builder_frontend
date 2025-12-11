@@ -649,6 +649,11 @@ export default function FieldTeamOrders() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <span className="font-medium text-sm text-gray-700">
+                        Priority
+                      </span>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
