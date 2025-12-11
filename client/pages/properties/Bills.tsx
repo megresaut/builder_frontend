@@ -458,8 +458,8 @@ export const Bills: React.FC<BillsProps> = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const [approvedTimestamp] = useState(() => Date.now() - 3 * 60 * 1000);
-  const [draftsTimestamp] = useState(() => Date.now() - 2 * 60 * 1000);
+  const [approvedTimestamp, setApprovedTimestamp] = useState(() => Date.now() - 3 * 60 * 1000);
+  const [draftsTimestamp, setDraftsTimestamp] = useState(() => Date.now() - 2 * 60 * 1000);
   const [relativeTimeDisplay, setRelativeTimeDisplay] = useState(() => ({
     approved: formatRelativeTime(Date.now() - 3 * 60 * 1000),
     drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
