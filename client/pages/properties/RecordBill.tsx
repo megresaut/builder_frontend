@@ -527,7 +527,7 @@ export const RecordBill = () => {
       }}
     >
       {/* Two-Column Layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden" style={{ marginBottom: "72px" }}>
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
           <div
