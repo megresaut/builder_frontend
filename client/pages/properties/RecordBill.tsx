@@ -963,7 +963,7 @@ export const RecordBill = () => {
                     {/* Invoice Date and Due Date Row */}
                     <div
                       className="flex mt-5 items-start gap-5 flex-wrap"
-                      style={{ width: "665px" }}
+                      style={{ width: "600px" }}
                     >
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
