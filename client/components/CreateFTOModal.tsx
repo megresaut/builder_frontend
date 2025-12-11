@@ -51,7 +51,7 @@ export default function CreateFTOModal({
   editData,
 }: CreateFTOModalProps) {
   const [priority, setPriority] = useState("normal");
-  const [ftoStatus, setFtoStatus] = useState("pending-approval");
+  const [ftoStatus, setFtoStatus] = useState("new");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
