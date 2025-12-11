@@ -73,15 +73,17 @@ const mockWorkOrders: WorkOrder[] = [
 
 const ActionButton = ({
   taskId,
+  workOrderId,
   openMenuId,
   setOpenMenuId,
 }: {
-  taskId: number;
+  taskId?: string;
+  workOrderId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
 }) => {
   const navigate = useNavigate();
-  const showMenu = openMenuId === taskId;
+  const showMenu = openMenuId === workOrderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
