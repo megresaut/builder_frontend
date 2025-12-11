@@ -688,6 +688,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             } else if (activeTab === "workorders") {
               setShowCreateWorkOrderModal(true);
             } else if (activeTab === "fieldteam") {
+              setEditFTOData(null);
               setShowCreateFTOModal(true);
             }
           }}
