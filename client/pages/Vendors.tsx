@@ -498,6 +498,28 @@ export default function Vendors() {
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <path
+                            d="M2 6H18M2 10H18M2 14H18"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Services Provided
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
                             d="M2.5 4.16667C2.5 3.54624 3.03726 3.04167 3.66667 3.04167H16.3333C16.9627 3.04167 17.5 3.54624 17.5 4.16667V15.8333C17.5 16.4538 16.9627 16.9583 16.3333 16.9583H3.66667C3.03726 16.9583 2.5 16.4538 2.5 15.8333V4.16667Z"
                             stroke="#525252"
                             strokeWidth="1.5"
@@ -551,6 +573,18 @@ export default function Vendors() {
                         <span className="text-gray-900 font-normal text-base">
                           {vendor.email}
                         </span>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200">
+                        <div className="flex flex-wrap gap-2">
+                          {vendor.servicesProvided.map((service) => (
+                            <span
+                              key={service}
+                              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {service}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
