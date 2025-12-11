@@ -621,7 +621,7 @@ export default function FieldTeamOrders() {
                           />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Description
+                          FTO Name
                         </span>
                       </div>
                     </th>
