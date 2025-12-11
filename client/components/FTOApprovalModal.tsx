@@ -279,15 +279,6 @@ export default function FTOApprovalModal({
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
   const [pdfOpen, setPdfOpen] = useState(false);
 
-  // Initialize rows when editingOrder changes
-  React.useEffect(() => {
-    if (editingOrder && open) {
-      // Initialize with data from editingOrder if available
-      // For now, we start fresh but with proper state
-      setHourRows([]);
-      setExpenseRows([]);
-    }
-  }, [editingOrder, open]);
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
