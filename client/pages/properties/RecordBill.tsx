@@ -819,7 +819,8 @@ export const RecordBill = () => {
         {/* Collapse Button */}
         <button
           onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
-          className="w-6 h-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          className="w-6 bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          style={{ height: "25px" }}
           title={isLeftPanelOpen ? "Collapse" : "Expand"}
         >
           <svg
