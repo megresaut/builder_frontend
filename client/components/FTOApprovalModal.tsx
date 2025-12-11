@@ -644,6 +644,9 @@ export default function FTOApprovalModal({
           </span>
         </button>
       </DialogContent>
+
+      {/* PDF Viewer Modal */}
+      <PDFViewer isOpen={pdfOpen} onClose={() => setPdfOpen(false)} />
     </Dialog>
   );
 }
