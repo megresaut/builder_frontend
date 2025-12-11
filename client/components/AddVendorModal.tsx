@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +12,31 @@ export default function AddVendorModal({
   open,
   onOpenChange,
 }: AddVendorModalProps) {
+  const [vendorName, setVendorName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState<{ vendorName?: boolean }>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: { vendorName?: boolean } = {};
+    if (!vendorName.trim()) {
+      newErrors.vendorName = true;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log("Form submitted", { vendorName, email, phone, notes });
+      setVendorName("");
+      setEmail("");
+      setPhone("");
+      setNotes("");
+      onOpenChange(false);
+    }
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-8 gap-0">
