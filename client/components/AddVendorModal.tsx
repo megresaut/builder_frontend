@@ -142,7 +142,7 @@ export default function AddVendorModal({
             <label className="text-[#303030] font-medium text-sm leading-[20px]">
               Services Provided
             </label>
-            <div className="relative">
+            <div className="relative" ref={servicesRef}>
               <button
                 type="button"
                 onClick={() => setShowServicesList(!showServicesList)}
