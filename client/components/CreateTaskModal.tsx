@@ -68,7 +68,6 @@ export default function CreateTaskModal({
   const [errors, setErrors] = useState<{
     property?: boolean;
     title?: boolean;
-    priority?: boolean;
     dueDate?: boolean;
     selectedAssignees?: boolean;
   }>({});
