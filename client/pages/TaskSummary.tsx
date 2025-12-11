@@ -1907,7 +1907,16 @@ export default function TaskSummary() {
             )}
 
           {/* Create/Update FTO Modal */}
-          <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} />
+          <CreateFTOModal
+            open={showFTOModal}
+            onOpenChange={(open) => {
+              setShowFTOModal(open);
+              if (!open) {
+                setEditFTOData(null);
+              }
+            }}
+            editData={editFTOData || undefined}
+          />
 
           {/* FTO Approval Modal */}
           <FTOApprovalModal
