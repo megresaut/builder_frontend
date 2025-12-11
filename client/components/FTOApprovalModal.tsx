@@ -693,19 +693,28 @@ export default function FTOApprovalModal({
           </span>
         </div>
 
-        {/* Approve Button */}
-        <button
-          disabled={!isFormValid()}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg transition-colors ${
-            isFormValid()
-              ? "bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777]"
-              : "bg-[#999] shadow-[0_0_0_1px_#777] cursor-not-allowed opacity-50"
-          }`}
-        >
-          <span className="text-white font-medium text-base">
-            Approve Field Team Order
-          </span>
-        </button>
+        {/* Approve and Reject Buttons */}
+        <div className="flex gap-3">
+          <button
+            disabled={!isFormValid()}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg transition-colors ${
+              isFormValid()
+                ? "bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777]"
+                : "bg-[#999] shadow-[0_0_0_1px_#777] cursor-not-allowed opacity-50"
+            }`}
+          >
+            <span className="text-white font-medium text-base">
+              Approve Field Team Order
+            </span>
+          </button>
+          <button
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg bg-red-600 shadow-[0_0_0_1px_#b91c1c] hover:bg-red-700 transition-colors"
+          >
+            <span className="text-white font-medium text-base">
+              Reject
+            </span>
+          </button>
+        </div>
       </DialogContent>
 
       {/* PDF Viewer Modal */}
