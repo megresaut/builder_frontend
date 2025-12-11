@@ -1118,7 +1118,7 @@ export default function Header() {
           <button
             onClick={toggleFullscreen}
             className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative"
-            title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            title={isFullscreen ? "Expand" : "Minimize"}
           >
             <svg
               width="18"
@@ -1126,17 +1126,13 @@ export default function Header() {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               className="text-gray-700"
             >
               {isFullscreen ? (
-                <>
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m16 0V5a2 2 0 0 0-2-2h-3m0 16h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                </>
+                <path d="M12 19V5M5 12h14" />
               ) : (
-                <>
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m16 0V5a2 2 0 0 0-2-2h-3m0 16h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                </>
+                <path d="M12 5v14M19 12H5" />
               )}
             </svg>
           </button>
