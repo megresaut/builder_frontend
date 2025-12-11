@@ -442,7 +442,15 @@ export default function CreateWorkOrderModal({
                 <label className="text-[#303030] font-medium text-sm leading-5">
                   Vendor <span className="text-red-600">*</span>
                 </label>
-                <Select value={vendor} onValueChange={setVendor}>
+                <Select
+                  value={vendor}
+                  onValueChange={(value) => {
+                    setVendor(value);
+                    if (errors.vendor && value.trim()) {
+                      setErrors((prev) => ({ ...prev, vendor: false }));
+                    }
+                  }}
+                >
                   <SelectTrigger className={`h-11 rounded-lg bg-[#F7F7F7] ${
                     errors.vendor ? "border-red-500 border-2" : "border-[#E5E5E5]"
                   }`}>
