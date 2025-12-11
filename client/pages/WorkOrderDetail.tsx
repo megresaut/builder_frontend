@@ -449,16 +449,21 @@ export default function WorkOrderDetail() {
                         Due: {fto.dueDate}
                       </p>
                     </div>
-                    <div
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal whitespace-nowrap ${
-                        fto.status === "Completed"
-                          ? "bg-green-100 text-green-600"
-                          : fto.status === "In Progress"
-                            ? "bg-blue-100 text-blue-600"
-                            : "bg-yellow-100 text-yellow-600"
-                      }`}
-                    >
-                      {fto.status}
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor:
+                            fto.status === "Completed"
+                              ? "#059669"
+                              : fto.status === "In Progress"
+                                ? "#2463EB"
+                                : "#D97706",
+                        }}
+                      />
+                      <span className="text-sm text-gray-900 whitespace-nowrap">
+                        {fto.status}
+                      </span>
                     </div>
                   </div>
                 </div>
