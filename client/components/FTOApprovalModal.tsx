@@ -555,7 +555,7 @@ export default function FTOApprovalModal({
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Date</div>
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Vendor</div>
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Receipt Note</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">AVM Expense?</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Receipts</div>
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Amount</div>
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Upcharge</div>
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Total</div>
