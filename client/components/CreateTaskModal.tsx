@@ -327,7 +327,9 @@ export default function CreateTaskModal({
                 Priority <span className="text-red-600">*</span>
               </label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
+                <SelectTrigger className={`h-11 rounded-lg ${
+                  errors.priority ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                }`}>
                   <div
                     className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
                     style={{ backgroundColor: getPriorityBgColor() }}
