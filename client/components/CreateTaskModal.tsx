@@ -293,8 +293,12 @@ export default function CreateTaskModal({
                 Task Name <span className="text-red-600">*</span>
               </label>
               <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="Type Task Name"
-                className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:capitalize"
+                className={`h-11 rounded-lg placeholder:text-[#A1A1A9] placeholder:capitalize ${
+                  errors.title ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                }`}
               />
             </div>
             <div className="flex flex-col gap-2 flex-1">
