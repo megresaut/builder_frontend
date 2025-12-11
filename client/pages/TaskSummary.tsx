@@ -131,6 +131,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 3, 2025",
+    priority: "normal",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -143,6 +144,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
+    priority: "low",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -155,6 +157,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
+    priority: "high",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
