@@ -318,7 +318,12 @@ export default function CreateTaskModal({
               </label>
               <Input
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title && e.target.value.trim()) {
+                    setErrors((prev) => ({ ...prev, title: false }));
+                  }
+                }}
                 placeholder="Type Task Name"
                 className={`h-11 rounded-lg placeholder:text-[#A1A1A9] placeholder:capitalize ${
                   errors.title ? "border-red-500 border-2" : "border-[#E5E5E5]"
