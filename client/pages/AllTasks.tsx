@@ -236,7 +236,7 @@ const ActionButton = ({
   onEditClick: (data: Task) => void;
 }) => {
   const taskId = task.id;
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const showMenu = openMenuId === taskId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -297,49 +297,75 @@ const ActionButton = ({
       </button>
 
       {showMenu &&
-  createPortal(
-    <div ...>
-      {/* VIEW BILL */}
-      <button
-        type="button"
-        onClick={() => {
-          setOpenMenuId(null);
-          navigate(`/bills/record/${taskId}`); 
-          // or just `/bills/record` if you don’t have per-id yet
-        }}
-        className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-      >
-        <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-          style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
-          View bill
-        </span>
-        {/* icon... */}
-      </button>
+        createPortal(
+          <div
+            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
+            style={{
+              width: "145px",
+              border: "0.5px solid #DADADA",
+              borderRadius: "8px",
+              boxShadow:
+                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+              zIndex: 99999,
+              position: "fixed",
+              top: menuPos.top + "px",
+              left: menuPos.left + "px",
+              pointerEvents: "auto",
+            }}
+            onMouseLeave={() => setOpenMenuId(null)}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setOpenMenuId(null);
+                navigate("/bills/record");
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+            >
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+              >
+                View Bill
+              </span>
+            </button>
 
-      {/* EDIT BILL */}
-      <button
-        type="button"
-        onClick={() => {
-          setOpenMenuId(null);
-          navigate(`/bills/record/${taskId}?mode=edit`);
-          // tweak to match whatever your edit route actually is
-        }}
-        className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-      >
-        <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-          style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
-          Edit bill
-        </span>
-        {/* icon... */}
-      </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpenMenuId(null);
+                onEditClick(task);
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+            >
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+              >
+                Edit
+              </span>
+            </button>
 
-      {/* DELETE stays as you had it */}
-      <button onClick={() => { console.log("Delete", taskId); setOpenMenuId(null); }} ...>
-        Delete
-      </button>
-    </div>,
-    document.body,
-  )}
+            <button
+              type="button"
+              onClick={() => {
+                setOpenMenuId(null);
+              }}
+              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+            >
+              <span
+                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+              >
+                Delete
+              </span>
+            </button>
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+};
 
 export default function AllTasks() {
   const navigate = useNavigate();
@@ -437,12 +463,10 @@ export default function AllTasks() {
       return pages;
     }
 
-    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
     const windowSize = 7;
     let start = Math.max(1, currentPage - 2);
     let end = start + windowSize - 1;
 
-    // Adjust if we're near the end to keep showing 7 pages
     if (end > totalPages) {
       end = totalPages;
       start = Math.max(1, end - windowSize + 1);
