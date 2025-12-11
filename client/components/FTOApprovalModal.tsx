@@ -574,67 +574,66 @@ export default function FTOApprovalModal({
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252]">Actions</div>
 
               {/* Rows */}
-              {expenseRows.map((row) => (
-                <>
-                  <div key={`${row.id}-date`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
-                    <EditableCell value={row.date} onChange={(value) => updateExpenseRow(row.id, "date", value)} type="date" />
-                  </div>
-                  <div key={`${row.id}-vendor`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
-                    <Select value={row.vendor} onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}>
-                      <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VENDORS.map((vendor) => (
-                          <SelectItem key={vendor} value={vendor}>
-                            {vendor}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
-                    <EditableCell value={row.receiptNote} onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)} type="text" placeholder="Enter receipt note" />
-                  </div>
-                  <div key={`${row.id}-receipts`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <button
-                      onClick={() => setPdfOpen(true)}
-                      className="w-6 h-6 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
-                      title="View receipt"
-                    >
-                      <Paperclip className="w-4 h-4 text-[#303030]" />
-                    </button>
-                  </div>
-                  <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
-                  </div>
-                  <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
-                  </div>
-                  <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
-                  </div>
-                  <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => deleteExpenseRow(row.id)} className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </>
-              ))}
+              {expenseRows.map((row) => [
+                <div key={`${row.id}-date`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <EditableCell value={row.date} onChange={(value) => updateExpenseRow(row.id, "date", value)} type="date" />
+                </div>,
+                <div key={`${row.id}-vendor`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <Select value={row.vendor} onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}>
+                    <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VENDORS.map((vendor) => (
+                        <SelectItem key={vendor} value={vendor}>
+                          {vendor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>,
+                <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <EditableCell value={row.receiptNote} onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)} type="text" placeholder="Enter receipt note" />
+                </div>,
+                <div key={`${row.id}-receipts`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <button
+                    onClick={() => setPdfOpen(true)}
+                    className="w-6 h-6 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    title="View receipt"
+                  >
+                    <Paperclip className="w-4 h-4 text-[#303030]" />
+                  </button>
+                </div>,
+                <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
+                </div>,
+                <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
+                </div>,
+                <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
+                </div>,
+                <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="1" />
+                          <circle cx="19" cy="12" r="1" />
+                          <circle cx="5" cy="12" r="1" />
+                        </svg>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => deleteExpenseRow(row.id)} className="text-red-600 cursor-pointer">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>,
+              ]
+              ).flat()}
             </div>
           </div>
         </div>
