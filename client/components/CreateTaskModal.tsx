@@ -201,11 +201,16 @@ export default function CreateTaskModal({
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
       const isSelected = prev.some((a) => a.id === assignee.id);
+      let newAssignees;
       if (isSelected) {
-        return prev.filter((a) => a.id !== assignee.id);
+        newAssignees = prev.filter((a) => a.id !== assignee.id);
       } else {
-        return [...prev, assignee];
+        newAssignees = [...prev, assignee];
       }
+      if (errors.selectedAssignees && newAssignees.length > 0) {
+        setErrors((prevErrors) => ({ ...prevErrors, selectedAssignees: false }));
+      }
+      return newAssignees;
     });
   };
 
