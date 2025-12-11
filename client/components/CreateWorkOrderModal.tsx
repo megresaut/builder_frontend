@@ -379,7 +379,15 @@ export default function CreateWorkOrderModal({
               <label className="text-[#303030] font-medium text-sm leading-5">
                 Add to Task <span className="text-red-600">*</span>
               </label>
-              <Select value={addToTask} onValueChange={setAddToTask}>
+              <Select
+                value={addToTask}
+                onValueChange={(value) => {
+                  setAddToTask(value);
+                  if (errors.addToTask && value.trim()) {
+                    setErrors((prev) => ({ ...prev, addToTask: false }));
+                  }
+                }}
+              >
                 <SelectTrigger className={`h-11 rounded-lg bg-[#F7F7F7] ${
                   errors.addToTask ? "border-red-500 border-2" : "border-[#E5E5E5]"
                 }`}>
