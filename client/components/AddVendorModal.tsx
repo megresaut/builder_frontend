@@ -15,11 +15,12 @@ export default function AddVendorModal({
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [servicesProvided, setServicesProvided] = useState("");
+  const [servicesProvided, setServicesProvided] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: boolean }>({});
+  const [showServicesList, setShowServicesList] = useState(false);
 
-  const services = [
+  const availableServices = [
     "HVAC",
     "Plumbing",
     "Electrical",
@@ -33,6 +34,14 @@ export default function AddVendorModal({
     "Appliance Repair",
     "General Maintenance",
   ];
+
+  const toggleService = (service: string) => {
+    setServicesProvided((prev) =>
+      prev.includes(service)
+        ? prev.filter((s) => s !== service)
+        : [...prev, service]
+    );
+  };
 
   const validateForm = (): boolean => {
     const newErrors: { vendorName?: boolean } = {};
