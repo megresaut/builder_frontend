@@ -868,29 +868,6 @@ export default function Bills() {
                           stroke="currentColor"
                           strokeWidth="2"
                         >
-                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                          <path d="M10 6h4" />
-                          <path d="M10 10h4" />
-                          <path d="M10 14h4" />
-                          <path d="M10 18h4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          GL Account
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
                           <line x1="4" x2="20" y1="9" y2="9" />
                           <line x1="4" x2="20" y1="15" y2="15" />
                           <line x1="10" x2="8" y1="3" y2="21" />
