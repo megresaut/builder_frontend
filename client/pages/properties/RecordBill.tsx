@@ -852,7 +852,13 @@ export const RecordBill = () => {
           {/* Scrollable Content Area */}
           <div
             className="overflow-auto"
-            style={{ width: "100%", height: "100%", paddingBottom: "72px" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              paddingBottom: "72px",
+              overflowX: "auto",
+              overflowY: "auto",
+            }}
           >
             <div className="px-8 py-6" style={{ minWidth: "fit-content" }}>
               {/* Bill Details Section */}
