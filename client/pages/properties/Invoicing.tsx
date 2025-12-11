@@ -554,12 +554,21 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                 {/* GL Account Column */}
                 <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[185px]">
                   <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3">
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/525b056852d683baf01ec82ce654e2cf172fd244?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#525252"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="4" y1="9" x2="20" y2="9" />
+                      <line x1="4" y1="15" x2="20" y2="15" />
+                      <line x1="10" y1="3" x2="8" y2="21" />
+                      <line x1="16" y1="3" x2="14" y2="21" />
+                    </svg>
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       GL Account
                     </div>
