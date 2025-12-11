@@ -82,12 +82,15 @@ export default function CreateWorkOrderModal({
   }>({});
 
   const validateForm = (): boolean => {
-    const newErrors: { task?: boolean; dueDate?: boolean } = {};
+    const newErrors: { task?: boolean; dueDate?: boolean; vendor?: boolean } = {};
     if (!task.trim()) {
       newErrors.task = true;
     }
     if (!dueDate.trim()) {
       newErrors.dueDate = true;
+    }
+    if (!vendor.trim()) {
+      newErrors.vendor = true;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
