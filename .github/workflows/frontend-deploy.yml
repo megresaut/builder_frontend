@@ -11,38 +11,26 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4
 
-    # -------------------------------
-    # Restore SSH key from Base64
-    # -------------------------------
+    # Restore base64-encoded SSH key
     - name: Restore SSH key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.OVH_SSH_KEY_B64 }}" | base64 --decode > ~/.ssh/ovh_ci_key
         chmod 600 ~/.ssh/ovh_ci_key
 
-    # -------------------------------
-    # Set up Node
-    # -------------------------------
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
         node-version: 20
 
-    # -------------------------------
-    # Install dependencies
-    # -------------------------------
     - name: Install dependencies
       run: npm ci
 
-    # -------------------------------
-    # Build frontend
-    # -------------------------------
+    # 🛑 Must build SPA-only
     - name: Build frontend
-      run: npm run build
+      run: npm run build   # must NOT build SSR
 
-    # -------------------------------
-    # Sync dist/ → OVH via rsync/SSH
-    # -------------------------------
+    # Deploy dist/ to server
     - name: Sync dist to OVH
       run: |
         rsync -avz --delete \
@@ -50,9 +38,6 @@ jobs:
           dist/ \
           "${{ secrets.OVH_USER }}@${{ secrets.OVH_HOST }}:/srv/ra-avm-test/frontend/dist"
 
-    # -------------------------------
-    # Reload Caddy on OVH
-    # -------------------------------
     - name: Reload Caddy
       run: |
         ssh -i ~/.ssh/ovh_ci_key -o StrictHostKeyChecking=no \
