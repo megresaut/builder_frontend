@@ -959,7 +959,7 @@ export default function Bills() {
                   </tr>
                 </thead>
                 <tbody>
-                  {approvedBills
+                  {displayedBills
                     .slice(
                       (currentPage - 1) * itemsPerPage,
                       currentPage * itemsPerPage,
