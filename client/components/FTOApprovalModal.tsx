@@ -336,6 +336,9 @@ export default function FTOApprovalModal({
   };
 
   const isFormValid = (): boolean => {
+    // If there are no rows, form is valid (user may not want to add any)
+    if (hourRows.length === 0 && expenseRows.length === 0) return true;
+
     // All rows must be valid
     const allHoursValid = hourRows.every(validateHourRow);
     const allExpensesValid = expenseRows.every(validateExpenseRow);
