@@ -107,11 +107,10 @@ function EditableCell({ value, onChange, type, placeholder }: EditableCellProps)
       <div onClick={(e) => e.stopPropagation()} className="w-full h-full flex items-center">
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <button className="w-full h-full text-left px-0 py-0 hover:bg-[#f5f5f5] transition-colors flex items-center justify-between pr-2 border-0 bg-transparent">
+            <button className="w-full h-full text-left px-0 py-0 hover:bg-[#f5f5f5] transition-colors flex items-center border-0 bg-transparent">
               <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
                 {value}
               </span>
-              <Calendar className="w-4 h-4 text-[#999]" />
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3" align="start">
