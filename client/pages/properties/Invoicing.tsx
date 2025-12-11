@@ -726,7 +726,10 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
           <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
             <div className="flex items-center gap-4">
               <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                Subtotal: $920
+                Subtotal: ${invoiceItems.reduce((sum, item) => {
+                  const amount = parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+                  return sum + amount;
+                }, 0).toFixed(0)}
               </div>
             </div>
             <div className="flex items-start gap-2.5">
