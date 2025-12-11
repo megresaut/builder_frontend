@@ -74,12 +74,27 @@ export default function CreateTaskModal({
   }>({});
 
   const validateForm = (): boolean => {
-    const newErrors: { title?: boolean; dueDate?: boolean } = {};
+    const newErrors: {
+      property?: boolean;
+      title?: boolean;
+      priority?: boolean;
+      dueDate?: boolean;
+      selectedAssignees?: boolean;
+    } = {};
+    if (!property.trim()) {
+      newErrors.property = true;
+    }
     if (!title.trim()) {
       newErrors.title = true;
     }
+    if (!priority.trim()) {
+      newErrors.priority = true;
+    }
     if (!dueDate.trim()) {
       newErrors.dueDate = true;
+    }
+    if (selectedAssignees.length === 0) {
+      newErrors.selectedAssignees = true;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -87,7 +102,7 @@ export default function CreateTaskModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", { title, dueDate, priority, selectedAssignees });
+      console.log("Form submitted", { property, title, priority, dueDate, selectedAssignees });
       onOpenChange(false);
     }
   };
