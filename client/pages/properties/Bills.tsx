@@ -287,7 +287,14 @@ const ActionButton = ({
                   </svg>
                 </button>
                 <button
-                  onClick={() => setOpenMenuId(null)}
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    if (propertyId) {
+                      navigate(`/property/${propertyId}/bills`);
+                    } else {
+                      navigate("/bills");
+                    }
+                  }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
                   <span
