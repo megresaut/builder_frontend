@@ -501,17 +501,12 @@ export default function RecurringTasks() {
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
+                        <img
+                          loading="lazy"
+                          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+                          className="w-3.5 h-3.5"
+                          alt=""
+                        />
                         <span className="font-medium text-sm text-gray-700">
                           Priority
                         </span>
