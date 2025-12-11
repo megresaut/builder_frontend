@@ -340,6 +340,67 @@ const ActionButton = ({
   );
 };
 
+const getFTOStatusBadge = (status: string) => {
+  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string; icon: string }> = {
+    "pending-approval": { label: "New", bgColor: "#EFF6FF", textColor: "#1E40AF", icon: "✨" },
+    "dispatched": { label: "Dispatched", bgColor: "#FEF3C7", textColor: "#B45309", icon: "📤" },
+    "approved": { label: "Completed", bgColor: "#DCFCE7", textColor: "#166534", icon: "✓" },
+  };
+
+  const config = statusConfig[status] || statusConfig["pending-approval"];
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        backgroundColor: config.bgColor,
+        color: config.textColor,
+        padding: "4px 12px",
+        borderRadius: "20px",
+        fontSize: "13px",
+        fontWeight: "500",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span>{config.icon}</span>
+      <span>{config.label}</span>
+    </div>
+  );
+};
+
+const getTimesheetStatusBadge = (status: string) => {
+  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string; icon: string }> = {
+    "awaiting-submission": { label: "Awaiting Submission", bgColor: "#E0E7FF", textColor: "#3730A3", icon: "⏳" },
+    "submitted": { label: "Submitted", bgColor: "#FEE2E2", textColor: "#991B1B", icon: "📋" },
+    "rejected": { label: "Rejected", bgColor: "#FEE2E2", textColor: "#DC2626", icon: "✕" },
+    "approved": { label: "Approved", bgColor: "#D1FAE5", textColor: "#065F46", icon: "✔" },
+  };
+
+  const config = statusConfig[status] || statusConfig["awaiting-submission"];
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        backgroundColor: config.bgColor,
+        color: config.textColor,
+        padding: "4px 12px",
+        borderRadius: "20px",
+        fontSize: "13px",
+        fontWeight: "500",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span>{config.icon}</span>
+      <span>{config.label}</span>
+    </div>
+  );
+};
+
 export default function TaskSummary() {
   const { taskId, tab, workOrderId } = useParams<{
     taskId: string;
