@@ -567,6 +567,9 @@ export default function CreateWorkOrderModal({
                     if (isValid(parsed)) {
                       setSelectedDueDate(parsed);
                       setCalendarMonth(parsed);
+                      if (errors.dueDate) {
+                        setErrors((prev) => ({ ...prev, dueDate: false }));
+                      }
                     }
                   }}
                   maxLength={10}
