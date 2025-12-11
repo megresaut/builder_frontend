@@ -9,7 +9,9 @@ interface StatusBadgeProps {
     | "Draft"
     | "active"
     | "inactive"
-    | "Dispatched";
+    | "Dispatched"
+    | "New"
+    | "Cancelled";
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
