@@ -319,6 +319,29 @@ export default function FTOApprovalModal({
   );
   const grandTotal = hoursTotal + expensesTotal;
 
+  // Validation functions
+  const validateHourRow = (row: HourRow): boolean => {
+    // Required: date, hours, note
+    // If noFee is not checked: amount is also required
+    if (!row.date || !row.hours || !row.note) return false;
+    if (!row.noFee && (row.amount === "$0" || row.amount === "$0.00" || !row.amount)) return false;
+    return true;
+  };
+
+  const validateExpenseRow = (row: ExpenseRow): boolean => {
+    // Required: date, vendor, note, amount
+    if (!row.date || !row.vendor || !row.note) return false;
+    if (row.amount === "$0" || row.amount === "$0.00" || !row.amount) return false;
+    return true;
+  };
+
+  const isFormValid = (): boolean => {
+    // All rows must be valid
+    const allHoursValid = hourRows.every(validateHourRow);
+    const allExpensesValid = expenseRows.every(validateExpenseRow);
+    return allHoursValid && allExpensesValid;
+  };
+
   return (
     <Dialog
       open={open}
