@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StatusBadge } from "@/components/StatusBadge";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   format,
@@ -588,12 +589,28 @@ export default function CreateFTOModal({
             </label>
             <Select value={ftoStatus} onValueChange={setFtoStatus}>
               <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <SelectValue />
+                <SelectValue>
+                  {ftoStatus === "pending-approval" && (
+                    <StatusBadge status="Pending" />
+                  )}
+                  {ftoStatus === "dispatched" && (
+                    <StatusBadge status="Dispatched" />
+                  )}
+                  {ftoStatus === "approved" && (
+                    <StatusBadge status="Approved" />
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending-approval">New</SelectItem>
-                <SelectItem value="dispatched">Dispatched</SelectItem>
-                <SelectItem value="approved">Completed</SelectItem>
+                <SelectItem value="pending-approval">
+                  <StatusBadge status="Pending" />
+                </SelectItem>
+                <SelectItem value="dispatched">
+                  <StatusBadge status="Dispatched" />
+                </SelectItem>
+                <SelectItem value="approved">
+                  <StatusBadge status="Approved" />
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
