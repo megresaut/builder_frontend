@@ -887,14 +887,17 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       onClick={handleRowClick}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                            task.status === "Completed"
-                              ? "bg-emerald-100 text-emerald-600"
-                              : "bg-blue-100 text-blue-600"
-                          }`}
-                        >
-                          {task.status}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                task.status === "Completed" ? "#059669" : "#2463EB",
+                            }}
+                          />
+                          <span className="text-gray-900 font-normal text-sm capitalize">
+                            {task.status}
+                          </span>
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
