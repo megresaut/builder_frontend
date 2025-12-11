@@ -515,6 +515,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "showCreateFTOModal",
     false,
   );
+  const [editFTOData, setEditFTOData] = usePageState<{
+    dueDate: string;
+    priority: string;
+    ftoStatus?: string;
+  } | null>("editFTOData", null);
 
   // Update dropdown position for tasks
   useEffect(() => {
