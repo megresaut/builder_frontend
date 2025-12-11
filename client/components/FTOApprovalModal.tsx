@@ -46,14 +46,14 @@ export default function FTOApprovalModal({
           Field Team Order Approval
         </DialogTitle>
 
-        {/* Property and Unit Selects */}
-        <div className="flex gap-5 flex-wrap mb-4">
+        {/* Property, Unit, Field Team Assignee, and Associated Task Selects */}
+        <div className="flex gap-5 flex-row mb-4">
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
               Property
             </label>
-            <Select defaultValue="3-hekma-road">
-              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white">
+            <Select defaultValue="3-hekma-road" disabled>
+              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -66,13 +66,41 @@ export default function FTOApprovalModal({
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
               Unit
             </label>
-            <Select defaultValue="2">
-              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white">
+            <Select defaultValue="2" disabled>
+              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="2">2</SelectItem>
                 <SelectItem value="3">3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-[240px] flex flex-col gap-2">
+            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+              Field Team Assignee
+            </label>
+            <Select defaultValue="john-smith" disabled>
+              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="john-smith">John Smith</SelectItem>
+                <SelectItem value="jane-doe">Jane Doe</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-[240px] flex flex-col gap-2">
+            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+              Associated Task
+            </label>
+            <Select defaultValue="12311" disabled>
+              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="12311">12311</SelectItem>
+                <SelectItem value="12312">12312</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -111,25 +139,6 @@ export default function FTOApprovalModal({
             {/* Hours Table */}
             <div className="border-t border-[#dadada] overflow-x-auto">
               <div className="inline-flex min-w-full">
-                {/* Task Column */}
-                <div
-                  className="flex flex-col border-r border-[#dadada] min-w-[121px]"
-                  style={{ height: "auto", flexGrow: "0" }}
-                >
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Task
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Task #1
-                    </span>
-                  </div>
-                </div>
-
                 {/* Date Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[118px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
@@ -522,22 +531,6 @@ export default function FTOApprovalModal({
             {/* Expenses Table */}
             <div className="border-t border-[#dadada] overflow-x-auto">
               <div className="inline-flex min-w-full">
-                {/* Task Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[112px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Task
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Task #1
-                    </span>
-                  </div>
-                </div>
-
                 {/* Date Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[97px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
@@ -562,26 +555,26 @@ export default function FTOApprovalModal({
                   </div>
                 </div>
 
-                {/* Expense Category Column */}
+                {/* Vendor Column (previously Expense Category) */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[113px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
                     <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Expense Category
+                      Vendor
                     </span>
                   </div>
                   <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
                     <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Materials
+                      Dolce
                     </span>
                   </div>
                   <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
                     <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Materials
+                      N/A
                     </span>
                   </div>
                   <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
                     <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Materials
+                      Dolce
                     </span>
                   </div>
                 </div>
@@ -879,10 +872,10 @@ export default function FTOApprovalModal({
           </div>
         </div>
 
-        {/* Bill Total */}
+        {/* FTO Total */}
         <div className="bg-[#fbfbfb] px-4 py-4 flex items-center justify-between mb-4 rounded">
           <span className="text-[#303030] font-semibold text-xl leading-[1.3]">
-            Bill Total:
+            FTO Total:
           </span>
           <span className="text-[#303030] font-semibold text-xl leading-[1.3]">
             $1,620.00
