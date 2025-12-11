@@ -1282,15 +1282,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       </span>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityBadgeColor(
-                          task.priority,
-                        )}`}
-                      >
-                        {task.priority}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                       <span className="text-gray-900 font-normal text-base">
                         {task.category}
                       </span>
