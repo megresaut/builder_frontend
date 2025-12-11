@@ -981,9 +981,19 @@ const DEFAULT_UTILITY_COLUMNS: UtilityColumn[] = [
         return `${diffDays}d ago`;
       };
       return (
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span>{getTimeAgoForRender(account.lastImport)}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "rgb(34, 197, 94)",
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ color: "rgb(17, 24, 39)", fontSize: "16px" }}>
+            {getTimeAgoForRender(account.lastImport)}
+          </span>
         </div>
       );
     },
