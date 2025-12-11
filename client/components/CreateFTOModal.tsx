@@ -32,7 +32,7 @@ interface CreateFTOModalProps {
   };
 }
 
-const API_BASE = "/api";
+const API_BASE = "http://localhost:8080";
 
 // --- Simple DTOs for dropdowns (same shape as FTOModal) ---
 type SimpleTask = { id: number; name: string };
@@ -45,19 +45,11 @@ type SimpleProperty = {
 };
 
 interface Assignee {
-  id: string;
+  id: number;
   name: string;
   initials: string;
 }
 
-// You can still keep this static for now; later you can wire it to /maintenance/assignees
-const AVAILABLE_ASSIGNEES: Assignee[] = [
-  { id: "1", name: "David Harris", initials: "DH" },
-  { id: "2", name: "Sarah Johnson", initials: "SJ" },
-  { id: "3", name: "Michael Chen", initials: "MC" },
-  { id: "4", name: "Emily Rodriguez", initials: "ER" },
-  { id: "5", name: "James Wilson", initials: "JW" },
-];
 
 export default function CreateFTOModal({
   open,
@@ -67,6 +59,7 @@ export default function CreateFTOModal({
 }: CreateFTOModalProps) {
   // --- dropdown data loaded from API ---
   const [tasks, setTasks] = useState<SimpleTask[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<SimpleTask[]>([]);
   const [properties, setProperties] = useState<SimpleProperty[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
@@ -91,13 +84,21 @@ export default function CreateFTOModal({
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [pmAssignees, setPmAssignees] = useState<Assignee[]>([]);
   // Property / Task selection (IDs as strings)
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [associatedTaskLabel, setAssociatedTaskLabel] = useState<string | null>(
     null,
   );
+
+  const [availableAssignees, setAvailableAssignees] = useState<Assignee[]>([]);
+
+  const [selectedPmAssignees, setSelectedPmAssignees] = useState<Assignee[]>([]);
+
+  const [showPmDropdown, setShowPmDropdown] = useState(false);
+  const [pmDropdownPos, setPmDropdownPos] = useState({ top: 0, left: 0 });
+  const pmButtonRef = useRef<HTMLButtonElement>(null);
 
   // --------- LOAD DROPDOWN OPTIONS (tasks + properties) ----------
   useEffect(() => {
@@ -161,7 +162,7 @@ export default function CreateFTOModal({
           left: rect.left,
         });
       }
-
+      
       if (showAssigneeDropdown && assigneeButtonRef.current) {
         const rect = assigneeButtonRef.current.getBoundingClientRect();
         setAssigneeDropdownPos({
@@ -169,13 +170,23 @@ export default function CreateFTOModal({
           left: rect.left,
         });
       }
-
-      if (showCalendar || showAssigneeDropdown) {
-        animationFrameId = requestAnimationFrame(updatePositions);
+      
+      /* ⭐ NEW: PM DROPDOWN POSITIONING ⭐ */
+      if (showPmDropdown && pmButtonRef.current) {
+        const rect = pmButtonRef.current.getBoundingClientRect();
+        setPmDropdownPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
       }
+      
+      /* Update loop */
+      if (showCalendar || showAssigneeDropdown || showPmDropdown) {
+        animationFrameId = requestAnimationFrame(updatePositions);
+      }      
     };
 
-    if (showCalendar || showAssigneeDropdown) {
+    if (showCalendar || showAssigneeDropdown || showPmDropdown) {
       updatePositions();
     }
 
@@ -184,7 +195,82 @@ export default function CreateFTOModal({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showCalendar, showAssigneeDropdown]);
+  }, [showCalendar, showAssigneeDropdown, showPmDropdown]); 
+
+
+  useEffect(() => {
+    if (!selectedProperty) {
+      setFilteredTasks([]);
+      setSelectedTask(null);
+      return;
+    }
+  
+    let cancelled = false;
+  
+    const loadFilteredTasks = async () => {
+      try {
+        const data = await fetchJSON(`/maintenance/tasks/by-property/${selectedProperty}`)
+          .catch(() => []);
+  
+        if (!cancelled) {
+          setFilteredTasks(data || []);
+        }
+      } catch {
+        if (!cancelled) setFilteredTasks([]);
+      }
+    };
+  
+    loadFilteredTasks();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProperty]);
+  
+
+  useEffect(() => {
+    if (!open) return; // only load when modal opens
+  
+    async function loadAssignees() {
+      try {
+        const data = await fetchJSON("/users/field-team");
+  
+        const mapped = data.map((u: any) => ({
+          id: Number(u.id),
+          name: u.name || u.email,
+          initials: (u.name || u.email).slice(0, 2).toUpperCase(),
+        }));
+  
+        setAvailableAssignees(mapped);
+      } catch (err) {
+        console.error("Failed to load field team members:", err);
+      }
+    }
+  
+    loadAssignees();
+  }, [open]);
+  
+
+  useEffect(() => {
+    if (!open) return;
+  
+    async function loadPMs() {
+      try {
+        const data = await fetchJSON("/users/property-managers");
+  
+        const mapped = data.map((u: any) => ({
+          id: Number(u.id),
+          name: u.name || u.email,
+          initials: (u.name || u.email).slice(0, 2).toUpperCase(),
+        }));
+  
+        setPmAssignees(mapped);
+      } catch (err) {
+        console.error("Failed to load property managers:", err);
+      }
+    }
+  
+    loadPMs();
+  }, [open]);
 
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
@@ -197,7 +283,7 @@ export default function CreateFTOModal({
     });
   };
 
-  const removeAssignee = (assigneeId: string) => {
+  const removeAssignee = (assigneeId: number) => {
     setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
   };
 
@@ -309,7 +395,7 @@ export default function CreateFTOModal({
 
           setSelectedAssignees([
             {
-              id: String(data.field_team_member_id),
+              id: Number(data.field_team_member_id),  
               name: data.field_team_member_name,
               initials,
             },
@@ -332,6 +418,19 @@ export default function CreateFTOModal({
     return parsed.toISOString();
   };
 
+  const mapTimesheetStatusToDB = (status: string): string => {
+    switch (status) {
+      case "outstanding":
+        return "none";
+      case "submitted":
+        return "partial";
+      case "approved":
+        return "complete";
+      default:
+        return "none";
+    }
+  };
+  
   // ---------- SUBMIT (CREATE + EDIT) ----------
   const handleSubmit = async () => {
     const nameTrimmed = taskName.trim();
@@ -351,8 +450,9 @@ export default function CreateFTOModal({
     const payload: any = {
       name: nameTrimmed,
       description: descTrimmed,
-      priority,
+      priority: priority.toLowerCase(), 
       due_date: dueISO,
+      form_submission_status: mapTimesheetStatusToDB(timesheetStatus),
     };
 
     // CREATE ONLY: property + task
@@ -364,13 +464,13 @@ export default function CreateFTOModal({
     }
 
     // Optional assignee → both PM and tech for now
-    const firstAssigneeId = selectedAssignees[0]?.id;
-    if (firstAssigneeId) {
-      const idNum = Number(firstAssigneeId);
-      payload.assignee_id = idNum;
-      payload.field_team_member_id = idNum;
-    }
+    payload.field_team_member_ids = selectedAssignees.map(a =>
+      Number(a.id)
+    );
 
+    // PM assignees not yet implemented → send empty array for now
+    payload.pm_assignee_ids = selectedPmAssignees.map(pm => Number(pm.id));
+    
     try {
       if (editingFTOId === null) {
         await fetchJSON("/maintenance/ftos", {
@@ -392,9 +492,10 @@ export default function CreateFTOModal({
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463EB",
-      high: "#D97706",
+      low: "#059669",       // green
+      normal: "#2463EB",    // blue
+      high: "#D97706",      // amber
+      urgent: "#DC2626",    // red
     };
     return (
       <svg
@@ -414,34 +515,37 @@ export default function CreateFTOModal({
       </svg>
     );
   };
-
+  
   const getPriorityLabel = () => {
     const labels: Record<string, string> = {
       low: "Low",
       normal: "Normal",
       high: "High",
+      urgent: "Urgent",
     };
     return labels[priority] || "Normal";
   };
-
+  
   const getPriorityBgColor = () => {
     const colors: Record<string, string> = {
-      low: "#d1fae5",
-      normal: "#dbe9fe",
-      high: "#fef3c7",
+      low: "#d1fae5",     // green-100
+      normal: "#dbe9fe",  // blue-100
+      high: "#fef3c7",    // amber-100
+      urgent: "#fee2e2",  // red-100
     };
     return colors[priority] || colors.normal;
   };
-
+  
   const getPriorityTextColor = () => {
     const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463eb",
-      high: "#d97706",
+      low: "#059669",      // green-600
+      normal: "#2463eb",   // blue-600
+      high: "#d97706",     // amber-600
+      urgent: "#dc2626",   // red-600
     };
     return colors[priority] || colors.normal;
   };
-
+  
   const getTimesheetStatusIcon = (status: string = timesheetStatus) => {
     const colors: Record<string, string> = {
       outstanding: "#D97706",
@@ -493,6 +597,20 @@ export default function CreateFTOModal({
     };
     return colors[timesheetStatus] || colors.outstanding;
   };
+
+  const togglePmAssignee = (pm: Assignee) => {
+    setSelectedPmAssignees(prev => {
+      const isSelected = prev.some(a => a.id === pm.id);
+      return isSelected
+        ? prev.filter(a => a.id !== pm.id)
+        : [...prev, pm];
+    });
+  };
+  
+  const removePmAssignee = (pmId: number) => {
+    setSelectedPmAssignees(prev => prev.filter(a => a.id !== pmId));
+  };
+  
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -555,7 +673,7 @@ export default function CreateFTOModal({
                   editingFTOId !== null ? associatedTaskLabel || "" : selectedTask || ""
                 }
                 onValueChange={setSelectedTask}
-                disabled={editingFTOId !== null}
+                disabled={editingFTOId !== null || !selectedProperty}
               >
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
                   {editingFTOId !== null && associatedTaskLabel ? (
@@ -565,34 +683,22 @@ export default function CreateFTOModal({
                   )}
                 </SelectTrigger>
                 <SelectContent>
-                  {tasks.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
+                  {!selectedProperty ? (
+                    <div className="p-2 text-sm text-gray-500">Select a property first</div>
+                  ) : filteredTasks.length === 0 ? (
+                    <div className="p-2 text-sm text-gray-500">No tasks found for this property</div>
+                  ) : (
+                    filteredTasks.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Select Task Section */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Select Task&nbsp;
-            </label>
-            <Select>
-              <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <SelectValue
-                  placeholder="Select Task"
-                  className="text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="task1">Task 1</SelectItem>
-                <SelectItem value="task2">Task 2</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* FTO Name and Priority Row */}
           <div className="flex gap-3 w-full flex-wrap">
@@ -630,17 +736,20 @@ export default function CreateFTOModal({
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Due Date and Assignees Row */}
           <div className="flex gap-3 w-full flex-wrap">
+
+            {/* --- Due Date --- */}
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Due Date <span className="text-red-600">*</span>
               </label>
+
               <div className="relative">
                 <Input
                   ref={dueDateInputRef}
@@ -650,18 +759,16 @@ export default function CreateFTOModal({
                   onChange={(e) => {
                     let value = e.target.value.replace(/\D/g, "");
                     if (value.length > 0) {
-                      if (value.length <= 2) {
-                        value = value;
-                      } else if (value.length <= 4) {
+                      if (value.length <= 2) value = value;
+                      else if (value.length <= 4)
                         value = value.slice(0, 2) + "/" + value.slice(2);
-                      } else {
+                      else
                         value =
                           value.slice(0, 2) +
                           "/" +
                           value.slice(2, 4) +
                           "/" +
                           value.slice(4, 8);
-                      }
                     }
                     setDueDate(value);
                     const parsed = parse(value, "MM/dd/yyyy", new Date());
@@ -671,30 +778,33 @@ export default function CreateFTOModal({
                     }
                   }}
                   maxLength={10}
-                  className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
+                  className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base"
                 />
+
+                {/* Calendar button */}
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:opacity-70"
                   type="button"
                 >
                   <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <path
-                      d="M14 6.66668H2M10.6667 1.33334V4.00001M5.33333 1.33334V4.00001M5.2 14.6667H10.8C11.9201 14.6667 12.4802 14.6667 12.908 14.4487C13.2843 14.2569 13.5903 13.951 13.782 13.5747C14 13.1468 14 12.5868 14 11.4667V5.86668C14 4.74657 14 4.18652 13.782 3.7587C13.5903 3.38237 13.2843 3.07641 12.908 2.88466C12.4802 2.66668 11.9201 2.66668 10.8 2.66668H5.2C4.0799 2.66668 3.51984 2.66668 3.09202 2.88466C2.71569 3.07641 2.40973 3.38237 2.21799 3.7587C2 4.18652 2 4.74657 2 5.86668V11.4667C2 12.5868 2 13.1468 2.21799 13.5747C2.40973 13.951 2.71569 14.2569 3.09202 14.4487C3.51984 14.6667 4.0799 14.6667 5.2 14.6667Z"
-                      stroke="black"
-                      strokeWidth="1.48576"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
                   </svg>
                 </button>
 
+                {/* Calendar Portal */}
                 {showCalendar &&
                   createPortal(
                     <div
@@ -704,94 +814,207 @@ export default function CreateFTOModal({
                         border: "0.5px solid #DADADA",
                         borderRadius: "8px",
                         boxShadow:
-                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                          "0 38px 11px rgba(0,0,0,0.00), 0 24px 10px rgba(0,0,0,0.01), 0 14px 8px rgba(0,0,0,0.04)",
                         zIndex: 99999,
                         position: "fixed",
-                        top: calendarPos.top + "px",
-                        left: calendarPos.left + "px",
-                        pointerEvents: "auto",
+                        top: calendarPos.top,
+                        left: calendarPos.left,
                       }}
                       onMouseLeave={() => setShowCalendar(false)}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <button
-                          onClick={previousMonth}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          type="button"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
+                      {/* Calendar Header */}
+                      <div className="flex justify-between items-center mb-2">
+                        <button onClick={previousMonth} className="p-1 hover:bg-gray-100 rounded">
+                          <ChevronLeft className="w-4 h-4 text-gray-600" />
                         </button>
-                        <span className="text-sm font-medium text-[#303030]">
+                        <div className="font-medium text-gray-800">
                           {format(calendarMonth, "MMMM yyyy")}
-                        </span>
-                        <button
-                          onClick={nextMonth}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          type="button"
-                        >
-                          <ChevronRight className="w-4 h-4" />
+                        </div>
+                        <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded">
+                          <ChevronRight className="w-4 h-4 text-gray-600" />
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-7 gap-1">
-                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
-                          (day) => (
-                            <div
-                              key={day}
-                              className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
+                      {/* Calendar Grid */}
+                      <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                        {/* Weekday Labels */}
+                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+                          <div key={d} className="font-semibold text-gray-500 py-1 text-xs">
+                            {d}
+                          </div>
+                        ))}
+
+                        {/* Days */}
+                        {getCalendarDays().map((day, index) => {
+                          if (!day) {
+                            return <div key={index} className="py-2" />;
+                          }
+
+                          const isSelected =
+                            selectedDate &&
+                            selectedDate.getDate() === day &&
+                            selectedDate.getMonth() === calendarMonth.getMonth() &&
+                            selectedDate.getFullYear() === calendarMonth.getFullYear();
+
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => handleDateSelect(day)}
+                              className={`
+                                py-2 rounded-md transition
+                                ${isSelected ? "bg-blue-600 text-white" : "hover:bg-gray-100"}
+                              `}
                             >
                               {day}
-                            </div>
-                          ),
-                        )}
-
-                        {getCalendarDays().map((day, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() =>
-                              day !== null && handleDateSelect(day)
-                            }
-                            disabled={day === null}
-                            className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
-                              day === null
-                                ? "text-transparent cursor-default"
-                                : selectedDate &&
-                                    selectedDate.getDate() === day &&
-                                    selectedDate.getMonth() ===
-                                      calendarMonth.getMonth() &&
-                                    selectedDate.getFullYear() ===
-                                      calendarMonth.getFullYear()
-                                  ? "bg-[#2463EB] text-white font-medium"
-                                  : "hover:bg-gray-100 text-[#303030]"
-                            }`}
-                            type="button"
-                          >
-                            {day}
-                          </button>
-                        ))}
+                            </button>
+                          );
+                        })}
                       </div>
+
                     </div>,
-                    document.body,
+                    document.body
                   )}
               </div>
             </div>
 
-            {/* Assignees */}
+            {/* --- PM Assignees (Multi-Select) --- */}
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-                Assignees <span className="text-red-600">*</span>
+                PM Assignees
               </label>
+
+              <div className="relative">
+                <button
+                  ref={pmButtonRef}
+                  onClick={() => setShowPmDropdown(!showPmDropdown)}
+                  className="h-11 rounded-lg border border-[#e5e5e5] w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                    {selectedPmAssignees.length === 0 ? (
+                      <span className="text-[#A1A1A9] text-sm">Select PMs</span>
+                    ) : (
+                      selectedPmAssignees.map(pm => (
+                        <div
+                          key={pm.id}
+                          className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5"
+                        >
+                          <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
+                            <span className="text-white font-semibold text-[8px]">
+                              {pm.initials}
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removePmAssignee(pm.id);
+                            }}
+                            className="hover:opacity-70"
+                          >
+                            <X className="w-3 h-3 text-[#2463EB]" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <svg
+                    className="w-4 h-4 text-gray-600 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                  </svg>
+                </button>
+
+                {/* Dropdown Portal */}
+                {showPmDropdown &&
+                  createPortal(
+                    <div
+                      className="bg-white flex flex-col justify-start items-start p-2 gap-1"
+                      style={{
+                        width: "280px",
+                        border: "0.5px solid #DADADA",
+                        borderRadius: "8px",
+                        boxShadow:
+                          "0 38px 11px rgba(0,0,0,0.00), 0 24px 10px rgba(0,0,0,0.01), 0 14px 8px rgba(0,0,0,0.04)",
+                        zIndex: 99999,
+                        position: "fixed",
+                        top: pmDropdownPos.top,
+                        left: pmDropdownPos.left,
+                      }}
+                    >
+                      {pmAssignees.map(pm => {
+                        const isSelected = selectedPmAssignees.some(a => a.id === pm.id);
+
+                        return (
+                          <button
+                            key={pm.id}
+                            onClick={() => togglePmAssignee(pm)}
+                            className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50 rounded transition-colors"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463EB]">
+                                <span className="text-white font-semibold text-[10px]">
+                                  {pm.initials}
+                                </span>
+                              </div>
+                              <span className="text-[#303030] text-sm">{pm.name}</span>
+                            </div>
+
+                            {isSelected && (
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path
+                                  d="M13.5 3L6 10.5L2.5 7"
+                                  stroke="#2463EB"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>,
+                    document.body
+                  )}
+
+              </div>
+            </div>
+
+
+          </div>
+
+
+          {/* ============================ */}
+          {/* ROW 2: Field Team Members + Timesheet Status */}
+          {/* ============================ */}
+
+          <div className="flex gap-3 w-full flex-wrap mt-3">
+
+            {/* --- Field Team Members (now its own row) --- */}
+            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+              <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+                Field Team Members <span className="text-red-600">*</span>
+              </label>
+
               <div className="relative">
                 <button
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className="h-11 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors"
+                  className="h-11 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5]
+                            w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1.5 flex-wrap flex-1">
                     {selectedAssignees.length === 0 ? (
-                      <span className="text-[#a1a1a9] text-sm">
-                        Select assignees
-                      </span>
+                      <span className="text-[#a1a1a9] text-sm">Select</span>
                     ) : (
                       selectedAssignees.map((assignee) => (
                         <div
@@ -808,7 +1031,7 @@ export default function CreateFTOModal({
                               e.stopPropagation();
                               removeAssignee(assignee.id);
                             }}
-                            className="hover:opacity-70 transition-opacity"
+                            className="hover:opacity-70"
                           >
                             <X className="w-3 h-3 text-[#2463eb]" />
                           </button>
@@ -816,6 +1039,7 @@ export default function CreateFTOModal({
                       ))
                     )}
                   </div>
+
                   <svg
                     className="w-4 h-4 text-gray-600 flex-shrink-0"
                     fill="none"
@@ -831,6 +1055,7 @@ export default function CreateFTOModal({
                   </svg>
                 </button>
 
+                {/* Dropdown Portal */}
                 {showAssigneeDropdown &&
                   createPortal(
                     <div
@@ -847,12 +1072,12 @@ export default function CreateFTOModal({
                         left: assigneeDropdownPos.left + "px",
                         pointerEvents: "auto",
                       }}
-                      onMouseLeave={() => setShowAssigneeDropdown(false)}
                     >
-                      {AVAILABLE_ASSIGNEES.map((assignee) => {
+                      {availableAssignees.map((assignee) => {
                         const isSelected = selectedAssignees.some(
                           (a) => a.id === assignee.id,
                         );
+
                         return (
                           <button
                             key={assignee.id}
@@ -860,7 +1085,7 @@ export default function CreateFTOModal({
                             className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50 rounded transition-colors"
                           >
                             <div className="flex items-center gap-2 flex-1">
-                              <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463eb]">
+                              <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463EB]">
                                 <span className="text-white font-semibold text-[10px]">
                                   {assignee.initials}
                                 </span>
@@ -892,40 +1117,46 @@ export default function CreateFTOModal({
                     </div>,
                     document.body,
                   )}
+
+
               </div>
             </div>
+
+            {/* --- Timesheet Status (now next to Field Team Members) --- */}
+            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+              <label className="text-[#303030] font-medium text-sm leading-[1.43]">
+                Timesheet Status
+              </label>
+
+              <Select value={timesheetStatus} onValueChange={setTimesheetStatus}>
+                <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
+                    style={{ backgroundColor: getTimesheetStatusBgColor() }}
+                  >
+                    {getTimesheetStatusIcon()}
+                    <span
+                      className="text-sm tracking-[-0.32px] leading-[1.4]"
+                      style={{
+                        color: getTimesheetStatusTextColor(),
+                        marginTop: "1px",
+                      }}
+                    >
+                      {getTimesheetStatusLabel()}
+                    </span>
+                  </div>
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="outstanding">Outstanding</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
           </div>
 
-          {/* Timesheet Status */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Timesheet Status
-            </label>
-            <Select value={timesheetStatus} onValueChange={setTimesheetStatus}>
-              <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <div
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
-                  style={{ backgroundColor: getTimesheetStatusBgColor() }}
-                >
-                  {getTimesheetStatusIcon()}
-                  <span
-                    className="text-sm tracking-[-0.32px] leading-[1.4]"
-                    style={{
-                      color: getTimesheetStatusTextColor(),
-                      marginTop: "1px",
-                    }}
-                  >
-                    {getTimesheetStatusLabel()}
-                  </span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="outstanding">Outstanding</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Description */}
           <div className="flex flex-col gap-2">

@@ -22,7 +22,7 @@ import {
 import { fetchJSON } from "@/api/fetchJSON";
 
 interface Assignee {
-  id: string;
+  id: number;
   name: string;
   initials: string;
 }
@@ -38,19 +38,18 @@ interface CreateTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editData?: {
-    title: string;
-    due: string;
+    id: number;
+    name: string;
+    description: string;
     priority: string;
+    category: string;
+    property_id: number;
+    due_date: string | null;
+    assignees: number[];
   };
+  onSubmit: (form: any) => void;
 }
 
-const AVAILABLE_ASSIGNEES: Assignee[] = [
-  { id: "1", name: "David Harris", initials: "DH" },
-  { id: "2", name: "Sarah Johnson", initials: "SJ" },
-  { id: "3", name: "Michael Chen", initials: "MC" },
-  { id: "4", name: "Emily Rodriguez", initials: "ER" },
-  { id: "5", name: "James Wilson", initials: "JW" },
-];
 
 const renderPropertyLabel = (p: SimpleProperty) =>
   p.name ||
@@ -60,10 +59,11 @@ const renderPropertyLabel = (p: SimpleProperty) =>
 export default function CreateTaskModal({
   open,
   onOpenChange,
-  editData,
+  editData, 
+  onSubmit,
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("normal");
+  const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -82,7 +82,74 @@ export default function CreateTaskModal({
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [availableAssignees, setAvailableAssignees] = useState<Assignee[]>([]);
+  useEffect(() => {
+    if (!open || !editData) return;
+  
+    // Populate fields
+    setTaskName(editData.name);
+    setDescription(editData.description || "");
+    setCategory(editData.category || "");
+    setPriority(editData.priority || "medium");
+    setSelectedProperty(String(editData.property_id));
+  
+    // Due date
+    if (editData.due_date) {
+      const parsed = new Date(editData.due_date);
+      if (!isNaN(parsed.getTime())) {
+        setSelectedDate(parsed);
+        setDueDate(format(parsed, "MM/dd/yyyy"));
+        setCalendarMonth(parsed);
+      }
+    } else {
+      setDueDate("");
+      setSelectedDate(null);
+    }
+  
 
+  }, [open, editData]);
+  
+  
+
+  useEffect(() => {
+    if (!open) return; // only load when modal opens
+  
+    async function loadAssignees() {
+      try {
+        const data = await fetchJSON("/users/property-managers");
+  
+        const mapped = data.map((u: any) => ({
+          id: Number(u.id),
+          name: u.name || u.email,
+          initials: (u.name || u.email).slice(0, 2).toUpperCase(),
+        }));
+  
+        setAvailableAssignees(mapped);
+      } catch (err) {
+        console.error("Failed to load managers:", err);
+      }
+    }
+  
+    loadAssignees();
+  }, [open]);
+
+  // Correct: map editData.assignees → availableAssignees once both exist
+  useEffect(() => {
+    if (!open || !editData) return;
+
+    // Wait until we have available assignees
+    if (availableAssignees.length === 0) return;
+
+    const initial = editData.assignees.map((id) => {
+      const match = availableAssignees.find(a => a.id === id);
+      return match ?? { id, name: `User ${id}`, initials: "U" };
+    });
+
+    setSelectedAssignees(initial);
+  }, [open, availableAssignees]);
+
+
+    
   useEffect(() => {
     if (!open) return;
   
@@ -141,9 +208,10 @@ export default function CreateTaskModal({
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463EB",
-      high: "#D97706",
+      low: "#059669",       // green
+      medium: "#2463EB",    // blue
+      high: "#D97706",      // yellow/orange
+      urgent: "#DC2626",    // red
     };
     return (
       <svg
@@ -155,7 +223,7 @@ export default function CreateTaskModal({
       >
         <path
           d="M2.91602 7H11.0827"
-          stroke={colors[priorityLevel] || colors.normal}
+          stroke={colors[priorityLevel] || colors.medium}
           strokeWidth="1.3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -167,45 +235,46 @@ export default function CreateTaskModal({
   const getPriorityLabel = () => {
     const labels: Record<string, string> = {
       low: "Low",
-      normal: "Normal",
+      medium: "Medium",
       high: "High",
+      urgent: "Urgent",
     };
-    return labels[priority] || "Normal";
+    return labels[priority] || "Medium";
   };
 
   const getPriorityBgColor = () => {
     const colors: Record<string, string> = {
       low: "#d1fae5",
-      normal: "#dbe9fe",
+      medium: "#dbe9fe",
       high: "#fef3c7",
+      urgent: "#fee2e2",
     };
-    return colors[priority] || colors.normal;
+    return colors[priority] || colors.medium;
   };
 
   const getPriorityTextColor = () => {
     const colors: Record<string, string> = {
       low: "#059669",
-      normal: "#2463eb",
+      medium: "#2463eb",
       high: "#d97706",
+      urgent: "#DC2626",
     };
-    return colors[priority] || colors.normal;
+    return colors[priority] || colors.medium;
   };
 
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
       const isSelected = prev.some((a) => a.id === assignee.id);
-      if (isSelected) {
-        return prev.filter((a) => a.id !== assignee.id);
-      } else {
-        return [...prev, assignee];
-      }
+      return isSelected
+        ? prev.filter((a) => a.id !== assignee.id)
+        : [...prev, assignee];
     });
   };
-
-  const removeAssignee = (assigneeId: string) => {
+  
+  const removeAssignee = (assigneeId: number) => {
     setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
   };
-
+  
   const handleDateSelect = (day: number) => {
     const selected = new Date(
       calendarMonth.getFullYear(),
@@ -255,7 +324,7 @@ export default function CreateTaskModal({
       alert("Task name is required.");
       return;
     }
-
+  
     const payload = {
       property_id: Number(selectedProperty),
       name: taskName,
@@ -264,22 +333,25 @@ export default function CreateTaskModal({
       category,
       due_date: selectedDate ? selectedDate.toISOString() : null,
       requested_by: 1,
-      assignee: selectedAssignees[0]
-        ? Number(selectedAssignees[0].id)
-        : null,
+      assignees: selectedAssignees.map((a) => Number(a.id)),
       tags: [],
     };
-
-    console.log("Sending payload:", payload);
-
-    await fetch("/maintenance/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
+  
+    if (editData) {
+      // UPDATE
+      await fetchJSON(`/maintenance/tasks/${editData.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+    } else {
+      // CREATE
+      await onSubmit(payload);
+    }
+  
     onOpenChange(false);
   };
+  
+  
 
   
   return (
@@ -344,6 +416,8 @@ export default function CreateTaskModal({
                 Task Name <span className="text-red-600">*</span>
               </label>
               <Input
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
                 placeholder="Type Task Name"
                 className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:capitalize"
               />
@@ -369,8 +443,9 @@ export default function CreateTaskModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -586,9 +661,9 @@ export default function CreateTaskModal({
                         left: assigneeDropdownPos.left + "px",
                         pointerEvents: "auto",
                       }}
-                      onMouseLeave={() => setShowAssigneeDropdown(false)}
+                      onMouseLeave={() => {}}
                     >
-                      {AVAILABLE_ASSIGNEES.map((assignee) => {
+                      {availableAssignees.map((assignee) => {  
                         const isSelected = selectedAssignees.some(
                           (a) => a.id === assignee.id,
                         );
@@ -661,16 +736,20 @@ export default function CreateTaskModal({
               Description
             </label>
             <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Insert Description Here"
-              className="min-h-[169px] rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:capitalize resize-none"
             />
           </div>
 
           {/* Create/Update Task Button */}
-          <button className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
-            <span className="text-white font-medium text-base">
-              {editData ? "Update Task" : "Create Task"}
-            </span>
+          <button
+              onClick={handleCreate}
+              className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
+            >
+              <span className="text-white font-medium text-base">
+                {editData ? "Update Task" : "Create Task"}
+              </span>
           </button>
 
         </div>

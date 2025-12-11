@@ -28,7 +28,7 @@ interface Task {
   last_updated: string;
 
   requested_by: number | null;
-  assignee: number | null;
+  assignees: number[] | null;  
 
   work_order_id: number | null;
   fto_id: number | null;
@@ -153,11 +153,13 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   onEditClick,
+  deleteTask,
 }: {
   task: Task;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   onEditClick: (data: Task) => void;
+  deleteTask: (taskId: number) => void;
 }) => {
   const taskId = task.id;
   const showMenu = openMenuId === taskId;
@@ -270,12 +272,12 @@ const ActionButton = ({
               </svg>
             </button>
             <button
-              onClick={() => {
-                console.log("Delete clicked for task", taskId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
+                onClick={() => {
+                  deleteTask(taskId);
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
                 style={{
@@ -340,12 +342,12 @@ export default function AllTasks() {
   
         // Fetch assignee user objects
         const uniqueUserIds = Array.from(
-          new Set(
-            rawTasks
-              .map((t: any) => t.assignee)
-              .filter((id: number | null) => id !== null)
-          )
+          new Set([
+            ...rawTasks.flatMap((t: any) => t.assignees ?? []),
+            ...rawTasks.map((t: any) => t.requested_by).filter((x) => x != null)
+          ])
         );
+        
   
         const userMap: Record<number, AssigneeInfo> = {};
   
@@ -462,6 +464,52 @@ export default function AllTasks() {
     return pages;
   };
 
+
+  async function createTask(form: any) {
+    try {
+      const payload = {
+        property_id: Number(form.property_id),
+        name: form.name,
+        description: form.description ?? "",
+        priority: form.priority,
+        category: form.category ?? "",
+        due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
+        requested_by: form.requested_by ? Number(form.requested_by) : null,
+        assignees: form.assignees,
+        tags: form.tags ?? []
+      };
+  
+      await fetchJSON("/maintenance/tasks", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+  
+      // Reload tasks after successful POST
+      const updated = await fetchJSON("/maintenance/tasks?limit=200");
+      setTasks(updated);
+  
+      setIsCreateTaskModalOpen(false);
+    } catch (err) {
+      console.error("Failed creating task", err);
+      alert("Task creation failed — check console.");
+    }
+  }
+
+  async function deleteTask(taskId: number) {
+    try {
+      await fetchJSON(`/maintenance/tasks/delete/${taskId}`, {
+        method: "DELETE",
+      });
+  
+      // Optimistically remove from UI
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    } catch (err) {
+      console.error("Failed deleting task", err);
+      alert("Failed to delete the task — check console.");
+    }
+  }
+  
+  
   return (
     <div
       className="bg-white"
@@ -856,18 +904,18 @@ export default function AllTasks() {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          {task.assignee && assignees[task.assignee] ? (
+                          {task.assignees && task.assignees.length > 0 ? (
                             <div
-                              key={task.assignee}
+                              key={task.assignees[0]}
                               className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
                               style={{
                                 backgroundColor: "rgb(59, 130, 246)",
                                 borderColor: "rgb(209, 213, 219)",
                                 borderWidth: "1px",
                               }}
-                              title={assignees[task.assignee].name}
+                              title={assignees[task.assignees[0]].name}
                             >
-                              {assignees[task.assignee].initials}
+                              {assignees[task.assignees[0]].initials}
                             </div>
                           ) : (
                             <span className="text-gray-400 text-sm">--</span>
@@ -889,10 +937,17 @@ export default function AllTasks() {
                           task={task}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
-                          onEditClick={() => {
-                            setEditingTask(task);
-                            setIsCreateTaskModalOpen(true);
+                          onEditClick={async () => {
+                            try {
+                              const full = await fetchJSON(`/maintenance/tasks/${task.id}`);
+                              setEditingTask(full);
+                              setIsCreateTaskModalOpen(true);
+                            } catch (err) {
+                              console.error("Failed loading task", err);
+                              alert("Error loading task details.");
+                            }
                           }}
+                          deleteTask={deleteTask}
                         />
                       </td>
                     </tr>
@@ -1137,6 +1192,7 @@ export default function AllTasks() {
       {/* Create Task Modal */}
       <CreateTaskModal
         open={isCreateTaskModalOpen}
+        onSubmit={createTask}
         onOpenChange={(open) => {
           setIsCreateTaskModalOpen(open);
           if (!open) {
@@ -1146,12 +1202,18 @@ export default function AllTasks() {
         editData={
           editingTask
             ? {
-                title: editingTask.name,
-                due: editingTask.due_date,
+                id: editingTask.id,
+                name: editingTask.name,
+                description: editingTask.description,
                 priority: editingTask.priority,
+                category: editingTask.category,
+                property_id: editingTask.property_id,
+                due_date: editingTask.due_date,
+                assignees: editingTask.assignees ?? [],
               }
             : undefined
         }
+               
       />
     </div>
   );

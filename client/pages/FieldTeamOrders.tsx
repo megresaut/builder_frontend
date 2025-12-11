@@ -6,7 +6,7 @@ import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import { usePageState } from "@/hooks/usePageState";
 
-const API_BASE = "/api";
+
 export function StatusBadge({ status }: { status: string }) {
   // Normalize
   const s = status?.toLowerCase();
@@ -137,11 +137,21 @@ interface FieldTeamOrder {
   name: string;
   description: string | null;
   property_address: string;
-  field_team_member_name: string | null;
   due_date: string | null;
   status: string;
   priority: string;
   total_amount: number;
+
+  // NEW FROM BACKEND
+  field_team_member_ids: number[];
+  pm_assignee_ids: number[];
+}
+
+interface FieldTeamUser {
+  id: number;
+  name: string;
+  initials: string;
+  color: string; // optional but you already store it in backend
 }
 
 
@@ -340,9 +350,11 @@ export default function FieldTeamOrders() {
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
+  const [fieldTeamUsers, setFieldTeamUsers] = useState<Record<number, FieldTeamUser>>({});
+
 
   useEffect(() => {
-    fetch(`${API_BASE}/maintenance/ftos`)
+    fetch("http://localhost:8080/maintenance/ftos")
       .then((res) => res.json())
       .then((data) => setFieldTeamOrders(data))
       .catch((err) => console.error("Failed to load FTOs:", err));
@@ -400,6 +412,39 @@ export default function FieldTeamOrders() {
       };
     }
   }, [showPageSizeDropdown]);
+
+
+  // Load field team users with debugging
+  useEffect(() => {
+    fetch("http://localhost:8080/users/field-team")
+      .then(async (res) => {
+        const raw = await res.text();      // <-- read raw body first
+        console.log("RAW /users/field-team RESPONSE:", raw);
+
+        try {
+          const users = JSON.parse(raw);   // <-- safely attempt JSON parse
+          const map: Record<number, FieldTeamUser> = {};
+          users.forEach((u: any) => {
+            map[u.id] = {
+              id: u.id,
+              name: u.name,
+              initials: u.initials || (u.name ? u.name.split(" ").map(w => w[0]).join("").toUpperCase() : "?"),
+              color: u.color || "#2463eb",
+            };
+          });
+
+          console.log("PARSED USERS:", map);
+          setFieldTeamUsers(map);
+        } catch (err) {
+          console.error("❌ JSON parse error for /users/field-team:", err);
+        }
+      })
+      .catch((err) =>
+        console.error("❌ Network error loading field team users:", err)
+      );
+  }, []);
+
+
 
   const totalOrders = fieldTeamOrders.length;
   const totalPages = Math.ceil(totalOrders / itemsPerPage);
@@ -738,13 +783,32 @@ export default function FieldTeamOrders() {
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          {order.field_team_member_name ? (
-                            <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-semibold border border-gray-300">
-                              {order.field_team_member_name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()}
+                          {order.field_team_member_ids.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                              {order.field_team_member_ids.map((id) => {
+                                const user = fieldTeamUsers[id];
+                                if (!user) {
+                                  return (
+                                    <div
+                                      key={id}
+                                      className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-semibold"
+                                    >
+                                      ?
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div
+                                    key={id}
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold border border-gray-300"
+                                    style={{ backgroundColor: user.color }}
+                                    title={user.name}
+                                  >
+                                    {user.initials}
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : (
                             <div className="text-gray-400 text-sm">—</div>
