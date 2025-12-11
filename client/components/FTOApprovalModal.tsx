@@ -51,9 +51,9 @@ interface FTOApprovalModalProps {
 function PDFViewer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4"
       onClick={onClose}
     >
       <div
@@ -85,7 +85,8 @@ function PDFViewer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
