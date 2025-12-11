@@ -496,7 +496,7 @@ export default function AddPropertyModal({
           </div>
 
           {/* Add/Update Property Button */}
-          <button className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2">
+          <button className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2">
             <span className="text-white font-medium text-base">
               {editData ? "Update Property" : "Add Property"}
             </span>
