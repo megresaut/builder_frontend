@@ -128,7 +128,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
-        {!isFullscreen && <Header />}
+        <Header />
         <div
           ref={mainContentRef}
           data-testid="main-content"
