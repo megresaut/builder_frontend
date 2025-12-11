@@ -311,8 +311,10 @@ export default function CreateFTOModal({
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Property <span className="text-red-600">*</span>
               </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
+              <Select value={property} onValueChange={setProperty}>
+                <SelectTrigger className={`h-11 rounded-lg bg-[#f7f7f7] ${
+                  errors.property ? "border-red-500 border-2" : "border-[#e5e5e5]"
+                }`}>
                   <SelectValue
                     placeholder="Select Property"
                     className="text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
