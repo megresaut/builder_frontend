@@ -434,6 +434,19 @@ export const RecordBill = () => {
     setDueDateError("");
   };
 
+  // Add Escape key handler
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleCancel();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscapeKey);
+    return () => window.removeEventListener("keydown", handleEscapeKey);
+  }, []);
+
   // Effect to measure widths whenever lineItems change
   useEffect(() => {
     const timer = setTimeout(() => {
