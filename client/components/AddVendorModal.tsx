@@ -58,8 +58,9 @@ export default function AddVendorModal({
       setVendorName("");
       setEmail("");
       setPhone("");
-      setServicesProvided("");
+      setServicesProvided([]);
       setNotes("");
+      setShowServicesList(false);
       onOpenChange(false);
     }
   };
