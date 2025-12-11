@@ -1820,6 +1820,10 @@ export default function TaskSummary() {
             open={showApprovalModal}
             onOpenChange={setShowApprovalModal}
             selectedFTOId={selectedFTOId}
+            rowId={`fto-${selectedFTOId}`}
+            property={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.property}
+            unit={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.unit}
+            fieldTeamAssignee={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]?.name}
           />
         </div>
       </div>
