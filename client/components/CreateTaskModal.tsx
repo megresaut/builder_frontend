@@ -49,6 +49,7 @@ export default function CreateTaskModal({
   onOpenChange,
   editData,
 }: CreateTaskModalProps) {
+  const [property, setProperty] = useState("");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
@@ -65,8 +66,11 @@ export default function CreateTaskModal({
     left: 0,
   });
   const [errors, setErrors] = useState<{
+    property?: boolean;
     title?: boolean;
+    priority?: boolean;
     dueDate?: boolean;
+    selectedAssignees?: boolean;
   }>({});
 
   const validateForm = (): boolean => {
