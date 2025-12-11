@@ -71,6 +71,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "approved",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 95,
   },
   {
@@ -84,6 +85,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "pending-approval",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 95,
   },
   {
@@ -97,6 +99,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 112,
   },
   {
@@ -110,6 +113,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 93,
   },
   {
@@ -123,6 +127,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 75,
   },
   {
@@ -136,6 +141,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 101,
   },
   {
@@ -149,6 +155,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 124,
   },
   {
@@ -162,6 +169,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 67,
   },
   {
@@ -175,6 +183,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 118,
   },
 ];
