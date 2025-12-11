@@ -3,6 +3,20 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
 
+// Global state for fullscreen mode using localStorage
+const FULLSCREEN_KEY = "app-fullscreen-mode";
+const getFullscreenMode = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(FULLSCREEN_KEY) === "true";
+  }
+  return false;
+};
+const setFullscreenMode = (value: boolean) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(FULLSCREEN_KEY, String(value));
+  }
+};
+
 interface Tab {
   id: string;
   iconLight: React.ReactNode;
