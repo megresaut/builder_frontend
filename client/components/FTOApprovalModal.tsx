@@ -337,7 +337,14 @@ export default function FTOApprovalModal({
   const grandTotal = hoursTotal + expensesTotal;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        // Don't close the dialog if PDF viewer is open
+        if (!newOpen && pdfOpen) return;
+        onOpenChange(newOpen);
+      }}
+    >
       <DialogContent className="max-w-[min(1600px,95vw)] p-8 gap-0 max-h-[90vh] overflow-y-auto">
         <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25] mb-4">
           Field Team Order Approval
