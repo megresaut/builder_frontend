@@ -1116,6 +1116,9 @@ export default function Utilities() {
   const [utilityColumns, setUtilityColumns] = useState<UtilityColumn[]>(
     DEFAULT_UTILITY_COLUMNS,
   );
+  const [utilityAccounts, setUtilityAccounts] = useState<UtilityAccount[]>(
+    utilityAccounts as any,
+  );
   const [draggedColumn, setDraggedColumn] = useState<{
     id: string;
     source: "bills" | "utility";
