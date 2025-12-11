@@ -848,16 +848,16 @@ export const RecordBill = () => {
         </button>
 
         {/* Right Column - Scrollable Content */}
-        <div className="flex flex-col flex-1" style={{ overflow: "hidden" }}>
+        <div className="flex flex-col flex-1" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
           {/* Scrollable Content Area */}
           <div
             className="overflow-auto"
             style={{
               width: "100%",
-              height: "100%",
-              paddingBottom: "72px",
+              flex: 1,
               overflowX: "auto",
               overflowY: "auto",
+              marginBottom: "72px",
             }}
           >
             <div className="px-8 py-6" style={{ minWidth: "fit-content" }}>
