@@ -519,7 +519,7 @@ export default function FTOApprovalModal({
               className="border-t border-[#dadada] grid overflow-x-auto"
               style={{
                 display: 'grid',
-                gridTemplateColumns: '110px 130px 300px 45px minmax(50px, auto) minmax(50px, auto) minmax(43px, auto) 85px',
+                gridTemplateColumns: '110px 130px 300px 45px 60px 60px 60px 85px',
                 gridAutoRows: 'minmax(min-content, auto)'
               }}
             >
