@@ -152,6 +152,16 @@ const mockPropertyWorkOrders: WorkOrder[] = [
   },
 ];
 
+const getRandomTimesheetStatus = (): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
+  const statuses: ("awaiting-submission" | "submitted" | "rejected" | "approved")[] = [
+    "awaiting-submission",
+    "submitted",
+    "rejected",
+    "approved",
+  ];
+  return statuses[Math.floor(Math.random() * statuses.length)];
+};
+
 const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
@@ -164,6 +174,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 420,
   },
   {
@@ -177,6 +188,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-green-500", name: "Cassandra Smith" },
     ],
     status: "approved",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 2500,
   },
 ];
