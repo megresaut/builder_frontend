@@ -671,7 +671,9 @@ export default function CreateRecurringTaskModal({
               <button
                 ref={assigneeButtonRef}
                 onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                className="h-11 rounded-lg bg-[#F7F7F7] border border-[#E5E5E5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors"
+                className={`h-11 rounded-lg bg-[#F7F7F7] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors ${
+                  errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#E5E5E5]"
+                }`}
               >
                 <div className="flex items-center gap-2 flex-wrap flex-1">
                   {selectedAssignees.length === 0 ? (
