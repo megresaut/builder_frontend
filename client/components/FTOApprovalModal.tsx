@@ -96,9 +96,10 @@ interface EditableCellProps {
   onChange: (value: string) => void;
   type: "text" | "number" | "date" | "currency";
   placeholder?: string;
+  disabled?: boolean;
 }
 
-function EditableCell({ value, onChange, type, placeholder }: EditableCellProps) {
+function EditableCell({ value, onChange, type, placeholder, disabled = false }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value);
@@ -178,10 +179,14 @@ function EditableCell({ value, onChange, type, placeholder }: EditableCellProps)
   if (type === "currency") {
     return (
       <div
-        className="w-full h-full flex items-center px-0 cursor-text hover:bg-[#f5f5f5] transition-colors"
+        className={`w-full h-full flex items-center px-0 transition-colors ${
+          disabled ? "cursor-not-allowed opacity-50" : "cursor-text hover:bg-[#f5f5f5]"
+        }`}
         onClick={() => {
-          setIsEditing(true);
-          setInputValue(value === "$0" || value === "$0.00" ? "" : value);
+          if (!disabled) {
+            setIsEditing(true);
+            setInputValue(value === "$0" || value === "$0.00" ? "" : value);
+          }
         }}
       >
         {isEditing ? (
@@ -455,10 +460,10 @@ export default function FTOApprovalModal({
                     <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" disabled={row.noFee} /></div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" disabled={row.noFee} /></div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
@@ -585,10 +590,10 @@ export default function FTOApprovalModal({
                     </button>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" disabled={row.avmExpense} /></div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" disabled={row.avmExpense} /></div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
