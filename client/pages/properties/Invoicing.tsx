@@ -1096,6 +1096,12 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
           </div>,
           document.body,
         )}
+
+      {/* Record Bill Modal */}
+      <RecordBillModal
+        open={showRecordBillModal}
+        onOpenChange={setShowRecordBillModal}
+      />
     </div>
   );
 };
