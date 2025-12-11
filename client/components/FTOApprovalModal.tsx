@@ -584,8 +584,14 @@ export default function FTOApprovalModal({
                   <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
                     <EditableCell value={row.receiptNote} onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)} type="text" placeholder="Enter receipt note" />
                   </div>
-                  <div key={`${row.id}-avm`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <Checkbox checked={row.avmExpense} onCheckedChange={(checked) => updateExpenseRow(row.id, "avmExpense", checked)} className="w-[14px] h-[14px]" />
+                  <div key={`${row.id}-receipts`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <button
+                      onClick={() => setPdfOpen(true)}
+                      className="w-6 h-6 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                      title="View receipt"
+                    >
+                      <Paperclip className="w-4 h-4 text-[#303030]" />
+                    </button>
                   </div>
                   <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" />
