@@ -1650,7 +1650,7 @@ export default function Utilities() {
                     key={account.id}
                     className={cn(
                       "hover:bg-gray-50 transition-colors h-12",
-                      index === utilityAccounts.length - 1
+                      index === accountsList.length - 1
                         ? "border-b-0"
                         : "border-b border-gray-200",
                     )}
