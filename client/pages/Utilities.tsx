@@ -1155,9 +1155,8 @@ export default function Utilities() {
   const [utilityColumns, setUtilityColumns] = useState<UtilityColumn[]>(
     DEFAULT_UTILITY_COLUMNS,
   );
-  const [accountsList, setAccountsList] = useState<UtilityAccount[]>(
-    utilityAccounts,
-  );
+  const [accountsList, setAccountsList] =
+    useState<UtilityAccount[]>(utilityAccounts);
   const [draggedColumn, setDraggedColumn] = useState<{
     id: string;
     source: "bills" | "utility";
@@ -1713,15 +1712,18 @@ export default function Utilities() {
                         }}
                         onImport={() => {
                           const newAccount: UtilityAccount = {
-                            id: Math.max(...accountsList.map(a => a.id)) + 1,
+                            id: Math.max(...accountsList.map((a) => a.id)) + 1,
                             provider: "New Provider Import",
                             account: `#${Math.floor(Math.random() * 100000)}-${Math.floor(Math.random() * 100)}`,
                             status: "active",
-                            lastBillDate: new Date().toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            }),
+                            lastBillDate: new Date().toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            ),
                             lastBillAmount: `$${Math.floor(Math.random() * 500) + 50}`,
                             lastImport: Date.now(),
                             icon: getProviderIcon("New Provider Import"),

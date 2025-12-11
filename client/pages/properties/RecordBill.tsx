@@ -172,22 +172,27 @@ export const RecordBill = () => {
     : null;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
-    isReadOnly ? readOnlyBill?.vendor ?? placeholderBill.vendor : null,
+    isReadOnly ? (readOnlyBill?.vendor ?? placeholderBill.vendor) : null,
   );
   const [referenceNumber, setReferenceNumber] = useState<string>(
     isReadOnly
-      ? readOnlyBill?.referenceNumber ?? placeholderBill.referenceNumber
+      ? (readOnlyBill?.referenceNumber ?? placeholderBill.referenceNumber)
       : "",
   );
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(
-    isReadOnly ? readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate : null,
+    isReadOnly
+      ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
+      : null,
   );
   const [dueDate, setDueDate] = useState<Date | null>(
-    isReadOnly ? readOnlyBill?.dueDate ?? placeholderBill.dueDate : null,
+    isReadOnly ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate) : null,
   );
   const [invoiceDateInput, setInvoiceDateInput] = useState<string>(
     isReadOnly && (readOnlyBill?.invoiceDate || placeholderBill.invoiceDate)
-      ? format(readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate, "MM/dd/yyyy")
+      ? format(
+          readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate,
+          "MM/dd/yyyy",
+        )
       : "",
   );
   const [dueDateInput, setDueDateInput] = useState<string>(
@@ -196,7 +201,7 @@ export const RecordBill = () => {
       : "",
   );
   const [memo, setMemo] = useState<string>(
-    isReadOnly ? readOnlyBill?.memo ?? placeholderBill.memo : "",
+    isReadOnly ? (readOnlyBill?.memo ?? placeholderBill.memo) : "",
   );
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
@@ -214,7 +219,7 @@ export const RecordBill = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
-      ? readOnlyBill?.lineItems ?? placeholderBill.lineItems
+      ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
       : [
           {
             id: 1,
@@ -368,7 +373,9 @@ export const RecordBill = () => {
       return;
     }
 
-    window.dispatchEvent(new CustomEvent('billApproved', { detail: { timestamp: Date.now() } }));
+    window.dispatchEvent(
+      new CustomEvent("billApproved", { detail: { timestamp: Date.now() } }),
+    );
     navigate(-1);
   };
 
@@ -607,7 +614,10 @@ export const RecordBill = () => {
       }}
     >
       {/* Two-Column Layout */}
-      <div className="flex flex-1 overflow-hidden" style={{ marginBottom: "72px" }}>
+      <div
+        className="flex flex-1 overflow-hidden"
+        style={{ marginBottom: "72px" }}
+      >
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
           <div
@@ -929,7 +939,14 @@ export const RecordBill = () => {
         </button>
 
         {/* Right Column - Scrollable Content */}
-        <div className="flex flex-col flex-1" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div
+          className="flex flex-col flex-1"
+          style={{
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {/* Scrollable Content Area */}
           <div
             className="overflow-auto"
@@ -941,9 +958,18 @@ export const RecordBill = () => {
               marginBottom: "4px",
             }}
           >
-            <div className="px-8 py-6" style={{ minWidth: "fit-content", padding: "24px 32px 24px 16px" }}>
+            <div
+              className="px-8 py-6"
+              style={{
+                minWidth: "fit-content",
+                padding: "24px 32px 24px 16px",
+              }}
+            >
               {/* Bill Details Section */}
-              <div className="flex flex-col w-full" style={{ marginLeft: "-5px" }}>
+              <div
+                className="flex flex-col w-full"
+                style={{ marginLeft: "-5px" }}
+              >
                 {/* Bill Details Header */}
                 <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
                   <div>Bill Details</div>

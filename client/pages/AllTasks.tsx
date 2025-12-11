@@ -324,7 +324,10 @@ const ActionButton = ({
             >
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
               >
                 View Bill
               </span>
@@ -340,7 +343,10 @@ const ActionButton = ({
             >
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
               >
                 Edit
               </span>
@@ -355,7 +361,10 @@ const ActionButton = ({
             >
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
               >
                 Delete
               </span>

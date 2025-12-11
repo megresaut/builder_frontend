@@ -6,8 +6,6 @@ interface BareLayoutProps {
 
 export default function BareLayout({ children }: BareLayoutProps) {
   return (
-    <div className="w-full h-screen bg-white overflow-hidden">
-      {children}
-    </div>
+    <div className="w-full h-screen bg-white overflow-hidden">{children}</div>
   );
 }

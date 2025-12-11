@@ -268,15 +268,15 @@ const ActionButton = ({
               <>
                 <button
                   onClick={(e) => {
-                  e.stopPropagation();
-                  setOpenMenuId(null);
-                  const path = propertyId
-                    ? `/property/${propertyId}/bills/record`
-                    : "/bills/record";
-                  navigate(path, {
-                    state: { bill: buildBillState(bill) },
-                  });
-                }}
+                    e.stopPropagation();
+                    setOpenMenuId(null);
+                    const path = propertyId
+                      ? `/property/${propertyId}/bills/record`
+                      : "/bills/record";
+                    navigate(path, {
+                      state: { bill: buildBillState(bill) },
+                    });
+                  }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
                   <span
@@ -416,7 +416,6 @@ const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   </svg>
 );
 
-
 export const Bills: React.FC<BillsProps> = ({
   propertyAddress,
   propertyType,
@@ -449,8 +448,12 @@ export const Bills: React.FC<BillsProps> = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const [approvedTimestamp, setApprovedTimestamp] = useState(() => Date.now() - 3 * 60 * 1000);
-  const [draftsTimestamp, setDraftsTimestamp] = useState(() => Date.now() - 2 * 60 * 1000);
+  const [approvedTimestamp, setApprovedTimestamp] = useState(
+    () => Date.now() - 3 * 60 * 1000,
+  );
+  const [draftsTimestamp, setDraftsTimestamp] = useState(
+    () => Date.now() - 2 * 60 * 1000,
+  );
   const [relativeTimeDisplay, setRelativeTimeDisplay] = useState(() => ({
     approved: formatRelativeTime(Date.now() - 3 * 60 * 1000),
     drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
@@ -473,9 +476,9 @@ export const Bills: React.FC<BillsProps> = ({
       setApprovedTimestamp(customEvent.detail.timestamp);
     };
 
-    window.addEventListener('billApproved', handleBillApproved);
+    window.addEventListener("billApproved", handleBillApproved);
 
-    return () => window.removeEventListener('billApproved', handleBillApproved);
+    return () => window.removeEventListener("billApproved", handleBillApproved);
   }, []);
 
   useEffect(() => {
@@ -537,7 +540,9 @@ export const Bills: React.FC<BillsProps> = ({
       if (!target) return;
 
       const isInActionsMenu = target.closest('[data-bill-actions-menu="true"]');
-      const isInActionsTrigger = target.closest('[data-bill-actions-trigger="true"]');
+      const isInActionsTrigger = target.closest(
+        '[data-bill-actions-trigger="true"]',
+      );
 
       if (isInActionsMenu || isInActionsTrigger) {
         return;
@@ -567,7 +572,7 @@ export const Bills: React.FC<BillsProps> = ({
     setSyncState("syncing");
     setTimeout(() => {
       const newBill: Bill = {
-        id: Math.max(...billsList.map(b => b.id)) + 1,
+        id: Math.max(...billsList.map((b) => b.id)) + 1,
         vendor: "New Vendor Import",
         vendorColor: "#7C3AED",
         property: "22 Indian Chase Dr",
@@ -576,10 +581,13 @@ export const Bills: React.FC<BillsProps> = ({
           day: "numeric",
           year: "numeric",
         }),
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
-          "en-US",
-          { month: "short", day: "numeric", year: "numeric" },
-        ),
+        dueDate: new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000,
+        ).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
         status: "push-failed",
         memo: "Imported from sync",
         invoiceNumber: `REF-2024-${Math.floor(Math.random() * 1000)}`,
