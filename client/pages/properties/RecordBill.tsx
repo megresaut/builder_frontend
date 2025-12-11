@@ -858,7 +858,7 @@ export const RecordBill = () => {
               flex: 1,
               overflowX: "auto",
               overflowY: "auto",
-              marginBottom: "12px",
+              marginBottom: "8px",
             }}
           >
             <div className="px-8 py-6" style={{ minWidth: "fit-content", padding: "24px 32px 24px 16px" }}>
