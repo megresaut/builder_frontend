@@ -576,6 +576,7 @@ export const Bills: React.FC<BillsProps> = ({
         importedAt: Date.now(),
       };
       setBillsList([newBill, ...billsList]);
+      setDraftsTimestamp(Date.now());
       setSyncState("synced");
       setTimeout(() => {
         setSyncState("idle");
