@@ -689,14 +689,6 @@ export const RecordBill = () => {
                       )}
                     </div>
                   )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
                 </div>
               </div>
             ) : (
