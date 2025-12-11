@@ -365,7 +365,7 @@ export default function Vendors() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsAddVendorModalOpen(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <Plus className="w-5 h-5 text-white" />
               <span className="text-white font-medium text-base leading-normal">

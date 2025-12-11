@@ -446,7 +446,7 @@ export default function AllProperties() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsAddPropertyModalOpen(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <svg
                 width="20"
