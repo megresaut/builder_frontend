@@ -269,6 +269,9 @@ export default function CreateWorkOrderModal({
     setSelectedDueDate(selected);
     const formatted = format(selected, "MM/dd/yyyy");
     setDueDate(formatted);
+    if (errors.dueDate) {
+      setErrors((prev) => ({ ...prev, dueDate: false }));
+    }
     setShowDueDateCalendar(false);
   };
 
