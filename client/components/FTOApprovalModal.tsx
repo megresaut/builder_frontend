@@ -26,23 +26,6 @@ export default function FTOApprovalModal({
   onOpenChange,
   selectedFTOId,
 }: FTOApprovalModalProps) {
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({
-    top: 0,
-    left: 0,
-  });
-  const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-
-  useEffect(() => {
-    if (openMenuId && buttonRefs.current[openMenuId]) {
-      const button = buttonRefs.current[openMenuId];
-      const rect = button.getBoundingClientRect();
-      setMenuPos({
-        top: rect.bottom + 8,
-        left: rect.left,
-      });
-    }
-  }, [openMenuId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
