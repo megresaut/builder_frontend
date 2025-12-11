@@ -708,7 +708,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             {activeTab === "tasks" && "Add Task"}
             {activeTab === "recurring" && "Add Recurring Task"}
             {activeTab === "workorders" && "Add Work Order"}
-            {activeTab === "fieldteam" && "Add Field Team Order"}
+            {activeTab === "fieldteam" && "Create FTO"}
           </span>
         </button>
       </div>
