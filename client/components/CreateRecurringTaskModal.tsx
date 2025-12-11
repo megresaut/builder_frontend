@@ -85,6 +85,26 @@ export default function CreateRecurringTaskModal({
     }
   }, [editData]);
 
+  const validateForm = (): boolean => {
+    const newErrors: { taskName?: boolean; startDate?: boolean } = {};
+    if (!taskName.trim()) {
+      newErrors.taskName = true;
+    }
+    if (!startDate.trim()) {
+      newErrors.startDate = true;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      // Handle submit logic here
+      console.log("Form submitted", { taskName, startDate, priority, category });
+      onOpenChange(false);
+    }
+  };
+
   useEffect(() => {
     let animationFrameId: number;
 
