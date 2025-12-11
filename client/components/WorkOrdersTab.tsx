@@ -810,7 +810,8 @@ export default function WorkOrdersTab({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <ActionButton
-                        taskId={workOrder.id}
+                        taskId={taskId}
+                        workOrderId={workOrder.id}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
                       />
