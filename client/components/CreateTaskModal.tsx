@@ -64,6 +64,29 @@ export default function CreateTaskModal({
     top: 0,
     left: 0,
   });
+  const [errors, setErrors] = useState<{
+    title?: boolean;
+    dueDate?: boolean;
+  }>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: { title?: boolean; dueDate?: boolean } = {};
+    if (!title.trim()) {
+      newErrors.title = true;
+    }
+    if (!dueDate.trim()) {
+      newErrors.dueDate = true;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log("Form submitted", { title, dueDate, priority, selectedAssignees });
+      onOpenChange(false);
+    }
+  };
 
   useEffect(() => {
     if (editData) {
