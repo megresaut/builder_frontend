@@ -459,53 +459,52 @@ export default function FTOApprovalModal({
               <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252]">Actions</div>
 
               {/* Rows */}
-              {hourRows.map((row) => (
-                <div key={row.id}>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
-                    <EditableCell value={row.date} onChange={(value) => updateHourRow(row.id, "date", value)} type="date" />
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
-                    <EditableCell value={row.hours} onChange={(value) => updateHourRow(row.id, "hours", value)} type="number" placeholder="e.g., 2 or 2.5" />
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
-                    <EditableCell value={row.note} onChange={(value) => updateHourRow(row.id, "note", value)} type="text" placeholder="Enter note" />
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <Checkbox checked={row.noFee} onCheckedChange={(checked) => updateHourRow(row.id, "noFee", checked)} className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
-                  </div>
-                  <div className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => deleteHourRow(row.id)} className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))}
+              {hourRows.map((row) => [
+                <div key={`${row.id}-date`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <EditableCell value={row.date} onChange={(value) => updateHourRow(row.id, "date", value)} type="date" />
+                </div>,
+                <div key={`${row.id}-hours`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <EditableCell value={row.hours} onChange={(value) => updateHourRow(row.id, "hours", value)} type="number" placeholder="e.g., 2 or 2.5" />
+                </div>,
+                <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <EditableCell value={row.note} onChange={(value) => updateHourRow(row.id, "note", value)} type="text" placeholder="Enter note" />
+                </div>,
+                <div key={`${row.id}-nofee`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <Checkbox checked={row.noFee} onCheckedChange={(checked) => updateHourRow(row.id, "noFee", checked)} className="w-[14px] h-[14px]" />
+                </div>,
+                <div key={`${row.id}-emergency`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
+                </div>,
+                <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
+                </div>,
+                <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
+                </div>,
+                <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
+                </div>,
+                <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="1" />
+                          <circle cx="19" cy="12" r="1" />
+                          <circle cx="5" cy="12" r="1" />
+                        </svg>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => deleteHourRow(row.id)} className="text-red-600 cursor-pointer">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>,
+              ]
+              ).flat()}
             </div>
           </div>
         </div>
