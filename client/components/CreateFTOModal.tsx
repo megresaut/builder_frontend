@@ -637,8 +637,14 @@ export default function CreateFTOModal({
                   {ftoStatus === "dispatched" && (
                     <StatusBadge status="Dispatched" />
                   )}
-                  {ftoStatus === "approved" && (
+                  {ftoStatus === "new" && (
+                    <StatusBadge status="New" />
+                  )}
+                  {ftoStatus === "completed" && (
                     <StatusBadge status="Approved" />
+                  )}
+                  {ftoStatus === "cancelled" && (
+                    <StatusBadge status="Cancelled" />
                   )}
                 </SelectValue>
               </SelectTrigger>
@@ -649,8 +655,14 @@ export default function CreateFTOModal({
                 <SelectItem value="dispatched">
                   <StatusBadge status="Dispatched" />
                 </SelectItem>
-                <SelectItem value="approved">
+                <SelectItem value="new">
+                  <StatusBadge status="New" />
+                </SelectItem>
+                <SelectItem value="completed">
                   <StatusBadge status="Approved" />
+                </SelectItem>
+                <SelectItem value="cancelled">
+                  <StatusBadge status="Cancelled" />
                 </SelectItem>
               </SelectContent>
             </Select>
