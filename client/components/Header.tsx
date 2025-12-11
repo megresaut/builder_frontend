@@ -1146,7 +1146,13 @@ export default function Header() {
         {isFullscreen && (
         <button
           onClick={toggleFullscreen}
-          className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative"
+          className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0"
+          style={{
+            position: "fixed",
+            top: "16px",
+            right: "16px",
+            zIndex: 50,
+          }}
           title="Expand"
         >
           <svg
