@@ -559,8 +559,8 @@ export const RecordBill = () => {
                 >
                   {uploadedFiles.length === 0 ? (
                     <div
-                      className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center"
-                      style={{ padding: "16px 24px", height: "1200px" }}
+                      className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center flex-1"
+                      style={{ padding: "16px 24px" }}
                     >
                       <div className="self-center flex flex-col items-center">
                         <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
