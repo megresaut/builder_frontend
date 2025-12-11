@@ -1686,7 +1686,21 @@ export default function Utilities() {
                           console.log("Edit utility account", account.id);
                         }}
                         onImport={() => {
-                          console.log("Import utility account", account.id);
+                          const newAccount: UtilityAccount = {
+                            id: Math.max(...accountsList.map(a => a.id)) + 1,
+                            provider: "New Provider Import",
+                            account: `#${Math.floor(Math.random() * 100000)}-${Math.floor(Math.random() * 100)}`,
+                            status: "active",
+                            lastBillDate: new Date().toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }),
+                            lastBillAmount: `$${Math.floor(Math.random() * 500) + 50}`,
+                            lastImport: Date.now(),
+                            icon: getProviderIcon("New Provider Import"),
+                          };
+                          setAccountsList([newAccount, ...accountsList]);
                         }}
                       />
                     </td>
