@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Select,
@@ -26,6 +26,15 @@ interface LineItem {
   description: string;
   glAccount: string;
   total: string;
+}
+
+interface ViewBillState {
+  vendorName?: string;
+  referenceNumber?: string;
+  invoiceDate?: string;
+  dueDate?: string;
+  memo?: string;
+  lineItems?: LineItem[];
 }
 
 const mockVendors: Vendor[] = [
@@ -108,31 +117,86 @@ const placeholderBill = {
   ],
 };
 
+const parseDateWithFallback = (value: string | undefined, fallback: Date) => {
+  if (!value) return fallback;
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  return fallback;
+};
+
+const buildReadOnlyBillFromState = (stateBill?: ViewBillState) => {
+  const vendor =
+    (stateBill?.vendorName &&
+      mockVendors.find((v) => v.name === stateBill.vendorName)) ||
+    placeholderBill.vendor;
+
+  const referenceNumber =
+    stateBill?.referenceNumber ?? placeholderBill.referenceNumber;
+
+  const invoiceDate = parseDateWithFallback(
+    stateBill?.invoiceDate,
+    placeholderBill.invoiceDate,
+  );
+
+  const dueDate = parseDateWithFallback(
+    stateBill?.dueDate,
+    placeholderBill.dueDate,
+  );
+
+  const memo = stateBill?.memo ?? placeholderBill.memo;
+
+  const lineItems =
+    stateBill?.lineItems && stateBill.lineItems.length > 0
+      ? stateBill.lineItems
+      : placeholderBill.lineItems;
+
+  return {
+    vendor,
+    referenceNumber,
+    invoiceDate,
+    dueDate,
+    memo,
+    lineItems,
+  };
+};
+
 export const RecordBill = () => {
   const navigate = useNavigate();
+  const location = useLocation<{ bill?: ViewBillState }>();
   const [searchParams] = useSearchParams();
   const isReadOnly = searchParams.get("readOnly") === "true";
+  const readOnlyBill = isReadOnly
+    ? buildReadOnlyBillFromState(location.state?.bill)
+    : null;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
-    isReadOnly ? placeholderBill.vendor : null,
+    isReadOnly ? readOnlyBill?.vendor ?? placeholderBill.vendor : null,
   );
   const [referenceNumber, setReferenceNumber] = useState<string>(
-    isReadOnly ? placeholderBill.referenceNumber : "",
+    isReadOnly
+      ? readOnlyBill?.referenceNumber ?? placeholderBill.referenceNumber
+      : "",
   );
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(
-    isReadOnly ? placeholderBill.invoiceDate : null,
+    isReadOnly ? readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate : null,
   );
   const [dueDate, setDueDate] = useState<Date | null>(
-    isReadOnly ? placeholderBill.dueDate : null,
+    isReadOnly ? readOnlyBill?.dueDate ?? placeholderBill.dueDate : null,
   );
   const [invoiceDateInput, setInvoiceDateInput] = useState<string>(
-    isReadOnly ? format(placeholderBill.invoiceDate, "MM/dd/yyyy") : "",
+    isReadOnly && (readOnlyBill?.invoiceDate || placeholderBill.invoiceDate)
+      ? format(readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate, "MM/dd/yyyy")
+      : "",
   );
   const [dueDateInput, setDueDateInput] = useState<string>(
-    isReadOnly ? format(placeholderBill.dueDate, "MM/dd/yyyy") : "",
+    isReadOnly && (readOnlyBill?.dueDate || placeholderBill.dueDate)
+      ? format(readOnlyBill?.dueDate ?? placeholderBill.dueDate, "MM/dd/yyyy")
+      : "",
   );
   const [memo, setMemo] = useState<string>(
-    isReadOnly ? placeholderBill.memo : "",
+    isReadOnly ? readOnlyBill?.memo ?? placeholderBill.memo : "",
   );
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
@@ -150,7 +214,7 @@ export const RecordBill = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
-      ? placeholderBill.lineItems
+      ? readOnlyBill?.lineItems ?? placeholderBill.lineItems
       : [
           {
             id: 1,
