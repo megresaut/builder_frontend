@@ -365,7 +365,9 @@ export default function CreateTaskModal({
                     }
                   }}
                   maxLength={10}
-                  className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9]"
+                  className={`h-11 rounded-lg placeholder:text-[#A1A1A9] ${
+                    errors.dueDate ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                  }`}
                 />
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
