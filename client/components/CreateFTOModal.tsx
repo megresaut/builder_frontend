@@ -696,11 +696,9 @@ export default function CreateFTOModal({
                           ? "#1E40AF"
                           : ftoStatus === "dispatched"
                             ? "#B45309"
-                            : ftoStatus === "new"
-                              ? "#1E40AF"
-                              : ftoStatus === "completed"
-                                ? "#166534"
-                                : "#6B7280",
+                            : ftoStatus === "completed"
+                              ? "#166534"
+                              : "#6B7280",
                     }}
                   />
                   <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
