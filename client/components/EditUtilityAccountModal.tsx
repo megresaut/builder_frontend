@@ -209,7 +209,7 @@ export default function EditUtilityAccountModal({
           {/* Save Changes Button */}
           <button
             onClick={handleSave}
-            className="w-full rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] px-4 py-2 min-h-[36px] flex items-center justify-center gap-2 text-white text-base font-medium mt-2 hover:bg-[#012a4d] transition-colors"
+            className="w-full rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] px-4 py-2 min-h-[36px] flex items-center justify-center gap-2 text-white text-base font-medium mt-2 hover:bg-[#012a4d] transition-colors"
           >
             {buttonText}
           </button>
