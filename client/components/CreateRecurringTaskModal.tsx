@@ -418,6 +418,9 @@ export default function CreateRecurringTaskModal({
                     if (isValid(parsed)) {
                       setSelectedStartDate(parsed);
                       setCalendarMonth(parsed);
+                      if (errors.startDate) {
+                        setErrors((prev) => ({ ...prev, startDate: false }));
+                      }
                     }
                   }}
                   maxLength={10}
