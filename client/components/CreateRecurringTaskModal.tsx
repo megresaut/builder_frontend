@@ -749,9 +749,24 @@ export default function CreateRecurringTaskModal({
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#059669]" />
+                      <span>Low</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="normal">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#2463eb]" />
+                      <span>Normal</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#d97706]" />
+                      <span>High</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
