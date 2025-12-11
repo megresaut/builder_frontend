@@ -714,6 +714,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                       itemId={`invoice-${item.id}`}
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
+                      onEdit={() => setShowRecordBillModal(true)}
                     />
                   </div>
                 ))}
