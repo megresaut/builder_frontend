@@ -216,58 +216,6 @@ export default function CreateFTOModal({
     return colors[priority] || colors.normal;
   };
 
-  const getFTOStatusIcon = (status: string = ftoStatus) => {
-    const colors: Record<string, string> = {
-      "pending-approval": "#1E40AF",
-      dispatched: "#B45309",
-      approved: "#166534",
-    };
-    return (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <circle
-          cx="8"
-          cy="8"
-          r="6"
-          stroke={colors[status] || colors["pending-approval"]}
-          strokeWidth="1.5"
-        />
-      </svg>
-    );
-  };
-
-  const getFTOStatusLabel = () => {
-    const labels: Record<string, string> = {
-      "pending-approval": "New",
-      dispatched: "Dispatched",
-      approved: "Completed",
-    };
-    return labels[ftoStatus] || "New";
-  };
-
-  const getFTOStatusBgColor = () => {
-    const colors: Record<string, string> = {
-      "pending-approval": "#EFF6FF",
-      dispatched: "#FEF3C7",
-      approved: "#DCFCE7",
-    };
-    return colors[ftoStatus] || "#EFF6FF";
-  };
-
-  const getFTOStatusTextColor = () => {
-    const colors: Record<string, string> = {
-      "pending-approval": "#1E40AF",
-      dispatched: "#B45309",
-      approved: "#166534",
-    };
-    return colors[ftoStatus] || "#1E40AF";
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-0 gap-0 font-['Geist',sans-serif]">
