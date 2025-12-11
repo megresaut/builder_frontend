@@ -862,7 +862,7 @@ export const RecordBill = () => {
           >
             <div className="px-8 py-6" style={{ minWidth: "fit-content", padding: "24px 32px 24px 16px" }}>
               {/* Bill Details Section */}
-              <div className="flex flex-col w-full">
+              <div className="flex flex-col w-full" style={{ marginLeft: "-5px" }}>
                 {/* Bill Details Header */}
                 <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
                   <div>Bill Details</div>
