@@ -438,16 +438,13 @@ export default function CreateWorkOrderModal({
                 </label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                    <div
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
-                      style={{
-                        backgroundColor: getStatusBgColor(),
-                      }}
-                    >
-                      {getStatusIcon()}
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: getStatusTextColor() }}
+                      />
                       <span
-                        className="text-sm"
-                        style={{ color: getStatusTextColor() }}
+                        className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]"
                       >
                         {getStatusLabel()}
                       </span>
