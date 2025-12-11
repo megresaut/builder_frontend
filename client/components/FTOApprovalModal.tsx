@@ -584,11 +584,11 @@ export default function FTOApprovalModal({
                       <Paperclip className="w-4 h-4 text-[#303030]" />
                     </button>
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
