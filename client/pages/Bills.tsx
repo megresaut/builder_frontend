@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
-import RecordBillModal from "@/components/RecordBillModal";
 import AddVendorModal from "@/components/AddVendorModal";
 import { fetchJSON } from "@/api/fetchJSON";
 
@@ -44,24 +44,45 @@ const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   </svg>
 );
 
-const ActionButton = () => (
-  <button className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors">
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+type ActionButtonProps = {
+  itemId: number;
+  openMenuId: number | null;
+  setOpenMenuId: (id: number | null) => void;
+};
+
+const ActionButton = ({
+  itemId,
+  openMenuId,
+  setOpenMenuId,
+}: ActionButtonProps) => {
+  const isOpen = openMenuId === itemId;
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpenMenuId(isOpen ? null : itemId);
+      }}
+      className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
     >
-      <circle cx="12" cy="12" r="1" />
-      <circle cx="19" cy="12" r="1" />
-      <circle cx="5" cy="12" r="1" />
-    </svg>
-  </button>
-);
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="19" cy="12" r="1" />
+        <circle cx="5" cy="12" r="1" />
+      </svg>
+    </button>
+  );
+};
+
 // Deterministic vendor color generator based on vendor name
 function getVendorColor(vendor: string) {
   let hash = 0;
@@ -75,6 +96,7 @@ function getVendorColor(vendor: string) {
 }
 
 export default function Bills() {
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
     "selectedTab",
     "approved",
@@ -83,10 +105,6 @@ export default function Bills() {
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
     "showPageSizeDropdown",
-    false,
-  );
-  const [isRecordBillModalOpen, setIsRecordBillModalOpen] = usePageState(
-    "isRecordBillModalOpen",
     false,
   );
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
@@ -342,7 +360,7 @@ export default function Bills() {
               </button>
 
               <button
-                onClick={() => setIsRecordBillModalOpen(true)}
+                onClick={() => navigate("/bills/record")}
                 className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
               >
                 <svg
@@ -642,68 +660,88 @@ export default function Bills() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedBills.map((bill) => (
-                    <tr
-                      key={bill.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <VendorAvatar
-                            name={bill.vendor}
-                            color={bill.vendorColor}
-                          />
-                          <span className="text-gray-900 font-normal text-base">
-                            {bill.vendor}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.property}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.statementDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.dueDate}
-                        </span>
-                      </td>
-                      {selectedTab !== "approved" && (
-                        <td className="px-3 py-3 border-r border-gray-200">
-                          <StatusBadge status={bill.status as "active" | "inactive"} />
-                        </td>
-                      )}
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
-                          {bill.memo}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.invoiceNumber}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          ${bill.amount}
-                        </span>
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "1px",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton />
-                      </td>
-                    </tr>
-                  ))}
+                  {approvedBills
+                    .slice(
+                      (currentPage - 1) * itemsPerPage,
+                      currentPage * itemsPerPage,
+                    )
+                    .map((bill) => {
+                      const handleRowClick = (e: React.MouseEvent) => {
+                        if (
+                          (e.target as HTMLElement).closest("td:last-child")
+                        ) {
+                          return;
+                        }
+                        navigate("/bills/record");
+                      };
+                      return (
+                        <tr
+                          key={bill.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                          onClick={handleRowClick}
+                        >
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <VendorAvatar
+                                name={bill.vendor}
+                                color={bill.vendorColor}
+                              />
+                              <span className="text-gray-900 font-normal text-base">
+                                {bill.vendor}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.property}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.statementDate}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.dueDate}
+                            </span>
+                          </td>
+                          {selectedTab !== "approved" && (
+                            <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                              <StatusBadge status={bill.status as "active" | "inactive"} />
+                            </td>
+                          )}
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
+                              {bill.memo}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill.invoiceNumber}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              ${bill.amount}
+                            </span>
+                          </td>
+                          <td
+                            className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
+                            style={{
+                              borderLeftWidth: "1px",
+                              backgroundColor: "white",
+                            }}
+                          >
+                            <ActionButton
+                              itemId={bill.id}    
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
@@ -953,12 +991,6 @@ export default function Bills() {
           </div>,
           document.body,
         )}
-
-      {/* Record Bill Modal */}
-      <RecordBillModal
-        open={isRecordBillModalOpen}
-        onOpenChange={setIsRecordBillModalOpen}
-      />
 
       {/* Add Vendor Modal */}
       <AddVendorModal

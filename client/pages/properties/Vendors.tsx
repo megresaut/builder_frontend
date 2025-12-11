@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
-import FileUploadModal from "@/components/FileUploadModal";
 import AddVendorModal from "@/components/AddVendorModal";
 
 interface Vendor {
@@ -11,10 +10,7 @@ interface Vendor {
   name: string;
   phone: string;
   email: string;
-  insuranceProvider: string;
-  expires: string;
-  w9: string | null;
-  insurance: string | null;
+  notes: string;
 }
 
 interface VendorsProps {
@@ -29,50 +25,35 @@ const mockVendors: Vendor[] = [
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Oct 2, 2025",
-    w9: "View",
-    insurance: "View",
+    notes: "Reliable vendor, quick turnaround",
   },
   {
     id: 2,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 29, 2025",
-    w9: null,
-    insurance: "View",
+    notes: "Good quality work",
   },
   {
     id: 3,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "hiscox",
-    expires: "Sep 10, 2025",
-    w9: "View",
-    insurance: "View",
+    notes: "Preferred for electrical work",
   },
   {
     id: 4,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 6, 2025",
-    w9: null,
-    insurance: "View",
+    notes: "",
   },
   {
     id: 5,
     name: "David Smith",
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
-    insuranceProvider: "Hiscox",
-    expires: "Sep 5, 2025",
-    w9: null,
-    insurance: "View",
+    notes: "Great communication",
   },
 ];
 
@@ -251,10 +232,6 @@ export const Vendors: React.FC<VendorsProps> = ({
     "openMenuId",
     null,
   );
-  const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
-  const [uploadDocumentType, setUploadDocumentType] = useState<
-    "w9" | "insurance"
-  >("w9");
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
     "isAddVendorModalOpen",
@@ -455,7 +432,7 @@ export const Vendors: React.FC<VendorsProps> = ({
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
                     <div className="flex items-center gap-2">
                       <svg
                         width="20"
@@ -477,46 +454,24 @@ export const Vendors: React.FC<VendorsProps> = ({
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
                     <div className="flex items-center gap-2">
                       <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_11178_3189)">
-                          <path
-                            d="M5.33399 5.33325H5.34065M1.33398 3.46658L1.33398 6.44959C1.33398 6.77572 1.33398 6.93878 1.37082 7.09223C1.40349 7.22827 1.45736 7.35833 1.53046 7.47763C1.61292 7.61219 1.72822 7.72749 1.95882 7.95809L7.07124 13.0705C7.86328 13.8625 8.25929 14.2586 8.71595 14.4069C9.11764 14.5375 9.55033 14.5375 9.95202 14.4069C10.4087 14.2586 10.8047 13.8625 11.5967 13.0705L13.0712 11.596C13.8633 10.804 14.2593 10.4079 14.4077 9.95128C14.5382 9.5496 14.5382 9.1169 14.4077 8.71522C14.2593 8.25856 13.8633 7.86254 13.0712 7.07051L7.95882 1.95809C7.72822 1.72749 7.61292 1.61219 7.47836 1.52973C7.35907 1.45663 7.22901 1.40275 7.09296 1.37009C6.93951 1.33325 6.77645 1.33325 6.45033 1.33325L3.46732 1.33325C2.72058 1.33325 2.34721 1.33325 2.062 1.47858C1.81111 1.60641 1.60714 1.81038 1.47931 2.06126C1.33398 2.34648 1.33398 2.71985 1.33398 3.46658ZM5.66732 5.33325C5.66732 5.51735 5.51808 5.66658 5.33399 5.66658C5.14989 5.66658 5.00065 5.51735 5.00065 5.33325C5.00065 5.14916 5.14989 4.99992 5.33399 4.99992C5.51808 4.99992 5.66732 5.14916 5.66732 5.33325Z"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_11178_3189">
-                            <rect width="16" height="16" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Insurance Provider
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M14 6.66658H2M10.6667 1.33325V3.99992M5.33333 1.33325V3.99992M5.2 14.6666H10.8C11.9201 14.6666 12.4802 14.6666 12.908 14.4486C13.2843 14.2569 13.5903 13.9509 13.782 13.5746C14 13.1467 14 12.5867 14 11.4666V5.86659C14 4.74648 14 4.18643 13.782 3.7586C13.5903 3.38228 13.2843 3.07632 12.908 2.88457C12.4802 2.66659 11.9201 2.66659 10.8 2.66659H5.2C4.0799 2.66659 3.51984 2.66659 3.09202 2.88457C2.71569 3.07632 2.40973 3.38228 2.21799 3.7586C2 4.18643 2 4.74648 2 5.86658V11.4666C2 12.5867 2 13.1467 2.21799 13.5746C2.40973 13.9509 2.71569 14.2569 3.09202 14.4486C3.51984 14.6666 4.0799 14.6666 5.2 14.6666Z"
+                          d="M2.5 4.16667C2.5 3.54624 3.03726 3.04167 3.66667 3.04167H16.3333C16.9627 3.04167 17.5 3.54624 17.5 4.16667V15.8333C17.5 16.4538 16.9627 16.9583 16.3333 16.9583H3.66667C3.03726 16.9583 2.5 16.4538 2.5 15.8333V4.16667Z"
+                          stroke="#525252"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M5.83301 6.70825H14.1663M5.83301 10H14.1663M5.83301 13.2917H10.833"
                           stroke="#525252"
                           strokeWidth="1.5"
                           strokeLinecap="round"
@@ -524,75 +479,7 @@ export const Vendors: React.FC<VendorsProps> = ({
                         />
                       </svg>
                       <span className="font-medium text-sm text-gray-700">
-                        Expires
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_11214_4992)">
-                          <path
-                            d="M14.2929 7.36678L8.16621 13.4934C7.41565 14.244 6.39767 14.6657 5.33621 14.6657C4.27475 14.6657 3.25677 14.244 2.50621 13.4934C1.75565 12.7429 1.33398 11.7249 1.33398 10.6634C1.33398 9.60199 1.75565 8.58401 2.50621 7.83344L8.63288 1.70678C9.13325 1.2064 9.81191 0.925293 10.5195 0.925293C11.2272 0.925293 11.9058 1.2064 12.4062 1.70678C12.9066 2.20715 13.1877 2.88581 13.1877 3.59344C13.1877 4.30108 12.9066 4.97973 12.4062 5.48011L6.27288 11.6068C6.02269 11.857 5.68336 11.9975 5.32954 11.9975C4.97572 11.9975 4.6364 11.857 4.38621 11.6068C4.13602 11.3566 3.99547 11.0173 3.99547 10.6634C3.99547 10.3096 4.13602 9.9703 4.38621 9.72011L10.0462 4.06678"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_11214_4992">
-                            <rect width="16" height="16" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        W9
-                      </span>
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left whitespace-nowrap"
-                    style={{
-                      borderBottomWidth: "1px",
-                      borderColor:
-                        "rgba(0, 0, 0, 0) rgb(231, 232, 236) rgb(231, 232, 236) rgba(0, 0, 0, 0)",
-                      borderRightWidth: "1px",
-                      borderTopWidth: "1px",
-                      borderWidth: "1px 1px 1px 0px",
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_11214_4995)">
-                          <path
-                            d="M14.2929 7.36678L8.16621 13.4934C7.41565 14.244 6.39767 14.6657 5.33621 14.6657C4.27475 14.6657 3.25677 14.244 2.50621 13.4934C1.75565 12.7429 1.33398 11.7249 1.33398 10.6634C1.33398 9.60199 1.75565 8.58401 2.50621 7.83344L8.63288 1.70678C9.13325 1.2064 9.81191 0.925293 10.5195 0.925293C11.2272 0.925293 11.9058 1.2064 12.4062 1.70678C12.9066 2.20715 13.1877 2.88581 13.1877 3.59344C13.1877 4.30108 12.9066 4.97973 12.4062 5.48011L6.27288 11.6068C6.02269 11.857 5.68336 11.9975 5.32954 11.9975C4.97572 11.9975 4.6364 11.857 4.38621 11.6068C4.13602 11.3566 3.99547 11.0173 3.99547 10.6634C3.99547 10.3096 4.13602 9.9703 4.38621 9.72011L10.0462 4.06678"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_11214_4995">
-                            <rect width="16" height="16" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Insurance
+                        Notes
                       </span>
                     </div>
                   </th>
@@ -631,72 +518,15 @@ export const Vendors: React.FC<VendorsProps> = ({
                           {vendor.phone}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
                           {vendor.email}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200">
                         <span className="text-gray-900 font-normal text-base">
-                          {vendor.insuranceProvider}
+                          {vendor.notes}
                         </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {vendor.expires}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        {vendor.w9 ? (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("w9");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-blue-600 font-normal text-base underline cursor-pointer hover:opacity-70"
-                          >
-                            {vendor.w9}
-                          </span>
-                        ) : (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("w9");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-gray-400 font-normal text-base underline cursor-pointer hover:text-gray-600"
-                          >
-                            Add
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        className="px-3 py-3 whitespace-nowrap"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
-                      >
-                        {vendor.insurance ? (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("insurance");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-blue-600 font-normal text-base underline cursor-pointer hover:opacity-70"
-                          >
-                            {vendor.insurance}
-                          </span>
-                        ) : (
-                          <span
-                            onClick={() => {
-                              setUploadDocumentType("insurance");
-                              setIsFileUploadModalOpen(true);
-                            }}
-                            className="text-gray-400 font-normal text-base underline cursor-pointer hover:text-gray-600"
-                          >
-                            Add
-                          </span>
-                        )}
                       </td>
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
@@ -909,17 +739,6 @@ export const Vendors: React.FC<VendorsProps> = ({
           </div>
         </div>
       </div>
-
-      {/* File Upload Modal */}
-      <FileUploadModal
-        open={isFileUploadModalOpen}
-        onOpenChange={setIsFileUploadModalOpen}
-        title={
-          uploadDocumentType === "w9"
-            ? "Upload W9 Document"
-            : "Upload Insurance Document"
-        }
-      />
 
       {/* Add Vendor Modal */}
       <AddVendorModal

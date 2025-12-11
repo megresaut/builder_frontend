@@ -96,6 +96,23 @@ export default function Header() {
       return { label: "Recurring Tasks", path, id: "recurring-tasks" };
     } else if (path === "/vendors") {
       return { label: "Vendors", path, id: "vendors" };
+    } else if (path === "/utilities/view-bill") {
+      return { label: "View Bill", path, id: "utilities-view-bill" };
+    } else if (
+      path === "/record-bill" ||
+      path === "/bills/record" ||
+      path.includes("/bills/record")
+    ) {
+      // Handle /bills/record, /property/:id/bills/record, etc.
+      let pageId = "record-bill";
+
+      if (path.includes("/property/")) {
+        const match = path.match(/\/property\/(\d+)/);
+        if (match) {
+          pageId = `record-bill-property-${match[1]}`;
+        }
+      }
+      return { label: "Record Bill", path, id: pageId };
     } else if (path === "/") {
       return { label: "All Tasks", path, id: "all-tasks" };
     }
@@ -159,6 +176,9 @@ export default function Header() {
       items.push({ label: "Recurring Tasks" });
     } else if (path === "/vendors") {
       items.push({ label: "Vendors" });
+    } else if (path === "/record-bill") {
+      items.push({ label: "Bills", href: "/bills" });
+      items.push({ label: "Record Bill" });
     }
 
     return items;

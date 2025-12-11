@@ -1,5 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import AddPropertyModal from "@/components/AddPropertyModal";
+
+interface Manager {
+  id: number;
+  name: string;
+  initials: string;
+  color: string;
+}
+
+interface Property {
+  id: number;
+  address: string;
+  location: string;
+  managers: Manager[];
+  type: string;
+  buildingId: string;
+  status: "active" | "inactive";
+  units: number;
+}
 
 interface PropertiesTemplateProps {
   children: React.ReactNode;
@@ -7,6 +26,7 @@ interface PropertiesTemplateProps {
   propertyAddress?: string;
   propertyType?: string;
   propertyUnits?: number;
+  property?: Property;
 }
 
 export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
@@ -15,9 +35,11 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   propertyAddress = "3 Hekma Road, Greenwich, CT 06831",
   propertyType = "Single-Family",
   propertyUnits = 1,
+  property,
 }) => {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const tabs = [
     "Overview",
@@ -90,6 +112,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
             </div>
             <div className="flex items-center gap-3">
               <button
+                onClick={() => setIsEditModalOpen(true)}
                 className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
                 style={{
                   boxShadow:
@@ -166,6 +189,24 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
           {children}
         </div>
       </div>
+
+      {/* Edit Property Modal */}
+      {property && (
+        <AddPropertyModal
+          open={isEditModalOpen}
+          onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+          }}
+          editData={{
+            address: property.address,
+            location: property.location,
+            type: property.type,
+            buildingId: property.buildingId,
+            status: property.status,
+            managers: property.managers,
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -160,7 +161,7 @@ export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
+    <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
       <svg
         width="16"
         height="16"
@@ -171,7 +172,7 @@ export const StatusBadge = ({ status }: { status: "active" | "inactive" }) => {
         <g clipPath="url(#clip0_inactive)">
           <path
             d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-            stroke="#D97706"
+            stroke="#DC2626"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -242,25 +243,78 @@ export const AIInsightBadge = ({
 }: {
   insight: "High" | "Normal" | "Low";
 }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
+
   const colors = {
     High: "#C24A4A",
     Normal: "#3A71C4",
     Low: "#37A74B",
   };
 
+  const explanations = {
+    High: "Usage is above average. Consider optimizing your energy consumption or reviewing connected devices.",
+    Normal:
+      "Usage is within normal range. Your consumption is consistent with typical patterns.",
+    Low: "Usage is below average. Great job maintaining efficient energy consumption.",
+  };
+
+  useEffect(() => {
+    if (showTooltip && badgeRef.current) {
+      const rect = badgeRef.current.getBoundingClientRect();
+      setTooltipPos({
+        top: rect.bottom + 8,
+        left: rect.left + rect.width / 2,
+      });
+    }
+  }, [showTooltip]);
+
   return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl text-sm font-normal"
-      style={{
-        color: colors[insight],
-        boxShadow:
-          "-1px 1px 1px 0 rgba(255, 28, 198, 0.10) inset, 1px -1px 1px 0 rgba(3, 57, 219, 0.10) inset, 2px -2px 5px 0 rgba(3, 57, 219, 0.10) inset, -2px 2px 5px 0 rgba(255, 28, 198, 0.10) inset, 0 0 1px 0 #A3A6D1, 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
-        letterSpacing: "-0.32px",
-        lineHeight: "140%",
-      }}
-    >
-      {insight}
-    </span>
+    <>
+      <span
+        ref={badgeRef}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl text-sm font-normal cursor-help relative"
+        style={{
+          color: colors[insight],
+          boxShadow:
+            "-1px 1px 1px 0 rgba(255, 28, 198, 0.10) inset, 1px -1px 1px 0 rgba(3, 57, 219, 0.10) inset, 2px -2px 5px 0 rgba(3, 57, 219, 0.10) inset, -2px 2px 5px 0 rgba(255, 28, 198, 0.10) inset, 0 0 1px 0 #A3A6D1, 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+          letterSpacing: "-0.32px",
+          lineHeight: "140%",
+        }}
+      >
+        {insight}
+      </span>
+
+      {showTooltip &&
+        createPortal(
+          <div
+            className="bg-[#303030] text-white px-3 py-2 rounded-lg text-sm max-w-xs shadow-lg z-50 pointer-events-none"
+            style={{
+              position: "fixed",
+              top: tooltipPos.top + "px",
+              left: tooltipPos.left + "px",
+              transform: "translateX(-50%)",
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+            }}
+          >
+            {explanations[insight]}
+            <div
+              className="absolute w-2 h-2 bg-[#303030] transform -top-1 left-1/2 -translate-x-1/2 rotate-45"
+              style={{
+                position: "absolute",
+                top: "-4px",
+                left: "50%",
+                marginLeft: "-4px",
+              }}
+            />
+          </div>,
+          document.body,
+        )}
+    </>
   );
 };
 
@@ -268,18 +322,26 @@ export const ActionButton = ({
   propertyId,
   openMenuId,
   setOpenMenuId,
-  onImport,         // ✅ NEW
-  importing = false // ✅ NEW
+
+  onEdit,
+  onImport,
+  importing = false,
+  onView,
 }: {
   propertyId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
 
-  onImport?: (accountId: number) => Promise<void>; // NEW
-  importing?: boolean; // NEW
+  onEdit?: () => void;
+  onView?: () => void;
+
+  // unified import signature to support both versions
+  onImport?: (accountId?: number) => void | Promise<void>;
+  importing?: boolean;
 }) => {
   const showMenu = openMenuId === propertyId;
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -305,6 +367,27 @@ export const ActionButton = ({
     return () => animationFrameId && cancelAnimationFrame(animationFrameId);
   }, [showMenu]);
 
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        menuRef.current &&
+        buttonRef.current &&
+        !menuRef.current.contains(target) &&
+        !buttonRef.current.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu, setOpenMenuId]);
+
   return (
     <>
       {/* Dot menu button */}
@@ -323,6 +406,7 @@ export const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
+            ref={menuRef}
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
@@ -338,88 +422,140 @@ export const ActionButton = ({
             }}
             onMouseLeave={() => setOpenMenuId(null)}
           >
-
-            {/* ---------------------- */}
-            {/*   IMPORT BUTTON        */}
-            {/* ---------------------- */}
-            <button
-              disabled={!onImport}
-              onClick={async () => {
-                setOpenMenuId(null);
-                if (onImport) {
-                  await onImport(propertyId);
-                }
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity disabled:opacity-40"
-            >
-              <span
-                className="text-[#303030] font-normal text-base"
-                style={{ fontFamily: "Geist, -apple-system, Roboto" }}
+            {onEdit && (
+              <button
+                onClick={() => {
+                  if (onEdit) {
+                    onEdit();
+                  }
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
-                {importing ? "Importing…" : "Import"}
-              </span>
-
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  Edit
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                    stroke="#525252"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+            {onImport && (
+              <button
+                onClick={() => {
+                  onImport();
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
-                <path
-                  d="M9 2.25V12.75M9 12.75L12.75 9M9 12.75L5.25 9"
-                  stroke="#0A2A57"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-
-            {/* ---------------------- */}
-            {/*   EDIT BUTTON          */}
-            {/* ---------------------- */}
-            <button
-              onClick={() => {
-                console.log("Edit clicked for property", propertyId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span className="text-[#303030] font-normal text-base">
-                Edit
-              </span>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M15.75 15.75H9.75M1.875 16.125L6.037 14.524..."
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </button>
-
-            {/* ---------------------- */}
-            {/*   DELETE BUTTON        */}
-            {/* ---------------------- */}
-            <button
-              onClick={() => {
-                console.log("Delete clicked for property", propertyId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span className="text-[#303030] font-normal text-base">
-                Delete
-              </span>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75..."
-                  stroke="#982740"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </button>
-
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  Import
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 1.5V11.25M9 1.5L5.25 5.25M9 1.5L12.75 5.25M2.25 8.25V14.25C2.25 14.8023 2.48705 15.3 2.9051 15.6239C3.32315 15.9477 3.88437 16.125 4.5 16.125H13.5C14.1156 16.125 14.6768 15.9477 15.0949 15.6239C15.513 15.3 15.75 14.8023 15.75 14.25V8.25"
+                    stroke="#525252"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+            {onView ? (
+              <button
+                onClick={() => {
+                  onView();
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  View Bill
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 3C5.13 3 1.83 5.34 1.25 8.5C1.83 11.66 5.13 14 9 14C12.87 14 16.17 11.66 16.75 8.5C16.17 5.34 12.87 3 9 3ZM9 12.5C7.07 12.5 5.5 10.93 5.5 9C5.5 7.07 7.07 5.5 9 5.5C10.93 5.5 12.5 7.07 12.5 9C12.5 10.93 10.93 12.5 9 12.5ZM9 7C8.17 7 7.5 7.67 7.5 8.5C7.5 9.33 8.17 10 9 10C9.83 10 10.5 9.33 10.5 8.5C10.5 7.67 9.83 7 9 7Z"
+                    fill="#525252"
+                  />
+                </svg>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  console.log("Delete clicked for property", propertyId);
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  Delete
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                    stroke="#982740"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>,
           document.body
         )}
@@ -427,8 +563,286 @@ export const ActionButton = ({
   );
 };
 
+interface Column {
+  id: string;
+  label: string;
+  key?: string;
+  icon?: React.ReactNode;
+  renderCell?: (item: any) => React.ReactNode;
+}
+
+interface BillsColumn extends Column {
+  key: keyof Bill;
+  renderCell?: (bill: Bill) => React.ReactNode;
+}
+
+interface UtilityColumn extends Column {
+  key: keyof UtilityAccount;
+  renderCell?: (account: UtilityAccount) => React.ReactNode;
+}
+
+const DEFAULT_UTILITY_COLUMNS: UtilityColumn[] = [
+  {
+    id: "provider",
+    label: "Provider",
+    key: "provider",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "account",
+    label: "Account",
+    key: "account",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "status",
+    label: "Status",
+    key: "status",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g clipPath="url(#clip0_status)">
+          <path
+            d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      </svg>
+    ),
+    renderCell: (account: UtilityAccount) => (
+      <StatusBadge status={account.status} />
+    ),
+  },
+  {
+    id: "lastBillDate",
+    label: "Last Bill Date",
+    key: "lastBillDate",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "lastBillAmount",
+    label: "Last Bill Amount",
+    key: "lastBillAmount",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "lastImport",
+    label: "Last Import",
+    key: "lastImport",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+];
+
+const DEFAULT_BILLS_COLUMNS: BillsColumn[] = [
+  {
+    id: "provider",
+    label: "Provider",
+    key: "provider",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "date",
+    label: "Statement Date",
+    key: "date",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "aiUsageInsight",
+    label: "AI Usage Insight",
+    key: "aiUsageInsight",
+    renderCell: (bill: Bill) => (
+      <AIInsightBadge insight={bill.aiUsageInsight} />
+    ),
+  },
+  {
+    id: "changeFromLastBill",
+    label: "Change from Last Bill",
+    key: "changeFromLastBill",
+    icon: (
+      <img
+        loading="lazy"
+        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f3223e08811539f2913d760c3f845a57c3ae8328?placeholderIfAbsent=true"
+        alt=""
+        style={{
+          display: "block",
+          height: "14px",
+          width: "14px",
+          objectFit: "contain",
+        }}
+      />
+    ),
+  },
+  {
+    id: "status",
+    label: "Status",
+    key: "status",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g clipPath="url(#clip0_status)">
+          <path
+            d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      </svg>
+    ),
+    renderCell: (bill: Bill) => <BillStatusBadge status={bill.status} />,
+  },
+  {
+    id: "amount",
+    label: "Amount",
+    key: "amount",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
+          stroke="#525252"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+];
 
 export default function Utilities() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -443,6 +857,16 @@ export default function Utilities() {
     "openUtilityMenuId",
     null,
   );
+  const [billsColumns, setBillsColumns] = useState<BillsColumn[]>(
+    DEFAULT_BILLS_COLUMNS,
+  );
+  const [utilityColumns, setUtilityColumns] = useState<UtilityColumn[]>(
+    DEFAULT_UTILITY_COLUMNS,
+  );
+  const [draggedColumn, setDraggedColumn] = useState<{
+    id: string;
+    source: "bills" | "utility";
+  } | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -513,6 +937,116 @@ export default function Utilities() {
     fetchBills();
   }, []);
   
+  useEffect(() => {
+    const savedBillsOrder = localStorage.getItem("table-columns:bills");
+    const savedUtilityOrder = localStorage.getItem("table-columns:utility");
+
+    if (savedBillsOrder) {
+      try {
+        const columnIds = JSON.parse(savedBillsOrder);
+        const reorderedColumns = columnIds
+          .map((id: string) =>
+            DEFAULT_BILLS_COLUMNS.find((col) => col.id === id),
+          )
+          .filter((col): col is BillsColumn => col !== undefined);
+        if (reorderedColumns.length === DEFAULT_BILLS_COLUMNS.length) {
+          setBillsColumns(reorderedColumns);
+        }
+      } catch {
+        setBillsColumns(DEFAULT_BILLS_COLUMNS);
+      }
+    }
+
+    if (savedUtilityOrder) {
+      try {
+        const columnIds = JSON.parse(savedUtilityOrder);
+        const reorderedColumns = columnIds
+          .map((id: string) =>
+            DEFAULT_UTILITY_COLUMNS.find((col) => col.id === id),
+          )
+          .filter((col): col is UtilityColumn => col !== undefined);
+        if (reorderedColumns.length === DEFAULT_UTILITY_COLUMNS.length) {
+          setUtilityColumns(reorderedColumns);
+        }
+      } catch {
+        setUtilityColumns(DEFAULT_UTILITY_COLUMNS);
+      }
+    }
+  }, []);
+
+  const saveColumnsToLocalStorage = (
+    columns: BillsColumn[] | UtilityColumn[],
+    source: "bills" | "utility",
+  ) => {
+    const columnIds = columns.map((col) => col.id);
+    localStorage.setItem(`table-columns:${source}`, JSON.stringify(columnIds));
+  };
+
+  const handleColumnMouseDown = (
+    columnId: string,
+    source: "bills" | "utility",
+  ) => {
+    setDraggedColumn({ id: columnId, source });
+  };
+
+  const handleColumnMouseEnter = (
+    targetColumnId: string,
+    source: "bills" | "utility",
+  ) => {
+    if (
+      !draggedColumn ||
+      draggedColumn.source !== source ||
+      draggedColumn.id === targetColumnId
+    ) {
+      return;
+    }
+
+    if (source === "bills") {
+      const draggedIndex = billsColumns.findIndex(
+        (col) => col.id === draggedColumn.id,
+      );
+      const targetIndex = billsColumns.findIndex(
+        (col) => col.id === targetColumnId,
+      );
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      const newColumns = Array.from(billsColumns);
+      const [removed] = newColumns.splice(draggedIndex, 1);
+      newColumns.splice(targetIndex, 0, removed);
+
+      setBillsColumns(newColumns);
+      saveColumnsToLocalStorage(newColumns, "bills");
+      setDraggedColumn({ id: targetColumnId, source });
+    } else {
+      const draggedIndex = utilityColumns.findIndex(
+        (col) => col.id === draggedColumn.id,
+      );
+      const targetIndex = utilityColumns.findIndex(
+        (col) => col.id === targetColumnId,
+      );
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      const newColumns = Array.from(utilityColumns);
+      const [removed] = newColumns.splice(draggedIndex, 1);
+      newColumns.splice(targetIndex, 0, removed);
+
+      setUtilityColumns(newColumns);
+      saveColumnsToLocalStorage(newColumns, "utility");
+      setDraggedColumn({ id: targetColumnId, source });
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      setDraggedColumn(null);
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
   useEffect(() => {
     let animationFrameId: number;
 
@@ -849,140 +1383,39 @@ export default function Utilities() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Provider
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M6.33267 2L4.33267 14M11.666 2L9.66599 14M13.666 5.33333H2.33268M12.9993 10.6667H1.66602"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Account
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_status)">
-                          <path
-                            d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Status
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Last Bill Date
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Last Bill Amount
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Last Import
-                      </span>
-                    </div>
-                  </th>
+                  {utilityColumns.map((column) => (
+                    <th
+                      key={column.id}
+                      onMouseDown={() =>
+                        handleColumnMouseDown(column.id, "utility")
+                      }
+                      onMouseEnter={() =>
+                        handleColumnMouseEnter(column.id, "utility")
+                      }
+                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap user-select-none transition-all select-none ${
+                        draggedColumn?.id === column.id &&
+                        draggedColumn?.source === "utility"
+                          ? "bg-blue-50 border-l-4 border-l-blue-500 opacity-75 cursor-grabbing"
+                          : draggedColumn && draggedColumn?.source === "utility"
+                            ? "opacity-60 cursor-grab hover:bg-gray-200"
+                            : "cursor-grab hover:bg-gray-100"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          draggedColumn?.id === column.id &&
+                          draggedColumn?.source === "utility"
+                            ? "rgb(219, 234, 254)"
+                            : undefined,
+                      }}
+                    >
+                      <div className="flex items-center gap-2 select-none pointer-events-auto">
+                        {column.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {column.label}
+                        </span>
+                      </div>
+                    </th>
+                  ))}
                   <th
                     className="sticky right-0 px-2 py-3 text-center w-20"
                     style={{
@@ -1008,39 +1441,29 @@ export default function Utilities() {
                         : "border-b border-gray-200",
                     )}
                   >
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                          {account.icon}
-                        </div>
-                        <span className="text-gray-900 font-normal text-base">
-                          {account.provider}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.account}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <StatusBadge status={account.status} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.lastBillDate}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.lastBillAmount}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.lastImport}
-                      </span>
-                    </td>
+                    {utilityColumns.map((column) => (
+                      <td
+                        key={`${account.id}-${column.id}`}
+                        className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                      >
+                        {column.id === "provider" ? (
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                              {account.icon}
+                            </div>
+                            <span className="text-gray-900 font-normal text-base">
+                              {account[column.key]}
+                            </span>
+                          </div>
+                        ) : column.renderCell ? (
+                          column.renderCell(account)
+                        ) : (
+                          <span className="text-gray-900 font-normal text-base">
+                            {account[column.key]}
+                          </span>
+                        )}
+                      </td>
+                    ))}
                     <td
                       className="sticky right-0 px-2 py-3 flex items-center justify-center"
                       style={{
@@ -1056,6 +1479,12 @@ export default function Utilities() {
                         propertyId={account.id}
                         openMenuId={openUtilityMenuId}
                         setOpenMenuId={setOpenUtilityMenuId}
+                        onEdit={() => {
+                          console.log("Edit utility account", account.id);
+                        }}
+                        onImport={() => {
+                          console.log("Import utility account", account.id);
+                        }}
                       />
                     </td>
                   </tr>
@@ -1125,137 +1554,39 @@ export default function Utilities() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9.49968 1.3335H5.66264C5.54298 1.3335 5.48316 1.3335 5.43034 1.35171C5.38363 1.36783 5.34109 1.39412 5.30579 1.42869C5.26587 1.46778 5.23912 1.5213 5.18561 1.62832L2.38561 7.22831C2.25782 7.48389 2.19393 7.61167 2.20927 7.71555C2.22268 7.80625 2.27285 7.88743 2.34798 7.93998C2.43403 8.00016 2.5769 8.00016 2.86264 8.00016H6.99968L4.99968 14.6668L13.1284 6.23703C13.4027 5.95263 13.5398 5.81043 13.5478 5.68875C13.5548 5.58313 13.5112 5.48049 13.4303 5.41218C13.3371 5.3335 13.1396 5.3335 12.7445 5.3335H7.99968L9.49968 1.3335Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Provider
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M14 6.66683H2M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M5.2 14.6668H10.8C11.9201 14.6668 12.4802 14.6668 12.908 14.4488C13.2843 14.2571 13.5903 13.9511 13.782 13.5748C14 13.147 14 12.5869 14 11.4668V5.86683C14 4.74672 14 4.18667 13.782 3.75885C13.5903 3.38252 13.2843 3.07656 12.908 2.88482C12.4802 2.66683 11.9201 2.66683 10.8 2.66683H5.2C4.0799 2.66683 3.51984 2.66683 3.09202 2.88482C2.71569 3.07656 2.40973 3.38252 2.21799 3.75885C2 4.18667 2 4.74672 2 5.86683V11.4668C2 12.5869 2 13.147 2.21799 13.5748C2.40973 13.9511 2.71569 14.2571 3.09202 14.4488C3.51984 14.6668 4.0799 14.6668 5.2 14.6668Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Date
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M3.66602 1.33317C3.66602 0.964981 3.36754 0.666504 2.99935 0.666504C2.63116 0.666504 2.33268 0.964981 2.33268 1.33317V2.33317H1.33268C0.964492 2.33317 0.666016 2.63165 0.666016 2.99984C0.666016 3.36803 0.964492 3.6665 1.33268 3.6665H2.33268V4.6665C2.33268 5.03469 2.63116 5.33317 2.99935 5.33317C3.36754 5.33317 3.66602 5.03469 3.66602 4.6665V3.6665H4.66602C5.03421 3.6665 5.33268 3.36803 5.33268 2.99984C5.33268 2.63165 5.03421 2.33317 4.66602 2.33317H3.66602V1.33317Z"
-                          fill="#037DFF"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        AI Usage Insight
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12.6673 3.3335L3.33398 12.6668M6.00065 4.66683C6.00065 5.40321 5.4037 6.00016 4.66732 6.00016C3.93094 6.00016 3.33398 5.40321 3.33398 4.66683C3.33398 3.93045 3.93094 3.3335 4.66732 3.3335C5.4037 3.3335 6.00065 3.93045 6.00065 4.66683ZM12.6673 11.3335C12.6673 12.0699 12.0704 12.6668 11.334 12.6668C10.5976 12.6668 10.0007 12.0699 10.0007 11.3335C10.0007 10.5971 10.5976 10.0002 11.334 10.0002C12.0704 10.0002 12.6673 10.5971 12.6673 11.3335Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Change from Last Bill
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_status)">
-                          <path
-                            d="M8.00065 10.6668V8.00016M8.00065 5.3335H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Status
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M4 10.6668C4 12.1396 5.19391 13.3335 6.66667 13.3335H9.33333C10.8061 13.3335 12 12.1396 12 10.6668C12 9.19407 10.8061 8.00016 9.33333 8.00016H6.66667C5.19391 8.00016 4 6.80626 4 5.3335C4 3.86074 5.19391 2.66683 6.66667 2.66683H9.33333C10.8061 2.66683 12 3.86074 12 5.3335M8 1.3335V14.6668"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Amount
-                      </span>
-                    </div>
-                  </th>
+                  {billsColumns.map((column) => (
+                    <th
+                      key={column.id}
+                      onMouseDown={() =>
+                        handleColumnMouseDown(column.id, "bills")
+                      }
+                      onMouseEnter={() =>
+                        handleColumnMouseEnter(column.id, "bills")
+                      }
+                      className={`px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap user-select-none transition-all select-none ${
+                        draggedColumn?.id === column.id &&
+                        draggedColumn?.source === "bills"
+                          ? "bg-blue-50 border-l-4 border-l-blue-500 opacity-75 cursor-grabbing"
+                          : draggedColumn && draggedColumn?.source === "bills"
+                            ? "opacity-60 cursor-grab hover:bg-gray-200"
+                            : "cursor-grab hover:bg-gray-100"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          draggedColumn?.id === column.id &&
+                          draggedColumn?.source === "bills"
+                            ? "rgb(219, 234, 254)"
+                            : undefined,
+                      }}
+                    >
+                      <div className="flex items-center gap-2 select-none pointer-events-auto">
+                        {column.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {column.label}
+                        </span>
+                      </div>
+                    </th>
+                  ))}
                   <th
                     className="sticky right-0 px-2 py-3 text-center w-20"
                     style={{
@@ -1281,44 +1612,40 @@ export default function Utilities() {
                         : "border-b border-gray-200",
                     )}
                   >
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                          {bill.icon}
-                        </div>
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.provider}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {bill.date}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <AIInsightBadge insight={bill.aiUsageInsight} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span
-                        className={cn(
-                          "text-sm font-medium",
-                          bill.changeFromLastBill.startsWith("↑")
-                            ? "text-red-600"
-                            : "text-green-600",
-                        )}
+                    {billsColumns.map((column) => (
+                      <td
+                        key={`${bill.id}-${column.id}`}
+                        className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
                       >
-                        {bill.changeFromLastBill}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <BillStatusBadge status={bill.status} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {bill.amount}
-                      </span>
-                    </td>
+                        {column.id === "provider" ? (
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                              {bill.icon}
+                            </div>
+                            <span className="text-gray-900 font-normal text-base">
+                              {bill[column.key]}
+                            </span>
+                          </div>
+                        ) : column.id === "changeFromLastBill" ? (
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              (bill[column.key] as string).startsWith("↑")
+                                ? "text-red-600"
+                                : "text-green-600",
+                            )}
+                          >
+                            {bill[column.key]}
+                          </span>
+                        ) : column.renderCell ? (
+                          column.renderCell(bill)
+                        ) : (
+                          <span className="text-gray-900 font-normal text-base">
+                            {bill[column.key]}
+                          </span>
+                        )}
+                      </td>
+                    ))}
                     <td
                       className="sticky right-0 px-2 py-3 flex items-center justify-center"
                       style={{
@@ -1334,6 +1661,9 @@ export default function Utilities() {
                         propertyId={bill.id}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
+                        onView={() => {
+                          navigate("/utilities/view-bill?readOnly=true");
+                        }}
                       />
                     </td>
                   </tr>
