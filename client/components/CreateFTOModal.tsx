@@ -417,6 +417,7 @@ export default function CreateFTOModal({
                 {showCalendar &&
                   createPortal(
                     <div
+                      ref={calendarDropdownRef}
                       className="bg-white flex flex-col gap-3 p-4"
                       style={{
                         width: "280px",
