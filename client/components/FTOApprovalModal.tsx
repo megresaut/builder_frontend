@@ -672,7 +672,7 @@ export default function FTOApprovalModal({
                   {expenseRows.map((row) => (
                     <div
                       key={row.id}
-                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
                     >
                       <EditableCell
                         value={row.date}
@@ -693,7 +693,7 @@ export default function FTOApprovalModal({
                   {expenseRows.map((row) => (
                     <div
                       key={row.id}
-                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
                     >
                       <Select
                         value={row.vendor}
@@ -724,7 +724,7 @@ export default function FTOApprovalModal({
                   {expenseRows.map((row) => (
                     <div
                       key={row.id}
-                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
                     >
                       <EditableCell
                         value={row.receiptNote}
