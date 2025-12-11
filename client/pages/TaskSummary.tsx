@@ -372,30 +372,28 @@ const ActionButton = ({
 };
 
 const getFTOStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    "pending-approval": { label: "New", bgColor: "#EFF6FF", textColor: "#1E40AF" },
-    "dispatched": { label: "Dispatched", bgColor: "#FEF3C7", textColor: "#B45309" },
-    "approved": { label: "Completed", bgColor: "#DCFCE7", textColor: "#166534" },
+  const statusConfig: Record<string, { label: string; dotColor: string }> = {
+    "pending-approval": { label: "New", dotColor: "#1E40AF" },
+    "dispatched": { label: "Dispatched", dotColor: "#B45309" },
+    "approved": { label: "Completed", dotColor: "#166534" },
   };
 
   const config = statusConfig[status] || statusConfig["pending-approval"];
 
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        backgroundColor: config.bgColor,
-        color: config.textColor,
-        padding: "4px 12px",
-        borderRadius: "20px",
-        fontSize: "13px",
-        fontWeight: "500",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span>{config.label}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          backgroundColor: config.dotColor,
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ fontSize: "14px", color: config.dotColor }}>
+        {config.label}
+      </span>
     </div>
   );
 };
