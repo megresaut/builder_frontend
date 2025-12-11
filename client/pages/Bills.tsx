@@ -289,38 +289,6 @@ const ActionButton = ({
                   </svg>
                 </button>
                 <button
-                  onClick={() => {
-                    setOpenMenuId(null);
-                    navigate("/bills");
-                  }}
-                  className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-                >
-                  <span
-                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                    style={{
-                      fontFamily:
-                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    }}
-                  >
-                    Import
-                  </span>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
-                      stroke="#525252"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-                <button
                   onClick={() => setOpenMenuId(null)}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
