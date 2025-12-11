@@ -405,7 +405,19 @@ export default function Header() {
     new Set(["properties"]),
   );
   const [nextNewTabId, setNextNewTabId] = useState(1);
+  const [isFullscreen, setIsFullscreenState] = useState(false);
   const tabContext = useContext(TabContext);
+
+  // Load fullscreen state from localStorage on mount
+  useEffect(() => {
+    setIsFullscreenState(getFullscreenMode());
+  }, []);
+
+  const toggleFullscreen = () => {
+    const newValue = !isFullscreen;
+    setIsFullscreenState(newValue);
+    setFullscreenMode(newValue);
+  };
 
   if (!tabContext) {
     throw new Error("Header must be used within TabContext provider");
