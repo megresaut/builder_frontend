@@ -2252,7 +2252,13 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {/* Create FTO Modal */}
       <CreateFTOModal
         open={showCreateFTOModal}
-        onOpenChange={setShowCreateFTOModal}
+        onOpenChange={(open) => {
+          setShowCreateFTOModal(open);
+          if (!open) {
+            setEditFTOData(null);
+          }
+        }}
+        editData={editFTOData || undefined}
       />
     </div>
   );
