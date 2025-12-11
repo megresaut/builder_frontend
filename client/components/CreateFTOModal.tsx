@@ -558,7 +558,9 @@ export default function CreateFTOModal({
                 <div
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className="h-11 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors cursor-pointer"
+                  className={`h-11 rounded-lg bg-[#f7f7f7] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors cursor-pointer ${
+                    errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#e5e5e5]"
+                  }`}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
