@@ -661,7 +661,7 @@ export default function FTOApprovalModal({
 
             {/* Expenses Table */}
             <div className="border-t border-[#dadada] overflow-x-auto">
-              <div className="inline-flex min-w-full">
+              <div className="inline-flex min-w-full [&>div>div]:flex [&>div>div]:flex-col [&>div>div>div]:flex [&>div>div>div]:items-stretch">
                 {/* Date Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[97px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
