@@ -80,6 +80,7 @@ const ActionButton = ({
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
 }) => {
+  const navigate = useNavigate();
   const showMenu = openMenuId === taskId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
