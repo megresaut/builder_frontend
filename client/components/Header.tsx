@@ -1132,13 +1132,9 @@ export default function Header() {
               className="text-gray-700"
             >
               {isFullscreen ? (
-                <>
-                  <path d="M12 19l-7-7m7 7l7-7M12 19V5" />
-                </>
+                <path d="m18 15-6-6-6 6" />
               ) : (
-                <>
-                  <path d="M12 5l-7 7m7-7l7 7M12 5v14" />
-                </>
+                <path d="m6 9 6 6 6-6" />
               )}
             </svg>
           </button>
