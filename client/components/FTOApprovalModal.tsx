@@ -390,7 +390,14 @@ export default function FTOApprovalModal({
 
             {/* Hours Table */}
             <div className="border-t border-[#dadada] overflow-x-auto">
-              <div className="inline-flex min-w-full">
+              <div
+                className="grid gap-0 min-w-full"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '118px 76px 1fr 80px 105px 88px 96px 78px 78px',
+                  gridAutoRows: 'minmax(min-content, auto)'
+                }}
+              >
                 {/* Date Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[118px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
