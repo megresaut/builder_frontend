@@ -279,6 +279,14 @@ export default function FTOApprovalModal({
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
   const [pdfOpen, setPdfOpen] = useState(false);
 
+  // Clear rows when modal closes
+  React.useEffect(() => {
+    if (!open) {
+      setHourRows([]);
+      setExpenseRows([]);
+    }
+  }, [open]);
+
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
