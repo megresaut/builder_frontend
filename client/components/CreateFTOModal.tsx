@@ -552,6 +552,7 @@ export default function CreateFTOModal({
                 {showAssigneeDropdown &&
                   createPortal(
                     <div
+                      ref={assigneeDropdownRef}
                       className="bg-white flex flex-col justify-start items-start p-2 gap-1"
                       style={{
                         width: "280px",
