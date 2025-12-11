@@ -233,6 +233,9 @@ export default function CreateRecurringTaskModal({
     setSelectedStartDate(selected);
     const formatted = format(selected, "MM/dd/yyyy");
     setStartDate(formatted);
+    if (errors.startDate) {
+      setErrors((prev) => ({ ...prev, startDate: false }));
+    }
     setShowStartCalendar(false);
   };
 
