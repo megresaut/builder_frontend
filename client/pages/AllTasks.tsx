@@ -174,32 +174,28 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 const PriorityBadge = ({ priority }: { priority: string }) => {
-  if (priority === "Low") {
-    return (
-      <div className="inline-flex items-center bg-green-100 rounded-full text-green-600 py-1 px-3 text-sm font-normal leading-5">
-        {priority}
-      </div>
-    );
-  }
+  const getPriorityColor = (priority: string) => {
+    if (priority === "Low") return "#059669";
+    if (priority === "Normal") return "#2463EB";
+    if (priority === "High") return "#D97706";
+    return "#6B7280";
+  };
 
-  if (priority === "Normal") {
-    return (
-      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-normal leading-5">
-        {priority}
-      </div>
-    );
-  }
-
-  if (priority === "High") {
-    return (
-      <div className="inline-flex items-center bg-yellow-100 rounded-full text-amber-600 py-1 px-3 text-sm font-normal leading-5">
-        {priority}
-      </div>
-    );
-  }
+  const dotColor = getPriorityColor(priority);
 
   return (
-    <span className="font-normal text-base text-gray-600">{priority}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: dotColor, fontSize: "14px" }}>
+      <div
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          backgroundColor: dotColor,
+          flexShrink: 0,
+        }}
+      />
+      {priority}
+    </div>
   );
 };
 
