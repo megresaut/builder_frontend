@@ -19,6 +19,26 @@ export default function AddVendorModal({
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: boolean }>({});
   const [showServicesList, setShowServicesList] = useState(false);
+  const servicesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        servicesRef.current &&
+        !servicesRef.current.contains(event.target as Node)
+      ) {
+        setShowServicesList(false);
+      }
+    };
+
+    if (showServicesList) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showServicesList]);
 
   const availableServices = [
     "HVAC",
