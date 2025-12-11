@@ -673,7 +673,7 @@ export default function CreateTaskModal({
           {/* Create/Update Task Button */}
           <button
             onClick={handleSubmit}
-            disabled={Object.keys(errors).length > 0}
+            disabled={!property.trim() || !title.trim() || !dueDate.trim() || selectedAssignees.length === 0}
             className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="text-white font-medium text-base">
