@@ -123,9 +123,9 @@ export default function App() {
                 <Route
                   path="/utilities/view-bill"
                   element={
-                    <ShellLayout>
+                    <BareLayout>
                       <RecordBill />
-                    </ShellLayout>
+                    </BareLayout>
                   }
                 />
                 <Route
@@ -147,17 +147,17 @@ export default function App() {
                 <Route
                   path="/property/:propertyId/bills/record"
                   element={
-                    <ShellLayout>
+                    <BareLayout>
                       <RecordBill />
-                    </ShellLayout>
+                    </BareLayout>
                   }
                 />
                 <Route
                   path="/bills/record"
                   element={
-                    <ShellLayout>
+                    <BareLayout>
                       <RecordBill />
-                    </ShellLayout>
+                    </BareLayout>
                   }
                 />
                 <Route
