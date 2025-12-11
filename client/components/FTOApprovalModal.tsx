@@ -390,7 +390,7 @@ export default function FTOApprovalModal({
 
             {/* Hours Table */}
             <div className="border-t border-[#dadada] overflow-x-auto">
-              <div className="inline-flex min-w-full">
+              <div className="inline-flex min-w-full [&>div]:flex [&>div]:flex-col">
                 {/* Date Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[118px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
