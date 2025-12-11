@@ -77,7 +77,6 @@ export default function CreateTaskModal({
     const newErrors: {
       property?: boolean;
       title?: boolean;
-      priority?: boolean;
       dueDate?: boolean;
       selectedAssignees?: boolean;
     } = {};
@@ -86,9 +85,6 @@ export default function CreateTaskModal({
     }
     if (!title.trim()) {
       newErrors.title = true;
-    }
-    if (!priority.trim()) {
-      newErrors.priority = true;
     }
     if (!dueDate.trim()) {
       newErrors.dueDate = true;
