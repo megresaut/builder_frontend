@@ -67,8 +67,8 @@ const mockVendors: Vendor[] = [
 ];
 
 const mockProperties = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
-const mockUnits = ["1", "2", "3", "4", "5"];
-const mockWorkOrders = ["123456-1", "123456-2", "789012-1"];
+const mockUnits = ["N/A", "1", "2", "3", "4", "5"];
+const mockWorkOrders = ["N/A", "123456-1", "123456-2", "789012-1"];
 const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
 
 const placeholderBill = {
