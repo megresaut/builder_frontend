@@ -15,7 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Trash2, Paperclip } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface HourRow {
   id: string;
@@ -99,7 +103,13 @@ interface EditableCellProps {
   disabled?: boolean;
 }
 
-function EditableCell({ value, onChange, type, placeholder, disabled = false }: EditableCellProps) {
+function EditableCell({
+  value,
+  onChange,
+  type,
+  placeholder,
+  disabled = false,
+}: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value);
@@ -107,7 +117,10 @@ function EditableCell({ value, onChange, type, placeholder, disabled = false }: 
   if (type === "date") {
     const date = parseDate(value) || new Date();
     return (
-      <div onClick={(e) => e.stopPropagation()} className="w-full h-full flex items-center">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full h-full flex items-center"
+      >
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <button className="w-full h-full text-left px-0 py-0 hover:bg-[#f5f5f5] transition-colors flex items-center border-0 bg-transparent">
@@ -180,7 +193,9 @@ function EditableCell({ value, onChange, type, placeholder, disabled = false }: 
     return (
       <div
         className={`w-full h-full flex items-center px-0 transition-colors ${
-          disabled ? "cursor-not-allowed opacity-50" : "cursor-text hover:bg-[#f5f5f5]"
+          disabled
+            ? "cursor-not-allowed opacity-50"
+            : "cursor-text hover:bg-[#f5f5f5]"
         }`}
         onClick={() => {
           if (!disabled) {
@@ -287,16 +302,19 @@ export default function FTOApprovalModal({
     }
   }, [open]);
 
-
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
   };
 
-  const updateExpenseRow = (id: string, field: keyof ExpenseRow, value: any) => {
+  const updateExpenseRow = (
+    id: string,
+    field: keyof ExpenseRow,
+    value: any,
+  ) => {
     setExpenseRows((rows) =>
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
   };
 
@@ -310,11 +328,11 @@ export default function FTOApprovalModal({
 
   const hoursTotal = hourRows.reduce(
     (sum, row) => sum + calculateTotal(row.amount, row.upcharge),
-    0
+    0,
   );
   const expensesTotal = expenseRows.reduce(
     (sum, row) => sum + calculateTotal(row.amount, row.upcharge),
-    0
+    0,
   );
   const grandTotal = hoursTotal + expensesTotal;
 
@@ -323,14 +341,19 @@ export default function FTOApprovalModal({
     // Required: date, hours, note
     // If noFee is not checked: amount is also required
     if (!row.date || !row.hours || !row.note) return false;
-    if (!row.noFee && (row.amount === "$0" || row.amount === "$0.00" || !row.amount)) return false;
+    if (
+      !row.noFee &&
+      (row.amount === "$0" || row.amount === "$0.00" || !row.amount)
+    )
+      return false;
     return true;
   };
 
   const validateExpenseRow = (row: ExpenseRow): boolean => {
     // Required: date, vendor, receipt note, amount
     if (!row.date || !row.vendor || !row.receiptNote) return false;
-    if (row.amount === "$0" || row.amount === "$0.00" || !row.amount) return false;
+    if (row.amount === "$0" || row.amount === "$0.00" || !row.amount)
+      return false;
     return true;
   };
 
@@ -349,15 +372,23 @@ export default function FTOApprovalModal({
     if (field === "date") return !row.date;
     if (field === "hours") return !row.hours;
     if (field === "note") return !row.note;
-    if (field === "amount") return !row.noFee && (row.amount === "$0" || row.amount === "$0.00" || !row.amount);
+    if (field === "amount")
+      return (
+        !row.noFee &&
+        (row.amount === "$0" || row.amount === "$0.00" || !row.amount)
+      );
     return false;
   };
 
-  const isExpenseFieldMissing = (row: ExpenseRow, field: keyof ExpenseRow): boolean => {
+  const isExpenseFieldMissing = (
+    row: ExpenseRow,
+    field: keyof ExpenseRow,
+  ): boolean => {
     if (field === "date") return !row.date;
     if (field === "vendor") return !row.vendor;
     if (field === "receiptNote") return !row.receiptNote;
-    if (field === "amount") return row.amount === "$0" || row.amount === "$0.00" || !row.amount;
+    if (field === "amount")
+      return row.amount === "$0" || row.amount === "$0.00" || !row.amount;
     return false;
   };
 
@@ -382,7 +413,9 @@ export default function FTOApprovalModal({
               Property
             </label>
             <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">{property}</span>
+              <span className="text-[#303030] font-normal text-sm">
+                {property}
+              </span>
             </div>
           </div>
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
@@ -398,7 +431,9 @@ export default function FTOApprovalModal({
               Field Team Assignee
             </label>
             <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">{fieldTeamAssignee}</span>
+              <span className="text-[#303030] font-normal text-sm">
+                {fieldTeamAssignee}
+              </span>
             </div>
           </div>
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
@@ -424,7 +459,9 @@ export default function FTOApprovalModal({
               Description
             </label>
             <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">{editingOrder.description}</span>
+              <span className="text-[#303030] font-normal text-sm">
+                {editingOrder.description}
+              </span>
             </div>
           </div>
         )}
@@ -439,7 +476,9 @@ export default function FTOApprovalModal({
               </h3>
               <button
                 onClick={() => {
-                  const newId = String(Math.max(...hourRows.map((r) => parseInt(r.id)), 0) + 1);
+                  const newId = String(
+                    Math.max(...hourRows.map((r) => parseInt(r.id)), 0) + 1,
+                  );
                   setHourRows([
                     ...hourRows,
                     {
@@ -471,7 +510,9 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">Add Hours</span>
+                <span className="text-white font-medium text-base">
+                  Add Hours
+                </span>
               </button>
             </div>
 
@@ -479,60 +520,148 @@ export default function FTOApprovalModal({
             <div
               className="border-t border-[#dadada] grid overflow-x-auto"
               style={{
-                display: 'grid',
-                gridTemplateColumns: '118px 76px 1fr 80px 105px minmax(80px, auto) minmax(80px, auto) minmax(70px, auto) 85px',
-                gridAutoRows: 'minmax(min-content, auto)'
+                display: "grid",
+                gridTemplateColumns:
+                  "118px 76px 1fr 80px 105px minmax(80px, auto) minmax(80px, auto) minmax(70px, auto) 85px",
+                gridAutoRows: "minmax(min-content, auto)",
               }}
             >
               {/* Headers */}
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Date</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Hours</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Note</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">NoFee?</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Emergency</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Amount</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Upcharge</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Total</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Actions</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Date
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Hours
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Note
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                NoFee?
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Emergency
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Amount
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Upcharge
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Total
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Actions
+              </div>
 
               {/* Rows */}
               {hourRows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <div className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
-                    <EditableCell value={row.date} onChange={(value) => updateHourRow(row.id, "date", value)} type="date" />
+                  <div
+                    className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                  >
+                    <EditableCell
+                      value={row.date}
+                      onChange={(value) => updateHourRow(row.id, "date", value)}
+                      type="date"
+                    />
                   </div>
-                  <div className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "hours") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
-                    <EditableCell value={row.hours} onChange={(value) => updateHourRow(row.id, "hours", value)} type="number" placeholder="e.g., 2 or 2.5" />
-                  </div>
-                  <div className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "note") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
-                    <EditableCell value={row.note} onChange={(value) => updateHourRow(row.id, "note", value)} type="text" placeholder="Enter note" />
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <Checkbox checked={row.noFee} onCheckedChange={(checked) => {
-                      updateHourRow(row.id, "noFee", checked);
-                      if (checked) {
-                        updateHourRow(row.id, "amount", "$0");
-                        updateHourRow(row.id, "upcharge", "$0");
+                  <div
+                    className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "hours") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                  >
+                    <EditableCell
+                      value={row.hours}
+                      onChange={(value) =>
+                        updateHourRow(row.id, "hours", value)
                       }
-                    }} className="w-[14px] h-[14px]" />
+                      type="number"
+                      placeholder="e.g., 2 or 2.5"
+                    />
+                  </div>
+                  <div
+                    className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "note") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                  >
+                    <EditableCell
+                      value={row.note}
+                      onChange={(value) => updateHourRow(row.id, "note", value)}
+                      type="text"
+                      placeholder="Enter note"
+                    />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className={`px-3 py-3 flex items-center justify-center border ${isHourFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`} style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" disabled={row.noFee} /></div>
-                  </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" disabled={row.noFee} /></div>
+                    <Checkbox
+                      checked={row.noFee}
+                      onCheckedChange={(checked) => {
+                        updateHourRow(row.id, "noFee", checked);
+                        if (checked) {
+                          updateHourRow(row.id, "amount", "$0");
+                          updateHourRow(row.id, "upcharge", "$0");
+                        }
+                      }}
+                      className="w-[14px] h-[14px]"
+                    />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
+                    <Checkbox
+                      checked={row.emergency}
+                      onCheckedChange={(checked) =>
+                        updateHourRow(row.id, "emergency", checked)
+                      }
+                      className="w-[14px] h-[14px]"
+                    />
+                  </div>
+                  <div
+                    className={`px-3 py-3 flex items-center justify-center border ${isHourFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
+                      <EditableCell
+                        value={row.amount}
+                        onChange={(value) =>
+                          updateHourRow(row.id, "amount", value)
+                        }
+                        type="currency"
+                        placeholder="$0"
+                        disabled={row.noFee}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
+                      <EditableCell
+                        value={row.upcharge}
+                        onChange={(value) =>
+                          updateHourRow(row.id, "upcharge", value)
+                        }
+                        type="currency"
+                        placeholder="$0"
+                        disabled={row.noFee}
+                      />
+                    </div>
+                  </div>
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <span className="text-[#303030] font-normal text-lg font-semibold">
+                      ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
+                    </span>
                   </div>
                   <div className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
                             <circle cx="12" cy="12" r="1" />
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
@@ -540,7 +669,10 @@ export default function FTOApprovalModal({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => deleteHourRow(row.id)} className="text-red-600 cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => deleteHourRow(row.id)}
+                          className="text-red-600 cursor-pointer"
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
@@ -563,7 +695,9 @@ export default function FTOApprovalModal({
               </h3>
               <button
                 onClick={() => {
-                  const newId = String(Math.max(...expenseRows.map((r) => parseInt(r.id)), 0) + 1);
+                  const newId = String(
+                    Math.max(...expenseRows.map((r) => parseInt(r.id)), 0) + 1,
+                  );
                   setExpenseRows([
                     ...expenseRows,
                     {
@@ -594,7 +728,9 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">Add Expenses</span>
+                <span className="text-white font-medium text-base">
+                  Add Expenses
+                </span>
               </button>
             </div>
 
@@ -602,29 +738,61 @@ export default function FTOApprovalModal({
             <div
               className="border-t border-[#dadada] grid overflow-x-auto"
               style={{
-                display: 'grid',
-                gridTemplateColumns: '110px 130px 1fr 60px minmax(80px, auto) minmax(80px, auto) minmax(70px, auto) 85px',
-                gridAutoRows: 'minmax(min-content, auto)'
+                display: "grid",
+                gridTemplateColumns:
+                  "110px 130px 1fr 60px minmax(80px, auto) minmax(80px, auto) minmax(70px, auto) 85px",
+                gridAutoRows: "minmax(min-content, auto)",
               }}
             >
               {/* Headers */}
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Date</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Vendor</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Receipt Note</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Receipts</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Amount</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Upcharge</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Total</div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">Actions</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Date
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Vendor
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Receipt Note
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Receipts
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Amount
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Upcharge
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Total
+              </div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+                Actions
+              </div>
 
               {/* Rows */}
               {expenseRows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <div className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
-                    <EditableCell value={row.date} onChange={(value) => updateExpenseRow(row.id, "date", value)} type="date" />
+                  <div
+                    className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                  >
+                    <EditableCell
+                      value={row.date}
+                      onChange={(value) =>
+                        updateExpenseRow(row.id, "date", value)
+                      }
+                      type="date"
+                    />
                   </div>
-                  <div className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "vendor") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
-                    <Select value={row.vendor} onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}>
+                  <div
+                    className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "vendor") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                  >
+                    <Select
+                      value={row.vendor}
+                      onValueChange={(value) =>
+                        updateExpenseRow(row.id, "vendor", value)
+                      }
+                    >
                       <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
                         <SelectValue />
                       </SelectTrigger>
@@ -637,8 +805,17 @@ export default function FTOApprovalModal({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "receiptNote") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
-                    <EditableCell value={row.receiptNote} onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)} type="text" placeholder="Enter receipt note" />
+                  <div
+                    className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "receiptNote") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                  >
+                    <EditableCell
+                      value={row.receiptNote}
+                      onChange={(value) =>
+                        updateExpenseRow(row.id, "receiptNote", value)
+                      }
+                      type="text"
+                      placeholder="Enter receipt note"
+                    />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <button
@@ -649,20 +826,55 @@ export default function FTOApprovalModal({
                       <Paperclip className="w-4 h-4 text-[#303030]" />
                     </button>
                   </div>
-                  <div className={`px-3 py-3 flex items-center justify-center border ${isExpenseFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`} style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
+                  <div
+                    className={`px-3 py-3 flex items-center justify-center border ${isExpenseFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
+                      <EditableCell
+                        value={row.amount}
+                        onChange={(value) =>
+                          updateExpenseRow(row.id, "amount", value)
+                        }
+                        type="currency"
+                        placeholder="$0"
+                      />
+                    </div>
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
+                  <div
+                    className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
+                      <EditableCell
+                        value={row.upcharge}
+                        onChange={(value) =>
+                          updateExpenseRow(row.id, "upcharge", value)
+                        }
+                        type="currency"
+                        placeholder="$0"
+                      />
+                    </div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
+                    <span className="text-[#303030] font-normal text-lg font-semibold">
+                      ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
+                    </span>
                   </div>
                   <div className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
                             <circle cx="12" cy="12" r="1" />
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
@@ -670,7 +882,10 @@ export default function FTOApprovalModal({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => deleteExpenseRow(row.id)} className="text-red-600 cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => deleteExpenseRow(row.id)}
+                          className="text-red-600 cursor-pointer"
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
@@ -695,12 +910,8 @@ export default function FTOApprovalModal({
 
         {/* Approve and Reject Buttons */}
         <div className="flex gap-3">
-          <button
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg bg-red-600 shadow-[0_0_0_1px_#b91c1c] hover:bg-red-700 transition-colors"
-          >
-            <span className="text-white font-medium text-base">
-              Reject
-            </span>
+          <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg bg-red-600 shadow-[0_0_0_1px_#b91c1c] hover:bg-red-700 transition-colors">
+            <span className="text-white font-medium text-base">Reject</span>
           </button>
           <button
             disabled={!isFormValid()}

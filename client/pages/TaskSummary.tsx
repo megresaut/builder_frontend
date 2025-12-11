@@ -1827,9 +1827,14 @@ export default function TaskSummary() {
             selectedFTOId={selectedFTOId}
             rowId={`fto-${selectedFTOId}`}
             editingOrder={fieldTeamOrders.find((o) => o.id === selectedFTOId)}
-            property={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.property}
+            property={
+              fieldTeamOrders.find((o) => o.id === selectedFTOId)?.property
+            }
             unit={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.unit}
-            fieldTeamAssignee={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]?.name}
+            fieldTeamAssignee={
+              fieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]
+                ?.name
+            }
           />
         </div>
       </div>

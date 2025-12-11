@@ -2119,9 +2119,17 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             setSelectedFTOId(null);
           }
         }}
-        editingOrder={mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)}
-        property={mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)?.property}
-        fieldTeamAssignee={mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]?.name}
+        editingOrder={mockPropertyFieldTeamOrders.find(
+          (o) => o.id === selectedFTOId,
+        )}
+        property={
+          mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)
+            ?.property
+        }
+        fieldTeamAssignee={
+          mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)
+            ?.fieldTeam[0]?.name
+        }
       />
 
       {/* Create Task Modal */}
