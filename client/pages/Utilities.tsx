@@ -22,7 +22,7 @@ interface UtilityAccount {
   status: "active" | "inactive";
   lastBillDate: string;
   lastBillAmount: string;
-  lastImport: string;
+  lastImport: number;
   icon?: React.ReactNode;
 }
 
