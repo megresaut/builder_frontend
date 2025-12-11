@@ -122,18 +122,62 @@ export default function AddVendorModal({
             <label className="text-[#303030] font-medium text-sm leading-[20px]">
               Services Provided
             </label>
-            <Select value={servicesProvided} onValueChange={setServicesProvided}>
-              <SelectTrigger className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] text-base font-normal tracking-[-0.32px] leading-[140%]">
-                <SelectValue placeholder="Select Services Provided" />
-              </SelectTrigger>
-              <SelectContent>
-                {services.map((service) => (
-                  <SelectItem key={service} value={service}>
-                    {service}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowServicesList(!showServicesList)}
+                className="w-full h-10 rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] text-base font-normal tracking-[-0.32px] leading-[140%] px-3 py-2 text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex flex-wrap gap-2 items-center flex-1">
+                  {servicesProvided.length > 0 ? (
+                    servicesProvided.map((service) => (
+                      <span
+                        key={service}
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                      >
+                        {service}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[#A1A1A9]">Select Services Provided</span>
+                  )}
+                </div>
+                <svg
+                  className="w-4 h-4 text-gray-400 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                  />
+                </svg>
+              </button>
+
+              {showServicesList && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-50 p-3">
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                    {availableServices.map((service) => (
+                      <button
+                        key={service}
+                        type="button"
+                        onClick={() => toggleService(service)}
+                        className={`p-2 rounded-lg text-sm font-medium transition-colors text-left ${
+                          servicesProvided.includes(service)
+                            ? "bg-blue-100 text-blue-800 border border-blue-300"
+                            : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        {service}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
