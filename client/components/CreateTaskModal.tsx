@@ -502,7 +502,9 @@ export default function CreateTaskModal({
                 <button
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className="h-11 rounded-lg border border-[#E5E5E5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white"
+                  className={`h-11 rounded-lg w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white ${
+                    errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#E5E5E5]"
+                  }`}
                 >
                   <div className="flex items-center gap-1.5 flex-wrap flex-1">
                     {selectedAssignees.length === 0 ? (
