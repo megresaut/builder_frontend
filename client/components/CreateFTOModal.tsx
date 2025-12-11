@@ -381,7 +381,12 @@ export default function CreateFTOModal({
               </label>
               <Input
                 value={ftoName}
-                onChange={(e) => setFtoName(e.target.value)}
+                onChange={(e) => {
+                  setFtoName(e.target.value);
+                  if (errors.ftoName && e.target.value.trim()) {
+                    setErrors((prev) => ({ ...prev, ftoName: false }));
+                  }
+                }}
                 placeholder="Type FTO Name"
                 className={`h-11 rounded-lg bg-[#f7f7f7] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4] ${
                   errors.ftoName ? "border-red-500 border-2" : "border-[#e5e5e5]"
