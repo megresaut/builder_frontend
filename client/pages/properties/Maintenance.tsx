@@ -1678,12 +1678,21 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getBillStatusColor(
-                            workOrder.billStatus,
-                          )}`}
-                        >
-                          {workOrder.billStatus}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                workOrder.billStatus === "Paid"
+                                  ? "#059669"
+                                  : workOrder.billStatus === "Unpaid"
+                                    ? "#DC2626"
+                                    : "#D97706",
+                            }}
+                          />
+                          <span className="text-gray-900 font-normal text-sm capitalize">
+                            {workOrder.billStatus}
+                          </span>
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
