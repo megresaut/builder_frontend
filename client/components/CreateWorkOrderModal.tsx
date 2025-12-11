@@ -426,7 +426,12 @@ export default function CreateWorkOrderModal({
                 </label>
                 <Input
                   value={task}
-                  onChange={(e) => setTask(e.target.value)}
+                  onChange={(e) => {
+                    setTask(e.target.value);
+                    if (errors.task && e.target.value.trim()) {
+                      setErrors((prev) => ({ ...prev, task: false }));
+                    }
+                  }}
                   placeholder="Type Work Order Name"
                   className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] ${
                     errors.task ? "border-red-500 border-2" : "border-[#E5E5E5]"
