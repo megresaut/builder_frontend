@@ -169,6 +169,49 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         );
+      case "New":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            style={{
+              width: "16px",
+              height: "16px",
+            }}
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        );
+      case "Cancelled":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            style={{
+              width: "16px",
+              height: "16px",
+            }}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M15 9l-6 6M9 9l6 6" />
+          </svg>
+        );
       default:
         return null;
     }
