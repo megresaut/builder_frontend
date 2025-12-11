@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
@@ -47,48 +46,6 @@ interface FTOApprovalModalProps {
   unit?: string;
   fieldTeamAssignee?: string;
   rowId?: string;
-}
-
-function PDFViewer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl max-w-4xl w-full h-[80vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e5e5]">
-          <h2 className="text-lg font-semibold text-[#303030]">Receipt</h2>
-          <button
-            onClick={onClose}
-            className="text-[#999] hover:text-[#303030] transition-colors"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-        <div className="flex-1 bg-gray-100 flex items-center justify-center">
-          <div className="text-center">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-4 text-[#ccc]">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="12" y1="11" x2="12" y2="17" />
-              <line x1="9" y1="14" x2="15" y2="14" />
-            </svg>
-            <p className="text-[#999]">PDF Document</p>
-            <p className="text-sm text-[#ccc] mt-2">Sample PDF Viewer</p>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
 }
 
 const VENDORS = ["Dolce", "N/A", "Home Depot", "Ace Hardware"];
@@ -661,7 +618,33 @@ export default function FTOApprovalModal({
       </DialogContent>
 
       {/* PDF Viewer Modal */}
-      <PDFViewer isOpen={pdfOpen} onClose={() => setPdfOpen(false)} />
+      <Dialog open={pdfOpen} onOpenChange={setPdfOpen}>
+        <DialogContent className="max-w-4xl w-full h-[80vh] p-0 flex flex-col">
+          <DialogTitle className="flex items-center justify-between px-6 py-4 border-b border-[#e5e5e5] text-lg font-semibold text-[#303030] m-0">
+            <span>Receipt</span>
+          </DialogTitle>
+          <div className="flex-1 bg-gray-100 flex items-center justify-center">
+            <div className="text-center">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="mx-auto mb-4 text-[#ccc]"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="11" x2="12" y2="17" />
+                <line x1="9" y1="14" x2="15" y2="14" />
+              </svg>
+              <p className="text-[#999]">PDF Document</p>
+              <p className="text-sm text-[#ccc] mt-2">Sample PDF Viewer</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
