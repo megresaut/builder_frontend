@@ -248,6 +248,9 @@ export default function CreateRecurringTaskModal({
     setSelectedEndDate(selected);
     const formatted = format(selected, "MM/dd/yyyy");
     setEndDate(formatted);
+    if (errors.endDate) {
+      setErrors((prev) => ({ ...prev, endDate: false }));
+    }
     setShowEndCalendar(false);
   };
 
