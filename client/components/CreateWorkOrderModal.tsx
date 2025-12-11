@@ -74,6 +74,29 @@ export default function CreateWorkOrderModal({
     top: 0,
     left: 0,
   });
+  const [errors, setErrors] = useState<{
+    task?: boolean;
+    dueDate?: boolean;
+  }>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: { task?: boolean; dueDate?: boolean } = {};
+    if (!task.trim()) {
+      newErrors.task = true;
+    }
+    if (!dueDate.trim()) {
+      newErrors.dueDate = true;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log("Form submitted", { task, dueDate, priority, status });
+      onOpenChange(false);
+    }
+  };
 
   useEffect(() => {
     if (editData) {
