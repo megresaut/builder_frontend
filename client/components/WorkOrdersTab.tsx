@@ -227,11 +227,13 @@ const ActionButton = ({
 };
 
 interface WorkOrdersTabProps {
+  taskId?: string;
   initialSelectedWorkOrderId?: number | null;
   onWorkOrderSelect?: (workOrderId: number | null) => void;
 }
 
 export default function WorkOrdersTab({
+  taskId,
   initialSelectedWorkOrderId = null,
   onWorkOrderSelect,
 }: WorkOrdersTabProps) {
