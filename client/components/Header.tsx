@@ -1126,13 +1126,19 @@ export default function Header() {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.5"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               className="text-gray-700"
             >
               {isFullscreen ? (
-                <path d="M12 19V5M5 12h14" />
+                <>
+                  <path d="M12 19l-7-7m7 7l7-7M12 19V5" />
+                </>
               ) : (
-                <path d="M12 5v14M19 12H5" />
+                <>
+                  <path d="M12 5l-7 7m7-7l7 7M12 5v14" />
+                </>
               )}
             </svg>
           </button>
