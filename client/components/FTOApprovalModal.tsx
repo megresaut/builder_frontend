@@ -42,6 +42,9 @@ interface FTOApprovalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedFTOId?: number | null;
+  property?: string;
+  unit?: string;
+  fieldTeamAssignee?: string;
 }
 
 const VENDORS = ["Dolce", "N/A", "Home Depot", "Ace Hardware"];
