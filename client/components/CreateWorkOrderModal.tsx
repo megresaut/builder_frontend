@@ -388,46 +388,6 @@ export default function CreateWorkOrderModal({
               </p>
             </div>
 
-            {/* WO Property and Unit Row */}
-            <div className="flex gap-3 w-full">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-5">
-                  Property <span className="text-red-600">*</span>
-                </label>
-                <Select>
-                  <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                    <SelectValue
-                      placeholder="Select Property"
-                      className="text-[#A1A1A9]"
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="property1">
-                      22 Indian Chase Dr
-                    </SelectItem>
-                    <SelectItem value="property2">Property 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-5">
-                  Unit
-                </label>
-                <Select>
-                  <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                    <SelectValue
-                      placeholder="Select Unit If Applicable"
-                      className="text-[#A1A1A9]"
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unit1">Unit 1</SelectItem>
-                    <SelectItem value="unit2">Unit 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
             {/* Work Order Name and Vendor Row */}
             <div className="flex gap-3 w-full">
               <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
