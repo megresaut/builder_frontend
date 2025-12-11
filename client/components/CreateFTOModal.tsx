@@ -110,6 +110,37 @@ export default function CreateFTOModal({
     };
   }, [showCalendar, showAssigneeDropdown]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (showCalendar && dueDateInputRef.current) {
+        if (
+          !dueDateInputRef.current.contains(target) &&
+          !target.closest('[style*="position: fixed"]')
+        ) {
+          setShowCalendar(false);
+        }
+      }
+
+      if (showAssigneeDropdown && assigneeButtonRef.current) {
+        if (
+          !assigneeButtonRef.current.contains(target) &&
+          !target.closest('[style*="position: fixed"]')
+        ) {
+          setShowAssigneeDropdown(false);
+        }
+      }
+    };
+
+    if (showCalendar || showAssigneeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showCalendar, showAssigneeDropdown]);
+
   const toggleAssignee = (assignee: Assignee) => {
     setSelectedAssignees((prev) => {
       const isSelected = prev.some((a) => a.id === assignee.id);
