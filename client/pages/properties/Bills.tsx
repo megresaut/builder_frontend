@@ -389,8 +389,8 @@ const buildBillState = (bill: Bill) => ({
     {
       id: bill.id,
       property: bill.property,
-      unit: "",
-      workOrder: "",
+      unit: "N/A",
+      workOrder: "N/A",
       description: bill.memo,
       glAccount: bill.glAccount,
       total: `$${bill.amount.toFixed(2)}`,
