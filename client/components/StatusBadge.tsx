@@ -8,7 +8,8 @@ interface StatusBadgeProps {
     | "Overdue"
     | "Draft"
     | "active"
-    | "inactive";
+    | "inactive"
+    | "Dispatched";
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
@@ -50,6 +51,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
         return {
           backgroundColor: "rgb(255, 245, 200)",
           color: "rgb(217, 119, 6)",
+        };
+      case "Dispatched":
+        return {
+          backgroundColor: "rgb(219, 234, 254)",
+          color: "rgb(36, 99, 235)",
         };
       default:
         return {
@@ -128,6 +134,27 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
             <circle cx="12" cy="12" r="10" />
             <path d="M12 16v-4" />
             <path d="M12 8h.01" />
+          </svg>
+        );
+      case "Dispatched":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            style={{
+              width: "16px",
+              height: "16px",
+            }}
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         );
       default:
