@@ -74,7 +74,7 @@ export default function CreateRecurringTaskModal({
     top: 0,
     left: 0,
   });
-  const [errors, setErrors] = useState<{ taskName?: boolean; startDate?: boolean }>({});
+  const [errors, setErrors] = useState<{ taskName?: boolean; startDate?: boolean; selectedAssignees?: boolean }>({});
 
   useEffect(() => {
     if (editData) {
@@ -86,12 +86,15 @@ export default function CreateRecurringTaskModal({
   }, [editData]);
 
   const validateForm = (): boolean => {
-    const newErrors: { taskName?: boolean; startDate?: boolean } = {};
+    const newErrors: { taskName?: boolean; startDate?: boolean; selectedAssignees?: boolean } = {};
     if (!taskName.trim()) {
       newErrors.taskName = true;
     }
     if (!startDate.trim()) {
       newErrors.startDate = true;
+    }
+    if (selectedAssignees.length === 0) {
+      newErrors.selectedAssignees = true;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
