@@ -18,6 +18,7 @@ import RecurringTasks from "./pages/RecurringTasks";
 import Vendors from "./pages/Vendors";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
+import BareLayout from "./layout/BareLayout";
 import { TabContext } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
 import Utilities from "./pages/Utilities";
