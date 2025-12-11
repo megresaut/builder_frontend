@@ -332,23 +332,35 @@ export default function CreateFTOModal({
               </label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
-                    style={{ backgroundColor: getPriorityBgColor() }}
-                  >
-                    {getPriorityIcon()}
-                    <span
-                      className="text-sm tracking-[-0.28px] leading-[1.4]"
-                      style={{ color: getPriorityTextColor() }}
-                    >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: getPriorityTextColor() }}
+                    />
+                    <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
                       {getPriorityLabel()}
                     </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#059669]" />
+                      <span>Low</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="normal">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#2463eb]" />
+                      <span>Normal</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#d97706]" />
+                      <span>High</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
