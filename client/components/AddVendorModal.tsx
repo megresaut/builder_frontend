@@ -52,10 +52,11 @@ export default function AddVendorModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", { vendorName, email, phone, notes });
+      console.log("Form submitted", { vendorName, email, phone, servicesProvided, notes });
       setVendorName("");
       setEmail("");
       setPhone("");
+      setServicesProvided("");
       setNotes("");
       onOpenChange(false);
     }
