@@ -199,7 +199,10 @@ export default function CreateFTOModal({
         newAssignees = [...prev, assignee];
       }
       if (errors.selectedAssignees && newAssignees.length > 0) {
-        setErrors((prevErrors) => ({ ...prevErrors, selectedAssignees: false }));
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          selectedAssignees: false,
+        }));
       }
       return newAssignees;
     });
@@ -328,9 +331,13 @@ export default function CreateFTOModal({
                   }
                 }}
               >
-                <SelectTrigger className={`h-11 rounded-lg bg-[#f7f7f7] ${
-                  errors.property ? "border-red-500 border-2" : "border-[#e5e5e5]"
-                }`}>
+                <SelectTrigger
+                  className={`h-11 rounded-lg bg-[#f7f7f7] ${
+                    errors.property
+                      ? "border-red-500 border-2"
+                      : "border-[#e5e5e5]"
+                  }`}
+                >
                   <SelectValue
                     placeholder="Select Property"
                     className="text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
@@ -397,7 +404,9 @@ export default function CreateFTOModal({
                 }}
                 placeholder="Type FTO Name"
                 className={`h-11 rounded-lg bg-[#f7f7f7] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4] ${
-                  errors.ftoName ? "border-red-500 border-2" : "border-[#e5e5e5]"
+                  errors.ftoName
+                    ? "border-red-500 border-2"
+                    : "border-[#e5e5e5]"
                 }`}
               />
             </div>
@@ -481,7 +490,9 @@ export default function CreateFTOModal({
                   }}
                   maxLength={10}
                   className={`h-11 rounded-lg bg-[#f7f7f7] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4] ${
-                    errors.dueDate ? "border-red-500 border-2" : "border-[#e5e5e5]"
+                    errors.dueDate
+                      ? "border-red-500 border-2"
+                      : "border-[#e5e5e5]"
                   }`}
                 />
                 <button
@@ -596,7 +607,9 @@ export default function CreateFTOModal({
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
                   className={`h-11 rounded-lg bg-[#f7f7f7] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors cursor-pointer ${
-                    errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#e5e5e5]"
+                    errors.selectedAssignees
+                      ? "border-red-500 border-2"
+                      : "border border-[#e5e5e5]"
                   }`}
                   role="button"
                   tabIndex={0}
@@ -731,9 +744,13 @@ export default function CreateFTOModal({
                 }
               }}
             >
-              <SelectTrigger className={`h-11 rounded-lg bg-[#f7f7f7] ${
-                errors.ftoStatus ? "border-red-500 border-2" : "border-[#e5e5e5]"
-              }`}>
+              <SelectTrigger
+                className={`h-11 rounded-lg bg-[#f7f7f7] ${
+                  errors.ftoStatus
+                    ? "border-red-500 border-2"
+                    : "border-[#e5e5e5]"
+                }`}
+              >
                 <div className="flex items-center gap-2">
                   <div
                     className="w-2 h-2 rounded-full"
@@ -803,7 +820,13 @@ export default function CreateFTOModal({
           <button
             onClick={handleSubmit}
             className="flex min-h-[36px] justify-center items-center gap-2 px-4 py-2 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!property.trim() || !ftoName.trim() || !dueDate.trim() || selectedAssignees.length === 0 || !ftoStatus.trim()}
+            disabled={
+              !property.trim() ||
+              !ftoName.trim() ||
+              !dueDate.trim() ||
+              selectedAssignees.length === 0 ||
+              !ftoStatus.trim()
+            }
           >
             <span className="text-white font-medium text-base">
               {editData ? "Update FTO" : "Create FTO"}

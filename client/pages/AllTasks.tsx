@@ -158,7 +158,15 @@ const StatusBadge = ({ status }: { status: string }) => {
   const dotColor = getStatusColor(status);
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: dotColor, fontSize: "14px" }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        color: dotColor,
+        fontSize: "14px",
+      }}
+    >
       <div
         style={{
           width: "8px",
@@ -184,7 +192,15 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
   const dotColor = getPriorityColor(priority);
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: dotColor, fontSize: "14px" }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        color: dotColor,
+        fontSize: "14px",
+      }}
+    >
       <div
         style={{
           width: "8px",

@@ -836,7 +836,9 @@ export default function MaintenanceWorkOrders() {
                                 className="w-2 h-2 rounded-full"
                                 style={{
                                   backgroundColor:
-                                    workOrder.status === "Completed" ? "#059669" : "#2463EB",
+                                    workOrder.status === "Completed"
+                                      ? "#059669"
+                                      : "#2463EB",
                                 }}
                               />
                               <span className="text-gray-900 font-normal text-sm capitalize">

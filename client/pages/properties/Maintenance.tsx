@@ -58,7 +58,11 @@ interface FieldTeamOrder {
   priority: "low" | "normal" | "high";
   fieldTeam: Array<{ initials: string; color: string; name: string }>;
   status: "dispatched" | "approved" | "pending-approval";
-  timesheetStatus: "awaiting-submission" | "submitted" | "rejected" | "approved";
+  timesheetStatus:
+    | "awaiting-submission"
+    | "submitted"
+    | "rejected"
+    | "approved";
   amount: number;
 }
 
@@ -152,13 +156,17 @@ const mockPropertyWorkOrders: WorkOrder[] = [
   },
 ];
 
-const getRandomTimesheetStatus = (): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
-  const statuses: ("awaiting-submission" | "submitted" | "rejected" | "approved")[] = [
-    "awaiting-submission",
-    "submitted",
-    "rejected",
-    "approved",
-  ];
+const getRandomTimesheetStatus = ():
+  | "awaiting-submission"
+  | "submitted"
+  | "rejected"
+  | "approved" => {
+  const statuses: (
+    | "awaiting-submission"
+    | "submitted"
+    | "rejected"
+    | "approved"
+  )[] = ["awaiting-submission", "submitted", "rejected", "approved"];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
@@ -410,8 +418,8 @@ interface MaintenanceProps {
 const getFTOStatusBadge = (status: string) => {
   const statusConfig: Record<string, { label: string; dotColor: string }> = {
     "pending-approval": { label: "New", dotColor: "#1E40AF" },
-    "dispatched": { label: "Dispatched", dotColor: "#B45309" },
-    "approved": { label: "Completed", dotColor: "#166534" },
+    dispatched: { label: "Dispatched", dotColor: "#B45309" },
+    approved: { label: "Completed", dotColor: "#166534" },
   };
 
   const config = statusConfig[status] || statusConfig["pending-approval"];
@@ -436,10 +444,13 @@ const getFTOStatusBadge = (status: string) => {
 
 const getTimesheetStatusBadge = (status: string) => {
   const statusConfig: Record<string, { label: string; dotColor: string }> = {
-    "awaiting-submission": { label: "Awaiting Submission", dotColor: "#3730A3" },
-    "submitted": { label: "Submitted", dotColor: "#991B1B" },
-    "rejected": { label: "Rejected", dotColor: "#DC2626" },
-    "approved": { label: "Approved", dotColor: "#065F46" },
+    "awaiting-submission": {
+      label: "Awaiting Submission",
+      dotColor: "#3730A3",
+    },
+    submitted: { label: "Submitted", dotColor: "#991B1B" },
+    rejected: { label: "Rejected", dotColor: "#DC2626" },
+    approved: { label: "Approved", dotColor: "#065F46" },
   };
 
   const config = statusConfig[status] || statusConfig["awaiting-submission"];
@@ -460,7 +471,7 @@ const getTimesheetStatusBadge = (status: string) => {
       </span>
     </div>
   );
-}
+};
 
 export const Maintenance: React.FC<MaintenanceProps> = ({
   propertyAddress,
@@ -935,7 +946,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             className="w-2 h-2 rounded-full"
                             style={{
                               backgroundColor:
-                                task.status === "Completed" ? "#059669" : "#2463EB",
+                                task.status === "Completed"
+                                  ? "#059669"
+                                  : "#2463EB",
                             }}
                           />
                           <span className="text-gray-900 font-normal text-sm capitalize">
@@ -1282,7 +1295,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         <div
                           className="w-2 h-2 rounded-full"
                           style={{
-                            backgroundColor: task.priority === "low" ? "#059669" : task.priority === "normal" ? "#2463eb" : "#d97706",
+                            backgroundColor:
+                              task.priority === "low"
+                                ? "#059669"
+                                : task.priority === "normal"
+                                  ? "#2463eb"
+                                  : "#d97706",
                           }}
                         />
                         <span className="text-gray-900 font-normal text-sm capitalize">
@@ -1327,7 +1345,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         <div
                           className="w-2 h-2 rounded-full"
                           style={{
-                            backgroundColor: task.status === "active" ? "#059669" : "#999999",
+                            backgroundColor:
+                              task.status === "active" ? "#059669" : "#999999",
                           }}
                         />
                         <span className="text-gray-900 font-normal text-sm capitalize">
@@ -1682,7 +1701,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                           <div
                             className="w-2 h-2 rounded-full"
                             style={{
-                              backgroundColor: workOrder.priority === "low" ? "#059669" : workOrder.priority === "normal" ? "#2463eb" : "#d97706",
+                              backgroundColor:
+                                workOrder.priority === "low"
+                                  ? "#059669"
+                                  : workOrder.priority === "normal"
+                                    ? "#2463eb"
+                                    : "#d97706",
                             }}
                           />
                           <span className="text-gray-900 font-normal text-sm capitalize">
@@ -1705,7 +1729,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                           <div
                             className="w-2 h-2 rounded-full"
                             style={{
-                              backgroundColor: workOrder.status === "In progress" ? "#2463eb" : "#059669",
+                              backgroundColor:
+                                workOrder.status === "In progress"
+                                  ? "#2463eb"
+                                  : "#059669",
                             }}
                           />
                           <span className="text-gray-900 font-normal text-sm capitalize">
@@ -2078,7 +2105,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                           <div
                             className="w-2 h-2 rounded-full"
                             style={{
-                              backgroundColor: order.priority === "low" ? "#059669" : order.priority === "normal" ? "#2463eb" : "#d97706",
+                              backgroundColor:
+                                order.priority === "low"
+                                  ? "#059669"
+                                  : order.priority === "normal"
+                                    ? "#2463eb"
+                                    : "#d97706",
                             }}
                           />
                           <span className="text-gray-900 font-normal text-sm capitalize">

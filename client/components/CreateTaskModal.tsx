@@ -97,7 +97,13 @@ export default function CreateTaskModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", { property, title, priority, dueDate, selectedAssignees });
+      console.log("Form submitted", {
+        property,
+        title,
+        priority,
+        dueDate,
+        selectedAssignees,
+      });
       onOpenChange(false);
     }
   };
@@ -208,7 +214,10 @@ export default function CreateTaskModal({
         newAssignees = [...prev, assignee];
       }
       if (errors.selectedAssignees && newAssignees.length > 0) {
-        setErrors((prevErrors) => ({ ...prevErrors, selectedAssignees: false }));
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          selectedAssignees: false,
+        }));
       }
       return newAssignees;
     });
@@ -285,9 +294,13 @@ export default function CreateTaskModal({
                   }
                 }}
               >
-                <SelectTrigger className={`h-11 rounded-lg ${
-                  errors.property ? "border-red-500 border-2" : "border-[#E5E5E5]"
-                }`}>
+                <SelectTrigger
+                  className={`h-11 rounded-lg ${
+                    errors.property
+                      ? "border-red-500 border-2"
+                      : "border-[#E5E5E5]"
+                  }`}
+                >
                   <SelectValue
                     placeholder="Select Property"
                     className="text-[#A1A1A9] capitalize"
@@ -406,7 +419,9 @@ export default function CreateTaskModal({
                   }}
                   maxLength={10}
                   className={`h-11 rounded-lg placeholder:text-[#A1A1A9] ${
-                    errors.dueDate ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                    errors.dueDate
+                      ? "border-red-500 border-2"
+                      : "border-[#E5E5E5]"
                   }`}
                 />
                 <button
@@ -520,7 +535,9 @@ export default function CreateTaskModal({
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
                   className={`h-11 rounded-lg w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white cursor-pointer ${
-                    errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#E5E5E5]"
+                    errors.selectedAssignees
+                      ? "border-red-500 border-2"
+                      : "border border-[#E5E5E5]"
                   }`}
                   role="button"
                   tabIndex={0}
@@ -673,7 +690,12 @@ export default function CreateTaskModal({
           {/* Create/Update Task Button */}
           <button
             onClick={handleSubmit}
-            disabled={!property.trim() || !title.trim() || !dueDate.trim() || selectedAssignees.length === 0}
+            disabled={
+              !property.trim() ||
+              !title.trim() ||
+              !dueDate.trim() ||
+              selectedAssignees.length === 0
+            }
             className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="text-white font-medium text-base">

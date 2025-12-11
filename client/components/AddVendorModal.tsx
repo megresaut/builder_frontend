@@ -59,7 +59,7 @@ export default function AddVendorModal({
     setServicesProvided((prev) =>
       prev.includes(service)
         ? prev.filter((s) => s !== service)
-        : [...prev, service]
+        : [...prev, service],
     );
   };
 
@@ -74,7 +74,13 @@ export default function AddVendorModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", { vendorName, email, phone, servicesProvided, notes });
+      console.log("Form submitted", {
+        vendorName,
+        email,
+        phone,
+        servicesProvided,
+        notes,
+      });
       setVendorName("");
       setEmail("");
       setPhone("");
@@ -107,7 +113,9 @@ export default function AddVendorModal({
                 }}
                 placeholder="Input Vendor Name"
                 className={`h-10 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] ${
-                  errors.vendorName ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                  errors.vendorName
+                    ? "border-red-500 border-2"
+                    : "border-[#E5E5E5]"
                 }`}
               />
             </div>
@@ -159,7 +167,9 @@ export default function AddVendorModal({
                       </span>
                     ))
                   ) : (
-                    <span className="text-[#A1A1A9]">Select Services Provided</span>
+                    <span className="text-[#A1A1A9]">
+                      Select Services Provided
+                    </span>
                   )}
                 </div>
                 <svg

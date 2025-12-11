@@ -74,7 +74,11 @@ export default function CreateRecurringTaskModal({
     top: 0,
     left: 0,
   });
-  const [errors, setErrors] = useState<{ taskName?: boolean; startDate?: boolean; selectedAssignees?: boolean }>({});
+  const [errors, setErrors] = useState<{
+    taskName?: boolean;
+    startDate?: boolean;
+    selectedAssignees?: boolean;
+  }>({});
 
   useEffect(() => {
     if (editData) {
@@ -86,7 +90,11 @@ export default function CreateRecurringTaskModal({
   }, [editData]);
 
   const validateForm = (): boolean => {
-    const newErrors: { taskName?: boolean; startDate?: boolean; selectedAssignees?: boolean } = {};
+    const newErrors: {
+      taskName?: boolean;
+      startDate?: boolean;
+      selectedAssignees?: boolean;
+    } = {};
     if (!taskName.trim()) {
       newErrors.taskName = true;
     }
@@ -103,7 +111,12 @@ export default function CreateRecurringTaskModal({
   const handleSubmit = () => {
     if (validateForm()) {
       // Handle submit logic here
-      console.log("Form submitted", { taskName, startDate, priority, category });
+      console.log("Form submitted", {
+        taskName,
+        startDate,
+        priority,
+        category,
+      });
       onOpenChange(false);
     }
   };
@@ -214,7 +227,10 @@ export default function CreateRecurringTaskModal({
         newAssignees = [...prev, assignee];
       }
       if (errors.selectedAssignees && newAssignees.length > 0) {
-        setErrors((prevErrors) => ({ ...prevErrors, selectedAssignees: false }));
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          selectedAssignees: false,
+        }));
       }
       return newAssignees;
     });
@@ -307,7 +323,9 @@ export default function CreateRecurringTaskModal({
                 }}
                 placeholder="Type Task Name"
                 className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] placeholder:normal-case pr-10 ${
-                  errors.taskName ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                  errors.taskName
+                    ? "border-red-500 border-2"
+                    : "border-[#E5E5E5]"
                 }`}
               />
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
@@ -436,7 +454,9 @@ export default function CreateRecurringTaskModal({
                   }}
                   maxLength={10}
                   className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] ${
-                    errors.startDate ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                    errors.startDate
+                      ? "border-red-500 border-2"
+                      : "border-[#E5E5E5]"
                   }`}
                 />
                 <button
@@ -691,7 +711,9 @@ export default function CreateRecurringTaskModal({
                 ref={assigneeButtonRef}
                 onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
                 className={`h-11 rounded-lg bg-[#F7F7F7] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors ${
-                  errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#E5E5E5]"
+                  errors.selectedAssignees
+                    ? "border-red-500 border-2"
+                    : "border border-[#E5E5E5]"
                 }`}
               >
                 <div className="flex items-center gap-2 flex-wrap flex-1">
@@ -792,9 +814,7 @@ export default function CreateRecurringTaskModal({
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: getPriorityTextColor() }}
                     />
-                    <span
-                      className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]"
-                    >
+                    <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
                       {getPriorityLabel()}
                     </span>
                   </div>
@@ -844,7 +864,11 @@ export default function CreateRecurringTaskModal({
           {/* Create/Update Recurring Task Button */}
           <button
             onClick={handleSubmit}
-            disabled={!taskName.trim() || !startDate.trim() || selectedAssignees.length === 0}
+            disabled={
+              !taskName.trim() ||
+              !startDate.trim() ||
+              selectedAssignees.length === 0
+            }
             className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="text-white font-medium text-base">

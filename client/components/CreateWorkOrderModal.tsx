@@ -86,7 +86,13 @@ export default function CreateWorkOrderModal({
   }>({});
 
   const validateForm = (): boolean => {
-    const newErrors: { property?: boolean; addToTask?: boolean; task?: boolean; dueDate?: boolean; vendor?: boolean } = {};
+    const newErrors: {
+      property?: boolean;
+      addToTask?: boolean;
+      task?: boolean;
+      dueDate?: boolean;
+      vendor?: boolean;
+    } = {};
     if (!property.trim()) {
       newErrors.property = true;
     }
@@ -108,7 +114,15 @@ export default function CreateWorkOrderModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", { property, addToTask, task, vendor, dueDate, priority, status });
+      console.log("Form submitted", {
+        property,
+        addToTask,
+        task,
+        vendor,
+        dueDate,
+        priority,
+        status,
+      });
       onOpenChange(false);
     }
   };
@@ -342,9 +356,13 @@ export default function CreateWorkOrderModal({
                     }
                   }}
                 >
-                  <SelectTrigger className={`h-11 rounded-lg bg-[#F7F7F7] ${
-                    errors.property ? "border-red-500 border-2" : "border-[#E5E5E5]"
-                  }`}>
+                  <SelectTrigger
+                    className={`h-11 rounded-lg bg-[#F7F7F7] ${
+                      errors.property
+                        ? "border-red-500 border-2"
+                        : "border-[#E5E5E5]"
+                    }`}
+                  >
                     <SelectValue
                       placeholder="Select Property"
                       className="text-[#A1A1A9]"
@@ -391,9 +409,13 @@ export default function CreateWorkOrderModal({
                   }
                 }}
               >
-                <SelectTrigger className={`h-11 rounded-lg bg-[#F7F7F7] ${
-                  errors.addToTask ? "border-red-500 border-2" : "border-[#E5E5E5]"
-                }`}>
+                <SelectTrigger
+                  className={`h-11 rounded-lg bg-[#F7F7F7] ${
+                    errors.addToTask
+                      ? "border-red-500 border-2"
+                      : "border-[#E5E5E5]"
+                  }`}
+                >
                   <SelectValue
                     placeholder="Select Task Or Create A New Task"
                     className="text-[#A1A1A9]"
@@ -454,9 +476,13 @@ export default function CreateWorkOrderModal({
                     }
                   }}
                 >
-                  <SelectTrigger className={`h-11 rounded-lg bg-[#F7F7F7] ${
-                    errors.vendor ? "border-red-500 border-2" : "border-[#E5E5E5]"
-                  }`}>
+                  <SelectTrigger
+                    className={`h-11 rounded-lg bg-[#F7F7F7] ${
+                      errors.vendor
+                        ? "border-red-500 border-2"
+                        : "border-[#E5E5E5]"
+                    }`}
+                  >
                     <SelectValue
                       placeholder="Select Vendor"
                       className="text-[#A1A1A9]"
@@ -483,9 +509,7 @@ export default function CreateWorkOrderModal({
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: getStatusTextColor() }}
                       />
-                      <span
-                        className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]"
-                      >
+                      <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
                         {getStatusLabel()}
                       </span>
                     </div>
@@ -507,9 +531,7 @@ export default function CreateWorkOrderModal({
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: getPriorityTextColor() }}
                       />
-                      <span
-                        className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]"
-                      >
+                      <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
                         {getPriorityLabel()}
                       </span>
                     </div>
@@ -577,7 +599,9 @@ export default function CreateWorkOrderModal({
                   }}
                   maxLength={10}
                   className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] ${
-                    errors.dueDate ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                    errors.dueDate
+                      ? "border-red-500 border-2"
+                      : "border-[#E5E5E5]"
                   }`}
                 />
                 <button
@@ -721,7 +745,13 @@ export default function CreateWorkOrderModal({
             <button
               onClick={handleSubmit}
               className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!property.trim() || !addToTask.trim() || !task.trim() || !vendor.trim() || !dueDate.trim()}
+              disabled={
+                !property.trim() ||
+                !addToTask.trim() ||
+                !task.trim() ||
+                !vendor.trim() ||
+                !dueDate.trim()
+              }
             >
               <span className="text-white font-medium text-base">
                 {editData ? "Update Work Order" : "Create New Work Order"}
