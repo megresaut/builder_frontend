@@ -59,6 +59,16 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
           backgroundColor: "rgb(219, 234, 254)",
           color: "rgb(36, 99, 235)",
         };
+      case "New":
+        return {
+          backgroundColor: "rgb(219, 234, 254)",
+          color: "rgb(36, 99, 235)",
+        };
+      case "Cancelled":
+        return {
+          backgroundColor: "rgb(245, 245, 245)",
+          color: "rgb(100, 100, 100)",
+        };
       default:
         return {
           backgroundColor: "rgb(245, 245, 245)",
