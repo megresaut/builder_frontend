@@ -79,6 +79,8 @@ export default function AddVendorModal({
             </label>
             <Input
               type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               placeholder="Input Vendor Phone"
               className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
             />
@@ -89,12 +91,17 @@ export default function AddVendorModal({
               Notes
             </label>
             <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="Insert Vendor Notes"
               className="min-h-[169px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
             />
           </div>
 
-          <button className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2">
+          <button
+            onClick={handleSubmit}
+            className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <span className="text-white font-medium text-base">
               Create Vendor
             </span>
