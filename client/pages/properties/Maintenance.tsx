@@ -1282,14 +1282,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                          task.status === "active"
-                            ? "bg-green-100 text-green-600"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {task.status}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor: task.status === "active" ? "#059669" : "#999999",
+                          }}
+                        />
+                        <span className="text-gray-900 font-normal text-sm capitalize">
+                          {task.status}
+                        </span>
                       </div>
                     </td>
                     <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
