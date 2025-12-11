@@ -300,49 +300,31 @@ export default function FTOApprovalModal({
           Field Team Order Approval
         </DialogTitle>
 
-        {/* Property, Unit, Field Team Assignee, and Associated Task Selects */}
+        {/* Property, Unit, Field Team Assignee, and Associated Task - Read Only */}
         <div className="flex gap-5 flex-row mb-4">
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
               Property
             </label>
-            <Select defaultValue="3-hekma-road" disabled>
-              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3-hekma-road">3 hekma Road</SelectItem>
-                <SelectItem value="property2">Property 2</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
+              <span className="text-[#303030] font-normal text-sm">{property}</span>
+            </div>
           </div>
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
               Unit
             </label>
-            <Select defaultValue="2" disabled>
-              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2">2</SelectItem>
-                <SelectItem value="3">3</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
+              <span className="text-[#303030] font-normal text-sm">{unit}</span>
+            </div>
           </div>
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
               Field Team Assignee
             </label>
-            <Select defaultValue="john-smith" disabled>
-              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="john-smith">John Smith</SelectItem>
-                <SelectItem value="jane-doe">Jane Doe</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
+              <span className="text-[#303030] font-normal text-sm">{fieldTeamAssignee}</span>
+            </div>
           </div>
           <div className="flex-1 min-w-[240px] flex flex-col gap-2">
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
