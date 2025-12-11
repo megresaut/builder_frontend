@@ -1449,7 +1449,8 @@ export const RecordBill = () => {
                 }
               }}
               disabled={isReadOnly ? false : false}
-              css={{
+              className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#002a4f]"
+              style={{
                 display: "flex",
                 alignItems: "center",
                 backgroundColor: "rgb(1, 55, 100)",
@@ -1470,14 +1471,7 @@ export const RecordBill = () => {
                 padding: "8px 12px",
               }}
             >
-              <div
-                css={{
-                  display: "block",
-                  fontWeight: "500",
-                }}
-              >
-                Approve
-              </div>
+              <span>Approve</span>
             </button>
             <button
               onClick={() => {
@@ -1488,7 +1482,8 @@ export const RecordBill = () => {
                 }
               }}
               disabled={isReadOnly ? false : false}
-              css={{
+              className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#002a4f]"
+              style={{
                 display: "flex",
                 alignItems: "center",
                 backgroundColor: "rgb(1, 55, 100)",
@@ -1509,14 +1504,7 @@ export const RecordBill = () => {
                 padding: "8px 12px",
               }}
             >
-              <div
-                css={{
-                  display: "block",
-                  fontWeight: "500",
-                }}
-              >
-                Approve & Export
-              </div>
+              <span>Approve & Export</span>
             </button>
           </div>
         </div>
