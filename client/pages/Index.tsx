@@ -21,10 +21,10 @@ export const Index: React.FC = () => {
       />
 
       {/* Invoice Table */}
-      <InvoiceTable />
+      <InvoiceTable items={[]} propertyAddress="" />
 
       {/* Invoice History Table */}
-      <InvoiceHistoryTable />
+      <InvoiceHistoryTable items={[]} />
     </div>
   );
 };

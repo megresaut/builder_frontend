@@ -884,7 +884,7 @@ export const Bills: React.FC<BillsProps> = ({
                         </td>
                         {selectedTab !== "approved" && (
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <StatusBadge status={bill.status} />
+                            <StatusBadge status={bill.status as "active" | "inactive"} />
                           </td>
                         )}
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">

@@ -70,6 +70,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
         const scrollPos = mainContent.scrollTop;
         const prevMetadata = tabMetadata[currentTabId] || {};
         setTabMetadata(currentTabId, {
+          label: currentMetadata?.label || "",
           ...prevMetadata,
           scrollPosition: scrollPos,
         });

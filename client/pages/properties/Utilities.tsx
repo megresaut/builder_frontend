@@ -1,10 +1,6 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-=======
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
->>>>>>> origin/builder-sync
 import { cn } from "@/lib/utils";
 import {
   StatusBadge,
@@ -12,13 +8,10 @@ import {
   AIInsightBadge,
   ActionButton,
 } from "../Utilities";
-<<<<<<< HEAD
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
-=======
 import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
->>>>>>> origin/builder-sync
 
 interface UtilityAccount {
   id: number;
@@ -621,381 +614,369 @@ export const Utilities: React.FC<UtilitiesProps> = ({
     null,
   );
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-<<<<<<< HEAD
-  const { propertyId } = useParams<{ propertyId: string }>();
-  const [error, setError] = useState<string | null>(null);
+// ----------------------
+// BASE PAGE STATE
+// ----------------------
+const { propertyId } = useParams<{ propertyId: string }>();
+const [error, setError] = useState<string | null>(null);
 
-  // per-account import state
-  const [importingAccountId, setImportingAccountId] = useState<number | null>(
-    null,
-  );
+// ----------------------
+// IMPORT STATES
+// ----------------------
+const [importingAccountId, setImportingAccountId] = useState<number | null>(null);
 
-  // batch import state
-  const [batchImporting, setBatchImporting] = useState(false);
-  const [batchId, setBatchId] = useState<number | null>(null);
-  const [batchJobs, setBatchJobs] = useState<Record<string, number>>({});
-  const [batchErrors, setBatchErrors] = useState<
-    { accountId: number; provider: string; message: string }[]
-  >([]);
+// Batch import
+const [batchImporting, setBatchImporting] = useState(false);
+const [batchId, setBatchId] = useState<number | null>(null);
+const [batchJobs, setBatchJobs] = useState<Record<string, number>>({});
+const [batchErrors, setBatchErrors] = useState<
+  { accountId: number; provider: string; message: string }[]
+>([]);
 
-  const { data: utilityAccounts = [], isLoading: utilLoading } = useQuery({
-    queryKey: ["utility-accounts", propertyId],
-    queryFn: () =>
-      fetchJSON(`/utilities/accounts/${propertyId}`),
-  });
-  
-  const { data: bills = [], isLoading: billsLoading } = useQuery({
-    queryKey: ["utility-bills", propertyId],
-    queryFn: () =>
-      fetchJSON(
-        `/utilities/bills${propertyId ? `?property_id=${propertyId}` : ""}`
-      ),
-  });
-  
-  const safeAccounts = Array.isArray(utilityAccounts)
-  ? utilityAccounts
-  : [];
+// ----------------------
+// LOAD DATA
+// ----------------------
+const { data: utilityAccounts = [], isLoading: utilLoading } = useQuery({
+  queryKey: ["utility-accounts", propertyId],
+  queryFn: () => fetchJSON(`/utilities/accounts/${propertyId}`),
+});
 
-const safeBills = Array.isArray(bills)
-  ? bills
-  : [];
+const { data: bills = [], isLoading: billsLoading } = useQuery({
+  queryKey: ["utility-bills", propertyId],
+  queryFn: () =>
+    fetchJSON(
+      `/utilities/bills${propertyId ? `?property_id=${propertyId}` : ""}`,
+    ),
+});
 
-  const mappedAccounts = safeAccounts.map((ua: any) => ({
-    id: ua.id,
-    provider: ua.provider_name,
-    account: ua.account_number,
-    status: (ua.active ? "active" : "inactive") as "active" | "inactive",
-    lastBillDate: ua.last_bill_date
-      ? new Date(ua.last_bill_date).toLocaleDateString()
+// Safety wrappers
+const safeAccounts = Array.isArray(utilityAccounts) ? utilityAccounts : [];
+const safeBills = Array.isArray(bills) ? bills : [];
+
+// ----------------------
+// MAP ACCOUNTS
+// ----------------------
+const mappedAccounts = safeAccounts.map((ua: any) => ({
+  id: ua.id,
+  provider: ua.provider_name,
+  account: ua.account_number,
+  status: (ua.active ? "active" : "inactive") as "active" | "inactive",
+  lastBillDate: ua.last_bill_date
+    ? new Date(ua.last_bill_date).toLocaleDateString()
+    : "—",
+  lastBillAmount: ua.last_bill_amount_cents
+    ? `$${(ua.last_bill_amount_cents / 100).toFixed(2)}`
+    : "—",
+  lastImport: ua.last_import_at
+    ? new Date(ua.last_import_at).toLocaleString()
+    : "—",
+  icon: getCategoryIcon(ua.provider_category),
+  type: ua.provider_category,
+}));
+
+// ----------------------
+// MAP BILLS
+// ----------------------
+const providerCategoryMap: Record<string, string | null | undefined> = {};
+safeAccounts.forEach((ua: any) => {
+  providerCategoryMap[ua.provider_name] = ua.provider_category;
+});
+
+const filteredBills = safeBills.filter(
+  (b: any) => b.provider_name && b.provider_name.trim() !== "",
+);
+
+const mappedBills = filteredBills.map((b: any) => {
+  const category = providerCategoryMap[b.provider_name] || null;
+  return {
+    id: b.id,
+    provider: b.provider_name,
+    date: b.statement_date
+      ? new Date(b.statement_date).toLocaleDateString()
       : "—",
-    lastBillAmount: ua.last_bill_amount_cents
-      ? `$${(ua.last_bill_amount_cents / 100).toFixed(2)}`
+    aiUsageInsight: "Normal",
+    changeFromLastBill: "—",
+    status: "Pushed",
+    amount: b.amount_cents
+      ? `$${(b.amount_cents / 100).toFixed(2)}`
       : "—",
-    lastImport: ua.last_import_at
-      ? new Date(ua.last_import_at).toLocaleString()
-      : "—",
-      icon: getCategoryIcon(ua.provider_category),
-      type: ua.provider_category,
-  }));
-
-  // Build a quick provider lookup so bills can inherit category from accounts
-  const providerCategoryMap: Record<string, string | null | undefined> = {};
-  safeAccounts.forEach((ua: any) => {
-    providerCategoryMap[ua.provider_name] = ua.provider_category;
-  });
+    icon: getCategoryIcon(category),
+    type: category,
+  };
+});
 
 
-  const filteredBills = safeBills.filter((b: any) => {
-    return b.provider_name && b.provider_name.trim() !== "";
-  });
-  
+const [accountLastImport, setAccountLastImport] = useState<Record<number, string>>({});
 
-  const mappedBills = filteredBills.map((b: any) => {
-    const category = providerCategoryMap[b.provider_name] || null;
+// Controls the main Import button state
+const [importStatus, setImportStatus] = useState<
+  "idle" | "importing" | "imported" | "failed"
+>("idle");
 
-    return {
-      id: b.id,
-      provider: b.provider_name,
-      date: b.statement_date
-        ? new Date(b.statement_date).toLocaleDateString()
-        : "—",
-      aiUsageInsight: "Normal",
-      changeFromLastBill: "—",
-      status: "Pushed",
-      amount: b.amount_cents
-        ? `$${(b.amount_cents / 100).toFixed(2)}`
-        : "—",
-      icon: getCategoryIcon(category),
-      type: category,
-    };
-  });
-
-    // ----- KPI VALUES -----
-
-  // 1. Most recent bill date
-  const lastBillImported = filteredBills.length
+// Bills table action menu (right-side dropdown)
+const [openBillsMenuId, setOpenBillsMenuId] = useState<number | null>(null);
+// ----------------------
+// KPI CALCULATIONS
+// ----------------------
+const lastBillImported = filteredBills.length
   ? new Date(
       Math.max(
         ...filteredBills
           .filter((b: any) => b.statement_date)
-          .map((b: any) => new Date(b.statement_date).getTime())
-      )
+          .map((b: any) => new Date(b.statement_date).getTime()),
+      ),
     ).toLocaleDateString()
   : "—";
 
-  // 2. Active / inactive account counts
-  const activeAccounts = mappedAccounts.filter((a) => a.status === "active").length;
-  const inactiveAccounts = mappedAccounts.filter((a) => a.status === "inactive").length;
+const activeAccounts = mappedAccounts.filter((a) => a.status === "active").length;
+const inactiveAccounts = mappedAccounts.filter(
+  (a) => a.status === "inactive",
+).length;
 
-  // 3. Total utility spend
-  const totalSpendCents = filteredBills.reduce((sum: number, b: any) => {
-  return sum + (b.amount_cents || 0);
-  }, 0);
+const totalSpendCents = filteredBills.reduce(
+  (sum: number, b: any) => sum + (b.amount_cents || 0),
+  0,
+);
+const totalSpend = `$${(totalSpendCents / 100).toFixed(2)}`;
 
-  const totalSpend = `$${(totalSpendCents / 100).toFixed(2)}`;
-  const handleImportAccount = async (utilityAccountId: number) => {
-    if (!utilityAccountId) return;
+// ----------------------
+// IMPORT HANDLERS
+// ----------------------
+const queryClient = useQueryClient();
 
-    try {
-      setImportingAccountId(utilityAccountId);
-      setError(null);
+const handleImportAccount = async (utilityAccountId: number) => {
+  if (!utilityAccountId) return;
 
-      // 1) Enqueue the job and get the job_id back
-      const enqueue = await fetchJSON(
-        `/utilities/import/${utilityAccountId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            billing_period: "latest",
-            requested_by: "admin", // TODO: use current user when auth wired
-          }),
-        },
+  try {
+    setImportingAccountId(utilityAccountId);
+    setError(null);
+
+    // 1) Enqueue
+    const enqueue = await fetchJSON(`/utilities/import/${utilityAccountId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        billing_period: "latest",
+        requested_by: "admin",
+      }),
+    });
+
+    const jobId = enqueue.job_id;
+    if (!jobId) {
+      setError(
+        "Scrape failed. Please try again. If you’ve already tried this twice, contact support.",
       );
-
-      const jobId = enqueue.job_id;
-
-      if (!jobId) {
-        setError(
-          "Scrape failed. Please try again. If you’ve already tried this twice, contact support.",
-        );
-        return;
-      }
-
-      // 2) Poll until done
-      const job = await pollJobStatus(jobId);
-
-      if (job.status === "failed") {
-        const friendly = prettifyImportError(job.message ?? null);
-        setError(friendly);
-        return;
-      }
-
-      // 3) On success, refresh bills/accounts via react-query
-      if (propertyId) {
-        await queryClient.invalidateQueries({
-          queryKey: ["utility-bills", propertyId],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["utility-accounts", propertyId],
-        });
-      }
-
-      setError(null);
-      alert("Import completed for this account.");
-    } catch (err: any) {
-      const raw =
-        err?.message && typeof err.message === "string" ? err.message : null;
-      setError(prettifyImportError(raw));
-    } finally {
-      setImportingAccountId(null);
+      return;
     }
-  };
 
-  const handleBatchImport = async () => {
-    if (!propertyId) return;
+    // 2) Poll
+    const job = await pollJobStatus(jobId);
+    if (job.status === "failed") {
+      setError(prettifyImportError(job.message ?? null));
+      return;
+    }
 
-    try {
-      setBatchImporting(true);
-      setError(null);
-      setBatchErrors([]);
-      setBatchId(null);
-      setBatchJobs({});
+    // 3) Refresh data
+    if (propertyId) {
+      await queryClient.invalidateQueries({
+        queryKey: ["utility-bills", propertyId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["utility-accounts", propertyId],
+      });
+    }
 
-      // 1) Trigger batch import
-      const resp = await fetchJSON(
-        `/utilities/import/batch`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            scope: "property",
-            ref_id: Number(propertyId),
-            billing_period: "latest",
-            requested_by: "admin",
-          }),
-        }
+    alert("Import completed for this account.");
+  } catch (err: any) {
+    const raw = err?.message ?? null;
+    setError(prettifyImportError(raw));
+  } finally {
+    setImportingAccountId(null);
+  }
+};
+
+const handleBatchImport = async () => {
+  if (!propertyId) return;
+
+  try {
+    setBatchImporting(true);
+    setError(null);
+    setBatchErrors([]);
+    setBatchId(null);
+    setBatchJobs({});
+
+    // 1) Start batch
+    const resp = await fetchJSON(`/utilities/import/batch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scope: "property",
+        ref_id: Number(propertyId),
+        billing_period: "latest",
+        requested_by: "admin",
+      }),
+    });
+
+    const id = resp.batch_id;
+    setBatchId(id);
+    setBatchJobs(resp.jobs || {});
+
+    // 2) Poll batch
+    await pollBatchStatus(id);
+
+    // 3) Collect failures
+    const failures: {
+      accountId: number;
+      provider: string;
+      message: string;
+    }[] = [];
+
+    for (const [accountIdStr, jobId] of Object.entries(resp.jobs || {})) {
+      const accountId = Number(accountIdStr);
+      const jobStatus = await fetchJSON(`/utilities/jobs/${jobId}`);
+
+      if (jobStatus.status === "failed") {
+        const acct = safeAccounts.find((a: any) => a.id === accountId);
+        failures.push({
+          accountId,
+          provider: acct ? acct.provider_name : "Unknown",
+          message: prettifyImportError(jobStatus.message),
+        });
+      }
+    }
+
+    setBatchErrors(failures);
+
+    // 4) Refresh
+    if (propertyId) {
+      await queryClient.invalidateQueries({
+        queryKey: ["utility-bills", propertyId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["utility-accounts", propertyId],
+      });
+    }
+
+    if (failures.length > 0) {
+      setError(
+        `Some accounts failed (${failures.length}). Check details or try again.`,
       );
-
-      const id = resp.batch_id;
-      setBatchId(id);
-      setBatchJobs(resp.jobs || {});
-
-      // 2) Poll until done
-      const result = await pollBatchStatus(id);
-
-      // 3) Determine which jobs failed
-      const failures: {
-        accountId: number;
-        provider: string;
-        message: string;
-      }[] = [];
-
-      for (const [accountIdStr, jobId] of Object.entries(resp.jobs || {})) {
-        const accountId = Number(accountIdStr);
-
-        const jobStatus = await fetchJSON(`/utilities/jobs/${jobId}`);
-
-        if (jobStatus.status === "failed") {
-          const acct = safeAccounts.find((a: any) => a.id === accountId);
-          failures.push({
-            accountId,
-            provider: acct ? acct.provider_name : "Unknown",
-            message: prettifyImportError(jobStatus.message),
-          });
-        }
-      }
-
-      setBatchErrors(failures);
-
-      // 4) Refresh bills/accounts
-      if (propertyId) {
-        await queryClient.invalidateQueries({
-          queryKey: ["utility-bills", propertyId],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["utility-accounts", propertyId],
-        });
-      }
-
-      // 5) Error / success message
-      if (failures.length > 0) {
-        setError(
-          `Some accounts failed (${failures.length}). Check details or try again.`,
-        );
-      } else {
-        setError(null);
-        alert("Import completed for all accounts.");
-      }
-    } catch (err: any) {
-      const msg =
-        err?.message && typeof err.message === "string"
-          ? err.message
-          : "Batch import failed unexpectedly.";
-      setError(msg);
-    } finally {
-      setBatchImporting(false);
+    } else {
+      alert("Import completed for all accounts.");
     }
-  };
+  } catch (err: any) {
+    setError(
+      err?.message && typeof err.message === "string"
+        ? err.message
+        : "Batch import failed unexpectedly.",
+    );
+  } finally {
+    setBatchImporting(false);
+  }
+};
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const queryClient = useQueryClient();
+const [showCreateModal, setShowCreateModal] = useState(false);
 
-=======
-  const [billsCurrentPage, setBillsCurrentPage] = useState<number>(1);
-  const [billsItemsPerPage, setBillsItemsPerPage] = useState<number>(10);
-  const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] =
-    useState<boolean>(false);
-  const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const billsDropdownMenuRef = useRef<HTMLDivElement>(null);
-  const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
-  const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] =
-    useState<boolean>(false);
-  const [editingUtilityAccount, setEditingUtilityAccount] =
-    useState<UtilityAccount | null>(null);
-  const [utilityModalMode, setUtilityModalMode] = useState<"add" | "edit">(
-    "edit",
-  );
-  const [importStatus, setImportStatus] = useState<
-    "idle" | "importing" | "imported" | "failed"
-  >("idle");
-  const [accountImportStatus, setAccountImportStatus] = useState<{
-    [key: number]: "idle" | "importing" | "imported" | "failed";
-  }>({});
-  const [accountLastImport, setAccountLastImport] = useState<{
-    [key: number]: string;
-  }>(
-    utilityAccounts.reduce(
-      (acc, account) => ({ ...acc, [account.id]: account.lastImport }),
-      {},
-    ),
-  );
+// ======================================================================
+// UI ENHANCEMENTS FROM BUILDER-SYNC (ADDED BELOW, DO NOT REPLACE ANY LOGIC)
+// ======================================================================
 
-  useEffect(() => {
-    let animationFrameId: number;
+// Pagination + page-size UI
+const [billsCurrentPage, setBillsCurrentPage] = useState<number>(1);
+const [billsItemsPerPage, setBillsItemsPerPage] = useState<number>(10);
+const [showBillsPageSizeDropdown, setShowBillsPageSizeDropdown] =
+  useState<boolean>(false);
 
-    const updateDropdownPos = () => {
-      if (showBillsPageSizeDropdown && billsDropdownButtonRef.current) {
-        const rect = billsDropdownButtonRef.current.getBoundingClientRect();
-        setBillsDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
+const billsDropdownButtonRef = useRef<HTMLButtonElement>(null);
+const billsDropdownMenuRef = useRef<HTMLDivElement>(null);
 
-      if (showBillsPageSizeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
-      }
-    };
+const [billsDropdownPos, setBillsDropdownPos] = useState({ top: 0, left: 0 });
+
+// Utility modal UI
+const [isEditUtilityModalOpen, setIsEditUtilityModalOpen] =
+  useState<boolean>(false);
+const [editingUtilityAccount, setEditingUtilityAccount] =
+  useState<UtilityAccount | null>(null);
+const [utilityModalMode, setUtilityModalMode] =
+  useState<"add" | "edit">("edit");
+
+// Account-level import UI (optional, not tied to backend)
+const [accountImportStatus, setAccountImportStatus] = useState<{
+  [key: number]: "idle" | "importing" | "imported" | "failed";
+}>({});
+
+// Dropdown position update effect
+useEffect(() => {
+  let animationFrameId: number;
+
+  const updateDropdownPos = () => {
+    if (showBillsPageSizeDropdown && billsDropdownButtonRef.current) {
+      const rect = billsDropdownButtonRef.current.getBoundingClientRect();
+      setBillsDropdownPos({
+        top: rect.bottom + 8,
+        left: rect.left,
+      });
+    }
 
     if (showBillsPageSizeDropdown) {
-      updateDropdownPos();
+      animationFrameId = requestAnimationFrame(updateDropdownPos);
     }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showBillsPageSizeDropdown]);
-
-  useEffect(() => {
-    if (!showBillsPageSizeDropdown) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        billsDropdownMenuRef.current &&
-        billsDropdownButtonRef.current &&
-        !billsDropdownMenuRef.current.contains(target) &&
-        !billsDropdownButtonRef.current.contains(target)
-      ) {
-        setShowBillsPageSizeDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showBillsPageSizeDropdown]);
-
-  const billsTotalPages = Math.ceil(bills.length / billsItemsPerPage);
-
-  const getBillsPaginationNumbers = () => {
-    const pages: (number | string)[] = [];
-
-    if (billsTotalPages <= 1) {
-      return [1];
-    }
-
-    if (billsTotalPages <= 7) {
-      for (let i = 1; i <= billsTotalPages; i++) {
-        pages.push(i);
-      }
-      return pages;
-    }
-
-    const windowSize = 7;
-    let start = Math.max(1, billsCurrentPage - 2);
-    let end = start + windowSize - 1;
-
-    if (end > billsTotalPages) {
-      end = billsTotalPages;
-      start = Math.max(1, end - windowSize + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    return pages;
   };
->>>>>>> origin/builder-sync
+
+  if (showBillsPageSizeDropdown) {
+    updateDropdownPos();
+  }
+
+  return () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  };
+}, [showBillsPageSizeDropdown]);
+
+// Close dropdown when clicking outside
+useEffect(() => {
+  if (!showBillsPageSizeDropdown) return;
+
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as Node;
+    if (
+      billsDropdownMenuRef.current &&
+      billsDropdownButtonRef.current &&
+      !billsDropdownMenuRef.current.contains(target) &&
+      !billsDropdownButtonRef.current.contains(target)
+    ) {
+      setShowBillsPageSizeDropdown(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, [showBillsPageSizeDropdown]);
+
+// Pagination calculation
+const billsTotalPages = Math.ceil(filteredBills.length / billsItemsPerPage);
+
+const getBillsPaginationNumbers = () => {
+  const pages: (number | string)[] = [];
+  if (billsTotalPages <= 1) return [1];
+
+  if (billsTotalPages <= 7) {
+    for (let i = 1; i <= billsTotalPages; i++) pages.push(i);
+    return pages;
+  }
+
+  const windowSize = 7;
+  let start = Math.max(1, billsCurrentPage - 2);
+  let end = start + windowSize - 1;
+
+  if (end > billsTotalPages) {
+    end = billsTotalPages;
+    start = Math.max(1, end - windowSize + 1);
+  }
+
+  for (let i = start; i <= end; i++) pages.push(i);
+  return pages;
+};
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -1225,11 +1206,6 @@ const safeBills = Array.isArray(bills)
               Utility Accounts
             </h2>
           </div>
-<<<<<<< HEAD
-
-          <div className="flex items-center gap-2.5">
-            {/* Search */}
-=======
           <div className="flex items-start gap-2.5">
             <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
               <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
@@ -1333,11 +1309,11 @@ const safeBills = Array.isArray(bills)
 
                   // Set universal button status based on overall results
                   if (hasFailures) {
-                    setImportStatus("failed");
+                    setImportStatus("failed");  
                   } else {
-                    setImportStatus("imported");
-                    setTimeout(() => {
-                      setImportStatus("idle");
+                    setImportStatus("imported");  
+                    setTimeout(() => {  
+                      setImportStatus("idle");  
                     }, 2000);
                   }
                 }, 1500);
@@ -1352,7 +1328,7 @@ const safeBills = Array.isArray(bills)
             >
               <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
                 {importStatus === "idle" && "Import"}
-                {importStatus === "importing" && "Importing..."}
+                {importStatus === "importing" && "Importing..."}  
                 {importStatus === "imported" && "Imported"}
                 {importStatus === "failed" && "Import Failed"}
               </span>
@@ -1646,7 +1622,6 @@ const safeBills = Array.isArray(bills)
             </h2>
           </div>
           <div className="flex items-start gap-2.5">
->>>>>>> origin/builder-sync
             <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
               <svg
                 width="20"
@@ -1778,165 +1753,6 @@ const safeBills = Array.isArray(bills)
                   </span>
                 </th>
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-<<<<<<< HEAD
-                  <span className="font-medium text-sm text-gray-700">
-                    Account
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Status
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Last Bill Date
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Last Bill Amount
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Last Import
-                  </span>
-                </th>
-                <th className="sticky right-0 px-2 py-3 text-center w-20">
-                  <span className="font-medium text-sm text-gray-700">
-                    Actions
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody> 
-              {mappedAccounts.map((account, index) => (
-                <tr
-                  key={account.id}
-                  className={cn(
-                    "hover:bg-gray-50 transition-colors h-12",
-                    index === safeAccounts.length - 1
-                      ? "border-b-0"
-                      : "border-b border-gray-200",
-                  )}
-                >
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                        {account.icon}
-                      </div>
-                      <span className="text-gray-900 font-normal text-base">
-                        {account.provider}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {account.type || "—"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {account.account}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <StatusBadge status={account.status} />
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {account.lastBillDate}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {account.lastBillAmount}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
-                      {account.lastImport}
-                    </span>
-                  </td>
-                  <td
-                    className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                    style={{
-                      borderLeftWidth: "2px",
-                      width: "80px",
-                      border:
-                        "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                      borderLeftColor: "transparent",
-                    }}
-                  >
-                    <ActionButton
-                      propertyId={account.id}
-                      openMenuId={openUtilityMenuId}
-                      setOpenMenuId={setOpenUtilityMenuId}
-                      onImport={handleImportAccount}  
-                      importing={importingAccountId === account.id}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Bills Table */}
-      <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-        {/* Table Header */}
-        <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
-          <div className="flex items-center gap-4">
-            <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-              Bills
-            </h2>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
-                  stroke="#303030"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search..."
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Table Content */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Provider
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-                    Date
-                  </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                  <span className="font-medium text-sm text-gray-700">
-=======
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <svg
                       width="16"
@@ -1950,7 +1766,6 @@ const safeBills = Array.isArray(bills)
                         fill="#037DFF"
                       />
                     </svg>
->>>>>>> origin/builder-sync
                     AI Usage Insight
                   </span>
                 </th>
@@ -2020,13 +1835,22 @@ const safeBills = Array.isArray(bills)
               </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
-              {mappedBills.map((bill, index) => (
+            {mappedBills
+              .slice(
+                (billsCurrentPage - 1) * billsItemsPerPage,
+                billsCurrentPage * billsItemsPerPage,
+              )
+              .map((bill, index) => (
                 <tr
                   key={bill.id}
                   className={cn(
                     "hover:bg-gray-50 transition-colors h-12",
-                    index === safeBills.length - 1
+                    index ===
+                      mappedBills.slice(
+                        (billsCurrentPage - 1) * billsItemsPerPage,
+                        billsCurrentPage * billsItemsPerPage,
+                      ).length -
+                        1
                       ? "border-b-0"
                       : "border-b border-gray-200",
                   )}
@@ -2041,14 +1865,19 @@ const safeBills = Array.isArray(bills)
                       </span>
                     </div>
                   </td>
+
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {bill.date}
                     </span>
                   </td>
+
                   <td className="px-3 py-3 border-r border-gray-200">
-                    <AIInsightBadge insight={bill.aiUsageInsight as "Normal" | "High" | "Low"} />
+                    <AIInsightBadge
+                      insight={bill.aiUsageInsight as "Normal" | "High" | "Low"}
+                    />
                   </td>
+
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span
                       className={cn(
@@ -2061,14 +1890,19 @@ const safeBills = Array.isArray(bills)
                       {bill.changeFromLastBill}
                     </span>
                   </td>
+
                   <td className="px-3 py-3 border-r border-gray-200">
-                    <BillStatusBadge status={bill.status as "Pushed" | "Push Failed"} />
+                    <BillStatusBadge
+                      status={bill.status as "Pushed" | "Push Failed"}
+                    />
                   </td>
+
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
                       {bill.amount}
                     </span>
                   </td>
+
                   <td
                     className="sticky right-0 px-2 py-3 flex items-center justify-center"
                     style={{
@@ -2078,87 +1912,16 @@ const safeBills = Array.isArray(bills)
                         "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
                       borderLeftColor: "transparent",
                     }}
-=======
-              {bills
-                .slice(
-                  (billsCurrentPage - 1) * billsItemsPerPage,
-                  billsCurrentPage * billsItemsPerPage,
-                )
-                .map((bill, index) => (
-                  <tr
-                    key={bill.id}
-                    className={cn(
-                      "hover:bg-gray-50 transition-colors h-12",
-                      index ===
-                        bills.slice(
-                          (billsCurrentPage - 1) * billsItemsPerPage,
-                          billsCurrentPage * billsItemsPerPage,
-                        ).length -
-                          1
-                        ? "border-b-0"
-                        : "border-b border-gray-200",
-                    )}
->>>>>>> origin/builder-sync
                   >
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                          {bill.icon}
-                        </div>
-                        <span className="text-gray-900 font-normal text-base">
-                          {bill.provider}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {bill.date}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <AIInsightBadge insight={bill.aiUsageInsight} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span
-                        className={cn(
-                          "text-sm font-medium",
-                          bill.changeFromLastBill.startsWith("↑")
-                            ? "text-red-600"
-                            : "text-green-600",
-                        )}
-                      >
-                        {bill.changeFromLastBill}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <BillStatusBadge status={bill.status} />
-                    </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
-                        {bill.amount}
-                      </span>
-                    </td>
-                    <td
-                      className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                      style={{
-                        borderLeftWidth: "2px",
-                        width: "80px",
-                        border:
-                          "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                        borderLeftColor: "transparent",
-                      }}
-                    >
-                      <ActionButton
-                        propertyId={bill.id}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
-                        onView={() => {
-                          navigate("/utilities/view-bill?readOnly=true");
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                    <ActionButton
+                      propertyId={bill.id}
+                      openMenuId={openBillsMenuId}
+                      setOpenMenuId={setOpenBillsMenuId}
+                      onView={() => navigate(`/bills/${bill.id}`)}  
+                    />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -2341,13 +2104,11 @@ const safeBills = Array.isArray(bills)
           </div>
         </div>
       </div>
-<<<<<<< HEAD
       {showCreateModal && propertyId && (
         <CreateAccountModal
           propertyId={Number(propertyId)}
           onClose={() => setShowCreateModal(false)}
           onCreated={(_acct) => {
-            // re-fetch accounts so the new one shows up
             queryClient.invalidateQueries({
               queryKey: ["utility-accounts", propertyId],
             });
@@ -2355,9 +2116,8 @@ const safeBills = Array.isArray(bills)
           }}
         />
       )}
-=======
 
-      {/* Dropdown Menu - Rendered via Portal at body level */}
+      {/* Bills Page Size Dropdown (UI enhancement from builder-sync) */}
       {showBillsPageSizeDropdown &&
         createPortal(
           <div
@@ -2392,10 +2152,10 @@ const safeBills = Array.isArray(bills)
               </button>
             ))}
           </div>,
-          document.body,
+          document.body
         )}
 
-      {/* Edit/Add Utility Account Modal */}
+      {/* Edit Utility Account Modal */}
       <EditUtilityAccountModal
         open={isEditUtilityModalOpen}
         onOpenChange={(open) => {
@@ -2418,7 +2178,6 @@ const safeBills = Array.isArray(bills)
             : null
         }
       />
->>>>>>> origin/builder-sync
     </div>
   );
 };
