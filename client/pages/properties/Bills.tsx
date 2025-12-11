@@ -24,6 +24,7 @@ interface Bill {
   invoiceNumber: string;
   amount: number;
   glAccount: string;
+  importedAt: number;
 }
 
 const bills: Bill[] = [
