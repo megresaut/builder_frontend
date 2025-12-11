@@ -26,16 +26,16 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    # 🛑 Must build SPA-only
+    # Build SPA only
     - name: Build frontend
-      run: npm run build   # must NOT build SSR
+      run: npm run build
 
-    # Deploy dist/ to server
+    # Deploy dist/spa -> OVH
     - name: Sync dist to OVH
       run: |
         rsync -avz --delete \
           -e "ssh -i ~/.ssh/ovh_ci_key -o StrictHostKeyChecking=no" \
-          dist/ \
+          dist/spa/ \
           "${{ secrets.OVH_USER }}@${{ secrets.OVH_HOST }}:/srv/ra-avm-test/frontend/dist"
 
     - name: Reload Caddy
