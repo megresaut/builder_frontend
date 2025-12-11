@@ -363,7 +363,7 @@ const ActionButton = ({
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   }}
                 >
-                  View Bill
+                  Edit Bill
                 </span>
                 <svg
                   width="18"
