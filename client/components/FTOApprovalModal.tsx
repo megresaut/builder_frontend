@@ -464,13 +464,13 @@ export default function FTOApprovalModal({
                     <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
                   </div>
                   <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" />
+                    <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
                   </div>
                   <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" />
+                    <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
                   </div>
                   <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
+                    <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
                   </div>
                   <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
                     <DropdownMenu>
