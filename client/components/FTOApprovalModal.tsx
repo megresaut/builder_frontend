@@ -255,69 +255,13 @@ export default function FTOApprovalModal({
   open,
   onOpenChange,
   selectedFTOId,
+  property = "3 hekma Road",
+  unit = "2",
+  fieldTeamAssignee = "John Smith",
 }: FTOApprovalModalProps) {
-  const [hourRows, setHourRows] = useState<HourRow[]>([
-    {
-      id: "1",
-      date: "10/02/2025",
-      hours: "2",
-      note: "ConEd - 1,220 kWh",
-      noFee: false,
-      emergency: false,
-      amount: "$420",
-      upcharge: "$20",
-    },
-    {
-      id: "2",
-      date: "10/02/2025",
-      hours: "1",
-      note: "Unit 48 Thermostat",
-      noFee: false,
-      emergency: false,
-      amount: "$440",
-      upcharge: "$0",
-    },
-    {
-      id: "3",
-      date: "10/02/2025",
-      hours: "2",
-      note: "Tools for common area",
-      noFee: false,
-      emergency: false,
-      amount: "$440",
-      upcharge: "$0",
-    },
-  ]);
+  const [hourRows, setHourRows] = useState<HourRow[]>([]);
 
-  const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([
-    {
-      id: "1",
-      date: "10/02/2025",
-      vendor: "Dolce",
-      receiptNote: "ConEd - 1,220 kWh",
-      avmExpense: false,
-      amount: "$420",
-      upcharge: "$20",
-    },
-    {
-      id: "2",
-      date: "10/02/2025",
-      vendor: "N/A",
-      receiptNote: "Unit 48 Thermostat",
-      avmExpense: false,
-      amount: "$440",
-      upcharge: "$0",
-    },
-    {
-      id: "3",
-      date: "10/02/2025",
-      vendor: "Dolce",
-      receiptNote: "Tools for common area",
-      avmExpense: false,
-      amount: "$440",
-      upcharge: "$0",
-    },
-  ]);
+  const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
