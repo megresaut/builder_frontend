@@ -541,8 +541,9 @@ export default function Bills() {
     }, 1500);
   };
 
-  const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
-  const totalBills = approvedBills.length;
+  const approvedBills = billsList.filter((_, idx) => idx % 2 === 0);
+  const displayedBills = selectedTab === "approved" ? approvedBills : billsList;
+  const totalBills = displayedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
 
   const getPaginationNumbers = () => {
