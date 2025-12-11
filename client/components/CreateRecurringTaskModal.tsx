@@ -288,7 +288,12 @@ export default function CreateRecurringTaskModal({
             <div className="relative">
               <Input
                 value={taskName}
-                onChange={(e) => setTaskName(e.target.value)}
+                onChange={(e) => {
+                  setTaskName(e.target.value);
+                  if (errors.taskName && e.target.value.trim()) {
+                    setErrors((prev) => ({ ...prev, taskName: false }));
+                  }
+                }}
                 placeholder="Type Task Name"
                 className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] placeholder:normal-case pr-10 ${
                   errors.taskName ? "border-red-500 border-2" : "border-[#E5E5E5]"
