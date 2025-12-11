@@ -654,6 +654,7 @@ export default function TaskSummary() {
           {/* Show WorkOrdersTab component when work orders tab is active */}
           {activeTab === "workorders" && (
             <WorkOrdersTab
+              taskId={taskId}
               initialSelectedWorkOrderId={selectedWorkOrderId}
               onWorkOrderSelect={handleWorkOrderSelect}
             />
