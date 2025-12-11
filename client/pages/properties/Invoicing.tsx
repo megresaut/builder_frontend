@@ -474,7 +474,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                   className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
                 />
               </div>
-              <div className="rounded-lg bg-[#013764] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
+              <div className="rounded-lg bg-[#013764] border border-white flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/4d88fa44d294755ce2b939b087c7b7ff1178d34e?placeholderIfAbsent=true"
@@ -730,7 +730,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               </div>
             </div>
             <div className="flex items-start gap-2.5">
-              <div className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
+              <div className="rounded-lg bg-[#013764] border border-white flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
                 <div className="text-white font-medium text-base">
                   Preview PDF
                 </div>
@@ -775,7 +775,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                   alt=""
                 />
               </div>
-              <div className="rounded-lg bg-[#013764] shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
+              <div className="rounded-lg bg-[#013764] border border-white flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
                 <div className="text-white font-medium text-base">
                   Export to Buildium
                 </div>
