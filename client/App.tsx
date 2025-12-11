@@ -97,26 +97,18 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/bills/record"
+                  element={
+                    <BareLayout>
+                      <RecordBill />
+                    </BareLayout>
+                  }
+                />
+                <Route
                   path="/bills"
                   element={
                     <ShellLayout>
                       <Bills />
-                    </ShellLayout>
-                  }
-                />
-                <Route
-                  path="/all-properties"
-                  element={
-                    <ShellLayout>
-                      <AllProperties />
-                    </ShellLayout>
-                  }
-                />
-                <Route
-                  path="/utilities"
-                  element={
-                    <ShellLayout>
-                      <Utilities />
                     </ShellLayout>
                   }
                 />
@@ -129,18 +121,18 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/property/:propertyId"
+                  path="/utilities"
                   element={
                     <ShellLayout>
-                      <PropertyDetail />
+                      <Utilities />
                     </ShellLayout>
                   }
                 />
                 <Route
-                  path="/property/:propertyId/:tab"
+                  path="/all-properties"
                   element={
                     <ShellLayout>
-                      <PropertyDetail />
+                      <AllProperties />
                     </ShellLayout>
                   }
                 />
@@ -153,11 +145,19 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/bills/record"
+                  path="/property/:propertyId/:tab"
                   element={
-                    <BareLayout>
-                      <RecordBill />
-                    </BareLayout>
+                    <ShellLayout>
+                      <PropertyDetail />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/property/:propertyId"
+                  element={
+                    <ShellLayout>
+                      <PropertyDetail />
+                    </ShellLayout>
                   }
                 />
                 <Route
