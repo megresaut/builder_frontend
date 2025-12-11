@@ -120,7 +120,7 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : taskId)}
+        onClick={() => setOpenMenuId(showMenu ? null : workOrderId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
