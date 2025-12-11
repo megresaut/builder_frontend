@@ -980,7 +980,12 @@ const DEFAULT_UTILITY_COLUMNS: UtilityColumn[] = [
         if (diffHours < 24) return `${diffHours}h ago`;
         return `${diffDays}d ago`;
       };
-      return getTimeAgoForRender(account.lastImport);
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500" />
+          <span>{getTimeAgoForRender(account.lastImport)}</span>
+        </div>
+      );
     },
   },
 ];
