@@ -22,6 +22,25 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const lastTabIdRef = useRef<string>();
+  const [isFullscreen, setIsFullscreen] = useState(getFullscreenMode());
+
+  // Listen for fullscreen mode changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsFullscreen(getFullscreenMode());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    // Also check periodically in case storage was updated in the same tab
+    const interval = setInterval(() => {
+      setIsFullscreen(getFullscreenMode());
+    }, 100);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Get the current tab ID based on the route
   const getCurrentTabId = (): string => {
