@@ -1615,9 +1615,6 @@ export default function TaskSummary() {
                             </div>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <StatusBadge status={order.status as any} />
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             {getFTOStatusBadge(order.status)}
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
