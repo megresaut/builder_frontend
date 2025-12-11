@@ -792,14 +792,17 @@ export default function MaintenanceWorkOrders() {
                             </span>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                                workOrder.status === "Completed"
-                                  ? "bg-emerald-100 text-emerald-600"
-                                  : "bg-blue-100 text-blue-600"
-                              }`}
-                            >
-                              {workOrder.status}
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    workOrder.status === "Completed" ? "#059669" : "#2463EB",
+                                }}
+                              />
+                              <span className="text-gray-900 font-normal text-sm capitalize">
+                                {workOrder.status}
+                              </span>
                             </div>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
