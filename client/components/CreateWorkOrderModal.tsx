@@ -108,7 +108,7 @@ export default function CreateWorkOrderModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", { task, dueDate, priority, status });
+      console.log("Form submitted", { property, addToTask, task, vendor, dueDate, priority, status });
       onOpenChange(false);
     }
   };
