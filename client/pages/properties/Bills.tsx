@@ -477,6 +477,21 @@ export const Bills: React.FC<BillsProps> = ({
   }, [approvedTimestamp, draftsTimestamp]);
 
   useEffect(() => {
+    const handleStorageChange = () => {
+      const timestamp = sessionStorage.getItem('approvedBillTimestamp');
+      if (timestamp) {
+        setApprovedTimestamp(parseInt(timestamp, 10));
+        sessionStorage.removeItem('approvedBillTimestamp');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    handleStorageChange();
+
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  useEffect(() => {
     let animationFrameId: number;
 
     const updateDropdownPos = () => {
