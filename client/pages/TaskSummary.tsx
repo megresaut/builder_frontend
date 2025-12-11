@@ -34,6 +34,16 @@ interface FieldTeamOrder {
   amount: number;
 }
 
+const getRandomTimesheetStatus = (): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
+  const statuses: ("awaiting-submission" | "submitted" | "rejected" | "approved")[] = [
+    "awaiting-submission",
+    "submitted",
+    "rejected",
+    "approved",
+  ];
+  return statuses[Math.floor(Math.random() * statuses.length)];
+};
+
 const fieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
@@ -47,6 +57,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
     ],
     status: "dispatched",
+    timesheetStatus: getRandomTimesheetStatus(),
     amount: 420,
   },
   {
