@@ -1,8 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useTabContext } from "@/hooks/useTabContext";
+
+const FULLSCREEN_KEY = "app-fullscreen-mode";
+const getFullscreenMode = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(FULLSCREEN_KEY) === "true";
+  }
+  return false;
+};
 
 interface ShellLayoutProps {
   children?: React.ReactNode;
