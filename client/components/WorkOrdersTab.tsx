@@ -724,29 +724,39 @@ export default function WorkOrdersTab({
                       </span>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                          workOrder.priority === "High"
-                            ? "bg-[#fef3c7] text-[#d97706]"
-                            : workOrder.priority === "Low"
-                              ? "bg-[#d1fae5] text-[#059669]"
-                              : "bg-[#dbe9fe] text-[#2463eb]"
-                        }`}
-                      >
-                        {workOrder.priority}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              workOrder.priority === "High"
+                                ? "#D97706"
+                                : workOrder.priority === "Low"
+                                  ? "#059669"
+                                  : "#2463EB",
+                          }}
+                        />
+                        <span className="text-gray-900 font-normal text-sm capitalize">
+                          {workOrder.priority}
+                        </span>
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                          workOrder.billStatus === "Paid"
-                            ? "bg-green-100 text-green-600"
-                            : workOrder.billStatus === "Unpaid"
-                              ? "bg-red-100 text-red-600"
-                              : "bg-yellow-100 text-yellow-600"
-                        }`}
-                      >
-                        {workOrder.billStatus}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              workOrder.billStatus === "Paid"
+                                ? "#059669"
+                                : workOrder.billStatus === "Unpaid"
+                                  ? "#DC2626"
+                                  : "#D97706",
+                          }}
+                        />
+                        <span className="text-gray-900 font-normal text-sm capitalize">
+                          {workOrder.billStatus}
+                        </span>
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
