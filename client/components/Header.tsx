@@ -948,16 +948,16 @@ export default function Header() {
       )}
 
       {/* Navigation & Search Section */}
-      {!isFullscreen && (
       <div
         className="flex items-center justify-between px-6 py-4 gap-6"
         style={{
           borderColor: "rgb(210, 209, 207)",
           borderWidth: "1px",
           borderRightWidth: "0px",
-          borderBottomWidth: "1px",
+          borderBottomWidth: isFullscreen ? "0px" : "1px",
         }}
       >
+        {!isFullscreen && (
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Navigation Buttons */}
           <button
@@ -1030,6 +1030,8 @@ export default function Header() {
             ))}
           </div>
         </div>
+        )}
+        {isFullscreen && <div className="flex-1" />}
 
         {/* Search and Actions */}
         <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
@@ -1140,7 +1142,6 @@ export default function Header() {
           </button>
         </div>
       </div>
-      )}
     </header>
   );
 }
