@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
+import { formatRelativeTime } from "@/lib/timeUtils";
 
 interface Bill {
   id: number;
