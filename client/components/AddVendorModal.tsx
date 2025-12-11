@@ -51,8 +51,12 @@ export default function AddVendorModal({
                 Vendor Name <span className="text-red-600">*</span>
               </label>
               <Input
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
                 placeholder="Input Vendor Name"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                className={`h-10 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] ${
+                  errors.vendorName ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                }`}
               />
             </div>
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
