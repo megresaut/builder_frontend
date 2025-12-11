@@ -13,8 +13,8 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:client",
-    "build:client": "vite build",
-    "start": "node dist/server/node-build.mjs",
+    "build:client": "vite build --config vite.config.js",
+    "start": "echo 'SPA build — no server needed'",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
