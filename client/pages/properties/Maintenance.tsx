@@ -725,7 +725,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               setShowCreateFTOModal(true);
             }
           }}
-          className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] text-white font-medium text-base overflow-hidden transition-colors hover:bg-[#002D5A]"
+          className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg border border-white bg-[#013764] text-white font-medium text-base overflow-hidden transition-colors hover:bg-[#002D5A]"
           style={{ boxShadow: "0px 0px 0px 1px #002D5A" }}
         >
           <img
