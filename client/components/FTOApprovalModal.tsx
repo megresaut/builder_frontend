@@ -390,10 +390,7 @@ export default function FTOApprovalModal({
 
             {/* Hours Table */}
             <div className="border-t border-[#dadada] overflow-x-auto">
-              <div className="inline-grid gap-0 min-w-full" style={{
-                gridTemplateColumns: `118px 76px 1fr 80px 105px 88px 96px 78px 78px`,
-                gridAutoRows: 'max-content'
-              }}>
+              <div className="inline-flex min-w-full">
                 {/* Date Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[118px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
@@ -404,15 +401,13 @@ export default function FTOApprovalModal({
                   {hourRows.map((row) => (
                     <div
                       key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-stretch"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
                     >
-                      <div className="flex items-center flex-1">
-                        <EditableCell
-                          value={row.date}
-                          onChange={(value) => updateHourRow(row.id, "date", value)}
-                          type="date"
-                        />
-                      </div>
+                      <EditableCell
+                        value={row.date}
+                        onChange={(value) => updateHourRow(row.id, "date", value)}
+                        type="date"
+                      />
                     </div>
                   ))}
                 </div>
