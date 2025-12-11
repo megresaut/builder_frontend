@@ -74,6 +74,7 @@ export default function CreateRecurringTaskModal({
     top: 0,
     left: 0,
   });
+  const [errors, setErrors] = useState<{ taskName?: boolean; startDate?: boolean }>({});
 
   useEffect(() => {
     if (editData) {
