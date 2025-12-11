@@ -6,7 +6,7 @@ import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import { usePageState } from "@/hooks/usePageState";
 
-
+const API_BASE = "/api";
 export function StatusBadge({ status }: { status: string }) {
   // Normalize
   const s = status?.toLowerCase();
@@ -342,7 +342,7 @@ export default function FieldTeamOrders() {
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/maintenance/ftos")
+    fetch(`${API_BASE}/maintenance/ftos`)
       .then((res) => res.json())
       .then((data) => setFieldTeamOrders(data))
       .catch((err) => console.error("Failed to load FTOs:", err));

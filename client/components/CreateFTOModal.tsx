@@ -32,6 +32,8 @@ interface CreateFTOModalProps {
   };
 }
 
+const API_BASE = "/api";
+
 // --- Simple DTOs for dropdowns (same shape as FTOModal) ---
 type SimpleTask = { id: number; name: string };
 type SimpleProperty = {
@@ -268,7 +270,7 @@ export default function CreateFTOModal({
 
     setLoading(true);
 
-    fetch(`http://localhost:8080/maintenance/ftos/${editingFTOId}`)
+    fetch(`${API_BASE}/maintenance/ftos/${editingFTOId}`)
       .then((res) => res.json())
       .then((data) => {
         setTaskName(data.name || "");
