@@ -22,8 +22,24 @@ export default function AddVendorModal({
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [servicesProvided, setServicesProvided] = useState("");
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: boolean }>({});
+
+  const services = [
+    "HVAC",
+    "Plumbing",
+    "Electrical",
+    "Carpentry",
+    "Roofing",
+    "Painting",
+    "Flooring",
+    "Landscaping",
+    "Pest Control",
+    "Security Systems",
+    "Appliance Repair",
+    "General Maintenance",
+  ];
 
   const validateForm = (): boolean => {
     const newErrors: { vendorName?: boolean } = {};
