@@ -81,6 +81,38 @@ export default function CreateFTOModal({
     }
   }, [editData]);
 
+  const validateForm = (): boolean => {
+    const newErrors: {
+      ftoName?: boolean;
+      dueDate?: boolean;
+      selectedAssignees?: boolean;
+    } = {};
+    if (!ftoName.trim()) {
+      newErrors.ftoName = true;
+    }
+    if (!dueDate.trim()) {
+      newErrors.dueDate = true;
+    }
+    if (selectedAssignees.length === 0) {
+      newErrors.selectedAssignees = true;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log("Form submitted", {
+        ftoName,
+        dueDate,
+        priority,
+        ftoStatus,
+        selectedAssignees,
+      });
+      onOpenChange(false);
+    }
+  };
+
   useEffect(() => {
     let animationFrameId: number;
 
