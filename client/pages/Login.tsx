@@ -1,3 +1,4 @@
+import { loginRequest } from "@/api/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -38,16 +39,29 @@ export const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrors({});
+  
+    try {
+      const result = await loginRequest(formData.email, formData.password);
+  
+      // Save token
+      localStorage.setItem("avm_token", result.token);
+      localStorage.setItem("avm_role", result.role);
+  
+      // Navigate to main app
       navigate("/all-properties");
-    }, 1500);
+    } catch (err: any) {
+      setErrors({ password: "Invalid email or password" });
+    } finally {
+      setIsLoading(false);
+    }
   };
+  
+      
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -310,7 +324,7 @@ export const Login = () => {
 
           {/* Sign Up Info */}
           <div className="mt-8 text-center border-t border-gray-200 pt-8">
-            <p className="text-lg text-gray-600 flex items-center justify-center gap-2">
+            <div className="text-lg text-gray-600 flex items-center justify-center gap-2">    
               Don't have an account?
               <div className="relative">
                 <button
@@ -328,7 +342,7 @@ export const Login = () => {
                   </div>
                 )}
               </div>
-            </p>
+            </div>  
           </div>
 
           {/* Footer Links */}
@@ -370,10 +384,10 @@ export const Login = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Reset Password
             </h2>
-            <p className="text-gray-600 mb-6">
+            <div className="text-gray-600 mb-6">
               Enter your email address and we'll send you instructions to reset
               your password.
-            </p>
+            </div>
 
             {forgotPasswordSuccess ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
