@@ -215,6 +215,7 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
+        data-bill-actions-trigger="true"
         onClick={() => setOpenMenuId(showMenu ? null : billId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
@@ -237,6 +238,7 @@ const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
+            data-bill-actions-menu="true"
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
@@ -491,7 +493,17 @@ export default function Bills() {
   }, [showPageSizeDropdown]);
 
   useEffect(() => {
-    const handleClickAnywhere = () => {
+    const handleClickAnywhere = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const isInActionsMenu = target.closest('[data-bill-actions-menu="true"]');
+      const isInActionsTrigger = target.closest('[data-bill-actions-trigger="true"]');
+
+      if (isInActionsMenu || isInActionsTrigger) {
+        return;
+      }
+
       setOpenMenuId(null);
     };
 
