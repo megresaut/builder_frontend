@@ -1039,6 +1039,16 @@ export default function Bills() {
                               ${bill.amount}
                             </span>
                           </td>
+                          {selectedTab === "drafts" && (
+                            <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500" />
+                                <span className="text-gray-900 font-normal text-base">
+                                  {getTimeAgo(bill.importedAt)}
+                                </span>
+                              </div>
+                            </td>
+                          )}
                           <td
                             className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                             style={{
