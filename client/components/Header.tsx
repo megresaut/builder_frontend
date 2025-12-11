@@ -955,7 +955,7 @@ export default function Header() {
           borderWidth: "1px",
           borderRightWidth: "0px",
           borderBottomWidth: isFullscreen ? "0px" : "1px",
-          padding: "0 24px",
+          padding: "12px 24px",
         }}
       >
         {!isFullscreen && (
