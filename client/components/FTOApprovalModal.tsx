@@ -294,10 +294,11 @@ export default function FTOApprovalModal({
   property = "3 hekma Road",
   unit = "2",
   fieldTeamAssignee = "John Smith",
+  rowId,
 }: FTOApprovalModalProps) {
   const [hourRows, setHourRows] = useState<HourRow[]>([]);
-
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
