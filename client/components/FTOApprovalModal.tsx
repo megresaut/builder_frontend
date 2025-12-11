@@ -616,10 +616,10 @@ export default function FTOApprovalModal({
               {/* Rows */}
               {expenseRows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <div className={`px-3 py-3 border-b border-r flex items-center ${isExpenseFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
                     <EditableCell value={row.date} onChange={(value) => updateExpenseRow(row.id, "date", value)} type="date" />
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <div className={`px-3 py-3 border-b border-r flex items-center ${isExpenseFieldMissing(row, "vendor") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
                     <Select value={row.vendor} onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}>
                       <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
                         <SelectValue />
@@ -633,7 +633,7 @@ export default function FTOApprovalModal({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <div className={`px-3 py-3 border-b border-r flex items-center ${isExpenseFieldMissing(row, "receiptNote") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}>
                     <EditableCell value={row.receiptNote} onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)} type="text" placeholder="Enter receipt note" />
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
@@ -645,7 +645,7 @@ export default function FTOApprovalModal({
                       <Paperclip className="w-4 h-4 text-[#303030]" />
                     </button>
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
+                  <div className={`px-3 py-3 border-b border-r flex items-center justify-center ${isExpenseFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`} style={{ pointerEvents: "auto" }}>
                     <div className="text-lg" style={{ pointerEvents: "auto" }}><EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
                   </div>
                   <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
