@@ -278,12 +278,21 @@ export default function WorkOrderDetail() {
                   Priority
                 </label>
                 <div className="inline-flex w-fit">
-                  <div
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityColor(
-                      workOrder.priority,
-                    )}`}
-                  >
-                    {workOrder.priority}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          workOrder.priority === "High"
+                            ? "#D97706"
+                            : workOrder.priority === "Low"
+                              ? "#059669"
+                              : "#2463EB",
+                      }}
+                    />
+                    <span className="text-sm text-gray-900">
+                      {workOrder.priority}
+                    </span>
                   </div>
                 </div>
               </div>
