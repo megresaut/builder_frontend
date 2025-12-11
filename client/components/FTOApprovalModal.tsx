@@ -46,6 +46,7 @@ interface FTOApprovalModalProps {
   unit?: string;
   fieldTeamAssignee?: string;
   rowId?: string;
+  editingOrder?: any;
 }
 
 const VENDORS = ["Dolce", "N/A", "Home Depot", "Ace Hardware"];
@@ -178,7 +179,10 @@ function EditableCell({ value, onChange, type, placeholder }: EditableCellProps)
     return (
       <div
         className="w-full h-full flex items-center px-0 cursor-text hover:bg-[#f5f5f5] transition-colors"
-        onClick={() => setIsEditing(true)}
+        onClick={() => {
+          setIsEditing(true);
+          setInputValue(value === "$0" || value === "$0.00" ? "" : value);
+        }}
       >
         {isEditing ? (
           <input
@@ -193,6 +197,8 @@ function EditableCell({ value, onChange, type, placeholder }: EditableCellProps)
             onBlur={() => {
               if (inputValue && validateAmount(inputValue)) {
                 onChange(formatCurrency(inputValue));
+              } else if (inputValue === "") {
+                onChange("$0");
               } else {
                 setInputValue(value);
               }
@@ -202,6 +208,8 @@ function EditableCell({ value, onChange, type, placeholder }: EditableCellProps)
               if (e.key === "Enter") {
                 if (inputValue && validateAmount(inputValue)) {
                   onChange(formatCurrency(inputValue));
+                } else if (inputValue === "") {
+                  onChange("$0");
                 }
                 setIsEditing(false);
               }
@@ -260,10 +268,21 @@ export default function FTOApprovalModal({
   unit = "2",
   fieldTeamAssignee = "John Smith",
   rowId,
+  editingOrder,
 }: FTOApprovalModalProps) {
   const [hourRows, setHourRows] = useState<HourRow[]>([]);
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
   const [pdfOpen, setPdfOpen] = useState(false);
+
+  // Initialize rows when editingOrder changes
+  React.useEffect(() => {
+    if (editingOrder && open) {
+      // Initialize with data from editingOrder if available
+      // For now, we start fresh but with proper state
+      setHourRows([]);
+      setExpenseRows([]);
+    }
+  }, [editingOrder, open]);
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
