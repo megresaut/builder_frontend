@@ -303,7 +303,7 @@ export const RecordBill = () => {
       return;
     }
 
-    sessionStorage.setItem('approvedBillTimestamp', Date.now().toString());
+    window.dispatchEvent(new CustomEvent('billApproved', { detail: { timestamp: Date.now() } }));
     navigate(-1);
   };
 
