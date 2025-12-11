@@ -877,14 +877,10 @@ export default function FieldTeamOrders() {
                           <StatusBadge status={order.status as any} />
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
-                            {order.status === "pending-approval" ? "New" : order.status === "dispatched" ? "Dispatched" : order.status === "approved" ? "Completed" : "Pending Approval"}
-                          </span>
+                          {getFTOStatusBadge(order.status)}
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
-                            Awaiting Submission
-                          </span>
+                          {getTimesheetStatusBadge("awaiting-submission")}
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <span className="text-gray-900 font-normal text-base">
