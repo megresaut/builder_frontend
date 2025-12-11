@@ -908,12 +908,21 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityBadgeColor(
-                            task.priority,
-                          )}`}
-                        >
-                          {task.priority}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                task.priority === "High"
+                                  ? "#D97706"
+                                  : task.priority === "Low"
+                                    ? "#059669"
+                                    : "#2463EB",
+                            }}
+                          />
+                          <span className="text-gray-900 font-normal text-sm capitalize">
+                            {task.priority}
+                          </span>
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
