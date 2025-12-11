@@ -449,9 +449,7 @@ export default function TaskSummary() {
 
   // Sync selectedWorkOrderId with URL params
   useEffect(() => {
-    if (workOrderId) {
-      setSelectedWorkOrderId(parseInt(workOrderId));
-    }
+    setSelectedWorkOrderId(workOrderId ? parseInt(workOrderId) : null);
   }, [workOrderId]);
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
@@ -459,11 +457,12 @@ export default function TaskSummary() {
   };
 
   const handleWorkOrderSelect = (woId: number | null) => {
-    if (woId) {
-      navigate(`/tasks/${taskId}/${tab}/${woId}`);
-    } else {
-      navigate(`/tasks/${taskId}/${tab}`);
+    if (woId !== null) {
+      navigate(`/tasks/${taskId}/workorders/${woId}`);
+      return;
     }
+
+    navigate(`/tasks/${taskId}/workorders`);
   };
   const [messageText, setMessageText] = useState("");
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
