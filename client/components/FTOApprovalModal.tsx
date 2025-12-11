@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Trash2, Calendar } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface HourRow {
@@ -388,235 +388,74 @@ export default function FTOApprovalModal({
               </button>
             </div>
 
-            {/* Hours Table */}
-            <div className="border-t border-[#dadada] overflow-x-auto">
-              <div
-                className="grid gap-0 min-w-full"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '118px 76px 1fr 80px 105px 88px 96px 78px 78px',
-                  gridAutoRows: 'minmax(min-content, auto)'
-                }}
-              >
-                {/* Date Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[118px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Date
-                    </span>
-                  </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
-                    >
-                      <EditableCell
-                        value={row.date}
-                        onChange={(value) => updateHourRow(row.id, "date", value)}
-                        type="date"
-                      />
-                    </div>
-                  ))}
-                </div>
+            {/* Hours Table - CSS Grid */}
+            <div
+              className="border-t border-[#dadada] grid overflow-x-auto"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '118px 76px 1fr 80px 105px 88px 96px 78px 78px',
+                gridAutoRows: 'minmax(min-content, auto)'
+              }}
+            >
+              {/* Headers */}
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Date</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Hours</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Note</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">NoFee?</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Emergency</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Amount</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Upcharge</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Total</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252]">Actions</div>
 
-                {/* Hours Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[76px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Hours
-                    </span>
+              {/* Rows */}
+              {hourRows.map((row) => (
+                <>
+                  <div key={`${row.id}-date`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                    <EditableCell value={row.date} onChange={(value) => updateHourRow(row.id, "date", value)} type="date" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
-                    >
-                      <EditableCell
-                        value={row.hours}
-                        onChange={(value) => updateHourRow(row.id, "hours", value)}
-                        type="number"
-                        placeholder="e.g., 2 or 2.5"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Note Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[194px] flex-1">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Note
-                    </span>
+                  <div key={`${row.id}-hours`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                    <EditableCell value={row.hours} onChange={(value) => updateHourRow(row.id, "hours", value)} type="number" placeholder="e.g., 2 or 2.5" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
-                    >
-                      <EditableCell
-                        value={row.note}
-                        onChange={(value) => updateHourRow(row.id, "note", value)}
-                        type="text"
-                        placeholder="Enter note"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* No Fee Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[80px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      NoFee?
-                    </span>
+                  <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                    <EditableCell value={row.note} onChange={(value) => updateHourRow(row.id, "note", value)} type="text" placeholder="Enter note" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <Checkbox
-                        checked={row.noFee}
-                        onCheckedChange={(checked) =>
-                          updateHourRow(row.id, "noFee", checked)
-                        }
-                        className="w-[14px] h-[14px]"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Emergency Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[105px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Emergency
-                    </span>
+                  <div key={`${row.id}-nofee`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <Checkbox checked={row.noFee} onCheckedChange={(checked) => updateHourRow(row.id, "noFee", checked)} className="w-[14px] h-[14px]" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <Checkbox
-                        checked={row.emergency}
-                        onCheckedChange={(checked) =>
-                          updateHourRow(row.id, "emergency", checked)
-                        }
-                        className="w-[14px] h-[14px]"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Amount Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[88px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Amount
-                    </span>
+                  <div key={`${row.id}-emergency`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <EditableCell
-                        value={row.amount}
-                        onChange={(value) => updateHourRow(row.id, "amount", value)}
-                        type="currency"
-                        placeholder="$0"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Upcharge Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[96px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Upcharge
-                    </span>
+                  <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <EditableCell
-                        value={row.upcharge}
-                        onChange={(value) => updateHourRow(row.id, "upcharge", value)}
-                        type="currency"
-                        placeholder="$0"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Total Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[78px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Total
-                    </span>
+                  <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" />
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                        ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Actions Column */}
-                <div className="flex flex-col min-w-[78px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Actions
-                    </span>
+                  <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <span className="text-[#303030] font-normal text-base">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
                   </div>
-                  {hourRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
+                  <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="1" />
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
                           </svg>
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => deleteHourRow(row.id)}
-                            className="text-red-600 cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => deleteHourRow(row.id)} className="text-red-600 cursor-pointer">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </>
+              ))}
             </div>
           </div>
         </div>
@@ -666,214 +505,81 @@ export default function FTOApprovalModal({
               </button>
             </div>
 
-            {/* Expenses Table */}
-            <div className="border-t border-[#dadada] overflow-x-auto">
-              <div className="inline-flex min-w-full [&>div>div]:flex [&>div>div]:flex-col [&>div>div>div]:flex [&>div>div>div]:items-stretch">
-                {/* Date Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[97px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Date
-                    </span>
-                  </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
-                    >
-                      <EditableCell
-                        value={row.date}
-                        onChange={(value) => updateExpenseRow(row.id, "date", value)}
-                        type="date"
-                      />
-                    </div>
-                  ))}
-                </div>
+            {/* Expenses Table - CSS Grid */}
+            <div
+              className="border-t border-[#dadada] grid overflow-x-auto"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '97px 113px 1fr 114px 85px 80px 56px 64px',
+                gridAutoRows: 'minmax(min-content, auto)'
+              }}
+            >
+              {/* Headers */}
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Date</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Vendor</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Receipt Note</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">AVM Expense?</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Amount</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Upcharge</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252]">Total</div>
+              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252]">Actions</div>
 
-                {/* Vendor Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[113px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Vendor
-                    </span>
+              {/* Rows */}
+              {expenseRows.map((row) => (
+                <>
+                  <div key={`${row.id}-date`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                    <EditableCell value={row.date} onChange={(value) => updateExpenseRow(row.id, "date", value)} type="date" />
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
-                    >
-                      <Select
-                        value={row.vendor}
-                        onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}
-                      >
-                        <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {VENDORS.map((vendor) => (
-                            <SelectItem key={vendor} value={vendor}>
-                              {vendor}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Receipt Note Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[177px] flex-1">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Receipt Note
-                    </span>
+                  <div key={`${row.id}-vendor`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                    <Select value={row.vendor} onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}>
+                      <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VENDORS.map((vendor) => (
+                          <SelectItem key={vendor} value={vendor}>
+                            {vendor}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
-                    >
-                      <EditableCell
-                        value={row.receiptNote}
-                        onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)}
-                        type="text"
-                        placeholder="Enter receipt note"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* AVM Expense Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[114px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      AVM Expense?
-                    </span>
+                  <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                    <EditableCell value={row.receiptNote} onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)} type="text" placeholder="Enter receipt note" />
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <Checkbox
-                        checked={row.avmExpense}
-                        onCheckedChange={(checked) =>
-                          updateExpenseRow(row.id, "avmExpense", checked)
-                        }
-                        className="w-[14px] h-[14px]"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Amount Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[85px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Amount
-                    </span>
+                  <div key={`${row.id}-avm`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <Checkbox checked={row.avmExpense} onCheckedChange={(checked) => updateExpenseRow(row.id, "avmExpense", checked)} className="w-[14px] h-[14px]" />
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <EditableCell
-                        value={row.amount}
-                        onChange={(value) => updateExpenseRow(row.id, "amount", value)}
-                        type="currency"
-                        placeholder="$0"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Upcharge Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[80px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Upcharge
-                    </span>
+                  <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <EditableCell value={row.amount} onChange={(value) => updateExpenseRow(row.id, "amount", value)} type="currency" placeholder="$0" />
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <EditableCell
-                        value={row.upcharge}
-                        onChange={(value) => updateExpenseRow(row.id, "upcharge", value)}
-                        type="currency"
-                        placeholder="$0"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Total Column */}
-                <div className="flex flex-col border-r border-[#dadada] min-w-[56px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Total
-                    </span>
+                  <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <EditableCell value={row.upcharge} onChange={(value) => updateExpenseRow(row.id, "upcharge", value)} type="currency" placeholder="$0" />
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                        ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Actions Column */}
-                <div className="flex flex-col min-w-[64px]">
-                  <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
-                    <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Actions
-                    </span>
+                  <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                    <span className="text-[#303030] font-normal text-base">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
                   </div>
-                  {expenseRows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
-                    >
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
+                  <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="1" />
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
                           </svg>
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => deleteExpenseRow(row.id)}
-                            className="text-red-600 cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => deleteExpenseRow(row.id)} className="text-red-600 cursor-pointer">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </>
+              ))}
             </div>
           </div>
         </div>
