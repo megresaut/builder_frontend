@@ -27,6 +27,7 @@ interface FieldTeamOrder {
   description: string;
   dueDate: string;
   unit?: string;
+  priority: "low" | "normal" | "high";
   fieldTeam: Array<{ initials: string; color: string; name: string }>;
   status: "dispatched" | "approved" | "pending-approval";
   amount: number;
