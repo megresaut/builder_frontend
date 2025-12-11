@@ -227,6 +227,9 @@ export default function CreateTaskModal({
     setSelectedDate(selected);
     const formatted = format(selected, "MM/dd/yyyy");
     setDueDate(formatted);
+    if (errors.dueDate) {
+      setErrors((prev) => ({ ...prev, dueDate: false }));
+    }
     setShowCalendar(false);
   };
 
