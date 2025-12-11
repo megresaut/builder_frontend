@@ -259,7 +259,8 @@ const ActionButton = ({
             {tab === "drafts" ? (
               <>
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                  e.stopPropagation();
                   setOpenMenuId(null);
                   navigate("/bills/record", {
                     state: { bill: buildBillState(bill) },
@@ -324,7 +325,8 @@ const ActionButton = ({
               </>
             ) : (
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setOpenMenuId(null);
                   navigate("/bills/record?readOnly=true", {
                     state: { bill: buildBillState(bill) },

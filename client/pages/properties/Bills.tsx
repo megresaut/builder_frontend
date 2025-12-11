@@ -267,7 +267,8 @@ const ActionButton = ({
             {tab === "drafts" ? (
               <>
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                  e.stopPropagation();
                   setOpenMenuId(null);
                   const path = propertyId
                     ? `/property/${propertyId}/bills/record`
@@ -335,7 +336,8 @@ const ActionButton = ({
               </>
             ) : (
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setOpenMenuId(null);
                   const path = propertyId
                     ? `/property/${propertyId}/bills/record?readOnly=true`
