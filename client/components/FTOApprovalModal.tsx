@@ -1,5 +1,3 @@
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
@@ -9,6 +7,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Trash2 } from "lucide-react";
 
 interface FTOApprovalModalProps {
   open: boolean;
