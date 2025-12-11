@@ -297,49 +297,50 @@ const ActionButton = ({
       </button>
 
       {showMenu &&
-        createPortal(
-          <div ...>
-          {/* VIEW BILL */ }
-          < button
-        type = "button"
-        onClick = {() => {
-        setOpenMenuId(null);
-      navigate(`/bills/record/${taskId}`);
+  createPortal(
+    <div ...>
+      {/* VIEW BILL */}
+      <button
+        type="button"
+        onClick={() => {
+          setOpenMenuId(null);
+          navigate(`/bills/record/${taskId}`); 
           // or just `/bills/record` if you don’t have per-id yet
         }}
-      className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+        className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
       >
-      <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-        style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
-        View bill
-      </span>
-      {/* icon... */}
-    </button >
+        <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+          style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
+          View bill
+        </span>
+        {/* icon... */}
+      </button>
 
-      {/* EDIT BILL */ }
-      < button
-  type = "button"
-  onClick = {() => {
-  setOpenMenuId(null);
-  navigate(`/bills/record/${taskId}?mode=edit`);
-  // tweak to match whatever your edit route actually is
-}}
-className = "flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-  >
-  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-    style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
-    Edit bill
-  </span>
-{/* icon... */ }
-      </button >
+      {/* EDIT BILL */}
+      <button
+        type="button"
+        onClick={() => {
+          setOpenMenuId(null);
+          navigate(`/bills/record/${taskId}?mode=edit`);
+          // tweak to match whatever your edit route actually is
+        }}
+        className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+      >
+        <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+          style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
+          Edit bill
+        </span>
+        {/* icon... */}
+      </button>
 
-  {/* DELETE stays as you had it */ }
-  < button onClick = {() => { console.log("Delete", taskId); setOpenMenuId(null); }} ...>
-    Delete
-      </button >
-    </div >,
-  document.body,
+      {/* DELETE stays as you had it */}
+      <button onClick={() => { console.log("Delete", taskId); setOpenMenuId(null); }} ...>
+        Delete
+      </button>
+    </div>,
+    document.body,
   )}
+
 export default function AllTasks() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
