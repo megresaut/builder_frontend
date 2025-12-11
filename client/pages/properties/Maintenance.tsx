@@ -2041,15 +2041,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getStatusBadgeColor(
-                            order.status,
-                          )}`}
-                        >
-                          {order.status}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         {getFTOStatusBadge(order.status)}
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
