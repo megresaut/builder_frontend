@@ -1634,7 +1634,7 @@ export default function Utilities() {
                 </tr>
               </thead>
               <tbody>
-                {utilityAccounts.map((account, index) => (
+                {accountsList.map((account, index) => (
                   <tr
                     key={account.id}
                     className={cn(
