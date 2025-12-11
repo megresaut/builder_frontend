@@ -158,7 +158,15 @@ const ActionButton = ({
             onMouseLeave={() => setOpenMenuId(null)}
           >
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!taskId) {
+                  setOpenMenuId(null);
+                  return;
+                }
+
                 navigate(`/tasks/${taskId}/workorders/${workOrderId}`);
                 setOpenMenuId(null);
               }}
@@ -242,6 +250,10 @@ export default function WorkOrdersTab({
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
     initialSelectedWorkOrderId,
   );
+
+  useEffect(() => {
+    setSelectedWorkOrderId(initialSelectedWorkOrderId ?? null);
+  }, [initialSelectedWorkOrderId]);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
@@ -320,7 +332,7 @@ export default function WorkOrdersTab({
   };
 
   // Show detail view when a work order is selected
-  if (selectedWorkOrderId) {
+  if (selectedWorkOrderId !== null) {
     return (
       <div className="flex flex-col w-full gap-6">
         <button
