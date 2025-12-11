@@ -736,14 +736,13 @@ export default function CreateRecurringTaskModal({
               </label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
-                    style={{ backgroundColor: getPriorityBgColor() }}
-                  >
-                    {getPriorityIcon()}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: getPriorityTextColor() }}
+                    />
                     <span
-                      className="text-sm normal-case"
-                      style={{ color: getPriorityTextColor() }}
+                      className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]"
                     >
                       {getPriorityLabel()}
                     </span>
