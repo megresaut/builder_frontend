@@ -1553,14 +1553,14 @@ export const RecordBill = () => {
               <>
                 <button
                   onClick={handleRecordBill}
-                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d]"
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d] border border-white"
                   style={{
                     display: "flex",
                     alignItems: "center",
                     backgroundColor: "rgb(1, 55, 100)",
                     borderRadius: "8px",
                     boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
+                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
                     color: "rgb(255, 255, 255)",
                     fontWeight: "500",
                     gap: "8px",
@@ -1571,7 +1571,7 @@ export const RecordBill = () => {
                     transitionProperty:
                       "color, background-color, border-color, text-decoration-color, fill, stroke",
                     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                    borderColor: "rgba(0, 0, 0, 0)",
+                    borderColor: "white",
                     padding: "8px 12px",
                   }}
                 >
