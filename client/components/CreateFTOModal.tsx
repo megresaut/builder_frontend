@@ -729,12 +729,6 @@ export default function CreateFTOModal({
                     <span>Dispatched</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="new">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#1E40AF]" />
-                    <span>New</span>
-                  </div>
-                </SelectItem>
                 <SelectItem value="completed">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-[#166534]" />
