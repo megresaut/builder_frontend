@@ -203,6 +203,7 @@ const ActionButton = ({
 }) => {
   const showMenu = openMenuId === orderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -234,6 +235,25 @@ const ActionButton = ({
     };
   }, [showMenu]);
 
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        !buttonRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu, setOpenMenuId]);
+
   return (
     <>
       <button
@@ -260,6 +280,7 @@ const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
+            ref={menuRef}
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
