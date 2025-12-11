@@ -2113,7 +2113,15 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {/* FTO Approval Modal */}
       <FTOApprovalModal
         open={showApprovalModal}
-        onOpenChange={setShowApprovalModal}
+        onOpenChange={(open) => {
+          setShowApprovalModal(open);
+          if (!open) {
+            setSelectedFTOId(null);
+          }
+        }}
+        editingOrder={mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)}
+        property={mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)?.property}
+        fieldTeamAssignee={mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]?.name}
       />
 
       {/* Create Task Modal */}
