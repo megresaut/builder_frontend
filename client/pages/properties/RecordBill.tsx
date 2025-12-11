@@ -1048,7 +1048,7 @@ export const RecordBill = () => {
                     {/* Memo/Notes */}
                     <div
                       className="flex mt-5 w-full flex-col"
-                      style={{ width: "665px" }}
+                      style={{ width: "600px" }}
                     >
                       <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                         Memo/Notes
