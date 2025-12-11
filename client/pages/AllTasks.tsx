@@ -149,48 +149,27 @@ const tasks: Task[] = [
 ];
 
 const StatusBadge = ({ status }: { status: string }) => {
-  if (status === "Completed") {
-    return (
-      <span className="inline-flex items-center bg-emerald-100 rounded-2xl text-emerald-600 gap-1.5 relative px-3 py-1 text-sm">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g clipPath="url(#clip0_bills_pushed)">
-            <path
-              d="M5.00065 8.00016L7.00065 10.0002L11.0007 6.00016M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-              stroke="#059669"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-          <defs>
-            <clipPath id="clip0_bills_pushed">
-              <rect width="16" height="16" fill="white" />
-            </clipPath>
-          </defs>
-        </svg>
-        {status}
-      </span>
-    );
-  }
+  const getStatusColor = (status: string) => {
+    if (status === "Completed") return "#059669";
+    if (status === "In Progress") return "#2463EB";
+    return "#6B7280";
+  };
 
-  if (status === "In Progress") {
-    return (
-      <div className="inline-flex items-center bg-blue-100 rounded-full text-blue-600 py-1 px-3 text-sm font-normal leading-5">
-        {status}
-      </div>
-    );
-  }
+  const dotColor = getStatusColor(status);
 
   return (
-    <span className="text-sm font-medium px-2 py-1 rounded bg-gray-100 text-gray-700">
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: dotColor, fontSize: "14px" }}>
+      <div
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          backgroundColor: dotColor,
+          flexShrink: 0,
+        }}
+      />
       {status}
-    </span>
+    </div>
   );
 };
 
