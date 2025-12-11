@@ -460,32 +460,32 @@ export default function FTOApprovalModal({
 
               {/* Rows */}
               {hourRows.map((row) => (
-                <>
-                  <div key={`${row.id}-date`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                <div key={row.id}>
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
                     <EditableCell value={row.date} onChange={(value) => updateHourRow(row.id, "date", value)} type="date" />
                   </div>
-                  <div key={`${row.id}-hours`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
                     <EditableCell value={row.hours} onChange={(value) => updateHourRow(row.id, "hours", value)} type="number" placeholder="e.g., 2 or 2.5" />
                   </div>
-                  <div key={`${row.id}-note`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center">
                     <EditableCell value={row.note} onChange={(value) => updateHourRow(row.id, "note", value)} type="text" placeholder="Enter note" />
                   </div>
-                  <div key={`${row.id}-nofee`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <Checkbox checked={row.noFee} onCheckedChange={(checked) => updateHourRow(row.id, "noFee", checked)} className="w-[14px] h-[14px]" />
                   </div>
-                  <div key={`${row.id}-emergency`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <Checkbox checked={row.emergency} onCheckedChange={(checked) => updateHourRow(row.id, "emergency", checked)} className="w-[14px] h-[14px]" />
                   </div>
-                  <div key={`${row.id}-amount`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <div className="text-lg"><EditableCell value={row.amount} onChange={(value) => updateHourRow(row.id, "amount", value)} type="currency" placeholder="$0" /></div>
                   </div>
-                  <div key={`${row.id}-upcharge`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <div className="text-lg"><EditableCell value={row.upcharge} onChange={(value) => updateHourRow(row.id, "upcharge", value)} type="currency" placeholder="$0" /></div>
                   </div>
-                  <div key={`${row.id}-total`} className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
                     <span className="text-[#303030] font-normal text-lg font-semibold">${calculateTotal(row.amount, row.upcharge).toFixed(2)}</span>
                   </div>
-                  <div key={`${row.id}-actions`} className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                  <div className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
@@ -504,7 +504,7 @@ export default function FTOApprovalModal({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </>
+                </div>
               ))}
             </div>
           </div>
