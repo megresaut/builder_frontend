@@ -443,7 +443,9 @@ export default function CreateFTOModal({
                     }
                   }}
                   maxLength={10}
-                  className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
+                  className={`h-11 rounded-lg bg-[#f7f7f7] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4] ${
+                    errors.dueDate ? "border-red-500 border-2" : "border-[#e5e5e5]"
+                  }`}
                 />
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
