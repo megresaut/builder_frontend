@@ -11,6 +11,8 @@ interface Vendor {
   phone: string;
   email: string;
   notes: string;
+  servicesProvided: string[];
+  propertyServices?: string[];
 }
 
 interface VendorsProps {
@@ -26,6 +28,8 @@ const mockVendors: Vendor[] = [
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
     notes: "Reliable vendor, quick turnaround",
+    servicesProvided: ["HVAC", "Plumbing"],
+    propertyServices: ["HVAC"],
   },
   {
     id: 2,
@@ -33,6 +37,8 @@ const mockVendors: Vendor[] = [
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
     notes: "Good quality work",
+    servicesProvided: ["Carpentry", "Drywall"],
+    propertyServices: ["Carpentry", "Drywall"],
   },
   {
     id: 3,
@@ -40,6 +46,8 @@ const mockVendors: Vendor[] = [
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
     notes: "Preferred for electrical work",
+    servicesProvided: ["Electrical", "Lighting"],
+    propertyServices: ["Electrical"],
   },
   {
     id: 4,
@@ -47,6 +55,8 @@ const mockVendors: Vendor[] = [
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
     notes: "",
+    servicesProvided: ["Roofing"],
+    propertyServices: ["Roofing"],
   },
   {
     id: 5,
@@ -54,6 +64,8 @@ const mockVendors: Vendor[] = [
     phone: "724.705.2990",
     email: "mattgzyb21@gmail.com",
     notes: "Great communication",
+    servicesProvided: ["Painting", "Flooring"],
+    propertyServices: ["Painting"],
   },
 ];
 
