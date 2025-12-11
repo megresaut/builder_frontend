@@ -516,12 +516,19 @@ export default function CreateTaskModal({
                 Assignees <span className="text-red-600">*</span>
               </label>
               <div className="relative">
-                <button
+                <div
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className={`h-11 rounded-lg w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white ${
+                  className={`h-11 rounded-lg w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white cursor-pointer ${
                     errors.selectedAssignees ? "border-red-500 border-2" : "border border-[#E5E5E5]"
                   }`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setShowAssigneeDropdown(!showAssigneeDropdown);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-1.5 flex-wrap flex-1">
                     {selectedAssignees.length === 0 ? (
@@ -565,7 +572,7 @@ export default function CreateTaskModal({
                       d="M19 14l-7 7m0 0l-7-7m7 7V3"
                     />
                   </svg>
-                </button>
+                </div>
 
                 {showAssigneeDropdown &&
                   createPortal(
