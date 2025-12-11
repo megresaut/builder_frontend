@@ -1644,6 +1644,19 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       onClick={handleRowClick}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor: workOrder.priority === "low" ? "#059669" : workOrder.priority === "normal" ? "#2463eb" : "#d97706",
+                            }}
+                          />
+                          <span className="text-gray-900 font-normal text-sm capitalize">
+                            {workOrder.priority}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
                           {workOrder.task}
                         </span>
@@ -1654,21 +1667,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getStatusBadgeColor(
-                            workOrder.status,
-                          )}`}
-                        >
-                          {workOrder.status}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${getPriorityBadgeColor(
-                            workOrder.priority,
-                          )}`}
-                        >
-                          {workOrder.priority}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor: workOrder.status === "In progress" ? "#2463eb" : "#059669",
+                            }}
+                          />
+                          <span className="text-gray-900 font-normal text-sm capitalize">
+                            {workOrder.status}
+                          </span>
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
