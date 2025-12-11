@@ -359,8 +359,12 @@ export default function CreateFTOModal({
                 FTO Name <span className="text-red-600">*</span>
               </label>
               <Input
+                value={ftoName}
+                onChange={(e) => setFtoName(e.target.value)}
                 placeholder="Type FTO Name"
-                className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4]"
+                className={`h-11 rounded-lg bg-[#f7f7f7] placeholder:text-[#a1a1a9] text-base tracking-[-0.32px] leading-[1.4] ${
+                  errors.ftoName ? "border-red-500 border-2" : "border-[#e5e5e5]"
+                }`}
               />
             </div>
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
