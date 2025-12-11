@@ -1063,7 +1063,16 @@ export default function FieldTeamOrders() {
       {/* FTO Approval Modal */}
       <FTOApprovalModal
         open={showApprovalModal}
-        onOpenChange={setShowApprovalModal}
+        onOpenChange={(open) => {
+          setShowApprovalModal(open);
+          if (!open) {
+            setEditingOrder(null);
+          }
+        }}
+        editingOrder={editingOrder}
+        property={editingOrder?.property || "3 hekma Road"}
+        unit={editingOrder?.unit || "2"}
+        fieldTeamAssignee={editingOrder?.fieldTeamAssignee || "John Smith"}
       />
     </div>
   );
