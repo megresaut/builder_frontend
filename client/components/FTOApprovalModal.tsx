@@ -672,21 +672,6 @@ export default function FTOApprovalModal({
           </span>
         </div>
 
-        {/* Validation Message */}
-        {!isFormValid() && (hourRows.length > 0 || expenseRows.length > 0) && (
-          <div className="bg-[#fff3cd] border border-[#ffc107] rounded-lg px-4 py-3 mb-4">
-            <p className="text-[#856404] font-medium text-sm">
-              Please fill in all required fields:
-              <br />
-              <span className="text-xs">
-                Hours: date, hours, note, amount (required unless "No Fee" is checked)
-                <br />
-                Expenses: date, vendor, note, amount
-              </span>
-            </p>
-          </div>
-        )}
-
         {/* Approve Button */}
         <button
           disabled={!isFormValid()}
