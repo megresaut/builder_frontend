@@ -49,6 +49,7 @@ export default function CreateFTOModal({
   onOpenChange,
   editData,
 }: CreateFTOModalProps) {
+  const [ftoName, setFtoName] = useState("");
   const [priority, setPriority] = useState("normal");
   const [ftoStatus, setFtoStatus] = useState("new");
   const [dueDate, setDueDate] = useState("");
@@ -66,6 +67,11 @@ export default function CreateFTOModal({
     top: 0,
     left: 0,
   });
+  const [errors, setErrors] = useState<{
+    ftoName?: boolean;
+    dueDate?: boolean;
+    selectedAssignees?: boolean;
+  }>({});
 
   useEffect(() => {
     if (editData) {
