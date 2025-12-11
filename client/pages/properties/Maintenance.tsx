@@ -158,6 +158,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "Emergency Water Damage",
     dueDate: "Oct 2, 2025",
+    priority: "high",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
     ],
@@ -170,6 +171,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "HVAC Installation",
     dueDate: "Sep 29, 2025",
+    priority: "normal",
     fieldTeam: [
       { initials: "CS", color: "bg-green-500", name: "Cassandra Smith" },
     ],
