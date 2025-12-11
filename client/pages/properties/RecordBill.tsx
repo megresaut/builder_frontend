@@ -307,6 +307,7 @@ export const RecordBill = () => {
   }, []);
 
   const handleCancel = () => {
+    closeViewer();
     navigate(-1);
   };
 
