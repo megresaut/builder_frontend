@@ -401,13 +401,15 @@ export default function FTOApprovalModal({
                   {hourRows.map((row) => (
                     <div
                       key={row.id}
-                      className="px-3 py-3 border-b border-[#dadada] flex items-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-stretch"
                     >
-                      <EditableCell
-                        value={row.date}
-                        onChange={(value) => updateHourRow(row.id, "date", value)}
-                        type="date"
-                      />
+                      <div className="flex items-center flex-1">
+                        <EditableCell
+                          value={row.date}
+                          onChange={(value) => updateHourRow(row.id, "date", value)}
+                          type="date"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
