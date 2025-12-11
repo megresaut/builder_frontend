@@ -105,12 +105,19 @@
     @apply border-border;
   }
 
-  html,
-  body {
-    background-color: rgb(247, 247, 247);
+  html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: rgb(247, 247, 247);
     @apply bg-background text-foreground;
     font-family:
       "Geist",
@@ -118,6 +125,13 @@
       Roboto,
       Helvetica,
       sans-serif;
+  }
+
+  #root {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
