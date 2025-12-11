@@ -116,20 +116,18 @@ export default function CreateFTOModal({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      if (showCalendar && dueDateInputRef.current) {
-        if (
-          !dueDateInputRef.current.contains(target) &&
-          !target.closest('[style*="position: fixed"]')
-        ) {
+      if (showCalendar) {
+        const isClickInInput = dueDateInputRef.current?.contains(target);
+        const isClickInDropdown = calendarDropdownRef.current?.contains(target);
+        if (!isClickInInput && !isClickInDropdown) {
           setShowCalendar(false);
         }
       }
 
-      if (showAssigneeDropdown && assigneeButtonRef.current) {
-        if (
-          !assigneeButtonRef.current.contains(target) &&
-          !target.closest('[style*="position: fixed"]')
-        ) {
+      if (showAssigneeDropdown) {
+        const isClickInButton = assigneeButtonRef.current?.contains(target);
+        const isClickInDropdown = assigneeDropdownRef.current?.contains(target);
+        if (!isClickInButton && !isClickInDropdown) {
           setShowAssigneeDropdown(false);
         }
       }
