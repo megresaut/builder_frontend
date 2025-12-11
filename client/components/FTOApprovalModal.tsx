@@ -556,7 +556,7 @@ export default function FTOApprovalModal({
                   {hourRows.map((row) => (
                     <div
                       key={row.id}
-                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
                     >
                       <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
                         ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
@@ -575,7 +575,7 @@ export default function FTOApprovalModal({
                   {hourRows.map((row) => (
                     <div
                       key={row.id}
-                      className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center"
+                      className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
                     >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
