@@ -167,6 +167,7 @@ const bills: Bill[] = [
 
 interface ActionButtonProps {
   billId: number;
+  bill: Bill;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   tab?: "approved" | "drafts";
@@ -174,6 +175,7 @@ interface ActionButtonProps {
 
 const ActionButton = ({
   billId,
+  bill,
   openMenuId,
   setOpenMenuId,
   tab = "approved",
@@ -322,7 +324,28 @@ const ActionButton = ({
               <button
                 onClick={() => {
                   setOpenMenuId(null);
-                  navigate("/bills/record");
+                  navigate("/bills/record?readOnly=true", {
+                    state: {
+                      bill: {
+                        vendorName: bill.vendor,
+                        referenceNumber: bill.invoiceNumber,
+                        invoiceDate: bill.statementDate,
+                        dueDate: bill.dueDate,
+                        memo: bill.memo,
+                        lineItems: [
+                          {
+                            id: bill.id,
+                            property: bill.property,
+                            unit: "",
+                            workOrder: "",
+                            description: bill.memo,
+                            glAccount: bill.glAccount,
+                            total: `$${bill.amount.toFixed(2)}`,
+                          },
+                        ],
+                      },
+                    },
+                  });
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
@@ -333,7 +356,7 @@ const ActionButton = ({
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   }}
                 >
-                  Edit Bill
+                  View Bill
                 </span>
                 <svg
                   width="18"
@@ -1041,6 +1064,7 @@ export default function Bills() {
                           >
                             <ActionButton
                               billId={bill.id}
+                              bill={bill}
                               openMenuId={openMenuId}
                               setOpenMenuId={setOpenMenuId}
                               tab={selectedTab}
