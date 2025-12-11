@@ -428,6 +428,7 @@ export default function Bills() {
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
     "idle",
   );
+  const [billsList, setBillsList] = useState<Bill[]>(bills);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
