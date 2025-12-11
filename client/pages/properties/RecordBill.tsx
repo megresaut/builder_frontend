@@ -1491,88 +1491,76 @@ export const RecordBill = () => {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleCancel}
+              className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+            >
+              <span>Cancel</span>
+            </button>
             {isReadOnly && (
               <button
-                onClick={handleCancel}
-                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 bg-white border border-gray-300 text-gray-700 font-medium whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-50 transition-colors"
+                disabled
+                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
               >
-                <span>Close</span>
+                <span>Export to Buildium</span>
               </button>
             )}
             {!isReadOnly && (
-              <button
-                onClick={handleCancel}
-                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
-              >
-                <span>Cancel</span>
-              </button>
+              <>
+                <button
+                  onClick={handleRecordBill}
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d]"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "rgb(1, 55, 100)",
+                    borderRadius: "8px",
+                    boxShadow:
+                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
+                    color: "rgb(255, 255, 255)",
+                    fontWeight: "500",
+                    gap: "8px",
+                    minHeight: "36px",
+                    overflowX: "hidden",
+                    overflowY: "hidden",
+                    transitionDuration: "0.15s",
+                    transitionProperty:
+                      "color, background-color, border-color, text-decoration-color, fill, stroke",
+                    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                    borderColor: "rgba(0, 0, 0, 0)",
+                    padding: "8px 12px",
+                  }}
+                >
+                  <span>Approve</span>
+                </button>
+                <button
+                  onClick={handleRecordBill}
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d]"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "rgb(1, 55, 100)",
+                    borderRadius: "8px",
+                    boxShadow:
+                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
+                    color: "rgb(255, 255, 255)",
+                    fontWeight: "500",
+                    gap: "8px",
+                    minHeight: "36px",
+                    overflowX: "hidden",
+                    overflowY: "hidden",
+                    transitionDuration: "0.15s",
+                    transitionProperty:
+                      "color, background-color, border-color, text-decoration-color, fill, stroke",
+                    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                    borderColor: "rgba(0, 0, 0, 0)",
+                    padding: "8px 12px",
+                  }}
+                >
+                  <span>Approve & Export</span>
+                </button>
+              </>
             )}
-            <button
-              onClick={() => {
-                if (!isReadOnly) {
-                  handleRecordBill();
-                } else {
-                  handleCancel();
-                }
-              }}
-              disabled={isReadOnly ? false : false}
-              className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#002a4f]"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "rgb(1, 55, 100)",
-                borderRadius: "8px",
-                boxShadow:
-                  "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
-                color: "rgb(255, 255, 255)",
-                fontWeight: "500",
-                gap: "8px",
-                minHeight: "36px",
-                overflowX: "hidden",
-                overflowY: "hidden",
-                transitionDuration: "0.15s",
-                transitionProperty:
-                  "color, background-color, border-color, text-decoration-color, fill, stroke",
-                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                borderColor: "rgba(0, 0, 0, 0)",
-                padding: "8px 12px",
-              }}
-            >
-              <span>Approve</span>
-            </button>
-            <button
-              onClick={() => {
-                if (!isReadOnly) {
-                  handleRecordBill();
-                } else {
-                  handleCancel();
-                }
-              }}
-              disabled={isReadOnly ? false : false}
-              className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#002a4f]"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "rgb(1, 55, 100)",
-                borderRadius: "8px",
-                boxShadow:
-                  "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
-                color: "rgb(255, 255, 255)",
-                fontWeight: "500",
-                gap: "8px",
-                minHeight: "36px",
-                overflowX: "hidden",
-                overflowY: "hidden",
-                transitionDuration: "0.15s",
-                transitionProperty:
-                  "color, background-color, border-color, text-decoration-color, fill, stroke",
-                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                borderColor: "rgba(0, 0, 0, 0)",
-                padding: "8px 12px",
-              }}
-            >
-              <span>Approve & Export</span>
-            </button>
           </div>
         </div>
       </div>
