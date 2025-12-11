@@ -520,9 +520,44 @@ export const Bills: React.FC<BillsProps> = ({
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
+  const getTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diffMs = now - timestamp;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return "now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
   const handleSync = () => {
     setSyncState("syncing");
     setTimeout(() => {
+      const newBill: Bill = {
+        id: Math.max(...billsList.map(b => b.id)) + 1,
+        vendor: "New Vendor Import",
+        vendorColor: "#7C3AED",
+        property: "22 Indian Chase Dr",
+        statementDate: new Date().toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
+          "en-US",
+          { month: "short", day: "numeric", year: "numeric" },
+        ),
+        status: "push-failed",
+        memo: "Imported from sync",
+        invoiceNumber: `REF-2024-${Math.floor(Math.random() * 1000)}`,
+        amount: Math.floor(Math.random() * 500) + 100,
+        glAccount: "6200 - HVAC Services",
+        importedAt: Date.now(),
+      };
+      setBillsList([newBill, ...billsList]);
       setSyncState("synced");
       setTimeout(() => {
         setSyncState("idle");
