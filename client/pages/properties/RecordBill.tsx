@@ -1449,13 +1449,74 @@ export const RecordBill = () => {
                 }
               }}
               disabled={isReadOnly ? false : false}
-              className={`rounded-lg shadow-[0_0_0_1px_rgba(0,45,90,1)] flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors ${
-                isReadOnly
-                  ? "bg-gray-400 text-white opacity-60 cursor-default"
-                  : "bg-[#013764] text-white hover:bg-[#002a4f]"
-              }`}
+              css={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "rgb(1, 55, 100)",
+                borderRadius: "8px",
+                boxShadow:
+                  "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
+                color: "rgb(255, 255, 255)",
+                fontWeight: "500",
+                gap: "8px",
+                minHeight: "36px",
+                overflowX: "hidden",
+                overflowY: "hidden",
+                transitionDuration: "0.15s",
+                transitionProperty:
+                  "color, background-color, border-color, text-decoration-color, fill, stroke",
+                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                borderColor: "rgba(0, 0, 0, 0)",
+                padding: "8px 12px",
+              }}
             >
-              <span>{isReadOnly ? "Exported to Buildium" : "Record Bill"}</span>
+              <div
+                css={{
+                  display: "block",
+                  fontWeight: "500",
+                }}
+              >
+                Approve
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                if (!isReadOnly) {
+                  handleRecordBill();
+                } else {
+                  handleCancel();
+                }
+              }}
+              disabled={isReadOnly ? false : false}
+              css={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "rgb(1, 55, 100)",
+                borderRadius: "8px",
+                boxShadow:
+                  "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
+                color: "rgb(255, 255, 255)",
+                fontWeight: "500",
+                gap: "8px",
+                minHeight: "36px",
+                overflowX: "hidden",
+                overflowY: "hidden",
+                transitionDuration: "0.15s",
+                transitionProperty:
+                  "color, background-color, border-color, text-decoration-color, fill, stroke",
+                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                borderColor: "rgba(0, 0, 0, 0)",
+                padding: "8px 12px",
+              }}
+            >
+              <div
+                css={{
+                  display: "block",
+                  fontWeight: "500",
+                }}
+              >
+                Approve & Export
+              </div>
             </button>
           </div>
         </div>
