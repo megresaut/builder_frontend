@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
@@ -13,7 +14,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Trash2 } from "lucide-react";
+import { Trash2, Calendar } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+interface HourRow {
+  id: string;
+  date: string;
+  hours: string;
+  note: string;
+  noFee: boolean;
+  emergency: boolean;
+  amount: string;
+  upcharge: string;
+}
+
+interface ExpenseRow {
+  id: string;
+  date: string;
+  vendor: string;
+  receiptNote: string;
+  avmExpense: boolean;
+  amount: string;
+  upcharge: string;
+}
 
 interface FTOApprovalModalProps {
   open: boolean;
@@ -21,11 +44,308 @@ interface FTOApprovalModalProps {
   selectedFTOId?: number | null;
 }
 
+const VENDORS = ["Dolce", "N/A", "Home Depot", "Ace Hardware"];
+
+const validateHours = (value: string): boolean => {
+  if (!value) return false;
+  const num = parseFloat(value);
+  if (isNaN(num)) return false;
+  const decimal = num % 1;
+  return decimal === 0 || decimal === 0.5;
+};
+
+const validateAmount = (value: string): boolean => {
+  const num = parseFloat(value.replace(/[$,]/g, ""));
+  return !isNaN(num) && num >= 0;
+};
+
+const formatCurrency = (value: string): string => {
+  const num = parseFloat(value.replace(/[$,]/g, ""));
+  if (isNaN(num)) return "";
+  return `$${num.toFixed(2)}`;
+};
+
+const parseDate = (dateStr: string): Date | null => {
+  const [month, day, year] = dateStr.split("/");
+  if (!month || !day || !year) return null;
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  if (isNaN(date.getTime())) return null;
+  return date;
+};
+
+const formatDate = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+};
+
+const calculateTotal = (amount: string, upcharge: string): number => {
+  const amountNum = parseFloat(amount.replace(/[$,]/g, "")) || 0;
+  const upchargeNum = parseFloat(upcharge.replace(/[$,]/g, "")) || 0;
+  return amountNum + upchargeNum;
+};
+
+interface EditableCellProps {
+  value: string;
+  onChange: (value: string) => void;
+  type: "text" | "number" | "date" | "currency";
+  placeholder?: string;
+}
+
+function EditableCell({ value, onChange, type, placeholder }: EditableCellProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
+
+  if (type === "date") {
+    const date = parseDate(value) || new Date();
+    return (
+      <div onClick={(e) => e.stopPropagation()} className="w-full h-full flex items-center">
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <button className="w-full h-full text-left px-0 py-0 hover:bg-[#f5f5f5] transition-colors flex items-center justify-between pr-2 border-0 bg-transparent">
+              <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
+                {value}
+              </span>
+              <Calendar className="w-4 h-4 text-[#999]" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-3" align="start">
+            <input
+              type="date"
+              value={date.toISOString().split("T")[0]}
+              onChange={(e) => {
+                const newDate = new Date(e.target.value);
+                onChange(formatDate(newDate));
+                setCalendarOpen(false);
+              }}
+              className="w-full px-2 py-1 border border-[#e5e5e5] rounded-md"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+
+  if (type === "number") {
+    return (
+      <div
+        className="w-full h-full flex items-center px-0 cursor-text hover:bg-[#f5f5f5] transition-colors"
+        onClick={() => setIsEditing(true)}
+      >
+        {isEditing ? (
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "" || validateHours(val)) {
+                setInputValue(val);
+              }
+            }}
+            onBlur={() => {
+              if (inputValue && validateHours(inputValue)) {
+                onChange(inputValue);
+              }
+              setIsEditing(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (inputValue && validateHours(inputValue)) {
+                  onChange(inputValue);
+                }
+                setIsEditing(false);
+              }
+            }}
+            autoFocus
+            className="w-full h-full px-0 border-0 bg-transparent text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]"
+            placeholder={placeholder}
+          />
+        ) : (
+          <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
+            {value}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (type === "currency") {
+    return (
+      <div
+        className="w-full h-full flex items-center px-0 cursor-text hover:bg-[#f5f5f5] transition-colors"
+        onClick={() => setIsEditing(true)}
+      >
+        {isEditing ? (
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "" || validateAmount(val)) {
+                setInputValue(val);
+              }
+            }}
+            onBlur={() => {
+              if (inputValue && validateAmount(inputValue)) {
+                onChange(formatCurrency(inputValue));
+              } else {
+                setInputValue(value);
+              }
+              setIsEditing(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (inputValue && validateAmount(inputValue)) {
+                  onChange(formatCurrency(inputValue));
+                }
+                setIsEditing(false);
+              }
+            }}
+            autoFocus
+            className="w-full h-full px-0 border-0 bg-transparent text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]"
+            placeholder={placeholder}
+          />
+        ) : (
+          <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
+            {value}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="w-full h-full flex items-center px-0 cursor-text hover:bg-[#f5f5f5] transition-colors"
+      onClick={() => setIsEditing(true)}
+    >
+      {isEditing ? (
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onBlur={() => {
+            onChange(inputValue);
+            setIsEditing(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onChange(inputValue);
+              setIsEditing(false);
+            }
+          }}
+          autoFocus
+          className="w-full h-full px-0 border-0 bg-transparent text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]"
+          placeholder={placeholder}
+        />
+      ) : (
+        <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
+          {value}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function FTOApprovalModal({
   open,
   onOpenChange,
   selectedFTOId,
 }: FTOApprovalModalProps) {
+  const [hourRows, setHourRows] = useState<HourRow[]>([
+    {
+      id: "1",
+      date: "10/02/2025",
+      hours: "2",
+      note: "ConEd - 1,220 kWh",
+      noFee: false,
+      emergency: false,
+      amount: "$420",
+      upcharge: "$20",
+    },
+    {
+      id: "2",
+      date: "10/02/2025",
+      hours: "1",
+      note: "Unit 48 Thermostat",
+      noFee: false,
+      emergency: false,
+      amount: "$440",
+      upcharge: "$0",
+    },
+    {
+      id: "3",
+      date: "10/02/2025",
+      hours: "2",
+      note: "Tools for common area",
+      noFee: false,
+      emergency: false,
+      amount: "$440",
+      upcharge: "$0",
+    },
+  ]);
+
+  const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([
+    {
+      id: "1",
+      date: "10/02/2025",
+      vendor: "Dolce",
+      receiptNote: "ConEd - 1,220 kWh",
+      avmExpense: false,
+      amount: "$420",
+      upcharge: "$20",
+    },
+    {
+      id: "2",
+      date: "10/02/2025",
+      vendor: "N/A",
+      receiptNote: "Unit 48 Thermostat",
+      avmExpense: false,
+      amount: "$440",
+      upcharge: "$0",
+    },
+    {
+      id: "3",
+      date: "10/02/2025",
+      vendor: "Dolce",
+      receiptNote: "Tools for common area",
+      avmExpense: false,
+      amount: "$440",
+      upcharge: "$0",
+    },
+  ]);
+
+  const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
+    setHourRows((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
+  };
+
+  const updateExpenseRow = (id: string, field: keyof ExpenseRow, value: any) => {
+    setExpenseRows((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
+  };
+
+  const deleteHourRow = (id: string) => {
+    setHourRows((rows) => rows.filter((row) => row.id !== id));
+  };
+
+  const deleteExpenseRow = (id: string) => {
+    setExpenseRows((rows) => rows.filter((row) => row.id !== id));
+  };
+
+  const hoursTotal = hourRows.reduce(
+    (sum, row) => sum + calculateTotal(row.amount, row.upcharge),
+    0
+  );
+  const expensesTotal = expenseRows.reduce(
+    (sum, row) => sum + calculateTotal(row.amount, row.upcharge),
+    0
+  );
+  const grandTotal = hoursTotal + expensesTotal;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,7 +422,25 @@ export default function FTOApprovalModal({
               <h3 className="text-[#303030] font-semibold text-xl leading-[1.3]">
                 Hours
               </h3>
-              <button className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors">
+              <button
+                onClick={() => {
+                  const newId = String(Math.max(...hourRows.map((r) => parseInt(r.id)), 0) + 1);
+                  setHourRows([
+                    ...hourRows,
+                    {
+                      id: newId,
+                      date: formatDate(new Date()),
+                      hours: "",
+                      note: "",
+                      noFee: false,
+                      emergency: false,
+                      amount: "$0",
+                      upcharge: "$0",
+                    },
+                  ]);
+                }}
+                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors"
+              >
                 <svg
                   width="20"
                   height="20"
@@ -118,9 +456,7 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">
-                  Add Hours
-                </span>
+                <span className="text-white font-medium text-base">Add Hours</span>
               </button>
             </div>
 
@@ -134,21 +470,18 @@ export default function FTOApprovalModal({
                       Date
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Oct 2, 2025
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Oct 2, 2025
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Oct 2, 2025
-                    </span>
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                    >
+                      <EditableCell
+                        value={row.date}
+                        onChange={(value) => updateHourRow(row.id, "date", value)}
+                        type="date"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Hours Column */}
@@ -158,21 +491,19 @@ export default function FTOApprovalModal({
                       Hours
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      2
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      1
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      2
-                    </span>
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                    >
+                      <EditableCell
+                        value={row.hours}
+                        onChange={(value) => updateHourRow(row.id, "hours", value)}
+                        type="number"
+                        placeholder="e.g., 2 or 2.5"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Note Column */}
@@ -182,21 +513,19 @@ export default function FTOApprovalModal({
                       Note
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      ConEd - 1,220 kWh
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Unit 48 Thermostat
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Tools for common area
-                    </span>
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                    >
+                      <EditableCell
+                        value={row.note}
+                        onChange={(value) => updateHourRow(row.id, "note", value)}
+                        type="text"
+                        placeholder="Enter note"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* No Fee Column */}
@@ -206,15 +535,20 @@ export default function FTOApprovalModal({
                       NoFee?
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <Checkbox
+                        checked={row.noFee}
+                        onCheckedChange={(checked) =>
+                          updateHourRow(row.id, "noFee", checked)
+                        }
+                        className="w-[14px] h-[14px]"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Emergency Column */}
@@ -224,15 +558,20 @@ export default function FTOApprovalModal({
                       Emergency
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <Checkbox
+                        checked={row.emergency}
+                        onCheckedChange={(checked) =>
+                          updateHourRow(row.id, "emergency", checked)
+                        }
+                        className="w-[14px] h-[14px]"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Amount Column */}
@@ -242,21 +581,19 @@ export default function FTOApprovalModal({
                       Amount
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $420
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <EditableCell
+                        value={row.amount}
+                        onChange={(value) => updateHourRow(row.id, "amount", value)}
+                        type="currency"
+                        placeholder="$0"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Upcharge Column */}
@@ -266,13 +603,19 @@ export default function FTOApprovalModal({
                       Upcharge
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $20
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <EditableCell
+                        value={row.upcharge}
+                        onChange={(value) => updateHourRow(row.id, "upcharge", value)}
+                        type="currency"
+                        placeholder="$0"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Total Column */}
@@ -282,21 +625,16 @@ export default function FTOApprovalModal({
                       Total
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
+                        ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Actions Column */}
@@ -306,10 +644,14 @@ export default function FTOApprovalModal({
                       Actions
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                  {hourRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
                           <svg
                             width="18"
                             height="18"
@@ -324,72 +666,20 @@ export default function FTOApprovalModal({
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
                           </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => deleteHourRow(row.id)}
+                            className="text-red-600 cursor-pointer"
                           >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -404,7 +694,24 @@ export default function FTOApprovalModal({
               <h3 className="text-[#303030] font-semibold text-xl leading-[1.3]">
                 Expenses
               </h3>
-              <button className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors">
+              <button
+                onClick={() => {
+                  const newId = String(Math.max(...expenseRows.map((r) => parseInt(r.id)), 0) + 1);
+                  setExpenseRows([
+                    ...expenseRows,
+                    {
+                      id: newId,
+                      date: formatDate(new Date()),
+                      vendor: "",
+                      receiptNote: "",
+                      avmExpense: false,
+                      amount: "$0",
+                      upcharge: "$0",
+                    },
+                  ]);
+                }}
+                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors"
+              >
                 <svg
                   width="20"
                   height="20"
@@ -420,9 +727,7 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">
-                  Add Expenses
-                </span>
+                <span className="text-white font-medium text-base">Add Expenses</span>
               </button>
             </div>
 
@@ -436,45 +741,49 @@ export default function FTOApprovalModal({
                       Date
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Oct 2, 2025
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Oct 2, 2025
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Oct 2, 2025
-                    </span>
-                  </div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                    >
+                      <EditableCell
+                        value={row.date}
+                        onChange={(value) => updateExpenseRow(row.id, "date", value)}
+                        type="date"
+                      />
+                    </div>
+                  ))}
                 </div>
 
-                {/* Vendor Column (previously Expense Category) */}
+                {/* Vendor Column */}
                 <div className="flex flex-col border-r border-[#dadada] min-w-[113px]">
                   <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada]">
                     <span className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Vendor
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Dolce
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      N/A
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      Dolce
-                    </span>
-                  </div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                    >
+                      <Select
+                        value={row.vendor}
+                        onValueChange={(value) => updateExpenseRow(row.id, "vendor", value)}
+                      >
+                        <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VENDORS.map((vendor) => (
+                            <SelectItem key={vendor} value={vendor}>
+                              {vendor}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Receipt Note Column */}
@@ -484,21 +793,19 @@ export default function FTOApprovalModal({
                       Receipt Note
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#2463eb] font-normal text-base tracking-[-0.32px] leading-[1.4] underline">
-                      ConEd - 1,220 kWh
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#2463eb] font-normal text-base tracking-[-0.32px] leading-[1.4] underline">
-                      Unit 48 Thermostat
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center">
-                    <span className="text-[#2463eb] font-normal text-base tracking-[-0.32px] leading-[1.4] underline">
-                      Tools for common area
-                    </span>
-                  </div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center"
+                    >
+                      <EditableCell
+                        value={row.receiptNote}
+                        onChange={(value) => updateExpenseRow(row.id, "receiptNote", value)}
+                        type="text"
+                        placeholder="Enter receipt note"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* AVM Expense Column */}
@@ -508,15 +815,20 @@ export default function FTOApprovalModal({
                       AVM Expense?
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <Checkbox className="w-[14px] h-[14px]" />
-                  </div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <Checkbox
+                        checked={row.avmExpense}
+                        onCheckedChange={(checked) =>
+                          updateExpenseRow(row.id, "avmExpense", checked)
+                        }
+                        className="w-[14px] h-[14px]"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Amount Column */}
@@ -526,21 +838,19 @@ export default function FTOApprovalModal({
                       Amount
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $420
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <EditableCell
+                        value={row.amount}
+                        onChange={(value) => updateExpenseRow(row.id, "amount", value)}
+                        type="currency"
+                        placeholder="$0"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Upcharge Column */}
@@ -550,13 +860,19 @@ export default function FTOApprovalModal({
                       Upcharge
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $20
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada]"></div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <EditableCell
+                        value={row.upcharge}
+                        onChange={(value) => updateExpenseRow(row.id, "upcharge", value)}
+                        type="currency"
+                        placeholder="$0"
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Total Column */}
@@ -566,21 +882,16 @@ export default function FTOApprovalModal({
                       Total
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
-                  <div className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
-                      $440
-                    </span>
-                  </div>
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 py-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <span className="text-[#303030] font-normal text-base tracking-[-0.32px] leading-[1.4]">
+                        ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Actions Column */}
@@ -590,10 +901,14 @@ export default function FTOApprovalModal({
                       Actions
                     </span>
                   </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                  {expenseRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center"
+                    >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
                           <svg
                             width="18"
                             height="18"
@@ -608,72 +923,20 @@ export default function FTOApprovalModal({
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
                           </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => deleteExpenseRow(row.id)}
+                            className="text-red-600 cursor-pointer"
                           >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="min-h-[56px] px-3 border-b border-[#dadada] flex items-center justify-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -686,7 +949,7 @@ export default function FTOApprovalModal({
             FTO Total:
           </span>
           <span className="text-[#303030] font-semibold text-xl leading-[1.3]">
-            $1,620.00
+            ${grandTotal.toFixed(2)}
           </span>
         </div>
 
