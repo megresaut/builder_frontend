@@ -303,6 +303,7 @@ export const RecordBill = () => {
       return;
     }
 
+    sessionStorage.setItem('approvedBillTimestamp', Date.now().toString());
     navigate(-1);
   };
 
