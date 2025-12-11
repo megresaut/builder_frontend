@@ -699,7 +699,9 @@ export default function CreateFTOModal({
               FTO Status <span className="text-red-600">*</span>
             </label>
             <Select value={ftoStatus} onValueChange={setFtoStatus}>
-              <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
+              <SelectTrigger className={`h-11 rounded-lg bg-[#f7f7f7] ${
+                errors.ftoStatus ? "border-red-500 border-2" : "border-[#e5e5e5]"
+              }`}>
                 <div className="flex items-center gap-2">
                   <div
                     className="w-2 h-2 rounded-full"
