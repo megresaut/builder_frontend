@@ -32,7 +32,7 @@ interface CreateFTOModalProps {
   editData?: {
     dueDate: string;
     priority: string;
-    timesheetStatus: string;
+    ftoStatus?: string;
   };
 }
 
