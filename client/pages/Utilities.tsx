@@ -220,7 +220,7 @@ const utilityAccounts: UtilityAccount[] = [
     status: "active",
     lastBillDate: "Oct 1, 2025",
     lastBillAmount: "$420",
-    lastImport: "2h ago",
+    lastImport: Date.now() - 2 * 60 * 60 * 1000,
     icon: getProviderIcon("National Grid"),
   },
   {
@@ -230,7 +230,7 @@ const utilityAccounts: UtilityAccount[] = [
     status: "inactive",
     lastBillDate: "Sep 28, 2025",
     lastBillAmount: "$180",
-    lastImport: "4h ago",
+    lastImport: Date.now() - 4 * 60 * 60 * 1000,
     icon: getProviderIcon("ConEd"),
   },
   {
@@ -240,7 +240,7 @@ const utilityAccounts: UtilityAccount[] = [
     status: "active",
     lastBillDate: "Sep 9, 2025",
     lastBillAmount: "$95",
-    lastImport: "2 days ago",
+    lastImport: Date.now() - 2 * 24 * 60 * 60 * 1000,
     icon: getProviderIcon("Greenwich Water"),
   },
   {
@@ -250,7 +250,7 @@ const utilityAccounts: UtilityAccount[] = [
     status: "active",
     lastBillDate: "Sep 5, 2025",
     lastBillAmount: "$89",
-    lastImport: "3 days ago",
+    lastImport: Date.now() - 3 * 24 * 60 * 60 * 1000,
     icon: getProviderIcon("Optium"),
   },
   {
@@ -260,7 +260,7 @@ const utilityAccounts: UtilityAccount[] = [
     status: "active",
     lastBillDate: "Sep 2, 2025",
     lastBillAmount: "$89",
-    lastImport: "4 days ago",
+    lastImport: Date.now() - 4 * 24 * 60 * 60 * 1000,
     icon: getProviderIcon("Optium"),
   },
 ];
