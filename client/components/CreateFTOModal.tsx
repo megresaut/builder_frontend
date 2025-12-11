@@ -640,21 +640,7 @@ export default function CreateFTOModal({
             </label>
             <Select value={ftoStatus} onValueChange={setFtoStatus}>
               <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                <div
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
-                  style={{ backgroundColor: getFTOStatusBgColor() }}
-                >
-                  {getFTOStatusIcon()}
-                  <span
-                    className="text-sm tracking-[-0.32px] leading-[1.4]"
-                    style={{
-                      color: getFTOStatusTextColor(),
-                      marginTop: "1px",
-                    }}
-                  >
-                    {getFTOStatusLabel()}
-                  </span>
-                </div>
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending-approval">New</SelectItem>
