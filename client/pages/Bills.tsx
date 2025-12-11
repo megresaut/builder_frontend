@@ -260,9 +260,11 @@ const ActionButton = ({
               <>
                 <button
                   onClick={() => {
-                    setOpenMenuId(null);
-                    navigate("/bills/record");
-                  }}
+                  setOpenMenuId(null);
+                  navigate("/bills/record", {
+                    state: { bill: buildBillState(bill) },
+                  });
+                }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
                   <span
@@ -325,26 +327,7 @@ const ActionButton = ({
                 onClick={() => {
                   setOpenMenuId(null);
                   navigate("/bills/record?readOnly=true", {
-                    state: {
-                      bill: {
-                        vendorName: bill.vendor,
-                        referenceNumber: bill.invoiceNumber,
-                        invoiceDate: bill.statementDate,
-                        dueDate: bill.dueDate,
-                        memo: bill.memo,
-                        lineItems: [
-                          {
-                            id: bill.id,
-                            property: bill.property,
-                            unit: "",
-                            workOrder: "",
-                            description: bill.memo,
-                            glAccount: bill.glAccount,
-                            total: `$${bill.amount.toFixed(2)}`,
-                          },
-                        ],
-                      },
-                    },
+                    state: { bill: buildBillState(bill) },
                   });
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -381,6 +364,25 @@ const ActionButton = ({
     </>
   );
 };
+
+const buildBillState = (bill: Bill) => ({
+  vendorName: bill.vendor,
+  referenceNumber: bill.invoiceNumber,
+  invoiceDate: bill.statementDate,
+  dueDate: bill.dueDate,
+  memo: bill.memo,
+  lineItems: [
+    {
+      id: bill.id,
+      property: bill.property,
+      unit: "",
+      workOrder: "",
+      description: bill.memo,
+      glAccount: bill.glAccount,
+      total: `$${bill.amount.toFixed(2)}`,
+    },
+  ],
+});
 
 const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   <svg
@@ -1001,7 +1003,13 @@ export default function Bills() {
                         ) {
                           return;
                         }
-                        navigate("/bills/record");
+                        const isApproved = selectedTab === "approved";
+                        const path = isApproved
+                          ? `/bills/record?readOnly=true`
+                          : "/bills/record";
+                        navigate(path, {
+                          state: { bill: buildBillState(bill) },
+                        });
                       };
                       return (
                         <tr
