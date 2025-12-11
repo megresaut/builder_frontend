@@ -522,7 +522,7 @@ export const RecordBill = () => {
         borderLeft: "1px solid rgb(210, 209, 207)",
         flexDirection: "column",
         fontWeight: "400",
-        minHeight: "1365px",
+        height: "100vh",
         position: "relative",
       }}
     >
