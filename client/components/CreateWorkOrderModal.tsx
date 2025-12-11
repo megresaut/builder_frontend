@@ -560,7 +560,9 @@ export default function CreateWorkOrderModal({
                     }
                   }}
                   maxLength={10}
-                  className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5] placeholder:text-[#A1A1A9]"
+                  className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] ${
+                    errors.dueDate ? "border-red-500 border-2" : "border-[#E5E5E5]"
+                  }`}
                 />
                 <button
                   onClick={() => setShowDueDateCalendar(!showDueDateCalendar)}
