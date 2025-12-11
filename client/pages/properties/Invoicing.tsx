@@ -12,10 +12,12 @@ const ActionButton = ({
   itemId,
   openMenuId,
   setOpenMenuId,
+  onEdit,
 }: {
   itemId: string;
   openMenuId: string | null;
   setOpenMenuId: (id: string | null) => void;
+  onEdit?: () => void;
 }) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
