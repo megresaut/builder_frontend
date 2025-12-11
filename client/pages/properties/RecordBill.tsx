@@ -439,13 +439,14 @@ export const RecordBill = () => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        handleCancel();
+        closeViewer();
+        navigate(-1);
       }
     };
 
     window.addEventListener("keydown", handleEscapeKey);
     return () => window.removeEventListener("keydown", handleEscapeKey);
-  }, []);
+  }, [navigate]);
 
   // Effect to measure widths whenever lineItems change
   useEffect(() => {
