@@ -1382,7 +1382,8 @@ export const RecordBill = () => {
                   {!isReadOnly && (
                     <button
                       onClick={handleAddLineItem}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-4"
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      style={{ margin: "16px auto 0 0" }}
                     >
                       + Add Line Item
                     </button>
