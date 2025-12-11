@@ -50,7 +50,7 @@ export default function CreateFTOModal({
   editData,
 }: CreateFTOModalProps) {
   const [priority, setPriority] = useState("normal");
-  const [timesheetStatus, setTimesheetStatus] = useState("awaiting-submission");
+  const [ftoStatus, setFtoStatus] = useState("pending-approval");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -69,7 +69,7 @@ export default function CreateFTOModal({
     if (editData) {
       setDueDate(editData.dueDate);
       setPriority(editData.priority.toLowerCase());
-      setTimesheetStatus(editData.timesheetStatus);
+      setFtoStatus(editData.ftoStatus || "pending-approval");
     }
   }, [editData]);
 
@@ -216,11 +216,11 @@ export default function CreateFTOModal({
     return colors[priority] || colors.normal;
   };
 
-  const getTimesheetStatusIcon = (status: string = timesheetStatus) => {
+  const getFTOStatusIcon = (status: string = ftoStatus) => {
     const colors: Record<string, string> = {
-      outstanding: "#D97706",
-      submitted: "#059669",
-      approved: "#2463EB",
+      "pending-approval": "#1E40AF",
+      dispatched: "#B45309",
+      approved: "#166534",
     };
     return (
       <svg
@@ -234,41 +234,38 @@ export default function CreateFTOModal({
           cx="8"
           cy="8"
           r="6"
-          stroke={colors[status] || colors.outstanding}
+          stroke={colors[status] || colors["pending-approval"]}
           strokeWidth="1.5"
         />
       </svg>
     );
   };
 
-  const getTimesheetStatusLabel = () => {
+  const getFTOStatusLabel = () => {
     const labels: Record<string, string> = {
-      "awaiting-submission": "Awaiting Submission",
-      submitted: "Submitted",
-      rejected: "Rejected",
-      approved: "Approved",
+      "pending-approval": "New",
+      dispatched: "Dispatched",
+      approved: "Completed",
     };
-    return labels[timesheetStatus] || "Awaiting Submission";
+    return labels[ftoStatus] || "New";
   };
 
-  const getTimesheetStatusBgColor = () => {
+  const getFTOStatusBgColor = () => {
     const colors: Record<string, string> = {
-      "awaiting-submission": "#fef3c7",
-      submitted: "#d1fae5",
-      rejected: "#fee2e2",
-      approved: "#dbe9fe",
+      "pending-approval": "#EFF6FF",
+      dispatched: "#FEF3C7",
+      approved: "#DCFCE7",
     };
-    return colors[timesheetStatus] || "#fef3c7";
+    return colors[ftoStatus] || "#EFF6FF";
   };
 
-  const getTimesheetStatusTextColor = () => {
+  const getFTOStatusTextColor = () => {
     const colors: Record<string, string> = {
-      "awaiting-submission": "#d97706",
-      submitted: "#059669",
-      rejected: "#dc2626",
-      approved: "#2463eb",
+      "pending-approval": "#1E40AF",
+      dispatched: "#B45309",
+      approved: "#166534",
     };
-    return colors[timesheetStatus] || "#d97706";
+    return colors[ftoStatus] || "#1E40AF";
   };
 
   return (
@@ -636,34 +633,33 @@ export default function CreateFTOModal({
             </div>
           </div>
 
-          {/* Timesheet Status */}
+          {/* FTO Status */}
           <div className="flex flex-col gap-2">
             <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Timesheet Status
+              FTO Status <span className="text-red-600">*</span>
             </label>
-            <Select value={timesheetStatus} onValueChange={setTimesheetStatus}>
+            <Select value={ftoStatus} onValueChange={setFtoStatus}>
               <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
                 <div
                   className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
-                  style={{ backgroundColor: getTimesheetStatusBgColor() }}
+                  style={{ backgroundColor: getFTOStatusBgColor() }}
                 >
-                  {getTimesheetStatusIcon()}
+                  {getFTOStatusIcon()}
                   <span
                     className="text-sm tracking-[-0.32px] leading-[1.4]"
                     style={{
-                      color: getTimesheetStatusTextColor(),
+                      color: getFTOStatusTextColor(),
                       marginTop: "1px",
                     }}
                   >
-                    {getTimesheetStatusLabel()}
+                    {getFTOStatusLabel()}
                   </span>
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="awaiting-submission">Awaiting Submission</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="pending-approval">New</SelectItem>
+                <SelectItem value="dispatched">Dispatched</SelectItem>
+                <SelectItem value="approved">Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>
