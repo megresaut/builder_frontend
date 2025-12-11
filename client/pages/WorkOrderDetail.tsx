@@ -309,16 +309,21 @@ export default function WorkOrderDetail() {
                   Bill Status
                 </label>
                 <div className="inline-flex w-fit">
-                  <div
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-normal ${
-                      workOrder.billStatus === "Paid"
-                        ? "bg-green-100 text-green-600"
-                        : workOrder.billStatus === "Unpaid"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-yellow-100 text-yellow-600"
-                    }`}
-                  >
-                    {workOrder.billStatus}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          workOrder.billStatus === "Paid"
+                            ? "#059669"
+                            : workOrder.billStatus === "Unpaid"
+                              ? "#DC2626"
+                              : "#D97706",
+                      }}
+                    />
+                    <span className="text-sm text-gray-900">
+                      {workOrder.billStatus}
+                    </span>
                   </div>
                 </div>
               </div>
