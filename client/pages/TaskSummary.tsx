@@ -1644,7 +1644,14 @@ export default function TaskSummary() {
                                 setSelectedFTOId(order.id);
                                 setShowApprovalModal(true);
                               }}
-                              onEdit={() => setShowFTOModal(true)}
+                              onEdit={() => {
+                                setEditFTOData({
+                                  dueDate: order.dueDate,
+                                  priority: "normal",
+                                  ftoStatus: order.status,
+                                });
+                                setShowFTOModal(true);
+                              }}
                             />
                           </td>
                         </tr>
