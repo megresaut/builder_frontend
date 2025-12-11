@@ -243,29 +243,32 @@ export default function CreateFTOModal({
 
   const getTimesheetStatusLabel = () => {
     const labels: Record<string, string> = {
-      outstanding: "Outstanding",
+      "awaiting-submission": "Awaiting Submission",
       submitted: "Submitted",
+      rejected: "Rejected",
       approved: "Approved",
     };
-    return labels[timesheetStatus] || "Outstanding";
+    return labels[timesheetStatus] || "Awaiting Submission";
   };
 
   const getTimesheetStatusBgColor = () => {
     const colors: Record<string, string> = {
-      outstanding: "#fef3c7",
+      "awaiting-submission": "#fef3c7",
       submitted: "#d1fae5",
+      rejected: "#fee2e2",
       approved: "#dbe9fe",
     };
-    return colors[timesheetStatus] || colors.outstanding;
+    return colors[timesheetStatus] || "#fef3c7";
   };
 
   const getTimesheetStatusTextColor = () => {
     const colors: Record<string, string> = {
-      outstanding: "#d97706",
+      "awaiting-submission": "#d97706",
       submitted: "#059669",
+      rejected: "#dc2626",
       approved: "#2463eb",
     };
-    return colors[timesheetStatus] || colors.outstanding;
+    return colors[timesheetStatus] || "#d97706";
   };
 
   return (
@@ -274,7 +277,7 @@ export default function CreateFTOModal({
         <div className="flex flex-col gap-4 px-8 py-8 bg-white rounded-2xl">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25]">
-            Create/Update Field Team Order
+            {editData ? "Edit FTO" : "Create FTO"}
           </DialogTitle>
 
           {/* Property and Unit Row */}
@@ -328,6 +331,7 @@ export default function CreateFTOModal({
                 />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="na">N/A</SelectItem>
                 <SelectItem value="task1">Task 1</SelectItem>
                 <SelectItem value="task2">Task 2</SelectItem>
               </SelectContent>
@@ -656,8 +660,9 @@ export default function CreateFTOModal({
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="outstanding">Outstanding</SelectItem>
+                <SelectItem value="awaiting-submission">Awaiting Submission</SelectItem>
                 <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
               </SelectContent>
             </Select>
