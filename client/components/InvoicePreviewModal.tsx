@@ -447,27 +447,40 @@ export default function InvoicePreviewModal({
               <div
                 style={{
                   marginTop: "40px",
+                  display: "flex",
+                  maxWidth: "492px",
+                  flexDirection: "column",
                   fontSize: "5px",
-                  lineHeight: "6px",
+                  fontWeight: 400,
+                  lineHeight: 1.18,
+                  justifyContent: "start",
                 }}
               >
                 <div style={{ fontWeight: 700, letterSpacing: "0.06px" }}>
                   Please make all checks payable to AVMRE LLC
                 </div>
                 <div style={{ letterSpacing: "-0.09px" }}>
-                  If you have any questions concerning this invoice, use the
-                  following contact information:
+                  If you have any questions concerning this invoice, use the following contact information:
                 </div>
                 <div style={{ letterSpacing: "-0.32px" }}>203-987-7050</div>
                 <div
                   style={{
+                    display: "flex",
+                    minHeight: "15px",
+                    width: "67px",
+                    alignItems: "end",
+                    gap: "10px",
+                    overflow: "hidden",
                     color: "#0563C1",
                     letterSpacing: "0.24px",
+                    justifyContent: "start",
                   }}
                 >
-                  <a href="mailto:STAFF@AVMRE.COM" style={{ color: "inherit", textDecoration: "none" }}>
-                    STAFF@AVMRE.COM
-                  </a>
+                  <div>
+                    <a href="mailto:STAFF@AVMRE.COM" target="_blank" style={{ color: "inherit", textDecoration: "none" }}>
+                      STAFF@AVMRE.COM
+                    </a>
+                  </div>
                 </div>
                 <div style={{ fontWeight: 700, letterSpacing: "0.16px" }}>
                   THANK YOU FOR YOUR BUSINESS!
