@@ -289,7 +289,7 @@ export default function InvoicePreviewModal({
                         onChange={(e) =>
                           handleUpdateLineItem(item.id, "vendor", e.target.value)
                         }
-                        className="edit-field no-print"
+                        className="edit-field"
                         style={{
                           width: "100%",
                           border: "none",
@@ -301,9 +301,7 @@ export default function InvoicePreviewModal({
                           fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                         }}
                       />
-                      <span className="print-only" style={{ display: "none" }}>
-                        {item.vendor}
-                      </span>
+                      <span className="print-only">{item.vendor}</span>
                     </div>
                     <div
                       style={{
@@ -319,7 +317,7 @@ export default function InvoicePreviewModal({
                         onChange={(e) =>
                           handleUpdateLineItem(item.id, "description", e.target.value)
                         }
-                        className="edit-field no-print"
+                        className="edit-field"
                         style={{
                           width: "100%",
                           border: "none",
@@ -331,44 +329,40 @@ export default function InvoicePreviewModal({
                           fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                         }}
                       />
-                      <span className="print-only" style={{ display: "none" }}>
-                        {item.description}
-                      </span>
+                      <span className="print-only">{item.description}</span>
                     </div>
                     <div
                       style={{
                         width: "95px",
-                        textAlign: "right",
                         paddingTop: "5px",
                         letterSpacing: "-0.175px",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "flex-end",
-                        gap: "8px",
+                        justifyContent: "space-between",
                       }}
                     >
-                      <input
-                        type="text"
-                        value={item.amount}
-                        onChange={(e) =>
-                          handleUpdateLineItem(item.id, "amount", e.target.value)
-                        }
-                        className="edit-field no-print"
-                        style={{
-                          width: "100%",
-                          border: "none",
-                          outline: "none",
-                          background: "transparent",
-                          fontSize: "6px",
-                          lineHeight: "7px",
-                          color: "#002060",
-                          textAlign: "right",
-                          fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-                        }}
-                      />
-                      <span className="print-only" style={{ display: "none" }}>
-                        {item.amount}
-                      </span>
+                      <div style={{ flex: 1, textAlign: "right" }}>
+                        <input
+                          type="text"
+                          value={item.amount}
+                          onChange={(e) =>
+                            handleUpdateLineItem(item.id, "amount", e.target.value)
+                          }
+                          className="edit-field"
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            outline: "none",
+                            background: "transparent",
+                            fontSize: "6px",
+                            lineHeight: "7px",
+                            color: "#002060",
+                            textAlign: "right",
+                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                          }}
+                        />
+                        <span className="print-only">{item.amount}</span>
+                      </div>
                       <button
                         onClick={() => handleRemoveLineItem(item.id)}
                         className="no-print"
@@ -380,6 +374,7 @@ export default function InvoicePreviewModal({
                           fontSize: "14px",
                           fontWeight: "bold",
                           padding: "0 4px",
+                          marginLeft: "8px",
                         }}
                         title="Remove line item"
                       >
