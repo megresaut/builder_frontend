@@ -428,7 +428,13 @@ export default function VendorDetail() {
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Recent Notes
                     </h2>
-                    <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity">
+                    <button
+                      onClick={() => {
+                        setNewNoteContent("");
+                        setIsAddNoteModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                    >
                       <Plus className="w-3 h-3" />
                       <span>Add</span>
                     </button>
