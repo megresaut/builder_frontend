@@ -363,11 +363,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
                     <div className="flex flex-col">
                       <div>MANAGEMENT AGREEMENT DATE</div>
-                      <div>-</div>
+                      <div>{managementAgreementDate ? new Date(managementAgreementDate).toLocaleDateString() : "-"}</div>
                     </div>
                     <div className="flex flex-col">
                       <div>INSPECTION FREQUENCY</div>
-                      <div>Monthly</div>
+                      <div>{inspectionFrequency}</div>
                     </div>
                   </div>
                 </div>
@@ -422,7 +422,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
                     <div className="flex flex-col">
                       <div>MONTHLY RATE</div>
-                      <div>$700.00 / month</div>
+                      <div>{monthlyRate}</div>
                     </div>
                   </div>
                 </div>
@@ -434,11 +434,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
                     <div className="flex flex-col">
                       <div>DEFAULT RATE</div>
-                      <div>$60 / hour</div>
+                      <div>{defaultRate}</div>
                     </div>
                     <div className="flex flex-col">
                       <div>EMERGENCY RATE</div>
-                      <div>$50 / hour</div>
+                      <div>{emergencyRate}</div>
                     </div>
                   </div>
                   <button
