@@ -586,24 +586,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
                 />
               </div>
-              <button
-                type="button"
-                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
-                style={{
-                  boxShadow:
-                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
-                }}
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/4d88fa44d294755ce2b939b087c7b7ff1178d34e?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-                <span className="text-white font-medium text-base leading-normal">
-                  Add Line Item
-                </span>
-              </button>
             </div>
           </div>
 

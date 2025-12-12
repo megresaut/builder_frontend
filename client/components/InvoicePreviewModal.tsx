@@ -202,34 +202,40 @@ export default function InvoicePreviewModal({
                   </div>
                 </div>
 
-                {/* Right Column - Invoice Info */}
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ 
-                    fontSize: "14px", 
+                <div>
+                  <div style={{
+                    fontSize: "14px",
                     fontWeight: 700,
                     letterSpacing: "1.5px",
                     marginBottom: "4px"
                   }}>
-                    INVOICE
+                    AVMRE LLC
                   </div>
-                  <div style={{ fontSize: "11px", marginBottom: "40px" }}>
-                    DATE: {invoiceDate}
+                  <div style={{ fontSize: "11px", lineHeight: "15.4px" }}>
+                    11 LARGO DRIVE SOUTH
                   </div>
-                  
-                  <div>
-                    <div style={{ 
-                      fontSize: "10px", 
+                  <div style={{ fontSize: "11px", lineHeight: "15.4px" }}>
+                    SUITE 200
+                  </div>
+                  <div style={{ fontSize: "11px", lineHeight: "15.4px" }}>
+                    STAMFORD, CT 06907
+                  </div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, lineHeight: "15.4px" }}>
+                    203-987-7050
+                  </div>
+
+                  <div style={{ marginTop: "40px" }}>
+                    <div style={{
+                      fontSize: "10px",
                       fontWeight: 700,
                       letterSpacing: "1.2px",
+                      lineHeight: "15px",
                       marginBottom: "4px"
                     }}>
-                      PROPERTY:
+                      BILL TO:
                     </div>
-                    <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
-                      {propertyAddress}
-                    </div>
-                    <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
-                      {propertyLocation}
+                    <div style={{ fontSize: "11px", lineHeight: "16.5px" }}>
+                      {billTo}
                     </div>
                   </div>
                 </div>
