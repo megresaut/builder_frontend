@@ -4,6 +4,7 @@ import AddPropertyModal from "@/components/AddPropertyModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
@@ -59,6 +60,12 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [fileDraft, setFileDraft] = useState<File | null>(null);
   const [selectedNote, setSelectedNote] = useState<RecentNote | null>(null);
   const [selectedFile, setSelectedFile] = useState<RecentFile | null>(null);
+  const [fileCategoryDraft, setFileCategoryDraft] = useState("Uncategorized");
+  const [managementAgreementDate, setManagementAgreementDate] = useState("");
+  const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
+  const [monthlyRate, setMonthlyRate] = useState("$700.00 / month");
+  const [defaultRate, setDefaultRate] = useState("$60 / hour");
+  const [emergencyRate, setEmergencyRate] = useState("$50 / hour");
 
   const [recentNotes, setRecentNotes] = useState<RecentNote[]>([
     {
@@ -992,18 +999,25 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Management Agreement Date</label>
                       <input
-                        type="text"
-                        placeholder="-"
+                        type="date"
+                        value={managementAgreementDate}
+                        onChange={(e) => setManagementAgreementDate(e.target.value)}
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Inspection Frequency</label>
-                      <input
-                        type="text"
-                        defaultValue="Monthly"
-                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
-                      />
+                      <Select value={inspectionFrequency} onValueChange={setInspectionFrequency}>
+                        <SelectTrigger className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] focus:ring-2 focus:ring-[#013764]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-[#DADADA] rounded-lg">
+                          <SelectItem value="Weekly">Weekly</SelectItem>
+                          <SelectItem value="Biweekly">Biweekly</SelectItem>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
+                          <SelectItem value="Bi-Monthly">Bi-Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
@@ -1015,7 +1029,8 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </button>
                     <button
                       onClick={() => {
-                        alert("Custom fields updated!");
+                        setManagementAgreementDate(managementAgreementDate);
+                        setInspectionFrequency(inspectionFrequency);
                         setShowEditCustomFieldsModal(false);
                       }}
                       className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
@@ -1074,7 +1089,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <label className="text-sm font-medium text-[#303030]">Monthly Rate</label>
                       <input
                         type="text"
-                        defaultValue="$700.00 / month"
+                        value={monthlyRate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const cleanedVal = val.replace(/[^0-9./$]/g, '');
+                          if (!val || /^[$0-9.]+\/.*$|^[$0-9.]+$/.test(cleanedVal)) {
+                            setMonthlyRate(val);
+                          }
+                        }}
+                        placeholder="$0.00"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
@@ -1082,7 +1105,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <label className="text-sm font-medium text-[#303030]">Default Rate</label>
                       <input
                         type="text"
-                        defaultValue="$60 / hour"
+                        value={defaultRate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const cleanedVal = val.replace(/[^0-9./$]/g, '');
+                          if (!val || /^[$0-9.]+\/.*$|^[$0-9.]+$/.test(cleanedVal)) {
+                            setDefaultRate(val);
+                          }
+                        }}
+                        placeholder="$0.00"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
@@ -1090,7 +1121,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <label className="text-sm font-medium text-[#303030]">Emergency Rate</label>
                       <input
                         type="text"
-                        defaultValue="$50 / hour"
+                        value={emergencyRate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const cleanedVal = val.replace(/[^0-9./$]/g, '');
+                          if (!val || /^[$0-9.]+\/.*$|^[$0-9.]+$/.test(cleanedVal)) {
+                            setEmergencyRate(val);
+                          }
+                        }}
+                        placeholder="$0.00"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
@@ -1104,7 +1143,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </button>
                     <button
                       onClick={() => {
-                        alert("Rates updated!");
+                        setMonthlyRate(monthlyRate);
+                        setDefaultRate(defaultRate);
+                        setEmergencyRate(emergencyRate);
                         setShowEditRatesModal(false);
                       }}
                       className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
@@ -1269,6 +1310,23 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
                       />
                     </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Category</label>
+                      <Select value={fileCategoryDraft} onValueChange={setFileCategoryDraft}>
+                        <SelectTrigger className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] focus:ring-2 focus:ring-[#013764]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-[#DADADA] rounded-lg">
+                          <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                          <SelectItem value="Insurance">Insurance</SelectItem>
+                          <SelectItem value="Compliance">Compliance</SelectItem>
+                          <SelectItem value="Owner Docs">Owner Docs</SelectItem>
+                          <SelectItem value="Lease Docs">Lease Docs</SelectItem>
+                          <SelectItem value="Maintenance">Maintenance</SelectItem>
+                          <SelectItem value="Inspection">Inspection</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
                     <button
@@ -1306,7 +1364,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                             {
                               id: nextId,
                               name: fileName,
-                              category: "Uncategorized",
+                              category: fileCategoryDraft,
                               date,
                               author: propertyManager,
                               type: ext || "file",
@@ -1317,6 +1375,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         });
 
                         setFileDraft(null);
+                        setFileCategoryDraft("Uncategorized");
                         setShowAddFileModal(false);
                       }}
                       disabled={!fileDraft}
