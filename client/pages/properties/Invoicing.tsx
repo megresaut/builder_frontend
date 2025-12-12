@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
+import InvoicePreviewModal, {
+  type InvoiceLineItem,
+} from "@/components/InvoicePreviewModal";
 
 interface InvoicingProps {
   propertyAddress: string;
@@ -172,6 +175,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -841,6 +845,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             <div className="flex items-start gap-2.5">
               <button
                 type="button"
+                onClick={() => setShowInvoicePreview(true)}
                 className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
                 style={{
                   boxShadow:
@@ -1208,6 +1213,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           document.body,
         )}
 
+      {/* Invoice Preview Modal */}
+      <InvoicePreviewModal
+        open={showInvoicePreview}
+        onOpenChange={setShowInvoicePreview}
+        propertyAddress={propertyAddress}
+        propertyLocation="Westport, CT 06880"
+        billTo="Jason Pascal"
+        invoiceDate="November 2025"
+        lineItems={invoiceItems.map((item) => ({
+          id: item.id,
+          vendor: item.vendor,
+          description: item.description,
+          amount: item.amount,
+        }))}
+      />
     </div>
   );
 };
