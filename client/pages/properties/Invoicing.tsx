@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
+import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
 } from "@/components/InvoicePreviewModal";
@@ -183,6 +184,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [invoicePreviewLineItems, setInvoicePreviewLineItems] = useState<InvoiceLineItem[]>([]);
   const [invoicePreviewInvoiceDate, setInvoicePreviewInvoiceDate] = useState<string>("");
   const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] = useState(false);
+  const [showFTOApprovalModal, setShowFTOApprovalModal] = useState(false);
+  const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
   const [showingPendingInsights, setShowingPendingInsights] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -320,131 +323,38 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     },
   ];
 
-  type InvoiceHistoryStatus = "Paid" | "Partially Paid" | "Overdue";
-
   interface InvoiceHistoryItem {
     id: number;
-    date: string;
-    dueDate: string;
+    dateCreated: string;
+    invoiceMonth: string;
     amount: string;
-    status: InvoiceHistoryStatus;
-    statusColor: string;
-    statusBg: string;
-    statusIcon: string;
+    lineItems: InvoiceLineItem[];
   }
 
-  const invoiceHistory: InvoiceHistoryItem[] = [
-    {
-      id: 1,
-      date: "Oct 1, 2025",
-      dueDate: "Dec 17, 2025",
-      amount: "$237",
-      status: "Paid",
-      statusColor: "#059669",
-      statusBg: "#D1FAE5",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3293eefc705d0aa2c8d8afe5bcd130ffd4267fcd?placeholderIfAbsent=true",
-    },
-    {
-      id: 2,
-      date: "Oct 1, 2025",
-      dueDate: "Dec 10, 2025",
-      amount: "$639",
-      status: "Partially Paid",
-      statusColor: "#D97706",
-      statusBg: "#FEF3C7",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/c78d46fd40373589ea4c9b2466efcb245b7d37e3?placeholderIfAbsent=true",
-    },
-    {
-      id: 3,
-      date: "Sep 28, 2025",
-      dueDate: "Dec 3, 2025",
-      amount: "$482",
-      status: "Overdue",
-      statusColor: "#C61916",
-      statusBg: "#FFE4DF",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07a1bbbdfd90776659d3dff29d87e35a3a6602da?placeholderIfAbsent=true",
-    },
-    {
-      id: 4,
-      date: "Sep 21, 2025",
-      dueDate: "Nov 26, 2025",
-      amount: "$183",
-      status: "Partially Paid",
-      statusColor: "#D97706",
-      statusBg: "#FEF3C7",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/adc13cf035f6b23bbff65856e578b89ee67904d7?placeholderIfAbsent=true",
-    },
-    {
-      id: 5,
-      date: "Sep 14, 2025",
-      dueDate: "Nov 19, 2025",
-      amount: "$711",
-      status: "Overdue",
-      statusColor: "#C61916",
-      statusBg: "#FFE4DF",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/46f755aad8be29be69d58995cc638bc092a9db0c?placeholderIfAbsent=true",
-    },
-    {
-      id: 6,
-      date: "Sep 7, 2025",
-      dueDate: "Nov 12, 2025",
-      amount: "$335",
-      status: "Paid",
-      statusColor: "#059669",
-      statusBg: "#D1FAE5",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/408dc7b0515f95bc0af6a7acc03dffb1dae2f798?placeholderIfAbsent=true",
-    },
-    {
-      id: 7,
-      date: "Aug 31, 2025",
-      dueDate: "Nov 5, 2025",
-      amount: "$558",
-      status: "Paid",
-      statusColor: "#059669",
-      statusBg: "#D1FAE5",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b14e8b210b874b43f30985e753e8ae036b47a502?placeholderIfAbsent=true",
-    },
-    {
-      id: 8,
-      date: "Aug 24, 2025",
-      dueDate: "Oct 29, 2025",
-      amount: "$294",
-      status: "Partially Paid",
-      statusColor: "#D97706",
-      statusBg: "#FEF3C7",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/91508c6903119b8020b38a0cc94661b73171e2db?placeholderIfAbsent=true",
-    },
-    {
-      id: 9,
-      date: "Aug 17, 2025",
-      dueDate: "Oct 22, 2025",
-      amount: "$672",
-      status: "Partially Paid",
-      statusColor: "#D97706",
-      statusBg: "#FEF3C7",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/20e8a13c80a1552dbd67be6df821edb9af15cb2a?placeholderIfAbsent=true",
-    },
-    {
-      id: 10,
-      date: "Aug 10, 2025",
-      dueDate: "Oct 15, 2025",
-      amount: "$416",
-      status: "Overdue",
-      statusColor: "#C61916",
-      statusBg: "#FFE4DF",
-      statusIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5aa3241bd0405b27426830e308be0fbe085ebae0?placeholderIfAbsent=true",
-    },
+  const formatInvoiceMonth = (dateStr: string) => {
+    const parsed = new Date(dateStr);
+    if (Number.isNaN(parsed.getTime())) return dateStr;
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      year: "numeric",
+    }).format(parsed);
+  };
+
+  const seedInvoiceHistory: InvoiceHistoryItem[] = [
+    { id: 1, dateCreated: "Oct 1, 2025", invoiceMonth: formatInvoiceMonth("Oct 1, 2025"), amount: "$237", lineItems: [] },
+    { id: 2, dateCreated: "Oct 1, 2025", invoiceMonth: formatInvoiceMonth("Oct 1, 2025"), amount: "$639", lineItems: [] },
+    { id: 3, dateCreated: "Sep 28, 2025", invoiceMonth: formatInvoiceMonth("Sep 28, 2025"), amount: "$482", lineItems: [] },
+    { id: 4, dateCreated: "Sep 21, 2025", invoiceMonth: formatInvoiceMonth("Sep 21, 2025"), amount: "$183", lineItems: [] },
+    { id: 5, dateCreated: "Sep 14, 2025", invoiceMonth: formatInvoiceMonth("Sep 14, 2025"), amount: "$711", lineItems: [] },
+    { id: 6, dateCreated: "Sep 7, 2025", invoiceMonth: formatInvoiceMonth("Sep 7, 2025"), amount: "$335", lineItems: [] },
+    { id: 7, dateCreated: "Aug 31, 2025", invoiceMonth: formatInvoiceMonth("Aug 31, 2025"), amount: "$558", lineItems: [] },
+    { id: 8, dateCreated: "Aug 24, 2025", invoiceMonth: formatInvoiceMonth("Aug 24, 2025"), amount: "$294", lineItems: [] },
+    { id: 9, dateCreated: "Aug 17, 2025", invoiceMonth: formatInvoiceMonth("Aug 17, 2025"), amount: "$672", lineItems: [] },
+    { id: 10, dateCreated: "Aug 10, 2025", invoiceMonth: formatInvoiceMonth("Aug 10, 2025"), amount: "$416", lineItems: [] },
   ];
+
+  const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistoryItem[]>(seedInvoiceHistory);
 
   const toIsoDateTime = (date: Date) => date.toISOString();
 
@@ -476,34 +386,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     };
   };
 
-  const buildViewBillStateFromHistoryItem = (
-    item: InvoiceHistoryItem,
-    address: string,
-  ): ViewBillState => {
-    const invoiceDate = new Date(item.date);
-    const dueDate = new Date(item.dueDate);
-
-    return {
-      vendorName: "David Smith",
-      referenceNumber: `INV-${String(item.id).padStart(4, "0")}`,
-      invoiceDate: Number.isNaN(invoiceDate.getTime())
-        ? undefined
-        : toIsoDateTime(invoiceDate),
-      dueDate: Number.isNaN(dueDate.getTime()) ? undefined : toIsoDateTime(dueDate),
-      memo: `Invoice from ${item.date}`,
-      lineItems: [
-        {
-          id: 1,
-          property: address,
-          unit: "N/A",
-          workOrder: "N/A",
-          description: `Invoice ${item.date}`,
-          glAccount: "Utilities",
-          total: item.amount,
-        },
-      ],
-    };
-  };
 
   const openViewBill = (bill: ViewBillState) => {
     const basePath = propertyId
@@ -525,8 +407,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     });
   };
 
-  const openViewFTO = () => {
-    navigate("/field-team-orders");
+  const openViewFTO = (ftoId: number) => {
+    setSelectedFTOId(ftoId);
+    setShowFTOApprovalModal(true);
   };
 
   const buildPreviewLineItemsFromInvoiceItem = (
@@ -543,13 +426,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const buildPreviewLineItemsFromHistoryItem = (
     item: InvoiceHistoryItem,
   ): InvoiceLineItem[] => {
-    const bill = buildViewBillStateFromHistoryItem(item, propertyAddress);
-    return (bill.lineItems ?? []).map((lineItem) => ({
-      id: lineItem.id,
-      vendor: bill.vendorName ?? "",
-      description: lineItem.description,
-      amount: lineItem.total,
-    }));
+    if (item.lineItems.length > 0) return item.lineItems;
+
+    return [
+      {
+        id: 1,
+        vendor: "",
+        description: `Invoice ${item.invoiceMonth}`,
+        amount: item.amount,
+      },
+    ];
   };
 
   const openInvoicePreview = (options: {
@@ -561,6 +447,41 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     setInvoicePreviewInvoiceDate(options.invoiceDate);
     setInvoicePreviewShowCommitButton(options.showCommitButton);
     setShowInvoicePreview(true);
+  };
+
+  const handleCommitInvoice = (lineItems: InvoiceLineItem[]) => {
+    const total = lineItems.reduce((sum, item) => {
+      const value = parseFloat(String(item.amount).replace(/[^\d.]/g, ""));
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+
+    const amount = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(total);
+
+    const dateCreated = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date());
+
+    const invoiceMonth = invoicePreviewInvoiceDate || currentInvoiceMonth;
+
+    setInvoiceHistory((prev) => {
+      const nextId = prev.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+      const nextItem: InvoiceHistoryItem = {
+        id: nextId,
+        dateCreated,
+        invoiceMonth,
+        amount,
+        lineItems,
+      };
+
+      return [nextItem, ...prev];
+    });
+
+    setCurrentPage(1);
   };
 
   const totalInvoices = invoiceHistory.length;
@@ -983,7 +904,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       ftoActionLabel={isFTO ? "View FTO" : "View Bill"}
                       onView={() => {
                         if (isFTO) {
-                          openViewFTO();
+                          openViewFTO(item.id);
                           return;
                         }
 
@@ -1096,7 +1017,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 className="flex min-w-60 items-center flex-wrap flex-1"
                 style={{ borderLeftColor: "transparent" }}
               >
-                {/* Date Column */}
+                {/* Date Created Column */}
                 <div className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1">
                   <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3">
                     <img
@@ -1106,7 +1027,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       alt=""
                     />
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Date
+                      Date Created
                     </div>
                   </div>
                   {paginatedHistory.map((item) => (
@@ -1115,13 +1036,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3"
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.date}
+                        {item.dateCreated}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Due Date Column */}
+                {/* Invoice Month Column */}
                 <div
                   className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1"
                   style={{ borderLeftColor: "transparent" }}
@@ -1137,7 +1058,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       alt=""
                     />
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Due Date
+                      Invoice Month
                     </div>
                   </div>
                   {paginatedHistory.map((item) => (
@@ -1147,7 +1068,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       style={{ borderLeftColor: "transparent" }}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.dueDate}
+                        {item.invoiceMonth}
                       </div>
                     </div>
                   ))}
@@ -1206,7 +1127,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       onView={() =>
                         openInvoicePreview({
                           lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                          invoiceDate: item.date,
+                          invoiceDate: item.invoiceMonth,
                           showCommitButton: false,
                         })
                       }
@@ -1373,6 +1294,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               }))
         }
         showCommitButton={invoicePreviewShowCommitButton}
+        onCommit={handleCommitInvoice}
+      />
+
+      <FTOApprovalModal
+        open={showFTOApprovalModal}
+        onOpenChange={(open) => {
+          setShowFTOApprovalModal(open);
+          if (!open) setSelectedFTOId(null);
+        }}
+        selectedFTOId={selectedFTOId}
+        property={propertyAddress}
+        unit="N/A"
+        fieldTeamAssignee="Field Team"
       />
 
 
