@@ -490,7 +490,7 @@ export default function InvoicePreviewModal({
                 display: "flex", 
                 justifyContent: "flex-end",
                 alignItems: "center",
-                marginBottom: "40px"
+                marginBottom: "20px"
               }}>
                 <div style={{
                   marginRight: "20px",
@@ -515,28 +515,28 @@ export default function InvoicePreviewModal({
               </div>
 
               {/* Footer */}
-              <div style={{ fontSize: "10px", lineHeight: "16px" }}>
+              <div style={{ fontSize: "7px", lineHeight: "16px", marginTop: "-3px" }}>
                 <div
                   style={{
                     fontWeight: 700,
-                    marginBottom: "4px",
                     fontFamily: "Arial, sans-serif",
+                    marginTop: "-4px",
                   }}
                 >
                   Please make all checks payable to AVMRE LLC
                 </div>
                 <div
                   style={{
-                    marginBottom: "4px",
                     fontFamily: "Arial, sans-serif",
+                    marginTop: "-4px",
                   }}
                 >
                   If you have any questions concerning this invoice, use the following contact information:
                 </div>
-                <div style={{ marginBottom: "4px", fontFamily: "Arial, sans-serif" }}>
+                <div style={{ fontFamily: "Arial, sans-serif", marginTop: "-4px" }}>
                   203-987-7050
                 </div>
-                <div style={{ color: "#0563C1", marginBottom: "4px" }}>
+                <div style={{ color: "#0563C1", marginTop: "-4px" }}>
                   <a
                     href="mailto:STAFF@AVMRE.COM"
                     style={{
@@ -548,7 +548,7 @@ export default function InvoicePreviewModal({
                     STAFF@AVMRE.COM
                   </a>
                 </div>
-                <div style={{ fontWeight: 700, fontFamily: "Arial, sans-serif" }}>
+                <div style={{ fontWeight: 700, fontFamily: "Arial, sans-serif", marginTop: "-4px" }}>
                   THANK YOU FOR YOUR BUSINESS!
                 </div>
               </div>
