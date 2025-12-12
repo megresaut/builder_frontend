@@ -10,13 +10,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogTitle,
@@ -30,12 +23,6 @@ export interface InvoiceLineItem {
   amount: string;
 }
 
-type AddLineItemOption = {
-  id: string;
-  label: string;
-  lineItem: Omit<InvoiceLineItem, "id">;
-};
-
 interface InvoicePreviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,8 +34,6 @@ interface InvoicePreviewModalProps {
   showCommitButton?: boolean;
   onCommit?: (lineItems: InvoiceLineItem[]) => void;
   pendingUnapprovedCount?: number;
-  billOptions?: AddLineItemOption[];
-  ftoOptions?: AddLineItemOption[];
 }
 
 export default function InvoicePreviewModal({
@@ -62,17 +47,12 @@ export default function InvoicePreviewModal({
   showCommitButton = false,
   onCommit,
   pendingUnapprovedCount = 0,
-  billOptions = [],
-  ftoOptions = [],
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
   const [activeAmountId, setActiveAmountId] = useState<number | null>(null);
   const [amountDraftById, setAmountDraftById] = useState<Record<number, string>>({});
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
-  const [showAddLineItemPicker, setShowAddLineItemPicker] = useState(false);
-  const [selectedBillId, setSelectedBillId] = useState<string>("");
-  const [selectedFtoId, setSelectedFtoId] = useState<string>("");
 
   const normalizeAmountDraft = (value: string): string => {
     const cleaned = value.replace(/[^\d.]/g, "");
@@ -111,9 +91,6 @@ export default function InvoicePreviewModal({
     );
     setActiveAmountId(null);
     setAmountDraftById({});
-    setShowAddLineItemPicker(false);
-    setSelectedBillId("");
-    setSelectedFtoId("");
   }, [initialLineItems]);
 
   const calculateTotal = () => {
@@ -128,30 +105,15 @@ export default function InvoicePreviewModal({
     return lineItems.reduce((max, item) => Math.max(max, item.id), 0) + 1;
   };
 
-  const handleOpenAddLineItemPicker = () => {
-    setSelectedBillId("");
-    setSelectedFtoId("");
-    setShowAddLineItemPicker(true);
-  };
-
-  const handleAddSelectedLineItem = () => {
-    const selected = selectedBillId
-      ? billOptions.find((o) => o.id === selectedBillId)
-      : ftoOptions.find((o) => o.id === selectedFtoId);
-
-    if (!selected) return;
-
+  const handleAddLineItem = () => {
     const nextItem: InvoiceLineItem = {
       id: getNextLineItemId(),
-      vendor: selected.lineItem.vendor,
-      description: selected.lineItem.description,
-      amount: toCanonicalAmount(selected.lineItem.amount),
+      vendor: "",
+      description: "",
+      amount: "0.00",
     };
 
     setLineItems((prev) => [...prev, nextItem]);
-    setShowAddLineItemPicker(false);
-    setSelectedBillId("");
-    setSelectedFtoId("");
   };
 
   const handleRemoveLineItem = (id: number) => {
@@ -260,7 +222,6 @@ export default function InvoicePreviewModal({
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
             setShowCommitConfirm(false);
-            setShowAddLineItemPicker(false);
           }
           onOpenChange(nextOpen);
         }}
@@ -689,7 +650,7 @@ export default function InvoicePreviewModal({
 
             <button
               type="button"
-              onClick={handleOpenAddLineItemPicker}
+              onClick={handleAddLineItem}
               className="flex h-9 items-center gap-2 px-4 rounded-lg border border-[#002D5A] bg-white text-[#002D5A] hover:bg-gray-50 transition-colors"
             >
               <svg
@@ -730,111 +691,6 @@ export default function InvoicePreviewModal({
           </div>
         </DialogContent>
       </Dialog>
-
-      {showAddLineItemPicker && (
-        <div className="no-print fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-              <div className="text-[#303030] font-medium text-lg">Add additional bills</div>
-              <button
-                type="button"
-                onClick={() => setShowAddLineItemPicker(false)}
-                className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                aria-label="Close"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 6L6 18"
-                    stroke="#525252"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M6 6L18 18"
-                    stroke="#525252"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="px-6 py-5 grid gap-5">
-              <div className="grid gap-2">
-                <div className="text-sm font-medium text-[#303030]">All bills</div>
-                <Select
-                  value={selectedBillId}
-                  onValueChange={(value) => {
-                    setSelectedBillId(value);
-                    setSelectedFtoId("");
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a bill" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {billOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="text-sm font-medium text-[#303030]">All FTO orders</div>
-                <Select
-                  value={selectedFtoId}
-                  onValueChange={(value) => {
-                    setSelectedFtoId(value);
-                    setSelectedBillId("");
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an FTO order" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ftoOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAddLineItemPicker(false)}
-                className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-[#303030] font-normal text-base capitalize">
-                  Cancel
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={handleAddSelectedLineItem}
-                disabled={!selectedBillId && !selectedFtoId}
-                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
-              >
-                <span className="text-white font-medium text-base">Add to invoice</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <AlertDialog open={showCommitConfirm} onOpenChange={setShowCommitConfirm}>
         <AlertDialogContentRoot>

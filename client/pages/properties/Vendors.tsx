@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
@@ -119,7 +120,11 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : vendorId)}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpenMenuId(showMenu ? null : vendorId);
+        }}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
@@ -244,13 +249,13 @@ export const Vendors: React.FC<VendorsProps> = ({
     "openMenuId",
     null,
   );
-  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
     "isAddVendorModalOpen",
     false,
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     let animationFrameId: number;
@@ -281,8 +286,7 @@ export const Vendors: React.FC<VendorsProps> = ({
   }, [showPageSizeDropdown]);
 
   const handleVendorEdit = (vendor: Vendor) => {
-    setEditingVendor(vendor);
-    setIsAddVendorModalOpen(true);
+    navigate(`/vendors/${vendor.id}`);
   };
 
   const totalVendors = mockVendors.length;
@@ -540,6 +544,7 @@ export const Vendors: React.FC<VendorsProps> = ({
                   .map((vendor) => (
                     <tr
                       key={vendor.id}
+                      onClick={() => navigate(`/vendors/${vendor.id}`)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -789,13 +794,7 @@ export const Vendors: React.FC<VendorsProps> = ({
       {/* Add Vendor Modal */}
       <AddVendorModal
         open={isAddVendorModalOpen}
-        onOpenChange={(open) => {
-          setIsAddVendorModalOpen(open);
-          if (!open) {
-            setEditingVendor(null);
-          }
-        }}
-        editData={editingVendor || undefined}
+        onOpenChange={setIsAddVendorModalOpen}
       />
     </div>
   );
