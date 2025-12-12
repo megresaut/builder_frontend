@@ -34,6 +34,7 @@ interface InvoicePreviewModalProps {
   showCommitButton?: boolean;
   onCommit?: (lineItems: InvoiceLineItem[]) => void;
   pendingUnapprovedCount?: number;
+  rentalOwner?: string;
 }
 
 export default function InvoicePreviewModal({
