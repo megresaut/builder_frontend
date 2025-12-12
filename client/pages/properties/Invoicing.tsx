@@ -17,8 +17,8 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   onView,
-  isFTO,
-  ftoActionLabel,
+  isFTO = false,
+  ftoActionLabel = "View Bill",
 }: {
   itemId: string;
   openMenuId: string | null;
