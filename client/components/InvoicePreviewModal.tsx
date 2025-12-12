@@ -154,8 +154,9 @@ export default function InvoicePreviewModal({
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "start",
-                  gap: "100px",
-                  marginBottom: "9px",
+                  gap: "80px",
+                  marginBottom: "6px",
+                  flexShrink: 0,
                 }}
               >
                 {/* Left Column */}
