@@ -160,8 +160,8 @@ export default function InvoicePreviewModal({
                 }}
               >
                 {/* Left Column */}
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <div style={{ marginBottom: "39px" }}>
+                <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                  <div style={{ marginBottom: "24px" }}>
                     <div
                       style={{
                         fontSize: "9px",
