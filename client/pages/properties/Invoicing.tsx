@@ -1356,6 +1356,84 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           amount: item.amount,
         }))}
       />
+
+      {/* Approval Workflow Dialog */}
+      {approvalReviewIndex !== null && approvalOrderedBills.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <h2 className="text-[#303030] text-xl font-semibold mb-4">
+              Review {getCurrentApprovalBill()?.source === "FTO Submission" ? "Field Team Expense" : "Vendor Bill"} ({approvalReviewIndex + 1} of {approvalOrderedBills.length})
+            </h2>
+
+            {getCurrentApprovalBill() && (
+              <div className="space-y-4 mb-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[#71717A] text-xs font-medium">
+                      VENDOR
+                    </label>
+                    <p className="text-[#303030] text-sm font-medium mt-1">
+                      {getCurrentApprovalBill()?.vendor}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-[#71717A] text-xs font-medium">
+                      AMOUNT
+                    </label>
+                    <p className="text-[#303030] text-sm font-medium mt-1">
+                      {getCurrentApprovalBill()?.amount}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-[#71717A] text-xs font-medium">
+                      SOURCE
+                    </label>
+                    <p className="text-[#303030] text-sm font-medium mt-1">
+                      {getCurrentApprovalBill()?.source}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-[#71717A] text-xs font-medium">
+                      GL ACCOUNT
+                    </label>
+                    <p className="text-[#303030] text-sm font-medium mt-1">
+                      {getCurrentApprovalBill()?.glAccount}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[#71717A] text-xs font-medium">
+                    DESCRIPTION
+                  </label>
+                  <p className="text-[#303030] text-sm font-medium mt-1">
+                    {getCurrentApprovalBill()?.description}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setApprovalReviewIndex(null);
+                  setApprovalOrderedBills([]);
+                }}
+                className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApproveOrCancel}
+                className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
+              >
+                {approvalReviewIndex !== null && approvalReviewIndex + 1 < approvalOrderedBills.length
+                  ? "Approve & Review Next"
+                  : "Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
