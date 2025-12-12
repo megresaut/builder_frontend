@@ -16,7 +16,7 @@ export const Overview: React.FC<OverviewProps> = ({
     <div className="flex flex-col gap-6">
       <PropertyDetails
         propertyAddress={propertyAddress}
-        propertyLocation="Westport, CT, 28282"
+        propertyLocation="Greenwich, CT 06830"
         rentalOwner="Eunice Bae"
         propertyManager="Jake Delardi"
       />
