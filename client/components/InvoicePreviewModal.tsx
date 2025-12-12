@@ -35,11 +35,24 @@ export default function InvoicePreviewModal({
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
+  const [activeAmountId, setActiveAmountId] = useState<number | null>(null);
+  const [amountDraftById, setAmountDraftById] = useState<Record<number, string>>({});
 
-  // Sync state when props change
-  useEffect(() => {
-    setLineItems(initialLineItems);
-  }, [initialLineItems]);
+  const normalizeAmountDraft = (value: string): string => {
+    const cleaned = value.replace(/[^\d.]/g, "");
+    const firstDot = cleaned.indexOf(".");
+    if (firstDot === -1) return cleaned;
+
+    const intPart = cleaned.slice(0, firstDot);
+    const decPart = cleaned.slice(firstDot + 1).replace(/\./g, "");
+    return `${intPart}.${decPart}`;
+  };
+
+  const toCanonicalAmount = (value: string): string => {
+    const draft = normalizeAmountDraft(value);
+    const num = parseFloat(draft);
+    return Number.isFinite(num) ? num.toFixed(2) : "0.00";
+  };
 
   // Format number as currency with commas (e.g., "1234.56" -> "$1,234.56")
   const formatCurrency = (value: string | number): string => {
@@ -52,24 +65,15 @@ export default function InvoicePreviewModal({
     return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  // Parse and validate currency input - only numbers and 2 decimals
-  const parseCurrencyInput = (value: string): string => {
-    // Remove any non-digit and non-decimal characters
-    let cleaned = value.replace(/[^\d.]/g, "");
-
-    // Ensure only one decimal point
-    const parts = cleaned.split(".");
-    if (parts.length > 2) {
-      cleaned = parts[0] + "." + parts.slice(1).join("");
-    }
-
-    // Limit to 2 decimal places
-    if (parts.length === 2) {
-      cleaned = parts[0] + "." + parts[1].substring(0, 2);
-    }
-
-    return cleaned || "0";
-  };
+  // Sync state when props change
+  useEffect(() => {
+    setLineItems(initialLineItems.map((item) => ({
+      ...item,
+      amount: toCanonicalAmount(item.amount),
+    })));
+    setActiveAmountId(null);
+    setAmountDraftById({});
+  }, [initialLineItems]);
 
   const calculateTotal = () => {
     return lineItems.reduce((sum, item) => {
@@ -84,7 +88,7 @@ export default function InvoicePreviewModal({
       id: lineItems.length + 1,
       vendor: "",
       description: "",
-      amount: "$0.00",
+      amount: "0.00",
     };
     setLineItems([...lineItems, newItem]);
   };
@@ -98,25 +102,8 @@ export default function InvoicePreviewModal({
     field: keyof InvoiceLineItem,
     value: string,
   ) => {
-    let updatedValue = value;
-
-    // Amount field handling
-    if (field === "amount") {
-      // Extract only digits and one decimal point
-      const numericOnly = value.replace(/[^\d.]/g, "");
-      // Always prepend $ and show with 2 decimals (but no commas yet while typing)
-      if (numericOnly) {
-        const num = parseFloat(numericOnly) || 0;
-        updatedValue = "$" + num.toFixed(2);
-      } else {
-        updatedValue = "$0.00";
-      }
-    }
-
-    setLineItems(
-      lineItems.map((item) =>
-        item.id === id ? { ...item, [field]: updatedValue } : item,
-      ),
+    setLineItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
   };
 
@@ -136,9 +123,12 @@ export default function InvoicePreviewModal({
     clone.querySelectorAll<HTMLInputElement>("input.edit-field").forEach((input) => {
       const container = input.parentElement;
       const span = container?.querySelector<HTMLSpanElement>("span.print-only");
-      if (span) {
-        span.textContent = input.value;
-      }
+      if (!span) return;
+
+      const field = input.dataset.field;
+      span.textContent = field === "amount"
+        ? formatAmountWithCommas(input.value)
+        : input.value;
     });
 
     // Remove interactive elements
@@ -351,6 +341,7 @@ export default function InvoicePreviewModal({
                         <input
                           type="text"
                           value={item.vendor}
+                          data-field="vendor"
                           onChange={(e) =>
                             handleUpdateLineItem(item.id, "vendor", e.target.value)
                           }
@@ -378,6 +369,7 @@ export default function InvoicePreviewModal({
                         <input
                           type="text"
                           value={item.description}
+                          data-field="description"
                           onChange={(e) =>
                             handleUpdateLineItem(item.id, "description", e.target.value)
                           }
@@ -410,31 +402,46 @@ export default function InvoicePreviewModal({
                       }}>
                         <input
                           type="text"
-                          value={item.amount}
+                          value={activeAmountId === item.id
+                            ? `$${amountDraftById[item.id] ?? normalizeAmountDraft(item.amount)}`
+                            : formatAmountWithCommas(item.amount)}
+                          data-field="amount"
                           onChange={(e) => {
-                            // Accept any numeric input (digits and decimal point only)
-                            const value = e.target.value;
-                            // Allow digits, decimal point, and $ sign
-                            const numericValue = value.replace(/[^\d.]/g, "");
-                            if (numericValue || value === "") {
-                              handleUpdateLineItem(item.id, "amount", numericValue ? "$" + numericValue : "$0.00");
-                            }
-                          }}
-                          onFocus={(e) => {
-                            // When focused, select all so new typing replaces everything
-                            e.target.select();
-                          }}
-                          onBlur={(e) => {
-                            // Format with commas when user leaves the field
-                            const formatted = formatAmountWithCommas(e.target.value);
-                            const itemId = item.id;
-                            setLineItems(
-                              lineItems.map((lineItem) =>
-                                lineItem.id === itemId
-                                  ? { ...lineItem, amount: formatted }
+                            const nextDraft = normalizeAmountDraft(e.target.value);
+                            setAmountDraftById((prev) => ({ ...prev, [item.id]: nextDraft }));
+                            setLineItems((prev) =>
+                              prev.map((lineItem) =>
+                                lineItem.id === item.id
+                                  ? { ...lineItem, amount: nextDraft }
                                   : lineItem,
                               ),
                             );
+                          }}
+                          onFocus={(e) => {
+                            setActiveAmountId(item.id);
+                            setAmountDraftById((prev) => ({
+                              ...prev,
+                              [item.id]: normalizeAmountDraft(item.amount),
+                            }));
+                            requestAnimationFrame(() => e.target.select());
+                          }}
+                          onMouseUp={(e) => {
+                            e.preventDefault();
+                          }}
+                          onBlur={(e) => {
+                            const canonical = toCanonicalAmount(e.target.value);
+                            setLineItems((prev) =>
+                              prev.map((lineItem) =>
+                                lineItem.id === item.id
+                                  ? { ...lineItem, amount: canonical }
+                                  : lineItem,
+                              ),
+                            );
+                            setAmountDraftById((prev) => {
+                              const { [item.id]: _removed, ...rest } = prev;
+                              return rest;
+                            });
+                            setActiveAmountId((current) => (current === item.id ? null : current));
                           }}
                           placeholder="$0.00"
                           className="edit-field"
