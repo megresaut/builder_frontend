@@ -620,23 +620,20 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
 
   const handleApproveOrCancel = () => {
-    const currentBill = getCurrentApprovalBill();
-    if (currentBill?.source === "FTO Submission") {
-      setShowFTOApprovalModal(false);
-    } else if (currentBill?.source === "Vendor-Import") {
-      setShowRecordBillModal(false);
-    }
-
     const nextIndex = (approvalReviewIndex ?? 0) + 1;
     if (nextIndex >= approvalOrderedBills.length) {
       setApprovalReviewIndex(null);
       setApprovalOrderedBills([]);
+      setShowFTOApprovalModal(false);
+      setShowRecordBillModal(false);
     } else {
       setApprovalReviewIndex(nextIndex);
       const nextBill = approvalOrderedBills[nextIndex];
       if (nextBill.source === "FTO Submission") {
         setShowFTOApprovalModal(true);
+        setShowRecordBillModal(false);
       } else if (nextBill.source === "Vendor-Import") {
+        setShowFTOApprovalModal(false);
         setShowRecordBillModal(true);
       }
     }
