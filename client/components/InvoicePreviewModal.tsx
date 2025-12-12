@@ -332,8 +332,8 @@ export default function InvoicePreviewModal({
                     <tr key={item.id}>
                       <td style={{ 
                         fontSize: "11px",
-                        paddingTop: "12px",
-                        paddingBottom: "12px",
+                        paddingTop: "6px",
+                        paddingBottom: "6px",
                         borderBottom: "1px solid #BF8F00",
                         verticalAlign: "top"
                       }}>
@@ -360,8 +360,8 @@ export default function InvoicePreviewModal({
                       </td>
                       <td style={{ 
                         fontSize: "11px",
-                        paddingTop: "12px",
-                        paddingBottom: "12px",
+                        paddingTop: "6px",
+                        paddingBottom: "6px",
                         borderBottom: "1px solid #BF8F00",
                         verticalAlign: "top"
                       }}>
@@ -388,8 +388,8 @@ export default function InvoicePreviewModal({
                       </td>
                       <td style={{
                         fontSize: "11px",
-                        paddingTop: "12px",
-                        paddingBottom: "12px",
+                        paddingTop: "6px",
+                        paddingBottom: "6px",
                         borderBottom: "1px solid #BF8F00",
                         backgroundColor: "#F2F2F2",
                         textAlign: "left",
