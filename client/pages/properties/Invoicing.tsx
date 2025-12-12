@@ -180,6 +180,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [invoicePreviewLineItems, setInvoicePreviewLineItems] = useState<InvoiceLineItem[]>([]);
+  const [invoicePreviewInvoiceDate, setInvoicePreviewInvoiceDate] = useState<string>("");
+  const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] = useState(false);
   const [showingPendingInsights, setShowingPendingInsights] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -524,6 +527,40 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const openViewFTO = () => {
     navigate("/field-team-orders");
+  };
+
+  const buildPreviewLineItemsFromInvoiceItem = (
+    item: InvoiceItem,
+  ): InvoiceLineItem[] => [
+    {
+      id: 1,
+      vendor: item.vendor,
+      description: item.description,
+      amount: item.amount,
+    },
+  ];
+
+  const buildPreviewLineItemsFromHistoryItem = (
+    item: InvoiceHistoryItem,
+  ): InvoiceLineItem[] => {
+    const bill = buildViewBillStateFromHistoryItem(item, propertyAddress);
+    return (bill.lineItems ?? []).map((lineItem) => ({
+      id: lineItem.id,
+      vendor: bill.vendorName ?? "",
+      description: lineItem.description,
+      amount: lineItem.total,
+    }));
+  };
+
+  const openInvoicePreview = (options: {
+    lineItems: InvoiceLineItem[];
+    invoiceDate: string;
+    showCommitButton: boolean;
+  }) => {
+    setInvoicePreviewLineItems(options.lineItems);
+    setInvoicePreviewInvoiceDate(options.invoiceDate);
+    setInvoicePreviewShowCommitButton(options.showCommitButton);
+    setShowInvoicePreview(true);
   };
 
   const totalInvoices = invoiceHistory.length;
@@ -947,15 +984,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       onView={() => {
                         if (isFTO) {
                           openViewFTO();
-                        } else if (isVendorImport) {
-                          openEditBill(
-                            buildViewBillStateFromInvoiceItem(item, propertyAddress),
-                          );
-                        } else {
-                          openViewBill(
-                            buildViewBillStateFromInvoiceItem(item, propertyAddress),
-                          );
+                          return;
                         }
+
+                        openInvoicePreview({
+                          lineItems: buildPreviewLineItemsFromInvoiceItem(item),
+                          invoiceDate: currentInvoiceMonth,
+                          showCommitButton: true,
+                        });
                       }}
                     />
                   </div>
@@ -978,7 +1014,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             <div className="flex items-start gap-2.5">
               <button
                 type="button"
-                onClick={() => setShowInvoicePreview(true)}
+                onClick={() =>
+                  openInvoicePreview({
+                    lineItems: invoiceItems.map((item) => ({
+                      id: item.id,
+                      vendor: item.vendor,
+                      description: item.description,
+                      amount: item.amount,
+                    })),
+                    invoiceDate: currentInvoiceMonth,
+                    showCommitButton: true,
+                  })
+                }
                 className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
                 style={{
                   boxShadow:
@@ -1029,18 +1076,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   alt=""
                 />
               </div>
-              <button
-                type="button"
-                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
-                style={{
-                  boxShadow:
-                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
-                }}
-              >
-                <span className="text-white font-medium text-base leading-normal">
-                  Export to Buildium
-                </span>
-              </button>
             </div>
           </div>
 
@@ -1150,35 +1185,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   ))}
                 </div>
 
-                {/* Status Column */}
-                <div
-                  className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1"
-                  style={{ borderLeftColor: "transparent" }}
-                >
-                  <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3"
-                    style={{ borderLeftColor: "transparent" }}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/84b06677254b5f24ffac8eebc8e159037bc09802?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Status
-                    </div>
-                  </div>
-                  {paginatedHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3"
-                      style={{ borderLeftColor: "transparent" }}
-                    >
-                      <StatusBadge status={item.status} />
-                    </div>
-                  ))}
-                </div>
               </div>
 
               {/* Actions Column */}
@@ -1198,9 +1204,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                       onView={() =>
-                        openViewBill(
-                          buildViewBillStateFromHistoryItem(item, propertyAddress),
-                        )
+                        openInvoicePreview({
+                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                          invoiceDate: item.date,
+                          showCommitButton: false,
+                        })
                       }
                     />
                   </div>
@@ -1353,13 +1361,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         propertyAddress={propertyAddress}
         propertyLocation="Westport, CT 06880"
         billTo="Jason Pascal"
-        invoiceDate={currentInvoiceMonth}
-        lineItems={invoiceItems.map((item) => ({
-          id: item.id,
-          vendor: item.vendor,
-          description: item.description,
-          amount: item.amount,
-        }))}
+        invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
+        lineItems={
+          invoicePreviewLineItems.length > 0
+            ? invoicePreviewLineItems
+            : invoiceItems.map((item) => ({
+                id: item.id,
+                vendor: item.vendor,
+                description: item.description,
+                amount: item.amount,
+              }))
+        }
+        showCommitButton={invoicePreviewShowCommitButton}
+        onCommit={() => setShowInvoicePreview(false)}
       />
 
 
