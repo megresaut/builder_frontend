@@ -398,15 +398,16 @@ export default function InvoicePreviewModal({
                             width: "100%",
                             border: "none",
                             outline: "none",
-                            background: "transparent",
+                            background: "#F5F5F5",
                             fontSize: "6px",
                             lineHeight: "7px",
                             color: "#002060",
                             textAlign: "right",
+                            padding: "3px 4px",
                             fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                           }}
                         />
-                        <span className="print-only">{item.amount}</span>
+                        <span className="print-only" style={{ background: "#F5F5F5", display: "inline-block", padding: "3px 4px" }}>{item.amount}</span>
                       </div>
                       <button
                         onClick={() => handleRemoveLineItem(item.id)}
