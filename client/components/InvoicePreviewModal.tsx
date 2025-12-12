@@ -288,8 +288,9 @@ export default function InvoicePreviewModal({
                   fontSize: "6px",
                   fontWeight: 700,
                   lineHeight: "7px",
-                  marginTop: "9px",
+                  marginTop: "6px",
                   marginBottom: "1px",
+                  flexShrink: 0,
                 }}
               >
                 <div style={{ width: "117px" }}>Vendors</div>
