@@ -437,11 +437,13 @@ export default function InvoicePreviewModal({
                 style={{
                   display: "flex",
                   justifyContent: "flex-end",
-                  alignItems: "flex-end",
+                  alignItems: "center",
                   marginTop: "10px",
                   fontSize: "6px",
                   fontWeight: 700,
                   lineHeight: "7px",
+                  paddingLeft: "72px",
+                  paddingRight: "72px",
                 }}
               >
                 <div style={{ letterSpacing: "0.35px", width: "31px" }}>
@@ -452,6 +454,9 @@ export default function InvoicePreviewModal({
                     width: "95px",
                     paddingLeft: "5px",
                     letterSpacing: "-0.262px",
+                    background: "#F5F5F5",
+                    padding: "3px 4px",
+                    textAlign: "right",
                   }}
                 >
                   ${calculateTotal().toFixed(2)}
