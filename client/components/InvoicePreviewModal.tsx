@@ -77,7 +77,7 @@ export default function InvoicePreviewModal({
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
     clone.querySelectorAll(".print-only").forEach((el) => {
-      (el as HTMLElement).style.display = "inline-block";
+      (el as HTMLElement).style.display = "block";
     });
 
     const element = document.createElement("div");
@@ -93,19 +93,19 @@ export default function InvoicePreviewModal({
       margin: 0,
       filename: "invoice.pdf",
       image: { type: "png", quality: 1 },
-      html2canvas: {
-        scale: 6,
-        useCORS: true,
-        logging: false,
+      html2canvas: { 
+        scale: 6, 
+        useCORS: true, 
+        logging: false, 
         allowTaint: true,
         letterRendering: true,
         backgroundColor: "#ffffff",
         windowHeight: 1188,
         windowWidth: 840
       },
-      jsPDF: {
-        unit: "mm",
-        format: "a4",
+      jsPDF: { 
+        unit: "mm", 
+        format: "a4", 
         orientation: "portrait",
         compress: true
       },
@@ -138,7 +138,7 @@ export default function InvoicePreviewModal({
               style={{
                 width: "210mm",
                 minHeight: "297mm",
-                padding: "20mm",
+                padding: "25mm 20mm",
                 boxSizing: "border-box",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
@@ -156,7 +156,7 @@ export default function InvoicePreviewModal({
                 }}
               >
                 {/* Left Column */}
-                <div style={{ display: "flex", flexDirection: "column", width: "100px" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
                   <div style={{ marginBottom: "39px" }}>
                     <div
                       style={{
@@ -390,11 +390,12 @@ export default function InvoicePreviewModal({
                           className="print-only"
                           style={{
                             background: "#F2F2F2",
-                            display: "inline-block",
+                            display: "block",
                             padding: "5px",
                             width: "100%",
                             textAlign: "right",
                             letterSpacing: "-0.17px",
+                            boxSizing: "border-box",
                           }}
                         >
                           {item.amount}
@@ -434,7 +435,7 @@ export default function InvoicePreviewModal({
                   lineHeight: "7px",
                 }}
               >
-                <div style={{ letterSpacing: "0.35px", width: "31px" }}>
+                <div style={{ letterSpacing: "0.35px", marginRight: "5px" }}>
                   TOTAL:
                 </div>
                 <div
@@ -444,6 +445,7 @@ export default function InvoicePreviewModal({
                     padding: "5px",
                     textAlign: "right",
                     letterSpacing: "-0.26px",
+                    boxSizing: "border-box",
                   }}
                 >
                   ${calculateTotal().toFixed(2)}
@@ -460,7 +462,6 @@ export default function InvoicePreviewModal({
                   fontSize: "5px",
                   fontWeight: 400,
                   lineHeight: 1.18,
-                  justifyContent: "start",
                 }}
               >
                 <div style={{ fontWeight: 700, letterSpacing: "0.06px" }}>
@@ -476,11 +477,9 @@ export default function InvoicePreviewModal({
                     minHeight: "15px",
                     width: "67px",
                     alignItems: "end",
-                    gap: "10px",
                     overflow: "hidden",
                     color: "#0563C1",
                     letterSpacing: "0.24px",
-                    justifyContent: "start",
                   }}
                 >
                   <div>
