@@ -229,7 +229,7 @@ export default function InvoicePreviewModal({
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    minHeight: "107px",
+                    minHeight: "auto",
                   }}
                 >
                   <div>
