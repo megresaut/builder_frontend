@@ -97,7 +97,7 @@ export default function InvoicePreviewModal({
     const opt = {
       margin: 0,
       filename: "invoice.pdf",
-      image: { type: "jpeg", quality: 0.98 },
+      image: { type: "jpeg" as const, quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
     };
