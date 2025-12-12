@@ -159,83 +159,91 @@ export default function InvoicePreviewModal({
               }}
             >
               {/* Header Section */}
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between",
-                marginBottom: "60px"
-              }}>
-                {/* Left Column - Company Info */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "30px",
+                  width: "725px",
+                }}
+              >
                 <div>
-                  <div style={{ 
-                    fontSize: "14px", 
-                    fontWeight: 700,
-                    letterSpacing: "1.5px",
-                    marginBottom: "4px"
-                  }}>
+                  <div
+                    style={{
+                      letterSpacing: "1.5px",
+                      marginBottom: "4px",
+                      font: "700 14px/21px Georgia, serif",
+                    }}
+                  >
                     AVMRE LLC
                   </div>
-                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
                     11 LARGO DRIVE SOUTH
                   </div>
-                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
                     SUITE 200
                   </div>
-                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
                     STAMFORD, CT 06907
                   </div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, lineHeight: "1.4" }}>
+                  <div style={{ font: "700 11px/15.4px Arial, sans-serif" }}>
                     203-987-7050
                   </div>
-                  
+
                   <div style={{ marginTop: "40px" }}>
-                    <div style={{ 
-                      fontSize: "10px", 
-                      fontWeight: 700,
-                      letterSpacing: "1.2px",
-                      marginBottom: "4px"
-                    }}>
+                    <div
+                      style={{
+                        letterSpacing: "1.2px",
+                        marginBottom: "4px",
+                        font: "700 10px/15px Georgia, serif",
+                      }}
+                    >
                       BILL TO:
                     </div>
-                    <div style={{ fontSize: "11px" }}>
+                    <div style={{ font: "400 11px/16.5px Arial, sans-serif" }}>
                       {billTo}
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <div style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    letterSpacing: "1.5px",
-                    marginBottom: "4px"
-                  }}>
-                    AVMRE LLC
+                <div style={{ width: "175px" }}>
+                  <div
+                    style={{
+                      letterSpacing: "1.5px",
+                      marginBottom: "4px",
+                      font: "700 14px/21px Georgia, serif",
+                    }}
+                  >
+                    INVOICE
                   </div>
-                  <div style={{ fontSize: "11px", lineHeight: "15.4px" }}>
-                    11 LARGO DRIVE SOUTH
+                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                    DATE: {invoiceDate}
                   </div>
-                  <div style={{ fontSize: "11px", lineHeight: "15.4px" }}>
-                    SUITE 200
+                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                    {"\u00A0"}
                   </div>
-                  <div style={{ fontSize: "11px", lineHeight: "15.4px" }}>
-                    STAMFORD, CT 06907
+                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                    {"\u00A0"}
                   </div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, lineHeight: "15.4px" }}>
-                    203-987-7050
+                  <div style={{ font: "700 11px/15.4px Arial, sans-serif" }}>
+                    {"\u00A0"}
                   </div>
 
                   <div style={{ marginTop: "40px" }}>
-                    <div style={{
-                      fontSize: "10px",
-                      fontWeight: 700,
-                      letterSpacing: "1.2px",
-                      lineHeight: "15px",
-                      marginBottom: "4px"
-                    }}>
-                      BILL TO:
+                    <div
+                      style={{
+                        letterSpacing: "1.2px",
+                        marginBottom: "4px",
+                        font: "700 10px/15px Georgia, serif",
+                      }}
+                    >
+                      PROPERTY:
                     </div>
-                    <div style={{ fontSize: "11px", lineHeight: "16.5px" }}>
-                      {billTo}
+                    <div style={{ font: "400 11px/16.5px Arial, sans-serif" }}>
+                      {propertyAddress}
+                    </div>
+                    <div style={{ font: "400 11px/16.5px Arial, sans-serif" }}>
+                      {propertyLocation}
                     </div>
                   </div>
                 </div>
@@ -249,21 +257,19 @@ export default function InvoicePreviewModal({
               }}>
                 <thead>
                   <tr>
-                    <th style={{ 
-                      fontSize: "11px",
-                      fontWeight: 700,
+                    <th style={{
                       textAlign: "left",
                       paddingBottom: "8px",
-                      borderBottom: "1px solid #BF8F00"
+                      borderBottom: "1px solid #BF8F00",
+                      font: "700 11px/16.5px Arial, sans-serif"
                     }}>
                       Vendors
                     </th>
-                    <th style={{ 
-                      fontSize: "11px",
-                      fontWeight: 700,
+                    <th style={{
                       textAlign: "left",
                       paddingBottom: "8px",
-                      borderBottom: "1px solid #BF8F00"
+                      borderBottom: "1px solid #BF8F00",
+                      font: "700 11px/16.5px Arial, sans-serif"
                     }}>
                       Description
                     </th>
@@ -303,7 +309,7 @@ export default function InvoicePreviewModal({
                             background: "transparent",
                             fontSize: "11px",
                             color: "#002060",
-                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            fontFamily: "Arial, sans-serif",
                             padding: 0
                           }}
                         />
@@ -330,7 +336,7 @@ export default function InvoicePreviewModal({
                             background: "transparent",
                             fontSize: "11px",
                             color: "#002060",
-                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            fontFamily: "Arial, sans-serif",
                             padding: 0
                           }}
                         />
@@ -361,7 +367,7 @@ export default function InvoicePreviewModal({
                             background: "transparent",
                             fontSize: "11px",
                             color: "#002060",
-                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            fontFamily: "Arial, sans-serif",
                             textAlign: "right",
                             padding: 0
                           }}
@@ -401,14 +407,13 @@ export default function InvoicePreviewModal({
                 alignItems: "center",
                 marginBottom: "40px"
               }}>
-                <div style={{ 
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  marginRight: "20px"
+                <div style={{
+                  marginRight: "20px",
+                  font: "700 11px/16.5px Arial, sans-serif"
                 }}>
                   TOTAL:
                 </div>
-                <div style={{ 
+                <div style={{
                   fontSize: "11px",
                   fontWeight: 700,
                   backgroundColor: "#F2F2F2",
@@ -416,25 +421,48 @@ export default function InvoicePreviewModal({
                   textAlign: "right",
                   width: "120px"
                 }}>
-                  ${calculateTotal().toFixed(2)}
+                  ${" "}
+                  <span style={{ fontFamily: "Arial, sans-serif" }}>
+                    {calculateTotal().toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               {/* Footer */}
-              <div style={{ fontSize: "10px", lineHeight: "1.6" }}>
-                <div style={{ fontWeight: 700, marginBottom: "4px" }}>
+              <div style={{ fontSize: "10px", lineHeight: "16px" }}>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    marginBottom: "4px",
+                    fontFamily: "Arial, sans-serif",
+                  }}
+                >
                   Please make all checks payable to AVMRE LLC
                 </div>
-                <div style={{ marginBottom: "4px" }}>
+                <div
+                  style={{
+                    marginBottom: "4px",
+                    fontFamily: "Arial, sans-serif",
+                  }}
+                >
                   If you have any questions concerning this invoice, use the following contact information:
                 </div>
-                <div style={{ marginBottom: "4px" }}>203-987-7050</div>
+                <div style={{ marginBottom: "4px", fontFamily: "Arial, sans-serif" }}>
+                  203-987-7050
+                </div>
                 <div style={{ color: "#0563C1", marginBottom: "4px" }}>
-                  <a href="mailto:STAFF@AVMRE.COM" style={{ color: "inherit", textDecoration: "none" }}>
+                  <a
+                    href="mailto:STAFF@AVMRE.COM"
+                    style={{
+                      color: "inherit",
+                      textDecoration: "none",
+                      fontFamily: "Arial, sans-serif",
+                    }}
+                  >
                     STAFF@AVMRE.COM
                   </a>
                 </div>
-                <div style={{ fontWeight: 700 }}>
+                <div style={{ fontWeight: 700, fontFamily: "Arial, sans-serif" }}>
                   THANK YOU FOR YOUR BUSINESS!
                 </div>
               </div>
