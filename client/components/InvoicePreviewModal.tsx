@@ -329,12 +329,12 @@ export default function InvoicePreviewModal({
                 <tbody>
                   {lineItems.map((item) => (
                     <tr key={item.id}>
-                      <td style={{ 
+                      <td style={{
                         fontSize: "11px",
-                        paddingTop: "6px",
-                        paddingBottom: "6px",
+                        paddingTop: "2px",
+                        paddingBottom: "2px",
                         borderBottom: "1px solid #BF8F00",
-                        verticalAlign: "top"
+                        verticalAlign: "bottom"
                       }}>
                         <input
                           type="text"
@@ -358,12 +358,12 @@ export default function InvoicePreviewModal({
                         />
                         <span className="print-only">{item.vendor}</span>
                       </td>
-                      <td style={{ 
+                      <td style={{
                         fontSize: "11px",
-                        paddingTop: "6px",
-                        paddingBottom: "6px",
+                        paddingTop: "2px",
+                        paddingBottom: "2px",
                         borderBottom: "1px solid #BF8F00",
-                        verticalAlign: "top"
+                        verticalAlign: "bottom"
                       }}>
                         <input
                           type="text"
@@ -389,14 +389,14 @@ export default function InvoicePreviewModal({
                       </td>
                       <td style={{
                         fontSize: "11px",
-                        paddingTop: "6px",
-                        paddingBottom: "6px",
+                        paddingTop: "2px",
+                        paddingBottom: "2px",
                         borderBottom: "1px solid #BF8F00",
                         backgroundColor: "#F2F2F2",
                         textAlign: "left",
                         paddingRight: "18px",
                         paddingLeft: "8px",
-                        verticalAlign: "top",
+                        verticalAlign: "bottom",
                         position: "relative",
                         overflow: "visible"
                       }}>
