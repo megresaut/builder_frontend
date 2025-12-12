@@ -1205,6 +1205,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <label className="text-sm font-medium text-[#303030]">File</label>
                       <input
                         type="file"
+                        accept="application/pdf"
                         onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
                         className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
                       />
@@ -1232,6 +1233,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
                         const fileName = fileDraft.name;
                         const ext = fileName.split(".").pop()?.toLowerCase() || "";
+                        const url = URL.createObjectURL(fileDraft);
                         const docIcon =
                           "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
                         const pdfIcon =
@@ -1250,6 +1252,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                               author: propertyManager,
                               type: ext || "file",
                               icon,
+                              url,
                             },
                           ];
                         });
