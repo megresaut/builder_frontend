@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Pencil, Plus } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Plus } from "lucide-react";
 
 interface Vendor {
   id: number;
@@ -28,60 +28,99 @@ const mockVendors: Vendor[] = [
 
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
 
   const vendor = mockVendors.find((v) => v.id === Number(vendorId)) || mockVendors[0];
 
+  const handleTabClick = (tab: string) => {
+    // Tab functionality for future use
+  };
+
   return (
-    <div className="bg-white min-h-screen" style={{ fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif" }}>
-      <div className="px-6 pt-9 pb-6 flex flex-col">
-        {/* Header Section */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Title and Meta */}
-          <div className="flex flex-col min-w-[240px]">
-            <h1 className="text-[#303030] text-2xl font-semibold leading-[1.25]">
-              {vendor.name}
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-[#71717A] text-base font-medium leading-none">
-                Vendor
-              </span>
-              <span className="text-[#71717A] text-base font-medium leading-none">
-                {vendor.category}
-              </span>
-              <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] rounded-lg hover:opacity-80 transition-opacity">
-                <Pencil className="w-3 h-3" />
-                <span>Edit</span>
+    <div className="flex-1 overflow-auto bg-white">
+      <div
+        className="bg-white"
+        style={{
+          borderLeftWidth: "1px",
+          borderLeftColor: "rgb(210, 209, 207)",
+          padding: "32px 32px 150px",
+        }}
+      >
+        <div className="max-w-full flex flex-col gap-6">
+          {/* Vendor Header */}
+          <div className="flex justify-between items-center w-full">
+            <div className="flex flex-col items-start gap-1">
+              <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+                {vendor.name}
+              </h1>
+              <div className="flex items-center gap-3">
+                <span className="text-[#717179] font-medium text-base leading-4">
+                  {vendor.category}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                }}
+              >
+                <span className="text-white font-medium text-base leading-normal">
+                  Edit Vendor
+                </span>
+              </button>
+              <button
+                className="flex w-10 h-10 justify-center items-center gap-2.5 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                style={{ borderWidth: "0.5px" }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.99984 10.8335C10.4601 10.8335 10.8332 10.4604 10.8332 10.0002C10.8332 9.53993 10.4601 9.16683 9.99984 9.16683C9.5396 9.16683 9.1665 9.53993 9.1665 10.0002C9.1665 10.4604 9.5396 10.8335 9.99984 10.8335Z"
+                    stroke="#303030"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.99984 5.00016C10.4601 5.00016 10.8332 4.62707 10.8332 4.16683C10.8332 3.70659 10.4601 3.3335 9.99984 3.3335C9.5396 3.3335 9.1665 3.70659 9.1665 4.16683C9.1665 4.62707 9.5396 5.00016 9.99984 5.00016Z"
+                    stroke="#303030"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.99984 16.6668C10.4601 16.6668 10.8332 16.2937 10.8332 15.8335C10.8332 15.3733 10.4601 15.0002 9.99984 15.0002C9.5396 15.0002 9.1665 15.3733 9.1665 15.8335C9.1665 16.2937 9.5396 16.6668 9.99984 16.6668Z"
+                    stroke="#303030"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
             </div>
           </div>
 
-          {/* Inactivate Button */}
-          <div className="flex items-center gap-3">
-            <button className="flex items-center justify-center min-h-[40px] px-4 py-2 bg-white border border-[#DADADA] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.03)] text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] hover:bg-gray-50 transition-colors">
-              Inactivate Vendor
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs Section */}
-        <div className="mt-9">
-          <div className="border-b border-[#E5E5E5] flex items-start gap-6 min-h-9">
+          {/* Tab Navigation */}
+          <div className="flex h-9 items-start gap-6 self-stretch border-b border-[#E5E5E5]">
             <button
-              onClick={() => setActiveTab("overview")}
-              className={`flex items-center gap-1.5 pt-2 pb-2 text-base font-medium leading-[1.25] whitespace-nowrap ${
-                activeTab === "overview"
-                  ? "border-b-2 border-[#09090B] text-[#09090B]"
-                  : "text-[#71717A] hover:text-[#303030]"
-              }`}
+              onClick={() => handleTabClick("Overview")}
+              className="flex items-center gap-1.5 pb-2 border-b-[1.5px] border-b-[#09090B] transition-colors"
             >
-              Overview
+              <span className="font-medium text-base leading-5 text-[#09090B]">
+                Overview
+              </span>
             </button>
           </div>
 
           {/* Content Area */}
-          <div className="mt-6 flex items-start gap-6">
+          <div className="flex items-start gap-6">
             <div className="flex-1 min-w-[240px] w-full">
               <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-4 flex flex-col">
                 {/* Vendor Information Section */}
