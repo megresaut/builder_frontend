@@ -79,14 +79,12 @@ export default function InvoicePreviewModal({
 
     const clone = invoiceNode.cloneNode(true) as HTMLElement;
 
-    // Update print-only spans with current values
-    const editFields = clone.querySelectorAll(".edit-field");
-    const printOnlySpans = clone.querySelectorAll(".print-only");
-
-    editFields.forEach((field, index) => {
-      const input = field as HTMLInputElement;
-      if (printOnlySpans[index]) {
-        printOnlySpans[index].textContent = input.value;
+    // Update print-only spans with current values (html2canvas doesn't reliably capture <input> values)
+    clone.querySelectorAll<HTMLInputElement>("input.edit-field").forEach((input) => {
+      const container = input.parentElement;
+      const span = container?.querySelector<HTMLSpanElement>("span.print-only");
+      if (span) {
+        span.textContent = input.value;
       }
     });
 
@@ -94,9 +92,10 @@ export default function InvoicePreviewModal({
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
 
-    // Show print-only content
-    clone.querySelectorAll(".print-only").forEach((el) => {
-      (el as HTMLElement).style.display = "inline";
+    // Make print-only content visible for screen rendering (PDF capture uses screen styles)
+    clone.querySelectorAll<HTMLElement>(".print-only").forEach((el) => {
+      el.classList.remove("print-only");
+      el.style.display = "inline";
     });
 
     const element = document.createElement("div");
