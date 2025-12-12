@@ -48,6 +48,7 @@ export default function InvoicePreviewModal({
   showCommitButton = false,
   onCommit,
   pendingUnapprovedCount = 0,
+  rentalOwner,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
