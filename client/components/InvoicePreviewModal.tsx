@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,7 @@ export default function InvoicePreviewModal({
   invoiceDate,
   lineItems: initialLineItems,
 }: InvoicePreviewModalProps) {
+  const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
 
   const calculateTotal = () => {
@@ -68,7 +69,67 @@ export default function InvoicePreviewModal({
   };
 
   const handleDownloadPDF = () => {
-    window.print();
+    const invoiceNode = invoiceRef.current;
+    if (!invoiceNode) return;
+
+    const clone = invoiceNode.cloneNode(true) as HTMLElement;
+
+    clone.querySelectorAll(".no-print").forEach((el) => el.remove());
+    clone.querySelectorAll(".print-only").forEach((el) => el.remove());
+
+    clone.querySelectorAll("input").forEach((node) => {
+      const input = node as HTMLInputElement;
+      const span = document.createElement("span");
+      span.textContent = input.value;
+
+      const style = input.getAttribute("style");
+      if (style) span.setAttribute("style", style);
+
+      input.replaceWith(span);
+    });
+
+    const printWindow = window.open("", "_blank", "noopener,noreferrer");
+    if (!printWindow) return;
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+      @page {
+        size: letter;
+        margin: 0;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: white;
+        font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
+        color: #002060;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      a { color: inherit; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div style="padding: 20px; width: 100%; display: flex; justify-content: center;">
+      ${clone.outerHTML}
+    </div>
+  </body>
+</html>`);
+    printWindow.document.close();
+
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   return (
@@ -109,9 +170,10 @@ export default function InvoicePreviewModal({
           <div className="flex-1 overflow-y-auto bg-white">
             {/* Invoice Container */}
             <div
+              ref={invoiceRef}
               className="invoice-print-area bg-white mx-auto"
               style={{
-                maxWidth: "612px",
+                width: "612px",
                 minHeight: "792px",
                 padding: "70px 60px 60px",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
@@ -385,42 +447,6 @@ export default function InvoicePreviewModal({
                 ))}
               </div>
 
-              {/* Add Line Item Button */}
-              <button
-                onClick={handleAddLineItem}
-                className="no-print"
-                style={{
-                  marginTop: "10px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "6px 12px",
-                  border: "1px solid #002060",
-                  borderRadius: "4px",
-                  background: "white",
-                  color: "#002060",
-                  fontSize: "10px",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10 4.1665V15.8332M4.16667 9.99984H15.8333"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                Add Line Item
-              </button>
 
               {/* Total */}
               <div
@@ -490,6 +516,30 @@ export default function InvoicePreviewModal({
                 Cancel
               </span>
             </button>
+
+            <button
+              type="button"
+              onClick={handleAddLineItem}
+              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-[#002D5A] bg-white text-[#002D5A] hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 4.1665V15.8332M4.16667 9.99984H15.8333"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="font-medium text-base">Add Line Item</span>
+            </button>
+
             <button
               type="button"
               onClick={handleDownloadPDF}
