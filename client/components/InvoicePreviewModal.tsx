@@ -297,7 +297,12 @@ export default function InvoicePreviewModal({
               </div>
 
               {/* Line Items */}
-              <div>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                }}
+              >
                 {lineItems.map((item, index) => (
                   <div
                     key={item.id}
