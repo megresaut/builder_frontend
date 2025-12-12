@@ -841,7 +841,33 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             )}
 
           {/* Edit Property Modal */}
-          {showEditPropertyModal &&
+          <AddPropertyModal
+            open={showEditPropertyModal}
+            onOpenChange={setShowEditPropertyModal}
+            editData={{
+              address: propertyAddress,
+              location: propertyLocation,
+              type: propertyType,
+              buildingId: "624090",
+              status: "inactive",
+              managers: [
+                {
+                  id: "pm",
+                  name: propertyManager,
+                  initials: propertyManager
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((p) => p[0]?.toUpperCase())
+                    .join(""),
+                },
+              ],
+              rentalOwner,
+            }}
+          />
+
+          {/* Legacy Edit Property Modal */}
+          {false &&
             createPortal(
               <div
                 className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
