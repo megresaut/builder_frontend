@@ -924,9 +924,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   <div
                     key={item.id}
                     className={`items-center border-b-[0.5px] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative ${
-                      item.status === "Pending Approval"
+                      showingPendingInsights && item.status === "Pending Approval"
                         ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                        : "border-[#DADADA]"
+                        : "bg-white border-[#DADADA]"
                     }`}
                   >
                     <ActionButton
