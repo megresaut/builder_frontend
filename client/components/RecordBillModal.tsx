@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,12 +17,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
-interface RecordBillModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-interface LineItem {
+export interface LineItem {
   id: number;
   property: string;
   unit: string;
@@ -35,54 +30,114 @@ interface LineItem {
   total: number;
 }
 
+export type RecordBillModalMode = "create" | "view";
+
+export interface RecordBillModalData {
+  vendor: string;
+  invoiceNumber: string;
+  invoiceDate: string; // yyyy-mm-dd
+  dueDate: string; // yyyy-mm-dd
+  memo: string;
+  lineItems: LineItem[];
+}
+
+interface RecordBillModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode?: RecordBillModalMode;
+  data?: RecordBillModalData;
+}
+
+const defaultLineItems: LineItem[] = [
+  {
+    id: 1,
+    property: "22 Indian Creek Dr",
+    unit: "2",
+    workOrder: "123456-1",
+    description: "ConEd - 1,220 kWh",
+    glAccount: "Utilities",
+    reimbursement: false,
+    subtotal: 420,
+    upcharge: 10,
+    total: 462,
+  },
+  {
+    id: 2,
+    property: "22 Indian Creek Dr",
+    unit: "2",
+    workOrder: "123456-1",
+    description: "Unit 48 Thermostat",
+    glAccount: "Maintenance",
+    reimbursement: false,
+    subtotal: 380,
+    upcharge: 0,
+    total: 380,
+  },
+  {
+    id: 3,
+    property: "22 Indian Creek Dr",
+    unit: "2",
+    workOrder: "123456-1",
+    description: "Tools for common area",
+    glAccount: "Other",
+    reimbursement: false,
+    subtotal: 120,
+    upcharge: 0,
+    total: 120,
+  },
+];
+
+const emptyData: RecordBillModalData = {
+  vendor: "",
+  invoiceNumber: "",
+  invoiceDate: "",
+  dueDate: "",
+  memo: "",
+  lineItems: defaultLineItems,
+};
+
 export default function RecordBillModal({
   open,
   onOpenChange,
+  mode = "create",
+  data,
 }: RecordBillModalProps) {
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    {
-      id: 1,
-      property: "22 Indian Creek Dr",
-      unit: "2",
-      workOrder: "123456-1",
-      description: "ConEd - 1,220 kWh",
-      glAccount: "Utilities",
-      reimbursement: false,
-      subtotal: 420,
-      upcharge: 10,
-      total: 462,
-    },
-    {
-      id: 2,
-      property: "22 Indian Creek Dr",
-      unit: "2",
-      workOrder: "123456-1",
-      description: "Unit 48 Thermostat",
-      glAccount: "Maintenance",
-      reimbursement: false,
-      subtotal: 380,
-      upcharge: 0,
-      total: 380,
-    },
-    {
-      id: 3,
-      property: "22 Indian Creek Dr",
-      unit: "2",
-      workOrder: "123456-1",
-      description: "Tools for common area",
-      glAccount: "Other",
-      reimbursement: false,
-      subtotal: 120,
-      upcharge: 0,
-      total: 120,
-    },
-  ]);
+  const isView = mode === "view";
 
-  const totalUpcharge = lineItems.reduce(
-    (sum, item) => sum + (item.subtotal * item.upcharge) / 100,
-    0
+  const [vendor, setVendor] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [memo, setMemo] = useState("");
+  const [lineItems, setLineItems] = useState<LineItem[]>(defaultLineItems);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const next = data ?? emptyData;
+    setVendor(next.vendor);
+    setInvoiceNumber(next.invoiceNumber);
+    setInvoiceDate(next.invoiceDate);
+    setDueDate(next.dueDate);
+    setMemo(next.memo);
+    setLineItems(next.lineItems.length ? next.lineItems : defaultLineItems);
+  }, [open, data]);
+
+  const totalUpcharge = useMemo(
+    () =>
+      lineItems.reduce((sum, item) => sum + (item.subtotal * item.upcharge) / 100, 0),
+    [lineItems],
   );
-  const grandTotal = lineItems.reduce((sum, item) => sum + item.total, 0);
+
+  const grandTotal = useMemo(
+    () => lineItems.reduce((sum, item) => sum + item.total, 0),
+    [lineItems],
+  );
+
+  const title = isView ? "Bill Details" : "Record Bill";
+  const description = isView
+    ? ""
+    : "Record a new bill to automatically upload to Buildium";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,11 +147,13 @@ export default function RecordBillModal({
           <div className="flex justify-between items-start">
             <div className="flex flex-col gap-2">
               <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[26px]">
-                Record Bill
+                {title}
               </DialogTitle>
-              <DialogDescription className="text-[#6B7280] text-sm leading-4">
-                Record a new bill to automatically upload to Buildium
-              </DialogDescription>
+              {!isView && (
+                <DialogDescription className="text-[#6B7280] text-sm leading-4">
+                  {description}
+                </DialogDescription>
+              )}
             </div>
           </div>
           <div className="h-px bg-[#E5E5E5]" />
@@ -119,7 +176,16 @@ export default function RecordBillModal({
                     JPEG, PNG and PDF formats, up to 50 MB.
                   </p>
                 </div>
-                <button className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                <button
+                  type="button"
+                  disabled={isView}
+                  className={cn(
+                    "flex h-9 justify-center items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] transition-colors",
+                    isView
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50",
+                  )}
+                >
                   <svg
                     width="16"
                     height="16"
@@ -162,26 +228,38 @@ export default function RecordBillModal({
                       <label className="text-[#303030] font-medium text-sm">
                         Vendor
                       </label>
-                      <Select>
-                        <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                          <SelectValue
-                            placeholder="Select vendor..."
-                            className="text-[#A1A1A9]"
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="vendor1">Vendor 1</SelectItem>
-                          <SelectItem value="vendor2">Vendor 2</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {isView ? (
+                        <Input
+                          value={vendor}
+                          disabled
+                          className="h-11 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] text-[#303030]"
+                        />
+                      ) : (
+                        <Select value={vendor} onValueChange={setVendor}>
+                          <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
+                            <SelectValue
+                              placeholder="Select vendor..."
+                              className="text-[#A1A1A9]"
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="David Smith">David Smith</SelectItem>
+                            <SelectItem value="Elite HVAC">Elite HVAC</SelectItem>
+                            <SelectItem value="ABC Plumbing">ABC Plumbing</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div className="flex flex-col gap-2 flex-1">
                       <label className="text-[#303030] font-medium text-sm">
                         Invoice #
                       </label>
                       <Input
+                        value={invoiceNumber}
+                        onChange={(e) => setInvoiceNumber(e.target.value)}
+                        disabled={isView}
                         placeholder="INV-2024-001"
-                        className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9]"
+                        className="h-11 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
                       />
                     </div>
                   </div>
@@ -195,8 +273,11 @@ export default function RecordBillModal({
                       <div className="relative">
                         <Input
                           type="date"
+                          value={invoiceDate}
+                          onChange={(e) => setInvoiceDate(e.target.value)}
+                          disabled={isView}
                           placeholder="mm/dd/yyyy"
-                          className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9]"
+                          className="h-11 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
                         />
                       </div>
                     </div>
@@ -207,8 +288,11 @@ export default function RecordBillModal({
                       <div className="relative">
                         <Input
                           type="date"
+                          value={dueDate}
+                          onChange={(e) => setDueDate(e.target.value)}
+                          disabled={isView}
                           placeholder="mm/dd/yyyy"
-                          className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9]"
+                          className="h-11 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
                         />
                       </div>
                     </div>
@@ -220,8 +304,11 @@ export default function RecordBillModal({
                       Memo/Notes
                     </label>
                     <Textarea
+                      value={memo}
+                      onChange={(e) => setMemo(e.target.value)}
+                      disabled={isView}
                       placeholder="Additional notes..."
-                      className="min-h-[81px] rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] resize-none"
+                      className="min-h-[81px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] resize-none"
                     />
                   </div>
                 </div>
@@ -236,83 +323,123 @@ export default function RecordBillModal({
                     </h3>
                     <div className="h-px bg-[#E5E5E5]" />
                   </div>
-                  <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors flex-shrink-0 ml-4">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                  {!isView && (
+                    <button
+                      type="button"
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors flex-shrink-0 ml-4"
                     >
-                      <path
-                        d="M9.99935 4.1665V15.8332M4.16602 9.99984H15.8327"
-                        stroke="white"
-                        strokeWidth="1.25"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-white font-medium text-base whitespace-nowrap">
-                      Add Line Item
-                    </span>
-                  </button>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9.99935 4.1665V15.8332M4.16602 9.99984H15.8327"
+                          stroke="white"
+                          strokeWidth="1.25"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span className="text-white font-medium text-base whitespace-nowrap">
+                        Add Line Item
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Line Items Table */}
                 <div className="overflow-x-auto rounded-xl border border-[#DADADA] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]">
-                  <table className="border-collapse whitespace-nowrap" style={{ minWidth: "1200px" }}>
+                  <table
+                    className="border-collapse whitespace-nowrap"
+                    style={{ minWidth: isView ? "1130px" : "1200px" }}
+                  >
                     <thead>
                       <tr className="border-b border-[#DADADA]">
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "140px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "140px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Property / Ledger
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "60px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "60px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Unit
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "110px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Work Order
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "160px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "160px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Description
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "110px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             GL Account
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-center border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
+                        <th
+                          className="px-3 py-3 text-center border-r border-[#DADADA]"
+                          style={{ minWidth: "100px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Reimbursement
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "90px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "90px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Subtotal
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "100px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Up-charge
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-[#DADADA]" style={{ minWidth: "80px" }}>
+                        <th
+                          className="px-3 py-3 text-left border-r border-[#DADADA]"
+                          style={{ minWidth: "80px" }}
+                        >
                           <span className="text-[#525252] font-medium text-base">
                             Total
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-center border-r border-[#DADADA]" style={{ minWidth: "70px" }}>
-                          <span className="text-[#525252] font-medium text-base">
-                            Actions
-                          </span>
-                        </th>
+                        {!isView && (
+                          <th
+                            className="px-3 py-3 text-center border-r border-[#DADADA]"
+                            style={{ minWidth: "70px" }}
+                          >
+                            <span className="text-[#525252] font-medium text-base">
+                              Actions
+                            </span>
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -321,103 +448,151 @@ export default function RecordBillModal({
                           key={item.id}
                           className="border-b border-[#DADADA] last:border-b-0"
                         >
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "140px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "140px" }}
+                          >
                             <span className="text-[#303030] text-base truncate">
                               {item.property}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "60px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "60px" }}
+                          >
                             <span className="text-[#303030] text-base">
                               {item.unit}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
-                            <Select defaultValue={item.workOrder}>
-                              <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="123456-1">
-                                  123456-1
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "110px" }}
+                          >
+                            {isView ? (
+                              <span className="text-[#303030] text-base">
+                                {item.workOrder}
+                              </span>
+                            ) : (
+                              <Select defaultValue={item.workOrder}>
+                                <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={item.workOrder}>
+                                    {item.workOrder}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "160px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "160px" }}
+                          >
                             <span className="text-[#303030] text-base truncate">
                               {item.description}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "110px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "110px" }}
+                          >
                             <span className="text-[#303030] text-base">
                               {item.glAccount}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "100px" }}
+                          >
                             <div className="flex justify-center">
                               <Checkbox
                                 checked={item.reimbursement}
+                                disabled
                                 className="w-[15px] h-[15px] rounded"
                               />
                             </div>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "90px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "90px" }}
+                          >
                             <span className="text-[#303030] text-base">
                               ${item.subtotal}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "100px" }}>
-                            <Select defaultValue={item.upcharge.toString()}>
-                              <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="0">0 %</SelectItem>
-                                <SelectItem value="10">10 %</SelectItem>
-                                <SelectItem value="15">15 %</SelectItem>
-                              </SelectContent>
-                            </Select>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "100px" }}
+                          >
+                            {isView ? (
+                              <span className="text-[#303030] text-base">
+                                {item.upcharge} %
+                              </span>
+                            ) : (
+                              <Select defaultValue={item.upcharge.toString()}>
+                                <SelectTrigger className="h-9 border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="0">0 %</SelectItem>
+                                  <SelectItem value="10">10 %</SelectItem>
+                                  <SelectItem value="15">15 %</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "80px" }}>
+                          <td
+                            className="px-3 py-4 border-r border-[#DADADA]"
+                            style={{ minWidth: "80px" }}
+                          >
                             <span className="text-[#303030] text-base">
                               ${item.total}
                             </span>
                           </td>
-                          <td className="px-3 py-4 border-r border-[#DADADA]" style={{ minWidth: "70px" }}>
-                            <div className="flex justify-center">
-                              <button className="flex w-7 h-7 justify-center items-center rounded-md border border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50">
-                                <svg
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 18 18"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
+                          {!isView && (
+                            <td
+                              className="px-3 py-4 border-r border-[#DADADA]"
+                              style={{ minWidth: "70px" }}
+                            >
+                              <div className="flex justify-center">
+                                <button
+                                  type="button"
+                                  className="flex w-7 h-7 justify-center items-center rounded-md border border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50"
                                 >
-                                  <path
-                                    d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
-                                    stroke="#525252"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
-                                    stroke="#525252"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
-                                    stroke="#525252"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
+                                  <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 18 18"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M9 9.75C9.41421 9.75 9.75 9.41421 9.75 9C9.75 8.58579 9.41421 8.25 9 8.25C8.58579 8.25 8.25 8.58579 8.25 9C8.25 9.41421 8.58579 9.75 9 9.75Z"
+                                      stroke="#525252"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M14.25 9.75C14.6642 9.75 15 9.41421 15 9C15 8.58579 14.6642 8.25 14.25 8.25C13.8358 8.25 13.5 8.58579 13.5 9C13.5 9.41421 13.8358 9.75 14.25 9.75Z"
+                                      stroke="#525252"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M3.75 9.75C4.16421 9.75 4.5 9.41421 4.5 9C4.5 8.58579 4.16421 8.25 3.75 8.25C3.33579 8.25 3 8.58579 3 9C3 9.41421 3.33579 9.75 3.75 9.75Z"
+                                      stroke="#525252"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -446,6 +621,7 @@ export default function RecordBillModal({
         {/* Fixed Footer - Action Buttons Only */}
         <div className="flex-shrink-0 flex justify-end items-center gap-2.5 px-6 md:px-8 py-4 border-t border-[#E5E5E5] bg-white">
           <button
+            type="button"
             onClick={() => onOpenChange(false)}
             className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -453,11 +629,25 @@ export default function RecordBillModal({
               Cancel
             </span>
           </button>
-          <button className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors">
-            <span className="text-white font-medium text-base">
-              Record Bill
-            </span>
-          </button>
+
+          {isView ? (
+            <button
+              type="button"
+              disabled
+              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-[#F5F5F5] text-[#717179] cursor-not-allowed"
+            >
+              <span className="font-medium text-base">Exported to Buildium</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
+            >
+              <span className="text-white font-medium text-base">
+                Record Bill
+              </span>
+            </button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
