@@ -1378,18 +1378,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       {/* Vendor Bill Approval Modal */}
       {showRecordBillModal && getCurrentApprovalBill()?.source === "Vendor-Import" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-[#303030] text-xl font-semibold">
                 Vendor Bill Review ({approvalReviewIndex + 1} of {approvalOrderedBills.length})
               </h2>
               <button
                 onClick={() => {
-                  setShowRecordBillModal(false);
-                  setApprovalReviewIndex(null);
-                  setApprovalOrderedBills([]);
+                  handleApproveOrCancel();
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                title="Close"
               >
                 ✕
               </button>
@@ -1435,9 +1434,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => {
-                  setShowRecordBillModal(false);
-                  setApprovalReviewIndex(null);
-                  setApprovalOrderedBills([]);
+                  handleApproveOrCancel();
                 }}
                 className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
               >
@@ -1445,18 +1442,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </button>
               <button
                 onClick={() => {
-                  setShowRecordBillModal(false);
-                  const nextIndex = (approvalReviewIndex ?? 0) + 1;
-                  if (nextIndex >= approvalOrderedBills.length) {
-                    setApprovalReviewIndex(null);
-                    setApprovalOrderedBills([]);
-                  } else {
-                    setApprovalReviewIndex(nextIndex);
-                    const nextBill = approvalOrderedBills[nextIndex];
-                    if (nextBill.source === "FTO Submission") {
-                      setShowFTOApprovalModal(true);
-                    }
-                  }
+                  handleApproveOrCancel();
                 }}
                 className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
               >
