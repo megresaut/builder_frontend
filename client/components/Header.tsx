@@ -36,8 +36,32 @@ export default function Header() {
   } | null => {
     const path = location.pathname;
 
-    // Handle task detail pages (/tasks/:taskId)
-    if (path.includes("/tasks/")) {
+    // Handle vendor detail pages (/vendors/:vendorId)
+    if (path.includes("/vendors/") && !path.endsWith("/vendors")) {
+      const match = path.match(/\/vendors\/(\d+)/);
+      if (match) {
+        const vendorId = match[1];
+        // Map vendorId to vendor information (mock data)
+        const vendorData: Record<string, string> = {
+          "1": "Dolce Heating & Plumbing",
+          "2": "David Smith",
+          "3": "David Smith",
+          "4": "David Smith",
+          "5": "David Smith",
+          "6": "David Smith",
+          "7": "David Smith",
+          "8": "David Smith",
+          "9": "David Smith",
+          "10": "David Smith",
+        };
+        const label = vendorData[vendorId] || `Vendor ${vendorId}`;
+        return {
+          label,
+          path,
+          id: `vendor-${vendorId}`,
+        };
+      }
+    } else if (path.includes("/tasks/")) {
       const match = path.match(/\/tasks\/(\d+)/);
       if (match) {
         const taskId = match[1];
@@ -158,7 +182,27 @@ export default function Header() {
     const path = location.pathname;
     const items: { label: string; href?: string }[] = [];
 
-    if (path === "/utilities/view-bill") {
+    if (path.includes("/vendors/") && !path.endsWith("/vendors")) {
+      const match = path.match(/\/vendors\/(\d+)/);
+      if (match) {
+        const vendorId = match[1];
+        // Map vendorId to vendor information (mock data)
+        const vendorData: Record<string, string> = {
+          "1": "Dolce Heating & Plumbing",
+          "2": "David Smith",
+          "3": "David Smith",
+          "4": "David Smith",
+          "5": "David Smith",
+          "6": "David Smith",
+          "7": "David Smith",
+          "8": "David Smith",
+          "9": "David Smith",
+          "10": "David Smith",
+        };
+        items.push({ label: "Vendors", href: "/vendors" });
+        items.push({ label: vendorData[vendorId] || `Vendor ${vendorId}` });
+      }
+    } else if (path === "/utilities/view-bill") {
       items.push({ label: "Utilities", href: "/utilities" });
       items.push({ label: "View Bill" });
     } else if (path === "/record-bill" || path.includes("/bills/record")) {
