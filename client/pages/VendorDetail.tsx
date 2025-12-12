@@ -73,6 +73,38 @@ export default function VendorDetail() {
 
   const vendor = mockVendors.find((v) => v.id === Number(vendorId)) || mockVendors[0];
 
+  const [openNoteId, setOpenNoteId] = useState<number | null>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const menuRefMap = useRef<{ [key: number]: HTMLButtonElement | null }>({});
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateMenuPos = () => {
+      if (openNoteId !== null && menuRefMap.current[openNoteId]) {
+        const rect = menuRefMap.current[openNoteId]!.getBoundingClientRect();
+        setMenuPos({
+          top: rect.bottom + 8,
+          left: rect.right - 120,
+        });
+      }
+
+      if (openNoteId !== null) {
+        animationFrameId = requestAnimationFrame(updateMenuPos);
+      }
+    };
+
+    if (openNoteId !== null) {
+      updateMenuPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [openNoteId]);
+
   const handleTabClick = (tab: string) => {
     // Tab functionality for future use
   };
