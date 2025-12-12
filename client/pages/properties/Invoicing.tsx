@@ -1073,7 +1073,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {paginatedHistory.map((item) => (
                     <div
                       key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3"
+                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => openInvoicePreview({
+                        lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                        invoiceDate: item.invoiceMonth,
+                        showCommitButton: false,
+                      })}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
                         {item.dateCreated}
@@ -1104,8 +1109,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {paginatedHistory.map((item) => (
                     <div
                       key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3"
+                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       style={{ borderLeftColor: "transparent" }}
+                      onClick={() => openInvoicePreview({
+                        lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                        invoiceDate: item.invoiceMonth,
+                        showCommitButton: false,
+                      })}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
                         {item.invoiceMonth}
@@ -1136,8 +1146,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {paginatedHistory.map((item) => (
                     <div
                       key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2 px-3"
+                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       style={{ borderLeftColor: "transparent" }}
+                      onClick={() => openInvoicePreview({
+                        lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                        invoiceDate: item.invoiceMonth,
+                        showCommitButton: false,
+                      })}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
                         {item.amount}
