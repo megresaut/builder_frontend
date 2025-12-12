@@ -92,9 +92,15 @@ export default function InvoicePreviewModal({
             display: none !important;
           }
           .edit-field {
-            border: none !important;
-            background: transparent !important;
-            padding: 0 !important;
+            display: none !important;
+          }
+          .print-only {
+            display: inline !important;
+          }
+        }
+        @media screen {
+          .print-only {
+            display: none !important;
           }
         }
       `}</style>
