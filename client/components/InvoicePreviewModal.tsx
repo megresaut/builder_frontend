@@ -96,9 +96,17 @@ export default function InvoicePreviewModal({
     field: keyof InvoiceLineItem,
     value: string,
   ) => {
+    let updatedValue = value;
+
+    // If updating amount field, format as currency with commas
+    if (field === "amount") {
+      const parsed = parseCurrencyInput(value);
+      updatedValue = formatCurrency(parsed);
+    }
+
     setLineItems(
       lineItems.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
+        item.id === id ? { ...item, [field]: updatedValue } : item,
       ),
     );
   };
