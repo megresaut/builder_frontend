@@ -660,9 +660,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </span>
             </div>
           </div>
-          <div className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap">
+          <button
+            onClick={handleViewInsights}
+            className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
+          >
             View {pendingApprovalBills.length} Insights
-          </div>
+          </button>
         </div>
       )}
 
