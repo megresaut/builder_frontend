@@ -1,5 +1,15 @@
 import { useRef, useState, useEffect } from "react";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent as AlertDialogContentRoot,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogTitle,
@@ -23,6 +33,7 @@ interface InvoicePreviewModalProps {
   lineItems: InvoiceLineItem[];
   showCommitButton?: boolean;
   onCommit?: (lineItems: InvoiceLineItem[]) => void;
+  pendingUnapprovedCount?: number;
 }
 
 export default function InvoicePreviewModal({
@@ -35,11 +46,13 @@ export default function InvoicePreviewModal({
   lineItems: initialLineItems,
   showCommitButton = false,
   onCommit,
+  pendingUnapprovedCount = 0,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
   const [activeAmountId, setActiveAmountId] = useState<number | null>(null);
   const [amountDraftById, setAmountDraftById] = useState<Record<number, string>>({});
+  const [showCommitConfirm, setShowCommitConfirm] = useState(false);
 
   const normalizeAmountDraft = (value: string): string => {
     const cleaned = value.replace(/[^\d.]/g, "");
@@ -179,6 +192,11 @@ export default function InvoicePreviewModal({
   };
 
   const handleCommit = () => {
+    if (pendingUnapprovedCount > 0) {
+      setShowCommitConfirm(true);
+      return;
+    }
+
     onCommit?.(lineItems);
     onOpenChange(false);
   };
@@ -192,7 +210,13 @@ export default function InvoicePreviewModal({
           }
         }
       `}</style>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setShowCommitConfirm(false);
+          onOpenChange(nextOpen);
+        }}
+      >
         <DialogContent className="max-w-[95vw] md:max-w-[880px] max-h-[95vh] flex flex-col p-0">
           <DialogTitle className="sr-only">Invoice Preview</DialogTitle>
           <div className="flex-1 overflow-y-auto bg-white flex justify-center items-start p-4">
@@ -658,6 +682,29 @@ export default function InvoicePreviewModal({
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showCommitConfirm} onOpenChange={setShowCommitConfirm}>
+        <AlertDialogContentRoot>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Commit invoice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to commit? There are unapproved bills outstanding.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowCommitConfirm(false);
+                onCommit?.(lineItems);
+                onOpenChange(false);
+              }}
+            >
+              Commit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContentRoot>
+      </AlertDialog>
     </>
   );
 }
