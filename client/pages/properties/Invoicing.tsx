@@ -493,6 +493,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       return [nextItem, ...prev];
     });
 
+    // Remove the committed items from invoiceItems
+    const committedItemIds = new Set(lineItems.map((item) => item.id));
+    setInvoiceItems((prev) => prev.filter((item) => !committedItemIds.has(item.id)));
+
     setCurrentPage(1);
   };
 
@@ -647,7 +651,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             onClick={handleViewInsights}
             className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
           >
-            View {pendingApprovalBills.length} Insights
+            View
           </button>
         </div>
       )}
@@ -659,7 +663,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
             <div className="flex items-center gap-4">
               <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                {currentInvoiceMonthName}'s Invoice
+                {currentInvoiceMonthName} Invoice
               </div>
             </div>
             <div className="flex min-w-60 items-start gap-2.5">
@@ -1318,6 +1322,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         propertyAddress={propertyAddress}
         propertyLocation="Westport, CT 06880"
         billTo="Jason Pascal"
+        rentalOwner="Eunice Bae"
         invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
         lineItems={
           invoicePreviewLineItems.length > 0
