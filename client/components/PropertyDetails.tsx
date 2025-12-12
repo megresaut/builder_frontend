@@ -162,7 +162,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           left,
         });
       }
-    }, [itemId, openMenuId]);
+    }, [openMenuId]);
 
     return (
       <>
