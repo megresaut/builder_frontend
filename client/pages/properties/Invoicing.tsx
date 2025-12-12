@@ -1295,6 +1295,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
         showCommitButton={invoicePreviewShowCommitButton}
         onCommit={handleCommitInvoice}
+        pendingUnapprovedCount={pendingApprovalBills.length}
       />
 
       <FTOApprovalModal
