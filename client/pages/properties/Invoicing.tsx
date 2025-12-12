@@ -563,6 +563,36 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     return pages;
   };
 
+  // Calculate pending approval bills
+  const pendingApprovalBills = invoiceItems.filter(
+    (item) => item.status === "Pending Approval"
+  );
+
+  const pendingVendorImportBills = pendingApprovalBills.filter(
+    (item) => item.source === "Vendor-Import"
+  );
+
+  const pendingFTOBills = pendingApprovalBills.filter(
+    (item) => item.source === "FTO Submission"
+  );
+
+  const totalPendingAmount = pendingApprovalBills.reduce((sum, item) => {
+    const amount = parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+    return sum + amount;
+  }, 0);
+
+  const showAlertBanner = pendingApprovalBills.length > 0;
+
+  const getAlertMessage = () => {
+    if (pendingVendorImportBills.length > 0 && pendingFTOBills.length > 0) {
+      return "There are unapproved vendor bills and Field Team Expenses outstanding.";
+    } else if (pendingVendorImportBills.length > 0) {
+      return "There are unapproved vendor bills outstanding.";
+    } else {
+      return "There are unapproved Field Team Expenses outstanding.";
+    }
+  };
+
   return (
     <div className="flex flex-col gap-0">
       {/* Alert Banner */}
