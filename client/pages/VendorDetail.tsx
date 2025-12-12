@@ -396,118 +396,43 @@ export default function VendorDetail() {
                       <span>Add</span>
                     </button>
                   </div>
-                  <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                    {/* Note Item 1 */}
-                    <div className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA]">
-                      <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                        Southern Conn Gas #05-00011476-6574
-                      </div>
-                      <div className="flex items-center gap-8 min-w-[240px]">
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
-                          6/17/2024 10:32 AM
-                        </div>
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
-                          Johan Gonazlez
-                        </div>
-                        <img
-                          loading="lazy"
-                          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                        />
-                      </div>
+                  {mockNotes.length === 0 ? (
+                    <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
+                      <p className="text-[#303030] text-sm font-normal leading-[1.29]">
+                        You don't have any notes for this vendor right now.{" "}
+                        <span className="font-medium text-[#2463EB] cursor-pointer hover:underline">
+                          Add your first note
+                        </span>
+                      </p>
                     </div>
-
-                    {/* Note Item 2 */}
-                    <div className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA]">
-                      <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                        Eversource #51124508037
-                      </div>
-                      <div className="flex items-center gap-8 min-w-[240px]">
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
-                          6/17/2024 10:31 AM
+                  ) : (
+                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
+                      {mockNotes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
+                        >
+                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] whitespace-pre-line">
+                            {note.text}
+                          </div>
+                          <div className="flex items-center gap-8 min-w-[240px]">
+                            <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
+                              {note.date}
+                            </div>
+                            <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
+                              {note.author}
+                            </div>
+                            <img
+                              loading="lazy"
+                              src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
+                              alt=""
+                              className="w-4 h-4 object-contain"
+                            />
+                          </div>
                         </div>
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
-                          Johan Gonazlez
-                        </div>
-                        <img
-                          loading="lazy"
-                          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                        />
-                      </div>
+                      ))}
                     </div>
-
-                    {/* Note Item 3 */}
-                    <div className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA]">
-                      <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                        Ashley Bae (Daughter): (626) 340-7616
-                      </div>
-                      <div className="flex items-center gap-8 min-w-[240px]">
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
-                          6/12/2024 2:31 PM
-                        </div>
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
-                          Carteg Hughes
-                        </div>
-                        <img
-                          loading="lazy"
-                          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Note Item 4 */}
-                    <div className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA]">
-                      <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                        Called Optimum and got the address moved from connors lane to 1544 wazee street denver, co. 80202
-                      </div>
-                      <div className="flex items-center gap-8 min-w-[240px]">
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
-                          8/4/2021 10:47 AM
-                        </div>
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
-                          Heather Seabrook
-                        </div>
-                        <img
-                          loading="lazy"
-                          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Note Item 5 */}
-                    <div className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA]">
-                      <div className="flex-1 text-[#303030] text-sm font-normal leading-[18px]">
-                        Optimum
-                        <br />
-                        Acct#07808-628921-02
-                        <br />
-                        203-293-4709
-                        <br />
-                        Pin: 2258
-                      </div>
-                      <div className="flex items-center gap-8 min-w-[240px]">
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
-                          3/16/2020 1:59 PM
-                        </div>
-                        <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
-                          Mario Sciarretta
-                        </div>
-                        <img
-                          loading="lazy"
-                          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Divider */}
