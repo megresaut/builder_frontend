@@ -81,8 +81,8 @@ export default function InvoicePreviewModal({
     });
 
     const element = document.createElement("div");
-    element.style.width = "8.5in";
-    element.style.padding = "1in";
+    element.style.width = "210mm";
+    element.style.padding = "0";
     element.style.margin = "0";
     element.style.background = "white";
     element.style.color = "#002060";
@@ -94,7 +94,7 @@ export default function InvoicePreviewModal({
       filename: "invoice.pdf",
       image: { type: "png", quality: 1 },
       html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     };
 
     try {
