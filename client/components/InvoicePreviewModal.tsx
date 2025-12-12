@@ -416,15 +416,16 @@ export default function InvoicePreviewModal({
                           onBlur={(e) => {
                             // Format with commas when user leaves the field
                             const formatted = formatAmountWithCommas(e.target.value);
+                            const itemId = parseInt(e.currentTarget.dataset.id || "0", 10);
                             setLineItems(
                               lineItems.map((item) =>
-                                item.id === e.currentTarget.dataset.id
+                                item.id === itemId
                                   ? { ...item, amount: formatted }
                                   : item,
                               ),
                             );
                           }}
-                          data-id={item.id}
+                          data-id={String(item.id)}
                           placeholder="$0.00"
                           className="edit-field"
                           style={{
