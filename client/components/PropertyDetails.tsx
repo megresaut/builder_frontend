@@ -1137,9 +1137,17 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </button>
                     <button
                       onClick={() => {
-                        setMonthlyRate(monthlyRate);
-                        setDefaultRate(defaultRate);
-                        setEmergencyRate(emergencyRate);
+                        const formatMonthly = (val: string) => {
+                          const num = parseFloat(val) || 0;
+                          return `$${num.toFixed(2)} / month`;
+                        };
+                        const formatHourly = (val: string) => {
+                          const num = parseFloat(val) || 0;
+                          return `$${num} / hour`;
+                        };
+                        setMonthlyRate(formatMonthly(monthlyRate));
+                        setDefaultRate(formatHourly(defaultRate));
+                        setEmergencyRate(formatHourly(emergencyRate));
                         setShowEditRatesModal(false);
                       }}
                       className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
