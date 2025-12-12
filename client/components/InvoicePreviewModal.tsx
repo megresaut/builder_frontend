@@ -405,7 +405,7 @@ export default function InvoicePreviewModal({
                         paddingLeft: "8px",
                         verticalAlign: "top",
                         position: "relative",
-                        overflow: "hidden"
+                        overflow: "visible"
                       }}>
                         <input
                           type="text"
