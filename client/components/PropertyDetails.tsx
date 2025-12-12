@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
@@ -17,9 +18,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 }) => {
   const [showMoreCustomFields, setShowMoreCustomFields] = useState(false);
   const [showMoreRates, setShowMoreRates] = useState(false);
-
-  // Mock data for notes
-  const recentNotes = [
+  const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
+  const [showEditPropertyModal, setShowEditPropertyModal] = useState(false);
+  const [showEditCustomFieldsModal, setShowEditCustomFieldsModal] = useState(false);
+  const [showEditRatesModal, setShowEditRatesModal] = useState(false);
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [showAddFileModal, setShowAddFileModal] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [recentNotes, setRecentNotes] = useState([
     {
       id: 1,
       text: "Southern Conn Gas #05-00011476-6574",
@@ -55,10 +62,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
       date: "3/16/2020 1:59 PM",
       author: "Mario Sciarretta",
     },
-  ];
+  ]);
 
-  // Mock data for files
-  const recentFiles = [
+  const [recentFiles, setRecentFiles] = useState([
     {
       id: 1,
       name: "1 Connors Lane - Maintenance Log.docx",
@@ -87,7 +93,133 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
       type: "pdf",
       icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
     },
-  ];
+  ]);
+
+  const handleDeleteNote = (id: number) => {
+    setRecentNotes(recentNotes.filter((note) => note.id !== id));
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteFile = (id: number) => {
+    setRecentFiles(recentFiles.filter((file) => file.id !== id));
+    setOpenMenuId(null);
+  };
+
+  const openViewMaps = () => {
+    const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(`${propertyAddress}, ${propertyLocation}`)}`;
+    window.open(mapsUrl, "_blank");
+  };
+
+  // Action Menu Component
+  const ActionMenu = ({ itemId, onView, onDelete }: { itemId: number; onView: () => void; onDelete: () => void }) => {
+    const buttonRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+      if (openMenuId === itemId && buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setMenuPos({
+          top: rect.bottom + 8,
+          left: rect.right - 145,
+        });
+      }
+    }, [itemId]);
+
+    return (
+      <>
+        <button
+          ref={buttonRef}
+          onClick={() => setOpenMenuId(openMenuId === itemId ? null : itemId)}
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+            <circle cx="5" cy="12" r="1" />
+          </svg>
+        </button>
+
+        {openMenuId === itemId &&
+          createPortal(
+            <div
+              className="bg-white flex flex-col justify-center items-start gap-4 p-4"
+              style={{
+                width: "145px",
+                border: "0.5px solid #DADADA",
+                borderRadius: "8px",
+                boxShadow:
+                  "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                zIndex: 99999,
+                position: "fixed",
+                top: menuPos.top + "px",
+                left: menuPos.left + "px",
+                pointerEvents: "auto",
+              }}
+              onMouseLeave={() => setOpenMenuId(null)}
+            >
+              <button
+                onClick={() => {
+                  onView();
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">View</span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                    stroke="#525252"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="12" cy="12" r="3" stroke="#525252" strokeWidth="1.5" />
+                </svg>
+              </button>
+              <button
+                onClick={() => {
+                  onDelete();
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">Delete</span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                    stroke="#982740"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>,
+            document.body,
+          )}
+      </>
+    );
+  };
 
   return (
     <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
@@ -99,7 +231,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               <div className="text-[#303030] text-xl leading-[1.1]">
                 Property Details
               </div>
-              <button className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+              <button onClick={() => setShowEditPropertyModal(true)} className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
@@ -127,7 +259,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     <div>{propertyAddress}</div>
                     <div>{propertyLocation}</div>
                   </div>
-                  <button className="rounded-lg self-start flex mt-1 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+                  <button onClick={openViewMaps} className="rounded-lg self-start flex mt-1 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                     <img
                       loading="lazy"
                       src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/8eb71e6b8a164f52539454633c48318f2d6d3eee?placeholderIfAbsent=true"
@@ -157,7 +289,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   </div>
                 </div>
 
-                <button className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+                <button onClick={() => setShowPhotoUploadModal(true)} className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                   <img
                     loading="lazy"
                     src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d427594bd49179e577cb5955600fc9901bcd3437?placeholderIfAbsent=true"
@@ -193,7 +325,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 <div className="text-[#303030] text-xl leading-[1.1]">
                   Custom Fields
                 </div>
-                <button className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+                <button onClick={() => setShowEditCustomFieldsModal(true)} className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                   <img
                     loading="lazy"
                     src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
@@ -252,7 +384,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             <div className="flex min-w-[240px] flex-col flex-1">
               <div className="flex w-full items-center justify-between gap-4 flex-wrap whitespace-nowrap">
                 <div className="text-[#303030] text-xl leading-[1.1]">Rates</div>
-                <button className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+                <button onClick={() => setShowEditRatesModal(true)} className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                   <img
                     loading="lazy"
                     src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
@@ -315,7 +447,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               <div className="text-[#303030] text-xl leading-[1.1]">
                 Recent Notes
               </div>
-              <button className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+              <button onClick={() => setShowAddNoteModal(true)} className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/eb2ef5646108571624ccf8540dc9922047c9c587?placeholderIfAbsent=true"
@@ -348,11 +480,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </div>
                     <div className="w-[135px]">{note.date}</div>
                     <div className="w-[118px]">{note.author}</div>
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/4a51461b5ec1c34be7d8175b55d07795dfe9f467?placeholderIfAbsent=true"
-                      className="w-4 h-4 cursor-pointer"
-                      alt="More options"
+                    <ActionMenu
+                      itemId={`note-${note.id}` as any}
+                      onView={() => alert(`View note: ${note.text}`)}
+                      onDelete={() => handleDeleteNote(note.id)}
                     />
                   </div>
                 </div>
@@ -374,7 +505,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               <div className="text-[#303030] text-xl leading-[1.1]">
                 Recent Files
               </div>
-              <button className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
+              <button onClick={() => setShowAddFileModal(true)} className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/eb2ef5646108571624ccf8540dc9922047c9c587?placeholderIfAbsent=true"
@@ -426,17 +557,483 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <div className="text-sm leading-[1.29]">{file.date}</div>
                       <div className="text-xs">by {file.author}</div>
                     </div>
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/4a51461b5ec1c34be7d8175b55d07795dfe9f467?placeholderIfAbsent=true"
-                      className="w-4 h-4 cursor-pointer"
-                      alt="More options"
+                    <ActionMenu
+                      itemId={`file-${file.id}` as any}
+                      onView={() => alert(`View file: ${file.name}`)}
+                      onDelete={() => handleDeleteFile(file.id)}
                     />
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* MODALS */}
+
+          {/* Upload Photo Modal */}
+          {showPhotoUploadModal &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => setShowPhotoUploadModal(false)}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Upload Photo</div>
+                    <button
+                      onClick={() => setShowPhotoUploadModal(false)}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6L6 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 6L18 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-5">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
+                    />
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setShowPhotoUploadModal(false)}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("Photo uploaded successfully!");
+                        setShowPhotoUploadModal(false);
+                      }}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                    >
+                      <span className="text-white font-medium text-base">Upload</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
+
+          {/* Edit Property Modal */}
+          {showEditPropertyModal &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => setShowEditPropertyModal(false)}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Edit Property</div>
+                    <button
+                      onClick={() => setShowEditPropertyModal(false)}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6L6 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 6L18 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-5">
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Address</label>
+                      <input
+                        type="text"
+                        defaultValue={propertyAddress}
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Location</label>
+                      <input
+                        type="text"
+                        defaultValue={propertyLocation}
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setShowEditPropertyModal(false)}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("Property updated!");
+                        setShowEditPropertyModal(false);
+                      }}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                    >
+                      <span className="text-white font-medium text-base">Save</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
+
+          {/* Edit Custom Fields Modal */}
+          {showEditCustomFieldsModal &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => setShowEditCustomFieldsModal(false)}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Edit Custom Fields</div>
+                    <button
+                      onClick={() => setShowEditCustomFieldsModal(false)}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6L6 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 6L18 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-5">
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Management Agreement Date</label>
+                      <input
+                        type="text"
+                        placeholder="-"
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Inspection Frequency</label>
+                      <input
+                        type="text"
+                        defaultValue="Monthly"
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setShowEditCustomFieldsModal(false)}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("Custom fields updated!");
+                        setShowEditCustomFieldsModal(false);
+                      }}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                    >
+                      <span className="text-white font-medium text-base">Save</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
+
+          {/* Edit Rates Modal */}
+          {showEditRatesModal &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => setShowEditRatesModal(false)}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Edit Rates</div>
+                    <button
+                      onClick={() => setShowEditRatesModal(false)}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6L6 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 6L18 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-5">
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Monthly Rate</label>
+                      <input
+                        type="text"
+                        defaultValue="$700.00 / month"
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Default Rate</label>
+                      <input
+                        type="text"
+                        defaultValue="$60 / hour"
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Emergency Rate</label>
+                      <input
+                        type="text"
+                        defaultValue="$50 / hour"
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                      />
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setShowEditRatesModal(false)}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("Rates updated!");
+                        setShowEditRatesModal(false);
+                      }}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                    >
+                      <span className="text-white font-medium text-base">Save</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
+
+          {/* Add Note Modal */}
+          {showAddNoteModal &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => setShowAddNoteModal(false)}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Add Note</div>
+                    <button
+                      onClick={() => setShowAddNoteModal(false)}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6L6 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 6L18 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-5">
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">Note</label>
+                      <textarea
+                        placeholder="Enter your note"
+                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764] min-h-[100px]"
+                      />
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setShowAddNoteModal(false)}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("Note added successfully!");
+                        setShowAddNoteModal(false);
+                      }}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                    >
+                      <span className="text-white font-medium text-base">Add</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
+
+          {/* Add File Modal */}
+          {showAddFileModal &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => setShowAddFileModal(false)}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Add File</div>
+                    <button
+                      onClick={() => setShowAddFileModal(false)}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6L6 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 6L18 18"
+                          stroke="#525252"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-5">
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#303030]">File</label>
+                      <input
+                        type="file"
+                        className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
+                      />
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setShowAddFileModal(false)}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("File added successfully!");
+                        setShowAddFileModal(false);
+                      }}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                    >
+                      <span className="text-white font-medium text-base">Add</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
     </div>
