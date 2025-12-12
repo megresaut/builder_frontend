@@ -69,68 +69,44 @@ export default function InvoicePreviewModal({
     );
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const invoiceNode = invoiceRef.current;
     if (!invoiceNode) return;
 
     const clone = invoiceNode.cloneNode(true) as HTMLElement;
 
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
-    clone.querySelectorAll(".print-only").forEach((el) => el.remove());
+    clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
 
-    clone.querySelectorAll("input").forEach((node) => {
-      const input = node as HTMLInputElement;
-      const span = document.createElement("span");
-      span.textContent = input.value;
-
-      const style = input.getAttribute("style");
-      if (style) span.setAttribute("style", style);
-
-      input.replaceWith(span);
+    clone.querySelectorAll(".print-only").forEach((el) => {
+      const parent = el.parentElement;
+      if (parent) {
+        const text = el.textContent || "";
+        el.replaceWith(text);
+      }
     });
 
-    const printWindow = window.open("", "_blank", "noopener,noreferrer");
-    if (!printWindow) return;
+    const element = document.createElement("div");
+    element.style.padding = "0";
+    element.style.margin = "0";
+    element.style.background = "white";
+    element.style.color = "#002060";
+    element.style.fontFamily = "Inter, -apple-system, Roboto, Helvetica, sans-serif";
+    element.appendChild(clone);
 
-    printWindow.document.open();
-    printWindow.document.write(`<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title></title>
-    <style>
-      @page {
-        size: letter;
-        margin: 0;
-      }
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: white;
-        font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
-        color: #002060;
-      }
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-      }
-      a { color: inherit; text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <div style="padding: 20px; width: 100%; display: flex; justify-content: center;">
-      ${clone.outerHTML}
-    </div>
-  </body>
-</html>`);
-    printWindow.document.close();
+    const opt = {
+      margin: 0,
+      filename: "invoice.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+    };
 
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   return (
