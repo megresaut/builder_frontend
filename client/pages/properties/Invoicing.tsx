@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import RecordBillModal, {
-  type RecordBillModalData,
-  type LineItem as RecordBillLineItem,
-} from "@/components/RecordBillModal";
+import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
 
 interface InvoicingProps {
@@ -59,6 +56,7 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
+        onMouseDown={(e) => e.stopPropagation()}
         onClick={() => setOpenMenuId(showMenu ? null : itemId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
@@ -82,6 +80,7 @@ const ActionButton = ({
         createPortal(
           <div
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
               width: "145px",
               border: "0.5px solid #DADADA",
@@ -142,13 +141,33 @@ const ActionButton = ({
   );
 };
 
+type ViewBillLineItem = {
+  id: number;
+  property: string;
+  unit: string;
+  workOrder: string;
+  description: string;
+  glAccount: string;
+  total: string;
+};
+
+type ViewBillState = {
+  vendorName?: string;
+  referenceNumber?: string;
+  invoiceDate?: string;
+  dueDate?: string;
+  memo?: string;
+  lineItems?: ViewBillLineItem[];
+};
+
 export const Invoicing: React.FC<InvoicingProps> = () => {
+  const navigate = useNavigate();
+  const { propertyId } = useParams<{ propertyId: string }>();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [showRecordBillModal, setShowRecordBillModal] = useState(false);
-  const [recordBillData, setRecordBillData] = useState<RecordBillModalData>();
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -380,83 +399,69 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
     },
   ];
 
-  const toIsoDate = (date: Date) => date.toISOString().split("T")[0];
+  const toIsoDateTime = (date: Date) => date.toISOString();
 
-  const parseCurrency = (value: string) =>
-    parseFloat(value.replace(/[$,]/g, "")) || 0;
-
-  const buildViewBillDataFromInvoiceItem = (item: InvoiceItem): RecordBillModalData => {
+  const buildViewBillStateFromInvoiceItem = (item: InvoiceItem): ViewBillState => {
     const today = new Date();
     const due = new Date(today);
     due.setDate(due.getDate() + 30);
 
-    const amount = parseCurrency(item.amount);
-
-    const lineItems: RecordBillLineItem[] = [
-      {
-        id: 1,
-        property: propertyAddress || "",
-        unit: propertyUnits ? String(propertyUnits) : "",
-        workOrder: "-",
-        description: item.description,
-        glAccount: item.glAccount,
-        reimbursement: false,
-        subtotal: amount,
-        upcharge: 0,
-        total: amount,
-      },
-    ];
-
     return {
-      vendor: item.vendor,
-      invoiceNumber: `INV-${String(item.id).padStart(4, "0")}`,
-      invoiceDate: toIsoDate(today),
-      dueDate: toIsoDate(due),
+      vendorName: item.vendor,
+      referenceNumber: `INV-${String(item.id).padStart(4, "0")}`,
+      invoiceDate: toIsoDateTime(today),
+      dueDate: toIsoDateTime(due),
       memo: item.description,
-      lineItems,
+      lineItems: [
+        {
+          id: 1,
+          property: propertyAddress,
+          unit: "N/A",
+          workOrder: "N/A",
+          description: item.description,
+          glAccount: item.glAccount,
+          total: item.amount,
+        },
+      ],
     };
   };
 
-  const buildViewBillDataFromHistoryItem = (
+  const buildViewBillStateFromHistoryItem = (
     item: InvoiceHistoryItem,
-  ): RecordBillModalData => {
-    const amount = parseCurrency(item.amount);
+  ): ViewBillState => {
     const invoiceDate = new Date(item.date);
     const dueDate = new Date(item.dueDate);
 
-    const lineItems: RecordBillLineItem[] = [
-      {
-        id: 1,
-        property: propertyAddress || "",
-        unit: propertyUnits ? String(propertyUnits) : "",
-        workOrder: "-",
-        description: `Invoice ${item.date}`,
-        glAccount: "Utilities",
-        reimbursement: false,
-        subtotal: amount,
-        upcharge: 0,
-        total: amount,
-      },
-    ];
-
     return {
-      vendor: "David Smith",
-      invoiceNumber: `INV-${String(item.id).padStart(4, "0")}`,
-      invoiceDate: isNaN(invoiceDate.getTime()) ? "" : toIsoDate(invoiceDate),
-      dueDate: isNaN(dueDate.getTime()) ? "" : toIsoDate(dueDate),
+      vendorName: "David Smith",
+      referenceNumber: `INV-${String(item.id).padStart(4, "0")}`,
+      invoiceDate: Number.isNaN(invoiceDate.getTime())
+        ? undefined
+        : toIsoDateTime(invoiceDate),
+      dueDate: Number.isNaN(dueDate.getTime()) ? undefined : toIsoDateTime(dueDate),
       memo: `Invoice from ${item.date}`,
-      lineItems,
+      lineItems: [
+        {
+          id: 1,
+          property: propertyAddress,
+          unit: "N/A",
+          workOrder: "N/A",
+          description: `Invoice ${item.date}`,
+          glAccount: "Utilities",
+          total: item.amount,
+        },
+      ],
     };
   };
 
-  const openViewBill = (data: RecordBillModalData) => {
-    setRecordBillData(data);
-    setShowRecordBillModal(true);
-  };
+  const openViewBill = (bill: ViewBillState) => {
+    const basePath = propertyId
+      ? `/property/${propertyId}/bills/record`
+      : "/bills/record";
 
-  const handleRecordBillModalChange = (open: boolean) => {
-    setShowRecordBillModal(open);
-    if (!open) setRecordBillData(undefined);
+    navigate(`${basePath}?readOnly=true`, {
+      state: { bill },
+    });
   };
 
   const totalInvoices = invoiceHistory.length;
@@ -804,7 +809,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                       onView={() =>
-                        openViewBill(buildViewBillDataFromInvoiceItem(item))
+                        openViewBill(buildViewBillStateFromInvoiceItem(item))
                       }
                     />
                   </div>
@@ -1045,7 +1050,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                       onView={() =>
-                        openViewBill(buildViewBillDataFromHistoryItem(item))
+                        openViewBill(buildViewBillStateFromHistoryItem(item))
                       }
                     />
                   </div>
@@ -1191,13 +1196,6 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
           document.body,
         )}
 
-      {/* Record Bill Modal */}
-      <RecordBillModal
-        open={showRecordBillModal}
-        onOpenChange={handleRecordBillModalChange}
-        mode="view"
-        data={recordBillData}
-      />
     </div>
   );
 };
