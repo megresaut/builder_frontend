@@ -599,10 +599,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     setShowingPendingInsights(!showingPendingInsights);
   };
 
+  const invoiceNow = new Date();
+  const currentInvoiceMonthName = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+  }).format(invoiceNow);
   const currentInvoiceMonth = new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
-  }).format(new Date());
+  }).format(invoiceNow);
 
   return (
     <div className="flex flex-col gap-0">
@@ -662,7 +666,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
             <div className="flex items-center gap-4">
               <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                This Month's Invoice
+                {currentInvoiceMonthName}'s Invoice
               </div>
             </div>
             <div className="flex min-w-60 items-start gap-2.5">
