@@ -58,6 +58,12 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
     }
   };
 
+  const handleViewOnMap = () => {
+    const location = property?.location || "Greenwich, CT 06831";
+    const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(`${propertyAddress}, ${location}`)}`;
+    window.open(mapsUrl, "_blank");
+  };
+
   return (
     <div className="flex-1 overflow-auto bg-white">
       <div
