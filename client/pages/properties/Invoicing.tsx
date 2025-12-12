@@ -861,9 +861,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       onView={() => {
                         if (isFTO) {
                           openViewFTO();
-                        } else if (isVendorImportPending) {
-                          setPreviewItemId(item.id);
-                          setShowInvoicePreview(true);
                         } else {
                           openViewBill(
                             buildViewBillStateFromInvoiceItem(item, propertyAddress),
