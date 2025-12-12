@@ -510,6 +510,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     });
   };
 
+  const openEditBill = (bill: ViewBillState) => {
+    const basePath = propertyId
+      ? `/property/${propertyId}/bills/record`
+      : "/bills/record";
+
+    navigate(basePath, {
+      state: { bill },
+    });
+  };
+
   const openViewFTO = () => {
     navigate("/field-team-orders");
   };
