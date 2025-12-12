@@ -153,7 +153,7 @@ export default function InvoicePreviewModal({
               style={{
                 width: "612px",
                 minHeight: "792px",
-                padding: "70px 60px 60px",
+                padding: "0",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
               }}
