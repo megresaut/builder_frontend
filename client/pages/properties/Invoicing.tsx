@@ -1263,23 +1263,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         propertyLocation="Westport, CT 06880"
         billTo="Jason Pascal"
         invoiceDate="November 2025"
-        lineItems={
-          previewItemId
-            ? invoiceItems
-                .filter((item) => item.id === previewItemId)
-                .map((item) => ({
-                  id: item.id,
-                  vendor: item.vendor,
-                  description: item.description,
-                  amount: item.amount,
-                }))
-            : invoiceItems.map((item) => ({
-                id: item.id,
-                vendor: item.vendor,
-                description: item.description,
-                amount: item.amount,
-              }))
-        }
+        lineItems={invoiceItems.map((item) => ({
+          id: item.id,
+          vendor: item.vendor,
+          description: item.description,
+          amount: item.amount,
+        }))}
       />
     </div>
   );
