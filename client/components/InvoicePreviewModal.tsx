@@ -302,7 +302,7 @@ export default function InvoicePreviewModal({
               </div>
 
               {/* Line Items */}
-              <div style={{ paddingLeft: "72px", paddingRight: "72px" }}>
+              <div>
                 {lineItems.map((item, index) => (
                   <div
                     key={item.id}
