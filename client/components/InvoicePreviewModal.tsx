@@ -77,17 +77,13 @@ export default function InvoicePreviewModal({
 
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
-
     clone.querySelectorAll(".print-only").forEach((el) => {
-      const parent = el.parentElement;
-      if (parent) {
-        const text = el.textContent || "";
-        el.replaceWith(text);
-      }
+      el.style.display = "inline-block";
     });
 
     const element = document.createElement("div");
-    element.style.padding = "0";
+    element.style.width = "8.5in";
+    element.style.padding = "1in";
     element.style.margin = "0";
     element.style.background = "white";
     element.style.color = "#002060";
@@ -95,11 +91,11 @@ export default function InvoicePreviewModal({
     element.appendChild(clone);
 
     const opt: any = {
-      margin: [72, 72, 72, 72],
+      margin: 0,
       filename: "invoice.pdf",
-      image: { type: "png", quality: 0.98 },
-      html2canvas: { scale: 3, useCORS: true, logging: false },
-      jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+      image: { type: "png", quality: 1 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     };
 
     try {
