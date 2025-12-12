@@ -501,7 +501,7 @@ export default function InvoicePreviewModal({
                   TOTAL:
                 </div>
                 <div style={{
-                  font: "400 9px Arial, sans-serif",
+                  font: "400 9px/16.5px Arial, sans-serif",
                   backgroundColor: "#F2F2F2",
                   padding: "8px 12px",
                   textAlign: "left",
