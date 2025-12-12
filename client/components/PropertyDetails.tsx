@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 
 interface PropertyDetailsProps {
@@ -47,8 +48,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [showViewNoteModal, setShowViewNoteModal] = useState(false);
   const [showViewFileModal, setShowViewFileModal] = useState(false);
 
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   const [noteDraft, setNoteDraft] = useState("");
   const [fileDraft, setFileDraft] = useState<File | null>(null);
@@ -126,14 +125,12 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
   const handleDeleteNote = (id: number) => {
     setRecentNotes((prev) => prev.filter((note) => note.id !== id));
-    setOpenMenuId(null);
     setSelectedNote(null);
     setShowViewNoteModal(false);
   };
 
   const handleDeleteFile = (id: number) => {
     setRecentFiles((prev) => prev.filter((file) => file.id !== id));
-    setOpenMenuId(null);
     setSelectedFile(null);
     setShowViewFileModal(false);
   };
@@ -143,122 +140,75 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     window.open(mapsUrl, "_blank");
   };
 
-  // Action Menu Component
-  const ActionMenu = ({ itemId, onView, onDelete }: { itemId: string; onView: () => void; onDelete: () => void }) => {
-    const buttonRef = useRef<HTMLButtonElement>(null);
-
-    useEffect(() => {
-      if (openMenuId === itemId && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        const menuWidth = 145;
-        const padding = 8;
-        const desiredLeft = rect.right - menuWidth;
-        const left = Math.min(
-          Math.max(padding, desiredLeft),
-          Math.max(padding, window.innerWidth - menuWidth - padding),
-        );
-
-        setMenuPos({
-          top: rect.bottom + 8,
-          left,
-        });
-      }
-    }, [openMenuId]);
-
+  const ActionMenu = ({ onView, onDelete }: { onView: () => void; onDelete: () => void }) => {
     return (
-      <>
-        <button
-          ref={buttonRef}
-          onClick={() => setOpenMenuId(openMenuId === itemId ? null : itemId)}
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+            aria-label="Actions"
           >
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="19" cy="12" r="1" />
-            <circle cx="5" cy="12" r="1" />
-          </svg>
-        </button>
-
-        {openMenuId === itemId &&
-          createPortal(
-            <div
-              className="bg-white flex flex-col justify-center items-start gap-4 p-4"
-              style={{
-                width: "145px",
-                border: "0.5px solid #DADADA",
-                borderRadius: "8px",
-                boxShadow:
-                  "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                zIndex: 99999,
-                position: "fixed",
-                top: menuPos.top + "px",
-                left: menuPos.left + "px",
-                pointerEvents: "auto",
-              }}
-              onMouseLeave={() => setOpenMenuId(null)}
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <button
-                onClick={() => {
-                  onView();
-                  setOpenMenuId(null);
-                }}
-                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-              >
-                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">View</span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                    stroke="#525252"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="12" cy="12" r="3" stroke="#525252" strokeWidth="1.5" />
-                </svg>
-              </button>
-              <button
-                onClick={() => {
-                  onDelete();
-                  setOpenMenuId(null);
-                }}
-                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-              >
-                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">Delete</span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                    stroke="#982740"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>,
-            document.body,
-          )}
-      </>
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="19" cy="12" r="1" />
+              <circle cx="5" cy="12" r="1" />
+            </svg>
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align="end"
+          className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 w-[145px] rounded-lg"
+          style={{ border: "0.5px solid #DADADA" }}
+        >
+          <DropdownMenuItem
+            onSelect={onView}
+            className="w-full cursor-pointer focus:bg-transparent"
+          >
+            <div className="flex justify-between items-center w-full">
+              <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">View</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                  stroke="#525252"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="12" cy="12" r="3" stroke="#525252" strokeWidth="1.5" />
+              </svg>
+            </div>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onSelect={onDelete}
+            className="w-full cursor-pointer focus:bg-transparent"
+          >
+            <div className="flex justify-between items-center w-full">
+              <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">Delete</span>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                  stroke="#982740"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   };
 

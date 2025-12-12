@@ -671,14 +671,15 @@ export default function VendorDetail() {
                   {notes.length === 0 ? (
                     <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
                       <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                        You don't have any notes for this vendor right now.{" "}
-                        <button
-                          onClick={openAddNote}
-                          className="font-medium text-[#2463EB] hover:underline"
-                        >
-                          Add your first note
-                        </button>
+                        You don't have any notes for this vendor right now.
                       </p>
+                      <button
+                        type="button"
+                        onClick={openAddNote}
+                        className="text-[#2463EB] text-sm font-medium hover:underline"
+                      >
+                        Add your first note
+                      </button>
                     </div>
                   ) : (
                     <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
@@ -700,14 +701,22 @@ export default function VendorDetail() {
 
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <button className="w-4 h-4 flex items-center justify-center hover:opacity-70 transition-opacity">
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                  aria-label="Actions"
+                                >
                                   <svg
-                                    width="16"
-                                    height="16"
+                                    width="18"
+                                    height="18"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
                                     strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
                                   >
                                     <circle cx="12" cy="12" r="1" />
                                     <circle cx="19" cy="12" r="1" />
@@ -717,7 +726,7 @@ export default function VendorDetail() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
                                 align="end"
-                                className="bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
+                                className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
                                 style={{ border: "0.5px solid #DADADA" }}
                               >
                                 <DropdownMenuItem
@@ -725,7 +734,7 @@ export default function VendorDetail() {
                                     setSelectedNote(note);
                                     setIsViewNoteOpen(true);
                                   }}
-                                  className="w-full text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#303030]"
+                                  className="w-full cursor-pointer text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#303030]"
                                 >
                                   View
                                 </DropdownMenuItem>
@@ -733,7 +742,7 @@ export default function VendorDetail() {
                                   onSelect={() => {
                                     setNotes((prev) => prev.filter((n) => n.id !== note.id));
                                   }}
-                                  className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
+                                  className="w-full cursor-pointer text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
                                 >
                                   Delete
                                 </DropdownMenuItem>
@@ -776,14 +785,15 @@ export default function VendorDetail() {
                   {files.length === 0 ? (
                     <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
                       <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                        You don't have any files for this vendor right now.{" "}
-                        <button
-                          onClick={() => setIsAddFileOpen(true)}
-                          className="font-medium text-[#2463EB] hover:underline"
-                        >
-                          Add your first file
-                        </button>
+                        You don't have any files for this vendor right now.
                       </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddFileOpen(true)}
+                        className="text-[#2463EB] text-sm font-medium hover:underline"
+                      >
+                        Add your first file
+                      </button>
                     </div>
                   ) : (
                     <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
@@ -811,14 +821,22 @@ export default function VendorDetail() {
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="w-4 h-4 flex items-center justify-center hover:opacity-70 transition-opacity">
+                              <button
+                                type="button"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                aria-label="Actions"
+                              >
                                 <svg
-                                  width="16"
-                                  height="16"
+                                  width="18"
+                                  height="18"
                                   viewBox="0 0 24 24"
                                   fill="none"
                                   stroke="currentColor"
                                   strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
                                 >
                                   <circle cx="12" cy="12" r="1" />
                                   <circle cx="19" cy="12" r="1" />
@@ -828,7 +846,7 @@ export default function VendorDetail() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
+                              className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
                               style={{ border: "0.5px solid #DADADA" }}
                             >
                               <DropdownMenuItem
