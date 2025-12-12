@@ -259,13 +259,13 @@ export default function InvoicePreviewModal({
                   <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
                     <div style={{ display: "flex", flexDirection: "row" }}>
                       <div
-                        data-builder-groupLocked="true"
+
                         style={{ fontSize: "10px", fontWeight: "400" }}
                       >
                         DATE:
                       </div>
                       <div
-                        data-builder-groupLocked="true"
+
                         style={{ fontSize: "10px", fontWeight: "400" }}
                       >
                         {"\u00A0"}{invoiceDate}
