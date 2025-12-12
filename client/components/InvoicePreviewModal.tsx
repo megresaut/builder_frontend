@@ -349,7 +349,7 @@ export default function InvoicePreviewModal({
                         borderBottom: "1px solid #BF8F00",
                         backgroundColor: "#F2F2F2",
                         textAlign: "right",
-                        paddingRight: "12px",
+                        paddingRight: "0px",
                         verticalAlign: "top",
                         position: "relative"
                       }}>
@@ -361,7 +361,7 @@ export default function InvoicePreviewModal({
                           }
                           className="edit-field"
                           style={{
-                            width: "calc(100% - 30px)",
+                            width: "100%",
                             border: "none",
                             outline: "none",
                             background: "transparent",
@@ -369,7 +369,7 @@ export default function InvoicePreviewModal({
                             color: "#002060",
                             fontFamily: "Arial, sans-serif",
                             textAlign: "right",
-                            padding: 0
+                            padding: "0 18px 0 0"
                           }}
                         />
                         <span className="print-only">{item.amount}</span>
@@ -378,7 +378,8 @@ export default function InvoicePreviewModal({
                           className="no-print"
                           style={{
                             position: "absolute",
-                            right: "4px",
+                            right: "-18px",
+                            zIndex: 2,
                             top: "50%",
                             transform: "translateY(-50%)",
                             border: "none",
