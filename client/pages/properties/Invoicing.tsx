@@ -17,11 +17,15 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   onView,
+  isFTO,
+  ftoActionLabel,
 }: {
   itemId: string;
   openMenuId: string | null;
   setOpenMenuId: (id: string | null) => void;
   onView: () => void;
+  isFTO: boolean;
+  ftoActionLabel: string;
 }) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -112,7 +116,7 @@ const ActionButton = ({
                     "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 }}
               >
-                View Bill
+                {isFTO ? "View FTO" : "View Bill"}
               </span>
               <svg
                 width="18"
