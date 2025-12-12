@@ -332,16 +332,6 @@ export default function InvoicePreviewModal({
                     <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                       Westport, CT, 28282
                     </div>
-                    {rentalOwner && (
-                      <>
-                        <div style={{ marginTop: "12px", letterSpacing: "1.2px", marginBottom: "4px", font: "700 9px/15px Georgia, serif" }}>
-                          RENTAL OWNER:
-                        </div>
-                        <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                          {rentalOwner}
-                        </div>
-                      </>
-                    )}
                   </div>
                 </div>
               </div>
