@@ -33,7 +33,7 @@ const propertyData: Record<string, Property> = {
   "1": {
     id: 1,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
@@ -46,7 +46,7 @@ const propertyData: Record<string, Property> = {
   "2": {
     id: 2,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
@@ -59,7 +59,7 @@ const propertyData: Record<string, Property> = {
   "3": {
     id: 3,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
@@ -72,7 +72,7 @@ const propertyData: Record<string, Property> = {
   "4": {
     id: 4,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
     ],
@@ -84,7 +84,7 @@ const propertyData: Record<string, Property> = {
   "5": {
     id: 5,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
@@ -97,7 +97,7 @@ const propertyData: Record<string, Property> = {
   "6": {
     id: 6,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
@@ -109,7 +109,7 @@ const propertyData: Record<string, Property> = {
   "7": {
     id: 7,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
@@ -122,7 +122,7 @@ const propertyData: Record<string, Property> = {
   "8": {
     id: 8,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
@@ -134,7 +134,7 @@ const propertyData: Record<string, Property> = {
   "9": {
     id: 9,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
@@ -147,7 +147,7 @@ const propertyData: Record<string, Property> = {
   "10": {
     id: 10,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT 06830",
+    location: "Greenwich, CT 06831",
     managers: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
