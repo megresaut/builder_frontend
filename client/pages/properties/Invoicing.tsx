@@ -190,14 +190,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
-  const [invoicePreviewLineItems, setInvoicePreviewLineItems] = useState<InvoiceLineItem[]>([]);
-  const [invoicePreviewInvoiceDate, setInvoicePreviewInvoiceDate] = useState<string>("");
-  const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] = useState(false);
+  const [invoicePreviewLineItems, setInvoicePreviewLineItems] = useState<
+    InvoiceLineItem[]
+  >([]);
+  const [invoicePreviewInvoiceDate, setInvoicePreviewInvoiceDate] =
+    useState<string>("");
+  const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] =
+    useState(false);
   const [showFTOApprovalModal, setShowFTOApprovalModal] = useState(false);
   const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
-  const [showAddAdditionalBillsModal, setShowAddAdditionalBillsModal] = useState(false);
-  const [selectedAdditionalBillId, setSelectedAdditionalBillId] = useState<string>("");
-  const [selectedAdditionalFtoId, setSelectedAdditionalFtoId] = useState<string>("");
+  const [showAddAdditionalBillsModal, setShowAddAdditionalBillsModal] =
+    useState(false);
+  const [selectedAdditionalBillId, setSelectedAdditionalBillId] =
+    useState<string>("");
+  const [selectedAdditionalFtoId, setSelectedAdditionalFtoId] =
+    useState<string>("");
   const [showingPendingInsights, setShowingPendingInsights] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -238,7 +245,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     document.addEventListener("mousedown", handleClickAnywhere);
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
-
 
   type InvoiceItemStatus = "Pending Approval" | "Approved";
 
@@ -335,7 +341,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     },
   ];
 
-  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>(initialInvoiceItems);
+  const [invoiceItems, setInvoiceItems] =
+    useState<InvoiceItem[]>(initialInvoiceItems);
 
   interface InvoiceHistoryItem {
     id: number;
@@ -356,19 +363,80 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
 
   const seedInvoiceHistory: InvoiceHistoryItem[] = [
-    { id: 1, dateCreated: "Oct 1, 2025", invoiceMonth: formatInvoiceMonth("Oct 1, 2025"), amount: "$237", lineItems: [] },
-    { id: 2, dateCreated: "Oct 1, 2025", invoiceMonth: formatInvoiceMonth("Oct 1, 2025"), amount: "$639", lineItems: [] },
-    { id: 3, dateCreated: "Sep 28, 2025", invoiceMonth: formatInvoiceMonth("Sep 28, 2025"), amount: "$482", lineItems: [] },
-    { id: 4, dateCreated: "Sep 21, 2025", invoiceMonth: formatInvoiceMonth("Sep 21, 2025"), amount: "$183", lineItems: [] },
-    { id: 5, dateCreated: "Sep 14, 2025", invoiceMonth: formatInvoiceMonth("Sep 14, 2025"), amount: "$711", lineItems: [] },
-    { id: 6, dateCreated: "Sep 7, 2025", invoiceMonth: formatInvoiceMonth("Sep 7, 2025"), amount: "$335", lineItems: [] },
-    { id: 7, dateCreated: "Aug 31, 2025", invoiceMonth: formatInvoiceMonth("Aug 31, 2025"), amount: "$558", lineItems: [] },
-    { id: 8, dateCreated: "Aug 24, 2025", invoiceMonth: formatInvoiceMonth("Aug 24, 2025"), amount: "$294", lineItems: [] },
-    { id: 9, dateCreated: "Aug 17, 2025", invoiceMonth: formatInvoiceMonth("Aug 17, 2025"), amount: "$672", lineItems: [] },
-    { id: 10, dateCreated: "Aug 10, 2025", invoiceMonth: formatInvoiceMonth("Aug 10, 2025"), amount: "$416", lineItems: [] },
+    {
+      id: 1,
+      dateCreated: "Oct 1, 2025",
+      invoiceMonth: formatInvoiceMonth("Oct 1, 2025"),
+      amount: "$237",
+      lineItems: [],
+    },
+    {
+      id: 2,
+      dateCreated: "Oct 1, 2025",
+      invoiceMonth: formatInvoiceMonth("Oct 1, 2025"),
+      amount: "$639",
+      lineItems: [],
+    },
+    {
+      id: 3,
+      dateCreated: "Sep 28, 2025",
+      invoiceMonth: formatInvoiceMonth("Sep 28, 2025"),
+      amount: "$482",
+      lineItems: [],
+    },
+    {
+      id: 4,
+      dateCreated: "Sep 21, 2025",
+      invoiceMonth: formatInvoiceMonth("Sep 21, 2025"),
+      amount: "$183",
+      lineItems: [],
+    },
+    {
+      id: 5,
+      dateCreated: "Sep 14, 2025",
+      invoiceMonth: formatInvoiceMonth("Sep 14, 2025"),
+      amount: "$711",
+      lineItems: [],
+    },
+    {
+      id: 6,
+      dateCreated: "Sep 7, 2025",
+      invoiceMonth: formatInvoiceMonth("Sep 7, 2025"),
+      amount: "$335",
+      lineItems: [],
+    },
+    {
+      id: 7,
+      dateCreated: "Aug 31, 2025",
+      invoiceMonth: formatInvoiceMonth("Aug 31, 2025"),
+      amount: "$558",
+      lineItems: [],
+    },
+    {
+      id: 8,
+      dateCreated: "Aug 24, 2025",
+      invoiceMonth: formatInvoiceMonth("Aug 24, 2025"),
+      amount: "$294",
+      lineItems: [],
+    },
+    {
+      id: 9,
+      dateCreated: "Aug 17, 2025",
+      invoiceMonth: formatInvoiceMonth("Aug 17, 2025"),
+      amount: "$672",
+      lineItems: [],
+    },
+    {
+      id: 10,
+      dateCreated: "Aug 10, 2025",
+      invoiceMonth: formatInvoiceMonth("Aug 10, 2025"),
+      amount: "$416",
+      lineItems: [],
+    },
   ];
 
-  const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistoryItem[]>(seedInvoiceHistory);
+  const [invoiceHistory, setInvoiceHistory] =
+    useState<InvoiceHistoryItem[]>(seedInvoiceHistory);
 
   const toIsoDateTime = (date: Date) => date.toISOString();
 
@@ -399,7 +467,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       ],
     };
   };
-
 
   const openViewBill = (bill: ViewBillState) => {
     const basePath = propertyId
@@ -497,7 +564,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
     // Remove the committed items from invoiceItems
     const committedItemIds = new Set(lineItems.map((item) => item.id));
-    setInvoiceItems((prev) => prev.filter((item) => !committedItemIds.has(item.id)));
+    setInvoiceItems((prev) =>
+      prev.filter((item) => !committedItemIds.has(item.id)),
+    );
 
     setCurrentPage(1);
   };
@@ -512,7 +581,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     const selectedId = selectedAdditionalBillId || selectedAdditionalFtoId;
     if (!selectedId) return;
 
-    const selectedItem = invoiceItems.find((item) => String(item.id) === selectedId);
+    const selectedItem = invoiceItems.find(
+      (item) => String(item.id) === selectedId,
+    );
     if (!selectedItem) return;
 
     setInvoiceItems((prev) => {
@@ -566,15 +637,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   // Calculate pending approval bills
   const pendingApprovalBills = invoiceItems.filter(
-    (item) => item.status === "Pending Approval"
+    (item) => item.status === "Pending Approval",
   );
 
   const pendingVendorImportBills = pendingApprovalBills.filter(
-    (item) => item.source === "Vendor-Import"
+    (item) => item.source === "Vendor-Import",
   );
 
   const pendingFTOBills = pendingApprovalBills.filter(
-    (item) => item.source === "FTO Submission"
+    (item) => item.source === "FTO Submission",
   );
 
   const totalPendingAmount = pendingApprovalBills.reduce((sum, item) => {
@@ -738,11 +809,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights && item.status === "Pending Approval"
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF] border-l-4"
                           : "border-[#DADADA]"
                       }`}
-                      style={{ borderLeftColor: showingPendingInsights && item.status === "Pending Approval" ? "#6366F1" : "transparent" }}
+                      style={{
+                        borderLeftColor:
+                          showingPendingInsights &&
+                          item.status === "Pending Approval"
+                            ? "#6366F1"
+                            : "transparent",
+                      }}
                     >
                       <div
                         className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center"
@@ -791,7 +869,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights && item.status === "Pending Approval"
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -820,7 +899,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights && item.status === "Pending Approval"
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -849,7 +929,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights && item.status === "Pending Approval"
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -878,7 +959,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights && item.status === "Pending Approval"
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -907,7 +989,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights && item.status === "Pending Approval"
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -930,35 +1013,37 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   const isFTO = item.source === "FTO Submission";
                   const isVendorImport = item.source === "Vendor-Import";
                   return (
-                  <div
-                    key={item.id}
-                    className={`items-center border-b-[0.5px] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative ${
-                      showingPendingInsights && item.status === "Pending Approval"
-                        ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                        : "bg-white border-[#DADADA]"
-                    }`}
-                  >
-                    <ActionButton
-                      itemId={`invoice-${item.id}`}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                      isFTO={isFTO}
-                      ftoActionLabel={isFTO ? "View FTO" : "View Bill"}
-                      onView={() => {
-                        if (isFTO) {
-                          openViewFTO(item.id);
-                          return;
-                        }
+                    <div
+                      key={item.id}
+                      className={`items-center border-b-[0.5px] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative ${
+                        showingPendingInsights &&
+                        item.status === "Pending Approval"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
+                          : "bg-white border-[#DADADA]"
+                      }`}
+                    >
+                      <ActionButton
+                        itemId={`invoice-${item.id}`}
+                        openMenuId={openMenuId}
+                        setOpenMenuId={setOpenMenuId}
+                        isFTO={isFTO}
+                        ftoActionLabel={isFTO ? "View FTO" : "View Bill"}
+                        onView={() => {
+                          if (isFTO) {
+                            openViewFTO(item.id);
+                            return;
+                          }
 
-                        openInvoicePreview({
-                          lineItems: buildPreviewLineItemsFromInvoiceItem(item),
-                          invoiceDate: currentInvoiceMonth,
-                          showCommitButton: true,
-                        });
-                      }}
-                    />
-                  </div>
-                );
+                          openInvoicePreview({
+                            lineItems:
+                              buildPreviewLineItemsFromInvoiceItem(item),
+                            invoiceDate: currentInvoiceMonth,
+                            showCommitButton: true,
+                          });
+                        }}
+                      />
+                    </div>
+                  );
                 })}
               </div>
             </div>
@@ -968,10 +1053,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
             <div className="flex items-center gap-4">
               <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                Subtotal: ${invoiceItems.reduce((sum, item) => {
-                  const amount = parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
-                  return sum + amount;
-                }, 0).toFixed(0)}
+                Subtotal: $
+                {invoiceItems
+                  .reduce((sum, item) => {
+                    const amount =
+                      parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+                    return sum + amount;
+                  }, 0)
+                  .toFixed(0)}
               </div>
             </div>
             <div className="flex items-start gap-2.5">
@@ -1076,11 +1165,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => openInvoicePreview({
-                        lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                        invoiceDate: item.invoiceMonth,
-                        showCommitButton: false,
-                      })}
+                      onClick={() =>
+                        openInvoicePreview({
+                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                          invoiceDate: item.invoiceMonth,
+                          showCommitButton: false,
+                        })
+                      }
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
                         {item.dateCreated}
@@ -1113,11 +1204,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       style={{ borderLeftColor: "transparent" }}
-                      onClick={() => openInvoicePreview({
-                        lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                        invoiceDate: item.invoiceMonth,
-                        showCommitButton: false,
-                      })}
+                      onClick={() =>
+                        openInvoicePreview({
+                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                          invoiceDate: item.invoiceMonth,
+                          showCommitButton: false,
+                        })
+                      }
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
                         {item.invoiceMonth}
@@ -1150,11 +1243,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       style={{ borderLeftColor: "transparent" }}
-                      onClick={() => openInvoicePreview({
-                        lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                        invoiceDate: item.invoiceMonth,
-                        showCommitButton: false,
-                      })}
+                      onClick={() =>
+                        openInvoicePreview({
+                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                          invoiceDate: item.invoiceMonth,
+                          showCommitButton: false,
+                        })
+                      }
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
                         {item.amount}
@@ -1162,7 +1257,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </div>
                   ))}
                 </div>
-
               </div>
 
               {/* Actions Column */}
@@ -1360,7 +1454,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
           <div className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-              <div className="text-[#303030] font-medium text-lg">Add additional bills</div>
+              <div className="text-[#303030] font-medium text-lg">
+                Add additional bills
+              </div>
               <button
                 type="button"
                 onClick={() => setShowAddAdditionalBillsModal(false)}
@@ -1394,7 +1490,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
             <div className="px-6 py-5 grid gap-5">
               <div className="grid gap-2">
-                <div className="text-sm font-medium text-[#303030]">All bills</div>
+                <div className="text-sm font-medium text-[#303030]">
+                  All bills
+                </div>
                 <Select
                   value={selectedAdditionalBillId}
                   onValueChange={(value) => {
@@ -1418,7 +1516,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
 
               <div className="grid gap-2">
-                <div className="text-sm font-medium text-[#303030]">All FTO orders</div>
+                <div className="text-sm font-medium text-[#303030]">
+                  All FTO orders
+                </div>
                 <Select
                   value={selectedAdditionalFtoId}
                   onValueChange={(value) => {
@@ -1458,7 +1558,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 disabled={!selectedAdditionalBillId && !selectedAdditionalFtoId}
                 className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
-                <span className="text-white font-medium text-base">Add to invoice</span>
+                <span className="text-white font-medium text-base">
+                  Add to invoice
+                </span>
               </button>
             </div>
           </div>
@@ -1476,8 +1578,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         unit="N/A"
         fieldTeamAssignee="Field Team"
       />
-
-
     </div>
   );
 };

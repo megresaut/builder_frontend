@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo } from "react";
 
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type PdfViewerModalProps = {
   open: boolean;

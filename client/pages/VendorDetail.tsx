@@ -3,8 +3,18 @@ import { useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 
 import PdfViewerModal from "@/components/PdfViewerModal";
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -92,7 +102,8 @@ const MOCK_NOTES: Note[] = [
   },
 ];
 
-const nextId = (items: { id: number }[]) => (items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1);
+const nextId = (items: { id: number }[]) =>
+  items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1;
 
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
@@ -119,7 +130,9 @@ export default function VendorDetail() {
 
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
-  const [vendorInsurances, setVendorInsurances] = useState<VendorInsurance[]>([]);
+  const [vendorInsurances, setVendorInsurances] = useState<VendorInsurance[]>(
+    [],
+  );
   const [isAddInsuranceOpen, setIsAddInsuranceOpen] = useState(false);
   const [insuranceProvider, setInsuranceProvider] = useState("");
   const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
@@ -549,7 +562,11 @@ export default function VendorDetail() {
                   className="mt-5 w-full h-px"
                   style={{ aspectRatio: "1000", objectFit: "contain" }}
                 >
-                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="100%"
+                    height="1"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <line
                       x1="0"
                       y1="0"
@@ -602,7 +619,11 @@ export default function VendorDetail() {
                 </div>
 
                 <div className="mt-5 w-full h-px">
-                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="100%"
+                    height="1"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <line
                       x1="0"
                       y1="0"
@@ -656,7 +677,11 @@ export default function VendorDetail() {
                 </div>
 
                 <div className="mt-5 w-full h-px">
-                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="100%"
+                    height="1"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <line
                       x1="0"
                       y1="0"
@@ -754,7 +779,9 @@ export default function VendorDetail() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onSelect={() => {
-                                    setNotes((prev) => prev.filter((n) => n.id !== note.id));
+                                    setNotes((prev) =>
+                                      prev.filter((n) => n.id !== note.id),
+                                    );
                                   }}
                                   className="w-full cursor-pointer text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
                                 >
@@ -770,7 +797,11 @@ export default function VendorDetail() {
                 </div>
 
                 <div className="mt-5 w-full h-px">
-                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="100%"
+                    height="1"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <line
                       x1="0"
                       y1="0"
@@ -964,7 +995,8 @@ export default function VendorDetail() {
                 {selectedNote.text}
               </div>
               <div className="text-sm text-[#71717A] mb-2">
-                <span className="font-medium">Author:</span> {selectedNote.author}
+                <span className="font-medium">Author:</span>{" "}
+                {selectedNote.author}
               </div>
               <div className="text-sm text-[#71717A]">
                 <span className="font-medium">Date:</span> {selectedNote.date}
@@ -1191,7 +1223,10 @@ export default function VendorDetail() {
                 <Input
                   value={vendorDraft.name}
                   onChange={(e) =>
-                    setVendorDraft((prev) => ({ ...prev, name: e.target.value }))
+                    setVendorDraft((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
                   }
                   placeholder="Input Vendor Name"
                   className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
@@ -1316,7 +1351,10 @@ export default function VendorDetail() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isInactivateConfirmOpen} onOpenChange={setIsInactivateConfirmOpen}>
+      <Dialog
+        open={isInactivateConfirmOpen}
+        onOpenChange={setIsInactivateConfirmOpen}
+      >
         <DialogContent className="max-w-[520px] p-6 gap-0">
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-2">
             {isInactive ? "Activate Vendor" : "Inactivate Vendor"}

@@ -9,11 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import html2pdf from "html2pdf.js";
 
 export interface InvoiceLineItem {
@@ -51,9 +47,12 @@ export default function InvoicePreviewModal({
   rentalOwner,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
-  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
+  const [lineItems, setLineItems] =
+    useState<InvoiceLineItem[]>(initialLineItems);
   const [activeAmountId, setActiveAmountId] = useState<number | null>(null);
-  const [amountDraftById, setAmountDraftById] = useState<Record<number, string>>({});
+  const [amountDraftById, setAmountDraftById] = useState<
+    Record<number, string>
+  >({});
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
 
   const normalizeAmountDraft = (value: string): string => {
@@ -74,9 +73,10 @@ export default function InvoicePreviewModal({
 
   // Format number as currency with commas (e.g., "1234.56" -> "$1,234.56")
   const formatCurrency = (value: string | number): string => {
-    const num = typeof value === "string"
-      ? parseFloat(value.replace(/[$,]/g, ""))
-      : value;
+    const num =
+      typeof value === "string"
+        ? parseFloat(value.replace(/[$,]/g, ""))
+        : value;
 
     if (isNaN(num)) return "$0.00";
 
@@ -145,16 +145,20 @@ export default function InvoicePreviewModal({
     const clone = invoiceNode.cloneNode(true) as HTMLElement;
 
     // Update print-only spans with formatted values
-    clone.querySelectorAll<HTMLInputElement>("input.edit-field").forEach((input) => {
-      const container = input.parentElement;
-      const span = container?.querySelector<HTMLSpanElement>("span.print-only");
-      if (!span) return;
+    clone
+      .querySelectorAll<HTMLInputElement>("input.edit-field")
+      .forEach((input) => {
+        const container = input.parentElement;
+        const span =
+          container?.querySelector<HTMLSpanElement>("span.print-only");
+        if (!span) return;
 
-      const field = input.dataset.field;
-      span.textContent = field === "amount"
-        ? formatAmountWithCommas(input.value)
-        : input.value;
-    });
+        const field = input.dataset.field;
+        span.textContent =
+          field === "amount"
+            ? formatAmountWithCommas(input.value)
+            : input.value;
+      });
 
     // Remove interactive elements
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
@@ -183,13 +187,13 @@ export default function InvoicePreviewModal({
         logging: false,
         allowTaint: true,
         letterRendering: true,
-        backgroundColor: "#ffffff"
+        backgroundColor: "#ffffff",
       },
       jsPDF: {
         unit: "px",
         format: [816, 1056],
         orientation: "portrait",
-        compress: true
+        compress: true,
       },
     };
 
@@ -239,7 +243,8 @@ export default function InvoicePreviewModal({
                 minHeight: "1056px",
                 padding: "60px 72px",
                 backgroundColor: "white",
-                fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
                 boxSizing: "border-box",
               }}
@@ -303,7 +308,12 @@ export default function InvoicePreviewModal({
                   >
                     INVOICE
                   </div>
-                  <div style={{ width: "150px", font: "400 10px/15.4px Arial, sans-serif" }}>
+                  <div
+                    style={{
+                      width: "150px",
+                      font: "400 10px/15.4px Arial, sans-serif",
+                    }}
+                  >
                     DATE: {invoiceDate}
                   </div>
                   <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
@@ -337,37 +347,45 @@ export default function InvoicePreviewModal({
               </div>
 
               {/* Table */}
-              <table style={{ 
-                width: "100%", 
-                borderCollapse: "collapse",
-                marginBottom: "20px"
-              }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  marginBottom: "20px",
+                }}
+              >
                 <thead>
                   <tr>
-                    <th style={{
-                      textAlign: "left",
-                      paddingBottom: "8px",
-                      borderBottom: "1px solid #BF8F00",
-                      font: "700 9px/16.5px Arial, sans-serif"
-                    }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        paddingBottom: "8px",
+                        borderBottom: "1px solid #BF8F00",
+                        font: "700 9px/16.5px Arial, sans-serif",
+                      }}
+                    >
                       Vendors
                     </th>
-                    <th style={{
-                      textAlign: "left",
-                      paddingBottom: "8px",
-                      borderBottom: "1px solid #BF8F00",
-                      font: "700 9px/16.5px Arial, sans-serif"
-                    }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        paddingBottom: "8px",
+                        borderBottom: "1px solid #BF8F00",
+                        font: "700 9px/16.5px Arial, sans-serif",
+                      }}
+                    >
                       Description
                     </th>
-                    <th style={{
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      textAlign: "left",
-                      paddingBottom: "8px",
-                      borderBottom: "1px solid #BF8F00",
-                      width: "120px"
-                    }}>
+                    <th
+                      style={{
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        textAlign: "left",
+                        paddingBottom: "8px",
+                        borderBottom: "1px solid #BF8F00",
+                        width: "120px",
+                      }}
+                    >
                       AMOUNT
                     </th>
                   </tr>
@@ -375,19 +393,25 @@ export default function InvoicePreviewModal({
                 <tbody>
                   {lineItems.map((item) => (
                     <tr key={item.id}>
-                      <td style={{
-                        fontSize: "11px",
-                        paddingTop: "2px",
-                        paddingBottom: "2px",
-                        borderBottom: "1px solid #BF8F00",
-                        verticalAlign: "middle"
-                      }}>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "2px",
+                          paddingBottom: "2px",
+                          borderBottom: "1px solid #BF8F00",
+                          verticalAlign: "middle",
+                        }}
+                      >
                         <input
                           type="text"
                           value={item.vendor}
                           data-field="vendor"
                           onChange={(e) =>
-                            handleUpdateLineItem(item.id, "vendor", e.target.value)
+                            handleUpdateLineItem(
+                              item.id,
+                              "vendor",
+                              e.target.value,
+                            )
                           }
                           className="edit-field"
                           style={{
@@ -399,7 +423,7 @@ export default function InvoicePreviewModal({
                             overflowWrap: "anywhere",
                             wordWrap: "anywhere",
                             font: "400 9px Arial, sans-serif",
-                            padding: 0
+                            padding: 0,
                           }}
                         />
                         <span
@@ -416,19 +440,25 @@ export default function InvoicePreviewModal({
                           {item.vendor}
                         </span>
                       </td>
-                      <td style={{
-                        fontSize: "11px",
-                        paddingTop: "2px",
-                        paddingBottom: "2px",
-                        borderBottom: "1px solid #BF8F00",
-                        verticalAlign: "middle"
-                      }}>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "2px",
+                          paddingBottom: "2px",
+                          borderBottom: "1px solid #BF8F00",
+                          verticalAlign: "middle",
+                        }}
+                      >
                         <input
                           type="text"
                           value={item.description}
                           data-field="description"
                           onChange={(e) =>
-                            handleUpdateLineItem(item.id, "description", e.target.value)
+                            handleUpdateLineItem(
+                              item.id,
+                              "description",
+                              e.target.value,
+                            )
                           }
                           className="edit-field"
                           style={{
@@ -440,7 +470,7 @@ export default function InvoicePreviewModal({
                             overflowWrap: "anywhere",
                             wordWrap: "anywhere",
                             font: "400 9px Arial, sans-serif",
-                            padding: 0
+                            padding: 0,
                           }}
                         />
                         <span
@@ -457,28 +487,37 @@ export default function InvoicePreviewModal({
                           {item.description}
                         </span>
                       </td>
-                      <td style={{
-                        fontSize: "11px",
-                        paddingTop: "2px",
-                        paddingBottom: "2px",
-                        borderBottom: "1px solid #BF8F00",
-                        backgroundColor: "#F2F2F2",
-                        textAlign: "left",
-                        paddingRight: "18px",
-                        paddingLeft: "8px",
-                        verticalAlign: "middle",
-                        position: "relative",
-                        overflow: "visible"
-                      }}>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "2px",
+                          paddingBottom: "2px",
+                          borderBottom: "1px solid #BF8F00",
+                          backgroundColor: "#F2F2F2",
+                          textAlign: "left",
+                          paddingRight: "18px",
+                          paddingLeft: "8px",
+                          verticalAlign: "middle",
+                          position: "relative",
+                          overflow: "visible",
+                        }}
+                      >
                         <input
                           type="text"
-                          value={activeAmountId === item.id
-                            ? `$${amountDraftById[item.id] ?? normalizeAmountDraft(item.amount)}`
-                            : formatAmountWithCommas(item.amount)}
+                          value={
+                            activeAmountId === item.id
+                              ? `$${amountDraftById[item.id] ?? normalizeAmountDraft(item.amount)}`
+                              : formatAmountWithCommas(item.amount)
+                          }
                           data-field="amount"
                           onChange={(e) => {
-                            const nextDraft = normalizeAmountDraft(e.target.value);
-                            setAmountDraftById((prev) => ({ ...prev, [item.id]: nextDraft }));
+                            const nextDraft = normalizeAmountDraft(
+                              e.target.value,
+                            );
+                            setAmountDraftById((prev) => ({
+                              ...prev,
+                              [item.id]: nextDraft,
+                            }));
                             setLineItems((prev) =>
                               prev.map((lineItem) =>
                                 lineItem.id === item.id
@@ -511,7 +550,9 @@ export default function InvoicePreviewModal({
                               const { [item.id]: _removed, ...rest } = prev;
                               return rest;
                             });
-                            setActiveAmountId((current) => (current === item.id ? null : current));
+                            setActiveAmountId((current) =>
+                              current === item.id ? null : current,
+                            );
                           }}
                           placeholder="$0.00"
                           className="edit-field"
@@ -525,7 +566,7 @@ export default function InvoicePreviewModal({
                             wordWrap: "anywhere",
                             font: "400 9px Arial, sans-serif",
                             textAlign: "left",
-                            padding: "0"
+                            padding: "0",
                           }}
                         />
                         <span
@@ -558,7 +599,7 @@ export default function InvoicePreviewModal({
                             fontSize: "18px",
                             fontWeight: "bold",
                             padding: "0 4px",
-                            lineHeight: "1"
+                            lineHeight: "1",
                           }}
                           title="Remove line item"
                         >
@@ -571,34 +612,46 @@ export default function InvoicePreviewModal({
               </table>
 
               {/* Total */}
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "flex-end",
-                alignItems: "center",
-                marginBottom: "20px"
-              }}>
-                <div style={{
-                  marginRight: "20px",
-                  font: "700 9px/16.5px Arial, sans-serif"
-                }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  marginBottom: "20px",
+                }}
+              >
+                <div
+                  style={{
+                    marginRight: "20px",
+                    font: "700 9px/16.5px Arial, sans-serif",
+                  }}
+                >
                   TOTAL:
                 </div>
-                <div style={{
-                  font: "400 9px/16.5px Arial, sans-serif",
-                  backgroundColor: "#F2F2F2",
-                  padding: "8px 12px",
-                  textAlign: "left",
-                  minWidth: "120px",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap",
-                  textOverflow: "clip"
-                }}>
+                <div
+                  style={{
+                    font: "400 9px/16.5px Arial, sans-serif",
+                    backgroundColor: "#F2F2F2",
+                    padding: "8px 12px",
+                    textAlign: "left",
+                    minWidth: "120px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "clip",
+                  }}
+                >
                   <b>{formatCurrency(calculateTotal())}</b>
                 </div>
               </div>
 
               {/* Footer */}
-              <div style={{ fontSize: "7px", lineHeight: "16px", marginTop: "-3px" }}>
+              <div
+                style={{
+                  fontSize: "7px",
+                  lineHeight: "16px",
+                  marginTop: "-3px",
+                }}
+              >
                 <div
                   style={{
                     fontWeight: 700,
@@ -614,9 +667,12 @@ export default function InvoicePreviewModal({
                     marginTop: "-4px",
                   }}
                 >
-                  If you have any questions concerning this invoice, use the following contact information:
+                  If you have any questions concerning this invoice, use the
+                  following contact information:
                 </div>
-                <div style={{ fontFamily: "Arial, sans-serif", marginTop: "-4px" }}>
+                <div
+                  style={{ fontFamily: "Arial, sans-serif", marginTop: "-4px" }}
+                >
                   203-987-7050
                 </div>
                 <div style={{ color: "#0563C1", marginTop: "-4px" }}>
@@ -631,7 +687,13 @@ export default function InvoicePreviewModal({
                     STAFF@AVMRE.COM
                   </a>
                 </div>
-                <div style={{ fontWeight: 700, fontFamily: "Arial, sans-serif", marginTop: "-4px" }}>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontFamily: "Arial, sans-serif",
+                    marginTop: "-4px",
+                  }}
+                >
                   THANK YOU FOR YOUR BUSINESS!
                 </div>
               </div>
@@ -688,7 +750,9 @@ export default function InvoicePreviewModal({
               onClick={handleDownloadPDF}
               className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
             >
-              <span className="text-white font-medium text-base">Download PDF</span>
+              <span className="text-white font-medium text-base">
+                Download PDF
+              </span>
             </button>
           </div>
         </DialogContent>
@@ -699,7 +763,8 @@ export default function InvoicePreviewModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Commit invoice?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to commit? There are unapproved bills outstanding.
+              Are you sure you want to commit? There are unapproved bills
+              outstanding.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
