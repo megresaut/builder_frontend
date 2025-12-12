@@ -24,8 +24,8 @@ const ActionButton = ({
   openMenuId: string | null;
   setOpenMenuId: (id: string | null) => void;
   onView: () => void;
-  isFTO: boolean;
-  ftoActionLabel: string;
+  isFTO?: boolean;
+  ftoActionLabel?: string;
 }) => {
   const showMenu = openMenuId === itemId;
   const buttonRef = useRef<HTMLButtonElement>(null);
