@@ -474,17 +474,24 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                   className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
                 />
               </div>
-              <div className="rounded-lg bg-[#013764] border border-white flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
+              <button
+                type="button"
+                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                }}
+              >
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/4d88fa44d294755ce2b939b087c7b7ff1178d34e?placeholderIfAbsent=true"
                   className="w-5 h-5"
                   alt=""
                 />
-                <div className="text-white font-medium text-base">
+                <span className="text-white font-medium text-base leading-normal">
                   Add Line Item
-                </div>
-              </div>
+                </span>
+              </button>
             </div>
           </div>
 
@@ -742,11 +749,18 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
               </div>
             </div>
             <div className="flex items-start gap-2.5">
-              <div className="rounded-lg bg-[#013764] border border-white flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
-                <div className="text-white font-medium text-base">
+              <button
+                type="button"
+                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                }}
+              >
+                <span className="text-white font-medium text-base leading-normal">
                   Preview PDF
-                </div>
-              </div>
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -787,11 +801,18 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                   alt=""
                 />
               </div>
-              <div className="rounded-lg bg-[#013764] border border-white flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#002d4d]">
-                <div className="text-white font-medium text-base">
+              <button
+                type="button"
+                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                }}
+              >
+                <span className="text-white font-medium text-base leading-normal">
                   Export to Buildium
-                </div>
-              </div>
+                </span>
+              </button>
             </div>
           </div>
 
