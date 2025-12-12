@@ -599,6 +599,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     setShowingPendingInsights(!showingPendingInsights);
   };
 
+  const currentInvoiceMonth = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
   return (
     <div className="flex flex-col gap-0">
       {/* Alert Banner */}
