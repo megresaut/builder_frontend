@@ -181,10 +181,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
-  const [approvalReviewIndex, setApprovalReviewIndex] = useState<number | null>(null);
-  const [approvalOrderedBills, setApprovalOrderedBills] = useState<InvoiceItem[]>([]);
-  const [showFTOApprovalModal, setShowFTOApprovalModal] = useState(false);
-  const [showRecordBillModal, setShowRecordBillModal] = useState(false);
+  const [showingPendingInsights, setShowingPendingInsights] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
