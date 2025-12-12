@@ -26,6 +26,7 @@ interface AddPropertyModalProps {
     buildingId: string;
     status: "active" | "inactive";
     managers: Manager[];
+    rentalOwner?: string;
   };
 }
 
@@ -101,6 +102,7 @@ export default function AddPropertyModal({
   const [zipCode, setZipCode] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [selectedManagers, setSelectedManagers] = useState<Manager[]>([]);
+  const [rentalOwner, setRentalOwner] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [emergencyHourlyRate, setEmergencyHourlyRate] = useState("");
   const [managementFee, setManagementFee] = useState("");
@@ -127,6 +129,7 @@ export default function AddPropertyModal({
       setPropertyType(editData.type);
       setSelectedManagers(editData.managers);
       setStatus(editData.status === "active" ? "Active" : "Inactive");
+      setRentalOwner(editData.rentalOwner || "");
     }
   }, [editData]);
 
@@ -395,6 +398,18 @@ export default function AddPropertyModal({
                   )}
               </div>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[#303030] font-medium text-sm leading-[20px]">
+              Rental Owner
+            </label>
+            <Input
+              value={rentalOwner}
+              onChange={(e) => setRentalOwner(e.target.value)}
+              placeholder="Rental Owner"
+              className="h-[38px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+            />
           </div>
 
           {/* Hourly Rates Row */}

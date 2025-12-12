@@ -19,6 +19,7 @@ export const Overview: React.FC<OverviewProps> = ({
       <PropertyDetails
         propertyAddress={propertyAddress}
         propertyLocation={propertyLocation || ""}
+        propertyType={propertyType}
         rentalOwner="Eunice Bae"
         propertyManager="Jake Delardi"
       />
