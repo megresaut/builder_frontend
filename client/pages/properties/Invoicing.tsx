@@ -222,18 +222,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
-  useEffect(() => {
-    const currentBill = getCurrentApprovalBill();
-    if (currentBill) {
-      if (currentBill.source === "FTO Submission") {
-        openViewFTO();
-      } else if (currentBill.source === "Vendor-Import") {
-        openEditBill(
-          buildViewBillStateFromInvoiceItem(currentBill, propertyAddress),
-        );
-      }
-    }
-  }, [approvalReviewIndex, approvalOrderedBills]);
 
   type InvoiceItemStatus = "Pending Approval" | "Approved";
 
