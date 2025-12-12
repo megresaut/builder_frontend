@@ -77,6 +77,11 @@ export default function VendorDetail() {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRefMap = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [isViewNoteModalOpen, setIsViewNoteModalOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [newNoteContent, setNewNoteContent] = useState("");
+
   useEffect(() => {
     let animationFrameId: number;
 
@@ -197,7 +202,7 @@ export default function VendorDetail() {
                 }}
               >
                 <div className="text-white font-medium text-base leading-normal">
-                  Edit Property
+                  Inactivate Vendor
                 </div>
               </button>
               <button
