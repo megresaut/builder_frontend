@@ -597,43 +597,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
 
   const handleViewInsights = () => {
-    const ordered = [...pendingFTOBills, ...pendingVendorImportBills];
-    setApprovalOrderedBills(ordered);
-    setApprovalReviewIndex(0);
-
-    const firstBill = ordered[0];
-    if (firstBill.source === "FTO Submission") {
-      setShowFTOApprovalModal(true);
-    } else if (firstBill.source === "Vendor-Import") {
-      setShowRecordBillModal(true);
-    }
-  };
-
-  const getCurrentApprovalBill = (): InvoiceItem | null => {
-    if (approvalReviewIndex === null || approvalReviewIndex >= approvalOrderedBills.length) {
-      return null;
-    }
-    return approvalOrderedBills[approvalReviewIndex];
-  };
-
-  const handleApproveOrCancel = () => {
-    const nextIndex = (approvalReviewIndex ?? 0) + 1;
-    if (nextIndex >= approvalOrderedBills.length) {
-      setApprovalReviewIndex(null);
-      setApprovalOrderedBills([]);
-      setShowFTOApprovalModal(false);
-      setShowRecordBillModal(false);
-    } else {
-      setApprovalReviewIndex(nextIndex);
-      const nextBill = approvalOrderedBills[nextIndex];
-      if (nextBill.source === "FTO Submission") {
-        setShowFTOApprovalModal(true);
-        setShowRecordBillModal(false);
-      } else if (nextBill.source === "Vendor-Import") {
-        setShowFTOApprovalModal(false);
-        setShowRecordBillModal(true);
-      }
-    }
+    setShowingPendingInsights(!showingPendingInsights);
   };
 
   return (
