@@ -98,10 +98,12 @@ export default function InvoicePreviewModal({
   ) => {
     let updatedValue = value;
 
-    // If updating amount field, format as currency with commas
+    // If updating amount field, extract only numbers for storage
+    // but keep input value raw so user can type freely
     if (field === "amount") {
-      const parsed = parseCurrencyInput(value);
-      updatedValue = formatCurrency(parsed);
+      // Just extract the numeric part, don't format yet
+      const numericOnly = value.replace(/[^\d.]/g, "");
+      updatedValue = numericOnly || "0";
     }
 
     setLineItems(
@@ -109,6 +111,12 @@ export default function InvoicePreviewModal({
         item.id === id ? { ...item, [field]: updatedValue } : item,
       ),
     );
+  };
+
+  // Format amount for display (used in span and when blurred)
+  const getFormattedAmount = (amount: string): string => {
+    const num = parseFloat(amount.replace(/[^\d.]/g, "")) || 0;
+    return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   const handleDownloadPDF = async () => {
