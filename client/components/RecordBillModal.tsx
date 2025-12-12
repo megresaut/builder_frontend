@@ -508,7 +508,7 @@ export default function RecordBillModal({
                             <div className="flex justify-center">
                               <Checkbox
                                 checked={item.reimbursement}
-                                disabled
+                                disabled={isView}
                                 className="w-[15px] h-[15px] rounded"
                               />
                             </div>
