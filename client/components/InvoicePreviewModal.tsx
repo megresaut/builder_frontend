@@ -380,16 +380,18 @@ export default function InvoicePreviewModal({
                         />
                         <span className="print-only">{item.description}</span>
                       </td>
-                      <td style={{ 
+                      <td style={{
                         fontSize: "11px",
                         paddingTop: "12px",
                         paddingBottom: "12px",
                         borderBottom: "1px solid #BF8F00",
                         backgroundColor: "#F2F2F2",
-                        textAlign: "right",
-                        paddingRight: "0px",
+                        textAlign: "left",
+                        paddingRight: "18px",
+                        paddingLeft: "8px",
                         verticalAlign: "top",
-                        position: "relative"
+                        position: "relative",
+                        overflow: "hidden"
                       }}>
                         <input
                           type="text"
@@ -406,8 +408,8 @@ export default function InvoicePreviewModal({
                             fontSize: "11px",
                             color: "#002060",
                             fontFamily: "Arial, sans-serif",
-                            textAlign: "right",
-                            padding: "0 18px 0 0"
+                            textAlign: "left",
+                            padding: "0"
                           }}
                         />
                         <span className="print-only">{item.amount}</span>
