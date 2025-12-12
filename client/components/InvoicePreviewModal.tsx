@@ -459,13 +459,14 @@ export default function InvoicePreviewModal({
                   fontWeight: 700,
                   backgroundColor: "#F2F2F2",
                   padding: "8px 12px",
-                  textAlign: "right",
-                  width: "120px"
+                  textAlign: "left",
+                  minWidth: "120px",
+                  fontFamily: "Arial, sans-serif",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "clip"
                 }}>
-                  ${" "}
-                  <span style={{ fontFamily: "Arial, sans-serif" }}>
-                    {calculateTotal().toFixed(2)}
-                  </span>
+                  {formatCurrency(calculateTotal())}
                 </div>
               </div>
 
