@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import html2pdf from "html2pdf.js";
 
 export interface InvoiceLineItem {
   id: number;
