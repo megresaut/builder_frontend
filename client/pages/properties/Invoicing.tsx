@@ -160,7 +160,11 @@ type ViewBillState = {
   lineItems?: ViewBillLineItem[];
 };
 
-export const Invoicing: React.FC<InvoicingProps> = () => {
+export const Invoicing: React.FC<InvoicingProps> = ({
+  propertyAddress,
+  propertyType,
+  propertyUnits,
+}) => {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
 
