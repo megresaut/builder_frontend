@@ -74,8 +74,22 @@ export default function InvoicePreviewModal({
 
     const clone = invoiceNode.cloneNode(true) as HTMLElement;
 
+    // Update print-only spans with current values
+    const editFields = clone.querySelectorAll(".edit-field");
+    const printOnlySpans = clone.querySelectorAll(".print-only");
+
+    editFields.forEach((field, index) => {
+      const input = field as HTMLInputElement;
+      if (printOnlySpans[index]) {
+        printOnlySpans[index].textContent = input.value;
+      }
+    });
+
+    // Remove interactive elements
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
+
+    // Show print-only content
     clone.querySelectorAll(".print-only").forEach((el) => {
       (el as HTMLElement).style.display = "inline";
     });
@@ -91,17 +105,17 @@ export default function InvoicePreviewModal({
       margin: 0,
       filename: "invoice.pdf",
       image: { type: "png", quality: 1 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true, 
-        logging: false, 
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
         allowTaint: true,
         letterRendering: true,
         backgroundColor: "#ffffff"
       },
-      jsPDF: { 
-        unit: "px", 
-        format: [816, 1056], 
+      jsPDF: {
+        unit: "px",
+        format: [816, 1056],
         orientation: "portrait",
         compress: true
       },
