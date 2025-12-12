@@ -405,7 +405,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const toIsoDateTime = (date: Date) => date.toISOString();
 
-  const buildViewBillStateFromInvoiceItem = (item: InvoiceItem): ViewBillState => {
+  const buildViewBillStateFromInvoiceItem = (
+    item: InvoiceItem,
+    address: string,
+  ): ViewBillState => {
     const today = new Date();
     const due = new Date(today);
     due.setDate(due.getDate() + 30);
@@ -419,7 +422,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       lineItems: [
         {
           id: 1,
-          property: propertyAddress,
+          property: address,
           unit: "N/A",
           workOrder: "N/A",
           description: item.description,
@@ -432,6 +435,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const buildViewBillStateFromHistoryItem = (
     item: InvoiceHistoryItem,
+    address: string,
   ): ViewBillState => {
     const invoiceDate = new Date(item.date);
     const dueDate = new Date(item.dueDate);
@@ -447,7 +451,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       lineItems: [
         {
           id: 1,
-          property: propertyAddress,
+          property: address,
           unit: "N/A",
           workOrder: "N/A",
           description: `Invoice ${item.date}`,
@@ -813,7 +817,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                       onView={() =>
-                        openViewBill(buildViewBillStateFromInvoiceItem(item))
+                        openViewBill(
+                          buildViewBillStateFromInvoiceItem(item, propertyAddress),
+                        )
                       }
                     />
                   </div>
@@ -1054,7 +1060,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                       onView={() =>
-                        openViewBill(buildViewBillStateFromHistoryItem(item))
+                        openViewBill(
+                          buildViewBillStateFromHistoryItem(item, propertyAddress),
+                        )
                       }
                     />
                   </div>
