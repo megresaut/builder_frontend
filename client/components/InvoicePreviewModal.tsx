@@ -93,7 +93,14 @@ export default function InvoicePreviewModal({
       margin: 0,
       filename: "invoice.pdf",
       image: { type: "png", quality: 1 },
-      html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
+      html2canvas: {
+        scale: 4,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        letterRendering: true,
+        backgroundColor: "#ffffff"
+      },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     };
 
