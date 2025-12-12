@@ -247,7 +247,7 @@ export default function InvoicePreviewModal({
                   </div>
                 </div>
 
-                <div style={{ width: "175px" }}>
+                <div style={{ width: "175px", display: "flex", flexDirection: "column" }}>
                   <div
                     style={{
                       letterSpacing: "1.5px",
