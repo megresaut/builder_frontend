@@ -606,11 +606,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
     const firstBill = ordered[0];
     if (firstBill.source === "FTO Submission") {
-      openViewFTO();
+      setShowFTOApprovalModal(true);
     } else if (firstBill.source === "Vendor-Import") {
-      openEditBill(
-        buildViewBillStateFromInvoiceItem(firstBill, propertyAddress),
-      );
+      setShowRecordBillModal(true);
     }
   };
 
@@ -622,6 +620,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
 
   const handleApproveOrCancel = () => {
+    const currentBill = getCurrentApprovalBill();
+    if (currentBill?.source === "FTO Submission") {
+      setShowFTOApprovalModal(false);
+    } else if (currentBill?.source === "Vendor-Import") {
+      setShowRecordBillModal(false);
+    }
+
     const nextIndex = (approvalReviewIndex ?? 0) + 1;
     if (nextIndex >= approvalOrderedBills.length) {
       setApprovalReviewIndex(null);
@@ -630,11 +635,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       setApprovalReviewIndex(nextIndex);
       const nextBill = approvalOrderedBills[nextIndex];
       if (nextBill.source === "FTO Submission") {
-        openViewFTO();
+        setShowFTOApprovalModal(true);
       } else if (nextBill.source === "Vendor-Import") {
-        openEditBill(
-          buildViewBillStateFromInvoiceItem(nextBill, propertyAddress),
-        );
+        setShowRecordBillModal(true);
       }
     }
   };
