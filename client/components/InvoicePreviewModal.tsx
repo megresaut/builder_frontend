@@ -244,10 +244,13 @@ export default function InvoicePreviewModal({
                     <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                       {billTo}
                     </div>
+                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
+                      {"\u00A0"}
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ width: "175px", display: "flex", flexDirection: "column" }}>
+                <div style={{ fontWeight: "400", marginRight: "25px" }}>
                   <div
                     style={{
                       letterSpacing: "1.5px",
@@ -256,33 +259,20 @@ export default function InvoicePreviewModal({
                   >
                     INVOICE
                   </div>
-                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
-                    <div style={{ display: "flex", flexDirection: "row" }}>
-                      <div
-
-                        style={{ fontSize: "10px", fontWeight: "400" }}
-                      >
-                        DATE:
-                      </div>
-                      <div
-
-                        style={{ fontSize: "10px", fontWeight: "400" }}
-                      >
-                        {"\u00A0"}{invoiceDate}
-                      </div>
-                    </div>
+                  <div style={{ width: "150px", font: "400 10px/15.4px Arial, sans-serif" }}>
+                    DATE: {invoiceDate}
                   </div>
-                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
                     {"\u00A0"}
                   </div>
-                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
-                    {"\u00A0"}
+                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
+                    STAMFORD, CT 06907
                   </div>
-                  <div style={{ font: "700 11px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     {"\u00A0"}
                   </div>
 
-                  <div style={{ marginTop: "80px" }}>
+                  <div style={{ marginTop: "40px" }}>
                     <div
                       style={{
                         letterSpacing: "1.2px",
@@ -296,7 +286,7 @@ export default function InvoicePreviewModal({
                       {propertyAddress}
                     </div>
                     <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      {propertyLocation}
+                      Westport, CT, 28282
                     </div>
                   </div>
                 </div>
