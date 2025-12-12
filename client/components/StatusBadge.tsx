@@ -22,6 +22,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
       case "Paid":
         return "rgb(39, 176, 125)";
       case "Pending":
+      case "Pending Approval":
       case "Partially Paid":
         return "rgb(214, 133, 10)";
       case "Approved":
