@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
@@ -186,6 +193,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] = useState(false);
   const [showFTOApprovalModal, setShowFTOApprovalModal] = useState(false);
   const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
+  const [showAddAdditionalBillsModal, setShowAddAdditionalBillsModal] = useState(false);
+  const [selectedAdditionalBillId, setSelectedAdditionalBillId] = useState<string>("");
+  const [selectedAdditionalFtoId, setSelectedAdditionalFtoId] = useState<string>("");
   const [showingPendingInsights, setShowingPendingInsights] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -245,7 +255,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     statusBg: string;
   }
 
-  const invoiceItems: InvoiceItem[] = [
+  const initialInvoiceItems: InvoiceItem[] = [
     {
       id: 1,
       vendor: "Elite HVAC",
@@ -322,6 +332,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       statusBg: "#D1FAE5",
     },
   ];
+
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>(initialInvoiceItems);
 
   interface InvoiceHistoryItem {
     id: number;
@@ -484,6 +496,29 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     setCurrentPage(1);
   };
 
+  const handleOpenAddAdditionalBillsModal = () => {
+    setSelectedAdditionalBillId("");
+    setSelectedAdditionalFtoId("");
+    setShowAddAdditionalBillsModal(true);
+  };
+
+  const handleAddAdditionalToInvoice = () => {
+    const selectedId = selectedAdditionalBillId || selectedAdditionalFtoId;
+    if (!selectedId) return;
+
+    const selectedItem = invoiceItems.find((item) => String(item.id) === selectedId);
+    if (!selectedItem) return;
+
+    setInvoiceItems((prev) => {
+      const nextId = prev.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+      return [...prev, { ...selectedItem, id: nextId }];
+    });
+
+    setShowAddAdditionalBillsModal(false);
+    setSelectedAdditionalBillId("");
+    setSelectedAdditionalFtoId("");
+  };
+
   const totalInvoices = invoiceHistory.length;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const paginatedHistory = invoiceHistory.slice(
@@ -643,6 +678,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
               <button
                 type="button"
+                onClick={handleOpenAddAdditionalBillsModal}
                 className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors whitespace-nowrap"
                 style={{
                   boxShadow:
@@ -1296,29 +1332,116 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         showCommitButton={invoicePreviewShowCommitButton}
         onCommit={handleCommitInvoice}
         pendingUnapprovedCount={pendingApprovalBills.length}
-        billOptions={invoiceItems
-          .filter((item) => item.source !== "FTO Submission")
-          .map((item) => ({
-            id: String(item.id),
-            label: `${item.vendor} — ${item.description} (${item.amount})`,
-            lineItem: {
-              vendor: item.vendor,
-              description: item.description,
-              amount: item.amount,
-            },
-          }))}
-        ftoOptions={invoiceItems
-          .filter((item) => item.source === "FTO Submission")
-          .map((item) => ({
-            id: String(item.id),
-            label: `${item.vendor} — ${item.description} (${item.amount})`,
-            lineItem: {
-              vendor: item.vendor,
-              description: item.description,
-              amount: item.amount,
-            },
-          }))}
       />
+
+      {showAddAdditionalBillsModal && (
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
+          <div className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+              <div className="text-[#303030] font-medium text-lg">Add additional bills</div>
+              <button
+                type="button"
+                onClick={() => setShowAddAdditionalBillsModal(false)}
+                className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                aria-label="Close"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18"
+                    stroke="#525252"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M6 6L18 18"
+                    stroke="#525252"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-6 py-5 grid gap-5">
+              <div className="grid gap-2">
+                <div className="text-sm font-medium text-[#303030]">All bills</div>
+                <Select
+                  value={selectedAdditionalBillId}
+                  onValueChange={(value) => {
+                    setSelectedAdditionalBillId(value);
+                    setSelectedAdditionalFtoId("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a bill" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {invoiceItems
+                      .filter((item) => item.source !== "FTO Submission")
+                      .map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.vendor} — {item.description} ({item.amount})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <div className="text-sm font-medium text-[#303030]">All FTO orders</div>
+                <Select
+                  value={selectedAdditionalFtoId}
+                  onValueChange={(value) => {
+                    setSelectedAdditionalFtoId(value);
+                    setSelectedAdditionalBillId("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an FTO order" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {invoiceItems
+                      .filter((item) => item.source === "FTO Submission")
+                      .map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.vendor} — {item.description} ({item.amount})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAddAdditionalBillsModal(false)}
+                className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-[#303030] font-normal text-base capitalize">
+                  Cancel
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={handleAddAdditionalToInvoice}
+                disabled={!selectedAdditionalBillId && !selectedAdditionalFtoId}
+                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <span className="text-white font-medium text-base">Add to invoice</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <FTOApprovalModal
         open={showFTOApprovalModal}
