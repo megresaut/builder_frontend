@@ -414,11 +414,18 @@ export default function InvoicePreviewModal({
                             handleUpdateLineItem(item.id, "amount", e.target.value)
                           }
                           onBlur={(e) => {
-                            // Format the value when user leaves the field
-                            const formatted = getFormattedAmount(e.target.value);
-                            handleUpdateLineItem(item.id, "amount", formatted);
+                            // Format with commas when user leaves the field
+                            const formatted = formatAmountWithCommas(e.target.value);
+                            setLineItems(
+                              lineItems.map((item) =>
+                                item.id === e.currentTarget.dataset.id
+                                  ? { ...item, amount: formatted }
+                                  : item,
+                              ),
+                            );
                           }}
-                          placeholder="0.00"
+                          data-id={item.id}
+                          placeholder="$0.00"
                           className="edit-field"
                           style={{
                             width: "100%",
@@ -432,7 +439,7 @@ export default function InvoicePreviewModal({
                             padding: "0"
                           }}
                         />
-                        <span className="print-only">{getFormattedAmount(item.amount)}</span>
+                        <span className="print-only">{formatAmountWithCommas(item.amount)}</span>
                         <button
                           onClick={() => handleRemoveLineItem(item.id)}
                           className="no-print"
