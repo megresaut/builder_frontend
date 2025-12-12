@@ -126,17 +126,12 @@ export default function InvoicePreviewModal({
 
     const clone = invoiceNode.cloneNode(true) as HTMLElement;
 
-    // Update print-only spans with current values (html2canvas doesn't reliably capture <input> values)
+    // Update print-only spans with formatted values
     clone.querySelectorAll<HTMLInputElement>("input.edit-field").forEach((input) => {
       const container = input.parentElement;
       const span = container?.querySelector<HTMLSpanElement>("span.print-only");
       if (span) {
-        // Format amounts for PDF display
-        if (input.classList.contains("edit-field") && container?.parentElement?.querySelector("td:last-child")) {
-          span.textContent = getFormattedAmount(input.value);
-        } else {
-          span.textContent = input.value;
-        }
+        span.textContent = input.value;
       }
     });
 
