@@ -334,7 +334,7 @@ export default function InvoicePreviewModal({
                         paddingTop: "2px",
                         paddingBottom: "2px",
                         borderBottom: "1px solid #BF8F00",
-                        verticalAlign: "bottom"
+                        verticalAlign: "middle"
                       }}>
                         <input
                           type="text"
@@ -363,7 +363,7 @@ export default function InvoicePreviewModal({
                         paddingTop: "2px",
                         paddingBottom: "2px",
                         borderBottom: "1px solid #BF8F00",
-                        verticalAlign: "bottom"
+                        verticalAlign: "middle"
                       }}>
                         <input
                           type="text"
@@ -396,7 +396,7 @@ export default function InvoicePreviewModal({
                         textAlign: "left",
                         paddingRight: "18px",
                         paddingLeft: "8px",
-                        verticalAlign: "bottom",
+                        verticalAlign: "middle",
                         position: "relative",
                         overflow: "visible"
                       }}>
