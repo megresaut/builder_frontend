@@ -642,15 +642,16 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </button>
                   </div>
                   <div className="px-6 py-5 grid gap-4">
-                    <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">{selectedNote.text}</div>
+                    <Textarea
+                      value={viewNoteDraft}
+                      onChange={(e) => setViewNoteDraft(e.target.value)}
+                      className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
+                    />
                     <div className="text-sm text-[#71717A]">
-                      <span className="font-medium">Type:</span> {selectedNote.type}
+                      <span className="font-medium">Author:</span> {selectedNote.author}
                     </div>
                     <div className="text-sm text-[#71717A]">
                       <span className="font-medium">Date:</span> {selectedNote.date}
-                    </div>
-                    <div className="text-sm text-[#71717A]">
-                      <span className="font-medium">Author:</span> {selectedNote.author}
                     </div>
                   </div>
                   <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
@@ -661,7 +662,28 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       }}
                       className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <span className="text-[#303030] font-normal text-base capitalize">Close</span>
+                      <span className="text-[#303030] font-normal text-base capitalize">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const nextText = viewNoteDraft.trim();
+                        if (!nextText) return;
+
+                        setRecentNotes((prev) =>
+                          prev.map((n) =>
+                            n.id === selectedNote.id
+                              ? { ...n, text: nextText, date: new Date().toLocaleString() }
+                              : n,
+                          ),
+                        );
+
+                        setShowViewNoteModal(false);
+                        setSelectedNote(null);
+                      }}
+                      disabled={!viewNoteDraft.trim()}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="text-white font-medium text-base">Save</span>
                     </button>
                   </div>
                 </div>
@@ -669,8 +691,19 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               document.body,
             )}
 
-          {/* View File Modal */}
-          {showViewFileModal &&
+          {/* PDF Viewer */}
+          <PdfViewerModal
+            open={showViewFileModal}
+            onOpenChange={(open) => {
+              setShowViewFileModal(open);
+              if (!open) setSelectedFile(null);
+            }}
+            title={selectedFile?.name || "File Preview"}
+            url={selectedFile?.url}
+          />
+
+          {/* Legacy View File Modal */}
+          {false &&
             selectedFile &&
             createPortal(
               <div
