@@ -278,7 +278,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       glAccount: "Tools for common area",
       description: "Tools for common area",
       amount: "$120",
-      source: "FTO Submission",
+      source: "Manual",
       status: "Approved",
       statusColor: "#2463EB",
       statusBg: "#DBE9FE",
