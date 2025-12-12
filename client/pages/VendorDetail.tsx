@@ -274,26 +274,6 @@ export default function VendorDetail() {
     setIsAddCustomFieldOpen(false);
   };
 
-  const addFile = () => {
-    const name = fileName.trim();
-    const url = fileUrl.trim();
-    if (!name) return;
-
-    setFiles((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        name,
-        url: url || undefined,
-        uploadedAt: new Date().toLocaleString(),
-      },
-    ]);
-
-    setFileName("");
-    setFileUrl("");
-    setIsAddFileOpen(false);
-  };
-
   const handleTabClick = (_tab: string) => {
     // reserved for future tab switching
   };
