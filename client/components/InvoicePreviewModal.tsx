@@ -72,7 +72,8 @@ export default function InvoicePreviewModal({
 
   const calculateTotal = () => {
     return lineItems.reduce((sum, item) => {
-      const amount = parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+      // Extract numeric value, handles both raw numbers and formatted currency
+      const amount = parseFloat(item.amount.replace(/[^\d.]/g, "")) || 0;
       return sum + amount;
     }, 0);
   };
