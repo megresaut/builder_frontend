@@ -437,10 +437,12 @@ export default function InvoicePreviewModal({
                   display: "flex",
                   justifyContent: "flex-end",
                   alignItems: "center",
-                  marginTop: "10px",
+                  marginTop: "8px",
+                  marginBottom: "12px",
                   fontSize: "6px",
                   fontWeight: 700,
                   lineHeight: "7px",
+                  flexShrink: 0,
                 }}
               >
                 <div style={{ letterSpacing: "0.35px", marginRight: "5px" }}>
@@ -463,13 +465,13 @@ export default function InvoicePreviewModal({
               {/* Footer */}
               <div
                 style={{
-                  marginTop: "40px",
                   display: "flex",
                   maxWidth: "492px",
                   flexDirection: "column",
                   fontSize: "5px",
                   fontWeight: 400,
                   lineHeight: 1.18,
+                  flexShrink: 0,
                 }}
               >
                 <div style={{ fontWeight: 700, letterSpacing: "0.06px" }}>
