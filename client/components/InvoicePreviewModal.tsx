@@ -131,7 +131,12 @@ export default function InvoicePreviewModal({
       const container = input.parentElement;
       const span = container?.querySelector<HTMLSpanElement>("span.print-only");
       if (span) {
-        span.textContent = input.value;
+        // Format amounts for PDF display
+        if (input.classList.contains("edit-field") && container?.parentElement?.querySelector("td:last-child")) {
+          span.textContent = getFormattedAmount(input.value);
+        } else {
+          span.textContent = input.value;
+        }
       }
     });
 
