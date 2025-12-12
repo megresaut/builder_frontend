@@ -111,6 +111,8 @@ export default function VendorDetail() {
                 gap: "8px",
                 width: "auto",
                 alignSelf: "center",
+                justifyContent: "flex-start",
+                alignItems: "center",
               }}
             >
               <button
