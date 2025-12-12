@@ -801,7 +801,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     Actions
                   </div>
                 </div>
-                {invoiceItems.map((item) => (
+                {invoiceItems.map((item) => {
+                  const isFTO = item.source === "FTO Submission";
+                  return (
                   <div
                     key={item.id}
                     className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative"
@@ -810,14 +812,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       itemId={`invoice-${item.id}`}
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
-                      onView={() =>
-                        openViewBill(
-                          buildViewBillStateFromInvoiceItem(item, propertyAddress),
-                        )
-                      }
+                      isFTO={isFTO}
+                      ftoActionLabel={isFTO ? "View FTO" : "View Bill"}
+                      onView={() => {
+                        if (isFTO) {
+                          openViewFTO();
+                        } else {
+                          openViewBill(
+                            buildViewBillStateFromInvoiceItem(item, propertyAddress),
+                          );
+                        }
+                      }}
                     />
                   </div>
-                ))}
+                );
+                })}
               </div>
             </div>
           </div>
