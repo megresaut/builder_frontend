@@ -496,7 +496,7 @@ export default function InvoicePreviewModal({
               }}>
                 <div style={{
                   marginRight: "20px",
-                  font: "700 11px/16.5px Arial, sans-serif"
+                  font: "700 9px/16.5px Arial, sans-serif"
                 }}>
                   TOTAL:
                 </div>
