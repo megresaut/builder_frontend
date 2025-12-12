@@ -456,12 +456,76 @@ export default function VendorDetail() {
                             <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
                               {note.author}
                             </div>
-                            <img
-                              loading="lazy"
-                              src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/15574e609a0a8fdfc4d8e6243d7c5ab71041a77e?placeholderIfAbsent=true"
-                              alt=""
-                              className="w-4 h-4 object-contain"
-                            />
+                            <button
+                              ref={(el) => {
+                                if (el) menuRefMap.current[note.id] = el;
+                              }}
+                              onClick={() =>
+                                setOpenNoteId(openNoteId === note.id ? null : note.id)
+                              }
+                              className="w-4 h-4 flex items-center justify-center hover:opacity-70 transition-opacity relative"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <circle cx="12" cy="12" r="1" />
+                                <circle cx="19" cy="12" r="1" />
+                                <circle cx="5" cy="12" r="1" />
+                              </svg>
+                            </button>
+
+                            {openNoteId === note.id &&
+                              createPortal(
+                                <div
+                                  className="bg-white flex flex-col justify-center items-start gap-4 p-4"
+                                  style={{
+                                    width: "120px",
+                                    border: "0.5px solid #DADADA",
+                                    borderRadius: "8px",
+                                    boxShadow:
+                                      "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                                    zIndex: 99999,
+                                    position: "fixed",
+                                    top: menuPos.top + "px",
+                                    left: menuPos.left + "px",
+                                    pointerEvents: "auto",
+                                  }}
+                                  onMouseLeave={() => setOpenNoteId(null)}
+                                >
+                                  <button
+                                    onClick={() => {
+                                      console.log("View note", note.id);
+                                      setOpenNoteId(null);
+                                    }}
+                                    className="w-full text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] hover:opacity-70 transition-opacity"
+                                    style={{
+                                      fontFamily:
+                                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                    }}
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      console.log("Delete note", note.id);
+                                      setOpenNoteId(null);
+                                    }}
+                                    className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] hover:opacity-70 transition-opacity"
+                                    style={{
+                                      fontFamily:
+                                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>,
+                                document.body,
+                              )}
                           </div>
                         </div>
                       ))}
