@@ -286,7 +286,7 @@ export default function InvoicePreviewModal({
                       BILL TO:
                     </div>
                     <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      {billTo}
+                      {rentalOwner || billTo}
                     </div>
                     <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                       {"\u00A0"}
