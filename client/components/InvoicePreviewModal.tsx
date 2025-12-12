@@ -407,6 +407,12 @@ export default function InvoicePreviewModal({
                           onChange={(e) =>
                             handleUpdateLineItem(item.id, "amount", e.target.value)
                           }
+                          onBlur={(e) => {
+                            // Format the value when user leaves the field
+                            const formatted = getFormattedAmount(e.target.value);
+                            handleUpdateLineItem(item.id, "amount", formatted);
+                          }}
+                          placeholder="0.00"
                           className="edit-field"
                           style={{
                             width: "100%",
@@ -420,7 +426,7 @@ export default function InvoicePreviewModal({
                             padding: "0"
                           }}
                         />
-                        <span className="print-only">{item.amount}</span>
+                        <span className="print-only">{getFormattedAmount(item.amount)}</span>
                         <button
                           onClick={() => handleRemoveLineItem(item.id)}
                           className="no-print"
