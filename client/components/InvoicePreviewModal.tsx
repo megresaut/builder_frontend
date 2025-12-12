@@ -21,6 +21,8 @@ interface InvoicePreviewModalProps {
   billTo: string;
   invoiceDate: string;
   lineItems: InvoiceLineItem[];
+  showCommitButton?: boolean;
+  onCommit?: (lineItems: InvoiceLineItem[]) => void;
 }
 
 export default function InvoicePreviewModal({
@@ -31,6 +33,8 @@ export default function InvoicePreviewModal({
   billTo,
   invoiceDate,
   lineItems: initialLineItems,
+  showCommitButton = false,
+  onCommit,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
@@ -172,6 +176,11 @@ export default function InvoicePreviewModal({
     } catch (error) {
       console.error("Error generating PDF:", error);
     }
+  };
+
+  const handleCommit = () => {
+    onCommit?.(lineItems);
+    onOpenChange(false);
   };
 
   return (
@@ -628,6 +637,16 @@ export default function InvoicePreviewModal({
               </svg>
               <span className="font-medium text-base">Add Line Item</span>
             </button>
+
+            {showCommitButton && (
+              <button
+                type="button"
+                onClick={handleCommit}
+                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+              >
+                <span className="text-white font-medium text-base">Commit</span>
+              </button>
+            )}
 
             <button
               type="button"
