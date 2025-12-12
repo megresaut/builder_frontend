@@ -18,6 +18,7 @@ interface InvoicingProps {
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
+  propertyLocation?: string;
 }
 
 const ActionButton = ({
