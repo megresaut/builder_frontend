@@ -480,6 +480,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     });
   };
 
+  const openViewFTO = () => {
+    navigate("/field-team-orders");
+  };
+
   const totalInvoices = invoiceHistory.length;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const paginatedHistory = invoiceHistory.slice(
