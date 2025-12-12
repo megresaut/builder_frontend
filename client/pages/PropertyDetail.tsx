@@ -33,7 +33,7 @@ const propertyData: Record<string, Property> = {
   "1": {
     id: 1,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
+    location: "Greenwich, CT 06830",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
@@ -46,7 +46,7 @@ const propertyData: Record<string, Property> = {
   "2": {
     id: 2,
     address: "22 Indian Chase Dr",
-    location: "Greenwich, CT",
+    location: "Greenwich, CT 06830",
     managers: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
