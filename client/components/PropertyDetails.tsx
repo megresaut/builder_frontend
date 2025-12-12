@@ -481,7 +481,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     <div className="w-[135px]">{note.date}</div>
                     <div className="w-[118px]">{note.author}</div>
                     <ActionMenu
-                      itemId={`note-${note.id}` as any}
+                      itemId={`note-${note.id}`}
                       onView={() => alert(`View note: ${note.text}`)}
                       onDelete={() => handleDeleteNote(note.id)}
                     />
