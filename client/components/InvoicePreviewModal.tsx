@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,11 @@ export default function InvoicePreviewModal({
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(initialLineItems);
+
+  // Sync state when props change
+  useEffect(() => {
+    setLineItems(initialLineItems);
+  }, [initialLineItems]);
 
   const calculateTotal = () => {
     return lineItems.reduce((sum, item) => {
