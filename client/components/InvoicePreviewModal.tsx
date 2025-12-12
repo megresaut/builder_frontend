@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import html2pdf from "html2pdf.js";
 
 export interface InvoiceLineItem {
@@ -78,7 +77,7 @@ export default function InvoicePreviewModal({
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
     clone.querySelectorAll(".print-only").forEach((el) => {
-      el.style.display = "inline-block";
+      (el as HTMLElement).style.display = "inline-block";
     });
 
     const element = document.createElement("div");
@@ -108,30 +107,6 @@ export default function InvoicePreviewModal({
   return (
     <>
       <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .invoice-print-area,
-          .invoice-print-area * {
-            visibility: visible;
-          }
-          .invoice-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .edit-field {
-            display: none !important;
-          }
-          .print-only {
-            display: inline !important;
-          }
-        }
         @media screen {
           .print-only {
             display: none !important;
@@ -145,11 +120,11 @@ export default function InvoicePreviewModal({
             {/* Invoice Container */}
             <div
               ref={invoiceRef}
-              className="invoice-print-area bg-white mx-auto"
+              className="bg-white mx-auto"
               style={{
                 width: "612px",
                 minHeight: "792px",
-                padding: "0",
+                padding: "70px 60px 60px",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
               }}
@@ -159,12 +134,13 @@ export default function InvoicePreviewModal({
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  marginBottom: "9px",
+                  alignItems: "start",
                   gap: "100px",
+                  marginBottom: "9px",
                 }}
               >
                 {/* Left Column */}
-                <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", flexDirection: "column", width: "100px" }}>
                   <div style={{ marginBottom: "39px" }}>
                     <div
                       style={{
@@ -181,7 +157,7 @@ export default function InvoicePreviewModal({
                         fontSize: "7px",
                         fontWeight: 400,
                         lineHeight: "9px",
-                        letterSpacing: "0.273px",
+                        letterSpacing: "0.27px",
                       }}
                     >
                       11 LARGO DRIVE SOUTH
@@ -193,7 +169,7 @@ export default function InvoicePreviewModal({
                       style={{
                         fontSize: "7px",
                         lineHeight: "9px",
-                        letterSpacing: "0.109px",
+                        letterSpacing: "0.11px",
                       }}
                     >
                       STAMFORD, CT 06907
@@ -203,7 +179,7 @@ export default function InvoicePreviewModal({
                         fontSize: "7px",
                         fontWeight: 700,
                         lineHeight: "9px",
-                        letterSpacing: "-0.656px",
+                        letterSpacing: "-0.66px",
                       }}
                     >
                       203-987-7050
@@ -215,7 +191,7 @@ export default function InvoicePreviewModal({
                         fontSize: "5px",
                         fontWeight: 700,
                         lineHeight: "7px",
-                        letterSpacing: "0.844px",
+                        letterSpacing: "0.84px",
                         marginBottom: "2px",
                       }}
                     >
@@ -257,7 +233,7 @@ export default function InvoicePreviewModal({
                         fontSize: "5px",
                         fontWeight: 700,
                         lineHeight: "7px",
-                        letterSpacing: "0.759px",
+                        letterSpacing: "0.76px",
                         marginBottom: "2px",
                       }}
                     >
@@ -267,7 +243,7 @@ export default function InvoicePreviewModal({
                       style={{
                         fontSize: "6px",
                         lineHeight: "7px",
-                        letterSpacing: "-0.087px",
+                        letterSpacing: "-0.09px",
                       }}
                     >
                       {propertyAddress}
@@ -276,7 +252,7 @@ export default function InvoicePreviewModal({
                       style={{
                         fontSize: "6px",
                         lineHeight: "7px",
-                        letterSpacing: "-0.175px",
+                        letterSpacing: "-0.17px",
                       }}
                     >
                       {propertyLocation}
@@ -307,12 +283,7 @@ export default function InvoicePreviewModal({
                   <div
                     key={item.id}
                     style={{
-                      borderBottom:
-                        lineItems.length === 1
-                          ? "1px solid #BF8F00"
-                          : index < lineItems.length - 1
-                            ? "1px solid #BF8F00"
-                            : "none",
+                      borderBottom: "1px solid #BF8F00",
                       display: "flex",
                       minHeight: "17px",
                       alignItems: "center",
@@ -346,7 +317,7 @@ export default function InvoicePreviewModal({
                         flex: 1,
                         minWidth: "240px",
                         paddingTop: "5px",
-                        letterSpacing: "-0.087px",
+                        letterSpacing: "-0.09px",
                       }}
                     >
                       <input
@@ -372,14 +343,12 @@ export default function InvoicePreviewModal({
                     <div
                       style={{
                         width: "95px",
-                        paddingTop: "5px",
-                        letterSpacing: "-0.175px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                       }}
                     >
-                      <div style={{ flex: 1, textAlign: "right" }}>
+                      <div style={{ flex: 1 }}>
                         <input
                           type="text"
                           value={item.amount}
@@ -391,16 +360,29 @@ export default function InvoicePreviewModal({
                             width: "100%",
                             border: "none",
                             outline: "none",
-                            background: "#F5F5F5",
+                            background: "#F2F2F2",
                             fontSize: "6px",
                             lineHeight: "7px",
                             color: "#002060",
                             textAlign: "right",
-                            padding: "3px 4px",
+                            padding: "5px",
                             fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            letterSpacing: "-0.17px",
                           }}
                         />
-                        <span className="print-only" style={{ background: "#F5F5F5", display: "inline-block", padding: "3px 4px" }}>{item.amount}</span>
+                        <span
+                          className="print-only"
+                          style={{
+                            background: "#F2F2F2",
+                            display: "inline-block",
+                            padding: "5px",
+                            width: "100%",
+                            textAlign: "right",
+                            letterSpacing: "-0.17px",
+                          }}
+                        >
+                          {item.amount}
+                        </span>
                       </div>
                       <button
                         onClick={() => handleRemoveLineItem(item.id)}
@@ -424,7 +406,6 @@ export default function InvoicePreviewModal({
                 ))}
               </div>
 
-
               {/* Total */}
               <div
                 style={{
@@ -443,11 +424,10 @@ export default function InvoicePreviewModal({
                 <div
                   style={{
                     width: "95px",
-                    paddingLeft: "5px",
-                    letterSpacing: "-0.262px",
-                    background: "#F5F5F5",
-                    padding: "3px 4px",
+                    background: "#F2F2F2",
+                    padding: "5px",
                     textAlign: "right",
+                    letterSpacing: "-0.26px",
                   }}
                 >
                   ${calculateTotal().toFixed(2)}
@@ -469,16 +449,18 @@ export default function InvoicePreviewModal({
                   If you have any questions concerning this invoice, use the
                   following contact information:
                 </div>
-                <div style={{ letterSpacing: "-0.319px" }}>203-987-7050</div>
+                <div style={{ letterSpacing: "-0.32px" }}>203-987-7050</div>
                 <div
                   style={{
                     color: "#0563C1",
-                    letterSpacing: "0.239px",
+                    letterSpacing: "0.24px",
                   }}
                 >
-                  STAFF@AVMRE.COM
+                  <a href="mailto:STAFF@AVMRE.COM" style={{ color: "inherit", textDecoration: "none" }}>
+                    STAFF@AVMRE.COM
+                  </a>
                 </div>
-                <div style={{ fontWeight: 700, letterSpacing: "0.159px" }}>
+                <div style={{ fontWeight: 700, letterSpacing: "0.16px" }}>
                   THANK YOU FOR YOUR BUSINESS!
                 </div>
               </div>
