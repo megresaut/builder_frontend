@@ -40,6 +40,36 @@ export default function InvoicePreviewModal({
     setLineItems(initialLineItems);
   }, [initialLineItems]);
 
+  // Format number as currency with commas (e.g., "1234.56" -> "$1,234.56")
+  const formatCurrency = (value: string | number): string => {
+    const num = typeof value === "string"
+      ? parseFloat(value.replace(/[$,]/g, ""))
+      : value;
+
+    if (isNaN(num)) return "$0.00";
+
+    return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  // Parse and validate currency input - only numbers and 2 decimals
+  const parseCurrencyInput = (value: string): string => {
+    // Remove any non-digit and non-decimal characters
+    let cleaned = value.replace(/[^\d.]/g, "");
+
+    // Ensure only one decimal point
+    const parts = cleaned.split(".");
+    if (parts.length > 2) {
+      cleaned = parts[0] + "." + parts.slice(1).join("");
+    }
+
+    // Limit to 2 decimal places
+    if (parts.length === 2) {
+      cleaned = parts[0] + "." + parts[1].substring(0, 2);
+    }
+
+    return cleaned || "0";
+  };
+
   const calculateTotal = () => {
     return lineItems.reduce((sum, item) => {
       const amount = parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
