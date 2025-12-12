@@ -186,6 +186,7 @@ export default function PropertyDetail() {
             propertyAddress={property.address}
             propertyType={property.type}
             propertyUnits={property.units}
+            propertyLocation={property.location}
           />
         );
       case "Units":
