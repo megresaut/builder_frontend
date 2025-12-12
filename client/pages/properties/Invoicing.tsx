@@ -216,7 +216,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
-  type InvoiceItemStatus = "Paid" | "Pending" | "Approved";
+  type InvoiceItemStatus = "Pending Approval" | "Approved";
 
   interface InvoiceItem {
     id: number;
@@ -244,8 +244,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       glAccount: "ConEd - 1,220 kWh",
       description: "ConEd - 1,220 kWh",
       amount: "$420",
-      source: "Auto-Import",
-      status: "Paid",
+      source: "Utility-Import",
+      status: "Approved",
       statusColor: "#059669",
       statusBg: "#D1FAE5",
     },
@@ -259,8 +259,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       glAccount: "Unit 48 Thermostat",
       description: "Unit 48 Thermostat",
       amount: "$380",
-      source: "Vendor",
-      status: "Pending",
+      source: "Vendor-Import",
+      status: "Pending Approval",
       statusColor: "#D97706",
       statusBg: "#FEF3C7",
     },
@@ -274,7 +274,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       glAccount: "Tools for common area",
       description: "Tools for common area",
       amount: "$120",
-      source: "Manual",
+      source: "FTO Submission",
       status: "Approved",
       statusColor: "#2463EB",
       statusBg: "#DBE9FE",
@@ -771,7 +771,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       alt=""
                     />
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
-                      Status
+                      Approval Status
                     </div>
                   </div>
                   {invoiceItems.map((item) => (
