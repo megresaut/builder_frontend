@@ -855,6 +855,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
                 {invoiceItems.map((item) => {
                   const isFTO = item.source === "FTO Submission";
+                  const isVendorImport = item.source === "Vendor-Import";
                   return (
                   <div
                     key={item.id}
@@ -869,6 +870,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       onView={() => {
                         if (isFTO) {
                           openViewFTO();
+                        } else if (isVendorImport) {
+                          openEditBill(
+                            buildViewBillStateFromInvoiceItem(item, propertyAddress),
+                          );
                         } else {
                           openViewBill(
                             buildViewBillStateFromInvoiceItem(item, propertyAddress),
