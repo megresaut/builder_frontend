@@ -513,27 +513,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     });
   };
 
-  const openEditBill = (bill: ViewBillState, inApprovalWorkflow = false) => {
+  const openEditBill = (bill: ViewBillState) => {
     const basePath = propertyId
       ? `/property/${propertyId}/bills/record`
       : "/bills/record";
 
     navigate(basePath, {
-      state: {
-        bill,
-        inApprovalWorkflow,
-        onApproveOrCancel: inApprovalWorkflow ? handleApproveOrCancel : undefined,
-      },
+      state: { bill },
     });
   };
 
-  const openViewFTO = (inApprovalWorkflow = false) => {
-    navigate("/field-team-orders", {
-      state: {
-        inApprovalWorkflow,
-        onApproveOrCancel: inApprovalWorkflow ? handleApproveOrCancel : undefined,
-      },
-    });
+  const openViewFTO = () => {
+    navigate("/field-team-orders");
   };
 
   const totalInvoices = invoiceHistory.length;
