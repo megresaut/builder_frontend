@@ -137,7 +137,7 @@ export default function InvoicePreviewModal({
     // Make print-only content visible for screen rendering (PDF capture uses screen styles)
     clone.querySelectorAll<HTMLElement>(".print-only").forEach((el) => {
       el.classList.remove("print-only");
-      el.style.display = "inline";
+      if (!el.style.display) el.style.display = "inline";
     });
 
     const element = document.createElement("div");
@@ -356,7 +356,19 @@ export default function InvoicePreviewModal({
                             padding: 0
                           }}
                         />
-                        <span className="print-only">{item.vendor}</span>
+                        <span
+                          className="print-only"
+                          style={{
+                            display: "inline-block",
+                            width: "100%",
+                            color: "#002060",
+                            overflowWrap: "anywhere",
+                            wordWrap: "anywhere",
+                            font: "400 9px/16.5px Arial, sans-serif",
+                          }}
+                        >
+                          {item.vendor}
+                        </span>
                       </td>
                       <td style={{
                         fontSize: "11px",
@@ -385,7 +397,19 @@ export default function InvoicePreviewModal({
                             padding: 0
                           }}
                         />
-                        <span className="print-only">{item.description}</span>
+                        <span
+                          className="print-only"
+                          style={{
+                            display: "inline-block",
+                            width: "100%",
+                            color: "#002060",
+                            overflowWrap: "anywhere",
+                            wordWrap: "anywhere",
+                            font: "400 9px/16.5px Arial, sans-serif",
+                          }}
+                        >
+                          {item.description}
+                        </span>
                       </td>
                       <td style={{
                         fontSize: "11px",
@@ -458,7 +482,20 @@ export default function InvoicePreviewModal({
                             padding: "0"
                           }}
                         />
-                        <span className="print-only">{formatAmountWithCommas(item.amount)}</span>
+                        <span
+                          className="print-only"
+                          style={{
+                            display: "inline-block",
+                            width: "100%",
+                            color: "#002060",
+                            overflowWrap: "anywhere",
+                            wordWrap: "anywhere",
+                            font: "400 9px/16.5px Arial, sans-serif",
+                            textAlign: "left",
+                          }}
+                        >
+                          {formatAmountWithCommas(item.amount)}
+                        </span>
                         <button
                           onClick={() => handleRemoveLineItem(item.id)}
                           className="no-print"
