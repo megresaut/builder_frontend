@@ -122,9 +122,10 @@ export default function InvoicePreviewModal({
               ref={invoiceRef}
               className="bg-white mx-auto"
               style={{
-                width: "612px",
-                minHeight: "792px",
-                padding: "70px 60px 60px",
+                width: "210mm",
+                minHeight: "297mm",
+                padding: "20mm",
+                boxSizing: "border-box",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
               }}
