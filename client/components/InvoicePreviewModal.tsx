@@ -270,7 +270,7 @@ export default function InvoicePreviewModal({
                     {"\u00A0"}
                   </div>
 
-                  <div style={{ marginTop: "80px" }}>
+                  <div style={{ marginTop: "60px" }}>
                     <div
                       style={{
                         letterSpacing: "1.2px",
@@ -547,7 +547,7 @@ export default function InvoicePreviewModal({
                   whiteSpace: "nowrap",
                   textOverflow: "clip"
                 }}>
-                  {formatCurrency(calculateTotal())}
+                  <b>{formatCurrency(calculateTotal())}</b>
                 </div>
               </div>
 
