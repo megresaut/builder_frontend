@@ -609,6 +609,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
                 />
               </div>
+              <button
+                type="button"
+                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors whitespace-nowrap"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                }}
+              >
+                <span className="text-white font-medium text-base leading-normal">
+                  Add line item
+                </span>
+              </button>
             </div>
           </div>
 
