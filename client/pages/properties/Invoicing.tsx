@@ -248,7 +248,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       glAccount: "ConEd - 1,220 kWh",
       description: "ConEd - 1,220 kWh",
       amount: "$420",
-      source: "Utility-Import",
+      source: "Manual",
       status: "Approved",
       statusColor: "#059669",
       statusBg: "#D1FAE5",
