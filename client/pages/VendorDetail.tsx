@@ -1151,8 +1151,7 @@ export default function VendorDetail() {
         onOpenChange={(open) => {
           setIsAddFileOpen(open);
           if (!open) {
-            setFileName("");
-            setFileUrl("");
+            setFileDraft(null);
           }
         }}
       >
@@ -1161,45 +1160,33 @@ export default function VendorDetail() {
             Add File
           </DialogTitle>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                File Name
-              </label>
-              <Input
-                value={fileName}
-                onChange={(e) => setFileName(e.target.value)}
-                placeholder="File name"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                URL (optional)
-              </label>
-              <Input
-                value={fileUrl}
-                onChange={(e) => setFileUrl(e.target.value)}
-                placeholder="https://..."
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+          <div className="px-6 py-5 grid gap-5">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-[#303030]">File</label>
+              <input
+                type="file"
+                onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
               />
             </div>
           </div>
 
           <DialogFooter className="mt-6 gap-3">
             <button
-              onClick={() => setIsAddFileOpen(false)}
+              onClick={() => {
+                setIsAddFileOpen(false);
+                setFileDraft(null);
+              }}
               className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={addFile}
-              disabled={!fileName.trim()}
+              disabled={!fileDraft}
               className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save
+              Add
             </button>
           </DialogFooter>
         </DialogContent>
