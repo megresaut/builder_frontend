@@ -99,12 +99,17 @@ export default function InvoicePreviewModal({
   ) => {
     let updatedValue = value;
 
-    // If updating amount field, extract only numbers for storage
-    // but keep input value raw so user can type freely
+    // Amount field handling
     if (field === "amount") {
-      // Just extract the numeric part, don't format yet
+      // Extract only digits and one decimal point
       const numericOnly = value.replace(/[^\d.]/g, "");
-      updatedValue = numericOnly || "0";
+      // Always prepend $ and show with 2 decimals (but no commas yet while typing)
+      if (numericOnly) {
+        const num = parseFloat(numericOnly) || 0;
+        updatedValue = "$" + num.toFixed(2);
+      } else {
+        updatedValue = "$0.00";
+      }
     }
 
     setLineItems(
@@ -114,8 +119,8 @@ export default function InvoicePreviewModal({
     );
   };
 
-  // Format amount for display (used in span and when blurred)
-  const getFormattedAmount = (amount: string): string => {
+  // Format amount with commas for final display
+  const formatAmountWithCommas = (amount: string): string => {
     const num = parseFloat(amount.replace(/[^\d.]/g, "")) || 0;
     return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
