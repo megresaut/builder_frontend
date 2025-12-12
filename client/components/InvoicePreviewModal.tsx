@@ -299,6 +299,8 @@ export default function InvoicePreviewModal({
                   lineHeight: "7px",
                   marginTop: "9px",
                   marginBottom: "1px",
+                  paddingLeft: "72px",
+                  paddingRight: "72px",
                 }}
               >
                 <div style={{ width: "117px" }}>Vendors</div>
