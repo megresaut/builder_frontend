@@ -123,11 +123,11 @@ export default function InvoicePreviewModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] md:max-w-[880px] max-h-[95vh] flex flex-col p-0">
           <DialogTitle className="sr-only">Invoice Preview</DialogTitle>
-          <div className="flex-1 overflow-y-auto bg-white">
+          <div className="flex-1 overflow-y-auto bg-white flex justify-center items-start">
             {/* Invoice Container */}
             <div
               ref={invoiceRef}
-              className="bg-white mx-auto"
+              className="bg-white"
               style={{
                 width: "210mm",
                 minHeight: "297mm",
@@ -135,6 +135,7 @@ export default function InvoicePreviewModal({
                 boxSizing: "border-box",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
+                flexShrink: 0,
               }}
             >
               {/* Header Section */}
