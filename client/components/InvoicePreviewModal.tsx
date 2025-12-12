@@ -137,12 +137,15 @@ export default function InvoicePreviewModal({
               className="bg-white"
               style={{
                 width: "210mm",
-                minHeight: "297mm",
-                padding: "25mm 20mm",
+                height: "297mm",
+                padding: "20mm 18mm",
                 boxSizing: "border-box",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
                 color: "#002060",
                 flexShrink: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               {/* Header Section */}
