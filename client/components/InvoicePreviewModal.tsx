@@ -165,6 +165,7 @@ export default function InvoicePreviewModal({
                   justifyContent: "space-between",
                   marginBottom: "9px",
                   gap: "100px",
+                  padding: "72px 72px 0 72px",
                 }}
               >
                 {/* Left Column */}
