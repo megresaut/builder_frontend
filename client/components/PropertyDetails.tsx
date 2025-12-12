@@ -558,7 +558,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <div className="text-xs">by {file.author}</div>
                     </div>
                     <ActionMenu
-                      itemId={`file-${file.id}` as any}
+                      itemId={`file-${file.id}`}
                       onView={() => alert(`View file: ${file.name}`)}
                       onDelete={() => handleDeleteFile(file.id)}
                     />
