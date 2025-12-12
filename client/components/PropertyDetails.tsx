@@ -9,6 +9,25 @@ interface PropertyDetailsProps {
   propertyImage?: string;
 }
 
+type RecentNote = {
+  id: number;
+  text: string;
+  type: string;
+  date: string;
+  author: string;
+};
+
+type RecentFile = {
+  id: number;
+  name: string;
+  subtitle?: string;
+  category: string;
+  date: string;
+  author: string;
+  type: string;
+  icon: string;
+};
+
 export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   propertyAddress,
   propertyLocation = "Westport, CT, 28282",
@@ -24,9 +43,18 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [showEditRatesModal, setShowEditRatesModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [showAddFileModal, setShowAddFileModal] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [showViewNoteModal, setShowViewNoteModal] = useState(false);
+  const [showViewFileModal, setShowViewFileModal] = useState(false);
+
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const [recentNotes, setRecentNotes] = useState([
+
+  const [noteDraft, setNoteDraft] = useState("");
+  const [fileDraft, setFileDraft] = useState<File | null>(null);
+  const [selectedNote, setSelectedNote] = useState<RecentNote | null>(null);
+  const [selectedFile, setSelectedFile] = useState<RecentFile | null>(null);
+
+  const [recentNotes, setRecentNotes] = useState<RecentNote[]>([
     {
       id: 1,
       text: "Southern Conn Gas #05-00011476-6574",
@@ -64,7 +92,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     },
   ]);
 
-  const [recentFiles, setRecentFiles] = useState([
+  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([
     {
       id: 1,
       name: "1 Connors Lane - Maintenance Log.docx",
@@ -96,13 +124,17 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   ]);
 
   const handleDeleteNote = (id: number) => {
-    setRecentNotes(recentNotes.filter((note) => note.id !== id));
+    setRecentNotes((prev) => prev.filter((note) => note.id !== id));
     setOpenMenuId(null);
+    setSelectedNote(null);
+    setShowViewNoteModal(false);
   };
 
   const handleDeleteFile = (id: number) => {
-    setRecentFiles(recentFiles.filter((file) => file.id !== id));
+    setRecentFiles((prev) => prev.filter((file) => file.id !== id));
     setOpenMenuId(null);
+    setSelectedFile(null);
+    setShowViewFileModal(false);
   };
 
   const openViewMaps = () => {
@@ -117,9 +149,17 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     useEffect(() => {
       if (openMenuId === itemId && buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect();
+        const menuWidth = 145;
+        const padding = 8;
+        const desiredLeft = rect.right - menuWidth;
+        const left = Math.min(
+          Math.max(padding, desiredLeft),
+          Math.max(padding, window.innerWidth - menuWidth - padding),
+        );
+
         setMenuPos({
           top: rect.bottom + 8,
-          left: rect.right - 145,
+          left,
         });
       }
     }, [itemId, openMenuId]);
@@ -458,37 +498,54 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               </button>
             </div>
 
-            <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-sm text-[#303030] font-normal">
-              {recentNotes.map((note, index) => (
-                <div
-                  key={note.id}
-                  className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
-                    index !== recentNotes.length - 1
-                      ? "border-b border-[#DADADA]"
-                      : ""
-                  }`}
-                >
-                  <div
-                    className="leading-[18px] w-[232px]"
-                    style={{ whiteSpace: "pre-line" }}
+            {recentNotes.length === 0 ? (
+              <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
+                <p className="text-[#303030] text-sm font-normal leading-[1.29]">
+                  You don't have any notes for this property right now.{" "}
+                  <button
+                    onClick={() => setShowAddNoteModal(true)}
+                    className="font-medium text-[#2463EB] hover:underline"
                   >
-                    {note.text}
-                  </div>
-                  <div className="flex min-w-[240px] items-center gap-8 leading-[1.29]">
-                    <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                      {note.type}
+                    Add your first note
+                  </button>
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-sm text-[#303030] font-normal">
+                {recentNotes.map((note, index) => (
+                  <div
+                    key={note.id}
+                    className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
+                      index !== recentNotes.length - 1
+                        ? "border-b border-[#DADADA]"
+                        : ""
+                    }`}
+                  >
+                    <div
+                      className="leading-[18px] w-[232px]"
+                      style={{ whiteSpace: "pre-line" }}
+                    >
+                      {note.text}
                     </div>
-                    <div className="w-[135px]">{note.date}</div>
-                    <div className="w-[118px]">{note.author}</div>
-                    <ActionMenu
-                      itemId={`note-${note.id}`}
-                      onView={() => alert(`View note: ${note.text}`)}
-                      onDelete={() => handleDeleteNote(note.id)}
-                    />
+                    <div className="flex min-w-[240px] items-center gap-8 leading-[1.29]">
+                      <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
+                        {note.type}
+                      </div>
+                      <div className="w-[135px]">{note.date}</div>
+                      <div className="w-[118px]">{note.author}</div>
+                      <ActionMenu
+                        itemId={`note-${note.id}`}
+                        onView={() => {
+                          setSelectedNote(note);
+                          setShowViewNoteModal(true);
+                        }}
+                        onDelete={() => handleDeleteNote(note.id)}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Separator */}
@@ -516,57 +573,196 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               </button>
             </div>
 
-            <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-[#303030]">
-              {recentFiles.map((file, index) => (
-                <div
-                  key={file.id}
-                  className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
-                    index !== recentFiles.length - 1
-                      ? "border-b border-[#DADADA]"
-                      : ""
-                  }`}
-                >
-                  <div className="flex min-w-[240px] items-center gap-2 w-[301px]">
-                    <img
-                      loading="lazy"
-                      src={file.icon}
-                      className="w-9 h-9"
-                      alt="File icon"
-                    />
-                    {file.subtitle ? (
-                      <div className="flex min-w-[240px] flex-col flex-1">
+            {recentFiles.length === 0 ? (
+              <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
+                <p className="text-[#303030] text-sm font-normal leading-[1.29]">
+                  You don't have any files for this property right now.{" "}
+                  <button
+                    onClick={() => setShowAddFileModal(true)}
+                    className="font-medium text-[#2463EB] hover:underline"
+                  >
+                    Add your first file
+                  </button>
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-[#303030]">
+                {recentFiles.map((file, index) => (
+                  <div
+                    key={file.id}
+                    className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
+                      index !== recentFiles.length - 1
+                        ? "border-b border-[#DADADA]"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex min-w-[240px] items-center gap-2 w-[301px]">
+                      <img
+                        loading="lazy"
+                        src={file.icon}
+                        className="w-9 h-9"
+                        alt="File icon"
+                      />
+                      {file.subtitle ? (
+                        <div className="flex min-w-[240px] flex-col flex-1">
+                          <div className="text-sm font-medium leading-[1.29]">
+                            {file.name}
+                          </div>
+                          <div className="text-xs font-normal">
+                            {file.subtitle}
+                          </div>
+                        </div>
+                      ) : (
                         <div className="text-sm font-medium leading-[1.29]">
                           {file.name}
                         </div>
-                        <div className="text-xs font-normal">
-                          {file.subtitle}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-sm font-medium leading-[1.29]">
-                        {file.name}
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
 
-                  <div className="flex min-w-[240px] items-center gap-8 font-normal">
-                    <div className="text-sm leading-[1.29]">
-                      {file.category}
+                    <div className="flex min-w-[240px] items-center gap-8 font-normal">
+                      <div className="text-sm leading-[1.29]">{file.category}</div>
+                      <div className="flex flex-col w-[135px]">
+                        <div className="text-sm leading-[1.29]">{file.date}</div>
+                        <div className="text-xs">by {file.author}</div>
+                      </div>
+                      <ActionMenu
+                        itemId={`file-${file.id}`}
+                        onView={() => {
+                          setSelectedFile(file);
+                          setShowViewFileModal(true);
+                        }}
+                        onDelete={() => handleDeleteFile(file.id)}
+                      />
                     </div>
-                    <div className="flex flex-col w-[135px]">
-                      <div className="text-sm leading-[1.29]">{file.date}</div>
-                      <div className="text-xs">by {file.author}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* View Note Modal */}
+          {showViewNoteModal &&
+            selectedNote &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => {
+                  setShowViewNoteModal(false);
+                  setSelectedNote(null);
+                }}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">Note Details</div>
+                    <button
+                      onClick={() => {
+                        setShowViewNoteModal(false);
+                        setSelectedNote(null);
+                      }}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 6L18 18" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-4">
+                    <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">{selectedNote.text}</div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Type:</span> {selectedNote.type}
                     </div>
-                    <ActionMenu
-                      itemId={`file-${file.id}`}
-                      onView={() => alert(`View file: ${file.name}`)}
-                      onDelete={() => handleDeleteFile(file.id)}
-                    />
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Date:</span> {selectedNote.date}
+                    </div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Author:</span> {selectedNote.author}
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setShowViewNoteModal(false);
+                        setSelectedNote(null);
+                      }}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Close</span>
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>,
+              document.body,
+            )}
+
+          {/* View File Modal */}
+          {showViewFileModal &&
+            selectedFile &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
+                onClick={() => {
+                  setShowViewFileModal(false);
+                  setSelectedFile(null);
+                }}
+              >
+                <div
+                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+                    <div className="text-[#303030] font-medium text-lg">File Details</div>
+                    <button
+                      onClick={() => {
+                        setShowViewFileModal(false);
+                        setSelectedFile(null);
+                      }}
+                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 6L18 18" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="px-6 py-5 grid gap-4">
+                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                      <img src={selectedFile.icon} alt="" className="w-9 h-9" />
+                      <div>
+                        <div className="text-[#303030] font-medium">{selectedFile.name}</div>
+                        {selectedFile.subtitle ? (
+                          <div className="text-sm text-[#71717A]">{selectedFile.subtitle}</div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Category:</span> {selectedFile.category}
+                    </div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Date:</span> {selectedFile.date}
+                    </div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Author:</span> {selectedFile.author}
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setShowViewFileModal(false);
+                        setSelectedFile(null);
+                      }}
+                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-[#303030] font-normal text-base capitalize">Close</span>
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
 
           {/* MODALS */}
 
@@ -936,6 +1132,8 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Note</label>
                       <textarea
+                        value={noteDraft}
+                        onChange={(e) => setNoteDraft(e.target.value)}
                         placeholder="Enter your note"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764] min-h-[100px]"
                       />
@@ -950,10 +1148,37 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </button>
                     <button
                       onClick={() => {
-                        alert("Note added successfully!");
+                        const text = noteDraft.trim();
+                        if (!text) return;
+
+                        const now = new Date();
+                        const date = now.toLocaleString(undefined, {
+                          month: "numeric",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        });
+
+                        setRecentNotes((prev) => {
+                          const nextId = prev.length ? Math.max(...prev.map((n) => n.id)) + 1 : 1;
+                          return [
+                            ...prev,
+                            {
+                              id: nextId,
+                              text,
+                              type: "RENTAL",
+                              date,
+                              author: propertyManager,
+                            },
+                          ];
+                        });
+
+                        setNoteDraft("");
                         setShowAddNoteModal(false);
                       }}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                      disabled={!noteDraft.trim()}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="text-white font-medium text-base">Add</span>
                     </button>
@@ -1009,6 +1234,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <label className="text-sm font-medium text-[#303030]">File</label>
                       <input
                         type="file"
+                        onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
                         className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
                       />
                     </div>
@@ -1022,10 +1248,46 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     </button>
                     <button
                       onClick={() => {
-                        alert("File added successfully!");
+                        if (!fileDraft) return;
+
+                        const now = new Date();
+                        const date = now.toLocaleString(undefined, {
+                          month: "numeric",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        });
+
+                        const fileName = fileDraft.name;
+                        const ext = fileName.split(".").pop()?.toLowerCase() || "";
+                        const docIcon =
+                          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+                        const pdfIcon =
+                          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+                        const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+
+                        setRecentFiles((prev) => {
+                          const nextId = prev.length ? Math.max(...prev.map((f) => f.id)) + 1 : 1;
+                          return [
+                            ...prev,
+                            {
+                              id: nextId,
+                              name: fileName,
+                              category: "Uncategorized",
+                              date,
+                              author: propertyManager,
+                              type: ext || "file",
+                              icon,
+                            },
+                          ];
+                        });
+
+                        setFileDraft(null);
                         setShowAddFileModal(false);
                       }}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                      disabled={!fileDraft}
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="text-white font-medium text-base">Add</span>
                     </button>
