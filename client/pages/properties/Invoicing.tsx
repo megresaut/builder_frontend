@@ -180,7 +180,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
-  const [previewItemId, setPreviewItemId] = useState<number | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
