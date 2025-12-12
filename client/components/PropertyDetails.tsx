@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import AddPropertyModal from "@/components/AddPropertyModal";
+import PdfViewerModal from "@/components/PdfViewerModal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
   propertyLocation?: string;
+  propertyType?: string;
   rentalOwner?: string;
   propertyManager?: string;
   propertyImage?: string;
@@ -28,11 +31,13 @@ type RecentFile = {
   author: string;
   type: string;
   icon: string;
+  url?: string;
 };
 
 export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   propertyAddress,
   propertyLocation = "Westport, CT, 28282",
+  propertyType = "Concierge",
   rentalOwner = "Eunice Bae",
   propertyManager = "Jake Delardi",
   propertyImage = "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true",
@@ -50,6 +55,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
 
   const [noteDraft, setNoteDraft] = useState("");
+  const [viewNoteDraft, setViewNoteDraft] = useState("");
   const [fileDraft, setFileDraft] = useState<File | null>(null);
   const [selectedNote, setSelectedNote] = useState<RecentNote | null>(null);
   const [selectedFile, setSelectedFile] = useState<RecentFile | null>(null);
@@ -129,8 +135,23 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     setShowViewNoteModal(false);
   };
 
+  const revokeBlobUrl = (url?: string) => {
+    if (!url) return;
+    if (url.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   const handleDeleteFile = (id: number) => {
-    setRecentFiles((prev) => prev.filter((file) => file.id !== id));
+    setRecentFiles((prev) => {
+      const fileToDelete = prev.find((f) => f.id === id);
+      revokeBlobUrl(fileToDelete?.url);
+      return prev.filter((file) => file.id !== id);
+    });
     setSelectedFile(null);
     setShowViewFileModal(false);
   };
@@ -485,9 +506,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <div className="w-[135px]">{note.date}</div>
                       <div className="w-[118px]">{note.author}</div>
                       <ActionMenu
-                        itemId={`note-${note.id}`}
                         onView={() => {
                           setSelectedNote(note);
+                          setViewNoteDraft(note.text);
                           setShowViewNoteModal(true);
                         }}
                         onDelete={() => handleDeleteNote(note.id)}
@@ -577,7 +598,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         <div className="text-xs">by {file.author}</div>
                       </div>
                       <ActionMenu
-                        itemId={`file-${file.id}`}
                         onView={() => {
                           setSelectedFile(file);
                           setShowViewFileModal(true);
