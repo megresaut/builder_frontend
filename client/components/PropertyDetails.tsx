@@ -124,7 +124,8 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     ADDRESS
                   </div>
                   <div className="text-[#303030] text-base leading-[1.13] mt-1">
-                    {propertyAddress}
+                    <div>{propertyAddress}</div>
+                    <div>{propertyLocation}</div>
                   </div>
                   <button className="rounded-lg self-start flex mt-1 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]">
                     <img
