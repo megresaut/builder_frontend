@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
@@ -101,13 +102,12 @@ const ActionButton = ({
   vendorId,
   openMenuId,
   setOpenMenuId,
-  onEdit,
 }: {
   vendorId: number;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
-  onEdit: () => void;
 }) => {
+  const navigate = useNavigate();
   const showMenu = openMenuId === vendorId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -185,7 +185,7 @@ const ActionButton = ({
             <button
               onClick={() => {
                 setOpenMenuId(null);
-                onEdit();
+                navigate(`/vendors/${vendorId}`);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
@@ -254,6 +254,7 @@ const ActionButton = ({
 };
 
 export default function Vendors() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -557,6 +558,7 @@ export default function Vendors() {
                   {mockVendors.map((vendor) => (
                     <tr
                       key={vendor.id}
+                      onClick={() => navigate(`/vendors/${vendor.id}`)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -592,6 +594,7 @@ export default function Vendors() {
                         </span>
                       </td>
                       <td
+                        onClick={(e) => e.stopPropagation()}
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
                         style={{
                           borderLeftWidth: "2px",
@@ -606,7 +609,6 @@ export default function Vendors() {
                           vendorId={vendor.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
-                          onEdit={() => setIsAddVendorModalOpen(true)}
                         />
                       </td>
                     </tr>
