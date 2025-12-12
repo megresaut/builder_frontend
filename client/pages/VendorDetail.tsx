@@ -104,19 +104,29 @@ export default function VendorDetail() {
               </div>
               <div className="flex items-center gap-3" />
             </div>
-            <div className="flex items-center gap-3">
+            <div
+              className="flex"
+              style={{
+                flexDirection: "row",
+                gap: "8px",
+                width: "auto",
+                alignSelf: "center",
+              }}
+            >
               <button
+                data-builder-groupLocked="true"
                 className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
                 style={{
                   boxShadow:
                     "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
                 }}
               >
-                <span className="text-white font-medium text-base leading-normal">
-                  Edit Vendor
-                </span>
+                <div className="text-white font-medium text-base leading-normal">
+                  Edit Property
+                </div>
               </button>
               <button
+                data-builder-groupLocked="true"
                 className="flex w-10 h-10 justify-center items-center gap-2.5 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 style={{ borderWidth: "0.5px" }}
               >
