@@ -167,6 +167,7 @@ export default function InvoicePreviewModal({
       `}</style>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] md:max-w-[700px] max-h-[95vh] flex flex-col p-0">
+          <DialogTitle className="sr-only">Invoice Preview</DialogTitle>
           <div className="flex-1 overflow-y-auto bg-white">
             {/* Invoice Container */}
             <div
