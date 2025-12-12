@@ -95,10 +95,10 @@ export default function InvoicePreviewModal({
     element.appendChild(clone);
 
     const opt: any = {
-      margin: 0,
+      margin: [72, 72, 72, 72],
       filename: "invoice.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      image: { type: "png", quality: 0.98 },
+      html2canvas: { scale: 3, useCORS: true, logging: false },
       jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
     };
 
