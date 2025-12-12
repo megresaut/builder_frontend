@@ -94,10 +94,10 @@ export default function InvoicePreviewModal({
     element.style.fontFamily = "Inter, -apple-system, Roboto, Helvetica, sans-serif";
     element.appendChild(clone);
 
-    const opt = {
+    const opt: any = {
       margin: 0,
       filename: "invoice.pdf",
-      image: { type: "jpeg" as const, quality: 0.98 },
+      image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
     };
