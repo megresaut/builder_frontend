@@ -845,7 +845,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
                 {invoiceItems.map((item) => {
                   const isFTO = item.source === "FTO Submission";
-                  const isVendorImportPending = item.source === "Vendor-Import" && item.status === "Pending Approval";
                   return (
                   <div
                     key={item.id}
