@@ -507,9 +507,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       {note.text}
                     </div>
                     <div className="flex min-w-[240px] items-center gap-8 leading-[1.29]">
-                      <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                        {note.type}
-                      </div>
                       <div className="w-[135px]">{note.date}</div>
                       <div className="w-[118px]">{note.author}</div>
                       <ActionMenu
@@ -1088,48 +1085,45 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Monthly Rate</label>
                       <input
-                        type="text"
-                        value={monthlyRate}
+                        type="number"
+                        value={monthlyRate.replace(/[^0-9.]/g, '')}
                         onChange={(e) => {
                           const val = e.target.value;
-                          const cleanedVal = val.replace(/[^0-9./$]/g, '');
-                          if (!val || /^[$0-9.]+\/.*$|^[$0-9.]+$/.test(cleanedVal)) {
+                          if (!val || /^[0-9.]+$/.test(val)) {
                             setMonthlyRate(val);
                           }
                         }}
-                        placeholder="$0.00"
+                        placeholder="0.00"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Default Rate</label>
                       <input
-                        type="text"
-                        value={defaultRate}
+                        type="number"
+                        value={defaultRate.replace(/[^0-9.]/g, '')}
                         onChange={(e) => {
                           const val = e.target.value;
-                          const cleanedVal = val.replace(/[^0-9./$]/g, '');
-                          if (!val || /^[$0-9.]+\/.*$|^[$0-9.]+$/.test(cleanedVal)) {
+                          if (!val || /^[0-9.]+$/.test(val)) {
                             setDefaultRate(val);
                           }
                         }}
-                        placeholder="$0.00"
+                        placeholder="0.00"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Emergency Rate</label>
                       <input
-                        type="text"
-                        value={emergencyRate}
+                        type="number"
+                        value={emergencyRate.replace(/[^0-9.]/g, '')}
                         onChange={(e) => {
                           const val = e.target.value;
-                          const cleanedVal = val.replace(/[^0-9./$]/g, '');
-                          if (!val || /^[$0-9.]+\/.*$|^[$0-9.]+$/.test(cleanedVal)) {
+                          if (!val || /^[0-9.]+$/.test(val)) {
                             setEmergencyRate(val);
                           }
                         }}
-                        placeholder="$0.00"
+                        placeholder="0.00"
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
