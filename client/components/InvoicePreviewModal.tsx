@@ -469,6 +469,9 @@ export default function InvoicePreviewModal({
                   marginTop: "40px",
                   fontSize: "5px",
                   lineHeight: "6px",
+                  paddingLeft: "72px",
+                  paddingRight: "72px",
+                  paddingBottom: "72px",
                 }}
               >
                 <div style={{ fontWeight: 700, letterSpacing: "0.06px" }}>
