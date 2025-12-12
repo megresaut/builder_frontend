@@ -600,6 +600,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     const ordered = [...pendingFTOBills, ...pendingVendorImportBills];
     setApprovalOrderedBills(ordered);
     setApprovalReviewIndex(0);
+
+    const firstBill = ordered[0];
+    if (firstBill.source === "FTO Submission") {
+      openViewFTO();
+    } else if (firstBill.source === "Vendor-Import") {
+      openEditBill(
+        buildViewBillStateFromInvoiceItem(firstBill, propertyAddress),
+      );
+    }
   };
 
   const getCurrentApprovalBill = (): InvoiceItem | null => {
@@ -616,6 +625,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       setApprovalOrderedBills([]);
     } else {
       setApprovalReviewIndex(nextIndex);
+      const nextBill = approvalOrderedBills[nextIndex];
+      if (nextBill.source === "FTO Submission") {
+        openViewFTO();
+      } else if (nextBill.source === "Vendor-Import") {
+        openEditBill(
+          buildViewBillStateFromInvoiceItem(nextBill, propertyAddress),
+        );
+      }
     }
   };
 
