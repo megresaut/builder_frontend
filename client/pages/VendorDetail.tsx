@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
+
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Vendor {
   id: number;
@@ -22,7 +25,27 @@ interface Note {
   author: string;
 }
 
-const mockVendors: Vendor[] = [
+interface VendorInsurance {
+  id: number;
+  provider: string;
+  policyNumber: string;
+  expirationDate: string;
+}
+
+interface CustomField {
+  id: number;
+  name: string;
+  value: string;
+}
+
+interface VendorFile {
+  id: number;
+  name: string;
+  url?: string;
+  uploadedAt: string;
+}
+
+const MOCK_VENDORS: Vendor[] = [
   {
     id: 1,
     name: "Dolce Heating & Plumbing",
@@ -35,7 +58,7 @@ const mockVendors: Vendor[] = [
   },
 ];
 
-const mockNotes: Note[] = [
+const MOCK_NOTES: Note[] = [
   {
     id: 1,
     text: "Southern Conn Gas #05-00011476-6574",
@@ -68,50 +91,184 @@ const mockNotes: Note[] = [
   },
 ];
 
+const nextId = (items: { id: number }[]) => (items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1);
+
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
 
-  const vendor = mockVendors.find((v) => v.id === Number(vendorId)) || mockVendors[0];
+  const vendorFromRoute = useMemo(() => {
+    const id = Number(vendorId);
+    return MOCK_VENDORS.find((v) => v.id === id) || MOCK_VENDORS[0];
+  }, [vendorId]);
 
-  const [openNoteId, setOpenNoteId] = useState<number | null>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const menuRefMap = useRef<{ [key: number]: HTMLButtonElement | null }>({});
-
-  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
-  const [isViewNoteModalOpen, setIsViewNoteModalOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [newNoteContent, setNewNoteContent] = useState("");
+  const [vendor, setVendor] = useState<Vendor>(vendorFromRoute);
+  const [isInactive, setIsInactive] = useState(false);
 
   useEffect(() => {
-    let animationFrameId: number;
+    setVendor(vendorFromRoute);
+    setIsInactive(false);
+  }, [vendorFromRoute]);
 
-    const updateMenuPos = () => {
-      if (openNoteId !== null && menuRefMap.current[openNoteId]) {
-        const rect = menuRefMap.current[openNoteId]!.getBoundingClientRect();
-        setMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 120,
-        });
+  const [notes, setNotes] = useState<Note[]>(() => [...MOCK_NOTES]);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+
+  const [isAddEditNoteOpen, setIsAddEditNoteOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+
+  const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
+
+  const [vendorInsurances, setVendorInsurances] = useState<VendorInsurance[]>([]);
+  const [isAddInsuranceOpen, setIsAddInsuranceOpen] = useState(false);
+  const [insuranceProvider, setInsuranceProvider] = useState("");
+  const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
+  const [insuranceExpirationDate, setInsuranceExpirationDate] = useState("");
+
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
+  const [customFieldName, setCustomFieldName] = useState("");
+  const [customFieldValue, setCustomFieldValue] = useState("");
+
+  const [files, setFiles] = useState<VendorFile[]>([]);
+  const [isAddFileOpen, setIsAddFileOpen] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+
+  const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
+  const [vendorDraft, setVendorDraft] = useState<Vendor>(vendorFromRoute);
+
+  const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
+
+  const openAddNote = () => {
+    setEditingNoteId(null);
+    setNoteDraft("");
+    setIsAddEditNoteOpen(true);
+  };
+
+  const openEditNote = (note: Note) => {
+    setEditingNoteId(note.id);
+    setNoteDraft(note.text);
+    setIsAddEditNoteOpen(true);
+  };
+
+  const saveNote = () => {
+    const text = noteDraft.trim();
+    if (!text) return;
+
+    const now = new Date().toLocaleString();
+
+    setNotes((prev) => {
+      if (editingNoteId === null) {
+        const newNote: Note = {
+          id: nextId(prev),
+          text,
+          date: now,
+          author: "Current User",
+        };
+        return [newNote, ...prev];
       }
 
-      if (openNoteId !== null) {
-        animationFrameId = requestAnimationFrame(updateMenuPos);
-      }
-    };
+      return prev.map((n) =>
+        n.id === editingNoteId
+          ? {
+              ...n,
+              text,
+              date: now,
+            }
+          : n,
+      );
+    });
 
-    if (openNoteId !== null) {
-      updateMenuPos();
-    }
+    setIsAddEditNoteOpen(false);
+    setEditingNoteId(null);
+    setNoteDraft("");
+  };
 
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [openNoteId]);
+  const openEditVendor = () => {
+    setVendorDraft(vendor);
+    setIsEditVendorOpen(true);
+  };
 
-  const handleTabClick = (tab: string) => {
-    // Tab functionality for future use
+  const saveVendor = () => {
+    const trimmedName = vendorDraft.name.trim();
+    if (!trimmedName) return;
+
+    setVendor({
+      ...vendorDraft,
+      name: trimmedName,
+      category: vendorDraft.category.trim() || "Uncategorized",
+      email: vendorDraft.email?.trim() || undefined,
+      phone: vendorDraft.phone?.trim() || undefined,
+      address: vendorDraft.address?.trim() || undefined,
+      website: vendorDraft.website?.trim() || undefined,
+      servicesProvided: vendorDraft.servicesProvided?.trim() || undefined,
+    });
+    setIsEditVendorOpen(false);
+  };
+
+  const addInsurance = () => {
+    const provider = insuranceProvider.trim();
+    const policyNumber = insurancePolicyNumber.trim();
+    const expirationDate = insuranceExpirationDate.trim();
+    if (!provider || !policyNumber || !expirationDate) return;
+
+    setVendorInsurances((prev) => [
+      ...prev,
+      {
+        id: nextId(prev),
+        provider,
+        policyNumber,
+        expirationDate,
+      },
+    ]);
+
+    setInsuranceProvider("");
+    setInsurancePolicyNumber("");
+    setInsuranceExpirationDate("");
+    setIsAddInsuranceOpen(false);
+  };
+
+  const addCustomField = () => {
+    const name = customFieldName.trim();
+    const value = customFieldValue.trim();
+    if (!name || !value) return;
+
+    setCustomFields((prev) => [
+      ...prev,
+      {
+        id: nextId(prev),
+        name,
+        value,
+      },
+    ]);
+
+    setCustomFieldName("");
+    setCustomFieldValue("");
+    setIsAddCustomFieldOpen(false);
+  };
+
+  const addFile = () => {
+    const name = fileName.trim();
+    const url = fileUrl.trim();
+    if (!name) return;
+
+    setFiles((prev) => [
+      ...prev,
+      {
+        id: nextId(prev),
+        name,
+        url: url || undefined,
+        uploadedAt: new Date().toLocaleString(),
+      },
+    ]);
+
+    setFileName("");
+    setFileUrl("");
+    setIsAddFileOpen(false);
+  };
+
+  const handleTabClick = (_tab: string) => {
+    // reserved for future tab switching
   };
 
   return (
@@ -125,11 +282,15 @@ export default function VendorDetail() {
         }}
       >
         <div className="max-w-full flex flex-col gap-6">
-          {/* Vendor Header */}
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
               <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
                 {vendor.name}
+                {isInactive ? (
+                  <span className="ml-3 text-sm font-medium text-[#982740]">
+                    Inactive
+                  </span>
+                ) : null}
               </h1>
               <div className="flex items-center gap-3">
                 <div className="text-[#717179] font-medium text-base leading-4">
@@ -156,7 +317,10 @@ export default function VendorDetail() {
                 >
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
-                <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity">
+                <button
+                  onClick={openEditVendor}
+                  className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                >
                   <svg
                     width="14"
                     height="14"
@@ -169,9 +333,7 @@ export default function VendorDetail() {
                       fill="currentColor"
                     />
                   </svg>
-                  <div>
-                    Edit
-                  </div>
+                  <div>Edit</div>
                 </button>
                 <svg
                   width="14"
@@ -195,6 +357,7 @@ export default function VendorDetail() {
               }}
             >
               <button
+                onClick={() => setIsInactivateConfirmOpen(true)}
                 className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
                 style={{
                   boxShadow:
@@ -202,7 +365,7 @@ export default function VendorDetail() {
                 }}
               >
                 <div className="text-white font-medium text-base leading-normal">
-                  Inactivate Vendor
+                  {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
                 </div>
               </button>
               <button
@@ -242,7 +405,6 @@ export default function VendorDetail() {
             </div>
           </div>
 
-          {/* Tab Navigation */}
           <div className="flex h-9 items-start gap-6 self-stretch border-b border-[#E5E5E5]">
             <button
               onClick={() => handleTabClick("Overview")}
@@ -254,17 +416,18 @@ export default function VendorDetail() {
             </button>
           </div>
 
-          {/* Content Area */}
           <div className="flex items-start gap-6">
             <div className="flex-1 min-w-[240px] w-full">
               <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-4 flex flex-col">
-                {/* Vendor Information Section */}
                 <div className="flex flex-col font-medium">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Vendor Information
                     </h2>
-                    <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity">
+                    <button
+                      onClick={openEditVendor}
+                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                    >
                       <svg
                         width="14"
                         height="14"
@@ -281,10 +444,8 @@ export default function VendorDetail() {
                     </button>
                   </div>
 
-                  {/* Contact Details Grid */}
                   <div className="mt-3 flex flex-col whitespace-nowrap">
                     <div className="flex items-start gap-10 flex-wrap">
-                      {/* Email */}
                       <div className="flex flex-col w-[220px]">
                         <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
                           EMAIL
@@ -320,7 +481,6 @@ export default function VendorDetail() {
                         )}
                       </div>
 
-                      {/* Phone */}
                       <div className="flex flex-col">
                         <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
                           PHONE
@@ -330,7 +490,6 @@ export default function VendorDetail() {
                         </div>
                       </div>
 
-                      {/* Address */}
                       <div className="flex flex-col">
                         <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
                           ADDRESS
@@ -340,7 +499,6 @@ export default function VendorDetail() {
                         </div>
                       </div>
 
-                      {/* Website */}
                       <div className="flex flex-col">
                         <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
                           WEBSITE
@@ -352,7 +510,6 @@ export default function VendorDetail() {
                     </div>
                   </div>
 
-                  {/* Services Provided */}
                   <div className="mt-3 flex flex-col">
                     <div className="flex items-start gap-10">
                       <div className="flex flex-col">
@@ -367,90 +524,158 @@ export default function VendorDetail() {
                   </div>
                 </div>
 
-                {/* Divider */}
-                <div className="mt-5 w-full h-px" style={{ aspectRatio: "1000", objectFit: "contain" }}>
+                <div
+                  className="mt-5 w-full h-px"
+                  style={{ aspectRatio: "1000", objectFit: "contain" }}
+                >
                   <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="0" y1="0" x2="100%" y2="0" stroke="#E5E5E5" strokeWidth="1" />
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="100%"
+                      y2="0"
+                      stroke="#E5E5E5"
+                      strokeWidth="1"
+                    />
                   </svg>
                 </div>
 
-                {/* Vendor Insurance Section */}
                 <div className="mt-5 flex flex-col font-medium">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Vendor Insurance
                     </h2>
-                    <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity">
-                      <Plus className="w-3 h-3" />
-                      <span>Add</span>
-                    </button>
-                  </div>
-                  <p className="mt-3 text-[#303030] text-sm font-medium leading-[1.29]">
-                    No vendor insurance information on file.
-                  </p>
-                </div>
-
-                {/* Divider */}
-                <div className="mt-5 w-full h-px">
-                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="0" y1="0" x2="100%" y2="0" stroke="#E5E5E5" strokeWidth="1" />
-                  </svg>
-                </div>
-
-                {/* Custom Fields Section */}
-                <div className="mt-5 flex flex-col font-medium">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Custom Fields
-                    </h2>
-                    <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity">
-                      <Plus className="w-3 h-3" />
-                      <span>Add</span>
-                    </button>
-                  </div>
-                  <div className="mt-3 flex items-center justify-center min-h-[56px] w-full border border-[#DADADA] rounded-lg">
-                    <p className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] text-center px-3">
-                      There are no custom fields created to track additional information in this location. Contact your administrator to add custom fields.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="mt-5 w-full h-px">
-                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="0" y1="0" x2="100%" y2="0" stroke="#E5E5E5" strokeWidth="1" />
-                  </svg>
-                </div>
-
-                {/* Recent Notes Section */}
-                <div className="mt-5 flex flex-col">
-                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Recent Notes
-                    </h2>
                     <button
-                      onClick={() => {
-                        setNewNoteContent("");
-                        setIsAddNoteModalOpen(true);
-                      }}
+                      onClick={() => setIsAddInsuranceOpen(true)}
                       className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
                     >
                       <Plus className="w-3 h-3" />
                       <span>Add</span>
                     </button>
                   </div>
-                  {mockNotes.length === 0 ? (
-                    <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                      <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                        You don't have any notes for this vendor right now.{" "}
-                        <span className="font-medium text-[#2463EB] cursor-pointer hover:underline">
-                          Add your first note
-                        </span>
+
+                  {vendorInsurances.length === 0 ? (
+                    <p className="mt-3 text-[#303030] text-sm font-medium leading-[1.29]">
+                      No vendor insurance information on file.
+                    </p>
+                  ) : (
+                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
+                      {vendorInsurances.map((ins) => (
+                        <div
+                          key={ins.id}
+                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
+                        >
+                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                            {ins.provider}
+                          </div>
+                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
+                            {ins.policyNumber}
+                          </div>
+                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[180px]">
+                            Expires: {ins.expirationDate}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-5 w-full h-px">
+                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="100%"
+                      y2="0"
+                      stroke="#E5E5E5"
+                      strokeWidth="1"
+                    />
+                  </svg>
+                </div>
+
+                <div className="mt-5 flex flex-col font-medium">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Custom Fields
+                    </h2>
+                    <button
+                      onClick={() => setIsAddCustomFieldOpen(true)}
+                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add</span>
+                    </button>
+                  </div>
+
+                  {customFields.length === 0 ? (
+                    <div className="mt-3 flex items-center justify-center min-h-[56px] w-full border border-[#DADADA] rounded-lg">
+                      <p className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] text-center px-3">
+                        There are no custom fields created to track additional
+                        information in this location. Contact your administrator
+                        to add custom fields.
                       </p>
                     </div>
                   ) : (
                     <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {mockNotes.map((note) => (
+                      {customFields.map((field) => (
+                        <div
+                          key={field.id}
+                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
+                        >
+                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
+                            {field.name}
+                          </div>
+                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                            {field.value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-5 w-full h-px">
+                  <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="100%"
+                      y2="0"
+                      stroke="#E5E5E5"
+                      strokeWidth="1"
+                    />
+                  </svg>
+                </div>
+
+                <div className="mt-5 flex flex-col">
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Recent Notes
+                    </h2>
+                    <button
+                      onClick={openAddNote}
+                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add</span>
+                    </button>
+                  </div>
+
+                  {notes.length === 0 ? (
+                    <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
+                      <p className="text-[#303030] text-sm font-normal leading-[1.29]">
+                        You don't have any notes for this vendor right now.{" "}
+                        <button
+                          onClick={openAddNote}
+                          className="font-medium text-[#2463EB] hover:underline"
+                        >
+                          Add your first note
+                        </button>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
+                      {notes.map((note) => (
                         <div
                           key={note.id}
                           className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
@@ -465,78 +690,50 @@ export default function VendorDetail() {
                             <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
                               {note.author}
                             </div>
-                            <button
-                              ref={(el) => {
-                                if (el) menuRefMap.current[note.id] = el;
-                              }}
-                              onClick={() =>
-                                setOpenNoteId(openNoteId === note.id ? null : note.id)
-                              }
-                              className="w-4 h-4 flex items-center justify-center hover:opacity-70 transition-opacity relative"
-                            >
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <circle cx="12" cy="12" r="1" />
-                                <circle cx="19" cy="12" r="1" />
-                                <circle cx="5" cy="12" r="1" />
-                              </svg>
-                            </button>
 
-                            {openNoteId === note.id &&
-                              createPortal(
-                                <div
-                                  className="bg-white flex flex-col justify-center items-start gap-4 p-4"
-                                  style={{
-                                    width: "120px",
-                                    border: "0.5px solid #DADADA",
-                                    borderRadius: "8px",
-                                    boxShadow:
-                                      "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                                    zIndex: 99999,
-                                    position: "fixed",
-                                    top: menuPos.top + "px",
-                                    left: menuPos.left + "px",
-                                    pointerEvents: "auto",
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="w-4 h-4 flex items-center justify-center hover:opacity-70 transition-opacity">
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                  >
+                                    <circle cx="12" cy="12" r="1" />
+                                    <circle cx="19" cy="12" r="1" />
+                                    <circle cx="5" cy="12" r="1" />
+                                  </svg>
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
+                                style={{ border: "0.5px solid #DADADA" }}
+                              >
+                                <DropdownMenuItem
+                                  onSelect={(e) => {
+                                    e.preventDefault();
+                                    setSelectedNote(note);
+                                    setIsViewNoteOpen(true);
                                   }}
-                                  onMouseLeave={() => setOpenNoteId(null)}
+                                  className="w-full text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#303030]"
                                 >
-                                  <button
-                                    onClick={() => {
-                                      setSelectedNote(note);
-                                      setIsViewNoteModalOpen(true);
-                                      setOpenNoteId(null);
-                                    }}
-                                    className="w-full text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] hover:opacity-70 transition-opacity"
-                                    style={{
-                                      fontFamily:
-                                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                    }}
-                                  >
-                                    View
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const updatedNotes = mockNotes.filter((n) => n.id !== note.id);
-                                      Object.assign(mockNotes, updatedNotes);
-                                      setOpenNoteId(null);
-                                    }}
-                                    className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] hover:opacity-70 transition-opacity"
-                                    style={{
-                                      fontFamily:
-                                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                    }}
-                                  >
-                                    Delete
-                                  </button>
-                                </div>,
-                                document.body,
-                              )}
+                                  View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={(e) => {
+                                    e.preventDefault();
+                                    setNotes((prev) => prev.filter((n) => n.id !== note.id));
+                                  }}
+                                  className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       ))}
@@ -544,32 +741,79 @@ export default function VendorDetail() {
                   )}
                 </div>
 
-                {/* Divider */}
                 <div className="mt-5 w-full h-px">
                   <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="0" y1="0" x2="100%" y2="0" stroke="#E5E5E5" strokeWidth="1" />
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="100%"
+                      y2="0"
+                      stroke="#E5E5E5"
+                      strokeWidth="1"
+                    />
                   </svg>
                 </div>
 
-                {/* Recent Files Section */}
                 <div className="mt-5 flex flex-col">
                   <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Recent Files
                     </h2>
-                    <button className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity">
+                    <button
+                      onClick={() => setIsAddFileOpen(true)}
+                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                    >
                       <Plus className="w-3 h-3" />
                       <span>Add</span>
                     </button>
                   </div>
-                  <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                    <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                      You don't have any files for this vendor right now.{" "}
-                      <span className="font-medium text-[#2463EB] cursor-pointer hover:underline">
-                        Add your first file
-                      </span>
-                    </p>
-                  </div>
+
+                  {files.length === 0 ? (
+                    <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
+                      <p className="text-[#303030] text-sm font-normal leading-[1.29]">
+                        You don't have any files for this vendor right now.{" "}
+                        <button
+                          onClick={() => setIsAddFileOpen(true)}
+                          className="font-medium text-[#2463EB] hover:underline"
+                        >
+                          Add your first file
+                        </button>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
+                      {files.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
+                        >
+                          {file.url ? (
+                            <a
+                              href={file.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline"
+                            >
+                              {file.name}
+                            </a>
+                          ) : (
+                            <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                              {file.name}
+                            </div>
+                          )}
+                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[200px]">
+                            {file.uploadedAt}
+                          </div>
+                          <button
+                            onClick={() => setFiles((prev) => prev.filter((f) => f.id !== file.id))}
+                            className="text-[#982740] text-sm font-medium hover:opacity-80 transition-opacity"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -577,95 +821,458 @@ export default function VendorDetail() {
         </div>
       </div>
 
-      {/* Add Note Modal */}
-      {isAddNoteModalOpen &&
-        createPortal(
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-              <h2 className="text-[#303030] text-xl font-semibold mb-4">
-                Add Note
-              </h2>
-              <textarea
-                value={newNoteContent}
-                onChange={(e) => setNewNoteContent(e.target.value)}
-                placeholder="Enter your note here..."
-                className="w-full border border-[#DADADA] rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-[#2463EB] min-h-[120px]"
-              />
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setIsAddNoteModalOpen(false)}
-                  className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (newNoteContent.trim()) {
-                      const newNote: Note = {
-                        id: Math.max(...mockNotes.map((n) => n.id), 0) + 1,
-                        text: newNoteContent,
-                        date: new Date().toLocaleString(),
-                        author: "Current User",
-                      };
-                      mockNotes.unshift(newNote);
-                      setIsAddNoteModalOpen(false);
-                      setNewNoteContent("");
-                    }
-                  }}
-                  className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
-                >
-                  Save Note
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      <Dialog
+        open={isAddEditNoteOpen}
+        onOpenChange={(open) => {
+          setIsAddEditNoteOpen(open);
+          if (!open) {
+            setEditingNoteId(null);
+            setNoteDraft("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-[520px] p-6 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
+            {editingNoteId === null ? "Add Note" : "Edit Note"}
+          </DialogTitle>
 
-      {/* View Note Modal */}
-      {isViewNoteModalOpen && selectedNote &&
-        createPortal(
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-              <h2 className="text-[#303030] text-xl font-semibold mb-4">
-                Note Details
-              </h2>
-              <div className="mb-4">
-                <div className="text-[#303030] whitespace-pre-line mb-4 p-3 bg-gray-50 rounded-lg">
-                  {selectedNote.text}
-                </div>
-                <div className="text-sm text-[#71717A] mb-2">
-                  <span className="font-medium">Author:</span> {selectedNote.author}
-                </div>
-                <div className="text-sm text-[#71717A]">
-                  <span className="font-medium">Date:</span> {selectedNote.date}
-                </div>
+          <Textarea
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            placeholder="Enter your note here..."
+            className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
+          />
+
+          <DialogFooter className="mt-4 gap-3">
+            <button
+              onClick={() => setIsAddEditNoteOpen(false)}
+              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={saveNote}
+              disabled={!noteDraft.trim()}
+              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save Note
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isViewNoteOpen}
+        onOpenChange={(open) => {
+          setIsViewNoteOpen(open);
+          if (!open) setSelectedNote(null);
+        }}
+      >
+        <DialogContent className="max-w-[520px] p-6 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
+            Note Details
+          </DialogTitle>
+
+          {selectedNote ? (
+            <div>
+              <div className="text-[#303030] whitespace-pre-line mb-4 p-3 bg-gray-50 rounded-lg">
+                {selectedNote.text}
               </div>
-              <div className="flex gap-3 justify-end">
+              <div className="text-sm text-[#71717A] mb-2">
+                <span className="font-medium">Author:</span> {selectedNote.author}
+              </div>
+              <div className="text-sm text-[#71717A]">
+                <span className="font-medium">Date:</span> {selectedNote.date}
+              </div>
+
+              <DialogFooter className="mt-6 gap-3">
                 <button
-                  onClick={() => {
-                    setIsViewNoteModalOpen(false);
-                    setSelectedNote(null);
-                  }}
+                  onClick={() => setIsViewNoteOpen(false)}
                   className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => {
-                    setIsViewNoteModalOpen(false);
-                    setNewNoteContent(selectedNote.text);
+                    const noteToEdit = selectedNote;
+                    setIsViewNoteOpen(false);
                     setSelectedNote(null);
+                    openEditNote(noteToEdit);
                   }}
                   className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
                 >
                   Edit
                 </button>
+              </DialogFooter>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isAddInsuranceOpen}
+        onOpenChange={(open) => {
+          setIsAddInsuranceOpen(open);
+          if (!open) {
+            setInsuranceProvider("");
+            setInsurancePolicyNumber("");
+            setInsuranceExpirationDate("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-[520px] p-6 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
+            Add Vendor Insurance
+          </DialogTitle>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                Provider
+              </label>
+              <Input
+                value={insuranceProvider}
+                onChange={(e) => setInsuranceProvider(e.target.value)}
+                placeholder="Insurance provider"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                Policy Number
+              </label>
+              <Input
+                value={insurancePolicyNumber}
+                onChange={(e) => setInsurancePolicyNumber(e.target.value)}
+                placeholder="Policy number"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                Expiration Date
+              </label>
+              <Input
+                value={insuranceExpirationDate}
+                onChange={(e) => setInsuranceExpirationDate(e.target.value)}
+                placeholder="MM/DD/YYYY"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-6 gap-3">
+            <button
+              onClick={() => setIsAddInsuranceOpen(false)}
+              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addInsurance}
+              disabled={
+                !insuranceProvider.trim() ||
+                !insurancePolicyNumber.trim() ||
+                !insuranceExpirationDate.trim()
+              }
+              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isAddCustomFieldOpen}
+        onOpenChange={(open) => {
+          setIsAddCustomFieldOpen(open);
+          if (!open) {
+            setCustomFieldName("");
+            setCustomFieldValue("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-[520px] p-6 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
+            Add Custom Field
+          </DialogTitle>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                Field Name
+              </label>
+              <Input
+                value={customFieldName}
+                onChange={(e) => setCustomFieldName(e.target.value)}
+                placeholder="Field name"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                Value
+              </label>
+              <Input
+                value={customFieldValue}
+                onChange={(e) => setCustomFieldValue(e.target.value)}
+                placeholder="Value"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-6 gap-3">
+            <button
+              onClick={() => setIsAddCustomFieldOpen(false)}
+              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addCustomField}
+              disabled={!customFieldName.trim() || !customFieldValue.trim()}
+              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isAddFileOpen}
+        onOpenChange={(open) => {
+          setIsAddFileOpen(open);
+          if (!open) {
+            setFileName("");
+            setFileUrl("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-[520px] p-6 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
+            Add File
+          </DialogTitle>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                File Name
+              </label>
+              <Input
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                placeholder="File name"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                URL (optional)
+              </label>
+              <Input
+                value={fileUrl}
+                onChange={(e) => setFileUrl(e.target.value)}
+                placeholder="https://..."
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-6 gap-3">
+            <button
+              onClick={() => setIsAddFileOpen(false)}
+              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addFile}
+              disabled={!fileName.trim()}
+              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditVendorOpen} onOpenChange={setIsEditVendorOpen}>
+        <DialogContent className="max-w-[694px] p-8 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
+            Edit Vendor
+          </DialogTitle>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                  Vendor Name <span className="text-red-600">*</span>
+                </label>
+                <Input
+                  value={vendorDraft.name}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Input Vendor Name"
+                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                />
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                  Category
+                </label>
+                <Input
+                  value={vendorDraft.category}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => ({
+                      ...prev,
+                      category: e.target.value,
+                    }))
+                  }
+                  placeholder="Category"
+                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                />
               </div>
             </div>
-          </div>,
-          document.body,
-        )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                  Primary Email
+                </label>
+                <Input
+                  type="email"
+                  value={vendorDraft.email || ""}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                  placeholder="Input Vendor Email"
+                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                />
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                  Phone
+                </label>
+                <Input
+                  value={vendorDraft.phone || ""}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
+                  placeholder="Input Vendor Phone"
+                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                  Address
+                </label>
+                <Input
+                  value={vendorDraft.address || ""}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => ({
+                      ...prev,
+                      address: e.target.value,
+                    }))
+                  }
+                  placeholder="Address"
+                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                />
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                  Website
+                </label>
+                <Input
+                  value={vendorDraft.website || ""}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => ({
+                      ...prev,
+                      website: e.target.value,
+                    }))
+                  }
+                  placeholder="https://..."
+                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                Services Provided
+              </label>
+              <Input
+                value={vendorDraft.servicesProvided || ""}
+                onChange={(e) =>
+                  setVendorDraft((prev) => ({
+                    ...prev,
+                    servicesProvided: e.target.value,
+                  }))
+                }
+                placeholder="Services provided"
+                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+              />
+            </div>
+
+            <button
+              onClick={saveVendor}
+              disabled={!vendorDraft.name.trim()}
+              className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="text-white font-medium text-base">
+                Save Vendor
+              </span>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isInactivateConfirmOpen} onOpenChange={setIsInactivateConfirmOpen}>
+        <DialogContent className="max-w-[520px] p-6 gap-0">
+          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-2">
+            {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
+          </DialogTitle>
+          <p className="text-[#303030] text-sm leading-[1.4] mt-2">
+            {isInactive
+              ? "Activating will make this vendor available for new work orders and tasks."
+              : "Inactivating will prevent this vendor from being used for new work orders and tasks."}
+          </p>
+
+          <DialogFooter className="mt-6 gap-3">
+            <button
+              onClick={() => setIsInactivateConfirmOpen(false)}
+              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setIsInactive((v) => !v);
+                setIsInactivateConfirmOpen(false);
+              }}
+              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
+            >
+              Confirm
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
