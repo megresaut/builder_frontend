@@ -257,8 +257,20 @@ export default function InvoicePreviewModal({
                     INVOICE
                   </div>
                   <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
-                    <div style={{ fontSize: "10px" }}>DATE:</div>
-                    <div style={{ fontSize: "10px" }}>{invoiceDate}</div>
+                    <div style={{ display: "flex", flexDirection: "row" }}>
+                      <div
+                        data-builder-groupLocked="true"
+                        style={{ fontSize: "10px", fontWeight: "400" }}
+                      >
+                        DATE:
+                      </div>
+                      <div
+                        data-builder-groupLocked="true"
+                        style={{ fontSize: "10px", fontWeight: "400" }}
+                      >
+                        {"\u00A0"}{invoiceDate}
+                      </div>
+                    </div>
                   </div>
                   <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
                     {"\u00A0"}
@@ -270,7 +282,7 @@ export default function InvoicePreviewModal({
                     {"\u00A0"}
                   </div>
 
-                  <div style={{ marginTop: "60px" }}>
+                  <div style={{ marginTop: "80px" }}>
                     <div
                       style={{
                         letterSpacing: "1.2px",
