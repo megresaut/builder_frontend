@@ -576,6 +576,96 @@ export default function VendorDetail() {
           </div>
         </div>
       </div>
+
+      {/* Add Note Modal */}
+      {isAddNoteModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+              <h2 className="text-[#303030] text-xl font-semibold mb-4">
+                Add Note
+              </h2>
+              <textarea
+                value={newNoteContent}
+                onChange={(e) => setNewNoteContent(e.target.value)}
+                placeholder="Enter your note here..."
+                className="w-full border border-[#DADADA] rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-[#2463EB] min-h-[120px]"
+              />
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setIsAddNoteModalOpen(false)}
+                  className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (newNoteContent.trim()) {
+                      const newNote: Note = {
+                        id: Math.max(...mockNotes.map((n) => n.id), 0) + 1,
+                        text: newNoteContent,
+                        date: new Date().toLocaleString(),
+                        author: "Current User",
+                      };
+                      mockNotes.unshift(newNote);
+                      setIsAddNoteModalOpen(false);
+                      setNewNoteContent("");
+                    }
+                  }}
+                  className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
+                >
+                  Save Note
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {/* View Note Modal */}
+      {isViewNoteModalOpen && selectedNote &&
+        createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+              <h2 className="text-[#303030] text-xl font-semibold mb-4">
+                Note Details
+              </h2>
+              <div className="mb-4">
+                <div className="text-[#303030] whitespace-pre-line mb-4 p-3 bg-gray-50 rounded-lg">
+                  {selectedNote.text}
+                </div>
+                <div className="text-sm text-[#71717A] mb-2">
+                  <span className="font-medium">Author:</span> {selectedNote.author}
+                </div>
+                <div className="text-sm text-[#71717A]">
+                  <span className="font-medium">Date:</span> {selectedNote.date}
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setIsViewNoteModalOpen(false);
+                    setSelectedNote(null);
+                  }}
+                  className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setIsViewNoteModalOpen(false);
+                    setNewNoteContent(selectedNote.text);
+                    setSelectedNote(null);
+                  }}
+                  className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
