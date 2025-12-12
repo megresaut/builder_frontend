@@ -730,11 +730,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        item.status === "Pending Approval"
+                        showingPendingInsights && item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF] border-l-4"
                           : "border-[#DADADA]"
                       }`}
-                      style={{ borderLeftColor: item.status === "Pending Approval" ? "#6366F1" : "transparent" }}
+                      style={{ borderLeftColor: showingPendingInsights && item.status === "Pending Approval" ? "#6366F1" : "transparent" }}
                     >
                       <div
                         className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center"
@@ -783,7 +783,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        item.status === "Pending Approval"
+                        showingPendingInsights && item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -812,7 +812,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        item.status === "Pending Approval"
+                        showingPendingInsights && item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -841,7 +841,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        item.status === "Pending Approval"
+                        showingPendingInsights && item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -870,7 +870,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        item.status === "Pending Approval"
+                        showingPendingInsights && item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
@@ -899,7 +899,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        item.status === "Pending Approval"
+                        showingPendingInsights && item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
