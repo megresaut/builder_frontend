@@ -330,7 +330,7 @@ export default function InvoicePreviewModal({
                       {propertyAddress}
                     </div>
                     <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      Westport, CT, 28282
+                      {propertyLocation}
                     </div>
                   </div>
                 </div>
