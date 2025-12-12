@@ -309,15 +309,17 @@ export default function InvoicePreviewModal({
               </div>
 
               {/* Line Items */}
-              <div>
+              <div style={{ paddingLeft: "72px", paddingRight: "72px" }}>
                 {lineItems.map((item, index) => (
                   <div
                     key={item.id}
                     style={{
                       borderBottom:
-                        index < lineItems.length - 1
+                        lineItems.length === 1
                           ? "1px solid #BF8F00"
-                          : "none",
+                          : index < lineItems.length - 1
+                            ? "1px solid #BF8F00"
+                            : "none",
                       display: "flex",
                       minHeight: "17px",
                       alignItems: "center",
