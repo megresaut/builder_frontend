@@ -67,6 +67,10 @@ export default function InvoicePreviewModal({
     );
   };
 
+  const handleDownloadPDF = () => {
+    window.print();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] md:max-w-[850px] max-h-[95vh] flex flex-col p-0">
