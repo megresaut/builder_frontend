@@ -1373,7 +1373,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               }))
         }
         showCommitButton={invoicePreviewShowCommitButton}
-        onCommit={() => setShowInvoicePreview(false)}
       />
 
 
