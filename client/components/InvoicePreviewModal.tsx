@@ -410,22 +410,31 @@ export default function InvoicePreviewModal({
                         <input
                           type="text"
                           value={item.amount}
-                          onChange={(e) =>
-                            handleUpdateLineItem(item.id, "amount", e.target.value)
-                          }
+                          onChange={(e) => {
+                            // Accept any numeric input (digits and decimal point only)
+                            const value = e.target.value;
+                            // Allow digits, decimal point, and $ sign
+                            const numericValue = value.replace(/[^\d.]/g, "");
+                            if (numericValue || value === "") {
+                              handleUpdateLineItem(item.id, "amount", numericValue ? "$" + numericValue : "$0.00");
+                            }
+                          }}
+                          onFocus={(e) => {
+                            // When focused, select all so new typing replaces everything
+                            e.target.select();
+                          }}
                           onBlur={(e) => {
                             // Format with commas when user leaves the field
                             const formatted = formatAmountWithCommas(e.target.value);
-                            const itemId = parseInt(e.currentTarget.dataset.id || "0", 10);
+                            const itemId = item.id;
                             setLineItems(
-                              lineItems.map((item) =>
-                                item.id === itemId
-                                  ? { ...item, amount: formatted }
-                                  : item,
+                              lineItems.map((lineItem) =>
+                                lineItem.id === itemId
+                                  ? { ...lineItem, amount: formatted }
+                                  : lineItem,
                               ),
                             );
                           }}
-                          data-id={String(item.id)}
                           placeholder="$0.00"
                           className="edit-field"
                           style={{
