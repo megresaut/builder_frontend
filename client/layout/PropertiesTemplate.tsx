@@ -18,6 +18,7 @@ interface Property {
   buildingId: string;
   status: "active" | "inactive";
   units: number;
+  rentalOwner?: string;
 }
 
 interface PropertiesTemplateProps {
@@ -208,6 +209,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
             buildingId: property.buildingId,
             status: property.status,
             managers: property.managers,
+            rentalOwner: property.rentalOwner,
           }}
         />
       )}

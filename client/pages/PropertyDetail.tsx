@@ -26,6 +26,7 @@ interface Property {
   buildingId: string;
   status: "active" | "inactive";
   units: number;
+  rentalOwner?: string;
 }
 
 // Mock property data - in a real app, this would come from an API
@@ -42,6 +43,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "inactive",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "2": {
     id: 2,
@@ -55,6 +57,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "3": {
     id: 3,
@@ -68,6 +71,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "4": {
     id: 4,
@@ -80,6 +84,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "5": {
     id: 5,
@@ -93,6 +98,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "6": {
     id: 6,
@@ -105,6 +111,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "7": {
     id: 7,
@@ -118,6 +125,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "8": {
     id: 8,
@@ -130,6 +138,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "9": {
     id: 9,
@@ -143,6 +152,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
   "10": {
     id: 10,
@@ -155,6 +165,7 @@ const propertyData: Record<string, Property> = {
     buildingId: "624090",
     status: "active",
     units: 1,
+    rentalOwner: "Eunice Bae",
   },
 };
 
