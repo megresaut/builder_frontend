@@ -293,7 +293,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       glAccount: "N/A",
       description: "Buying door knobs for property",
       amount: "$45",
-      source: "Manual",
+      source: "FTO Submission",
       status: "Pending Approval",
       statusColor: "#D97706",
       statusBg: "#FEF3C7",
