@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
@@ -1131,11 +1132,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="px-6 py-5 grid gap-5">
                     <div className="grid gap-2">
                       <label className="text-sm font-medium text-[#303030]">Note</label>
-                      <textarea
+                      <Textarea
                         value={noteDraft}
                         onChange={(e) => setNoteDraft(e.target.value)}
-                        placeholder="Enter your note"
-                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764] min-h-[100px]"
+                        placeholder="Enter your note here..."
+                        className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
                       />
                     </div>
                   </div>

@@ -134,8 +134,7 @@ export default function VendorDetail() {
   const [isViewFileOpen, setIsViewFileOpen] = useState(false);
 
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
-  const [fileName, setFileName] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
+  const [fileDraft, setFileDraft] = useState<File | null>(null);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
   const [vendorDraft, setVendorDraft] = useState<Vendor>(vendorFromRoute);
@@ -229,6 +228,31 @@ export default function VendorDetail() {
     setInsurancePolicyNumber("");
     setInsuranceExpirationDate("");
     setIsAddInsuranceOpen(false);
+  };
+
+  const addFile = () => {
+    if (!fileDraft) return;
+
+    const now = new Date().toLocaleString();
+    const fileName = fileDraft.name;
+    const ext = fileName.split(".").pop()?.toLowerCase() || "";
+    const docIcon =
+      "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+    const pdfIcon =
+      "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+    const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+
+    setFiles((prev) => [
+      ...prev,
+      {
+        id: nextId(prev),
+        name: fileName,
+        uploadedAt: now,
+      },
+    ]);
+
+    setFileDraft(null);
+    setIsAddFileOpen(false);
   };
 
   const addCustomField = () => {
