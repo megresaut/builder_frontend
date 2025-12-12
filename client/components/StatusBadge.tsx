@@ -4,6 +4,7 @@ interface StatusBadgeProps {
   status:
     | "Paid"
     | "Pending"
+    | "Pending Approval"
     | "Partially Paid"
     | "Approved"
     | "Overdue"
