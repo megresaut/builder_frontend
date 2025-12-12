@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
 } from "@/components/InvoicePreviewModal";
+import FTOApprovalModal from "@/components/FTOApprovalModal";
 
 interface InvoicingProps {
   propertyAddress: string;
