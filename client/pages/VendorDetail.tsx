@@ -508,7 +508,8 @@ export default function VendorDetail() {
                                 >
                                   <button
                                     onClick={() => {
-                                      console.log("View note", note.id);
+                                      setSelectedNote(note);
+                                      setIsViewNoteModalOpen(true);
                                       setOpenNoteId(null);
                                     }}
                                     className="w-full text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] hover:opacity-70 transition-opacity"
@@ -521,7 +522,8 @@ export default function VendorDetail() {
                                   </button>
                                   <button
                                     onClick={() => {
-                                      console.log("Delete note", note.id);
+                                      const updatedNotes = mockNotes.filter((n) => n.id !== note.id);
+                                      Object.assign(mockNotes, updatedNotes);
                                       setOpenNoteId(null);
                                     }}
                                     className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] hover:opacity-70 transition-opacity"
