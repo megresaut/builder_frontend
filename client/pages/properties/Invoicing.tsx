@@ -283,6 +283,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       statusColor: "#2463EB",
       statusBg: "#DBE9FE",
     },
+    {
+      id: 4,
+      vendor: "Home Depot",
+      vendorIcon:
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390?placeholderIfAbsent=true",
+      vendorBg: "#FFF4ED",
+      vendorBorder: "rgba(251, 146, 60, 0.22)",
+      glAccount: "N/A",
+      description: "Buying door knobs for property",
+      amount: "$45",
+      source: "Manual",
+      status: "Pending Approval",
+      statusColor: "#D97706",
+      statusBg: "#FEF3C7",
+    },
   ];
 
   type InvoiceHistoryStatus = "Paid" | "Partially Paid" | "Overdue";
