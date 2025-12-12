@@ -1296,6 +1296,28 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         showCommitButton={invoicePreviewShowCommitButton}
         onCommit={handleCommitInvoice}
         pendingUnapprovedCount={pendingApprovalBills.length}
+        billOptions={invoiceItems
+          .filter((item) => item.source !== "FTO Submission")
+          .map((item) => ({
+            id: String(item.id),
+            label: `${item.vendor} — ${item.description} (${item.amount})`,
+            lineItem: {
+              vendor: item.vendor,
+              description: item.description,
+              amount: item.amount,
+            },
+          }))}
+        ftoOptions={invoiceItems
+          .filter((item) => item.source === "FTO Submission")
+          .map((item) => ({
+            id: String(item.id),
+            label: `${item.vendor} — ${item.description} (${item.amount})`,
+            lineItem: {
+              vendor: item.vendor,
+              description: item.description,
+              amount: item.amount,
+            },
+          }))}
       />
 
       <FTOApprovalModal
