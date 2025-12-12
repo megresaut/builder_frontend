@@ -595,6 +595,29 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   };
 
+  const handleViewInsights = () => {
+    const ordered = [...pendingFTOBills, ...pendingVendorImportBills];
+    setApprovalOrderedBills(ordered);
+    setApprovalReviewIndex(0);
+  };
+
+  const getCurrentApprovalBill = (): InvoiceItem | null => {
+    if (approvalReviewIndex === null || approvalReviewIndex >= approvalOrderedBills.length) {
+      return null;
+    }
+    return approvalOrderedBills[approvalReviewIndex];
+  };
+
+  const handleApproveOrCancel = () => {
+    const nextIndex = (approvalReviewIndex ?? 0) + 1;
+    if (nextIndex >= approvalOrderedBills.length) {
+      setApprovalReviewIndex(null);
+      setApprovalOrderedBills([]);
+    } else {
+      setApprovalReviewIndex(nextIndex);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-0">
       {/* Alert Banner */}
