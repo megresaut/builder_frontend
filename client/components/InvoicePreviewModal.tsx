@@ -205,7 +205,7 @@ export default function InvoicePreviewModal({
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  marginBottom: "30px",
+                  marginBottom: "5px",
                   width: "725px",
                 }}
               >
@@ -213,22 +213,21 @@ export default function InvoicePreviewModal({
                   <div
                     style={{
                       letterSpacing: "1.5px",
-                      marginBottom: "4px",
-                      font: "700 14px/21px Georgia, serif",
+                      font: "700 13px/21px Georgia, serif",
                     }}
                   >
                     AVMRE LLC
                   </div>
-                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
                     11 LARGO DRIVE SOUTH
                   </div>
-                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
                     SUITE 200
                   </div>
-                  <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
                     STAMFORD, CT 06907
                   </div>
-                  <div style={{ font: "700 11px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     203-987-7050
                   </div>
 
@@ -237,12 +236,12 @@ export default function InvoicePreviewModal({
                       style={{
                         letterSpacing: "1.2px",
                         marginBottom: "4px",
-                        font: "700 10px/15px Georgia, serif",
+                        font: "700 9px/15px Georgia, serif",
                       }}
                     >
                       BILL TO:
                     </div>
-                    <div style={{ font: "400 11px/16.5px Arial, sans-serif" }}>
+                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                       {billTo}
                     </div>
                   </div>
@@ -252,14 +251,14 @@ export default function InvoicePreviewModal({
                   <div
                     style={{
                       letterSpacing: "1.5px",
-                      marginBottom: "4px",
-                      font: "700 14px/21px Georgia, serif",
+                      font: "700 13px/21px Georgia, serif",
                     }}
                   >
                     INVOICE
                   </div>
                   <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
-                    DATE: {invoiceDate}
+                    <div style={{ fontSize: "10px" }}>DATE:</div>
+                    <div style={{ fontSize: "10px" }}>{invoiceDate}</div>
                   </div>
                   <div style={{ font: "400 11px/15.4px Arial, sans-serif" }}>
                     {"\u00A0"}
@@ -271,20 +270,20 @@ export default function InvoicePreviewModal({
                     {"\u00A0"}
                   </div>
 
-                  <div style={{ marginTop: "40px" }}>
+                  <div style={{ marginTop: "80px" }}>
                     <div
                       style={{
                         letterSpacing: "1.2px",
                         marginBottom: "4px",
-                        font: "700 10px/15px Georgia, serif",
+                        font: "700 9px/15px Georgia, serif",
                       }}
                     >
                       PROPERTY:
                     </div>
-                    <div style={{ font: "400 11px/16.5px Arial, sans-serif" }}>
+                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                       {propertyAddress}
                     </div>
-                    <div style={{ font: "400 11px/16.5px Arial, sans-serif" }}>
+                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                       {propertyLocation}
                     </div>
                   </div>
@@ -303,7 +302,7 @@ export default function InvoicePreviewModal({
                       textAlign: "left",
                       paddingBottom: "8px",
                       borderBottom: "1px solid #BF8F00",
-                      font: "700 11px/16.5px Arial, sans-serif"
+                      font: "700 9px/16.5px Arial, sans-serif"
                     }}>
                       Vendors
                     </th>
@@ -311,14 +310,14 @@ export default function InvoicePreviewModal({
                       textAlign: "left",
                       paddingBottom: "8px",
                       borderBottom: "1px solid #BF8F00",
-                      font: "700 11px/16.5px Arial, sans-serif"
+                      font: "700 9px/16.5px Arial, sans-serif"
                     }}>
                       Description
                     </th>
-                    <th style={{ 
-                      fontSize: "11px",
+                    <th style={{
+                      fontSize: "9px",
                       fontWeight: 700,
-                      textAlign: "right",
+                      textAlign: "left",
                       paddingBottom: "8px",
                       borderBottom: "1px solid #BF8F00",
                       width: "120px"
@@ -350,9 +349,10 @@ export default function InvoicePreviewModal({
                             border: "none",
                             outline: "none",
                             background: "transparent",
-                            fontSize: "11px",
                             color: "#002060",
-                            fontFamily: "Arial, sans-serif",
+                            overflowWrap: "anywhere",
+                            wordWrap: "anywhere",
+                            font: "400 9px Arial, sans-serif",
                             padding: 0
                           }}
                         />
@@ -378,9 +378,10 @@ export default function InvoicePreviewModal({
                             border: "none",
                             outline: "none",
                             background: "transparent",
-                            fontSize: "11px",
                             color: "#002060",
-                            fontFamily: "Arial, sans-serif",
+                            overflowWrap: "anywhere",
+                            wordWrap: "anywhere",
+                            font: "400 9px Arial, sans-serif",
                             padding: 0
                           }}
                         />
@@ -449,9 +450,10 @@ export default function InvoicePreviewModal({
                             border: "none",
                             outline: "none",
                             background: "transparent",
-                            fontSize: "11px",
                             color: "#002060",
-                            fontFamily: "Arial, sans-serif",
+                            overflowWrap: "anywhere",
+                            wordWrap: "anywhere",
+                            font: "400 9px Arial, sans-serif",
                             textAlign: "left",
                             padding: "0"
                           }}
@@ -499,7 +501,7 @@ export default function InvoicePreviewModal({
                   TOTAL:
                 </div>
                 <div style={{
-                  fontSize: "11px",
+                  fontSize: "9px",
                   fontWeight: 700,
                   backgroundColor: "#F2F2F2",
                   padding: "8px 12px",
