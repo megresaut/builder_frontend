@@ -111,7 +111,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   };
 
   // Action Menu Component
-  const ActionMenu = ({ itemId, onView, onDelete }: { itemId: number; onView: () => void; onDelete: () => void }) => {
+  const ActionMenu = ({ itemId, onView, onDelete }: { itemId: string; onView: () => void; onDelete: () => void }) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -122,7 +122,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           left: rect.right - 145,
         });
       }
-    }, [itemId]);
+    }, [itemId, openMenuId]);
 
     return (
       <>
