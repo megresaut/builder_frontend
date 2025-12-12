@@ -770,10 +770,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
                         item.status === "Pending Approval"
-                          ? "bg-[#FEF3C7] border-[#FCD34D] border-l-4"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF] border-l-4"
                           : "border-[#DADADA]"
                       }`}
-                      style={{ borderLeftColor: item.status === "Pending Approval" ? "#D97706" : "transparent" }}
+                      style={{ borderLeftColor: item.status === "Pending Approval" ? "#6366F1" : "transparent" }}
                     >
                       <div
                         className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center"
@@ -823,7 +823,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
                         item.status === "Pending Approval"
-                          ? "bg-[#FEF3C7] border-[#FCD34D]"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
                     >
@@ -852,7 +852,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
                         item.status === "Pending Approval"
-                          ? "bg-[#FEF3C7] border-[#FCD34D]"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
                     >
@@ -881,7 +881,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
                         item.status === "Pending Approval"
-                          ? "bg-[#FEF3C7] border-[#FCD34D]"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
                     >
@@ -910,7 +910,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
                         item.status === "Pending Approval"
-                          ? "bg-[#FEF3C7] border-[#FCD34D]"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
                     >
@@ -939,7 +939,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
                         item.status === "Pending Approval"
-                          ? "bg-[#FEF3C7] border-[#FCD34D]"
+                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
                           : "border-[#DADADA]"
                       }`}
                       style={{ borderRightWidth: "0px" }}
