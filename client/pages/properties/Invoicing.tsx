@@ -180,6 +180,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   propertyAddress,
   propertyType,
   propertyUnits,
+  propertyLocation,
 }) => {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
