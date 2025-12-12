@@ -106,12 +106,12 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
                 >
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
-                <a
-                  href="#"
-                  className="text-[#1357D5] font-medium text-base leading-[140%] hover:underline"
+                <button
+                  onClick={handleViewOnMap}
+                  className="text-[#1357D5] font-medium text-base leading-[140%] hover:underline bg-none border-none cursor-pointer p-0"
                 >
                   View on Map
-                </a>
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-2">
