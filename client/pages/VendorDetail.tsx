@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 
+import PdfViewerModal from "@/components/PdfViewerModal";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -230,6 +231,17 @@ export default function VendorDetail() {
     setIsAddInsuranceOpen(false);
   };
 
+  const revokeBlobUrl = (url?: string) => {
+    if (!url) return;
+    if (url.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   const addFile = () => {
     if (!fileDraft) return;
 
@@ -241,12 +253,14 @@ export default function VendorDetail() {
     const pdfIcon =
       "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
     const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+    const url = URL.createObjectURL(fileDraft);
 
     setFiles((prev) => [
       ...prev,
       {
         id: nextId(prev),
         name: fileName,
+        url,
         uploadedAt: now,
       },
     ]);
@@ -860,7 +874,10 @@ export default function VendorDetail() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onSelect={() => {
-                                  setFiles((prev) => prev.filter((f) => f.id !== file.id));
+                                  setFiles((prev) => {
+                                    revokeBlobUrl(file.url);
+                                    return prev.filter((f) => f.id !== file.id);
+                                  });
                                 }}
                                 className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
                               >
@@ -879,47 +896,15 @@ export default function VendorDetail() {
         </div>
       </div>
 
-      <Dialog
+      <PdfViewerModal
         open={isViewFileOpen}
         onOpenChange={(open) => {
           setIsViewFileOpen(open);
           if (!open) setSelectedFile(null);
         }}
-      >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            File Details
-          </DialogTitle>
-
-          {selectedFile ? (
-            <div>
-              <div className="text-[#303030] mb-4 p-3 bg-gray-50 rounded-lg">
-                <div className="font-medium">{selectedFile.name}</div>
-                <div className="text-sm text-[#71717A] mt-2">Uploaded: {selectedFile.uploadedAt}</div>
-              </div>
-
-              <DialogFooter className="mt-6 gap-3">
-                <button
-                  onClick={() => setIsViewFileOpen(false)}
-                  className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Close
-                </button>
-                {selectedFile.url ? (
-                  <a
-                    href={selectedFile.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
-                  >
-                    Open
-                  </a>
-                ) : null}
-              </DialogFooter>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+        title={selectedFile?.name || "File Preview"}
+        url={selectedFile?.url}
+      />
 
       <Dialog
         open={isAddEditNoteOpen}
