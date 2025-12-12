@@ -4,6 +4,7 @@ interface StatusBadgeProps {
   status:
     | "Paid"
     | "Pending"
+    | "Partially Paid"
     | "Approved"
     | "Overdue"
     | "Draft"
@@ -20,6 +21,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
       case "Paid":
         return "rgb(39, 176, 125)";
       case "Pending":
+      case "Partially Paid":
         return "rgb(214, 133, 10)";
       case "Approved":
         return "rgb(36, 99, 235)";

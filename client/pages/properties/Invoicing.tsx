@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import RecordBillModal from "@/components/RecordBillModal";
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface InvoicingProps {
   propertyAddress: string;
@@ -203,7 +204,24 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
-  const invoiceItems = [
+  type InvoiceItemStatus = "Paid" | "Pending" | "Approved";
+
+  interface InvoiceItem {
+    id: number;
+    vendor: string;
+    vendorIcon: string;
+    vendorBg: string;
+    vendorBorder: string;
+    glAccount: string;
+    description: string;
+    amount: string;
+    source: string;
+    status: InvoiceItemStatus;
+    statusColor: string;
+    statusBg: string;
+  }
+
+  const invoiceItems: InvoiceItem[] = [
     {
       id: 1,
       vendor: "Elite HVAC",
@@ -251,7 +269,20 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
     },
   ];
 
-  const invoiceHistory = [
+  type InvoiceHistoryStatus = "Paid" | "Partially Paid" | "Overdue";
+
+  interface InvoiceHistoryItem {
+    id: number;
+    date: string;
+    dueDate: string;
+    amount: string;
+    status: InvoiceHistoryStatus;
+    statusColor: string;
+    statusBg: string;
+    statusIcon: string;
+  }
+
+  const invoiceHistory: InvoiceHistoryItem[] = [
     {
       id: 1,
       date: "Oct 1, 2025",
@@ -686,29 +717,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3"
                       style={{ borderRightWidth: "0px" }}
                     >
-                      <div
-                        className="flex items-center gap-1.5 rounded-2xl px-3 py-1"
-                        style={{
-                          backgroundColor: item.statusBg,
-                          color: item.statusColor,
-                        }}
-                      >
-                        <img
-                          loading="lazy"
-                          src={
-                            item.statusColor === "#059669"
-                              ? "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1530b55e05a0c9f46cbec0184275150b4ba73383?placeholderIfAbsent=true"
-                              : item.statusColor === "#D97706"
-                                ? "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/e1e02c6b8e50157c1e39178ae05d8f743788ee90?placeholderIfAbsent=true"
-                                : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/a0937a543ac664bb2ae058d40061589d8c33951f?placeholderIfAbsent=true"
-                          }
-                          className="w-4 h-4"
-                          alt=""
-                        />
-                        <div className="text-base font-normal leading-[1.4] tracking-[-0.32px]">
-                          {item.status}
-                        </div>
-                      </div>
+                      <StatusBadge status={item.status} />
                     </div>
                   ))}
                 </div>
@@ -947,23 +956,7 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3"
                       style={{ borderLeftColor: "transparent" }}
                     >
-                      <div
-                        className="flex items-center gap-1.5 rounded-2xl px-3 py-1"
-                        style={{
-                          backgroundColor: item.statusBg,
-                          color: item.statusColor,
-                        }}
-                      >
-                        <img
-                          loading="lazy"
-                          src={item.statusIcon}
-                          className="w-4 h-4"
-                          alt=""
-                        />
-                        <div className="text-base font-normal leading-[1.4] tracking-[-0.32px]">
-                          {item.status}
-                        </div>
-                      </div>
+                      <StatusBadge status={item.status} />
                     </div>
                   ))}
                 </div>
