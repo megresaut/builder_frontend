@@ -266,7 +266,7 @@ export default function InvoicePreviewModal({
                     {"\u00A0"}
                   </div>
                   <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
-                    STAMFORD, CT 06907
+                    {"\u00A0"}
                   </div>
                   <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     {"\u00A0"}
