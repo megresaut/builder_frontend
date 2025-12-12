@@ -298,6 +298,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       statusColor: "#D97706",
       statusBg: "#FEF3C7",
     },
+    {
+      id: 5,
+      vendor: "ConEd Electric",
+      vendorIcon:
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390?placeholderIfAbsent=true",
+      vendorBg: "#E0F2FE",
+      vendorBorder: "rgba(2, 132, 199, 0.22)",
+      glAccount: "Utilities - Electric",
+      description: "Monthly electric bill - October 2025",
+      amount: "$285",
+      source: "Utility-Import",
+      status: "Approved",
+      statusColor: "#059669",
+      statusBg: "#D1FAE5",
+    },
   ];
 
   type InvoiceHistoryStatus = "Paid" | "Partially Paid" | "Overdue";
