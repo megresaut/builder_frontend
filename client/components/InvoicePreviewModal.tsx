@@ -77,11 +77,11 @@ export default function InvoicePreviewModal({
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
     clone.querySelectorAll(".print-only").forEach((el) => {
-      (el as HTMLElement).style.display = "block";
+      (el as HTMLElement).style.display = "inline";
     });
 
     const element = document.createElement("div");
-    element.style.width = "210mm";
+    element.style.width = "816px";
     element.style.padding = "0";
     element.style.margin = "0";
     element.style.background = "white";
@@ -92,18 +92,16 @@ export default function InvoicePreviewModal({
       filename: "invoice.pdf",
       image: { type: "png", quality: 1 },
       html2canvas: { 
-        scale: 6, 
+        scale: 2, 
         useCORS: true, 
         logging: false, 
         allowTaint: true,
         letterRendering: true,
-        backgroundColor: "#ffffff",
-        windowHeight: 1188,
-        windowWidth: 840
+        backgroundColor: "#ffffff"
       },
       jsPDF: { 
-        unit: "mm", 
-        format: "a4", 
+        unit: "px", 
+        format: [816, 1056], 
         orientation: "portrait",
         compress: true
       },
@@ -124,399 +122,296 @@ export default function InvoicePreviewModal({
             display: none !important;
           }
         }
-        
-        .invoice-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
-        }
-        
-        .invoice-table th {
-          font-size: 23px;
-          font-weight: 700;
-          line-height: 1.25;
-          text-align: left;
-          padding-bottom: 4px;
-        }
-        
-        .invoice-table td {
-          font-size: 23px;
-          font-weight: 400;
-          line-height: 1.25;
-          padding-top: 21px;
-          vertical-align: top;
-        }
-        
-        .invoice-row {
-          border-bottom: 2px solid rgba(191, 143, 0, 1);
-          min-height: 71px;
-        }
-        
-        .amount-cell {
-          background-color: rgba(242, 242, 242, 1);
-          text-align: right;
-          letter-spacing: -0.73px;
-          padding-left: 21px;
-          padding-right: 21px;
-        }
       `}</style>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] md:max-w-[880px] max-h-[95vh] flex flex-col p-0">
           <DialogTitle className="sr-only">Invoice Preview</DialogTitle>
-          <div className="flex-1 overflow-y-auto bg-white flex justify-center items-start">
-            {/* Invoice Container */}
+          <div className="flex-1 overflow-y-auto bg-white flex justify-center items-start p-4">
+            {/* Invoice Container - Letter Size 8.5x11 inches = 816x1056px */}
             <div
               ref={invoiceRef}
               style={{
-                width: "2546px",
-                maxWidth: "100%",
-                paddingTop: "18px",
-                paddingBottom: "18px",
+                width: "816px",
+                minHeight: "1056px",
+                padding: "60px 72px",
                 backgroundColor: "white",
                 fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "rgba(0, 32, 96, 1)",
+                color: "#002060",
+                boxSizing: "border-box",
               }}
             >
-              <div
-                style={{
-                  paddingLeft: "300px",
-                  paddingRight: "200px",
-                  paddingTop: "299px",
-                  paddingBottom: "200px",
-                }}
-              >
-                <div style={{ maxWidth: "2047px" }}>
-                  {/* Header Section */}
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      paddingRight: "83px",
-                      alignItems: "start",
-                      gap: "100px",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {/* Left Column */}
-                    <div
-                      style={{
-                        display: "flex",
-                        minWidth: "240px",
-                        flexDirection: "column",
-                        width: "416px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "38px",
-                          fontWeight: 700,
-                          letterSpacing: "4.78px",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        AVMRE LLC
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "29px",
-                          fontWeight: 400,
-                          lineHeight: 1.29,
-                          letterSpacing: "1.14px",
-                        }}
-                      >
-                        11 LARGO DRIVE SOUTH
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "29px",
-                          fontWeight: 400,
-                          lineHeight: 1.29,
-                        }}
-                      >
-                        SUITE 200
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "29px",
-                          fontWeight: 400,
-                          lineHeight: 1.29,
-                          letterSpacing: "0.45px",
-                        }}
-                      >
-                        STAMFORD, CT 06907
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "29px",
-                          fontWeight: 700,
-                          lineHeight: 1.29,
-                          letterSpacing: "-2.73px",
-                        }}
-                      >
-                        203-987-7050
-                      </div>
-
-                      <div style={{ marginTop: "162px" }}>
-                        <div
-                          style={{
-                            fontSize: "22px",
-                            fontWeight: 700,
-                            letterSpacing: "3.51px",
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          BILL TO:
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "23px",
-                            fontWeight: 400,
-                            lineHeight: 1.25,
-                          }}
-                        >
-                          {billTo}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div
-                      style={{
-                        display: "flex",
-                        minWidth: "240px",
-                        minHeight: "445px",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div>
-                        <div
-                          style={{
-                            fontSize: "38px",
-                            fontWeight: 700,
-                            lineHeight: 1.2,
-                            letterSpacing: "4.78px",
-                          }}
-                        >
-                          INVOICE
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "29px",
-                            fontWeight: 400,
-                            lineHeight: 1.29,
-                          }}
-                        >
-                          DATE: {invoiceDate}
-                        </div>
-                      </div>
-                      <div style={{ marginTop: "271px" }}>
-                        <div
-                          style={{
-                            fontSize: "22px",
-                            fontWeight: 700,
-                            lineHeight: 1.3,
-                            letterSpacing: "3.16px",
-                          }}
-                        >
-                          PROPERTY:
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "23px",
-                            fontWeight: 400,
-                            lineHeight: 1.25,
-                            letterSpacing: "-0.36px",
-                          }}
-                        >
-                          {propertyAddress}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "23px",
-                            fontWeight: 400,
-                            lineHeight: 1.25,
-                            letterSpacing: "-0.73px",
-                          }}
-                        >
-                          {propertyLocation}
-                        </div>
-                      </div>
-                    </div>
+              {/* Header Section */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between",
+                marginBottom: "60px"
+              }}>
+                {/* Left Column - Company Info */}
+                <div>
+                  <div style={{ 
+                    fontSize: "14px", 
+                    fontWeight: 700,
+                    letterSpacing: "1.5px",
+                    marginBottom: "4px"
+                  }}>
+                    AVMRE LLC
                   </div>
-
-                  {/* Table */}
-                  <div style={{ marginTop: "37px" }}>
-                    <table className="invoice-table">
-                      <thead>
-                        <tr>
-                          <th style={{ width: "487px" }}>Vendors</th>
-                          <th style={{ width: "1173px" }}>Description</th>
-                          <th style={{ width: "295px", textAlign: "right" }}>AMOUNT</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {lineItems.map((item, index) => (
-                          <tr key={item.id} className="invoice-row">
-                            <td>
-                              <input
-                                type="text"
-                                value={item.vendor}
-                                onChange={(e) =>
-                                  handleUpdateLineItem(item.id, "vendor", e.target.value)
-                                }
-                                className="edit-field"
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  background: "transparent",
-                                  fontSize: "23px",
-                                  lineHeight: 1.25,
-                                  color: "rgba(0, 32, 96, 1)",
-                                  fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-                                  fontWeight: 400,
-                                }}
-                              />
-                              <span className="print-only">{item.vendor}</span>
-                            </td>
-                            <td style={{ letterSpacing: "-0.36px" }}>
-                              <input
-                                type="text"
-                                value={item.description}
-                                onChange={(e) =>
-                                  handleUpdateLineItem(item.id, "description", e.target.value)
-                                }
-                                className="edit-field"
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  background: "transparent",
-                                  fontSize: "23px",
-                                  lineHeight: 1.25,
-                                  color: "rgba(0, 32, 96, 1)",
-                                  fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-                                  fontWeight: 400,
-                                }}
-                              />
-                              <span className="print-only">{item.description}</span>
-                            </td>
-                            <td className="amount-cell">
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <input
-                                  type="text"
-                                  value={item.amount}
-                                  onChange={(e) =>
-                                    handleUpdateLineItem(item.id, "amount", e.target.value)
-                                  }
-                                  className="edit-field"
-                                  style={{
-                                    flex: 1,
-                                    border: "none",
-                                    outline: "none",
-                                    background: "transparent",
-                                    fontSize: "23px",
-                                    lineHeight: 1.25,
-                                    color: "rgba(0, 32, 96, 1)",
-                                    fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-                                    fontWeight: 400,
-                                    textAlign: "right",
-                                  }}
-                                />
-                                <span className="print-only" style={{ flex: 1, textAlign: "right" }}>{item.amount}</span>
-                                <button
-                                  onClick={() => handleRemoveLineItem(item.id)}
-                                  className="no-print"
-                                  style={{
-                                    border: "none",
-                                    background: "none",
-                                    color: "#ef4444",
-                                    cursor: "pointer",
-                                    fontSize: "24px",
-                                    fontWeight: "bold",
-                                    padding: "0 8px",
-                                    marginLeft: "12px",
-                                  }}
-                                  title="Remove line item"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                    11 LARGO DRIVE SOUTH
                   </div>
-
-                  {/* Total */}
-                  <div
-                    style={{
-                      display: "flex",
-                      marginTop: "42px",
-                      height: "54px",
-                      alignItems: "end",
+                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                    SUITE 200
+                  </div>
+                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                    STAMFORD, CT 06907
+                  </div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, lineHeight: "1.4" }}>
+                    203-987-7050
+                  </div>
+                  
+                  <div style={{ marginTop: "40px" }}>
+                    <div style={{ 
+                      fontSize: "10px", 
                       fontWeight: 700,
-                      fontSize: "23px",
-                      lineHeight: 1.25,
-                      justifyContent: "end",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div style={{ letterSpacing: "1.46px", width: "129px" }}>
-                      TOTAL:
+                      letterSpacing: "1.2px",
+                      marginBottom: "4px"
+                    }}>
+                      BILL TO:
                     </div>
-                    <div
-                      style={{
-                        backgroundColor: "rgba(242, 242, 242, 1)",
-                        minWidth: "240px",
-                        minHeight: "54px",
-                        paddingLeft: "21px",
-                        paddingRight: "21px",
-                        display: "flex",
-                        alignItems: "end",
-                        letterSpacing: "-1.09px",
-                        width: "395px",
-                      }}
-                    >
-                      <div style={{ width: "166px" }}>
-                        ${calculateTotal().toFixed(2)}
-                      </div>
+                    <div style={{ fontSize: "11px" }}>
+                      {billTo}
                     </div>
                   </div>
+                </div>
 
-                  {/* Footer */}
-                  <div
-                    style={{
-                      marginTop: "4px",
-                      fontSize: "21px",
-                      fontWeight: 400,
-                      lineHeight: 1.18,
-                    }}
-                  >
-                    <div style={{ fontWeight: 700, letterSpacing: "0.25px" }}>
-                      Please make all checks payable to AVMRE LLC
+                {/* Right Column - Invoice Info */}
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ 
+                    fontSize: "14px", 
+                    fontWeight: 700,
+                    letterSpacing: "1.5px",
+                    marginBottom: "4px"
+                  }}>
+                    INVOICE
+                  </div>
+                  <div style={{ fontSize: "11px", marginBottom: "40px" }}>
+                    DATE: {invoiceDate}
+                  </div>
+                  
+                  <div>
+                    <div style={{ 
+                      fontSize: "10px", 
+                      fontWeight: 700,
+                      letterSpacing: "1.2px",
+                      marginBottom: "4px"
+                    }}>
+                      PROPERTY:
                     </div>
-                    <div style={{ letterSpacing: "-0.37px" }}>
-                      If you have any questions concerning this invoice, use the following contact information:
+                    <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                      {propertyAddress}
                     </div>
-                    <div style={{ letterSpacing: "-1.33px" }}>203-987-7050</div>
-                    <div
-                      style={{
-                        color: "rgba(5, 99, 193, 1)",
-                        letterSpacing: "0.99px",
-                      }}
-                    >
-                      <a href="mailto:STAFF@AVMRE.COM" target="_blank" style={{ color: "inherit", textDecoration: "none" }}>
-                        STAFF@AVMRE.COM
-                      </a>
-                    </div>
-                    <div style={{ fontWeight: 700, letterSpacing: "0.66px" }}>
-                      THANK YOU FOR YOUR BUSINESS!
+                    <div style={{ fontSize: "11px", lineHeight: "1.4" }}>
+                      {propertyLocation}
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Table */}
+              <table style={{ 
+                width: "100%", 
+                borderCollapse: "collapse",
+                marginBottom: "20px"
+              }}>
+                <thead>
+                  <tr>
+                    <th style={{ 
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textAlign: "left",
+                      paddingBottom: "8px",
+                      borderBottom: "1px solid #BF8F00"
+                    }}>
+                      Vendors
+                    </th>
+                    <th style={{ 
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textAlign: "left",
+                      paddingBottom: "8px",
+                      borderBottom: "1px solid #BF8F00"
+                    }}>
+                      Description
+                    </th>
+                    <th style={{ 
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textAlign: "right",
+                      paddingBottom: "8px",
+                      borderBottom: "1px solid #BF8F00",
+                      width: "120px"
+                    }}>
+                      AMOUNT
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item) => (
+                    <tr key={item.id}>
+                      <td style={{ 
+                        fontSize: "11px",
+                        paddingTop: "12px",
+                        paddingBottom: "12px",
+                        borderBottom: "1px solid #BF8F00",
+                        verticalAlign: "top"
+                      }}>
+                        <input
+                          type="text"
+                          value={item.vendor}
+                          onChange={(e) =>
+                            handleUpdateLineItem(item.id, "vendor", e.target.value)
+                          }
+                          className="edit-field"
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            outline: "none",
+                            background: "transparent",
+                            fontSize: "11px",
+                            color: "#002060",
+                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            padding: 0
+                          }}
+                        />
+                        <span className="print-only">{item.vendor}</span>
+                      </td>
+                      <td style={{ 
+                        fontSize: "11px",
+                        paddingTop: "12px",
+                        paddingBottom: "12px",
+                        borderBottom: "1px solid #BF8F00",
+                        verticalAlign: "top"
+                      }}>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) =>
+                            handleUpdateLineItem(item.id, "description", e.target.value)
+                          }
+                          className="edit-field"
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            outline: "none",
+                            background: "transparent",
+                            fontSize: "11px",
+                            color: "#002060",
+                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            padding: 0
+                          }}
+                        />
+                        <span className="print-only">{item.description}</span>
+                      </td>
+                      <td style={{ 
+                        fontSize: "11px",
+                        paddingTop: "12px",
+                        paddingBottom: "12px",
+                        borderBottom: "1px solid #BF8F00",
+                        backgroundColor: "#F2F2F2",
+                        textAlign: "right",
+                        paddingRight: "12px",
+                        verticalAlign: "top",
+                        position: "relative"
+                      }}>
+                        <input
+                          type="text"
+                          value={item.amount}
+                          onChange={(e) =>
+                            handleUpdateLineItem(item.id, "amount", e.target.value)
+                          }
+                          className="edit-field"
+                          style={{
+                            width: "calc(100% - 30px)",
+                            border: "none",
+                            outline: "none",
+                            background: "transparent",
+                            fontSize: "11px",
+                            color: "#002060",
+                            fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+                            textAlign: "right",
+                            padding: 0
+                          }}
+                        />
+                        <span className="print-only">{item.amount}</span>
+                        <button
+                          onClick={() => handleRemoveLineItem(item.id)}
+                          className="no-print"
+                          style={{
+                            position: "absolute",
+                            right: "4px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            border: "none",
+                            background: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                            padding: "0 4px",
+                            lineHeight: "1"
+                          }}
+                          title="Remove line item"
+                        >
+                          ×
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Total */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "flex-end",
+                alignItems: "center",
+                marginBottom: "40px"
+              }}>
+                <div style={{ 
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  marginRight: "20px"
+                }}>
+                  TOTAL:
+                </div>
+                <div style={{ 
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  backgroundColor: "#F2F2F2",
+                  padding: "8px 12px",
+                  textAlign: "right",
+                  width: "120px"
+                }}>
+                  ${calculateTotal().toFixed(2)}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ fontSize: "10px", lineHeight: "1.6" }}>
+                <div style={{ fontWeight: 700, marginBottom: "4px" }}>
+                  Please make all checks payable to AVMRE LLC
+                </div>
+                <div style={{ marginBottom: "4px" }}>
+                  If you have any questions concerning this invoice, use the following contact information:
+                </div>
+                <div style={{ marginBottom: "4px" }}>203-987-7050</div>
+                <div style={{ color: "#0563C1", marginBottom: "4px" }}>
+                  <a href="mailto:STAFF@AVMRE.COM" style={{ color: "inherit", textDecoration: "none" }}>
+                    STAFF@AVMRE.COM
+                  </a>
+                </div>
+                <div style={{ fontWeight: 700 }}>
+                  THANK YOU FOR YOUR BUSINESS!
                 </div>
               </div>
             </div>
