@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
-import { useModalNavigation } from "@/hooks/useModalNavigation";
 
 interface Vendor {
   id: number;
