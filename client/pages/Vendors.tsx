@@ -838,6 +838,57 @@ export default function Vendors() {
           onClose={() => setIsAddVendorModalOpen(false)}
         />
       )}
+
+      {showColumnModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[#303030] font-semibold text-lg">
+                Manage Columns
+              </h2>
+              <button
+                onClick={() => setShowColumnModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {allAvailableColumns.map((colKey) => (
+                <label
+                  key={colKey}
+                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns.has(colKey)}
+                    onChange={() => toggleColumnVisibility(colKey)}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                  <div className="flex items-center gap-2">
+                    {columnConfig[colKey]?.icon}
+                    <span className="text-[#303030] font-normal text-base">
+                      {columnConfig[colKey]?.label}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 flex gap-2">
+              <button
+                onClick={() => setShowColumnModal(false)}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
