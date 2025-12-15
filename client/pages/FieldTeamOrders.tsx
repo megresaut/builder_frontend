@@ -843,11 +843,7 @@ export default function FieldTeamOrders() {
                   {getDisplayedOrdersForPage().map((order) => {
                     const handleRowClick = (e: React.MouseEvent) => {
                       const target = e.target as HTMLElement;
-                      // Don't navigate if clicking on actions cell or any button inside it
-                      if (
-                        target.closest("td:last-child") ||
-                        target.closest("button")
-                      ) {
+                      if (target.closest("td:last-child") || target.closest("button")) {
                         return;
                       }
                       navigate(`/tasks/${order.taskId}/fieldteam`);
@@ -858,67 +854,67 @@ export default function FieldTeamOrders() {
                         className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                         onClick={handleRowClick}
                       >
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{
-                                backgroundColor:
-                                  order.priority === "low"
-                                    ? "#059669"
-                                    : order.priority === "normal"
-                                      ? "#2463eb"
-                                      : "#d97706",
-                              }}
-                            />
-                            <span className="text-gray-900 font-normal text-sm capitalize">
-                              {order.priority}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            {order.property}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            {order.description}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            {order.dueDate}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {order.fieldTeam.map((member, idx) => (
-                              <div key={idx} className="relative group">
+                        {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            {colKey === "priority" && (
+                              <div className="flex items-center gap-2">
                                 <div
-                                  className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                                  title={member.name}
-                                >
-                                  {member.initials}
-                                </div>
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                  {member.name}
-                                </div>
+                                  className="w-2 h-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      order.priority === "low"
+                                        ? "#059669"
+                                        : order.priority === "normal"
+                                          ? "#2463eb"
+                                          : "#d97706",
+                                  }}
+                                />
+                                <span className="text-gray-900 font-normal text-sm capitalize">
+                                  {order.priority}
+                                </span>
                               </div>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          {getFTOStatusBadge(order.status)}
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          {getTimesheetStatusBadge(order.timesheetStatus)}
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            ${order.amount}
-                          </span>
-                        </td>
+                            )}
+                            {colKey === "property" && (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {order.property}
+                              </span>
+                            )}
+                            {colKey === "description" && (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {order.description}
+                              </span>
+                            )}
+                            {colKey === "dueDate" && (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {order.dueDate}
+                              </span>
+                            )}
+                            {colKey === "fieldTeam" && (
+                              <div className="flex items-center gap-2">
+                                {order.fieldTeam.map((member, idx) => (
+                                  <div key={idx} className="relative group">
+                                    <div
+                                      className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                      title={member.name}
+                                    >
+                                      {member.initials}
+                                    </div>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                      {member.name}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {colKey === "status" && getFTOStatusBadge(order.status)}
+                            {colKey === "timesheetStatus" && getTimesheetStatusBadge(order.timesheetStatus)}
+                            {colKey === "amount" && (
+                              <span className="text-gray-900 font-normal text-sm">
+                                ${order.amount}
+                              </span>
+                            )}
+                          </td>
+                        ))}
                         <td
                           className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                           style={{
