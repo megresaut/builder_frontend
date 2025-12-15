@@ -1575,7 +1575,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleWorkOrdersSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <img
                         loading="lazy"
@@ -1586,9 +1586,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Priority
                       </span>
+                      {getWorkOrdersSortIndicator("priority") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getWorkOrdersSortIndicator("priority")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleWorkOrdersSortClick("task")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1608,9 +1613,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Work Order
                       </span>
+                      {getWorkOrdersSortIndicator("task") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getWorkOrdersSortIndicator("task")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleWorkOrdersSortClick("dueDate")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1630,9 +1640,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Due Date
                       </span>
+                      {getWorkOrdersSortIndicator("dueDate") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getWorkOrdersSortIndicator("dueDate")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleWorkOrdersSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1652,9 +1667,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Status
                       </span>
+                      {getWorkOrdersSortIndicator("status") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getWorkOrdersSortIndicator("status")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleWorkOrdersSortClick("billStatus")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1674,9 +1694,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Bill Status
                       </span>
+                      {getWorkOrdersSortIndicator("billStatus") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getWorkOrdersSortIndicator("billStatus")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleWorkOrdersSortClick("billTotal")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1696,6 +1721,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Bill Total
                       </span>
+                      {getWorkOrdersSortIndicator("billTotal") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getWorkOrdersSortIndicator("billTotal")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
@@ -1733,7 +1763,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {mockPropertyWorkOrders.map((workOrder) => {
+                {getWorkOrdersSortedData().map((workOrder) => {
                   const handleRowClick = (e: React.MouseEvent) => {
                     if ((e.target as HTMLElement).closest("td:last-child")) {
                       return;
