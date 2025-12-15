@@ -75,6 +75,37 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     };
   }, []);
 
+  // Detect modal-like pages and manage collapse state
+  useEffect(() => {
+    const isModal = isModalLikePage(location.pathname);
+
+    if (isModal && !forceCollapse) {
+      // Entering a modal-like page: save current state and collapse
+      previousCollapseStateRef.current = {
+        sidebarCollapsed: localStorage.getItem("sidebar-state") === "collapsed",
+        tabsCollapsed: localStorage.getItem("tabs-state") === "collapsed",
+      };
+      setForceCollapse(true);
+    } else if (!isModal && forceCollapse) {
+      // Leaving a modal-like page: restore previous state
+      const savedState = previousCollapseStateRef.current;
+      if (savedState) {
+        if (!savedState.sidebarCollapsed) {
+          localStorage.removeItem("sidebar-state");
+        } else {
+          localStorage.setItem("sidebar-state", "collapsed");
+        }
+        if (!savedState.tabsCollapsed) {
+          localStorage.removeItem("tabs-state");
+        } else {
+          localStorage.setItem("tabs-state", "collapsed");
+        }
+      }
+      setForceCollapse(false);
+      previousCollapseStateRef.current = null;
+    }
+  }, [location.pathname, forceCollapse]);
+
   // Get the current tab ID based on the route
   const getCurrentTabId = (): string => {
     const path = location.pathname;
