@@ -100,7 +100,7 @@ const ActionButton = ({
             onMouseDown={(e) => e.stopPropagation()}
             style={{
               width: "145px",
-              border: "0.5px solid #DADADA",
+              border: "0.5px solid #e5e5e5",
               borderRadius: "8px",
               boxShadow:
                 "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
@@ -1449,7 +1449,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <div
             className="bg-white overflow-hidden"
             style={{
-              border: "0.5px solid #DADADA",
+              border: "0.5px solid #e5e5e5",
               borderRadius: "8px",
               boxShadow:
                 "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
