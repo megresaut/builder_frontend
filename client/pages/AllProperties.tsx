@@ -389,7 +389,7 @@ export default function AllProperties() {
     }
   }, [showPageSizeDropdown]);
 
-  const totalProperties = properties.length;
+  const totalProperties = getSortedData().length;
   const totalPages = Math.ceil(totalProperties / itemsPerPage);
 
   const getPaginationNumbers = () => {
