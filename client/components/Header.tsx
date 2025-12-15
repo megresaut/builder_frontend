@@ -24,7 +24,11 @@ interface Tab {
   label: string;
 }
 
-export default function Header() {
+interface HeaderProps {
+  forceCollapse?: boolean;
+}
+
+export default function Header({ forceCollapse = false }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
