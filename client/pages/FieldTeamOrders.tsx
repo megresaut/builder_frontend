@@ -535,7 +535,7 @@ export default function FieldTeamOrders() {
     }
   }, [showPageSizeDropdown]);
 
-  const totalOrders = fieldTeamOrders.length;
+  const totalOrders = getSortedData().length;
   const totalPages = Math.ceil(totalOrders / itemsPerPage);
 
   const getPaginationNumbers = () => {
