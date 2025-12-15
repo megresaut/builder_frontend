@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import AddPropertyModal from "@/components/AddPropertyModal";
 
