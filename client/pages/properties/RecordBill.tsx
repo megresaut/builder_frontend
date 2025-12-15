@@ -1258,7 +1258,7 @@ export const RecordBill = () => {
                                   left: invoiceDateCalendarPos.left + "px",
                                   pointerEvents: "auto",
                                 }}
-                                onMouseLeave={() => setShowInvoiceDateCalendar(false)}
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <button
