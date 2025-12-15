@@ -1,8 +1,8 @@
 import { usePageState } from "@/hooks/usePageState";
 
-export function useSortingTable<T extends Record<string, any>>(data: T[]) {
-  const [sortBy, setSortBy] = usePageState<string>("sortBy", "");
-  const [sortOrder, setSortOrder] = usePageState<"asc" | "desc">("sortOrder", "asc");
+export function useSortingTable<T extends Record<string, any>>(data: T[], namespace: string = "default") {
+  const [sortBy, setSortBy] = usePageState<string>(`${namespace}_sortBy`, "");
+  const [sortOrder, setSortOrder] = usePageState<"asc" | "desc">(`${namespace}_sortOrder`, "asc");
 
   const getSortedData = () => {
     if (!sortBy) return data;
