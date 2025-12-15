@@ -983,6 +983,7 @@ export default function Vendors() {
               <label
                 key={colKey}
                 className="flex items-center justify-between gap-3 w-full px-3 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
+                onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center gap-2">
                   <input
@@ -993,6 +994,7 @@ export default function Vendors() {
                     style={{
                       accentColor: "#013764",
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <span
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]"
