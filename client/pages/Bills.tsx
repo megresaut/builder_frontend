@@ -640,9 +640,10 @@ export default function Bills() {
     <div
       className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
       style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
-        paddingBottom: "150px",
+        borderLeftWidth: "1.33333px",
+        border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+        padding: "32px 32px 150px",
+        minHeight: "1339px",
       }}
     >
       <div className="max-w-full mx-auto flex flex-col gap-6">
