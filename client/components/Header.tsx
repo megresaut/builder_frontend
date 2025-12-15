@@ -524,36 +524,32 @@ export default function Header() {
     const sectionId = getSectionIdFromPath(location.pathname);
     const defaultTabId = getDefaultTabIdForSection(sectionId);
 
-    setOpenTabs((prevOpenTabs) => {
-      setSelectedTab((prevSelectedTab) => {
-        // Determine which tab should be selected
-        const targetTabId = defaultTabId || prevSelectedTab;
+    // Determine which tab should be selected and opened
+    const targetTabId = defaultTabId || selectedTab;
 
-        // Open the default tab if it's not already open
-        if (defaultTabId && !prevOpenTabs.has(defaultTabId)) {
-          setOpenTabs(new Set([...prevOpenTabs, defaultTabId]));
-        }
+    if (!targetTabId) return;
 
-        // Update metadata for the target tab
-        if (targetTabId) {
-          const metadata = tabMetadata[targetTabId];
-          if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
-            setTabMetadata(targetTabId, {
-              ...metadata,
-              label: currentPageInfo.label,
-              route: currentPageInfo.path,
-              sectionId: sectionId,
-            });
-          }
-        }
+    // Open the target tab if it's not already open
+    if (!openTabs.has(targetTabId)) {
+      setOpenTabs(new Set([...openTabs, targetTabId]));
+    }
 
-        // Return the new selected tab
-        return targetTabId;
+    // Select the target tab if it's not currently selected
+    if (selectedTab !== targetTabId) {
+      setSelectedTab(targetTabId);
+    }
+
+    // Update metadata for the target tab
+    const metadata = tabMetadata[targetTabId];
+    if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
+      setTabMetadata(targetTabId, {
+        ...metadata,
+        label: currentPageInfo.label,
+        route: currentPageInfo.path,
+        sectionId: sectionId,
       });
-
-      return prevOpenTabs;
-    });
-  }, [location.pathname, tabMetadata, setTabMetadata]);
+    }
+  }, [location.pathname]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
