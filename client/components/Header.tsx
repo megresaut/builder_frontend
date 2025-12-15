@@ -1004,7 +1004,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               return (
                 <div
                   key={tab.id}
-                  className="flex items-center transition-all whitespace-nowrap cursor-pointer hover:bg-gray-100"
+                  className="flex items-center transition-all cursor-pointer hover:bg-gray-100"
                   onClick={() => {
                     if (tab.id !== selectedTab) {
                       saveScrollPosition();
@@ -1018,9 +1018,13 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                       : "#f9fafb",
                     borderRadius: isSelected ? "12px 12px 0 0" : "0",
                     minHeight: "47px",
-                    gap: "35px",
+                    width: "220px",
                     margin: "8px 0 -2px",
                     padding: "0 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    overflow: "hidden",
                     ...(isSelected
                       ? {
                           borderTop: "1px solid #d2d1cf",
@@ -1037,18 +1041,21 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                   }}
                 >
                   <div
-                    className="flex items-center gap-2 pointer-events-none"
+                    className="flex items-center gap-2 pointer-events-none min-w-0"
+                    style={{ overflow: "hidden", flex: 1 }}
                   >
                     <span
-                      className="flex items-center justify-center w-5 h-5"
+                      className="flex items-center justify-center flex-shrink-0"
                       style={{
+                        width: "20px",
+                        height: "20px",
                         color: isSelected ? "#303030" : "#717179",
                       }}
                     >
                       {displayIcon}
                     </span>
                     <span
-                      className="text-sm font-medium"
+                      className="text-sm font-medium truncate"
                       style={{
                         fontFamily:
                           "Geist, -apple-system, Roboto, Helvetica, sans-serif",
