@@ -6,6 +6,8 @@ import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface Assignee {
   id: number;
