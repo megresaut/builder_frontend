@@ -1011,7 +1011,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
 
                 {/* Status Column */}
-                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[140px]">
+                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[140px]">
                   <div
                     className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("status")}
