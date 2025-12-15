@@ -144,9 +144,9 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           className="flex-1 overflow-auto bg-white"
           style={{ paddingBottom: "150px" }}
         >
-          <React.Fragment key={location.pathname}>
+          <div key={location.pathname} style={{ display: 'contents' }}>
             {children}
-          </React.Fragment>
+          </div>
         </div>
       </main>
     </div>
