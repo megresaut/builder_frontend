@@ -196,14 +196,14 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
                 key={tab}
                 onClick={() => handleTabClick(tab)}
                 className={`flex items-center gap-1.5 pb-2 border-b-[1.5px] transition-colors ${
-                  activeTab === tab
+                  currentActiveTab === tab
                     ? "border-b-[#09090B]"
                     : "border-b-transparent"
                 }`}
               >
                 <span
                   className={`font-medium text-base leading-5 transition-colors ${
-                    activeTab === tab
+                    currentActiveTab === tab
                       ? "text-[#09090B]"
                       : "text-[#717179] hover:text-[#303030]"
                   }`}
