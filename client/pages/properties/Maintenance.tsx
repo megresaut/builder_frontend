@@ -1176,7 +1176,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleRecurringSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <img
                         loading="lazy"
@@ -1187,9 +1187,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Priority
                       </span>
+                      {getRecurringSortIndicator("priority") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getRecurringSortIndicator("priority")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleRecurringSortClick("task")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1209,9 +1214,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Task
                       </span>
+                      {getRecurringSortIndicator("task") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getRecurringSortIndicator("task")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleRecurringSortClick("nextDate")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1231,9 +1241,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Next Date
                       </span>
+                      {getRecurringSortIndicator("nextDate") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getRecurringSortIndicator("nextDate")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleRecurringSortClick("category")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1253,6 +1268,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Category
                       </span>
+                      {getRecurringSortIndicator("category") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getRecurringSortIndicator("category")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
@@ -1282,7 +1302,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleRecurringSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -1302,6 +1322,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Status
                       </span>
+                      {getRecurringSortIndicator("status") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getRecurringSortIndicator("status")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
@@ -1312,7 +1337,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {mockPropertyRecurringTasks.map((task) => (
+                {getRecurringSortedData().map((task) => (
                   <tr
                     key={task.id}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
