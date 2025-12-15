@@ -439,6 +439,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [invoiceHistory, setInvoiceHistory] =
     useState<InvoiceHistoryItem[]>(seedInvoiceHistory);
 
+  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(invoiceItems);
+  const { handleSortClick: handleHistorySortClick, getSortIndicator: getHistorySortIndicator, getSortedData: getSortedHistoryItems } = useSortingTable(invoiceHistory);
+
   const toIsoDateTime = (date: Date) => date.toISOString();
 
   const buildViewBillStateFromInvoiceItem = (
