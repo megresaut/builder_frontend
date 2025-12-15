@@ -149,8 +149,10 @@ const ActionButton = ({
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      if (showMenu && buttonRef.current && !buttonRef.current.contains(target)) {
-        setOpenMenuId(null);
+      if (showMenu && buttonRef.current && menuRef.current) {
+        if (!buttonRef.current.contains(target) && !menuRef.current.contains(target)) {
+          setOpenMenuId(null);
+        }
       }
     };
 
