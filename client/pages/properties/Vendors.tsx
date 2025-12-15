@@ -574,11 +574,15 @@ export const Vendors: React.FC<VendorsProps> = ({
                         return (
                           <td
                             key={colKey}
-                            className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                            className="px-3 py-3 border-r border-gray-200"
                           >
-                            <span className="text-gray-900 font-normal text-sm">
-                              {cellContent}
-                            </span>
+                            {typeof cellContent === 'string' ? (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {cellContent}
+                              </span>
+                            ) : (
+                              cellContent
+                            )}
                           </td>
                         );
                       })}
