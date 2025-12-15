@@ -1411,10 +1411,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     }
                     navigate(`/tasks/${task.id}`);
                   };
-                  const renderTaskCell = (columnKey: string) => {
-                    switch (columnKey) {
-                      case "priority":
-                        return (
+                  return (
+                    <tr
+                      key={task.id}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                      onClick={handleRowClick}
+                    >
+                      {tasksColumnManagement.visibleColumns.has("priority") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <div
                               className="w-2 h-2 rounded-full"
@@ -1431,9 +1435,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                               {task.priority}
                             </span>
                           </div>
-                        );
-                      case "status":
-                        return (
+                        </td>
+                      )}
+                      {tasksColumnManagement.visibleColumns.has("status") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <div
                               className="w-2 h-2 rounded-full"
@@ -1448,21 +1453,24 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                               {task.status}
                             </span>
                           </div>
-                        );
-                      case "title":
-                        return (
+                        </td>
+                      )}
+                      {tasksColumnManagement.visibleColumns.has("title") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <span className="text-gray-900 font-normal text-sm">
                             {task.title}
                           </span>
-                        );
-                      case "due":
-                        return (
+                        </td>
+                      )}
+                      {tasksColumnManagement.visibleColumns.has("due") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <span className="text-gray-900 font-normal text-sm">
                             {task.due}
                           </span>
-                        );
-                      case "assignees":
-                        return (
+                        </td>
+                      )}
+                      {tasksColumnManagement.visibleColumns.has("assignees") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             {task.assignees.map((assignee) => (
                               <div key={assignee.id} className="relative group">
@@ -1478,30 +1486,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                               </div>
                             ))}
                           </div>
-                        );
-                      default:
-                        return null;
-                    }
-                  };
-                  return (
-                    <tr
-                      key={task.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={handleRowClick}
-                    >
-                      {tasksColumnManagement.columnOrder.map((columnKey) => {
-                        if (!tasksColumnManagement.visibleColumns.has(columnKey)) {
-                          return null;
-                        }
-                        return (
-                          <td
-                            key={columnKey}
-                            className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
-                          >
-                            {renderTaskCell(columnKey)}
-                          </td>
-                        );
-                      })}
+                        </td>
+                      )}
                       <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
                         <ActionButton
                           itemId={task.id}
