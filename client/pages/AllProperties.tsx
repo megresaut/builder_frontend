@@ -686,66 +686,82 @@ export default function AllProperties() {
                         }
                         navigate(`/property/${property.id}`);
                       };
+
+                      const renderCell = (colKey: string) => {
+                        switch (colKey) {
+                          case "address":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {property.address}
+                              </span>
+                            );
+                          case "location":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {property.location}
+                              </span>
+                            );
+                          case "managers":
+                            return (
+                              <div className="flex items-center gap-2">
+                                {property.managers.map((manager) => (
+                                  <div
+                                    key={manager.id}
+                                    className="relative group"
+                                  >
+                                    <div
+                                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                      style={{
+                                        backgroundColor: "rgb(59, 130, 246)",
+                                        borderColor: "rgb(209, 213, 219)",
+                                        borderWidth: "1px",
+                                      }}
+                                      title={manager.name}
+                                    >
+                                      {manager.initials}
+                                    </div>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                      {manager.name}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          case "type":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {property.type}
+                              </span>
+                            );
+                          case "buildingId":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {property.buildingId}
+                              </span>
+                            );
+                          case "status":
+                            return <StatusBadge status={property.status} />;
+                          default:
+                            return null;
+                        }
+                      };
+
                       return (
                         <tr
                           key={property.id}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                           onClick={handleRowClick}
                         >
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {property.address}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {property.location}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              {property.managers.map((manager) => (
-                                <div
-                                  key={manager.id}
-                                  className="relative group"
-                                >
-                                  <div
-                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                                    style={{
-                                      backgroundColor: "rgb(59, 130, 246)",
-                                      borderColor: "rgb(209, 213, 219)",
-                                      borderWidth: "1px",
-                                    }}
-                                    title={manager.name}
-                                  >
-                                    {manager.initials}
-                                  </div>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                    {manager.name}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {property.type}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {property.buildingId}
-                            </span>
-                          </td>
-                          <td
-                            className="px-3 py-3 whitespace-nowrap"
-                            style={{
-                              borderRightWidth: "1px",
-                              border: "1px solid #e7e8ec",
-                            }}
-                          >
-                            <StatusBadge status={property.status} />
-                          </td>
+                          {columnOrder
+                            .filter((colKey) => visibleColumns.has(colKey))
+                            .map((colKey) => (
+                              <td
+                                key={colKey}
+                                className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                              >
+                                {renderCell(colKey)}
+                              </td>
+                            ))}
                           <td
                             className="sticky right-0 px-2 py-3 flex items-center justify-center"
                             style={{
