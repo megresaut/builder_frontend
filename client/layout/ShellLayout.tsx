@@ -135,7 +135,9 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           className="flex-1 overflow-auto bg-white"
           style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
         >
-          {children}
+          <div key={currentTabId}>
+            {children}
+          </div>
         </div>
       </main>
     </div>
