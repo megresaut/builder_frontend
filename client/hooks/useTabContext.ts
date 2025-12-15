@@ -22,6 +22,9 @@ interface TabMetadata {
   filters?: Record<string, unknown>;
   // Any other page-specific state
   pageState?: Record<string, unknown>;
+  // History tracking for this tab
+  history?: string[]; // Array of routes visited in this tab
+  historyIndex?: number; // Current position in history
 }
 
 interface TabContextType {
