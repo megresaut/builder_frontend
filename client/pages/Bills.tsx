@@ -1139,6 +1139,7 @@ export default function Bills() {
                             style={{
                               borderLeftWidth: "1px",
                               backgroundColor: "white",
+                              border: "1px none rgb(229, 231, 235)",
                             }}
                           >
                             <ActionButton
