@@ -552,10 +552,12 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
     const nextRoute = history[currentIndex + 1];
     if (nextRoute) {
       const newIndex = currentIndex + 1;
+      const sectionId = getSectionIdFromPath(nextRoute);
       setTabMetadata(selectedTab, {
         ...metadata,
         historyIndex: newIndex,
         route: nextRoute,
+        sectionId: sectionId,
       });
       navigate(nextRoute);
     }
