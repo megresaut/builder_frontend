@@ -372,7 +372,21 @@ export default function Vendors() {
     };
   }, [showColumnModal]);
 
-  const totalVendors = mockVendors.length;
+  const handleAddVendor = (vendorData: {
+    name: string;
+    email: string;
+    phone: string;
+    servicesProvided: string[];
+    notes: string;
+  }) => {
+    const newVendor: Vendor = {
+      id: Math.max(...vendors.map(v => v.id), 0) + 1,
+      ...vendorData,
+    };
+    setVendors([...vendors, newVendor]);
+  };
+
+  const totalVendors = vendors.length;
   const totalPages = Math.ceil(totalVendors / itemsPerPage);
 
   const getSortedAndPaginatedVendors = () => {
