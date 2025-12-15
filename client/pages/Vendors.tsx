@@ -827,7 +827,7 @@ export default function Vendors() {
                         }}
                         onMouseLeave={() => setShowPageSizeDropdown(false)}
                       >
-                        {[10, 25, 50, 100].map((size) => (
+                        {[10, 25, 50].map((size) => (
                           <button
                             key={size}
                             onClick={() => {
