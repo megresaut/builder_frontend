@@ -323,18 +323,22 @@ export default function Vendors() {
     };
   }, [showPageSizeDropdown]);
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside and ensure only one is open
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      // Close page size dropdown
-      if (showPageSizeDropdown && dropdownButtonRef.current && !dropdownButtonRef.current.contains(target)) {
-        setShowPageSizeDropdown(false);
-      }
+      const isDropdownButtonClick = dropdownButtonRef.current?.contains(target);
+      const isColumnButtonClick = columnButtonRef.current?.contains(target);
 
-      // Close column menu
-      if (showColumnModal && columnButtonRef.current && !columnButtonRef.current.contains(target)) {
+      // If clicking on a dropdown button, close the other dropdown
+      if (isDropdownButtonClick) {
+        setShowColumnModal(false);
+      } else if (isColumnButtonClick) {
+        setShowPageSizeDropdown(false);
+      } else {
+        // Clicking outside all dropdowns - close all
+        setShowPageSizeDropdown(false);
         setShowColumnModal(false);
       }
     };
