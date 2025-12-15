@@ -789,6 +789,43 @@ export default function Vendors() {
                       <path d="m6 9 6 6 6-6" />
                     </svg>
                   </button>
+                  {showPageSizeDropdown &&
+                    createPortal(
+                      <div
+                        className="bg-white flex flex-col justify-center items-start gap-1 p-2"
+                        style={{
+                          width: "80px",
+                          border: "0.5px solid #DADADA",
+                          borderRadius: "8px",
+                          boxShadow:
+                            "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                          zIndex: 99999,
+                          position: "fixed",
+                          top: dropdownPos.top + "px",
+                          left: dropdownPos.left + "px",
+                          pointerEvents: "auto",
+                        }}
+                        onMouseLeave={() => setShowPageSizeDropdown(false)}
+                      >
+                        {[10, 25, 50, 100].map((size) => (
+                          <button
+                            key={size}
+                            onClick={() => {
+                              setItemsPerPage(size);
+                              setCurrentPage(1);
+                              setShowPageSizeDropdown(false);
+                            }}
+                            className={cn(
+                              "w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded transition-colors",
+                              itemsPerPage === size ? "bg-gray-100 font-medium" : ""
+                            )}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>,
+                      document.body,
+                    )}
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
                   of {mockVendors.length}
