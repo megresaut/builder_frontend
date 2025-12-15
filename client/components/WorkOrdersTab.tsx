@@ -729,17 +729,17 @@ export default function WorkOrdersTab({
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {workOrder.task}
                       </span>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {workOrder.updatedDate}
                       </span>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {workOrder.age}
                       </span>
                     </td>
@@ -760,7 +760,7 @@ export default function WorkOrdersTab({
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {workOrder.dueDate}
                       </span>
                     </td>
@@ -783,7 +783,7 @@ export default function WorkOrdersTab({
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {workOrder.billTotal}
                       </span>
                     </td>
