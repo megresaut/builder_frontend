@@ -1159,6 +1159,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                           "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                         lineHeight: "24px",
                         color: isSelected ? "#303030" : "#717179",
+                        pointerEvents: "auto",
                       }}
                     >
                       {displayLabel}
