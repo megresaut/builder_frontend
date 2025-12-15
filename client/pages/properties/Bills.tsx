@@ -1087,9 +1087,7 @@ export const Bills: React.FC<BillsProps> = ({
                       const path = propertyId
                         ? `/property/${propertyId}/bills/record${isApproved ? "?readOnly=true" : ""}`
                         : `/bills/record${isApproved ? "?readOnly=true" : ""}`;
-                      navigate(path, {
-                        state: { bill: buildBillState(bill) },
-                      });
+                      navigateToModal(path);
                     };
                     return (
                       <tr
