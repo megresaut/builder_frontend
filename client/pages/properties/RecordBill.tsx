@@ -317,7 +317,14 @@ export const RecordBill = () => {
   const handleCancel = () => {
     closeViewer();
 
-    // Navigate back through the current tab's history instead of browser history
+    // Try to use the previousPage from navigation state (passed from the page that opened this modal)
+    const previousPage = (location.state as { previousPage?: string })?.previousPage;
+    if (previousPage) {
+      navigate(previousPage);
+      return;
+    }
+
+    // Fallback to tab history if available
     if (tabContext) {
       const selectedTab = tabContext.selectedTab;
       const metadata = tabContext.tabMetadata[selectedTab];
@@ -340,7 +347,7 @@ export const RecordBill = () => {
       }
     }
 
-    // Fallback to browser history if no tab history available
+    // Final fallback to browser history
     navigate(-1);
   };
 
