@@ -1074,7 +1074,7 @@ export const Bills: React.FC<BillsProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {displayedBills
+                {getSortedData()
                   .slice(
                     (currentPage - 1) * itemsPerPage,
                     currentPage * itemsPerPage,
