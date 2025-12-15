@@ -305,40 +305,8 @@ export default function Vendors() {
   const totalVendors = mockVendors.length;
   const totalPages = Math.ceil(totalVendors / itemsPerPage);
 
-  const getSortedVendors = () => {
-    const sorted = [...mockVendors].sort((a, b) => {
-      let aValue: any = a[sortBy as keyof Vendor];
-      let bValue: any = b[sortBy as keyof Vendor];
-
-      if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (aValue < bValue) {
-        return sortOrder === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortOrder === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-
-    return sorted;
-  };
-
-  const handleSortClick = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(column);
-      setSortOrder("asc");
-    }
-    setCurrentPage(1);
-  };
-
   const getSortedAndPaginatedVendors = () => {
-    const sorted = getSortedVendors();
+    const sorted = getSortedData();
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     return sorted.slice(start, end);
