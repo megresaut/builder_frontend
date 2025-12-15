@@ -2113,7 +2113,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("fieldTeam")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -2129,6 +2129,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Field Team
                       </span>
+                      {getFieldTeamSortIndicator("fieldTeam") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("fieldTeam")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th onClick={() => handleFieldTeamSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
