@@ -1059,7 +1059,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     Actions
                   </div>
                 </div>
-                {invoiceItems.map((item) => {
+                {getSortedInvoiceItems().map((item) => {
                   const isFTO = item.source === "FTO Submission";
                   const isVendorImport = item.source === "Vendor-Import";
                   return (
