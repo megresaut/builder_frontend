@@ -989,12 +989,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {task.title}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {task.due}
                         </span>
                       </td>
@@ -1371,17 +1371,17 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {task.task}
                       </span>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {task.nextDate}
                       </span>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {task.category}
                       </span>
                     </td>
@@ -1812,12 +1812,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.task}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.dueDate}
                         </span>
                       </td>
@@ -1856,7 +1856,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.billTotal}
                         </span>
                       </td>
@@ -2251,12 +2251,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {order.description}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {order.dueDate}
                         </span>
                       </td>
@@ -2284,7 +2284,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         {getTimesheetStatusBadge(order.timesheetStatus)}
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           ${order.amount}
                         </span>
                       </td>
