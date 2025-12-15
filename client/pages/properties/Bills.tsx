@@ -446,7 +446,6 @@ export const Bills: React.FC<BillsProps> = ({
     "idle",
   );
   const [billsList, setBillsList] = useState<Bill[]>(bills);
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(billsList);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
