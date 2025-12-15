@@ -1369,7 +1369,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
                   {tasksColumnManagement.visibleColumns.has("priority") && (
-                    <th onClick={() => handleTasksSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("priority")}
+                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "priority")}
+                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "priority")}
+                      onClick={() => handleTasksSortClick("priority")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={tasksColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {tasksColumnConfig["priority"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1384,7 +1393,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {tasksColumnManagement.visibleColumns.has("status") && (
-                    <th onClick={() => handleTasksSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("status")}
+                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "status")}
+                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "status")}
+                      onClick={() => handleTasksSortClick("status")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={tasksColumnManagement.draggedColumn === "status" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {tasksColumnConfig["status"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1399,7 +1417,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {tasksColumnManagement.visibleColumns.has("title") && (
-                    <th onClick={() => handleTasksSortClick("title")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("title")}
+                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "title")}
+                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "title")}
+                      onClick={() => handleTasksSortClick("title")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={tasksColumnManagement.draggedColumn === "title" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {tasksColumnConfig["title"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1414,7 +1441,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {tasksColumnManagement.visibleColumns.has("due") && (
-                    <th onClick={() => handleTasksSortClick("due")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("due")}
+                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "due")}
+                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "due")}
+                      onClick={() => handleTasksSortClick("due")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={tasksColumnManagement.draggedColumn === "due" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {tasksColumnConfig["due"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1429,7 +1465,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {tasksColumnManagement.visibleColumns.has("assignees") && (
-                    <th onClick={() => handleTasksSortClick("assignees")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("assignees")}
+                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "assignees")}
+                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "assignees")}
+                      onClick={() => handleTasksSortClick("assignees")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={tasksColumnManagement.draggedColumn === "assignees" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {tasksColumnConfig["assignees"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
