@@ -357,9 +357,14 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                 <span className="text-xl font-semibold text-gray-900">AVM</span>
               </div>
               <button
-                onClick={() => setIsPinned(!isPinned)}
-                className="p-0.5 hover:bg-gray-200 rounded transition-colors"
-                title={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+                onClick={() => {
+                  if (!forceCollapse) {
+                    setIsPinned(!isPinned);
+                  }
+                }}
+                className="p-0.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title={forceCollapse ? "Sidebar is locked on this page" : (isPinned ? "Unpin sidebar" : "Pin sidebar")}
+                disabled={forceCollapse}
               >
                 <svg
                   width="20"
