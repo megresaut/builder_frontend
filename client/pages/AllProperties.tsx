@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
 
 interface Manager {
   id: number;
