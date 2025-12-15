@@ -1096,14 +1096,26 @@ export default function MaintenanceWorkOrders() {
 
       {/* Column Filter Modal */}
       <ColumnFilterModal
-        open={showColumnModal}
-        onOpenChange={setShowColumnModal}
-        columnConfig={columnConfig}
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "priority",
+          "task",
+          "updatedDate",
+          "age",
+          "status",
+          "dueDate",
+          "billStatus",
+          "billTotal",
+          "assignees",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
         visibleColumns={visibleColumns}
-        columnOrder={columnOrder}
         onToggleColumn={toggleColumnVisibility}
-        menuPos={columnMenuPos}
-        buttonRef={columnButtonRef}
+        onClose={() => setShowColumnModal(false)}
       />
     </div>
   );
