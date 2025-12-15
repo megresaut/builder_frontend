@@ -6,6 +6,8 @@ import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
 import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
 import { usePageState } from "@/hooks/usePageState";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface Assignee {
   id: number;
