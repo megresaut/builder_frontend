@@ -172,6 +172,7 @@ const ActionButton = ({
         createPortal(
           <div
             ref={menuRef}
+            data-testid="action-menu"
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
@@ -185,7 +186,7 @@ const ActionButton = ({
               left: menuPos.left + "px",
               pointerEvents: "auto",
             }}
-            onMouseLeave={() => setOpenMenuId(null)}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => {
