@@ -1350,7 +1350,17 @@ export const RecordBill = () => {
                           Due Date{" "}
                           <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
-                        <div className="relative">
+                        <div className="relative" onClick={() => {
+                          if (!isReadOnly && !showDueDateCalendar) {
+                            setShowInvoiceDateCalendar(false);
+                            setShowDueDateCalendar(true);
+                            if (dueDate) {
+                              setCalendarMonth(dueDate);
+                            } else {
+                              setCalendarMonth(new Date());
+                            }
+                          }
+                        }}>
                           <input
                             ref={dueDateInputRef}
                             type="text"
