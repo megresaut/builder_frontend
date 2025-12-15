@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities";
 import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
-import { useModalNavigation } from "@/hooks/useModalNavigation";
 
 interface Bill {
   id: number;
