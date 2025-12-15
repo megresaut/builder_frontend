@@ -473,6 +473,14 @@ export default function FieldTeamOrders() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(fieldTeamOrders);
+
+  const getDisplayedOrdersForPage = () => {
+    const sorted = getSortedData();
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sorted.slice(start, end);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
