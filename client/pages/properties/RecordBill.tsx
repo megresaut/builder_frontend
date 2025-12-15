@@ -313,7 +313,7 @@ export const RecordBill = () => {
 
   const handleCancel = () => {
     closeViewer();
-    returnFromModal();
+    navigate(-1);
   };
 
   const handleRecordBill = () => {
