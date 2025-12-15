@@ -341,7 +341,7 @@ const ActionButton = ({
                   const path = propertyId
                     ? `/property/${propertyId}/bills/record?readOnly=true`
                     : "/bills/record?readOnly=true";
-                  navigateToModal(path);
+                  navigate(path);
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
