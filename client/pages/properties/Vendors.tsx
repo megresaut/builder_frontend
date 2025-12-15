@@ -474,6 +474,50 @@ export const Vendors: React.FC<VendorsProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
+                  {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
+                    const colConfig = columnConfig[colKey];
+                    return (
+                      <th
+                        key={colKey}
+                        draggable
+                        onDragStart={() => handleColumnDragStart(colKey)}
+                        onDragOver={(e) => handleColumnDragOver(e, colKey)}
+                        onDragLeave={handleColumnDragLeave}
+                        onDrop={(e) => handleColumnDrop(e, colKey)}
+                        onClick={() => handleSortClick(colKey)}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                        style={{
+                          opacity: draggedColumn === colKey ? 0.5 : 1,
+                          transition: "opacity 0.2s ease",
+                        }}
+                      >
+                        {dropTargetColumn === colKey && draggedColumn && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              bottom: 0,
+                              width: "2px",
+                              backgroundColor: "#3b82f6",
+                              left: dropPosition === "before" ? "0" : "auto",
+                              right: dropPosition === "after" ? "0" : "auto",
+                            }}
+                          />
+                        )}
+                        <div className="flex items-center gap-2">
+                          {colConfig?.icon}
+                          <span className="font-medium text-sm text-gray-700">
+                            {colConfig?.label}
+                          </span>
+                          {getSortIndicator(colKey) && (
+                            <span className="text-xs font-bold text-gray-500">
+                              {getSortIndicator(colKey)}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th
                     className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSortClick("name")}
