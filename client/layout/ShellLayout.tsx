@@ -124,6 +124,15 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     });
   }, [currentTabId]);
 
+  // Clear scroll position when location pathname changes significantly
+  useEffect(() => {
+    const mainContent = mainContentRef.current;
+    if (!mainContent) return;
+
+    // Reset scroll to top when pathname changes
+    mainContent.scrollTop = 0;
+  }, [location.pathname]);
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
