@@ -11,7 +11,11 @@ interface SidebarItem {
   hasSubmenu?: boolean;
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  forceCollapse?: boolean;
+}
+
+export default function Sidebar({ forceCollapse = false }: SidebarProps) {
   const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
