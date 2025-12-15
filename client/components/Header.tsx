@@ -977,6 +977,59 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
     navigate("/blank");
   };
 
+  // Handle drag start
+  const handleDragStart = (e: React.DragEvent, tabId: string) => {
+    setDraggedTabId(tabId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  // Handle drop to reorder tabs
+  const handleDrop = (e: React.DragEvent, targetTabId: string) => {
+    e.preventDefault();
+    if (!draggedTabId || draggedTabId === targetTabId) {
+      setDraggedTabId(null);
+      return;
+    }
+
+    // Get the open tabs in order
+    const openTabsArray = tabs.filter((tab) => openTabs.has(tab.id));
+    const draggedIndex = openTabsArray.findIndex((tab) => tab.id === draggedTabId);
+    const targetIndex = openTabsArray.findIndex((tab) => tab.id === targetTabId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedTabId(null);
+      return;
+    }
+
+    // Reorder the tabs array
+    const newTabs = [...tabs];
+    const draggedTabObj = newTabs.find((tab) => tab.id === draggedTabId);
+    const targetTabObj = newTabs.find((tab) => tab.id === targetTabId);
+
+    if (draggedTabObj && targetTabObj) {
+      const draggedTabIndexInAll = newTabs.indexOf(draggedTabObj);
+      const targetTabIndexInAll = newTabs.indexOf(targetTabObj);
+
+      // Remove dragged tab
+      newTabs.splice(draggedTabIndexInAll, 1);
+      // Insert before target
+      const insertIndex = draggedTabIndexInAll < targetTabIndexInAll
+        ? targetTabIndexInAll - 1
+        : targetTabIndexInAll;
+      newTabs.splice(insertIndex, 0, draggedTabObj);
+
+      setTabs(newTabs);
+    }
+
+    setDraggedTabId(null);
+  };
+
   return (
     <header className="bg-white">
       {/* Tabs Section */}
