@@ -356,6 +356,62 @@ export default function Vendors() {
     return pages;
   };
 
+  // Column drag-and-drop handlers
+  const handleColumnDragStart = (columnKey: string) => {
+    setDraggedColumn(columnKey);
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent, columnKey: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    const element = e.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    const midpoint = rect.left + rect.width / 2;
+    const position = e.clientX < midpoint ? "before" : "after";
+
+    setDropTargetColumn(columnKey);
+    setDropPosition(position);
+  };
+
+  const handleColumnDragLeave = () => {
+    setDropTargetColumn(null);
+  };
+
+  const handleColumnDrop = (e: React.DragEvent, targetColumn: string) => {
+    e.preventDefault();
+
+    if (!draggedColumn || draggedColumn === targetColumn) {
+      setDraggedColumn(null);
+      setDropTargetColumn(null);
+      return;
+    }
+
+    const draggedIndex = columnOrder.indexOf(draggedColumn);
+    const targetIndex = columnOrder.indexOf(targetColumn);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedColumn(null);
+      setDropTargetColumn(null);
+      return;
+    }
+
+    const newColumnOrder = [...columnOrder];
+    newColumnOrder.splice(draggedIndex, 1);
+
+    let insertIndex: number;
+    if (dropPosition === "before") {
+      insertIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    } else {
+      insertIndex = draggedIndex < targetIndex ? targetIndex : targetIndex + 1;
+    }
+
+    newColumnOrder.splice(insertIndex, 0, draggedColumn);
+    setColumnOrder(newColumnOrder);
+
+    setDraggedColumn(null);
+    setDropTargetColumn(null);
+  };
 
   return (
     <div
