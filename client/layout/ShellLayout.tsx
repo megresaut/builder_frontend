@@ -134,7 +134,6 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           data-testid="main-content"
           className="flex-1 overflow-auto bg-white"
           style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
-          key={location.pathname}
         >
           <div key={currentTabId}>
             {children}
