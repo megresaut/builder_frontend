@@ -11,6 +11,14 @@ export function useSortingTable<T extends Record<string, any>>(data: T[]) {
       let aValue: any = a[sortBy];
       let bValue: any = b[sortBy];
 
+      // Handle arrays by joining them into a string
+      if (Array.isArray(aValue)) {
+        aValue = aValue.join(", ");
+      }
+      if (Array.isArray(bValue)) {
+        bValue = bValue.join(", ");
+      }
+
       if (typeof aValue === "string") {
         aValue = aValue.toLowerCase();
         bValue = (bValue || "").toLowerCase();
