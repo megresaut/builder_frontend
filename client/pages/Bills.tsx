@@ -1036,52 +1036,46 @@ export default function Bills() {
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                           onClick={handleRowClick}
                         >
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <VendorAvatar
-                                name={bill.vendor}
-                                color={bill.vendorColor}
-                              />
-                              <span className="text-gray-900 font-normal text-sm">
-                                {bill.vendor}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {bill.statementDate}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {bill.dueDate}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
-                              {bill.memo}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {bill.invoiceNumber}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              ${bill.amount}
-                            </span>
-                          </td>
-                          {selectedTab === "drafts" && (
-                            <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500" />
+                          {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
+                            <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                              {colKey === "vendor" && (
+                                <div className="flex items-center gap-2">
+                                  <VendorAvatar
+                                    name={bill.vendor}
+                                    color={bill.vendorColor}
+                                  />
+                                  <span className="text-gray-900 font-normal text-sm">
+                                    {bill.vendor}
+                                  </span>
+                                </div>
+                              )}
+                              {colKey === "statementDate" && (
                                 <span className="text-gray-900 font-normal text-sm">
-                                  {getTimeAgo(bill.importedAt)}
+                                  {bill.statementDate}
                                 </span>
-                              </div>
+                              )}
+                              {colKey === "dueDate" && (
+                                <span className="text-gray-900 font-normal text-sm">
+                                  {bill.dueDate}
+                                </span>
+                              )}
+                              {colKey === "memo" && (
+                                <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
+                                  {bill.memo}
+                                </span>
+                              )}
+                              {colKey === "invoiceNumber" && (
+                                <span className="text-gray-900 font-normal text-sm">
+                                  {bill.invoiceNumber}
+                                </span>
+                              )}
+                              {colKey === "amount" && (
+                                <span className="text-gray-900 font-normal text-sm">
+                                  ${bill.amount}
+                                </span>
+                              )}
                             </td>
-                          )}
+                          ))}
                           <td
                             className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                             style={{
