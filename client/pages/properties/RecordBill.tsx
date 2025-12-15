@@ -168,6 +168,7 @@ export const RecordBill = () => {
   const navigate = useNavigate();
   const location = useLocation<{ bill?: ViewBillState }>();
   const [searchParams] = useSearchParams();
+  const tabContext = useContext(TabContext);
   const isReadOnly = searchParams.get("readOnly") === "true";
   const readOnlyBill = isReadOnly
     ? buildReadOnlyBillFromState(location.state?.bill)
