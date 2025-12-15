@@ -1113,18 +1113,19 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
       )}
 
       {/* Navigation & Search Section */}
-      <div
-        className="flex items-center justify-between px-6"
-        style={{
-          borderColor: "rgb(210, 209, 207)",
-          borderWidth: "1px",
-          borderRightWidth: "0px",
-          borderBottomWidth: isFullscreen ? "0px" : "1px",
-          padding: "12px 24px",
-        }}
-      >
-        {!isFullscreen && (
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+      {!forceCollapse && (
+        <div
+          className="flex items-center justify-between px-6"
+          style={{
+            borderColor: "rgb(210, 209, 207)",
+            borderWidth: "1px",
+            borderRightWidth: "0px",
+            borderBottomWidth: isFullscreen ? "0px" : "1px",
+            padding: "12px 24px",
+          }}
+        >
+          {!isFullscreen && (
+            <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Navigation Buttons */}
             <button
               onClick={handleBackInTab}
@@ -1196,11 +1197,11 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               ))}
             </div>
           </div>
-        )}
-        {isFullscreen && <div className="flex-1" />}
+          )}
+          {isFullscreen && <div className="flex-1" />}
 
-        {/* Search and Actions */}
-        {!isFullscreen && (
+          {/* Search and Actions */}
+          {!isFullscreen && (
           <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
             {/* Search Bar */}
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-0">
@@ -1335,8 +1336,9 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               <path d="m18 15-6-6-6 6" />
             </svg>
           </button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }
