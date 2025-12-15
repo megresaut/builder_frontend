@@ -1153,6 +1153,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                     </span>
                     <span
                       className="text-sm font-medium truncate"
+                      title={displayLabel}
                       style={{
                         fontFamily:
                           "Geist, -apple-system, Roboto, Helvetica, sans-serif",
