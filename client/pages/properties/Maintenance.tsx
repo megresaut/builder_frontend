@@ -1748,26 +1748,22 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   alt=""
                 />
               </button>
-              {recurringColumnManagement.showColumnModal &&
-                createPortal(
-                  <ColumnFilterModal
-                    isOpen={recurringColumnManagement.showColumnModal}
-                    position={recurringColumnManagement.columnMenuPos}
-                    columns={recurringColumnManagement.columnOrder.map((key) => ({
-                      key,
-                      label: recurringTasksColumnConfig[key]?.label || key,
-                      icon: recurringTasksColumnConfig[key]?.icon,
-                    }))}
-                    visibleColumns={recurringColumnManagement.visibleColumns}
-                    onToggleColumn={
-                      recurringColumnManagement.toggleColumnVisibility
-                    }
-                    onClose={() =>
-                      recurringColumnManagement.setShowColumnModal(false)
-                    }
-                  />,
-                  document.body,
-                )}
+              <ColumnFilterModal
+                isOpen={recurringColumnManagement.showColumnModal}
+                position={recurringColumnManagement.columnMenuPos}
+                columns={recurringColumnManagement.columnOrder.map((key) => ({
+                  key,
+                  label: recurringTasksColumnConfig[key]?.label || key,
+                  icon: recurringTasksColumnConfig[key]?.icon,
+                }))}
+                visibleColumns={recurringColumnManagement.visibleColumns}
+                onToggleColumn={
+                  recurringColumnManagement.toggleColumnVisibility
+                }
+                onClose={() =>
+                  recurringColumnManagement.setShowColumnModal(false)
+                }
+              />
             </div>
           </div>
           <div className="overflow-x-auto">
