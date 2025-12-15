@@ -275,9 +275,7 @@ const ActionButton = ({
                     const path = propertyId
                       ? `/property/${propertyId}/bills/record`
                       : "/bills/record";
-                    navigate(path, {
-                      state: { bill: buildBillState(bill) },
-                    });
+                    navigateToModal(path);
                   }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
