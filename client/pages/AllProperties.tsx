@@ -540,7 +540,10 @@ export default function AllProperties() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("address")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -561,9 +564,17 @@ export default function AllProperties() {
                         <span className="font-medium text-sm text-gray-700">
                           Address
                         </span>
+                        {getSortIndicator("address") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("address")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("location")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -579,9 +590,17 @@ export default function AllProperties() {
                         <span className="font-medium text-sm text-gray-700">
                           Location
                         </span>
+                        {getSortIndicator("location") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("location")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("managers")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -597,9 +616,17 @@ export default function AllProperties() {
                         <span className="font-medium text-sm text-gray-700">
                           Manager
                         </span>
+                        {getSortIndicator("managers") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("managers")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("type")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -615,9 +642,17 @@ export default function AllProperties() {
                         <span className="font-medium text-sm text-gray-700">
                           Type
                         </span>
+                        {getSortIndicator("type") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("type")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("buildingId")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -633,10 +668,16 @@ export default function AllProperties() {
                         <span className="font-medium text-sm text-gray-700">
                           Buildium ID
                         </span>
+                        {getSortIndicator("buildingId") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("buildingId")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     <th
-                      className="px-3 py-3 text-left whitespace-nowrap"
+                      onClick={() => handleSortClick("status")}
+                      className="px-3 py-3 text-left whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
                       style={{
                         borderBottomWidth: "1px",
                         borderColor:
@@ -661,6 +702,11 @@ export default function AllProperties() {
                         <span className="font-medium text-sm text-gray-700">
                           Status
                         </span>
+                        {getSortIndicator("status") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("status")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     <th
