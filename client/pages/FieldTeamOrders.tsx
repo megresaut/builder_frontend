@@ -359,7 +359,7 @@ export default function FieldTeamOrders() {
   const [approvingOrder, setApprovingOrder] = useState<FieldTeamOrder | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/maintenance/ftos")
+    fetch("/api/maintenance/ftos")
       .then((res) => res.json())
       .then((data) => setFieldTeamOrders(data))
       .catch((err) => console.error("Failed to load FTOs:", err));
@@ -421,7 +421,7 @@ export default function FieldTeamOrders() {
 
   // Load field team users with debugging
   useEffect(() => {
-    fetch("http://localhost:8080/users/field-team")
+    fetch("/api/users/field-team")
       .then(async (res) => {
         const raw = await res.text();      // <-- read raw body first
         console.log("RAW /users/field-team RESPONSE:", raw);

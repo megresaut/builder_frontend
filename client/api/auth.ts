@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8080";   
+const API_BASE = "/api";     
 
 export async function loginRequest(email: string, password: string) {
     const res = await fetch(`${API_BASE}/login`, {
