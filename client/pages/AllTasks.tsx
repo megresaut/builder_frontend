@@ -859,28 +859,28 @@ export default function AllTasks() {
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <button
                           onClick={() => navigate(`/tasks/${task.id}`)}
-                          className="text-blue-600 font-normal text-base hover:underline cursor-pointer transition-colors"
+                          className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors"
                         >
                           {task.title}
                         </button>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {task.property}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {task.due}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-blue-600 font-normal text-base hover:underline cursor-pointer">
+                        <span className="text-blue-600 font-normal text-sm hover:underline cursor-pointer">
                           {task.updated}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {task.age}
                         </span>
                       </td>

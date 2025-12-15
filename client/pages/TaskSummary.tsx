@@ -1687,12 +1687,12 @@ export default function TaskSummary() {
                             </div>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {order.description}
                             </span>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {order.dueDate}
                             </span>
                           </td>
@@ -1720,7 +1720,7 @@ export default function TaskSummary() {
                             {getTimesheetStatusBadge(order.timesheetStatus)}
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               ${order.amount}
                             </span>
                           </td>
