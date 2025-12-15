@@ -516,14 +516,29 @@ export default function Header() {
   const { selectedTab, setSelectedTab, tabMetadata, setTabMetadata } =
     tabContext;
 
-  // Update the current tab's metadata when location changes (but don't change selected tab)
+  // Ensure the correct tab is open when location changes via links/breadcrumbs/back-forward
   useEffect(() => {
     const currentPageInfo = getCurrentPageLabel();
-    if (currentPageInfo && selectedTab) {
-      const metadata = tabMetadata[selectedTab];
-      const sectionId = getSectionIdFromPath(location.pathname);
+    if (!currentPageInfo) return;
 
-      // Update metadata with new label, route, and sectionId
+    const sectionId = getSectionIdFromPath(location.pathname);
+    const defaultTabId = getDefaultTabIdForSection(sectionId);
+
+    // Check if we need to open/switch to a different tab
+    if (defaultTabId) {
+      // Open the default tab if it's not already open
+      if (!openTabs.has(defaultTabId)) {
+        setOpenTabs(new Set([...openTabs, defaultTabId]));
+      }
+      // Select the tab
+      if (selectedTab !== defaultTabId) {
+        setSelectedTab(defaultTabId);
+      }
+    }
+
+    // Update the selected tab's metadata with current page info
+    if (selectedTab) {
+      const metadata = tabMetadata[selectedTab];
       if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
         setTabMetadata(selectedTab, {
           ...metadata,
@@ -533,7 +548,7 @@ export default function Header() {
         });
       }
     }
-  }, [location.pathname, selectedTab]);
+  }, [location.pathname]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
