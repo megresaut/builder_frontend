@@ -740,12 +740,12 @@ export default function AllProperties() {
                           onClick={handleRowClick}
                         >
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {property.address}
                             </span>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {property.location}
                             </span>
                           </td>
@@ -775,12 +775,12 @@ export default function AllProperties() {
                             </div>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {property.type}
                             </span>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {property.buildingId}
                             </span>
                           </td>
