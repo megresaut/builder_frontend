@@ -136,7 +136,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden" key={location.pathname}>
+      <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <div
           ref={mainContentRef}
@@ -144,7 +144,9 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           className="flex-1 overflow-auto bg-white"
           style={{ paddingBottom: "150px" }}
         >
-          {children}
+          <React.Fragment key={location.pathname}>
+            {children}
+          </React.Fragment>
         </div>
       </main>
     </div>
