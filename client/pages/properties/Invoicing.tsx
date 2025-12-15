@@ -796,8 +796,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3"
+                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     style={{ borderLeftColor: "transparent" }}
+                    onClick={() => handleInvoiceSortClick("vendor")}
                   >
                     <img
                       loading="lazy"
@@ -808,6 +809,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Vendor
                     </div>
+                    {getInvoiceSortIndicator("vendor") && (
+                      <span className="text-xs font-bold text-gray-500">
+                        {getInvoiceSortIndicator("vendor")}
+                      </span>
+                    )}
                   </div>
                   {invoiceItems.map((item) => (
                     <div
