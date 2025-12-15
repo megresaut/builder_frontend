@@ -1005,6 +1005,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
     e.preventDefault();
     if (!draggedTabId || draggedTabId === targetTabId) {
       setDraggedTabId(null);
+      setDropTargetTabId(null);
       return;
     }
 
@@ -1015,6 +1016,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedTabId(null);
+      setDropTargetTabId(null);
       return;
     }
 
@@ -1029,16 +1031,24 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
 
       // Remove dragged tab
       newTabs.splice(draggedTabIndexInAll, 1);
-      // Insert before target
-      const insertIndex = draggedTabIndexInAll < targetTabIndexInAll
-        ? targetTabIndexInAll - 1
-        : targetTabIndexInAll;
+      // Insert at correct position based on dropPosition
+      let insertIndex: number;
+      if (dropPosition === "before") {
+        insertIndex = draggedTabIndexInAll < targetTabIndexInAll
+          ? targetTabIndexInAll - 1
+          : targetTabIndexInAll;
+      } else {
+        insertIndex = draggedTabIndexInAll < targetTabIndexInAll
+          ? targetTabIndexInAll
+          : targetTabIndexInAll + 1;
+      }
       newTabs.splice(insertIndex, 0, draggedTabObj);
 
       setTabs(newTabs);
     }
 
     setDraggedTabId(null);
+    setDropTargetTabId(null);
   };
 
   return (
