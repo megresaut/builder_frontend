@@ -879,7 +879,14 @@ export default function Header() {
               return (
                 <div
                   key={tab.id}
-                  className="flex items-center transition-all whitespace-nowrap"
+                  className="flex items-center transition-all whitespace-nowrap cursor-pointer hover:bg-gray-100"
+                  onClick={() => {
+                    if (tab.id !== selectedTab) {
+                      saveScrollPosition();
+                      navigateToTabRoute(tab.id);
+                    }
+                    setSelectedTab(tab.id);
+                  }}
                   style={{
                     backgroundColor: isSelected
                       ? "rgba(255, 255, 255, 1)"
@@ -904,15 +911,8 @@ export default function Header() {
                         }),
                   }}
                 >
-                  <button
-                    onClick={() => {
-                      if (tab.id !== selectedTab) {
-                        saveScrollPosition();
-                        navigateToTabRoute(tab.id);
-                      }
-                      setSelectedTab(tab.id);
-                    }}
-                    className="flex items-center gap-2"
+                  <div
+                    className="flex items-center gap-2 pointer-events-none"
                   >
                     <span
                       className="flex items-center justify-center w-5 h-5"
@@ -933,7 +933,7 @@ export default function Header() {
                     >
                       {displayLabel}
                     </span>
-                  </button>
+                  </div>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
