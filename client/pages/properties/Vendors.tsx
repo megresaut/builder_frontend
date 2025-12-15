@@ -519,8 +519,12 @@ export const Vendors: React.FC<VendorsProps> = ({
                     );
                   })}
                   <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("name")}
+                    className="sticky right-0 px-2 py-3 text-center w-20"
+                    style={{
+                      borderLeftWidth: "2px",
+                      border: "1px none rgb(226, 232, 240)",
+                      backgroundColor: "white",
+                    }}
                   >
                     <div className="flex items-center gap-2">
                       <svg
