@@ -359,6 +359,17 @@ export default function Vendors() {
     return pages;
   };
 
+  // Toggle column visibility
+  const toggleColumnVisibility = (columnKey: string) => {
+    const newVisibleColumns = new Set(visibleColumns);
+    if (newVisibleColumns.has(columnKey)) {
+      newVisibleColumns.delete(columnKey);
+    } else {
+      newVisibleColumns.add(columnKey);
+    }
+    setVisibleColumns(newVisibleColumns);
+  };
+
   // Column drag-and-drop handlers
   const handleColumnDragStart = (columnKey: string) => {
     setDraggedColumn(columnKey);
