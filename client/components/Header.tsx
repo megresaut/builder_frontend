@@ -1081,9 +1081,12 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                   key={tab.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, tab.id)}
-                  onDragOver={handleDragOver}
+                  onDragOver={(e) => handleDragOver(e, tab.id)}
+                  onDragLeave={() => {
+                    setDropTargetTabId(null);
+                  }}
                   onDrop={(e) => handleDrop(e, tab.id)}
-                  className="flex items-center transition-all cursor-move hover:bg-gray-100"
+                  className="flex items-center transition-all hover:bg-gray-100 relative"
                   onClick={() => {
                     if (tab.id !== selectedTab) {
                       saveScrollPosition();
@@ -1103,7 +1106,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    overflow: "hidden",
+                    overflow: "visible",
                     opacity: draggedTabId === tab.id ? 0.5 : 1,
                     transition: "opacity 0.2s ease",
                     ...(isSelected
@@ -1121,6 +1124,19 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                         }),
                   }}
                 >
+                  {dropTargetTabId === tab.id && draggedTabId && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        bottom: 0,
+                        width: "2px",
+                        backgroundColor: "#3b82f6",
+                        left: dropPosition === "before" ? "0" : "auto",
+                        right: dropPosition === "after" ? "0" : "auto",
+                      }}
+                    />
+                  )}
                   <div
                     className="flex items-center gap-2 pointer-events-none min-w-0"
                     style={{ overflow: "hidden", flex: 1 }}
