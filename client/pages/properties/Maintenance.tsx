@@ -1771,7 +1771,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
                   {recurringColumnManagement.visibleColumns.has("priority") && (
-                    <th onClick={() => handleRecurringSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("priority")}
+                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "priority")}
+                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "priority")}
+                      onClick={() => handleRecurringSortClick("priority")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={recurringColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {recurringTasksColumnConfig["priority"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1786,7 +1795,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {recurringColumnManagement.visibleColumns.has("task") && (
-                    <th onClick={() => handleRecurringSortClick("task")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("task")}
+                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "task")}
+                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "task")}
+                      onClick={() => handleRecurringSortClick("task")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={recurringColumnManagement.draggedColumn === "task" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {recurringTasksColumnConfig["task"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1801,7 +1819,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {recurringColumnManagement.visibleColumns.has("nextDate") && (
-                    <th onClick={() => handleRecurringSortClick("nextDate")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("nextDate")}
+                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "nextDate")}
+                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "nextDate")}
+                      onClick={() => handleRecurringSortClick("nextDate")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={recurringColumnManagement.draggedColumn === "nextDate" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {recurringTasksColumnConfig["nextDate"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1816,7 +1843,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {recurringColumnManagement.visibleColumns.has("category") && (
-                    <th onClick={() => handleRecurringSortClick("category")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("category")}
+                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "category")}
+                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "category")}
+                      onClick={() => handleRecurringSortClick("category")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={recurringColumnManagement.draggedColumn === "category" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {recurringTasksColumnConfig["category"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1831,7 +1867,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {recurringColumnManagement.visibleColumns.has("assignees") && (
-                    <th onClick={() => handleRecurringSortClick("assignees")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("assignees")}
+                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "assignees")}
+                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "assignees")}
+                      onClick={() => handleRecurringSortClick("assignees")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={recurringColumnManagement.draggedColumn === "assignees" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {recurringTasksColumnConfig["assignees"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
@@ -1846,7 +1891,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {recurringColumnManagement.visibleColumns.has("status") && (
-                    <th onClick={() => handleRecurringSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                    <th
+                      draggable
+                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("status")}
+                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "status")}
+                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "status")}
+                      onClick={() => handleRecurringSortClick("status")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      style={recurringColumnManagement.draggedColumn === "status" ? { opacity: 0.5 } : {}}
+                    >
                       <div className="flex items-center gap-2">
                         {recurringTasksColumnConfig["status"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
