@@ -783,12 +783,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               style={{ borderLeftColor: "transparent" }}
             >
               <div
-                className="flex min-w-60 items-center flex-wrap flex-1"
+                className="flex min-w-60 items-center flex-nowrap flex-1"
                 style={{ borderLeftColor: "transparent" }}
               >
                 {/* Vendor Column */}
                 <div
-                  className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[151px]"
+                  className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[151px]"
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
