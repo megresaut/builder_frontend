@@ -5,6 +5,7 @@ import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
 
 interface Assignee {
   id: number;
