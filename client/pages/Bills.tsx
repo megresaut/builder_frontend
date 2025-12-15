@@ -1018,12 +1018,7 @@ export default function Bills() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayedBills
-                    .slice(
-                      (currentPage - 1) * itemsPerPage,
-                      currentPage * itemsPerPage,
-                    )
-                    .map((bill) => {
+                  {getDisplayedBillsForPage().map((bill) => {
                       const handleRowClick = (e: React.MouseEvent) => {
                         if (
                           (e.target as HTMLElement).closest("td:last-child")
