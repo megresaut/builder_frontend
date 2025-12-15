@@ -1327,7 +1327,15 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
                 />
               </div>
-              <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100">
+              <button
+                ref={tasksColumnManagement.columnButtonRef}
+                onClick={() =>
+                  tasksColumnManagement.setShowColumnModal(
+                    !tasksColumnManagement.showColumnModal,
+                  )
+                }
+                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+              >
                 <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
                   Filter
                 </div>
@@ -1337,7 +1345,27 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   className="w-[18px] h-[18px]"
                   alt=""
                 />
-              </div>
+              </button>
+              {tasksColumnManagement.showColumnModal &&
+                createPortal(
+                  <ColumnFilterModal
+                    isOpen={tasksColumnManagement.showColumnModal}
+                    position={tasksColumnManagement.columnMenuPos}
+                    columns={tasksColumnManagement.columnOrder.map((key) => ({
+                      key,
+                      label: tasksColumnConfig[key]?.label || key,
+                      icon: tasksColumnConfig[key]?.icon,
+                    }))}
+                    visibleColumns={tasksColumnManagement.visibleColumns}
+                    onToggleColumn={
+                      tasksColumnManagement.toggleColumnVisibility
+                    }
+                    onClose={() =>
+                      tasksColumnManagement.setShowColumnModal(false)
+                    }
+                  />,
+                  document.body,
+                )}
             </div>
           </div>
           <div className="overflow-x-auto">
