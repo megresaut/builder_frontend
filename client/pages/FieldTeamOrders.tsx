@@ -1210,6 +1210,29 @@ export default function FieldTeamOrders() {
         unit={editingOrder?.unit || "2"}
         fieldTeamAssignee={editingOrder?.fieldTeamAssignee || "John Smith"}
       />
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "priority",
+          "property",
+          "description",
+          "dueDate",
+          "fieldTeam",
+          "status",
+          "timesheetStatus",
+          "amount",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
     </div>
   );
 }
