@@ -852,7 +852,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 {/* GL Account Column */}
                 <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[185px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("glAccount")}
                   >
                     <svg
@@ -870,7 +870,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       <line x1="10" y1="3" x2="8" y2="21" />
                       <line x1="16" y1="3" x2="14" y2="21" />
                     </svg>
-                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
+                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-6">
                       GL Account
                     </div>
                     {getInvoiceSortIndicator("glAccount") && (
