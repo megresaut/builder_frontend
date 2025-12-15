@@ -5,8 +5,6 @@ import Header from "@/components/Header";
 import { useTabContext } from "@/hooks/useTabContext";
 
 const FULLSCREEN_KEY = "app-fullscreen-mode";
-const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
-const MODAL_PAGE_SIDEBAR_STATE_KEY = "modal-page-sidebar-state";
 
 const getFullscreenMode = () => {
   if (typeof window !== "undefined") {
@@ -36,10 +34,6 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const [forceCollapse, setForceCollapse] = useState(
     isModalLikePage(location.pathname),
   );
-  const previousCollapseStateRef = useRef<{
-    sidebarCollapsed: boolean;
-    tabsCollapsed: boolean;
-  } | null>(null);
 
   // Listen for fullscreen mode changes
   useEffect(() => {
