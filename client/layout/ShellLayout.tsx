@@ -139,13 +139,14 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <div
-          key={location.pathname}
           ref={mainContentRef}
           data-testid="main-content"
           className="flex-1 overflow-auto bg-white"
           style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
         >
-          {children}
+          <div key={location.pathname}>
+            {children}
+          </div>
         </div>
       </main>
     </div>
