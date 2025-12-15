@@ -1220,9 +1220,12 @@ export const RecordBill = () => {
                             }}
                             onFocus={() => {
                               if (!isReadOnly) {
+                                setShowDueDateCalendar(false);
                                 setShowInvoiceDateCalendar(true);
                                 if (invoiceDate) {
                                   setCalendarMonth(invoiceDate);
+                                } else {
+                                  setCalendarMonth(new Date());
                                 }
                               }
                             }}
