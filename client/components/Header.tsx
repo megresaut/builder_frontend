@@ -516,40 +516,40 @@ export default function Header() {
   const { selectedTab, setSelectedTab, tabMetadata, setTabMetadata } =
     tabContext;
 
-  // Ensure the correct tab is open when location changes via links/breadcrumbs/back-forward
+  // Update the current tab's history and metadata when location changes
   useEffect(() => {
     const currentPageInfo = getCurrentPageLabel();
-    if (!currentPageInfo) return;
+    if (!currentPageInfo || !selectedTab) return;
 
     const sectionId = getSectionIdFromPath(location.pathname);
-    const defaultTabId = getDefaultTabIdForSection(sectionId);
+    const metadata = tabMetadata[selectedTab];
+    const currentRoute = location.pathname;
 
-    // Determine which tab should be selected and opened
-    const targetTabId = defaultTabId || selectedTab;
+    // Only update if the route actually changed
+    if (metadata?.route === currentRoute) return;
 
-    if (!targetTabId) return;
+    // Update history for the current tab
+    const currentHistory = metadata?.history || [];
+    const currentHistoryIndex = metadata?.historyIndex ?? -1;
 
-    // Open the target tab if it's not already open
-    if (!openTabs.has(targetTabId)) {
-      setOpenTabs(new Set([...openTabs, targetTabId]));
-    }
+    // If we're not at the end of history (e.g., went back then navigated forward),
+    // truncate the history
+    let newHistory = currentHistory.slice(0, currentHistoryIndex + 1);
 
-    // Select the target tab if it's not currently selected
-    if (selectedTab !== targetTabId) {
-      setSelectedTab(targetTabId);
-    }
+    // Add the new route to history
+    newHistory.push(currentRoute);
+    const newHistoryIndex = newHistory.length - 1;
 
-    // Update metadata for the target tab
-    const metadata = tabMetadata[targetTabId];
-    if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
-      setTabMetadata(targetTabId, {
-        ...metadata,
-        label: currentPageInfo.label,
-        route: currentPageInfo.path,
-        sectionId: sectionId,
-      });
-    }
-  }, [location.pathname]);
+    // Update metadata with new route and history
+    setTabMetadata(selectedTab, {
+      ...metadata,
+      label: currentPageInfo.label,
+      route: currentRoute,
+      sectionId: sectionId,
+      history: newHistory,
+      historyIndex: newHistoryIndex,
+    });
+  }, [location.pathname, selectedTab, tabMetadata, setTabMetadata]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
