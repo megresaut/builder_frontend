@@ -524,31 +524,36 @@ export default function Header() {
     const sectionId = getSectionIdFromPath(location.pathname);
     const defaultTabId = getDefaultTabIdForSection(sectionId);
 
-    // Check if we need to open/switch to a different tab
-    if (defaultTabId) {
-      // Open the default tab if it's not already open
-      if (!openTabs.has(defaultTabId)) {
-        setOpenTabs(new Set([...openTabs, defaultTabId]));
-      }
-      // Select the tab
-      if (selectedTab !== defaultTabId) {
-        setSelectedTab(defaultTabId);
-      }
-    }
+    setOpenTabs((prevOpenTabs) => {
+      setSelectedTab((prevSelectedTab) => {
+        // Determine which tab should be selected
+        const targetTabId = defaultTabId || prevSelectedTab;
 
-    // Update the selected tab's metadata with current page info
-    if (selectedTab) {
-      const metadata = tabMetadata[selectedTab];
-      if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
-        setTabMetadata(selectedTab, {
-          ...metadata,
-          label: currentPageInfo.label,
-          route: currentPageInfo.path,
-          sectionId: sectionId,
-        });
-      }
-    }
-  }, [location.pathname]);
+        // Open the default tab if it's not already open
+        if (defaultTabId && !prevOpenTabs.has(defaultTabId)) {
+          setOpenTabs(new Set([...prevOpenTabs, defaultTabId]));
+        }
+
+        // Update metadata for the target tab
+        if (targetTabId) {
+          const metadata = tabMetadata[targetTabId];
+          if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
+            setTabMetadata(targetTabId, {
+              ...metadata,
+              label: currentPageInfo.label,
+              route: currentPageInfo.path,
+              sectionId: sectionId,
+            });
+          }
+        }
+
+        // Return the new selected tab
+        return targetTabId;
+      });
+
+      return prevOpenTabs;
+    });
+  }, [location.pathname, tabMetadata, setTabMetadata]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
