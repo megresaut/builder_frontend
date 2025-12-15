@@ -316,6 +316,31 @@ export const RecordBill = () => {
 
   const handleCancel = () => {
     closeViewer();
+
+    // Navigate back through the current tab's history instead of browser history
+    if (tabContext) {
+      const selectedTab = tabContext.selectedTab;
+      const metadata = tabContext.tabMetadata[selectedTab];
+      const currentIndex = metadata?.historyIndex ?? -1;
+      const history = metadata?.history || [];
+
+      // Can we go back in this tab's history?
+      if (currentIndex > 0) {
+        const previousRoute = history[currentIndex - 1];
+        if (previousRoute) {
+          const newIndex = currentIndex - 1;
+          tabContext.setTabMetadata(selectedTab, {
+            ...metadata,
+            historyIndex: newIndex,
+            route: previousRoute,
+          });
+          navigate(previousRoute);
+          return;
+        }
+      }
+    }
+
+    // Fallback to browser history if no tab history available
     navigate(-1);
   };
 
