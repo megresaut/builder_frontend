@@ -883,7 +883,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       </span>
                     )}
                   </div>
-                  {invoiceItems.map((item) => (
+                  {getSortedInvoiceItems().map((item) => (
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
