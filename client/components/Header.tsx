@@ -801,6 +801,7 @@ export default function Header() {
       "recurring-tasks": isSelected ? "maintenanceDark" : "maintenanceLight",
       "field-team-orders": isSelected ? "maintenanceDark" : "maintenanceLight",
       "work-orders": isSelected ? "maintenanceDark" : "maintenanceLight",
+      vendors: isSelected ? "maintenanceDark" : "maintenanceLight",
     };
 
     const iconKey = mapping[sectionId];
