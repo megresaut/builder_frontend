@@ -64,29 +64,26 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     const isModal = isModalLikePage(location.pathname);
 
     if (isModal && !forceCollapse) {
-      // Entering a modal-like page: save current state and collapse
+      // Entering a modal-like page: save current sidebar pinned state
+      const currentPinnedState = localStorage.getItem(SIDEBAR_PINNED_KEY) === "true";
       previousCollapseStateRef.current = {
-        sidebarCollapsed: localStorage.getItem("sidebar-state") === "collapsed",
-        tabsCollapsed: localStorage.getItem("tabs-state") === "collapsed",
+        sidebarCollapsed: !currentPinnedState,
+        tabsCollapsed: false,
       };
+      // Collapse sidebar by setting pinned to false
+      localStorage.setItem(SIDEBAR_PINNED_KEY, "false");
       setForceCollapse(true);
     } else if (!isModal && forceCollapse) {
-      // Leaving a modal-like page: restore previous state
+      // Leaving a modal-like page: restore previous sidebar pinned state
       const savedState = previousCollapseStateRef.current;
       if (savedState) {
-        if (!savedState.sidebarCollapsed) {
-          localStorage.removeItem("sidebar-state");
-        } else {
-          localStorage.setItem("sidebar-state", "collapsed");
-        }
-        if (!savedState.tabsCollapsed) {
-          localStorage.removeItem("tabs-state");
-        } else {
-          localStorage.setItem("tabs-state", "collapsed");
-        }
+        const wasPinned = !savedState.sidebarCollapsed;
+        localStorage.setItem(SIDEBAR_PINNED_KEY, JSON.stringify(wasPinned));
       }
       setForceCollapse(false);
       previousCollapseStateRef.current = null;
+      // Dispatch a storage event to notify Sidebar of the change
+      window.dispatchEvent(new Event("storage"));
     }
   }, [location.pathname, forceCollapse]);
 
