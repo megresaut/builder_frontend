@@ -329,7 +329,7 @@ export default function Vendors() {
         const rect = columnButtonRef.current.getBoundingClientRect();
         setColumnMenuPos({
           top: rect.bottom + 8,
-          left: rect.right - 200,
+          left: rect.right - 260,
         });
       }
 
