@@ -843,7 +843,7 @@ export default function Vendors() {
                     )}
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {mockVendors.length}
+                  of {vendors.length}
                 </span>
               </div>
               <div
