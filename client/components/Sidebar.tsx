@@ -259,28 +259,26 @@ export default function Sidebar() {
     sectionId?: string,
     path?: string,
   ) => {
-    if (tabContext && sectionId) {
-      const defaultTabId = getDefaultTabIdForSection(sectionId);
-      const targetTabId = defaultTabId || tabContext.selectedTab;
+    if (tabContext && sectionId && path) {
+      // Update the current tab's metadata (don't switch tabs)
+      const currentTabMetadata = tabContext.tabMetadata[tabContext.selectedTab];
+      const currentHistory = currentTabMetadata?.history || [];
+      const currentHistoryIndex = currentTabMetadata?.historyIndex ?? -1;
 
-      if (tabContext.selectedTab.startsWith("new-tab-")) {
-        // If on a new-tab, update its metadata
-        tabContext.setTabMetadata(tabContext.selectedTab, {
-          label,
-          sectionId,
-          route: path,
-          scrollPosition: 0,
-        });
-      } else if (defaultTabId) {
-        // Use the default tab for this section
-        tabContext.setTabMetadata(defaultTabId, {
-          label,
-          sectionId,
-          route: path,
-          scrollPosition: 0,
-        });
-        tabContext.setSelectedTab(defaultTabId);
-      }
+      // Truncate history if we're not at the end
+      let newHistory = currentHistory.slice(0, currentHistoryIndex + 1);
+      newHistory.push(path);
+      const newHistoryIndex = newHistory.length - 1;
+
+      tabContext.setTabMetadata(tabContext.selectedTab, {
+        ...currentTabMetadata,
+        label,
+        sectionId,
+        route: path,
+        scrollPosition: 0,
+        history: newHistory,
+        historyIndex: newHistoryIndex,
+      });
     }
   };
 
