@@ -425,19 +425,23 @@ export const RecordBill = () => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (showInvoiceDateCalendar) {
-        const isClickInInput = invoiceDateInputRef.current?.contains(target);
-        const isClickInDropdown = invoiceDateCalendarRef.current?.contains(target);
-        if (!isClickInInput && !isClickInDropdown) {
-          setShowInvoiceDateCalendar(false);
-        }
+
+      // Check if click is outside both invoice date elements
+      const isClickInInvoiceDateInput = invoiceDateInputRef.current?.contains(target);
+      const isClickInInvoiceDateDropdown = invoiceDateCalendarRef.current?.contains(target);
+
+      // Check if click is outside both due date elements
+      const isClickInDueDateInput = dueDateInputRef.current?.contains(target);
+      const isClickInDueDateDropdown = dueDateCalendarRef.current?.contains(target);
+
+      // Close invoice date calendar if click is outside
+      if (!isClickInInvoiceDateInput && !isClickInInvoiceDateDropdown) {
+        setShowInvoiceDateCalendar(false);
       }
-      if (showDueDateCalendar) {
-        const isClickInInput = dueDateInputRef.current?.contains(target);
-        const isClickInDropdown = dueDateCalendarRef.current?.contains(target);
-        if (!isClickInInput && !isClickInDropdown) {
-          setShowDueDateCalendar(false);
-        }
+
+      // Close due date calendar if click is outside
+      if (!isClickInDueDateInput && !isClickInDueDateDropdown) {
+        setShowDueDateCalendar(false);
       }
     };
 
