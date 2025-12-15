@@ -503,12 +503,15 @@ export default function Header() {
     const currentPageInfo = getCurrentPageLabel();
     if (currentPageInfo && selectedTab) {
       const metadata = tabMetadata[selectedTab];
-      // Only update route if it changed, keep other metadata
-      if (metadata?.route !== currentPageInfo.path) {
+      const sectionId = getSectionIdFromPath(location.pathname);
+
+      // Update metadata with new label, route, and sectionId
+      if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== sectionId) {
         setTabMetadata(selectedTab, {
           ...metadata,
           label: currentPageInfo.label,
           route: currentPageInfo.path,
+          sectionId: sectionId,
         });
       }
     }
