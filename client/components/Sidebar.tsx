@@ -259,25 +259,16 @@ export default function Sidebar() {
     sectionId?: string,
     path?: string,
   ) => {
-    if (tabContext && sectionId && path) {
+    if (tabContext && sectionId) {
       // Update the current tab's metadata (don't switch tabs)
+      // History will be updated by the Header's useEffect when the location changes
       const currentTabMetadata = tabContext.tabMetadata[tabContext.selectedTab];
-      const currentHistory = currentTabMetadata?.history || [];
-      const currentHistoryIndex = currentTabMetadata?.historyIndex ?? -1;
-
-      // Truncate history if we're not at the end
-      let newHistory = currentHistory.slice(0, currentHistoryIndex + 1);
-      newHistory.push(path);
-      const newHistoryIndex = newHistory.length - 1;
-
       tabContext.setTabMetadata(tabContext.selectedTab, {
         ...currentTabMetadata,
         label,
         sectionId,
-        route: path,
+        // Don't update route here - let Header's useEffect handle it
         scrollPosition: 0,
-        history: newHistory,
-        historyIndex: newHistoryIndex,
       });
     }
   };
