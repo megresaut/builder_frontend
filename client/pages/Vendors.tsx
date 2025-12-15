@@ -393,7 +393,10 @@ export default function Vendors() {
   const toggleColumnVisibility = (columnKey: string) => {
     const newVisibleColumns = new Set(visibleColumns);
     if (newVisibleColumns.has(columnKey)) {
-      newVisibleColumns.delete(columnKey);
+      // Prevent unchecking if it would result in 0 visible columns
+      if (newVisibleColumns.size > 1) {
+        newVisibleColumns.delete(columnKey);
+      }
     } else {
       newVisibleColumns.add(columnKey);
     }
