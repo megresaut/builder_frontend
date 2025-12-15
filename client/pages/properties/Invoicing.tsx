@@ -779,7 +779,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             }}
           >
             <div
-              className="flex w-full items-center flex-wrap"
+              className="flex w-full items-center flex-nowrap"
               style={{ borderLeftColor: "transparent" }}
             >
               <div
