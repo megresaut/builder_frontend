@@ -1179,7 +1179,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
           {/* Table */}
           <div
-            className="bg-white flex w-full flex-col overflow-visible"
+            className="bg-white flex w-full flex-col overflow-x-auto"
             style={{
               borderTopWidth: "1.33333px",
               borderTopColor: "#e5e5e5",
@@ -1187,7 +1187,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             }}
           >
             <div
-              className="flex w-full items-center flex-wrap"
+              className="flex w-full items-center flex-nowrap"
               style={{ borderLeftColor: "transparent" }}
             >
               <div
