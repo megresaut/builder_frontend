@@ -1340,7 +1340,7 @@ export const RecordBill = () => {
                             value={dueDateInput}
                             onChange={(e) => {
                               if (!isReadOnly) {
-                                setDueDateInput(e.target.value);
+                                handleDueDateInputChange(e.target.value);
                               }
                             }}
                             onFocus={() => {
