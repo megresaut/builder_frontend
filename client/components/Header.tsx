@@ -57,6 +57,24 @@ export default function Header() {
     return undefined;
   };
 
+  // Helper function to map section ID to the corresponding default tab ID
+  const getDefaultTabIdForSection = (sectionId: string | undefined): string | undefined => {
+    if (!sectionId) return undefined;
+
+    // Map sectionIds to existing default tab IDs
+    const sectionToTabMap: Record<string, string> = {
+      "all-properties": "properties",
+      "bills": "bills",
+      "all-tasks": "field-team-orders", // Use field-team-orders as the main maintenance tab
+      "recurring-tasks": "field-team-orders",
+      "field-team-orders": "field-team-orders",
+      "work-orders": "work-orders",
+      "vendors": "field-team-orders",
+    };
+
+    return sectionToTabMap[sectionId];
+  };
+
   const getCurrentPageLabel = (): {
     label: string;
     path: string;
