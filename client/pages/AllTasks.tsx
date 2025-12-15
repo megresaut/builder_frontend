@@ -310,7 +310,7 @@ const ActionButton = ({
               type="button"
               onClick={() => {
                 setOpenMenuId(null);
-                navigate("/bills/record");
+                navigateToModal("/bills/record");
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
