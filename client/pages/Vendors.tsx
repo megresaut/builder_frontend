@@ -860,26 +860,26 @@ export default function Vendors() {
                 </span>
               </div>
               <div
-                className="flex items-center rounded-full border bg-white"
+                className="flex items-center rounded-lg border bg-white overflow-hidden"
                 style={{
                   borderColor: "rgb(218, 218, 218)",
                   borderWidth: "0.909091px",
                   boxShadow:
                     "rgba(0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                  padding: "8px 16px",
-                  gap: "16px",
                 }}
               >
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 text-sm font-medium transition-colors",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors text-sm font-medium",
                     currentPage === 1
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:opacity-70",
+                      : "hover:bg-gray-50",
                   )}
                   style={{
+                    borderRightWidth: "0.909091px",
+                    borderRightColor: "rgb(229, 229, 229)",
                     color: currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
                   }}
                 >
@@ -898,22 +898,38 @@ export default function Vendors() {
                   </svg>
                   <span>Previous</span>
                 </button>
-                <span className={cn(
-                  "text-sm",
-                  currentPage === 1 || currentPage === totalPages ? "font-bold text-gray-900" : "font-bold text-gray-900"
-                )}>
-                  {currentPage}
-                </span>
+                {getPaginationNumbers().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => typeof page === "number" && setCurrentPage(page)}
+                    disabled={page === "..."}
+                    className={cn(
+                      "h-10 w-10 text-sm font-medium transition-colors",
+                      currentPage === page
+                        ? "font-bold text-gray-900 bg-white cursor-default"
+                        : "hover:bg-gray-50"
+                    )}
+                    style={{
+                      borderRightWidth: page !== getPaginationNumbers()[getPaginationNumbers().length - 1] ? "0.909091px" : "0",
+                      borderRightColor: "rgb(229, 229, 229)",
+                      color: page === "..." ? "rgb(163, 163, 163)" : "currentColor"
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 text-sm font-medium transition-colors",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors text-sm font-medium",
                     currentPage === totalPages
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:opacity-70",
+                      : "hover:bg-gray-50",
                   )}
                   style={{
+                    borderLeftWidth: "0.909091px",
+                    borderLeftColor: "rgb(229, 229, 229)",
                     color: currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"
                   }}
                 >
