@@ -771,7 +771,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
           {/* Table */}
           <div
-            className="border-[0.5px] border-[#e5e5e5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-visible"
+            className="border-[0.5px] border-[#e5e5e5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-x-auto"
             style={{
               borderLeftWidth: "0px",
               borderBottomWidth: "0px",
@@ -1049,7 +1049,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 relative z-40" style={{ border: "1px none rgb(229, 229, 229)" }}>
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 sticky right-0 z-40" style={{ border: "1px none rgb(229, 229, 229)" }}>
                 <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex w-20 gap-2 overflow-visible px-3 py-3">
                   <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
                     Actions
@@ -1326,7 +1326,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 relative" style={{ border: "1px none rgb(229, 229, 229)" }}>
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 sticky right-0 z-40" style={{ border: "1px none rgb(229, 229, 229)" }}>
                 <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex w-20 gap-2 overflow-hidden px-3 py-3">
                   <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
                     Actions
