@@ -459,6 +459,7 @@ export default function Bills() {
     "vendor",
     "statementDate",
     "dueDate",
+    "status",
     "memo",
     "invoiceNumber",
     "amount",
