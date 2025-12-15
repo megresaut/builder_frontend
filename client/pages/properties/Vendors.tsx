@@ -257,6 +257,14 @@ export const Vendors: React.FC<VendorsProps> = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const navigate = useNavigate();
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors);
+
+  const getDisplayedVendorsForPage = () => {
+    const sorted = getSortedData();
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sorted.slice(start, end);
+  };
 
   useEffect(() => {
     let animationFrameId: number;
