@@ -575,7 +575,8 @@ export default function Vendors() {
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setShowColumnModal(true)}
+                  ref={columnButtonRef}
+                  onClick={() => setShowColumnModal(!showColumnModal)}
                   className="flex h-9 justify-center items-center px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
