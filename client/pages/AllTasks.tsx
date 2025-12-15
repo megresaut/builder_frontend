@@ -1101,6 +1101,29 @@ export default function AllTasks() {
             : undefined
         }
       />
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "priority",
+          "status",
+          "title",
+          "property",
+          "due",
+          "updated",
+          "age",
+          "assignee",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
     </div>
   );
 }
