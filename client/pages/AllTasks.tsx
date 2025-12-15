@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { usePageState } from "@/hooks/usePageState";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface Assignee {
   id: number;
