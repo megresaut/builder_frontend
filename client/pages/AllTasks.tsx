@@ -764,7 +764,7 @@ export default function AllTasks() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tasks.map((task) => (
+                  {getDisplayedTasksForPage().map((task) => (
                     <tr
                       key={task.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
