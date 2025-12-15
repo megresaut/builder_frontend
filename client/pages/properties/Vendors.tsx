@@ -592,17 +592,17 @@ export const Vendors: React.FC<VendorsProps> = ({
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {vendor.name}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {vendor.phone}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {vendor.email}
                         </span>
                       </td>
@@ -619,7 +619,7 @@ export const Vendors: React.FC<VendorsProps> = ({
                         </div>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {vendor.notes}
                         </span>
                       </td>
