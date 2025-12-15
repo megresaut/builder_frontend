@@ -270,7 +270,7 @@ export default function Vendors() {
     "isAddVendorModalOpen",
     false,
   );
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors);
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors, "vendors");
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   
