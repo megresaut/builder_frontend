@@ -1369,9 +1369,17 @@ export const RecordBill = () => {
                                   {getDaysInCurrentMonth().map((day, idx) => (
                                     <button
                                       key={idx}
-                                      onClick={() =>
-                                        day !== null && handleDueDateSelect(day)
-                                      }
+                                      onClick={() => {
+                                        if (day !== null) {
+                                          const selected = new Date(
+                                            calendarMonth.getFullYear(),
+                                            calendarMonth.getMonth(),
+                                            day,
+                                          );
+                                          handleDueDateSelect(selected);
+                                          setShowDueDateCalendar(false);
+                                        }
+                                      }}
                                       disabled={day === null}
                                       className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
                                         day === null
