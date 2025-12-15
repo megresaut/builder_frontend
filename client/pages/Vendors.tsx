@@ -925,12 +925,10 @@ export default function Vendors() {
         </div>
       </div>
 
-      {isAddVendorModalOpen && (
-        <AddVendorModal
-          isOpen={isAddVendorModalOpen}
-          onClose={() => setIsAddVendorModalOpen(false)}
-        />
-      )}
+      <AddVendorModal
+        open={isAddVendorModalOpen}
+        onOpenChange={setIsAddVendorModalOpen}
+      />
 
       {showColumnModal &&
         createPortal(
