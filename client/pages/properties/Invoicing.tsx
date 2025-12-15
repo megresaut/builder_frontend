@@ -740,7 +740,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
             </div>
             <div className="flex min-w-60 items-start gap-2.5">
-              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
+              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#e5e5e5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
@@ -771,7 +771,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
           {/* Table */}
           <div
-            className="border-[0.5px] border-[#DADADA] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-visible"
+            className="border-[0.5px] border-[#e5e5e5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-visible"
             style={{
               borderLeftWidth: "0px",
               borderBottomWidth: "0px",
@@ -788,11 +788,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               >
                 {/* Vendor Column */}
                 <div
-                  className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[151px]"
+                  className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[151px]"
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     style={{ borderLeftColor: "transparent" }}
                     onClick={() => handleInvoiceSortClick("vendor")}
                   >
@@ -818,7 +818,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF] border-l-4"
-                          : "border-[#DADADA]"
+                          : "border-[#e5e5e5]"
                       }`}
                       style={{
                         borderLeftColor:
@@ -850,9 +850,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
 
                 {/* GL Account Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[185px]">
+                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[185px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("glAccount")}
                   >
                     <svg
@@ -886,7 +886,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#DADADA]"
+                          : "border-[#e5e5e5]"
                       }`}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
@@ -897,9 +897,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
 
                 {/* Description Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[185px]">
+                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[185px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("description")}
                   >
                     <img
@@ -924,7 +924,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#DADADA]"
+                          : "border-[#e5e5e5]"
                       }`}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px] flex-1">
@@ -935,9 +935,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
 
                 {/* Amount Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[92px]">
+                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[92px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("amount")}
                   >
                     <img
@@ -962,7 +962,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#DADADA]"
+                          : "border-[#e5e5e5]"
                       }`}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
@@ -973,9 +973,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
 
                 {/* Source Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[113px]">
+                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[113px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("source")}
                   >
                     <img
@@ -1000,7 +1000,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#DADADA]"
+                          : "border-[#e5e5e5]"
                       }`}
                     >
                       <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
@@ -1011,9 +1011,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
 
                 {/* Status Column */}
-                <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[140px]">
+                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-grow w-[140px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("status")}
                   >
                     <img
@@ -1038,7 +1038,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#DADADA]"
+                          : "border-[#e5e5e5]"
                       }`}
                       style={{ borderRightWidth: "0px" }}
                     >
@@ -1049,8 +1049,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative z-40" style={{ border: "1px none rgb(218, 218, 218)" }}>
-                <div className="items-center border-b-[0.5px] border-[#DADADA] flex w-20 gap-2 overflow-visible px-3 py-3">
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 relative z-40" style={{ border: "1px none rgb(218, 218, 218)" }}>
+                <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex w-20 gap-2 overflow-visible px-3 py-3">
                   <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
                     Actions
                   </div>
@@ -1065,7 +1065,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         showingPendingInsights &&
                         item.status === "Pending Approval"
                           ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "bg-white border-[#DADADA]"
+                          : "bg-white border-[#e5e5e5]"
                       }`}
                     >
                       <ActionButton
@@ -1150,7 +1150,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
             </div>
             <div className="flex min-w-60 items-start gap-2.5 flex-wrap">
-              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
+              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#e5e5e5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
                 <img
                   loading="lazy"
                   src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
@@ -1163,7 +1163,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
                 />
               </div>
-              <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100">
+              <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#e5e5e5] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100">
                 <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
                   Filter
                 </div>
@@ -1195,9 +1195,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 style={{ borderLeftColor: "transparent" }}
               >
                 {/* Date Created Column */}
-                <div className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1">
+                <div className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-1">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleHistorySortClick("dateCreated")}
                   >
                     <img
@@ -1218,7 +1218,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {getSortedHistoryItems().map((item) => (
                     <div
                       key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       onClick={() =>
                         openInvoicePreview({
                           lineItems: buildPreviewLineItemsFromHistoryItem(item),
@@ -1236,11 +1236,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
                 {/* Invoice Month Column */}
                 <div
-                  className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1"
+                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-1"
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     style={{ borderLeftColor: "transparent" }}
                     onClick={() => handleHistorySortClick("invoiceMonth")}
                   >
@@ -1262,7 +1262,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {getSortedHistoryItems().map((item) => (
                     <div
                       key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       style={{ borderLeftColor: "transparent" }}
                       onClick={() =>
                         openInvoicePreview({
@@ -1281,11 +1281,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
                 {/* Amount Column */}
                 <div
-                  className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1"
+                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-1"
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     style={{ borderLeftColor: "transparent" }}
                     onClick={() => handleHistorySortClick("amount")}
                   >
@@ -1307,7 +1307,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {getSortedHistoryItems().map((item) => (
                     <div
                       key={item.id}
-                      className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       style={{ borderLeftColor: "transparent" }}
                       onClick={() =>
                         openInvoicePreview({
@@ -1326,8 +1326,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
 
               {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#DADADA] bg-white flex flex-col overflow-visible w-20 relative" style={{ border: "1px none rgb(218, 218, 218)" }}>
-                <div className="items-center border-b-[0.5px] border-[#DADADA] flex w-20 gap-2 overflow-hidden px-3 py-3">
+              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 relative" style={{ border: "1px none rgb(218, 218, 218)" }}>
+                <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex w-20 gap-2 overflow-hidden px-3 py-3">
                   <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
                     Actions
                   </div>
@@ -1335,7 +1335,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 {getSortedHistoryItems().map((item) => (
                   <div
                     key={item.id}
-                    className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative"
                   >
                     <ActionButton
                       itemId={`history-${item.id}`}
@@ -1364,7 +1364,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               <button
                 ref={dropdownButtonRef}
                 onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#e5e5e5] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
               >
                 <div className="text-[#0A0A0A] text-base font-medium">
                   {itemsPerPage}
@@ -1380,7 +1380,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 of {totalInvoices}
               </div>
             </div>
-            <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
+            <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#e5e5e5] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
