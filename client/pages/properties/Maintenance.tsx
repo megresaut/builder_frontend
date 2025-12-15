@@ -2174,26 +2174,22 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   alt=""
                 />
               </button>
-              {workordersColumnManagement.showColumnModal &&
-                createPortal(
-                  <ColumnFilterModal
-                    isOpen={workordersColumnManagement.showColumnModal}
-                    position={workordersColumnManagement.columnMenuPos}
-                    columns={workordersColumnManagement.columnOrder.map((key) => ({
-                      key,
-                      label: workOrdersColumnConfig[key]?.label || key,
-                      icon: workOrdersColumnConfig[key]?.icon,
-                    }))}
-                    visibleColumns={workordersColumnManagement.visibleColumns}
-                    onToggleColumn={
-                      workordersColumnManagement.toggleColumnVisibility
-                    }
-                    onClose={() =>
-                      workordersColumnManagement.setShowColumnModal(false)
-                    }
-                  />,
-                  document.body,
-                )}
+              <ColumnFilterModal
+                isOpen={workordersColumnManagement.showColumnModal}
+                position={workordersColumnManagement.columnMenuPos}
+                columns={workordersColumnManagement.columnOrder.map((key) => ({
+                  key,
+                  label: workOrdersColumnConfig[key]?.label || key,
+                  icon: workOrdersColumnConfig[key]?.icon,
+                }))}
+                visibleColumns={workordersColumnManagement.visibleColumns}
+                onToggleColumn={
+                  workordersColumnManagement.toggleColumnVisibility
+                }
+                onClose={() =>
+                  workordersColumnManagement.setShowColumnModal(false)
+                }
+              />
             </div>
           </div>
           <div className="overflow-x-auto">
