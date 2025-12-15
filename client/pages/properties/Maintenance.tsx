@@ -901,7 +901,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleTasksSortClick("assignees")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -926,6 +926,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Assignees
                       </span>
+                      {getTasksSortIndicator("assignees") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getTasksSortIndicator("assignees")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
