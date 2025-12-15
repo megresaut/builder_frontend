@@ -424,6 +424,7 @@ export const Bills: React.FC<BillsProps> = ({
   propertyUnits,
 }) => {
   const navigate = useNavigate();
+  const { navigateToModal } = useModalNavigation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
     "selectedTab",
