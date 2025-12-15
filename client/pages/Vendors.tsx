@@ -354,20 +354,25 @@ export default function Vendors() {
       // If clicking on a dropdown button, close the other dropdown
       if (isDropdownButtonClick) {
         setShowColumnModal(false);
+        // Also close action menu
+        setOpenMenuId(null);
       } else if (isColumnButtonClick) {
         setShowPageSizeDropdown(false);
+        // Also close action menu
+        setOpenMenuId(null);
       } else {
         // Clicking outside all dropdowns - close all
         setShowPageSizeDropdown(false);
         setShowColumnModal(false);
+        setOpenMenuId(null);
       }
     };
 
-    if (showPageSizeDropdown || showColumnModal) {
+    if (showPageSizeDropdown || showColumnModal || openMenuId !== null) {
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }
-  }, [showPageSizeDropdown, showColumnModal]);
+  }, [showPageSizeDropdown, showColumnModal, openMenuId]);
 
   useEffect(() => {
     let animationFrameId: number;
