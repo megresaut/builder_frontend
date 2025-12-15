@@ -857,7 +857,8 @@ export default function Bills() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     <th
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap"
+                      onClick={() => handleSortClick("vendor")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
                       style={{ lineHeight: "24px" }}
                     >
                       <div className="flex items-center gap-2">
@@ -880,9 +881,17 @@ export default function Bills() {
                         <span className="font-medium text-sm text-gray-700">
                           Vendor
                         </span>
+                        {getSortIndicator("vendor") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("vendor")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("statementDate")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -900,9 +909,17 @@ export default function Bills() {
                         <span className="font-medium text-sm text-gray-700">
                           Statement Date
                         </span>
+                        {getSortIndicator("statementDate") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("statementDate")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("dueDate")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
