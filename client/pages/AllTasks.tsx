@@ -369,7 +369,6 @@ const ActionButton = ({
 
 export default function AllTasks() {
   const navigate = useNavigate();
-  const { navigateToModal } = useModalNavigation();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
