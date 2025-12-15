@@ -315,39 +315,7 @@ export const RecordBill = () => {
 
   const handleCancel = () => {
     closeViewer();
-
-    // Try to use the previousPage from navigation state (passed from the page that opened this modal)
-    const previousPage = (location.state as { previousPage?: string })?.previousPage;
-    if (previousPage) {
-      navigate(previousPage);
-      return;
-    }
-
-    // Fallback to tab history if available
-    if (tabContext) {
-      const selectedTab = tabContext.selectedTab;
-      const metadata = tabContext.tabMetadata[selectedTab];
-      const currentIndex = metadata?.historyIndex ?? -1;
-      const history = metadata?.history || [];
-
-      // Can we go back in this tab's history?
-      if (currentIndex > 0) {
-        const previousRoute = history[currentIndex - 1];
-        if (previousRoute) {
-          const newIndex = currentIndex - 1;
-          tabContext.setTabMetadata(selectedTab, {
-            ...metadata,
-            historyIndex: newIndex,
-            route: previousRoute,
-          });
-          navigate(previousRoute);
-          return;
-        }
-      }
-    }
-
-    // Final fallback to browser history
-    navigate(-1);
+    returnFromModal();
   };
 
   const handleRecordBill = () => {
