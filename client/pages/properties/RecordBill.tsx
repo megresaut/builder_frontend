@@ -466,52 +466,6 @@ export const RecordBill = () => {
     return days;
   };
 
-  const handleInvoiceDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setInvoiceDate(selected);
-    setInvoiceDateInput(format(selected, "MM/dd/yyyy"));
-    setInvoiceDateError("");
-    setFormErrors((prev) => {
-      const newErrors = new Set(prev);
-      newErrors.delete("invoiceDate");
-      return newErrors;
-    });
-    setShowInvoiceDateCalendar(false);
-  };
-
-  const handleDueDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setDueDate(selected);
-    setDueDateInput(format(selected, "MM/dd/yyyy"));
-    setDueDateError("");
-    setFormErrors((prev) => {
-      const newErrors = new Set(prev);
-      newErrors.delete("dueDate");
-      return newErrors;
-    });
-    setShowDueDateCalendar(false);
-  };
-
-  const previousMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
-    );
-  };
-
-  const nextMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
-    );
-  };
-
   const validateDateFormat = (dateString: string): Date | null => {
     if (!dateString) return null;
 
