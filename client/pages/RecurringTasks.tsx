@@ -640,7 +640,8 @@ export default function RecurringTasks() {
                       </div>
                     </th>
                     <th
-                      className="px-3 py-3 text-left whitespace-nowrap"
+                      onClick={() => handleSortClick("status")}
+                      className="px-3 py-3 text-left whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
                       style={{
                         borderBottomWidth: "1px",
                         borderColor:
@@ -665,6 +666,11 @@ export default function RecurringTasks() {
                         <span className="font-medium text-sm text-gray-700">
                           Status
                         </span>
+                        {getSortIndicator("status") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("status")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     <th
