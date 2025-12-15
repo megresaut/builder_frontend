@@ -390,6 +390,128 @@ export const RecordBill = () => {
     navigate(-1);
   };
 
+  useEffect(() => {
+    const updatePositions = () => {
+      if (showInvoiceDateCalendar && invoiceDateInputRef.current) {
+        const rect = invoiceDateInputRef.current.getBoundingClientRect();
+        setInvoiceDateCalendarPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+      if (showDueDateCalendar && dueDateInputRef.current) {
+        const rect = dueDateInputRef.current.getBoundingClientRect();
+        setDueDateCalendarPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    let animationFrameId: number;
+    if (showInvoiceDateCalendar || showDueDateCalendar) {
+      animationFrameId = requestAnimationFrame(updatePositions);
+    }
+
+    if (showInvoiceDateCalendar || showDueDateCalendar) {
+      updatePositions();
+    }
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [showInvoiceDateCalendar, showDueDateCalendar]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (showInvoiceDateCalendar) {
+        const isClickInInput = invoiceDateInputRef.current?.contains(target);
+        const isClickInDropdown = invoiceDateCalendarRef.current?.contains(target);
+        if (!isClickInInput && !isClickInDropdown) {
+          setShowInvoiceDateCalendar(false);
+        }
+      }
+      if (showDueDateCalendar) {
+        const isClickInInput = dueDateInputRef.current?.contains(target);
+        const isClickInDropdown = dueDateCalendarRef.current?.contains(target);
+        if (!isClickInInput && !isClickInDropdown) {
+          setShowDueDateCalendar(false);
+        }
+      }
+    };
+
+    if (showInvoiceDateCalendar || showDueDateCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showInvoiceDateCalendar, showDueDateCalendar]);
+
+  const getDaysInCurrentMonth = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
+    const firstDayOfMonth = getDay(startOfMonth(new Date(year, month, 1)));
+
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    return days;
+  };
+
+  const handleInvoiceDateSelect = (day: number) => {
+    const selected = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth(),
+      day,
+    );
+    setInvoiceDate(selected);
+    setInvoiceDateInput(format(selected, "MM/dd/yyyy"));
+    setInvoiceDateError("");
+    setFormErrors((prev) => {
+      const newErrors = new Set(prev);
+      newErrors.delete("invoiceDate");
+      return newErrors;
+    });
+    setShowInvoiceDateCalendar(false);
+  };
+
+  const handleDueDateSelect = (day: number) => {
+    const selected = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth(),
+      day,
+    );
+    setDueDate(selected);
+    setDueDateInput(format(selected, "MM/dd/yyyy"));
+    setDueDateError("");
+    setFormErrors((prev) => {
+      const newErrors = new Set(prev);
+      newErrors.delete("dueDate");
+      return newErrors;
+    });
+    setShowDueDateCalendar(false);
+  };
+
+  const previousMonth = () => {
+    setCalendarMonth(
+      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
+    );
+  };
+
+  const nextMonth = () => {
+    setCalendarMonth(
+      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
+    );
+  };
+
   const validateDateFormat = (dateString: string): Date | null => {
     if (!dateString) return null;
 
