@@ -144,23 +144,6 @@ const ActionButton = ({
     };
   }, [showMenu]);
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      if (showMenu && buttonRef.current && menuRef.current) {
-        if (!buttonRef.current.contains(target) && !menuRef.current.contains(target)) {
-          setOpenMenuId(null);
-        }
-      }
-    };
-
-    if (showMenu) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [showMenu, vendorId, setOpenMenuId]);
 
   return (
     <>
