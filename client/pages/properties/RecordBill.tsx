@@ -1215,7 +1215,7 @@ export const RecordBill = () => {
                             value={invoiceDateInput}
                             onChange={(e) => {
                               if (!isReadOnly) {
-                                setInvoiceDateInput(e.target.value);
+                                handleInvoiceDateInputChange(e.target.value);
                               }
                             }}
                             onFocus={() => {
