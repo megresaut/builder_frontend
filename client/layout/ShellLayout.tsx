@@ -56,30 +56,8 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   // Detect modal-like pages and manage collapse state
   useEffect(() => {
     const isModal = isModalLikePage(location.pathname);
-
-    if (isModal && !forceCollapse) {
-      // Entering a modal-like page: save current sidebar pinned state
-      const currentPinnedState = localStorage.getItem(SIDEBAR_PINNED_KEY) === "true";
-      previousCollapseStateRef.current = {
-        sidebarCollapsed: !currentPinnedState,
-        tabsCollapsed: false,
-      };
-      // Collapse sidebar by setting pinned to false
-      localStorage.setItem(SIDEBAR_PINNED_KEY, "false");
-      setForceCollapse(true);
-    } else if (!isModal && forceCollapse) {
-      // Leaving a modal-like page: restore previous sidebar pinned state
-      const savedState = previousCollapseStateRef.current;
-      if (savedState) {
-        const wasPinned = !savedState.sidebarCollapsed;
-        localStorage.setItem(SIDEBAR_PINNED_KEY, JSON.stringify(wasPinned));
-      }
-      setForceCollapse(false);
-      previousCollapseStateRef.current = null;
-      // Dispatch a storage event to notify Sidebar of the change
-      window.dispatchEvent(new Event("storage"));
-    }
-  }, [location.pathname, forceCollapse]);
+    setForceCollapse(isModal);
+  }, [location.pathname]);
 
   // Get the current tab ID based on the route
   const getCurrentTabId = (): string => {
