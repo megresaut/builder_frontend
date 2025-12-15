@@ -1013,6 +1013,27 @@ export default function RecurringTasks() {
             : undefined
         }
       />
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "priority",
+          "task",
+          "nextDate",
+          "category",
+          "assignees",
+          "status",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
     </div>
   );
 }
