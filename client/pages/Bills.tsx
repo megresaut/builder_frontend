@@ -407,6 +407,7 @@ const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
 export default function Bills() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { navigateToModal } = useModalNavigation();
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
     "selectedTab",
     "approved",
