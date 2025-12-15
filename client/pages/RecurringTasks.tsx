@@ -319,6 +319,14 @@ export default function RecurringTasks() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockRecurringTasks);
+
+  const getDisplayedTasksForPage = () => {
+    const sorted = getSortedData();
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sorted.slice(start, end);
+  };
 
   const handleTaskEdit = (task: RecurringTask) => {
     setEditingTask(task);
