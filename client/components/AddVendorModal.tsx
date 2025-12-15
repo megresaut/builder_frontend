@@ -18,6 +18,7 @@ interface AddVendorModalProps {
 export default function AddVendorModal({
   open,
   onOpenChange,
+  onAddVendor,
 }: AddVendorModalProps) {
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
