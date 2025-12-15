@@ -548,6 +548,12 @@ export default function AllTasks() {
   const totalTasks = tasks.length;
   const totalPages = Math.ceil(totalTasks / itemsPerPage);
 
+  const getDisplayedTasksForPage = () => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return tasks.slice(start, end);
+  };
+
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
 
