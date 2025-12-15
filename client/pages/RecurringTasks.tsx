@@ -508,7 +508,10 @@ export default function RecurringTasks() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("priority")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <img
                           loading="lazy"
@@ -519,9 +522,17 @@ export default function RecurringTasks() {
                         <span className="font-medium text-sm text-gray-700">
                           Priority
                         </span>
+                        {getSortIndicator("priority") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("priority")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("task")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -542,9 +553,17 @@ export default function RecurringTasks() {
                         <span className="font-medium text-sm text-gray-700">
                           Task
                         </span>
+                        {getSortIndicator("task") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("task")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("nextDate")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -562,9 +581,17 @@ export default function RecurringTasks() {
                         <span className="font-medium text-sm text-gray-700">
                           Next Date
                         </span>
+                        {getSortIndicator("nextDate") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("nextDate")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("category")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -579,9 +606,17 @@ export default function RecurringTasks() {
                         <span className="font-medium text-sm text-gray-700">
                           Category
                         </span>
+                        {getSortIndicator("category") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("category")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("assignees")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -597,6 +632,11 @@ export default function RecurringTasks() {
                         <span className="font-medium text-sm text-gray-700">
                           Assignees
                         </span>
+                        {getSortIndicator("assignees") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("assignees")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     <th
