@@ -706,7 +706,10 @@ export default function FieldTeamOrders() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("priority")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <img
                           loading="lazy"
@@ -717,9 +720,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           Priority
                         </span>
+                        {getSortIndicator("priority") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("priority")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("property")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -740,9 +751,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           Property
                         </span>
+                        {getSortIndicator("property") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("property")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("description")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -763,9 +782,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           FTO Name
                         </span>
+                        {getSortIndicator("description") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("description")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("dueDate")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -783,9 +810,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           Due Date
                         </span>
+                        {getSortIndicator("dueDate") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("dueDate")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("fieldTeam")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -801,9 +836,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           Field Team
                         </span>
+                        {getSortIndicator("fieldTeam") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("fieldTeam")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("status")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -824,9 +867,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           FTO Status
                         </span>
+                        {getSortIndicator("status") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("status")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("timesheetStatus")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -842,9 +893,17 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           Timesheet Status
                         </span>
+                        {getSortIndicator("timesheetStatus") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("timesheetStatus")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("amount")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -862,6 +921,11 @@ export default function FieldTeamOrders() {
                         <span className="font-medium text-sm text-gray-700">
                           Amount
                         </span>
+                        {getSortIndicator("amount") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("amount")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     <th
