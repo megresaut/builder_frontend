@@ -426,7 +426,10 @@ export default function Vendors() {
       label: "Phone",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3.5 1H5.07924C5.55273 1 5.97762 1.31278 6.10066 1.76013L7.29374 5.73518C7.40578 6.10961 7.2807 6.51174 6.92258 6.7272L5.15651 7.79797C5.76858 9.19343 6.8067 10.2316 8.20216 10.8436L9.27292 9.07754C9.48829 8.71942 9.89042 8.59434 10.2648 8.70638L14.2399 9.89946C14.6873 10.0225 14.9999 10.4474 14.9999 10.9209V12.5C14.9999 14.433 13.433 16 11.5 16H4.5C2.567 16 1 14.433 1 12.5V3.5C1 1.567 2.567 0 4.5 0H3.5Z" fill="#525252"/>
+          <path d="M3 2H5C5.55228 2 6 2.44772 6 3V5C6 5.55228 5.55228 6 5 6H3C2.44772 6 2 5.55228 2 5V3C2 2.44772 2.44772 2 3 2Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M10 2H12C12.5523 2 13 2.44772 13 3V5C13 5.55228 12.5523 6 12 6H10C9.44772 6 9 5.55228 9 5V3C9 2.44772 9.44772 2 10 2Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M3 10H5C5.55228 10 6 10.4477 6 11V13C6 13.5523 5.55228 14 5 14H3C2.44772 14 2 13.5523 2 13V11C2 10.4477 2.44772 10 3 10Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M10 10H12C12.5523 10 13 10.4477 13 11V13C13 13.5523 12.5523 14 12 14H10C9.44772 14 9 13.5523 9 13V11C9 10.4477 9.44772 10 10 10Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     },
