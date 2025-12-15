@@ -199,9 +199,9 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar />
+      <Sidebar forceCollapse={forceCollapse} />
       <main className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header forceCollapse={forceCollapse} />
         <div
           ref={mainContentRef}
           data-testid="main-content"
