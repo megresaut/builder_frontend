@@ -322,6 +322,14 @@ export default function AllProperties() {
     "isAddPropertyModalOpen",
     false,
   );
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(properties);
+
+  const getDisplayedPropertiesForPage = () => {
+    const sorted = getSortedData();
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sorted.slice(start, end);
+  };
 
   const handlePropertyEdit = (property: Property) => {
     setEditingProperty(property);
