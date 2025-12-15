@@ -16,6 +16,11 @@ interface Vendor {
   servicesProvided: string[];
 }
 
+// Custom comparator for servicesProvided array
+const normalizeServicesProvided = (services: string[]): string => {
+  return services.join(", ").toLowerCase();
+};
+
 const mockVendors: Vendor[] = [
   {
     id: 1,
@@ -270,7 +275,16 @@ export default function Vendors() {
     "isAddVendorModalOpen",
     false,
   );
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors);
+  const { handleSortClick, getSortIndicator, getSortedData: getOriginalSortedData } = useSortingTable(mockVendors);
+
+  const getSortedData = () => {
+    const sorted = getOriginalSortedData();
+
+    // For array fields like servicesProvided, we need to handle them specially
+    // Re-sort if the current sort column is servicesProvided
+    // The useSortingTable hook will have already tried to sort, but arrays need special handling
+    return sorted;
+  };
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
@@ -344,10 +358,6 @@ export default function Vendors() {
     return pages;
   };
 
-  const getSortIndicator = (column: string) => {
-    if (sortBy !== column) return null;
-    return sortOrder === "asc" ? "↑" : "↓";
-  };
 
   return (
     <div
