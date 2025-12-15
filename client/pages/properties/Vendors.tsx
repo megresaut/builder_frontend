@@ -463,6 +463,11 @@ export const Vendors: React.FC<VendorsProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Phone
                       </span>
+                      {getSortIndicator("phone") && (
+                        <span className="text-xs font-bold text-gray-500">
+                          {getSortIndicator("phone")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
