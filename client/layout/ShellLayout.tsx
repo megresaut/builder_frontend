@@ -5,30 +5,14 @@ import Header from "@/components/Header";
 import { useTabContext } from "@/hooks/useTabContext";
 
 const FULLSCREEN_KEY = "app-fullscreen-mode";
-const MODAL_PAGE_COLLAPSE_KEY = "modal-page-collapse-state";
+const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
+const MODAL_PAGE_SIDEBAR_STATE_KEY = "modal-page-sidebar-state";
 
 const getFullscreenMode = () => {
   if (typeof window !== "undefined") {
     return localStorage.getItem(FULLSCREEN_KEY) === "true";
   }
   return false;
-};
-
-const getModalPageCollapseState = () => {
-  if (typeof window !== "undefined") {
-    const saved = localStorage.getItem(MODAL_PAGE_COLLAPSE_KEY);
-    return saved ? JSON.parse(saved) : null;
-  }
-  return null;
-};
-
-const saveModalPageCollapseState = (state: {
-  sidebarCollapsed: boolean;
-  tabsCollapsed: boolean;
-}) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(MODAL_PAGE_COLLAPSE_KEY, JSON.stringify(state));
-  }
 };
 
 const isModalLikePage = (pathname: string): boolean => {
