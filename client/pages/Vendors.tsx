@@ -256,6 +256,7 @@ const ActionButton = ({
 
 export default function Vendors() {
   const navigate = useNavigate();
+  const [vendors, setVendors] = useState<Vendor[]>(mockVendors);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -270,7 +271,7 @@ export default function Vendors() {
     "isAddVendorModalOpen",
     false,
   );
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors, "vendors");
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(vendors, "vendors");
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   
