@@ -802,7 +802,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
                       Vendor
                     </div>
                     {getInvoiceSortIndicator("vendor") && (
