@@ -184,7 +184,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   propertyLocation,
 }) => {
   const navigate = useNavigate();
-  const { navigateToModal } = useModalNavigation();
   const { propertyId } = useParams<{ propertyId: string }>();
 
   const [currentPage, setCurrentPage] = useState(1);
