@@ -940,7 +940,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
                 {/* Amount Column */}
                 <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[92px]">
-                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 px-3 py-3">
+                  <div
+                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    onClick={() => handleInvoiceSortClick("amount")}
+                  >
                     <img
                       loading="lazy"
                       src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9997108c517c4080bd0f554754253e3ae8b3d5d3?placeholderIfAbsent=true"
@@ -950,8 +953,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Amount
                     </div>
+                    {getInvoiceSortIndicator("amount") && (
+                      <span className="text-xs font-bold text-gray-500">
+                        {getInvoiceSortIndicator("amount")}
+                      </span>
+                    )}
                   </div>
-                  {invoiceItems.map((item) => (
+                  {getSortedInvoiceItems().map((item) => (
                     <div
                       key={item.id}
                       className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
