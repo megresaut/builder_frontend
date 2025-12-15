@@ -425,9 +425,9 @@ export default function Vendors() {
     phone: {
       label: "Phone",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3.5 1.5H4.5C5 1.5 5.5 2 5.5 2.5V13.5C5.5 14 5 14.5 4.5 14.5H3.5C3 14.5 2.5 14 2.5 13.5V2.5C2.5 2 3 1.5 3.5 1.5Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 1.5H11.5C12 1.5 12.5 2 12.5 2.5V13.5C12.5 14 12 14.5 11.5 14.5H8" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 5L4.5 2.5M18 5L15.5 2.5M3 6C3 5 4 4 5 4H15C16 4 17 5 17 6V15C17 16 16 17 15 17H5C4 17 3 16 3 15V6Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="10" cy="11" r="1" fill="#525252"/>
         </svg>
       ),
     },
