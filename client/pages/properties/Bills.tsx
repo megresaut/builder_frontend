@@ -7,6 +7,7 @@ import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
+import { useModalNavigation } from "@/hooks/useModalNavigation";
 
 interface BillsProps {
   propertyAddress: string;
