@@ -957,207 +957,51 @@ export default function Bills() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th
-                      onClick={() => handleSortClick("vendor")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={{ lineHeight: "24px" }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                    {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
+                      const colConfig = columnConfig[colKey];
+                      const sortIndicator = getSortIndicator(colKey);
+                      return (
+                        <th
+                          key={colKey}
+                          draggable
+                          onDragStart={() => handleColumnDragStart(colKey)}
+                          onDragOver={(e) => handleColumnDragOver(e, colKey)}
+                          onDragLeave={handleColumnDragLeave}
+                          onDrop={(e) => handleColumnDrop(e, colKey)}
+                          onClick={() => handleSortClick(colKey)}
+                          className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                          style={{
+                            opacity: draggedColumn === colKey ? 0.5 : 1,
+                            transition: "opacity 0.2s ease",
+                          }}
                         >
-                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                          <path d="M10 6h4" />
-                          <path d="M10 10h4" />
-                          <path d="M10 14h4" />
-                          <path d="M10 18h4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Vendor
-                        </span>
-                        {getSortIndicator("vendor") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getSortIndicator("vendor")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSortClick("statementDate")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M8 2v4" />
-                          <path d="M16 2v4" />
-                          <rect width="18" height="18" x="3" y="4" rx="2" />
-                          <path d="M3 10h18" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Statement Date
-                        </span>
-                        {getSortIndicator("statementDate") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getSortIndicator("statementDate")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSortClick("dueDate")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M8 2v4" />
-                          <path d="M16 2v4" />
-                          <rect width="18" height="18" x="3" y="4" rx="2" />
-                          <path d="M3 10h18" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Due Date
-                        </span>
-                        {getSortIndicator("dueDate") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getSortIndicator("dueDate")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSortClick("memo")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle
-                            cx="7.5"
-                            cy="7.5"
-                            r=".5"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Memo
-                        </span>
-                        {getSortIndicator("memo") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getSortIndicator("memo")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSortClick("invoiceNumber")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <line x1="4" x2="20" y1="9" y2="9" />
-                          <line x1="4" x2="20" y1="15" y2="15" />
-                          <line x1="10" x2="8" y1="3" y2="21" />
-                          <line x1="16" x2="14" y1="3" y2="21" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Reference #
-                        </span>
-                        {getSortIndicator("invoiceNumber") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getSortIndicator("invoiceNumber")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSortClick("amount")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <line x1="12" x2="12" y1="2" y2="22" />
-                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Amount
-                        </span>
-                        {getSortIndicator("amount") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getSortIndicator("amount")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    {selectedTab === "drafts" && (
-                      <th
-                        onClick={() => handleSortClick("importedAt")}
-                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 6v6l4 2" />
-                          </svg>
-                          <span className="font-medium text-sm text-gray-700">
-                            Import Status
-                          </span>
-                          {getSortIndicator("importedAt") && (
-                            <span className="text-xs font-bold text-gray-700 ml-1">
-                              {getSortIndicator("importedAt")}
-                            </span>
+                          {dropTargetColumn === colKey && draggedColumn && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                bottom: 0,
+                                width: "2px",
+                                backgroundColor: "#3b82f6",
+                                left: dropPosition === "before" ? "0" : "auto",
+                                right: dropPosition === "after" ? "0" : "auto",
+                              }}
+                            />
                           )}
-                        </div>
-                      </th>
-                    )}
+                          <div className="flex items-center gap-2">
+                            {colConfig?.icon}
+                            <span className="font-medium text-sm text-gray-700">
+                              {colConfig?.label}
+                            </span>
+                            {sortIndicator && (
+                              <span className="text-xs font-bold text-gray-700 ml-1">
+                                {sortIndicator}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      );
+                    })}
                     <th
                       className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
                       style={{
