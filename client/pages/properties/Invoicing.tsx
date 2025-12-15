@@ -1179,11 +1179,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
           {/* Table */}
           <div
-            className="border-[0.5px] border-[#DADADA] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full flex-col overflow-visible"
+            className="bg-white flex w-full flex-col overflow-visible"
             style={{
-              borderLeftWidth: "0px",
-              borderBottomWidth: "0px",
-              borderRightWidth: "0px",
+              borderTopWidth: "1.33333px",
+              borderTopColor: "#e5e5e5",
+              boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(10, 13, 18, 0.05) 0px 1px 2px 0px",
             }}
           >
             <div
