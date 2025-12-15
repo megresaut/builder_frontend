@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useSortingTable } from "@/hooks/useSortingTable";
 import {
   Select,
   SelectContent,
