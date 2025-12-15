@@ -1504,6 +1504,27 @@ export default function Bills() {
         open={isAddVendorModalOpen}
         onOpenChange={setIsAddVendorModalOpen}
       />
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "vendor",
+          "statementDate",
+          "dueDate",
+          "memo",
+          "invoiceNumber",
+          "amount",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
     </div>
   );
 }
