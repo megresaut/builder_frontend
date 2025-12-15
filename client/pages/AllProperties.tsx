@@ -678,12 +678,7 @@ export default function AllProperties() {
                   </tr>
                 </thead>
                 <tbody>
-                  {properties
-                    .slice(
-                      (currentPage - 1) * itemsPerPage,
-                      currentPage * itemsPerPage,
-                    )
-                    .map((property) => {
+                  {getDisplayedPropertiesForPage().map((property) => {
                       const handleRowClick = (e: React.MouseEvent) => {
                         if (
                           (e.target as HTMLElement).closest("td:last-child")
