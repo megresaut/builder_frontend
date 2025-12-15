@@ -12,15 +12,34 @@ interface SidebarItem {
 }
 
 export default function Sidebar() {
+  const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
+
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [isPinned, setIsPinnedState] = useState(() => {
+    // Load pinned state from localStorage on initial mount
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(SIDEBAR_PINNED_KEY);
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { favorites, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Persist sidebar pinned state to localStorage
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_PINNED_KEY, JSON.stringify(isPinned));
+  }, [isPinned]);
+
+  // Wrapper for setIsPinnedState to maintain the original name
+  const setIsPinned = (value: boolean | ((prev: boolean) => boolean)) => {
+    setIsPinnedState(value);
+  };
 
   // Detect screen size changes
   useEffect(() => {
