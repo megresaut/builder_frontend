@@ -75,6 +75,7 @@ interface FieldTeamOrder {
   property: string;
   description: string;
   dueDate: string;
+  unit?: string;
   fieldTeam: Array<{ initials: string; color: string; name: string }>;
   status: "dispatched" | "approved" | "pending-approval";
   amount: number;
@@ -86,6 +87,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     property: "22 Indian Chase Dr",
     description: "Doors Need To Be Repaired",
     dueDate: "Oct 2, 2025",
+    unit: "1",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -1355,8 +1357,23 @@ export default function TaskSummary() {
           {/* FTO Approval Modal */}
           <FTOApprovalModal
             open={showApprovalModal}
-            onOpenChange={setShowApprovalModal}
+            onOpenChange={(open) => {
+              setShowApprovalModal(open);
+              if (!open) {
+                setSelectedFTOId(null);
+              }
+            }}
             selectedFTOId={selectedFTOId}
+            rowId={`fto-${selectedFTOId}`}
+            editingOrder={fieldTeamOrders.find((o) => o.id === selectedFTOId)}
+            property={
+              fieldTeamOrders.find((o) => o.id === selectedFTOId)?.property
+            }
+            unit={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.unit}
+            fieldTeamAssignee={
+              fieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]
+                ?.name
+            }
           />
         </div>
       </div>

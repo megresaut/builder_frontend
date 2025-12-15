@@ -219,12 +219,14 @@ type ProviderDTO = {
 
 interface CreateAccountModalProps {
   propertyId: number;
+  propertyAddress: string;
   onClose: () => void;
   onCreated: (account: any) => void;
 }
 
 const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
-  propertyId,
+  propertyId, 
+  propertyAddress,
   onClose,
   onCreated,
 }) => {
@@ -233,7 +235,6 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
 
   const [providerId, setProviderId] = useState<number | "">("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [serviceAddress, setServiceAddress] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [active, setActive] = useState(true);
@@ -241,6 +242,11 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+
+  const [serviceAddress, setServiceAddress] = useState(propertyAddress || "");
+  useEffect(() => {
+    setServiceAddress(propertyAddress || "");
+  }, [propertyAddress]);
   // load providers on open
   useEffect(() => {
     let cancelled = false;
@@ -747,11 +753,22 @@ const queryClient = useQueryClient();
 const handleImportAccount = async (utilityAccountId: number) => {
   if (!utilityAccountId) return;
 
+  // inline row status
+  setAccountImportStatus(prev => {
+    const existing = prev[utilityAccountId];
+    if (existing?.state === "failed") return prev; // do NOT override failure
+  
+    return {
+      ...prev,
+      [utilityAccountId]: { state: "importing" }
+    };
+  });
+
   try {
     setImportingAccountId(utilityAccountId);
     setError(null);
 
-    // 1) Enqueue
+    // 1) enqueue job
     const enqueue = await fetchJSON(`/utilities/import/${utilityAccountId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -763,37 +780,51 @@ const handleImportAccount = async (utilityAccountId: number) => {
 
     const jobId = enqueue.job_id;
     if (!jobId) {
-      setError(
-        "Scrape failed. Please try again. If you’ve already tried this twice, contact support.",
-      );
+      const msg = "Unable to start import. Try again.";
+      setAccountImportStatus(prev => ({
+        ...prev,
+        [utilityAccountId]: { state: "failed", message: msg }
+      }));
       return;
     }
 
-    // 2) Poll
+    // 2) poll job
     const job = await pollJobStatus(jobId);
+
     if (job.status === "failed") {
-      setError(prettifyImportError(job.message ?? null));
+      const pretty = prettifyImportError(job.message);
+
+      setAccountImportStatus(prev => ({
+        ...prev,
+        [utilityAccountId]: { state: "failed", message: pretty }
+      }));
+
       return;
     }
 
-    // 3) Refresh data
+    // 3) refresh
     if (propertyId) {
-      await queryClient.invalidateQueries({
-        queryKey: ["utility-bills", propertyId],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["utility-accounts", propertyId],
-      });
+      await queryClient.invalidateQueries({ queryKey: ["utility-bills", propertyId] });
+      await queryClient.invalidateQueries({ queryKey: ["utility-accounts", propertyId] });
     }
 
-    alert("Import completed for this account.");
+    // 4) success
+    setAccountImportStatus(prev => ({
+      ...prev,
+      [utilityAccountId]: { state: "imported" }
+    }));
   } catch (err: any) {
-    const raw = err?.message ?? null;
-    setError(prettifyImportError(raw));
+    const pretty = prettifyImportError(err?.message ?? null);
+
+    setAccountImportStatus(prev => ({
+      ...prev,
+      [utilityAccountId]: { state: "failed", message: pretty }
+    }));
   } finally {
     setImportingAccountId(null);
   }
 };
+
 
 const handleBatchImport = async () => {
   if (!propertyId) return;
@@ -821,6 +852,68 @@ const handleBatchImport = async () => {
     setBatchId(id);
     setBatchJobs(resp.jobs || {});
 
+    Object.entries(resp.jobs as Record<string, number>).forEach(([accountIdStr, jobId]) => {
+      const accountId = Number(accountIdStr);
+      const numericJobId = Number(jobId);
+      console.log("Polling for account:", accountId, "job:", numericJobId);
+
+      pollJobStatus(numericJobId).then(job => {
+        const status = job.status;
+        console.log("Job status for account", accountId, "=", status);
+      
+        // FAILED STATES
+        if (status === "failed" || status === "push_failed") {
+          const pretty = prettifyImportError(job.message);
+      
+          setAccountImportStatus(prev => ({
+            ...prev,
+            [accountId]: { state: "failed", message: pretty }
+          }));
+      
+          setBatchErrors(prev => [
+            ...prev,
+            {
+              accountId,
+              provider: safeAccounts.find(a => a.id === accountId)?.provider_name ?? "Unknown",
+              message: pretty
+            }
+          ]);
+      
+          return;
+        }
+      
+        // NON TERMINAL → importing
+        if (status === "queued" || status === "running") {
+          setAccountImportStatus(prev => ({
+            ...prev,
+            [accountId]: { state: "importing" }
+          }));
+          return;
+        }
+      
+        // SUCCESS STATES → imported
+        if (status === "succeeded" || status === "pushed" || status === "skipped") {
+          setAccountImportStatus(prev => ({
+            ...prev,
+            [accountId]: { state: "imported" }
+          }));
+          return;
+        }
+      });
+      
+      
+    });
+    
+
+    // Mark all accounts as importing
+    Object.keys(resp.jobs).forEach((acctIdStr) => {
+      const acctId = Number(acctIdStr);
+      setAccountImportStatus((prev) => ({
+        ...prev,
+        [acctId]: { state: "importing" }
+      }));
+    });
+
     // 2) Poll batch
     await pollBatchStatus(id);
 
@@ -834,16 +927,32 @@ const handleBatchImport = async () => {
     for (const [accountIdStr, jobId] of Object.entries(resp.jobs || {})) {
       const accountId = Number(accountIdStr);
       const jobStatus = await fetchJSON(`/utilities/jobs/${jobId}`);
-
+    
+      // FAILED
       if (jobStatus.status === "failed") {
-        const acct = safeAccounts.find((a: any) => a.id === accountId);
+        const pretty = prettifyImportError(jobStatus.message);
+    
+        setAccountImportStatus(prev => ({
+          ...prev,
+          [accountId]: { state: "failed", message: pretty },
+        }));
+    
         failures.push({
           accountId,
-          provider: acct ? acct.provider_name : "Unknown",
-          message: prettifyImportError(jobStatus.message),
+          provider: safeAccounts.find((a: any) => a.id === accountId)?.provider_name || "Unknown",
+          message: pretty,
         });
+    
+        continue;
       }
+    
+      // SUCCESS
+      setAccountImportStatus(prev => ({
+        ...prev,
+        [accountId]: { state: "imported" },
+      }));
     }
+    
 
     setBatchErrors(failures);
 
@@ -857,13 +966,32 @@ const handleBatchImport = async () => {
       });
     }
 
+    // failures.forEach(f => {
+    //   setAccountImportStatus(prev => ({
+    //     ...prev,
+    //     [f.accountId]: { state: "failed", message: f.message }
+    //   }));
+    // });
+    
+    // // success statuses
+    // Object.keys(resp.jobs).forEach(accountIdStr => {
+    //   const accountId = Number(accountIdStr);
+    //   if (!failures.find(f => f.accountId === accountId)) {
+    //     setAccountImportStatus(prev => ({
+    //       ...prev,
+    //       [accountId]: { state: "imported" }
+    //     }));
+    //   }
+    // });
+    
     if (failures.length > 0) {
-      setError(
-        `Some accounts failed (${failures.length}). Check details or try again.`,
-      );
+      setError(`Some accounts failed (${failures.length}). See details in the table.`);
     } else {
-      alert("Import completed for all accounts.");
+      setError(null);
     }
+    
+
+
   } catch (err: any) {
     setError(
       err?.message && typeof err.message === "string"
@@ -901,10 +1029,9 @@ const [utilityModalMode, setUtilityModalMode] =
   useState<"add" | "edit">("edit");
 
 // Account-level import UI (optional, not tied to backend)
-const [accountImportStatus, setAccountImportStatus] = useState<{
-  [key: number]: "idle" | "importing" | "imported" | "failed";
-}>({});
-
+const [accountImportStatus, setAccountImportStatus] = useState<
+  Record<number, { state: "idle" | "importing" | "imported" | "failed"; message?: string }>
+>({});
 // Dropdown position update effect
 useEffect(() => {
   let animationFrameId: number;
@@ -987,7 +1114,7 @@ const getBillsPaginationNumbers = () => {
           </div>
         )}
 
-      <div
+      {/* <div
         className="flex justify-between items-center self-stretch rounded-2xl border border-[#E5E5FF] px-4 py-3"
         style={{
           boxShadow:
@@ -1032,7 +1159,7 @@ const getBillsPaginationNumbers = () => {
         >
           View All Insights
         </a>
-      </div>
+      </div> */}
 
       {/* Metrics Cards */}
       <div className="flex items-start content-start gap-4 self-stretch flex-wrap">
@@ -1228,11 +1355,7 @@ const getBillsPaginationNumbers = () => {
               </svg>
             </button>
             <button
-              onClick={() => {
-                setEditingUtilityAccount(null);
-                setUtilityModalMode("add");
-                setIsEditUtilityModalOpen(true);
-              }}
+              onClick={() => setShowCreateModal(true)}
               className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-[#fbfbfb] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
             >
               <svg
@@ -1253,84 +1376,17 @@ const getBillsPaginationNumbers = () => {
               Add Account
             </button>
             <button
-              onClick={() => {
-                setImportStatus("importing");
-
-                // Trigger import for all utility accounts
-                utilityAccounts.forEach((account) => {
-                  setAccountImportStatus((prev) => ({
-                    ...prev,
-                    [account.id]: "importing",
-                  }));
-                  setAccountLastImport((prev) => ({
-                    ...prev,
-                    [account.id]: "Importing...",
-                  }));
-                });
-
-                setTimeout(() => {
-                  const randomFailure = Math.random() < 0.3;
-                  let hasFailures = false;
-
-                  // Process each account
-                  utilityAccounts.forEach((account) => {
-                    const accountFailure = Math.random() < 0.3;
-                    if (accountFailure) {
-                      hasFailures = true;
-                      setAccountImportStatus((prev) => ({
-                        ...prev,
-                        [account.id]: "failed",
-                      }));
-                      setAccountLastImport((prev) => ({
-                        ...prev,
-                        [account.id]: "failed",
-                      }));
-                    } else {
-                      setAccountImportStatus((prev) => ({
-                        ...prev,
-                        [account.id]: "imported",
-                      }));
-                      setAccountLastImport((prev) => ({
-                        ...prev,
-                        [account.id]: "Imported",
-                      }));
-                      setTimeout(() => {
-                        setAccountImportStatus((prev) => ({
-                          ...prev,
-                          [account.id]: "idle",
-                        }));
-                        setAccountLastImport((prev) => ({
-                          ...prev,
-                          [account.id]: "1 min ago",
-                        }));
-                      }, 1500);
-                    }
-                  });
-
-                  // Set universal button status based on overall results
-                  if (hasFailures) {
-                    setImportStatus("failed");  
-                  } else {
-                    setImportStatus("imported");  
-                    setTimeout(() => {  
-                      setImportStatus("idle");  
-                    }, 2000);
-                  }
-                }, 1500);
-              }}
-              disabled={importStatus === "importing"}
+              onClick={handleBatchImport}
+              disabled={batchImporting}
               className={cn(
                 "flex h-9 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] transition-colors disabled:opacity-70",
-                importStatus === "failed"
-                  ? "bg-red-700 hover:bg-red-800"
-                  : "bg-[#013564] hover:bg-[#012a4d]",
+                batchImporting
+                ? "bg-[#013564] opacity-70 cursor-not-allowed"
+                : "bg-[#013564] hover:bg-[#012a4d]",
               )}
             >
               <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
-                {importStatus === "idle" && "Import"}
-                {importStatus === "importing" && "Importing..."}  
-                {importStatus === "imported" && "Imported"}
-                {importStatus === "failed" && "Import Failed"}
+                {batchImporting ? "Importing…" : "Import"}
               </span>
             </button>
           </div>
@@ -1476,12 +1532,12 @@ const getBillsPaginationNumbers = () => {
               </tr>
             </thead>
             <tbody>
-              {utilityAccounts.map((account, index) => (
+              {mappedAccounts.map((account, index) => (
                 <tr
                   key={account.id}
                   className={cn(
                     "hover:bg-gray-50 transition-colors h-12",
-                    index === utilityAccounts.length - 1
+                    index === (mappedAccounts?.length || 0) - 1
                       ? "border-b-0"
                       : "border-b border-gray-200",
                   )}
@@ -1515,33 +1571,52 @@ const getBillsPaginationNumbers = () => {
                     </span>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    {accountImportStatus[account.id] === "failed" ? (
-                      <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <g clipPath="url(#clip0_failed)">
-                            <path
-                              d="M8.00065 5.3335V8.00016M8.00065 10.6668H8.00732M14.6673 8.00016C14.6673 11.6821 11.6825 14.6668 8.00065 14.6668C4.31875 14.6668 1.33398 11.6821 1.33398 8.00016C1.33398 4.31826 4.31875 1.3335 8.00065 1.3335C11.6825 1.3335 14.6673 4.31826 14.6673 8.00016Z"
-                              stroke="#DC2626"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </g>
-                        </svg>
-                        Import Failed
-                      </span>
-                    ) : (
-                      <span className="text-gray-900 font-normal text-base">
-                        {accountLastImport[account.id] || account.lastImport}
+                    {/* IMPORTING */}
+                    {accountImportStatus[account.id]?.state === "importing" && (
+                      <span className="inline-flex items-center gap-1.5 text-blue-600">
+                        <div className="h-3 w-3 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+                        Importing…
                       </span>
                     )}
+
+                    {/* IMPORTED SUCCESS */}
+                    {accountImportStatus[account.id]?.state === "imported" && (
+                      <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                        ✓ Imported
+                      </span>
+                    )}
+
+                    {/* FAILED */}
+                    {accountImportStatus[account.id]?.state === "failed" && (
+                      <div className="flex items-start gap-3 max-w-[340px]">
+                        {/* Small red pill */}
+                        <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                          ✕ Failed
+                        </span>
+
+                        {/* Multi-line message — cleaner formatting */}
+                        <div className="flex flex-col leading-snug mt-[2px]">
+                          <span className="text-xs text-red-600 font-medium">
+                            Scrape failed
+                          </span>
+                          <span className="text-xs text-red-600">
+                            Please try again.
+                          </span>
+                          <span className="text-xs text-red-600">
+                            If you’ve already tried this twice,
+                          </span>
+                          <span className="text-xs text-red-600">
+                            contact support.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {/* DEFAULT (no import triggered yet) */}
+                    {!accountImportStatus[account.id] && (
+                      <span className="text-gray-900 text-base">{account.lastImport}</span>
+                    )}
                   </td>
+
                   <td
                     className="sticky right-0 px-2 py-3 flex items-center justify-center"
                     style={{
@@ -1561,48 +1636,7 @@ const getBillsPaginationNumbers = () => {
                         setUtilityModalMode("edit");
                         setIsEditUtilityModalOpen(true);
                       }}
-                      onImport={() => {
-                        setAccountImportStatus((prev) => ({
-                          ...prev,
-                          [account.id]: "importing",
-                        }));
-                        setAccountLastImport((prev) => ({
-                          ...prev,
-                          [account.id]: "Importing...",
-                        }));
-                        setTimeout(() => {
-                          const randomFailure = Math.random() < 0.3;
-                          if (randomFailure) {
-                            setAccountImportStatus((prev) => ({
-                              ...prev,
-                              [account.id]: "failed",
-                            }));
-                            setAccountLastImport((prev) => ({
-                              ...prev,
-                              [account.id]: "failed",
-                            }));
-                          } else {
-                            setAccountImportStatus((prev) => ({
-                              ...prev,
-                              [account.id]: "imported",
-                            }));
-                            setAccountLastImport((prev) => ({
-                              ...prev,
-                              [account.id]: "Imported",
-                            }));
-                            setTimeout(() => {
-                              setAccountImportStatus((prev) => ({
-                                ...prev,
-                                [account.id]: "idle",
-                              }));
-                              setAccountLastImport((prev) => ({
-                                ...prev,
-                                [account.id]: "1 min ago",
-                              }));
-                            }, 1500);
-                          }
-                        }, 1500);
-                      }}
+                      onImport={() => handleImportAccount(account.id)}
                     />
                   </td>
                 </tr>
@@ -1667,31 +1701,9 @@ const getBillsPaginationNumbers = () => {
               </svg>
             </button>
 
-            {/* Add Account (primary blue pill) */}
-            <button
-              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#0A2A57] text-white hover:bg-[#0C3A75] transition-colors border border-[#0A2A57]"
-              onClick={() => setShowCreateModal(true)}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8 3.333v9.334M3.333 8h9.334"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-sm font-medium">Add Account</span>
-            </button>
 
 
-            {/* Import (secondary) */}
+            {/* Import (secondary)
             <button
               className={cn(
                 "flex h-9 items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white text-[#303030] hover:bg-gray-50 transition-colors",
@@ -1703,7 +1715,7 @@ const getBillsPaginationNumbers = () => {
               <span className="text-sm font-medium">
                 {batchImporting ? "Importing…" : "Import"}
               </span>
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -1969,7 +1981,7 @@ const getBillsPaginationNumbers = () => {
               </button>
             </div>
             <span className="text-gray-700 text-sm font-medium">
-              of {bills.length}
+              of {bills?.length || 0}
             </span>
           </div>
           <div
@@ -2107,6 +2119,7 @@ const getBillsPaginationNumbers = () => {
       {showCreateModal && propertyId && (
         <CreateAccountModal
           propertyId={Number(propertyId)}
+          propertyAddress={propertyAddress}
           onClose={() => setShowCreateModal(false)}
           onCreated={(_acct) => {
             queryClient.invalidateQueries({

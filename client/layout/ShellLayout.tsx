@@ -1,8 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useTabContext } from "@/hooks/useTabContext";
+
+const FULLSCREEN_KEY = "app-fullscreen-mode";
+const getFullscreenMode = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(FULLSCREEN_KEY) === "true";
+  }
+  return false;
+};
 
 interface ShellLayoutProps {
   children?: React.ReactNode;
@@ -14,6 +22,25 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const lastTabIdRef = useRef<string>();
+  const [isFullscreen, setIsFullscreen] = useState(getFullscreenMode());
+
+  // Listen for fullscreen mode changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsFullscreen(getFullscreenMode());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    // Also check periodically in case storage was updated in the same tab
+    const interval = setInterval(() => {
+      setIsFullscreen(getFullscreenMode());
+    }, 100);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Get the current tab ID based on the route
   const getCurrentTabId = (): string => {

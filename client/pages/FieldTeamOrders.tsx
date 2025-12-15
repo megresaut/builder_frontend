@@ -161,12 +161,16 @@ const ActionButton = ({
   setOpenMenuId,
   setEditingFTOId,
   setShowFTOModal,
+  setShowApprovalModal,
+  setApprovingOrder,
 }: {
   order: FieldTeamOrder;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   setEditingFTOId: (id: number | null) => void;
   setShowFTOModal: (open: boolean) => void;
+  setShowApprovalModal: (open: boolean) => void;
+  setApprovingOrder: (order: FieldTeamOrder | null) => void;
 }) => {
   const orderId = order.id;
   const showMenu = openMenuId === orderId;
@@ -245,8 +249,8 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                setEditingFTOId(orderId);
-                setShowFTOModal(true);
+                setApprovingOrder(order);
+                setShowApprovalModal(true);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -254,8 +258,7 @@ const ActionButton = ({
               <span
                 className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
                 style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 }}
               >
                 Approve
@@ -351,7 +354,9 @@ export default function FieldTeamOrders() {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
   const [fieldTeamUsers, setFieldTeamUsers] = useState<Record<number, FieldTeamUser>>({});
-
+// ADD THESE TWO LINES:
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvingOrder, setApprovingOrder] = useState<FieldTeamOrder | null>(null);
 
   useEffect(() => {
     fetch("http://localhost:8080/maintenance/ftos")
@@ -842,7 +847,9 @@ export default function FieldTeamOrders() {
                           setOpenMenuId={setOpenMenuId}
                           setEditingFTOId={setEditingFTOId}
                           setShowFTOModal={setShowFTOModal}
-                        />
+                          setShowApprovalModal={setShowApprovalModal}
+                          setApprovingOrder={setApprovingOrder}
+                        />  
                       </td>
                     </tr>
                   ))}
@@ -1084,7 +1091,31 @@ export default function FieldTeamOrders() {
         )}
 
       {/* Create/Update FTO Modal */}
-      <CreateFTOModal open={showFTOModal} onOpenChange={setShowFTOModal} editingFTOId={editingFTOId}/>     
+      {/* Create/Update FTO Modal */}
+      <CreateFTOModal 
+        open={showFTOModal} 
+        onOpenChange={setShowFTOModal} 
+        editingFTOId={editingFTOId}
+      />
+
+      {/* FTO Approval Modal */}
+      <FTOApprovalModal
+        open={showApprovalModal}
+        onOpenChange={(open) => {
+          setShowApprovalModal(open);
+          if (!open) {
+            setApprovingOrder(null);
+          }
+        }}
+        editingOrder={approvingOrder}
+        property={approvingOrder?.property_address || ""}
+        unit={approvingOrder?.name || ""}
+        fieldTeamAssignee={
+          approvingOrder?.field_team_member_ids?.[0] 
+            ? fieldTeamUsers[approvingOrder.field_team_member_ids[0]]?.name || "Unassigned"
+            : "Unassigned"
+        }
+      />
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "../Utilities";
 import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
+import { formatRelativeTime } from "@/lib/timeUtils";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface BillsProps {
   propertyAddress: string;
@@ -19,165 +21,74 @@ interface Bill {
   property: string;
   statementDate: string;
   dueDate: string;
-  status: "pushed" | "push-failed";
+  status?: "pushed" | "push-failed"; 
   memo: string;
   invoiceNumber: string;
   amount: number;
+  glAccount: string;
+  importedAt: number;
 }
 
-const bills: Bill[] = [
-  {
-    id: 1,
-    vendor: "Elite HVAC",
-    vendorColor: "#BC423E",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 4, 2025",
-    dueDate: "Dec 14, 2025",
-    status: "pushed",
-    memo: "Heater Not Working, Call For Service",
-    invoiceNumber: "REF-2024-934",
-    amount: 234,
-  },
-  {
-    id: 2,
-    vendor: "ABC Plumbing",
-    vendorColor: "#EBA524",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 3, 2025",
-    dueDate: "Dec 12, 2025",
-    status: "push-failed",
-    memo: "Leaky Faucet, Plumber Scheduled For Tomorrow",
-    invoiceNumber: "REF-2024-582",
-    amount: 287,
-  },
-  {
-    id: 3,
-    vendor: "Elite HVAC",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 2, 2025",
-    dueDate: "Dec 10, 2025",
-    status: "pushed",
-    memo: "High Bill, Check For Leaks And Wastage",
-    invoiceNumber: "REF-2024-195",
-    amount: 156,
-  },
-  {
-    id: 4,
-    vendor: "Elite HVAC",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 1, 2025",
-    dueDate: "Dec 8, 2025",
-    status: "push-failed",
-    memo: "Slow Connection, Contact ISP For Assistance",
-    invoiceNumber: "REF-2024-732",
-    amount: 234,
-  },
-  {
-    id: 5,
-    vendor: "Elite HVAC",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Oct 1, 2025",
-    dueDate: "Dec 6, 2025",
-    status: "pushed",
-    memo: "Pilot Light Out, Schedule Safety Inspection",
-    invoiceNumber: "REF-2024-268",
-    amount: 167,
-  },
-  {
-    id: 6,
-    vendor: "Aqua Solutions",
-    vendorColor: "#EBA524",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 30, 2025",
-    dueDate: "Dec 4, 2025",
-    status: "pushed",
-    memo: "Outage Reported, Check Breaker And Connections",
-    invoiceNumber: "REF-2024-694",
-    amount: 312,
-  },
-  {
-    id: 7,
-    vendor: "Green Lawn Services",
-    vendorColor: "#059669",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 29, 2025",
-    dueDate: "Dec 2, 2025",
-    status: "push-failed",
-    memo: "Clogged Drain, Use Drain Cleaner Carefully",
-    invoiceNumber: "REF-2024-319",
-    amount: 256,
-  },
-  {
-    id: 8,
-    vendor: "Spark Electrical",
-    vendorColor: "#2463EB",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 28, 2025",
-    dueDate: "Nov 30, 2025",
-    status: "pushed",
-    memo: "Low Pressure, Check Supply And Aerators",
-    invoiceNumber: "REF-2024-851",
-    amount: 178,
-  },
-  {
-    id: 9,
-    vendor: "Secure Locksmiths",
-    vendorColor: "#059669",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 28, 2025",
-    dueDate: "Nov 28, 2025",
-    status: "push-failed",
-    memo: "Intermittent Issues, Troubleshoot Router And Modem",
-    invoiceNumber: "REF-2024-427",
-    amount: 213,
-  },
-  {
-    id: 10,
-    vendor: "Clean Sweep Janitorial",
-    vendorColor: "#BC423E",
-    property: "22 Indian Chase Dr",
-    statementDate: "Sep 28, 2025",
-    dueDate: "Nov 26, 2025",
-    status: "pushed",
-    memo: "High Usage, Investigate Appliances And Settings",
-    invoiceNumber: "REF-2024-934",
-    amount: 145,
-  },
-];
 
-const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill={color}
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
+// Simple deterministic color picker based on vendor/provider name
+const pickColor = (name: string) => {
+  if (!name) return "#2463EB";
+
+  const colors = [
+    "#2463EB", // blue
+    "#BC423E", // red
+    "#EBA524", // yellow
+    "#059669", // green
+    "#7C3AED", // purple
+  ];
+
+  // hash string to index
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
 
 interface ActionButtonProps {
-  itemId: number;
+  billId: number;
+  bill: Bill;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
+  tab?: "approved" | "drafts";
+  propertyId?: string;
 }
 
+
+function formatDate(dateStr: string | null | undefined) {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+
 const ActionButton = ({
-  itemId,
+  billId,
+  bill,
   openMenuId,
   setOpenMenuId,
+  tab = "approved",
+  propertyId,
 }: ActionButtonProps) => {
-  const showMenu = openMenuId === itemId;
+  const showMenu = openMenuId === billId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     let animationFrameId: number;
@@ -211,7 +122,8 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : itemId)}
+        data-bill-actions-trigger="true"
+        onClick={() => setOpenMenuId(showMenu ? null : billId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
@@ -233,6 +145,7 @@ const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
+            data-bill-actions-menu="true"
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
@@ -248,64 +161,153 @@ const ActionButton = ({
             }}
             onMouseLeave={() => setOpenMenuId(null)}
           >
-            <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            {tab === "drafts" ? (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId(null);
+                    const path = propertyId
+                      ? `/property/${propertyId}/bills/record`
+                      : "/bills/record";
+                    navigate(`${path}?billId=${bill.id}`);
+                  }}
+                  className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+                >
+                  <span
+                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                    style={{
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    }}
+                  >
+                    Edit Bill
+                  </span>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setOpenMenuId(null)}
+                  className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+                >
+                  <span
+                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                    style={{
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    }}
+                  >
+                    Delete
+                  </span>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                      stroke="#982740"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenuId(null);
+                  const path = propertyId
+                    ? `/property/${propertyId}/bills/record?readOnly=true`
+                    : "/bills/record?readOnly=true";
+                  navigate(`${path}?billId=${bill.id}`);
                 }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
-                Edit
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Delete
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                  stroke="#982740"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  View Bill
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                    stroke="#525252"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>,
           document.body,
         )}
     </>
   );
 };
+
+const buildBillState = (bill: Bill) => ({
+  vendorName: bill.vendor,
+  referenceNumber: bill.invoiceNumber,
+  invoiceDate: bill.statementDate,
+  dueDate: bill.dueDate,
+  memo: bill.memo,
+  lineItems: [
+    {
+      id: bill.id,
+      property: bill.property,
+      unit: "N/A",
+      workOrder: "N/A",
+      description: bill.memo,
+      glAccount: bill.glAccount,
+      total: `$${bill.amount.toFixed(2)}`,
+    },
+  ],
+});
+
+const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill={color}
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
 
 export const Bills: React.FC<BillsProps> = ({
   propertyAddress,
@@ -332,9 +334,135 @@ export const Bills: React.FC<BillsProps> = ({
     "openMenuId",
     null,
   );
+  const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
+    "idle",
+  );
+  const [billsList, setBillsList] = useState<Bill[]>([]);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [approvedTimestamp, setApprovedTimestamp] = useState(
+    () => Date.now() - 3 * 60 * 1000,
+  );
+  const [draftsTimestamp, setDraftsTimestamp] = useState(
+    () => Date.now() - 2 * 60 * 1000,
+  );
+  const [relativeTimeDisplay, setRelativeTimeDisplay] = useState(() => ({
+    approved: formatRelativeTime(Date.now() - 3 * 60 * 1000),
+    drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
+  }));
+
+
+  const [approvedBillsList, setApprovedBillsList] = useState<Bill[]>([]);
+  const [draftBillsList, setDraftBillsList] = useState<Bill[]>([]);
+
+  useEffect(() => {
+    if (!propertyId) return;
+  
+    fetchJSON(`/utilities/bills?property_id=${propertyId}`)
+      .then((data) => {
+        const safeData = Array.isArray(data) ? data : [];
+        const mapped = safeData.map((b: any) => ({
+          id: b.id,
+          vendor: b.vendor_name || b.provider_name || b.source_name || "Unknown",
+          vendorColor: pickColor(
+            b.vendor_name || b.provider_name || b.source_name || "Unknown"
+          ),
+          property: b.property_name ?? "",
+          statementDate: formatDate(b.statement_date),
+          dueDate: formatDate(b.due_date),
+          status: (b.push_status || "pushed") as "pushed" | "push-failed",
+          memo: b.memo ?? "",
+          invoiceNumber: b.invoice_number ?? "",
+          amount: (b.amount_cents ?? 0) / 100,
+          glAccount: "",
+          importedAt: b.created_at
+            ? new Date(b.created_at).getTime()
+            : Date.now(),
+        }));
+  
+        setApprovedBillsList(mapped);     // ⭐ ONLY approved bills here
+        setDraftBillsList([]);            // ⭐ EMPTY drafts for now
+      })
+      .catch((err) => console.error("Failed to load bills:", err));
+  }, [propertyId]);
+  
+  
+  // ⭐ NEW: Load draft bills for this property
+  useEffect(() => {
+    if (!propertyId) return;
+  
+    fetchJSON(`/vendors/bill-drafts?property_id=${propertyId}`)
+      .then((data) => {
+        const safeDrafts = Array.isArray(data) ? data : [];
+  
+        const mappedDrafts = safeDrafts.map((d: any) => ({
+          id: d.id,
+  
+          // Vendor
+          vendor: d.vendor_name ?? "—",
+          vendorColor: pickColor(d.vendor_name ?? "—"),
+  
+          // Property (from backend)
+          property: d.property_address ?? "",
+  
+          // Dates
+          statementDate: formatDate(d.statement_date),
+          dueDate: formatDate(d.due_date),
+  
+          // Memo (avoid "inactive", fallback to description)
+          memo:
+            d.memo && d.memo.toLowerCase() !== "inactive"
+              ? d.memo
+              : d.description || "",
+  
+          // Reference #
+          invoiceNumber: d.reference || d.invoice_number || "",
+  
+          // Amount (convert cents → dollars)
+          amount:
+            typeof d.amount === "number"
+              ? d.amount
+              : typeof d.amount_cents === "number"
+              ? d.amount_cents / 100
+              : 0,
+  
+          glAccount: "",
+  
+          // 🟢 No status — drafts should not show any “active/inactive”
+          // Only import timestamp is used for UI
+          importedAt: d.created_at ? new Date(d.created_at).getTime() : Date.now(),
+        }));
+  
+        setDraftBillsList(mappedDrafts);
+      })
+      .catch((err) => console.error("Failed to load draft bills:", err));
+  }, [propertyId]);
+  
+
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRelativeTimeDisplay({
+        approved: formatRelativeTime(approvedTimestamp),
+        drafts: formatRelativeTime(draftsTimestamp),
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [approvedTimestamp, draftsTimestamp]);
+
+  useEffect(() => {
+    const handleBillApproved = (event: Event) => {
+      const customEvent = event as CustomEvent<{ timestamp: number }>;
+      setApprovedTimestamp(customEvent.detail.timestamp);
+    };
+
+    window.addEventListener("billApproved", handleBillApproved);
+
+    return () => window.removeEventListener("billApproved", handleBillApproved);
+  }, []);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -390,7 +518,19 @@ export const Bills: React.FC<BillsProps> = ({
   }, [showPageSizeDropdown]);
 
   useEffect(() => {
-    const handleClickAnywhere = () => {
+    const handleClickAnywhere = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const isInActionsMenu = target.closest('[data-bill-actions-menu="true"]');
+      const isInActionsTrigger = target.closest(
+        '[data-bill-actions-trigger="true"]',
+      );
+
+      if (isInActionsMenu || isInActionsTrigger) {
+        return;
+      }
+
       setOpenMenuId(null);
     };
 
@@ -398,8 +538,108 @@ export const Bills: React.FC<BillsProps> = ({
     return () => document.removeEventListener("mousedown", handleClickAnywhere);
   }, []);
 
-  const approvedBills = bills.filter((_, idx) => idx % 2 === 0);
-  const displayedBills = selectedTab === "approved" ? approvedBills : bills;
+  const getTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diffMs = now - timestamp;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return "now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const handleSync = async () => {
+    if (!propertyId) return;
+  
+    try {
+      setSyncState("syncing");
+  
+      // 🔥 1) Run backend sync (Outlook → bill-drafts)
+      await fetchJSON("/vendors/outlook/sync", {
+        method: "POST",
+      });
+  
+      // 🔥 2) Re-fetch APPROVED bills
+      const approved = await fetchJSON(`/utilities/bills?property_id=${propertyId}`);
+      const safeApproved = Array.isArray(approved) ? approved : [];
+  
+      const mappedApproved = safeApproved.map((b: any) => ({
+        id: b.id,
+        vendor: b.vendor_name || b.provider_name || b.source_name || "Unknown",
+        vendorColor: pickColor(
+          b.vendor_name || b.provider_name || b.source_name || "Unknown"
+        ),
+        property: b.property_name ?? "",
+        statementDate: b.statement_date ?? "",
+        dueDate: b.due_date ?? "",
+        status: (b.push_status || "pushed") as "pushed" | "push-failed",
+        memo: b.memo ?? "",
+        invoiceNumber: b.invoice_number ?? "",
+        amount: (b.amount_cents ?? 0) / 100,
+        glAccount: "",
+        importedAt: b.created_at
+          ? new Date(b.created_at).getTime()
+          : Date.now(),
+      }));
+  
+      setApprovedBillsList(mappedApproved);
+      setApprovedTimestamp(Date.now());
+  
+      // 🔥 3) Re-fetch DRAFT bills
+      const drafts = await fetchJSON(`/vendors/bill-drafts?property_id=${propertyId}`);
+      const safeDrafts = Array.isArray(drafts) ? drafts : [];
+  
+      const mappedDrafts = safeDrafts.map((d: any) => ({
+        id: d.id,
+      
+        vendor: d.vendor_name ?? "—",
+        vendorColor: pickColor(d.vendor_name ?? "—"),
+        property: d.property_name ?? "",
+      
+        statementDate: formatDate(d.statement_date),
+        dueDate: formatDate(d.due_date),
+      
+        memo:
+          d.memo && d.memo.toLowerCase() !== "inactive"
+            ? d.memo
+            : d.description || "",
+      
+        invoiceNumber: d.reference || d.invoice_number || "",
+      
+        amount:
+          typeof d.amount === "number"
+            ? d.amount
+            : typeof d.amount_cents === "number"
+            ? d.amount_cents / 100
+            : 0,
+      
+        glAccount: "",
+        status: d.status ?? "draft",
+        importedAt: d.created_at ? new Date(d.created_at).getTime() : Date.now(),
+      }));
+      
+      
+  
+      setDraftBillsList(mappedDrafts);
+      setDraftsTimestamp(Date.now());
+  
+      // 🔥 4) Success UI state
+      setSyncState("synced");
+      setTimeout(() => setSyncState("idle"), 2000);
+  
+    } catch (err) {
+      console.error(err);
+      setSyncState("idle");
+      alert("Sync failed.");
+    }
+  };
+  
+
+  const approvedBills = billsList.filter((_, idx) => idx % 2 === 0);
+  const displayedBills = selectedTab === "approved" ? approvedBillsList : draftBillsList;
   const totalBills = displayedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
 
@@ -512,7 +752,11 @@ export const Bills: React.FC<BillsProps> = ({
               </span>
             </button>
 
-            <button className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+            <button
+              onClick={handleSync}
+              disabled={syncState !== "idle"}
+              className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] disabled:opacity-50"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -530,7 +774,9 @@ export const Bills: React.FC<BillsProps> = ({
                 <path d="M8 16H3v5" />
               </svg>
               <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
-                Sync
+                {syncState === "idle" && "Sync"}
+                {syncState === "syncing" && "Syncing..."}
+                {syncState === "synced" && "Synced"}
               </span>
             </button>
 
@@ -572,8 +818,8 @@ export const Bills: React.FC<BillsProps> = ({
             <div className="flex items-center gap-4">
               <h2 className="text-[#303030] font-medium text-[22px] leading-6">
                 {selectedTab === "approved"
-                  ? `Approved Bills (${approvedBills.length})`
-                  : `Draft Bills (${bills.length - approvedBills.length})`}
+                  ? "Approved & Exported Bills"
+                  : "Draft Bills"}
               </h2>
               <div className="flex items-center gap-2 h-6">
                 <svg
@@ -593,8 +839,8 @@ export const Bills: React.FC<BillsProps> = ({
                 </svg>
                 <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
                   {selectedTab === "approved"
-                    ? "Last exported 3 minutes ago"
-                    : "Updated 2 minutes ago"}
+                    ? `Last exported ${relativeTimeDisplay.approved}`
+                    : `Updated ${relativeTimeDisplay.drafts}`}
                 </span>
               </div>
             </div>
@@ -685,29 +931,6 @@ export const Bills: React.FC<BillsProps> = ({
                         stroke="currentColor"
                         strokeWidth="2"
                       >
-                        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                        <path d="M10 6h4" />
-                        <path d="M10 10h4" />
-                        <path d="M10 14h4" />
-                        <path d="M10 18h4" />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Property
-                      </span>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
                         <path d="M8 2v4" />
                         <path d="M16 2v4" />
                         <rect width="18" height="18" x="3" y="4" rx="2" />
@@ -738,31 +961,6 @@ export const Bills: React.FC<BillsProps> = ({
                       </span>
                     </div>
                   </th>
-                  {selectedTab !== "approved" && (
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle
-                            cx="7.5"
-                            cy="7.5"
-                            r=".5"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Status
-                        </span>
-                      </div>
-                    </th>
-                  )}
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <svg
@@ -797,7 +995,7 @@ export const Bills: React.FC<BillsProps> = ({
                         <line x1="16" x2="14" y1="3" y2="21" />
                       </svg>
                       <span className="font-medium text-sm text-gray-700">
-                        Invoice #
+                        Reference #
                       </span>
                     </div>
                   </th>
@@ -819,6 +1017,26 @@ export const Bills: React.FC<BillsProps> = ({
                       </span>
                     </div>
                   </th>
+                  {selectedTab === "drafts" && (
+                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 6v6l4 2" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Import Status
+                        </span>
+                      </div>
+                    </th>
+                  )}
                   <th
                     className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
                     style={{
@@ -834,6 +1052,16 @@ export const Bills: React.FC<BillsProps> = ({
                 </tr>
               </thead>
               <tbody>
+                {displayedBills.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={selectedTab === "drafts" ? 8 : 7}
+                        className="px-4 py-6 text-center text-gray-500"
+                      >
+                        No bills yet.
+                      </td>
+                    </tr>
+                  )}
                 {displayedBills
                   .slice(
                     (currentPage - 1) * itemsPerPage,
@@ -844,11 +1072,11 @@ export const Bills: React.FC<BillsProps> = ({
                       if ((e.target as HTMLElement).closest("td:last-child")) {
                         return;
                       }
-                      if (propertyId) {
-                        navigate(`/property/${propertyId}/bills/record`);
-                      } else {
-                        navigate("/bills/record");
-                      }
+                      const isApproved = selectedTab === "approved";
+                      const path = propertyId
+                        ? `/property/${propertyId}/bills/record${isApproved ? "?readOnly=true" : ""}`
+                        : `/bills/record${isApproved ? "?readOnly=true" : ""}`;
+                      navigate(`${path}?billId=${bill.id}`);
                     };
                     return (
                       <tr
@@ -869,11 +1097,6 @@ export const Bills: React.FC<BillsProps> = ({
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <span className="text-gray-900 font-normal text-base">
-                            {bill.property}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
                             {bill.statementDate}
                           </span>
                         </td>
@@ -882,11 +1105,11 @@ export const Bills: React.FC<BillsProps> = ({
                             {bill.dueDate}
                           </span>
                         </td>
-                        {selectedTab !== "approved" && (
+                        {/* {selectedTab !== "approved" && (
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <StatusBadge status={bill.status as "active" | "inactive"} />
                           </td>
-                        )}
+                        )} */}
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
                             {bill.memo}
@@ -902,6 +1125,16 @@ export const Bills: React.FC<BillsProps> = ({
                             ${bill.amount}
                           </span>
                         </td>
+                        {selectedTab === "drafts" && (
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-green-500" />
+                              <span className="text-gray-900 font-normal text-base">
+                                {getTimeAgo(bill.importedAt)}
+                              </span>
+                            </div>
+                          </td>
+                        )}
                         <td
                           className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                           style={{
@@ -910,9 +1143,12 @@ export const Bills: React.FC<BillsProps> = ({
                           }}
                         >
                           <ActionButton
-                            itemId={bill.id}
+                            billId={bill.id}
+                            bill={bill}
                             openMenuId={openMenuId}
                             setOpenMenuId={setOpenMenuId}
+                            tab={selectedTab}
+                            propertyId={propertyId}
                           />
                         </td>
                       </tr>

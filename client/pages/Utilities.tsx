@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; 
 import { cn } from "@/lib/utils";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -23,7 +23,7 @@ interface UtilityAccount {
   status: "active" | "inactive";
   lastBillDate: string;
   lastBillAmount: string;
-  lastImport: string;
+  lastImport: number;
   icon?: React.ReactNode;
 }
 
@@ -396,11 +396,18 @@ export const ActionButton = ({
         onClick={() => setOpenMenuId(showMenu ? null : propertyId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-gray-600"
+          >
           <circle cx="12" cy="12" r="1" />
           <circle cx="19" cy="12" r="1" />
           <circle cx="5" cy="12" r="1" />
         </svg>
+
       </button>
 
       {showMenu &&
@@ -705,19 +712,45 @@ const DEFAULT_UTILITY_COLUMNS: UtilityColumn[] = [
       <svg
         width="16"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        stroke="currentColor"
+        strokeWidth="2"
       >
-        <path
-          d="M15.1333 9L13.8004 7.66667L12.4666 9M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C10.2013 2 12.1257 3.18542 13.1697 4.95273M8 4.66667V8L10 9.33333"
-          stroke="#525252"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
       </svg>
     ),
+    renderCell: (account: UtilityAccount) => {
+      const getTimeAgoForRender = (timestamp: number) => {
+        const now = Date.now();
+        const diffMs = now - timestamp;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffMins < 1) return "now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        return `${diffDays}d ago`;
+      };
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "rgb(34, 197, 94)",
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ color: "rgb(17, 24, 39)", fontSize: "16px" }}>
+            {getTimeAgoForRender(account.lastImport)}
+          </span>
+        </div>
+      );
+    },
   },
 ];
 
@@ -843,6 +876,19 @@ const DEFAULT_BILLS_COLUMNS: BillsColumn[] = [
 
 export default function Utilities() {
   const navigate = useNavigate();
+
+  const getTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diffMs = now - timestamp;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return "now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -870,49 +916,82 @@ export default function Utilities() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
+  const { id: propertyId } = useParams<{ id: string }>();
+
   const [utilityAccounts, setUtilityAccounts] = useState<UtilityAccount[]>([]);
   const [utilityBills, setUtilityBills] = useState<any[]>([]);
+  // NEW: Add loading and error states
+  const [accountsLoading, setAccountsLoading] = useState(true);
+  const [billsLoading, setBillsLoading] = useState(true);
+  const [accountsError, setAccountsError] = useState<string | null>(null);
+  const [billsError, setBillsError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        // TEMP: property_id=1 until hooked to real property selection
-        const data = await fetchJSON("/utilities/accounts?property_id=1");
+useEffect(() => {
+  const fetchAccounts = async () => {
+    if (!propertyId) {
+      setAccountsLoading(false);
+      setAccountsError("No property selected");
+      return;
+    }
 
-        console.log(data);
-        const mapped = data.map((a: any) => ({
-          id: a.id,
-          provider: a.provider_name,
-          account: a.account_number,
-          status: a.active ? "active" : "inactive",
-          lastBillDate: a.last_bill_date
-            ? new Date(a.last_bill_date).toLocaleDateString()
-            : "—",
-          lastBillAmount: a.last_bill_amount_cents
-            ? `$${(a.last_bill_amount_cents / 100).toFixed(2)}`
-            : "—",
-          lastImport: a.last_import_at
-            ? new Date(a.last_import_at).toLocaleDateString()
-            : "—",
-          icon: getProviderIcon(a.provider_name)
-        }));
-  
-        setUtilityAccounts(mapped);
-      } catch (err) {
-        console.error("Failed to load utility accounts", err);
+    try {
+      setAccountsLoading(true);
+      setAccountsError(null);
+      
+      const data = await fetchJSON(`/utilities/accounts?property_id=${propertyId}`);
+      
+      if (!data || !Array.isArray(data)) {
+        setUtilityAccounts([]);
+        setAccountsLoading(false);
+        return;
       }
-    };
-  
-    fetchAccounts();
-  }, []);
+      const mapped = data.map((a: any) => ({
+        id: a.id,
+        provider: a.provider_name,
+        account: a.account_number,
+        status: (a.active ? "active" : "inactive") as "active" | "inactive",
+        lastBillDate: a.last_bill_date
+          ? new Date(a.last_bill_date).toLocaleDateString()
+          : "—",
+        lastBillAmount: a.last_bill_amount_cents
+          ? `$${(a.last_bill_amount_cents / 100).toFixed(2)}`
+          : "—",
+        lastImport: a.last_import_at
+          ? new Date(a.last_import_at).getTime()
+          : Date.now(),
+        icon: getProviderIcon(a.provider_name)
+      }));
 
+      setUtilityAccounts(mapped); 
+      setAccountsLoading(false);
+    } catch (err) {
+      console.error("Failed to load utility accounts", err);
+      setAccountsError("Failed to load utility accounts");
+      setAccountsLoading(false);
+    }
+  };
+
+  fetchAccounts();
+}, [propertyId]); // Add propertyId as dependency
 
   useEffect(() => {
     const fetchBills = async () => {
+      if (!propertyId) {
+        setBillsLoading(false);
+        setBillsError("No property selected");
+        return;
+      }
+
       try {
-        // TEMP: property_id=1 until property selection is wired
-        const data = await fetchJSON("/utilities/bills?property_id=1");
-  
+        setBillsLoading(true);
+        setBillsError(null);
+        
+        const data = await fetchJSON(`/utilities/bills?property_id=${propertyId}`);
+        if (!data || !Array.isArray(data)) {
+          setUtilityBills([]);
+          setBillsLoading(false);
+          return;
+        }
         const mapped = data.map((b: any) => ({
           id: b.id,
           provider: b.provider_name || b.vendor_name || "Unknown",
@@ -927,15 +1006,18 @@ export default function Utilities() {
             : "—",
           icon: getProviderIcon(b.provider_name || b.vendor_name),
         }));
-  
+
         setUtilityBills(mapped);
+        setBillsLoading(false);
       } catch (err) {
         console.error("Failed to load utility bills", err);
+        setBillsError("Failed to load utility bills");
+        setBillsLoading(false);
       }
     };
-  
+
     fetchBills();
-  }, []);
+  }, [propertyId]); // Add propertyId as dependency
   
   useEffect(() => {
     const savedBillsOrder = localStorage.getItem("table-columns:bills");
@@ -1431,64 +1513,101 @@ export default function Utilities() {
                 </tr>
               </thead>
               <tbody>
-                {utilityAccounts.map((account, index) => (
-                  <tr
-                    key={account.id}
-                    className={cn(
-                      "hover:bg-gray-50 transition-colors h-12",
-                      index === utilityAccounts.length - 1
-                        ? "border-b-0"
-                        : "border-b border-gray-200",
-                    )}
-                  >
-                    {utilityColumns.map((column) => (
-                      <td
-                        key={`${account.id}-${column.id}`}
-                        className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
-                      >
-                        {column.id === "provider" ? (
-                          <div className="flex items-center gap-2.5">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                              {account.icon}
+                {accountsLoading ? (
+                  <tr>
+                    <td colSpan={utilityColumns.length + 1} className="px-3 py-8 text-center text-gray-500">
+                      Loading accounts...
+                    </td>
+                  </tr>
+                ) : accountsError ? (
+                  <tr>
+                    <td colSpan={utilityColumns.length + 1} className="px-3 py-8 text-center text-red-600">
+                      {accountsError}
+                    </td>
+                  </tr>
+                ) : utilityAccounts.length === 0 ? (
+                  <tr>
+                    <td colSpan={utilityColumns.length + 1} className="px-3 py-8 text-center text-gray-500">
+                      No utility accounts yet
+                    </td>
+                  </tr>
+                ) : (
+                  utilityAccounts?.map((account, index) => (
+                    <tr
+                      key={account.id}
+                      className={cn(
+                        "hover:bg-gray-50 transition-colors h-12",
+                        index === (utilityAccounts?.length || 0) - 1
+                          ? "border-b-0"
+                          : "border-b border-gray-200",
+                      )}
+                    >
+                      {utilityColumns.map((column) => (
+                        <td
+                          key={`${account.id}-${column.id}`}
+                          className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                        >
+                          {column.id === "provider" ? (
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                                {account.icon}
+                              </div>
+                              <span className="text-gray-900 font-normal text-base">
+                                {account[column.key]}
+                              </span>
                             </div>
+                          ) : column.renderCell ? (
+                            column.renderCell(account)
+                          ) : (
                             <span className="text-gray-900 font-normal text-base">
                               {account[column.key]}
                             </span>
-                          </div>
-                        ) : column.renderCell ? (
-                          column.renderCell(account)
-                        ) : (
-                          <span className="text-gray-900 font-normal text-base">
-                            {account[column.key]}
-                          </span>
-                        )}
+                          )}
+                        </td>
+                      ))}
+                      <td
+                        className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                        style={{
+                          borderLeftWidth: "2px",
+                          width: "80px",
+                          border:
+                            "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                          borderLeftColor: "transparent",
+                          backgroundColor: "white",
+                        }}
+                      >
+                        <ActionButton
+                          propertyId={account.id}
+                          openMenuId={openUtilityMenuId}
+                          setOpenMenuId={setOpenUtilityMenuId}
+                          onEdit={() => {
+                            console.log("Edit utility account", account.id);
+                          }}
+                          onImport={() => {
+                            const newAccount: UtilityAccount = {
+                              id: Math.max(...utilityAccounts.map((a) => a.id)) + 1,
+                              provider: "New Provider Import",
+                              account: `#${Math.floor(Math.random() * 100000)}-${Math.floor(Math.random() * 100)}`,
+                              status: "active",
+                              lastBillDate: new Date().toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              ),
+                              lastBillAmount: `$${Math.floor(Math.random() * 500) + 50}`,
+                              lastImport: Date.now(),
+                              icon: getProviderIcon("New Provider Import"),
+                            };
+                            setUtilityAccounts([newAccount, ...utilityAccounts]);
+                          }}
+                        />
                       </td>
-                    ))}
-                    <td
-                      className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                      style={{
-                        borderLeftWidth: "2px",
-                        width: "80px",
-                        border:
-                          "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                        borderLeftColor: "transparent",
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <ActionButton
-                        propertyId={account.id}
-                        openMenuId={openUtilityMenuId}
-                        setOpenMenuId={setOpenUtilityMenuId}
-                        onEdit={() => {
-                          console.log("Edit utility account", account.id);
-                        }}
-                        onImport={() => {
-                          console.log("Import utility account", account.id);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -1602,72 +1721,92 @@ export default function Utilities() {
                 </tr>
               </thead>
               <tbody>
-                {utilityBills.map((bill, index) => (
-                  <tr
-                    key={bill.id}
-                    className={cn(
-                      "hover:bg-gray-50 transition-colors h-12",
-                      index === utilityBills.length - 1
-                        ? "border-b-0"
-                        : "border-b border-gray-200",
-                    )}
-                  >
-                    {billsColumns.map((column) => (
-                      <td
-                        key={`${bill.id}-${column.id}`}
-                        className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
-                      >
-                        {column.id === "provider" ? (
-                          <div className="flex items-center gap-2.5">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-                              {bill.icon}
+                {billsLoading ? (
+                  <tr>
+                    <td colSpan={billsColumns.length + 1} className="px-3 py-8 text-center text-gray-500">
+                      Loading bills...
+                    </td>
+                  </tr>
+                ) : billsError ? (
+                  <tr>
+                    <td colSpan={billsColumns.length + 1} className="px-3 py-8 text-center text-red-600">
+                      {billsError}
+                    </td>
+                  </tr>
+                ) : (utilityBills?.length || 0) === 0 ? (
+                  <tr>
+                    <td colSpan={billsColumns.length + 1} className="px-3 py-8 text-center text-gray-500">
+                      No bills yet
+                    </td>
+                  </tr>
+                ) : (
+                  utilityBills.map((bill, index) => (
+                    <tr
+                      key={bill.id}
+                      className={cn(
+                        "hover:bg-gray-50 transition-colors h-12",
+                        index === utilityBills.length - 1
+                          ? "border-b-0"
+                          : "border-b border-gray-200",
+                      )}
+                    >
+                      {billsColumns.map((column) => (
+                        <td
+                          key={`${bill.id}-${column.id}`}
+                          className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                        >
+                          {column.id === "provider" ? (
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                                {bill.icon}
+                              </div>
+                              <span className="text-gray-900 font-normal text-base">
+                                {bill[column.key]}
+                              </span>
                             </div>
+                          ) : column.id === "changeFromLastBill" ? (
+                            <span
+                              className={cn(
+                                "text-sm font-medium",
+                                (bill[column.key] as string).startsWith("↑")
+                                  ? "text-red-600"
+                                  : "text-green-600",
+                              )}
+                            >
+                              {bill[column.key]}
+                            </span>
+                          ) : column.renderCell ? (
+                            column.renderCell(bill)
+                          ) : (
                             <span className="text-gray-900 font-normal text-base">
                               {bill[column.key]}
                             </span>
-                          </div>
-                        ) : column.id === "changeFromLastBill" ? (
-                          <span
-                            className={cn(
-                              "text-sm font-medium",
-                              (bill[column.key] as string).startsWith("↑")
-                                ? "text-red-600"
-                                : "text-green-600",
-                            )}
-                          >
-                            {bill[column.key]}
-                          </span>
-                        ) : column.renderCell ? (
-                          column.renderCell(bill)
-                        ) : (
-                          <span className="text-gray-900 font-normal text-base">
-                            {bill[column.key]}
-                          </span>
-                        )}
-                      </td>
-                    ))}
-                    <td
-                      className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                      style={{
-                        borderLeftWidth: "2px",
-                        width: "80px",
-                        border:
-                          "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                        borderLeftColor: "transparent",
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <ActionButton
-                        propertyId={bill.id}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
-                        onView={() => {
-                          navigate("/utilities/view-bill?readOnly=true");
+                          )}
+                        </td>
+                      ))}
+                      <td
+                        className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                        style={{
+                          borderLeftWidth: "2px",
+                          width: "80px",
+                          border:
+                            "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                          borderLeftColor: "transparent",
+                          backgroundColor: "white",
                         }}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                      >
+                        <ActionButton
+                          propertyId={bill.id}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                          onView={() => {
+                            navigate("/utilities/view-bill?readOnly=true");
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -1713,7 +1852,7 @@ export default function Utilities() {
                 </button>
               </div>
               <span className="text-gray-700 text-sm font-medium">
-                of {utilityBills.length}
+                of {utilityBills?.length || 0}
               </span>
             </div>
             <div
