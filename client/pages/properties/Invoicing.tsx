@@ -1195,7 +1195,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 style={{ borderLeftColor: "transparent" }}
               >
                 {/* Date Created Column */}
-                <div className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0">
+                <div className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0 w-[140px]">
                   <div
                     className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleHistorySortClick("dateCreated")}
