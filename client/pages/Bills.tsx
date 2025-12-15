@@ -1049,6 +1049,11 @@ export default function Bills() {
                           <span className="font-medium text-sm text-gray-700">
                             Import Status
                           </span>
+                          {getSortIndicator("importedAt") && (
+                            <span className="text-xs font-bold text-gray-700 ml-1">
+                              {getSortIndicator("importedAt")}
+                            </span>
+                          )}
                         </div>
                       </th>
                     )}
