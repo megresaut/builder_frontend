@@ -467,8 +467,8 @@ export default function MaintenanceWorkOrders() {
     <div
       className="bg-white"
       style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
+        borderStyle: "none",
+        borderWidth: "1px",
         padding: "32px 32px 150px",
       }}
     >
