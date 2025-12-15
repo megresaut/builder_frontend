@@ -1289,8 +1289,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3"
+                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     style={{ borderLeftColor: "transparent" }}
+                    onClick={() => handleHistorySortClick("amount")}
                   >
                     <img
                       loading="lazy"
@@ -1301,8 +1302,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Amount
                     </div>
+                    {getHistorySortIndicator("amount") && (
+                      <span className="text-xs font-bold text-gray-500">
+                        {getHistorySortIndicator("amount")}
+                      </span>
+                    )}
                   </div>
-                  {paginatedHistory.map((item) => (
+                  {getSortedHistoryItems().map((item) => (
                     <div
                       key={item.id}
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
