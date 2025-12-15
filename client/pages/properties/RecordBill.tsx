@@ -1244,9 +1244,17 @@ export const RecordBill = () => {
                                   {getDaysInCurrentMonth().map((day, idx) => (
                                     <button
                                       key={idx}
-                                      onClick={() =>
-                                        day !== null && handleInvoiceDateSelect(day)
-                                      }
+                                      onClick={() => {
+                                        if (day !== null) {
+                                          const selected = new Date(
+                                            calendarMonth.getFullYear(),
+                                            calendarMonth.getMonth(),
+                                            day,
+                                          );
+                                          handleInvoiceDateSelect(selected);
+                                          setShowInvoiceDateCalendar(false);
+                                        }
+                                      }}
                                       disabled={day === null}
                                       className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
                                         day === null
