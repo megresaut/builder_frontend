@@ -1093,6 +1093,18 @@ export default function MaintenanceWorkOrders() {
             : undefined
         }
       />
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        open={showColumnModal}
+        onOpenChange={setShowColumnModal}
+        columnConfig={columnConfig}
+        visibleColumns={visibleColumns}
+        columnOrder={columnOrder}
+        onToggleColumn={toggleColumnVisibility}
+        menuPos={columnMenuPos}
+        buttonRef={columnButtonRef}
+      />
     </div>
   );
 }
