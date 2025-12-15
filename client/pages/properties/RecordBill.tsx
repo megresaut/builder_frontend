@@ -1158,7 +1158,9 @@ export const RecordBill = () => {
                           disabled={isReadOnly}
                         >
                           <SelectTrigger
-                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] ${
+                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base font-normal tracking-[-0.32px] leading-[1.4] ${
+                              !selectedVendor ? "text-[#A1A1A9]" : "text-[#303030]"
+                            } ${
                               formErrors.has("vendor")
                                 ? "border-red-500 border-2"
                                 : "border-[#E5E5E5]"
