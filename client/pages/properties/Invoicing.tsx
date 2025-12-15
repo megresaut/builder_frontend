@@ -602,7 +602,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const totalInvoices = invoiceHistory.length;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
-  const paginatedHistory = invoiceHistory.slice(
+  const paginatedHistory = getSortedHistoryItems().slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
