@@ -14,6 +14,7 @@ import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
 } from "@/components/InvoicePreviewModal";
+import { useModalNavigation } from "@/hooks/useModalNavigation";
 
 interface InvoicingProps {
   propertyAddress: string;
