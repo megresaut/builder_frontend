@@ -298,7 +298,7 @@ export const Vendors: React.FC<VendorsProps> = ({
     navigate(`/vendors/${vendor.id}`);
   };
 
-  const totalVendors = mockVendors.length;
+  const totalVendors = getSortedData().length;
   const totalPages = Math.ceil(totalVendors / itemsPerPage);
 
   const getPaginationNumbers = () => {
