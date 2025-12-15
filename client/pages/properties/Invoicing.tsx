@@ -1200,7 +1200,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               >
                 {/* Date Created Column */}
                 <div className="border-r border-[#DADADA] flex min-w-60 flex-col overflow-hidden flex-1">
-                  <div className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3">
+                  <div
+                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    onClick={() => handleHistorySortClick("dateCreated")}
+                  >
                     <img
                       loading="lazy"
                       src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d2b8afe9755fcab34886841ccd885dc23566b8a6?placeholderIfAbsent=true"
@@ -1210,8 +1213,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
                       Date Created
                     </div>
+                    {getHistorySortIndicator("dateCreated") && (
+                      <span className="text-xs font-bold text-gray-500">
+                        {getHistorySortIndicator("dateCreated")}
+                      </span>
+                    )}
                   </div>
-                  {paginatedHistory.map((item) => (
+                  {getSortedHistoryItems().map((item) => (
                     <div
                       key={item.id}
                       className="items-center border-b-[0.5px] border-[#DADADA] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
