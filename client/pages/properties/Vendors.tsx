@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
 import AddVendorModal from "@/components/AddVendorModal";
 
 interface Vendor {
