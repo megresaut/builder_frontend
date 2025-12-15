@@ -986,9 +986,18 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
   };
 
   // Handle drag over
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, tabId: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+
+    // Determine if drop target is before or after based on mouse position
+    const element = e.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    const midpoint = rect.left + rect.width / 2;
+    const position = e.clientX < midpoint ? "before" : "after";
+
+    setDropTargetTabId(tabId);
+    setDropPosition(position);
   };
 
   // Handle drop to reorder tabs
