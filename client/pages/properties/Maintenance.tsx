@@ -1733,30 +1733,96 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {recurringColumnManagement.columnOrder.map((columnKey) => {
-                    if (!recurringColumnManagement.visibleColumns.has(columnKey)) {
-                      return null;
-                    }
-                    return (
-                      <th
-                        key={columnKey}
-                        onClick={() => handleRecurringSortClick(columnKey)}
-                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {recurringTasksColumnConfig[columnKey]?.icon}
-                          <span className="font-medium text-sm text-gray-700">
-                            {recurringTasksColumnConfig[columnKey]?.label || columnKey}
+                  {recurringColumnManagement.visibleColumns.has("priority") && (
+                    <th onClick={() => handleRecurringSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {recurringTasksColumnConfig["priority"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {recurringTasksColumnConfig["priority"]?.label}
+                        </span>
+                        {getRecurringSortIndicator("priority") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getRecurringSortIndicator("priority")}
                           </span>
-                          {getRecurringSortIndicator(columnKey) && (
-                            <span className="text-xs font-bold text-gray-700 ml-1">
-                              {getRecurringSortIndicator(columnKey)}
-                            </span>
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {recurringColumnManagement.visibleColumns.has("task") && (
+                    <th onClick={() => handleRecurringSortClick("task")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {recurringTasksColumnConfig["task"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {recurringTasksColumnConfig["task"]?.label}
+                        </span>
+                        {getRecurringSortIndicator("task") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getRecurringSortIndicator("task")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {recurringColumnManagement.visibleColumns.has("nextDate") && (
+                    <th onClick={() => handleRecurringSortClick("nextDate")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {recurringTasksColumnConfig["nextDate"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {recurringTasksColumnConfig["nextDate"]?.label}
+                        </span>
+                        {getRecurringSortIndicator("nextDate") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getRecurringSortIndicator("nextDate")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {recurringColumnManagement.visibleColumns.has("category") && (
+                    <th onClick={() => handleRecurringSortClick("category")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {recurringTasksColumnConfig["category"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {recurringTasksColumnConfig["category"]?.label}
+                        </span>
+                        {getRecurringSortIndicator("category") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getRecurringSortIndicator("category")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {recurringColumnManagement.visibleColumns.has("assignees") && (
+                    <th onClick={() => handleRecurringSortClick("assignees")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {recurringTasksColumnConfig["assignees"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {recurringTasksColumnConfig["assignees"]?.label}
+                        </span>
+                        {getRecurringSortIndicator("assignees") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getRecurringSortIndicator("assignees")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {recurringColumnManagement.visibleColumns.has("status") && (
+                    <th onClick={() => handleRecurringSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {recurringTasksColumnConfig["status"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {recurringTasksColumnConfig["status"]?.label}
+                        </span>
+                        {getRecurringSortIndicator("status") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getRecurringSortIndicator("status")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">
                       Actions
