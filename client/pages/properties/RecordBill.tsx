@@ -1387,7 +1387,7 @@ export const RecordBill = () => {
                                   left: dueDateCalendarPos.left + "px",
                                   pointerEvents: "auto",
                                 }}
-                                onMouseLeave={() => setShowDueDateCalendar(false)}
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <button
