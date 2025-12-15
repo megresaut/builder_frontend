@@ -802,7 +802,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Vendor
                     </div>
                     {getInvoiceSortIndicator("vendor") && (
@@ -870,7 +870,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       <line x1="10" y1="3" x2="8" y2="21" />
                       <line x1="16" y1="3" x2="14" y2="21" />
                     </svg>
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       GL Account
                     </div>
                     {getInvoiceSortIndicator("glAccount") && (
@@ -908,7 +908,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Description
                     </div>
                     {getInvoiceSortIndicator("description") && (
@@ -946,7 +946,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Amount
                     </div>
                     {getInvoiceSortIndicator("amount") && (
@@ -984,7 +984,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Source
                     </div>
                     {getInvoiceSortIndicator("source") && (
@@ -1022,7 +1022,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Approval Status
                     </div>
                     {getInvoiceSortIndicator("status") && (
@@ -1051,7 +1051,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               {/* Actions Column */}
               <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 sticky right-0 z-40" style={{ border: "1px none rgb(229, 229, 229)" }}>
                 <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex w-20 gap-2 overflow-visible px-3 py-3">
-                  <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                  <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                     Actions
                   </div>
                 </div>
@@ -1206,7 +1206,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Date Created
                     </div>
                     {getHistorySortIndicator("dateCreated") && (
@@ -1250,7 +1250,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Invoice Month
                     </div>
                     {getHistorySortIndicator("invoiceMonth") && (
@@ -1295,7 +1295,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                       Amount
                     </div>
                     {getHistorySortIndicator("amount") && (
@@ -1328,7 +1328,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               {/* Actions Column */}
               <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 sticky right-0 z-40" style={{ border: "1px none rgb(229, 229, 229)" }}>
                 <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex w-20 gap-2 overflow-hidden px-3 py-3">
-                  <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
+                  <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                     Actions
                   </div>
                 </div>
