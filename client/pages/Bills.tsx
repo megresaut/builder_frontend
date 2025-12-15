@@ -330,7 +330,7 @@ const ActionButton = ({
                   e.stopPropagation();
                   setOpenMenuId(null);
                   navigate("/bills/record?readOnly=true", {
-                    state: { bill: buildBillState(bill) },
+                    state: { bill: buildBillState(bill), previousPage: location.pathname },
                   });
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
