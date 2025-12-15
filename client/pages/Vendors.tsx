@@ -321,6 +321,28 @@ export default function Vendors() {
     };
   }, [showPageSizeDropdown]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      // Close page size dropdown
+      if (showPageSizeDropdown && dropdownButtonRef.current && !dropdownButtonRef.current.contains(target)) {
+        setShowPageSizeDropdown(false);
+      }
+
+      // Close column menu
+      if (showColumnModal && columnButtonRef.current && !columnButtonRef.current.contains(target)) {
+        setShowColumnModal(false);
+      }
+    };
+
+    if (showPageSizeDropdown || showColumnModal) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [showPageSizeDropdown, showColumnModal]);
+
   useEffect(() => {
     let animationFrameId: number;
 
