@@ -1058,7 +1058,11 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               return (
                 <div
                   key={tab.id}
-                  className="flex items-center transition-all cursor-pointer hover:bg-gray-100"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, tab.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, tab.id)}
+                  className="flex items-center transition-all cursor-move hover:bg-gray-100"
                   onClick={() => {
                     if (tab.id !== selectedTab) {
                       saveScrollPosition();
@@ -1079,6 +1083,8 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                     alignItems: "center",
                     justifyContent: "space-between",
                     overflow: "hidden",
+                    opacity: draggedTabId === tab.id ? 0.5 : 1,
+                    transition: "opacity 0.2s ease",
                     ...(isSelected
                       ? {
                           borderTop: "1px solid #d2d1cf",
