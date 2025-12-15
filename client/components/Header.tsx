@@ -975,7 +975,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
   return (
     <header className="bg-white">
       {/* Tabs Section */}
-      {!isFullscreen && (
+      {!isFullscreen && !forceCollapse && (
         <div
           className="flex items-center gap-0 px-0 py-0 bg-[#f9fafb]"
           style={{
