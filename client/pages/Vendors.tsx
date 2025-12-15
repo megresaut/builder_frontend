@@ -492,7 +492,10 @@ export default function Vendors() {
                         )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("phone")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="20"
