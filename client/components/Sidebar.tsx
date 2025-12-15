@@ -298,7 +298,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
 
   // Desktop: show expanded sidebar on hover with left edge trigger
   if (!isMobile) {
-    const isExpanded = isHovered || isPinned;
+    const isExpanded = forceCollapse ? false : isHovered || isPinned;
 
     return (
       <div
