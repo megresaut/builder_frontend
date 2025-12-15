@@ -425,32 +425,38 @@ export default function Vendors() {
     phone: {
       label: "Phone",
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11.7074 4.99984C12.5213 5.15864 13.2694 5.55672 13.8558 6.14312" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3.5 1H5.07924C5.55273 1 5.97762 1.31278 6.10066 1.76013L7.29374 5.73518C7.40578 6.10961 7.2807 6.51174 6.92258 6.7272L5.15651 7.79797C5.76858 9.19343 6.8067 10.2316 8.20216 10.8436L9.27292 9.07754C9.48829 8.71942 9.89042 8.59434 10.2648 8.70638L14.2399 9.89946C14.6873 10.0225 14.9999 10.4474 14.9999 10.9209V12.5C14.9999 14.433 13.433 16 11.5 16H4.5C2.567 16 1 14.433 1 12.5V3.5C1 1.567 2.567 0 4.5 0H3.5Z" fill="#525252"/>
         </svg>
       ),
     },
     email: {
       label: "Email",
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11.4527 2.19455L17.726 6.27222" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 3H14C14.5523 3 15 3.44772 15 4V12C15 12.5523 14.5523 13 14 13H2C1.44772 13 1 12.5523 1 12V4C1 3.44772 1.44772 3 2 3Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M1.5 3.5L8 9L14.5 3.5" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     },
     servicesProvided: {
       label: "Services Provided",
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 6H18M2 10H18M2 14H18" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 3H14.5" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M1.5 8H14.5" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M1.5 13H14.5" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     },
     notes: {
       label: "Notes",
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2.5 4.16667C2.5 3.54624 3.03726 3.04167 3.66667 3.04167H16.3333" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 2H14V14C14 14.5523 13.5523 15 13 15H3C2.44772 15 2 14.5523 2 14V2Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M5 5H11" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M5 8H11" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M5 11H9" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     },
