@@ -39,8 +39,32 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   property,
 }) => {
   const navigate = useNavigate();
-  const { propertyId } = useParams<{ propertyId: string }>();
+  const location = useLocation();
+  const { propertyId, tab } = useParams<{ propertyId: string; tab?: string }>();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Determine the actual active tab by extracting from URL path
+  const determineActiveTab = () => {
+    // First try to use the tab parameter from useParams
+    if (tab) {
+      return tab;
+    }
+
+    // Otherwise, extract from the pathname
+    const pathParts = location.pathname.split("/");
+    // URL format: /property/:propertyId/:tab
+    if (pathParts.length >= 4 && pathParts[1] === "property") {
+      const tabName = pathParts[3];
+      if (tabName) {
+        return tabName;
+      }
+    }
+
+    // Fall back to the prop, then to default
+    return activeTab;
+  };
+
+  const currentActiveTab = determineActiveTab();
 
   const tabs = [
     "Overview",
