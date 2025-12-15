@@ -100,9 +100,9 @@ export default function App() {
                 <Route
                   path="/bills/record"
                   element={
-                    <BareLayout>
+                    <ShellLayout>
                       <RecordBill />
-                    </BareLayout>
+                    </ShellLayout>
                   }
                 />
                 <Route
