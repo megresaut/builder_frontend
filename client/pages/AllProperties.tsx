@@ -1033,6 +1033,27 @@ export default function AllProperties() {
           document.body,
         )}
 
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "address",
+          "location",
+          "managers",
+          "type",
+          "buildingId",
+          "status",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
+
       <AddPropertyModal
         open={isAddPropertyModalOpen}
         onOpenChange={(open) => {
