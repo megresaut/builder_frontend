@@ -1099,33 +1099,33 @@ export const Bills: React.FC<BillsProps> = ({
                               name={bill.vendor}
                               color={bill.vendorColor}
                             />
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {bill.vendor}
                             </span>
                           </div>
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
+                          <span className="text-gray-900 font-normal text-sm">
                             {bill.statementDate}
                           </span>
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
+                          <span className="text-gray-900 font-normal text-sm">
                             {bill.dueDate}
                           </span>
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base truncate max-w-xs block">
+                          <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
                             {bill.memo}
                           </span>
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
+                          <span className="text-gray-900 font-normal text-sm">
                             {bill.invoiceNumber}
                           </span>
                         </td>
                         <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-base">
+                          <span className="text-gray-900 font-normal text-sm">
                             ${bill.amount}
                           </span>
                         </td>
@@ -1133,7 +1133,7 @@ export const Bills: React.FC<BillsProps> = ({
                           <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-green-500" />
-                              <span className="text-gray-900 font-normal text-base">
+                              <span className="text-gray-900 font-normal text-sm">
                                 {getTimeAgo(bill.importedAt)}
                               </span>
                             </div>

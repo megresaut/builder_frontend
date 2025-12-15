@@ -717,17 +717,17 @@ export default function Vendors() {
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
                         <td key={colKey} className="px-3 py-3 border-r border-gray-200">
                           {colKey === "name" && (
-                            <span className="text-gray-900 font-normal text-base whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-sm whitespace-nowrap">
                               {vendor.name}
                             </span>
                           )}
                           {colKey === "phone" && (
-                            <span className="text-gray-900 font-normal text-base whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-sm whitespace-nowrap">
                               {vendor.phone}
                             </span>
                           )}
                           {colKey === "email" && (
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {vendor.email}
                             </span>
                           )}
@@ -744,7 +744,7 @@ export default function Vendors() {
                             </div>
                           )}
                           {colKey === "notes" && (
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {vendor.notes}
                             </span>
                           )}
