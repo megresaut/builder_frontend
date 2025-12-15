@@ -609,7 +609,7 @@ export default function Vendors() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockVendors.map((vendor) => (
+                  {getSortedAndPaginatedVendors().map((vendor) => (
                     <tr
                       key={vendor.id}
                       onClick={() => navigate(`/vendors/${vendor.id}`)}
