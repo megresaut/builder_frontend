@@ -172,12 +172,20 @@ const propertyData: Record<string, Property> = {
 };
 
 export default function PropertyDetail() {
+  const navigate = useNavigate();
   const { propertyId, tab } = useParams<{
     propertyId: string;
     tab?: string;
   }>();
 
   const property = propertyId ? propertyData[propertyId] : null;
+
+  // Redirect to Overview tab if no tab is specified
+  useEffect(() => {
+    if (propertyId && !tab) {
+      navigate(`/property/${propertyId}/Overview`, { replace: true });
+    }
+  }, [propertyId, tab, navigate]);
 
   if (!property) {
     return (
