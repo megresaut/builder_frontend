@@ -275,16 +275,7 @@ export default function Vendors() {
     "isAddVendorModalOpen",
     false,
   );
-  const { handleSortClick, getSortIndicator, getSortedData: getOriginalSortedData } = useSortingTable(mockVendors);
-
-  const getSortedData = () => {
-    const sorted = getOriginalSortedData();
-
-    // For array fields like servicesProvided, we need to handle them specially
-    // Re-sort if the current sort column is servicesProvided
-    // The useSortingTable hook will have already tried to sort, but arrays need special handling
-    return sorted;
-  };
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
