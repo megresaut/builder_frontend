@@ -893,7 +893,7 @@ export default function Vendors() {
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors text-sm font-medium",
                     currentPage === totalPages
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-gray-50",
@@ -901,17 +901,17 @@ export default function Vendors() {
                   style={{
                     borderLeftWidth: "0.909091px",
                     borderLeftColor: "rgb(229, 229, 229)",
+                    color: currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"
                   }}
                 >
+                  <span>Next</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
+                    width="16"
+                    height="16"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={
-                      currentPage === totalPages ? "rgb(163, 163, 163)" : "currentColor"
-                    }
+                    stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
