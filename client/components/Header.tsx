@@ -501,6 +501,8 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
   const [nextNewTabId, setNextNewTabId] = useState(1);
   const [isFullscreen, setIsFullscreenState] = useState(false);
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
+  const [dropTargetTabId, setDropTargetTabId] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<"before" | "after">("before");
   const tabContext = useContext(TabContext);
 
   // Load fullscreen state from localStorage on mount
