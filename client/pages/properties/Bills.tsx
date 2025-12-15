@@ -864,8 +864,9 @@ export const Bills: React.FC<BillsProps> = ({
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
                   <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap"
+                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
                     style={{ lineHeight: "24px" }}
+                    onClick={() => handleSortClick("vendor")}
                   >
                     <div className="flex items-center gap-2">
                       <svg
@@ -887,6 +888,11 @@ export const Bills: React.FC<BillsProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Vendor
                       </span>
+                      {getSortIndicator("vendor") && (
+                        <span className="text-xs font-bold text-gray-500">
+                          {getSortIndicator("vendor")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
