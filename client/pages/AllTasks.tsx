@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { usePageState } from "@/hooks/usePageState";
-import { useModalNavigation } from "@/hooks/useModalNavigation";
 
 interface Assignee {
   id: number;
