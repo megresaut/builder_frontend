@@ -1236,7 +1236,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
                 {/* Invoice Month Column */}
                 <div
-                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-1"
+                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0"
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
