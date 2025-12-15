@@ -131,6 +131,9 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
 
     // Reset scroll to top when pathname changes
     mainContent.scrollTop = 0;
+
+    // Clear any lingering content from previous page
+    mainContent.innerHTML = '';
   }, [location.pathname]);
 
   return (
