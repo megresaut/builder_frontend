@@ -1,5 +1,7 @@
 import { useParams } from "react-router-dom";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Overview } from "./properties/Overview";
 import { Units } from "./properties/Units";
 import { Utilities } from "./properties/Utilities";
