@@ -530,152 +530,6 @@ export const Vendors: React.FC<VendorsProps> = ({
                       Actions
                     </span>
                   </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("phone")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_11215_5081)">
-                          <path
-                            d="M11.7074 4.99984C12.5213 5.15864 13.2694 5.55672 13.8558 6.14312C14.4422 6.72952 14.8403 7.47756 14.9991 8.2915M11.7074 1.6665C13.3985 1.85437 14.9754 2.61165 16.1793 3.81401C17.3831 5.01637 18.1424 6.59235 18.3324 8.28317M8.52155 11.5524C7.52023 10.5511 6.72958 9.41888 6.14958 8.21086C6.09969 8.10695 6.07475 8.055 6.05558 7.98926C5.98748 7.75563 6.0364 7.46875 6.17807 7.27089C6.21794 7.21521 6.26557 7.16758 6.36083 7.07232C6.65217 6.78098 6.79784 6.63531 6.89308 6.48883C7.25224 5.93642 7.25224 5.22427 6.89308 4.67186C6.79784 4.52538 6.65217 4.37971 6.36083 4.08837L6.19844 3.92598C5.75557 3.48311 5.53414 3.26168 5.29632 3.14139C4.82335 2.90217 4.2648 2.90217 3.79183 3.14139C3.55401 3.26168 3.33258 3.48311 2.88971 3.92598L2.75835 4.05735C2.31699 4.4987 2.09632 4.71937 1.92778 5.0194C1.74076 5.35232 1.60629 5.8694 1.60743 6.25125C1.60845 6.59537 1.67521 6.83056 1.80871 7.30093C2.52619 9.82876 3.87992 12.2141 5.8699 14.204C7.85988 16.194 10.2452 17.5478 12.773 18.2652C13.2434 18.3987 13.4786 18.4655 13.8227 18.4665C14.2045 18.4677 14.7216 18.3332 15.0545 18.1462C15.3546 17.9776 15.5752 17.7569 16.0166 17.3156L16.148 17.1842C16.5908 16.7414 16.8123 16.5199 16.9325 16.2821C17.1718 15.8091 17.1718 15.2506 16.9325 14.7776C16.8123 14.5398 16.5908 14.3184 16.148 13.8755L15.9856 13.7131C15.6942 13.4218 15.5486 13.2761 15.4021 13.1809C14.8497 12.8217 14.1375 12.8217 13.5851 13.1809C13.4386 13.2761 13.293 13.4218 13.0016 13.7131C12.9064 13.8084 12.8587 13.8037 12.7635 13.7084C12.5671 13.5119 12.4689 13.4138 12.3681 13.3247"
-                            stroke="#525252"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_11215_5081">
-                            <rect width="20" height="20" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Phone
-                      </span>
-                      {getSortIndicator("phone") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("phone")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 flex-1 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("email")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M11.4527 2.19455L17.726 6.27222C17.9477 6.41631 18.0585 6.48835 18.1388 6.58445C18.2099 6.66952 18.2633 6.76791 18.2959 6.87387C18.3327 6.99357 18.3327 7.12577 18.3327 7.39015V13.4999C18.3327 14.9 18.3327 15.6001 18.0602 16.1349C17.8205 16.6053 17.4381 16.9877 16.9677 17.2274C16.4329 17.4999 15.7328 17.4999 14.3327 17.4999H5.66602C4.26588 17.4999 3.56582 17.4999 3.03104 17.2274C2.56063 16.9877 2.17818 16.6053 1.9385 16.1349C1.66602 15.6001 1.66602 14.9 1.66602 13.4999V7.39015C1.66602 7.12577 1.66602 6.99357 1.70282 6.87387C1.73541 6.76791 1.7888 6.66952 1.85989 6.58445C1.94019 6.48835 2.05103 6.41631 2.2727 6.27222L8.54605 2.19455M11.4527 2.19455C10.9266 1.85262 10.6636 1.68166 10.3802 1.61514C10.1297 1.55635 9.86899 1.55635 9.61849 1.61514C9.3351 1.68166 9.07208 1.85262 8.54605 2.19455M11.4527 2.19455L16.6128 5.54864C17.186 5.92123 17.4726 6.10752 17.5719 6.34377C17.6586 6.55023 17.6586 6.78291 17.5719 6.98937C17.4726 7.22562 17.186 7.41191 16.6128 7.78449L11.4527 11.1386C10.9266 11.4805 10.6636 11.6515 10.3802 11.718C10.1297 11.7768 9.86899 11.7768 9.61849 11.718C9.3351 11.6515 9.07208 11.4805 8.54605 11.1386L3.3859 7.78449C2.81269 7.41191 2.52609 7.22562 2.42683 6.98937C2.34008 6.78291 2.34008 6.55023 2.42683 6.34377C2.52609 6.10752 2.81269 5.92123 3.3859 5.54864L8.54605 2.19455M17.916 15.8332L12.3803 10.8332M7.61837 10.8332L2.08268 15.8332"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Email
-                      </span>
-                      {getSortIndicator("email") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("email")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 flex-1 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("propertyServices")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2 6H18M2 10H18M2 14H18"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Services Provided
-                      </span>
-                      {getSortIndicator("propertyServices") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("propertyServices")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 flex-1 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("notes")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2.5 4.16667C2.5 3.54624 3.03726 3.04167 3.66667 3.04167H16.3333C16.9627 3.04167 17.5 3.54624 17.5 4.16667V15.8333C17.5 16.4538 16.9627 16.9583 16.3333 16.9583H3.66667C3.03726 16.9583 2.5 16.4538 2.5 15.8333V4.16667Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M5.83301 6.70825H14.1663M5.83301 10H14.1663M5.83301 13.2917H10.833"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Notes
-                      </span>
-                      {getSortIndicator("notes") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("notes")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="sticky right-0 px-2 py-3 text-center w-20"
-                    style={{
-                      borderLeftWidth: "2px",
-                      border: "1px none rgb(226, 232, 240)",
-                      backgroundColor: "white",
-                    }}
-                  >
-                    <span className="font-medium text-sm text-gray-700">
-                      Actions
-                    </span>
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -685,38 +539,49 @@ export const Vendors: React.FC<VendorsProps> = ({
                       onClick={() => navigate(`/vendors/${vendor.id}`)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {vendor.name}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {vendor.phone}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {vendor.email}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <div className="flex flex-wrap gap-2">
-                          {(vendor.propertyServices || []).map((service) => (
-                            <span
-                              key={service}
-                              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                            >
-                              {service}
+                      {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
+                        let cellContent;
+                        switch (colKey) {
+                          case "name":
+                            cellContent = vendor.name;
+                            break;
+                          case "phone":
+                            cellContent = vendor.phone;
+                            break;
+                          case "email":
+                            cellContent = vendor.email;
+                            break;
+                          case "notes":
+                            cellContent = vendor.notes;
+                            break;
+                          case "servicesProvided":
+                            cellContent = (
+                              <div className="flex flex-wrap gap-2">
+                                {(vendor.propertyServices || []).map((service) => (
+                                  <span
+                                    key={service}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                  >
+                                    {service}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                            break;
+                          default:
+                            cellContent = "";
+                        }
+                        return (
+                          <td
+                            key={colKey}
+                            className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                          >
+                            <span className="text-gray-900 font-normal text-sm">
+                              {cellContent}
                             </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {vendor.notes}
-                        </span>
-                      </td>
+                          </td>
+                        );
+                      })}
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
                         style={{
@@ -933,6 +798,19 @@ export const Vendors: React.FC<VendorsProps> = ({
       <AddVendorModal
         open={isAddVendorModalOpen}
         onOpenChange={setIsAddVendorModalOpen}
+      />
+      
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        open={showColumnModal}
+        onOpenChange={setShowColumnModal}
+        columns={columnOrder.map(key => ({
+          id: key,
+          label: columnConfig[key]?.label || key,
+          checked: visibleColumns.has(key),
+        }))}
+        onColumnToggle={toggleColumnVisibility}
+        menuPos={columnMenuPos}
       />
     </div>
   );
