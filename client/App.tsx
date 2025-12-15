@@ -116,9 +116,9 @@ export default function App() {
                 <Route
                   path="/utilities/view-bill"
                   element={
-                    <BareLayout>
+                    <ShellLayout>
                       <RecordBill />
-                    </BareLayout>
+                    </ShellLayout>
                   }
                 />
                 <Route
