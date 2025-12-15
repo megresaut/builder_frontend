@@ -750,9 +750,9 @@ export const Bills: React.FC<BillsProps> = ({
             <button
               onClick={() => {
                 if (propertyId) {
-                  navigate(`/property/${propertyId}/bills/record`);
+                  navigateToModal(`/property/${propertyId}/bills/record`);
                 } else {
-                  navigate("/bills/record");
+                  navigateToModal("/bills/record");
                 }
               }}
               className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
