@@ -328,9 +328,7 @@ const ActionButton = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpenMenuId(null);
-                  navigate("/bills/record?readOnly=true", {
-                    state: { bill: buildBillState(bill), previousPage: location.pathname },
-                  });
+                  navigateToModal("/bills/record?readOnly=true");
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
