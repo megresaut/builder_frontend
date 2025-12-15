@@ -570,6 +570,15 @@ export const Bills: React.FC<BillsProps> = ({
     "idle",
   );
   const [billsList, setBillsList] = useState<Bill[]>(bills);
+
+  const billsColumnManagement = useColumnManagement([
+    "vendor",
+    "statementDate",
+    "dueDate",
+    "memo",
+    "invoiceNumber",
+    "amount",
+  ]);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
