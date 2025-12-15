@@ -473,7 +473,10 @@ export const Vendors: React.FC<VendorsProps> = ({
                       )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
+                  <th
+                    className="px-3 py-3 text-left border-r border-gray-200 flex-1 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSortClick("email")}
+                  >
                     <div className="flex items-center gap-2">
                       <svg
                         width="20"
@@ -493,6 +496,11 @@ export const Vendors: React.FC<VendorsProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Email
                       </span>
+                      {getSortIndicator("email") && (
+                        <span className="text-xs font-bold text-gray-500">
+                          {getSortIndicator("email")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
