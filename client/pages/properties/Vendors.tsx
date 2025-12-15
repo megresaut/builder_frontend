@@ -799,18 +799,19 @@ export const Vendors: React.FC<VendorsProps> = ({
         open={isAddVendorModalOpen}
         onOpenChange={setIsAddVendorModalOpen}
       />
-      
+
       {/* Column Filter Modal */}
       <ColumnFilterModal
-        open={showColumnModal}
-        onOpenChange={setShowColumnModal}
+        isOpen={showColumnModal}
+        position={columnMenuPos}
         columns={columnOrder.map(key => ({
-          id: key,
+          key,
           label: columnConfig[key]?.label || key,
-          checked: visibleColumns.has(key),
+          icon: columnConfig[key]?.icon,
         }))}
-        onColumnToggle={toggleColumnVisibility}
-        menuPos={columnMenuPos}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
       />
     </div>
   );
