@@ -674,70 +674,68 @@ export default function RecurringTasks() {
                       key={task.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor:
-                                task.priority === "High"
-                                  ? "#D97706"
-                                  : task.priority === "Low"
-                                    ? "#059669"
-                                    : "#2463EB",
-                            }}
-                          />
-                          <span className="text-gray-900 font-normal text-sm capitalize">
-                            {task.priority}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {task.task}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {task.nextDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {task.category}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {task.assignees.map((assignee) => (
-                            <div key={assignee.id} className="relative group">
+                      {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          {colKey === "priority" && (
+                            <div className="flex items-center gap-2">
                               <div
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                className="w-2 h-2 rounded-full"
                                 style={{
-                                  backgroundColor: "rgb(59, 130, 246)",
-                                  borderColor: "rgb(209, 213, 219)",
-                                  borderWidth: "1px",
+                                  backgroundColor:
+                                    task.priority === "High"
+                                      ? "#D97706"
+                                      : task.priority === "Low"
+                                        ? "#059669"
+                                        : "#2463EB",
                                 }}
-                                title={assignee.name}
-                              >
-                                {assignee.initials}
-                              </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {assignee.name}
-                              </div>
+                              />
+                              <span className="text-gray-900 font-normal text-sm capitalize">
+                                {task.priority}
+                              </span>
                             </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td
-                        className="px-3 py-3 whitespace-nowrap"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
-                      >
-                        <StatusBadge status={task.status} />
-                      </td>
+                          )}
+                          {colKey === "task" && (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {task.task}
+                            </span>
+                          )}
+                          {colKey === "nextDate" && (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {task.nextDate}
+                            </span>
+                          )}
+                          {colKey === "category" && (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {task.category}
+                            </span>
+                          )}
+                          {colKey === "assignees" && (
+                            <div className="flex items-center gap-2">
+                              {task.assignees.map((assignee) => (
+                                <div key={assignee.id} className="relative group">
+                                  <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                    style={{
+                                      backgroundColor: "rgb(59, 130, 246)",
+                                      borderColor: "rgb(209, 213, 219)",
+                                      borderWidth: "1px",
+                                    }}
+                                    title={assignee.name}
+                                  >
+                                    {assignee.initials}
+                                  </div>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {assignee.name}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {colKey === "status" && (
+                            <StatusBadge status={task.status} />
+                          )}
+                        </td>
+                      ))}
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
                         style={{
