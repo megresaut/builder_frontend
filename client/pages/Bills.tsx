@@ -1082,9 +1082,7 @@ export default function Bills() {
                         const path = isApproved
                           ? `/bills/record?readOnly=true`
                           : "/bills/record";
-                        navigate(path, {
-                          state: { bill: buildBillState(bill), previousPage: location.pathname },
-                        });
+                        navigateToModal(path);
                       };
                       return (
                         <tr
