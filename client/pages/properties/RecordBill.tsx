@@ -1359,12 +1359,13 @@ export const RecordBill = () => {
                               }
                             }}
                             disabled={isReadOnly}
-                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
+                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 pr-10 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
                               formErrors.has("dueDate")
                                 ? "border-red-500 border-2"
                                 : "border-[#E5E5E5]"
                             }`}
                           />
+                          <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none" />
                           {showDueDateCalendar &&
                             createPortal(
                               <div
