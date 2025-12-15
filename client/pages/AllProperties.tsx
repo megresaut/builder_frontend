@@ -6,6 +6,8 @@ import { StatusBadge } from "./Utilities";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface Manager {
   id: number;
