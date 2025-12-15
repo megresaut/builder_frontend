@@ -399,7 +399,10 @@ export const Vendors: React.FC<VendorsProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th
+                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSortClick("name")}
+                  >
                     <div className="flex items-center gap-2">
                       <svg
                         width="14"
@@ -426,6 +429,11 @@ export const Vendors: React.FC<VendorsProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Name
                       </span>
+                      {getSortIndicator("name") && (
+                        <span className="text-xs font-bold text-gray-500">
+                          {getSortIndicator("name")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
