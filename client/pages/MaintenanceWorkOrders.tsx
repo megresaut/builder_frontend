@@ -868,114 +868,141 @@ export default function MaintenanceWorkOrders() {
                           `/tasks/${workOrder.taskId}/workorders/${workOrder.id}`,
                         );
                       };
+
+                      const renderCell = (colKey: string) => {
+                        switch (colKey) {
+                          case "priority":
+                            return (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      workOrder.priority === "High"
+                                        ? "#D97706"
+                                        : workOrder.priority === "Low"
+                                          ? "#059669"
+                                          : "#2463EB",
+                                  }}
+                                />
+                                <span className="text-gray-900 font-normal text-sm capitalize">
+                                  {workOrder.priority}
+                                </span>
+                              </div>
+                            );
+                          case "task":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {workOrder.task}
+                              </span>
+                            );
+                          case "updatedDate":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {workOrder.updatedDate}
+                              </span>
+                            );
+                          case "age":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {workOrder.age}
+                              </span>
+                            );
+                          case "status":
+                            return (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      workOrder.status === "Completed"
+                                        ? "#059669"
+                                        : "#2463EB",
+                                  }}
+                                />
+                                <span className="text-gray-900 font-normal text-sm capitalize">
+                                  {workOrder.status}
+                                </span>
+                              </div>
+                            );
+                          case "dueDate":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {workOrder.dueDate}
+                              </span>
+                            );
+                          case "billStatus":
+                            return (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      workOrder.billStatus === "Paid"
+                                        ? "#059669"
+                                        : workOrder.billStatus === "Unpaid"
+                                          ? "#DC2626"
+                                          : "#D97706",
+                                  }}
+                                />
+                                <span className="text-gray-900 font-normal text-sm capitalize">
+                                  {workOrder.billStatus}
+                                </span>
+                              </div>
+                            );
+                          case "billTotal":
+                            return (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {workOrder.billTotal}
+                              </span>
+                            );
+                          case "assignees":
+                            return (
+                              <div className="flex items-center gap-2">
+                                {workOrder.assignees.map((assignee) => (
+                                  <div
+                                    key={assignee.id}
+                                    className="relative group"
+                                  >
+                                    <div
+                                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                      style={{
+                                        backgroundColor: "rgb(59, 130, 246)",
+                                        borderColor: "rgb(209, 213, 219)",
+                                        borderWidth: "1px",
+                                      }}
+                                      title={assignee.name}
+                                    >
+                                      {assignee.initials}
+                                    </div>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                      {assignee.name}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          default:
+                            return null;
+                        }
+                      };
+
                       return (
                         <tr
                           key={workOrder.id}
                           onClick={handleRowClick}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                         >
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    workOrder.priority === "High"
-                                      ? "#D97706"
-                                      : workOrder.priority === "Low"
-                                        ? "#059669"
-                                        : "#2463EB",
-                                }}
-                              />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
-                                {workOrder.priority}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {workOrder.task}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {workOrder.updatedDate}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {workOrder.age}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    workOrder.status === "Completed"
-                                      ? "#059669"
-                                      : "#2463EB",
-                                }}
-                              />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
-                                {workOrder.status}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {workOrder.dueDate}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    workOrder.billStatus === "Paid"
-                                      ? "#059669"
-                                      : workOrder.billStatus === "Unpaid"
-                                        ? "#DC2626"
-                                        : "#D97706",
-                                }}
-                              />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
-                                {workOrder.billStatus}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
-                              {workOrder.billTotal}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              {workOrder.assignees.map((assignee) => (
-                                <div
-                                  key={assignee.id}
-                                  className="relative group"
-                                >
-                                  <div
-                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                                    style={{
-                                      backgroundColor: "rgb(59, 130, 246)",
-                                      borderColor: "rgb(209, 213, 219)",
-                                      borderWidth: "1px",
-                                    }}
-                                    title={assignee.name}
-                                  >
-                                    {assignee.initials}
-                                  </div>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                    {assignee.name}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </td>
+                          {columnOrder
+                            .filter((colKey) => visibleColumns.has(colKey))
+                            .map((colKey) => (
+                              <td
+                                key={colKey}
+                                className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                              >
+                                {renderCell(colKey)}
+                              </td>
+                            ))}
                           <td
                             className="sticky right-0 px-2 py-3 flex items-center justify-center"
                             style={{
