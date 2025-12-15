@@ -386,7 +386,7 @@ export default function RecurringTasks() {
     }
   }, [showPageSizeDropdown]);
 
-  const totalTasks = mockRecurringTasks.length;
+  const totalTasks = getSortedData().length;
   const totalPages = Math.ceil(totalTasks / itemsPerPage);
 
   const getPaginationNumbers = () => {
