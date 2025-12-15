@@ -274,6 +274,18 @@ export default function Vendors() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
+  // Column drag-and-drop state
+  const [columnOrder, setColumnOrder] = useState<string[]>([
+    "name",
+    "phone",
+    "email",
+    "servicesProvided",
+    "notes",
+  ]);
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const [dropTargetColumn, setDropTargetColumn] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<"before" | "after">("before");
+
   useEffect(() => {
     let animationFrameId: number;
 
