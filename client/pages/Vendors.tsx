@@ -285,6 +285,11 @@ export default function Vendors() {
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dropTargetColumn, setDropTargetColumn] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<"before" | "after">("before");
+  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
+    new Set(["name", "phone", "email", "servicesProvided", "notes"])
+  );
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  const allAvailableColumns = ["name", "phone", "email", "servicesProvided", "notes"];
 
   useEffect(() => {
     let animationFrameId: number;
