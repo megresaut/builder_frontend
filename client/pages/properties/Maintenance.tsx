@@ -2032,7 +2032,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <img
                         loading="lazy"
@@ -2043,9 +2043,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Priority
                       </span>
+                      {getFieldTeamSortIndicator("priority") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("priority")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("description")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -2061,9 +2066,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         FTO Name
                       </span>
+                      {getFieldTeamSortIndicator("description") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("description")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("dueDate")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -2081,6 +2091,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Due Date
                       </span>
+                      {getFieldTeamSortIndicator("dueDate") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("dueDate")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
@@ -2101,7 +2116,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       </span>
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -2117,9 +2132,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         FTO Status
                       </span>
+                      {getFieldTeamSortIndicator("status") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("status")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("timesheetStatus")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -2135,9 +2155,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Timesheet Status
                       </span>
+                      {getFieldTeamSortIndicator("timesheetStatus") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("timesheetStatus")}
+                        </span>
+                      )}
                     </div>
                   </th>
-                  <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                  <th onClick={() => handleFieldTeamSortClick("amount")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2">
                       <svg
                         width="16"
@@ -2155,6 +2180,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       <span className="font-medium text-sm text-gray-700">
                         Amount
                       </span>
+                      {getFieldTeamSortIndicator("amount") && (
+                        <span className="text-xs font-bold text-gray-700 ml-1">
+                          {getFieldTeamSortIndicator("amount")}
+                        </span>
+                      )}
                     </div>
                   </th>
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
@@ -2165,7 +2195,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {mockPropertyFieldTeamOrders.map((order) => {
+                {getFieldTeamSortedData().map((order) => {
                   const handleRowClick = (e: React.MouseEvent) => {
                     const target = e.target as HTMLElement;
                     if (
