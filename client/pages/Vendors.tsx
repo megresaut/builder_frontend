@@ -289,6 +289,8 @@ export default function Vendors() {
     new Set(["name", "phone", "email", "servicesProvided", "notes"])
   );
   const [showColumnModal, setShowColumnModal] = useState(false);
+  const [columnMenuPos, setColumnMenuPos] = useState({ top: 0, left: 0 });
+  const columnButtonRef = useRef<HTMLButtonElement>(null);
   const allAvailableColumns = ["name", "phone", "email", "servicesProvided", "notes"];
 
   useEffect(() => {
