@@ -16,11 +16,6 @@ interface Vendor {
   servicesProvided: string[];
 }
 
-// Custom comparator for servicesProvided array
-const normalizeServicesProvided = (services: string[]): string => {
-  return services.join(", ").toLowerCase();
-};
-
 const mockVendors: Vendor[] = [
   {
     id: 1,
