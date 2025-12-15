@@ -140,9 +140,9 @@ export default function App() {
                 <Route
                   path="/property/:propertyId/bills/record"
                   element={
-                    <BareLayout>
+                    <ShellLayout>
                       <RecordBill />
-                    </BareLayout>
+                    </ShellLayout>
                   }
                 />
                 <Route
