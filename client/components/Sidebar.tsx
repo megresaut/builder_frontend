@@ -237,27 +237,49 @@ export default function Sidebar() {
 
   const tabContext = useContext(TabContext);
 
+  // Map section ID to the corresponding default tab ID
+  const getDefaultTabIdForSection = (sectionId: string | undefined): string | undefined => {
+    if (!sectionId) return undefined;
+
+    const sectionToTabMap: Record<string, string> = {
+      "all-properties": "properties",
+      "bills": "bills",
+      "all-tasks": "field-team-orders",
+      "recurring-tasks": "field-team-orders",
+      "field-team-orders": "field-team-orders",
+      "work-orders": "work-orders",
+      "vendors": "field-team-orders",
+    };
+
+    return sectionToTabMap[sectionId];
+  };
+
   const handleNavigation = (
     label: string,
     sectionId?: string,
     path?: string,
   ) => {
-    if (tabContext) {
-      if (tabContext.selectedTab.startsWith("new-tab-") && sectionId) {
+    if (tabContext && sectionId) {
+      const defaultTabId = getDefaultTabIdForSection(sectionId);
+      const targetTabId = defaultTabId || tabContext.selectedTab;
+
+      if (tabContext.selectedTab.startsWith("new-tab-")) {
+        // If on a new-tab, update its metadata
         tabContext.setTabMetadata(tabContext.selectedTab, {
           label,
           sectionId,
           route: path,
           scrollPosition: 0,
         });
-      } else if (sectionId) {
-        tabContext.setTabMetadata(sectionId, {
+      } else if (defaultTabId) {
+        // Use the default tab for this section
+        tabContext.setTabMetadata(defaultTabId, {
           label,
           sectionId,
           route: path,
           scrollPosition: 0,
         });
-        tabContext.setSelectedTab(sectionId);
+        tabContext.setSelectedTab(defaultTabId);
       }
     }
   };
