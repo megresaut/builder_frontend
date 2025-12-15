@@ -898,7 +898,7 @@ export default function AllTasks() {
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {tasks.length}
+                  of {totalTasks}
                 </span>
               </div>
               <div
