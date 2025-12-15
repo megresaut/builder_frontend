@@ -879,7 +879,7 @@ export default function FieldTeamOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {fieldTeamOrders.map((order) => {
+                  {getDisplayedOrdersForPage().map((order) => {
                     const handleRowClick = (e: React.MouseEvent) => {
                       const target = e.target as HTMLElement;
                       // Don't navigate if clicking on actions cell or any button inside it
