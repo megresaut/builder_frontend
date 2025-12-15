@@ -526,38 +526,9 @@ export const Vendors: React.FC<VendorsProps> = ({
                       backgroundColor: "white",
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="14"
-                        height="16"
-                        viewBox="0 0 14 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M6.67023 6.61C8.28843 6.61 9.60023 5.29819 9.60023 3.68C9.60023 2.06181 8.28843 0.75 6.67023 0.75C5.05204 0.75 3.74023 2.06181 3.74023 3.68C3.74023 5.29819 5.05204 6.61 6.67023 6.61Z"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M0.75 14.7501V13.0801C0.75 11.1301 2.33 9.56006 4.27 9.56006H9.54C11.49 9.56006 13.06 11.1401 13.06 13.0801V14.7501"
-                          stroke="#525252"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Name
-                      </span>
-                      {getSortIndicator("name") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("name")}
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-medium text-sm text-gray-700">
+                      Actions
+                    </span>
                   </th>
                   <th
                     className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
