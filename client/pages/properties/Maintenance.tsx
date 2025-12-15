@@ -1372,30 +1372,81 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {tasksColumnManagement.columnOrder.map((columnKey) => {
-                    if (!tasksColumnManagement.visibleColumns.has(columnKey)) {
-                      return null;
-                    }
-                    return (
-                      <th
-                        key={columnKey}
-                        onClick={() => handleTasksSortClick(columnKey)}
-                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {tasksColumnConfig[columnKey]?.icon}
-                          <span className="font-medium text-sm text-gray-700">
-                            {tasksColumnConfig[columnKey]?.label || columnKey}
+                  {tasksColumnManagement.visibleColumns.has("priority") && (
+                    <th onClick={() => handleTasksSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {tasksColumnConfig["priority"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {tasksColumnConfig["priority"]?.label}
+                        </span>
+                        {getTasksSortIndicator("priority") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getTasksSortIndicator("priority")}
                           </span>
-                          {getTasksSortIndicator(columnKey) && (
-                            <span className="text-xs font-bold text-gray-700 ml-1">
-                              {getTasksSortIndicator(columnKey)}
-                            </span>
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {tasksColumnManagement.visibleColumns.has("status") && (
+                    <th onClick={() => handleTasksSortClick("status")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {tasksColumnConfig["status"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {tasksColumnConfig["status"]?.label}
+                        </span>
+                        {getTasksSortIndicator("status") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getTasksSortIndicator("status")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {tasksColumnManagement.visibleColumns.has("title") && (
+                    <th onClick={() => handleTasksSortClick("title")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {tasksColumnConfig["title"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {tasksColumnConfig["title"]?.label}
+                        </span>
+                        {getTasksSortIndicator("title") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getTasksSortIndicator("title")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {tasksColumnManagement.visibleColumns.has("due") && (
+                    <th onClick={() => handleTasksSortClick("due")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {tasksColumnConfig["due"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {tasksColumnConfig["due"]?.label}
+                        </span>
+                        {getTasksSortIndicator("due") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getTasksSortIndicator("due")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
+                  {tasksColumnManagement.visibleColumns.has("assignees") && (
+                    <th onClick={() => handleTasksSortClick("assignees")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {tasksColumnConfig["assignees"]?.icon}
+                        <span className="font-medium text-sm text-gray-700">
+                          {tasksColumnConfig["assignees"]?.label}
+                        </span>
+                        {getTasksSortIndicator("assignees") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getTasksSortIndicator("assignees")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">
                       Actions
