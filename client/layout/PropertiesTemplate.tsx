@@ -95,7 +95,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
         className="bg-white"
         style={{
           borderLeftWidth: "1.33333px",
-          border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+          border: "1px none rgb(226, 232, 240)",
           padding: "32px 32px 150px",
         }}
       >
