@@ -894,19 +894,18 @@ export default function Vendors() {
             {allAvailableColumns.map((colKey) => (
               <label
                 key={colKey}
-                className="flex items-center gap-3 w-full px-3 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
+                className="flex items-center justify-between gap-3 w-full px-3 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
               >
-                <input
-                  type="checkbox"
-                  checked={visibleColumns.has(colKey)}
-                  onChange={() => toggleColumnVisibility(colKey)}
-                  className="w-4 h-4 rounded cursor-pointer"
-                  style={{
-                    accentColor: "#013764",
-                  }}
-                />
-                <div className="flex items-center gap-2 flex-1">
-                  {columnConfig[colKey]?.icon}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns.has(colKey)}
+                    onChange={() => toggleColumnVisibility(colKey)}
+                    className="w-4 h-4 rounded cursor-pointer"
+                    style={{
+                      accentColor: "#013764",
+                    }}
+                  />
                   <span
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]"
                     style={{
@@ -917,6 +916,7 @@ export default function Vendors() {
                     {columnConfig[colKey]?.label}
                   </span>
                 </div>
+                {columnConfig[colKey]?.icon}
               </label>
             ))}
           </div>,
