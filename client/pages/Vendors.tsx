@@ -562,7 +562,7 @@ export default function Vendors() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    {columnOrder.map((colKey) => {
+                    {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
                       const colConfig = columnConfig[colKey];
                       const sortIndicator = getSortIndicator(colKey);
                       return (
