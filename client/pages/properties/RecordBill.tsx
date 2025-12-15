@@ -500,30 +500,61 @@ export const RecordBill = () => {
     return date;
   };
 
+  const formatDateInput = (input: string): string => {
+    // Remove all non-digit characters
+    const digits = input.replace(/\D/g, "");
+
+    // Limit to 8 digits (mmddyyyy)
+    const limited = digits.slice(0, 8);
+
+    // Format as mm/dd/yyyy as user types
+    if (limited.length <= 2) {
+      return limited;
+    } else if (limited.length <= 4) {
+      return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+    } else {
+      return `${limited.slice(0, 2)}/${limited.slice(2, 4)}/${limited.slice(4)}`;
+    }
+  };
+
   const handleInvoiceDateInputChange = (value: string) => {
-    setInvoiceDateInput(value);
+    const formatted = formatDateInput(value);
+    setInvoiceDateInput(formatted);
     setInvoiceDateError("");
 
-    if (value.length === 10) {
-      const parsedDate = validateDateFormat(value);
+    // Only validate when we have a complete date (mm/dd/yyyy)
+    if (formatted.length === 10) {
+      const parsedDate = validateDateFormat(formatted);
       if (parsedDate) {
         setInvoiceDate(parsedDate);
+        setFormErrors((prev) => {
+          const newErrors = new Set(prev);
+          newErrors.delete("invoiceDate");
+          return newErrors;
+        });
       } else {
-        setInvoiceDateError("Invalid date format. Use mm/dd/yyyy");
+        setInvoiceDateError("Invalid date. Please use mm/dd/yyyy format.");
       }
     }
   };
 
   const handleDueDateInputChange = (value: string) => {
-    setDueDateInput(value);
+    const formatted = formatDateInput(value);
+    setDueDateInput(formatted);
     setDueDateError("");
 
-    if (value.length === 10) {
-      const parsedDate = validateDateFormat(value);
+    // Only validate when we have a complete date (mm/dd/yyyy)
+    if (formatted.length === 10) {
+      const parsedDate = validateDateFormat(formatted);
       if (parsedDate) {
         setDueDate(parsedDate);
+        setFormErrors((prev) => {
+          const newErrors = new Set(prev);
+          newErrors.delete("dueDate");
+          return newErrors;
+        });
       } else {
-        setDueDateError("Invalid date format. Use mm/dd/yyyy");
+        setDueDateError("Invalid date. Please use mm/dd/yyyy format.");
       }
     }
   };
