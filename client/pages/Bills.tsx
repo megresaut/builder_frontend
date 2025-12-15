@@ -937,9 +937,17 @@ export default function Bills() {
                         <span className="font-medium text-sm text-gray-700">
                           Due Date
                         </span>
+                        {getSortIndicator("dueDate") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("dueDate")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("memo")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -960,9 +968,17 @@ export default function Bills() {
                         <span className="font-medium text-sm text-gray-700">
                           Memo
                         </span>
+                        {getSortIndicator("memo") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("memo")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("invoiceNumber")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -980,9 +996,17 @@ export default function Bills() {
                         <span className="font-medium text-sm text-gray-700">
                           Reference #
                         </span>
+                        {getSortIndicator("invoiceNumber") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("invoiceNumber")}
+                          </span>
+                        )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                    <th
+                      onClick={() => handleSortClick("amount")}
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
                         <svg
                           width="16"
@@ -998,10 +1022,18 @@ export default function Bills() {
                         <span className="font-medium text-sm text-gray-700">
                           Amount
                         </span>
+                        {getSortIndicator("amount") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("amount")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     {selectedTab === "drafts" && (
-                      <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                      <th
+                        onClick={() => handleSortClick("importedAt")}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
                         <div className="flex items-center gap-2">
                           <svg
                             width="16"
