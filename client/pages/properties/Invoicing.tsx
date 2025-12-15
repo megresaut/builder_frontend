@@ -870,7 +870,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       <line x1="10" y1="3" x2="8" y2="21" />
                       <line x1="16" y1="3" x2="14" y2="21" />
                     </svg>
-                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-6">
+                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6">
                       GL Account
                     </div>
                     {getInvoiceSortIndicator("glAccount") && (
