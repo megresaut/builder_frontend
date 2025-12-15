@@ -1281,7 +1281,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
                 {/* Amount Column */}
                 <div
-                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0"
+                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0 w-[92px]"
                   style={{ borderLeftColor: "transparent" }}
                 >
                   <div
