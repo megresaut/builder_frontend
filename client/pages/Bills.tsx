@@ -441,13 +441,21 @@ export default function Bills() {
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(billsList);
   const {
+    columnOrder,
     visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
     showColumnModal,
     setShowColumnModal,
     columnMenuPos,
     columnButtonRef,
     toggleColumnVisibility,
-  } = useColumnVisibility([
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+  } = useColumnManagement([
     "vendor",
     "statementDate",
     "dueDate",
