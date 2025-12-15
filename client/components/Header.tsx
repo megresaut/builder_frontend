@@ -29,6 +29,34 @@ export default function Header() {
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
+  // Helper function to determine the section ID based on the current pathname
+  const getSectionIdFromPath = (path: string): string | undefined => {
+    // Properties section
+    if (path === "/all-properties" || path === "/" || path.includes("/property/")) {
+      return "all-properties";
+    }
+
+    // Accounting section
+    if (path === "/bills" || path.includes("/bills/record") || path === "/record-bill" || path === "/utilities/view-bill") {
+      return "bills";
+    }
+
+    // Maintenance section (includes all maintenance subsections)
+    if (
+      path === "/all-tasks" ||
+      path.includes("/tasks/") ||
+      path === "/recurring-tasks" ||
+      path === "/field-team-orders" ||
+      path === "/work-orders" ||
+      path === "/vendors" ||
+      path.includes("/vendors/")
+    ) {
+      return "all-tasks"; // Use "all-tasks" as the main maintenance section icon
+    }
+
+    return undefined;
+  };
+
   const getCurrentPageLabel = (): {
     label: string;
     path: string;
