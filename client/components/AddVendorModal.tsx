@@ -6,6 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 interface AddVendorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddVendor?: (vendor: {
+    name: string;
+    email: string;
+    phone: string;
+    servicesProvided: string[];
+    notes: string;
+  }) => void;
 }
 
 export default function AddVendorModal({
