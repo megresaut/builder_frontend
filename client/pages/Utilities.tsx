@@ -1619,14 +1619,14 @@ export default function Utilities() {
                             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                               {account.icon}
                             </div>
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {account[column.key]}
                             </span>
                           </div>
                         ) : column.renderCell ? (
                           column.renderCell(account)
                         ) : (
-                          <span className="text-gray-900 font-normal text-base">
+                          <span className="text-gray-900 font-normal text-sm">
                             {account[column.key]}
                           </span>
                         )}
@@ -1807,7 +1807,7 @@ export default function Utilities() {
                             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                               {bill.icon}
                             </div>
-                            <span className="text-gray-900 font-normal text-base">
+                            <span className="text-gray-900 font-normal text-sm">
                               {bill[column.key]}
                             </span>
                           </div>
@@ -1825,7 +1825,7 @@ export default function Utilities() {
                         ) : column.renderCell ? (
                           column.renderCell(bill)
                         ) : (
-                          <span className="text-gray-900 font-normal text-base">
+                          <span className="text-gray-900 font-normal text-sm">
                             {bill[column.key]}
                           </span>
                         )}
