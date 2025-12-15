@@ -943,6 +943,7 @@ export default function Vendors() {
       <AddVendorModal
         open={isAddVendorModalOpen}
         onOpenChange={setIsAddVendorModalOpen}
+        onAddVendor={handleAddVendor}
       />
 
       {showColumnModal &&
