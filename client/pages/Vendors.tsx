@@ -351,17 +351,17 @@ export default function Vendors() {
       const isDropdownButtonClick = dropdownButtonRef.current?.contains(target);
       const isColumnButtonClick = columnButtonRef.current?.contains(target);
 
+      // Check if clicking on the column dropdown itself
+      const columnDropdownEl = document.querySelector('[style*="260px"]');
+      const isColumnDropdownClick = columnDropdownEl?.contains(target);
+
       // If clicking on a dropdown button, close the other dropdown
       if (isDropdownButtonClick) {
         setShowColumnModal(false);
-        // Also close action menu
-        setOpenMenuId(null);
       } else if (isColumnButtonClick) {
         setShowPageSizeDropdown(false);
-        // Also close action menu
-        setOpenMenuId(null);
-      } else {
-        // Clicking outside all dropdowns - close all
+      } else if (!isColumnDropdownClick && target.tagName !== 'INPUT') {
+        // Clicking outside all dropdowns (but not on column dropdown itself) - close all
         setShowPageSizeDropdown(false);
         setShowColumnModal(false);
         setOpenMenuId(null);
