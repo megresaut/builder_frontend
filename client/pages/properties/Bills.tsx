@@ -969,7 +969,15 @@ export const Bills: React.FC<BillsProps> = ({
                   className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
                 />
               </div>
-              <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+              <button
+                ref={billsColumnManagement.columnButtonRef}
+                onClick={() =>
+                  billsColumnManagement.setShowColumnModal(
+                    !billsColumnManagement.showColumnModal,
+                  )
+                }
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
                 <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                   Filter
                 </span>
@@ -989,6 +997,26 @@ export const Bills: React.FC<BillsProps> = ({
                   />
                 </svg>
               </button>
+              {billsColumnManagement.showColumnModal &&
+                createPortal(
+                  <ColumnFilterModal
+                    isOpen={billsColumnManagement.showColumnModal}
+                    position={billsColumnManagement.columnMenuPos}
+                    columns={billsColumnManagement.columnOrder.map((key) => ({
+                      key,
+                      label: billsColumnConfig[key]?.label || key,
+                      icon: billsColumnConfig[key]?.icon,
+                    }))}
+                    visibleColumns={billsColumnManagement.visibleColumns}
+                    onToggleColumn={
+                      billsColumnManagement.toggleColumnVisibility
+                    }
+                    onClose={() =>
+                      billsColumnManagement.setShowColumnModal(false)
+                    }
+                  />,
+                  document.body,
+                )}
             </div>
           </div>
 
