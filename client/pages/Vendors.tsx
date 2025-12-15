@@ -551,6 +551,11 @@ export default function Vendors() {
                         <span className="font-medium text-sm text-gray-700">
                           Email
                         </span>
+                        {getSortIndicator("email") && (
+                          <span className="text-xs font-bold text-gray-700 ml-1">
+                            {getSortIndicator("email")}
+                          </span>
+                        )}
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left border-r border-gray-200 flex-1">
