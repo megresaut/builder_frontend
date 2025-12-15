@@ -608,7 +608,8 @@ export const Bills: React.FC<BillsProps> = ({
   const approvedBills = billsList.filter((_, idx) => idx % 2 === 0);
   const displayedBills = selectedTab === "approved" ? approvedBills : billsList;
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(displayedBills);
-  const totalBills = displayedBills.length;
+  const sortedBills = getSortedData();
+  const totalBills = sortedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
 
   const getPaginationNumbers = () => {
