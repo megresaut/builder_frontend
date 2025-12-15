@@ -914,13 +914,13 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                         {account.icon}
                       </div>
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {account.provider}
                       </span>
                     </div>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
+                    <span className="text-gray-900 font-normal text-sm">
                       {account.account}
                     </span>
                   </td>
@@ -928,12 +928,12 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                     <StatusBadge status={account.status} />
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
+                    <span className="text-gray-900 font-normal text-sm">
                       {account.lastBillDate}
                     </span>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <span className="text-gray-900 font-normal text-base">
+                    <span className="text-gray-900 font-normal text-sm">
                       {account.lastBillAmount}
                     </span>
                   </td>
@@ -1243,13 +1243,13 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                           {bill.icon}
                         </div>
-                        <span className="text-gray-900 font-normal text-base">
+                        <span className="text-gray-900 font-normal text-sm">
                           {bill.provider}
                         </span>
                       </div>
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {bill.date}
                       </span>
                     </td>
@@ -1272,7 +1272,7 @@ export const Utilities: React.FC<UtilitiesProps> = ({
                       <BillStatusBadge status={bill.status} />
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-base">
+                      <span className="text-gray-900 font-normal text-sm">
                         {bill.amount}
                       </span>
                     </td>
