@@ -1085,7 +1085,7 @@ export default function Bills() {
                           ? `/bills/record?readOnly=true`
                           : "/bills/record";
                         navigate(path, {
-                          state: { bill: buildBillState(bill) },
+                          state: { bill: buildBillState(bill), previousPage: location.pathname },
                         });
                       };
                       return (
