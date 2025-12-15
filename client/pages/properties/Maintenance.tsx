@@ -1346,26 +1346,22 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   alt=""
                 />
               </button>
-              {tasksColumnManagement.showColumnModal &&
-                createPortal(
-                  <ColumnFilterModal
-                    isOpen={tasksColumnManagement.showColumnModal}
-                    position={tasksColumnManagement.columnMenuPos}
-                    columns={tasksColumnManagement.columnOrder.map((key) => ({
-                      key,
-                      label: tasksColumnConfig[key]?.label || key,
-                      icon: tasksColumnConfig[key]?.icon,
-                    }))}
-                    visibleColumns={tasksColumnManagement.visibleColumns}
-                    onToggleColumn={
-                      tasksColumnManagement.toggleColumnVisibility
-                    }
-                    onClose={() =>
-                      tasksColumnManagement.setShowColumnModal(false)
-                    }
-                  />,
-                  document.body,
-                )}
+              <ColumnFilterModal
+                isOpen={tasksColumnManagement.showColumnModal}
+                position={tasksColumnManagement.columnMenuPos}
+                columns={tasksColumnManagement.columnOrder.map((key) => ({
+                  key,
+                  label: tasksColumnConfig[key]?.label || key,
+                  icon: tasksColumnConfig[key]?.icon,
+                }))}
+                visibleColumns={tasksColumnManagement.visibleColumns}
+                onToggleColumn={
+                  tasksColumnManagement.toggleColumnVisibility
+                }
+                onClose={() =>
+                  tasksColumnManagement.setShowColumnModal(false)
+                }
+              />
             </div>
           </div>
           <div className="overflow-x-auto">
