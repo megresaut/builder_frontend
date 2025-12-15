@@ -321,6 +321,34 @@ export default function Vendors() {
     };
   }, [showPageSizeDropdown]);
 
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateColumnMenuPos = () => {
+      if (showColumnModal && columnButtonRef.current) {
+        const rect = columnButtonRef.current.getBoundingClientRect();
+        setColumnMenuPos({
+          top: rect.bottom + 8,
+          left: rect.right - 200,
+        });
+      }
+
+      if (showColumnModal) {
+        animationFrameId = requestAnimationFrame(updateColumnMenuPos);
+      }
+    };
+
+    if (showColumnModal) {
+      updateColumnMenuPos();
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showColumnModal]);
+
   const totalVendors = mockVendors.length;
   const totalPages = Math.ceil(totalVendors / itemsPerPage);
 
