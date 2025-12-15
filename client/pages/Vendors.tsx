@@ -6,6 +6,7 @@ import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import AddVendorModal from "@/components/AddVendorModal";
+import VendorTableHeader from "./VendorTableHeader";
 
 interface Vendor {
   id: number;
