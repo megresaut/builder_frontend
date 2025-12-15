@@ -1211,7 +1211,17 @@ export const RecordBill = () => {
                           Invoice Date{" "}
                           <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
-                        <div className="relative">
+                        <div className="relative" onClick={() => {
+                          if (!isReadOnly && !showInvoiceDateCalendar) {
+                            setShowDueDateCalendar(false);
+                            setShowInvoiceDateCalendar(true);
+                            if (invoiceDate) {
+                              setCalendarMonth(invoiceDate);
+                            } else {
+                              setCalendarMonth(new Date());
+                            }
+                          }
+                        }}>
                           <input
                             ref={invoiceDateInputRef}
                             type="text"
