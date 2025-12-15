@@ -1210,35 +1210,112 @@ export const RecordBill = () => {
                           Invoice Date{" "}
                           <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
-                        <input
-                          type="date"
-                          placeholder="mm/dd/yyyy"
-                          value={
-                            invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
-                          }
-                          onChange={(e) => {
-                            if (!isReadOnly && e.target.value) {
-                              const date = new Date(e.target.value);
-                              setInvoiceDate(date);
-                              setInvoiceDateInput(format(date, "MM/dd/yyyy"));
-                              setInvoiceDateError("");
-                              setFormErrors((prev) => {
-                                const newErrors = new Set(prev);
-                                newErrors.delete("invoiceDate");
-                                return newErrors;
-                              });
-                            } else if (!isReadOnly) {
-                              setInvoiceDate(null);
-                              setInvoiceDateInput("");
-                            }
-                          }}
-                          disabled={isReadOnly}
-                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
-                            formErrors.has("invoiceDate")
-                              ? "border-red-500 border-2"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
+                        <div className="relative">
+                          <input
+                            ref={invoiceDateInputRef}
+                            type="text"
+                            placeholder="mm/dd/yyyy"
+                            value={invoiceDateInput}
+                            onChange={(e) => {
+                              if (!isReadOnly) {
+                                setInvoiceDateInput(e.target.value);
+                              }
+                            }}
+                            onFocus={() => {
+                              if (!isReadOnly) {
+                                setShowInvoiceDateCalendar(true);
+                                if (invoiceDate) {
+                                  setCalendarMonth(invoiceDate);
+                                }
+                              }
+                            }}
+                            disabled={isReadOnly}
+                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
+                              formErrors.has("invoiceDate")
+                                ? "border-red-500 border-2"
+                                : "border-[#E5E5E5]"
+                            }`}
+                          />
+                          {showInvoiceDateCalendar &&
+                            createPortal(
+                              <div
+                                ref={invoiceDateCalendarRef}
+                                className="bg-white flex flex-col gap-3 p-4"
+                                style={{
+                                  width: "280px",
+                                  border: "0.5px solid #DADADA",
+                                  borderRadius: "8px",
+                                  boxShadow:
+                                    "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                                  zIndex: 99999,
+                                  position: "fixed",
+                                  top: invoiceDateCalendarPos.top + "px",
+                                  left: invoiceDateCalendarPos.left + "px",
+                                  pointerEvents: "auto",
+                                }}
+                                onMouseLeave={() => setShowInvoiceDateCalendar(false)}
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <button
+                                    onClick={previousMonth}
+                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                    type="button"
+                                  >
+                                    <ChevronLeft className="w-4 h-4" />
+                                  </button>
+                                  <span className="text-sm font-medium text-[#303030]">
+                                    {format(calendarMonth, "MMMM yyyy")}
+                                  </span>
+                                  <button
+                                    onClick={nextMonth}
+                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                    type="button"
+                                  >
+                                    <ChevronRight className="w-4 h-4" />
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-7 gap-1">
+                                  {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
+                                    (day) => (
+                                      <div
+                                        key={day}
+                                        className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
+                                      >
+                                        {day}
+                                      </div>
+                                    ),
+                                  )}
+
+                                  {getDaysInCurrentMonth().map((day, idx) => (
+                                    <button
+                                      key={idx}
+                                      onClick={() =>
+                                        day !== null && handleInvoiceDateSelect(day)
+                                      }
+                                      disabled={day === null}
+                                      className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
+                                        day === null
+                                          ? "text-transparent cursor-default"
+                                          : invoiceDate &&
+                                              invoiceDate.getDate() === day &&
+                                              invoiceDate.getMonth() ===
+                                                calendarMonth.getMonth() &&
+                                              invoiceDate.getFullYear() ===
+                                                calendarMonth.getFullYear()
+                                            ? "bg-[#2463EB] text-white font-medium"
+                                            : "hover:bg-gray-100 text-[#303030]"
+                                      }`}
+                                      type="button"
+                                    >
+                                      {day}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>,
+                              document.body,
+                            )}
+                        </div>
                         {invoiceDateError && (
                           <div className="text-red-500 text-xs mt-1">
                             {invoiceDateError}
@@ -1250,33 +1327,112 @@ export const RecordBill = () => {
                           Due Date{" "}
                           <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                         </label>
-                        <input
-                          type="date"
-                          placeholder="mm/dd/yyyy"
-                          value={dueDate ? format(dueDate, "yyyy-MM-dd") : ""}
-                          onChange={(e) => {
-                            if (!isReadOnly && e.target.value) {
-                              const date = new Date(e.target.value);
-                              setDueDate(date);
-                              setDueDateInput(format(date, "MM/dd/yyyy"));
-                              setDueDateError("");
-                              setFormErrors((prev) => {
-                                const newErrors = new Set(prev);
-                                newErrors.delete("dueDate");
-                                return newErrors;
-                              });
-                            } else if (!isReadOnly) {
-                              setDueDate(null);
-                              setDueDateInput("");
-                            }
-                          }}
-                          disabled={isReadOnly}
-                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
-                            formErrors.has("dueDate")
-                              ? "border-red-500 border-2"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
+                        <div className="relative">
+                          <input
+                            ref={dueDateInputRef}
+                            type="text"
+                            placeholder="mm/dd/yyyy"
+                            value={dueDateInput}
+                            onChange={(e) => {
+                              if (!isReadOnly) {
+                                setDueDateInput(e.target.value);
+                              }
+                            }}
+                            onFocus={() => {
+                              if (!isReadOnly) {
+                                setShowDueDateCalendar(true);
+                                if (dueDate) {
+                                  setCalendarMonth(dueDate);
+                                }
+                              }
+                            }}
+                            disabled={isReadOnly}
+                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
+                              formErrors.has("dueDate")
+                                ? "border-red-500 border-2"
+                                : "border-[#E5E5E5]"
+                            }`}
+                          />
+                          {showDueDateCalendar &&
+                            createPortal(
+                              <div
+                                ref={dueDateCalendarRef}
+                                className="bg-white flex flex-col gap-3 p-4"
+                                style={{
+                                  width: "280px",
+                                  border: "0.5px solid #DADADA",
+                                  borderRadius: "8px",
+                                  boxShadow:
+                                    "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
+                                  zIndex: 99999,
+                                  position: "fixed",
+                                  top: dueDateCalendarPos.top + "px",
+                                  left: dueDateCalendarPos.left + "px",
+                                  pointerEvents: "auto",
+                                }}
+                                onMouseLeave={() => setShowDueDateCalendar(false)}
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <button
+                                    onClick={previousMonth}
+                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                    type="button"
+                                  >
+                                    <ChevronLeft className="w-4 h-4" />
+                                  </button>
+                                  <span className="text-sm font-medium text-[#303030]">
+                                    {format(calendarMonth, "MMMM yyyy")}
+                                  </span>
+                                  <button
+                                    onClick={nextMonth}
+                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                    type="button"
+                                  >
+                                    <ChevronRight className="w-4 h-4" />
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-7 gap-1">
+                                  {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
+                                    (day) => (
+                                      <div
+                                        key={day}
+                                        className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
+                                      >
+                                        {day}
+                                      </div>
+                                    ),
+                                  )}
+
+                                  {getDaysInCurrentMonth().map((day, idx) => (
+                                    <button
+                                      key={idx}
+                                      onClick={() =>
+                                        day !== null && handleDueDateSelect(day)
+                                      }
+                                      disabled={day === null}
+                                      className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
+                                        day === null
+                                          ? "text-transparent cursor-default"
+                                          : dueDate &&
+                                              dueDate.getDate() === day &&
+                                              dueDate.getMonth() ===
+                                                calendarMonth.getMonth() &&
+                                              dueDate.getFullYear() ===
+                                                calendarMonth.getFullYear()
+                                            ? "bg-[#2463EB] text-white font-medium"
+                                            : "hover:bg-gray-100 text-[#303030]"
+                                      }`}
+                                      type="button"
+                                    >
+                                      {day}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>,
+                              document.body,
+                            )}
+                        </div>
                         {dueDateError && (
                           <div className="text-red-500 text-xs mt-1">
                             {dueDateError}
