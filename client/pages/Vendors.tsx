@@ -822,7 +822,7 @@ export default function Vendors() {
                       <div
                         className="bg-white flex flex-col justify-center items-start gap-1 p-2"
                         style={{
-                          width: "80px",
+                          width: "60px",
                           border: "0.5px solid #DADADA",
                           borderRadius: "8px",
                           boxShadow:
