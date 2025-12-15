@@ -166,7 +166,6 @@ export const RecordBill = () => {
   const navigate = useNavigate();
   const location = useLocation<{ bill?: ViewBillState }>();
   const [searchParams] = useSearchParams();
-  const { returnFromModal } = useModalNavigation();
   const isReadOnly = searchParams.get("readOnly") === "true";
   const readOnlyBill = isReadOnly
     ? buildReadOnlyBillFromState(location.state?.bill)
