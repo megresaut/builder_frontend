@@ -1118,7 +1118,7 @@ export default function Header() {
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Navigation Buttons */}
             <button
-              onClick={() => window.history.back()}
+              onClick={handleBackInTab}
               className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
               aria-label="Go back"
             >
@@ -1135,7 +1135,7 @@ export default function Header() {
               </svg>
             </button>
             <button
-              onClick={() => window.history.forward()}
+              onClick={handleForwardInTab}
               className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
               aria-label="Go forward"
             >
