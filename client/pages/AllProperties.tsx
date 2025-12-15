@@ -428,8 +428,8 @@ export default function AllProperties() {
     <div
       className="bg-white"
       style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
+        borderLeftWidth: "1.33333px",
+        border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
         padding: "32px 32px 150px",
       }}
     >
