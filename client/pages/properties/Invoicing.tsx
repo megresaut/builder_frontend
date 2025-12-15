@@ -1013,7 +1013,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 {/* Status Column */}
                 <div className="border-r border-[#DADADA] flex flex-col overflow-hidden flex-grow w-[140px]">
                   <div
-                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="items-center border-b-[0.5px] border-[#DADADA] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={() => handleInvoiceSortClick("status")}
                   >
                     <img
@@ -1022,7 +1022,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="w-4 h-4"
                       alt=""
                     />
-                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-[1.4]">
+                    <div className="text-[#525252] font-medium text-base tracking-[-0.32px] leading-6">
                       Approval Status
                     </div>
                     {getInvoiceSortIndicator("status") && (
