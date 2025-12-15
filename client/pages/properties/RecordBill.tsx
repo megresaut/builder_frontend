@@ -1256,7 +1256,7 @@ export const RecordBill = () => {
                                 : "border-[#E5E5E5]"
                             }`}
                           />
-                          <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none" />
+                          <Calendar className="absolute right-2 top-[55%] -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none" />
                           {showInvoiceDateCalendar &&
                             createPortal(
                               <div
@@ -1395,7 +1395,7 @@ export const RecordBill = () => {
                                 : "border-[#E5E5E5]"
                             }`}
                           />
-                          <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none" />
+                          <Calendar className="absolute right-2 top-[55%] -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none" />
                           {showDueDateCalendar &&
                             createPortal(
                               <div
