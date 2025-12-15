@@ -961,57 +961,18 @@ export default function Vendors() {
         onAddVendor={handleAddVendor}
       />
 
-      {showColumnModal &&
-        createPortal(
-          <div
-            className="bg-white flex flex-col justify-center items-start gap-1 p-2"
-            style={{
-              width: "260px",
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              position: "fixed",
-              top: columnMenuPos.top + "px",
-              left: columnMenuPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setShowColumnModal(false)}
-          >
-            {allAvailableColumns.map((colKey) => (
-              <label
-                key={colKey}
-                className="flex items-center justify-between gap-3 w-full px-3 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={visibleColumns.has(colKey)}
-                    onChange={() => toggleColumnVisibility(colKey)}
-                    className="w-4 h-4 rounded cursor-pointer"
-                    style={{
-                      accentColor: "#013764",
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <span
-                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]"
-                    style={{
-                      fontFamily:
-                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    }}
-                  >
-                    {columnConfig[colKey]?.label}
-                  </span>
-                </div>
-                {columnConfig[colKey]?.icon}
-              </label>
-            ))}
-          </div>,
-          document.body,
-        )}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={allAvailableColumns.map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
     </div>
   );
 }
