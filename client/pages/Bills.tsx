@@ -441,6 +441,15 @@ export default function Bills() {
     drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
   }));
 
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(billsList);
+
+  const getSortedAndPaginatedBills = () => {
+    const sorted = getSortedData();
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sorted.slice(start, end);
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       setRelativeTimeDisplay({
