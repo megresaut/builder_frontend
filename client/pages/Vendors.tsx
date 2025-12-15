@@ -532,6 +532,7 @@ export default function Vendors() {
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     {columnOrder.map((colKey) => {
                       const colConfig = columnConfig[colKey];
+                      const sortIndicator = getSortIndicator(colKey);
                       return (
                         <th
                           key={colKey}
@@ -567,9 +568,9 @@ export default function Vendors() {
                             <span className="font-medium text-sm text-gray-700">
                               {colConfig?.label}
                             </span>
-                            {getSortIndicator(colKey) && (
+                            {sortIndicator && (
                               <span className="text-xs font-bold text-gray-700 ml-1">
-                                {getSortIndicator(colKey)}
+                                {sortIndicator}
                               </span>
                             )}
                           </div>
