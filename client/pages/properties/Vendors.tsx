@@ -545,12 +545,7 @@ export const Vendors: React.FC<VendorsProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {mockVendors
-                  .slice(
-                    (currentPage - 1) * itemsPerPage,
-                    currentPage * itemsPerPage,
-                  )
-                  .map((vendor) => (
+                {getDisplayedVendorsForPage().map((vendor) => (
                     <tr
                       key={vendor.id}
                       onClick={() => navigate(`/vendors/${vendor.id}`)}
