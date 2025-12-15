@@ -7,6 +7,8 @@ import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface Bill {
   id: number;
