@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
@@ -486,6 +487,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "openMenuId",
     null,
   );
+
+  // Sorting hooks for each table
+  const { handleSortClick: handleTasksSortClick, getSortIndicator: getTasksSortIndicator, getSortedData: getTasksSortedData } = useSortingTable(mockPropertyTasks);
+  const { handleSortClick: handleRecurringSortClick, getSortIndicator: getRecurringSortIndicator, getSortedData: getRecurringSortedData } = useSortingTable(mockPropertyRecurringTasks);
+  const { handleSortClick: handleWorkOrdersSortClick, getSortIndicator: getWorkOrdersSortIndicator, getSortedData: getWorkOrdersSortedData } = useSortingTable(mockPropertyWorkOrders);
+  const { handleSortClick: handleFieldTeamSortClick, getSortIndicator: getFieldTeamSortIndicator, getSortedData: getFieldTeamSortedData } = useSortingTable(mockPropertyFieldTeamOrders);
 
   // Pagination state for each table
   const [tasksPage, setTasksPage] = usePageState<number>("tasksPage", 1);
