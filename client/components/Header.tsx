@@ -509,6 +509,52 @@ export default function Header() {
     setFullscreenMode(newValue);
   };
 
+  // Navigate back within the current tab's history
+  const handleBackInTab = () => {
+    if (!selectedTab) return;
+
+    const metadata = tabMetadata[selectedTab];
+    const currentIndex = metadata?.historyIndex ?? -1;
+    const history = metadata?.history || [];
+
+    // Can't go back if at the beginning
+    if (currentIndex <= 0) return;
+
+    const previousRoute = history[currentIndex - 1];
+    if (previousRoute) {
+      const newIndex = currentIndex - 1;
+      setTabMetadata(selectedTab, {
+        ...metadata,
+        historyIndex: newIndex,
+        route: previousRoute,
+      });
+      navigate(previousRoute);
+    }
+  };
+
+  // Navigate forward within the current tab's history
+  const handleForwardInTab = () => {
+    if (!selectedTab) return;
+
+    const metadata = tabMetadata[selectedTab];
+    const currentIndex = metadata?.historyIndex ?? -1;
+    const history = metadata?.history || [];
+
+    // Can't go forward if at the end
+    if (currentIndex >= history.length - 1) return;
+
+    const nextRoute = history[currentIndex + 1];
+    if (nextRoute) {
+      const newIndex = currentIndex + 1;
+      setTabMetadata(selectedTab, {
+        ...metadata,
+        historyIndex: newIndex,
+        route: nextRoute,
+      });
+      navigate(nextRoute);
+    }
+  };
+
   if (!tabContext) {
     throw new Error("Header must be used within TabContext provider");
   }
