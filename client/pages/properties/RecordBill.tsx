@@ -466,6 +466,18 @@ export const RecordBill = () => {
     return days;
   };
 
+  const previousMonth = () => {
+    setCalendarMonth(
+      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
+    );
+  };
+
+  const nextMonth = () => {
+    setCalendarMonth(
+      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
+    );
+  };
+
   const validateDateFormat = (dateString: string): Date | null => {
     if (!dateString) return null;
 
