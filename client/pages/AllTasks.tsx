@@ -763,68 +763,66 @@ export default function AllTasks() {
                       key={task.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <StatusBadge status={task.status} />
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <button
-                          onClick={() => navigate(`/tasks/${task.id}`)}
-                          className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors"
-                        >
-                          {task.title}
-                        </button>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {task.property}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {task.due}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-blue-600 font-normal text-sm hover:underline cursor-pointer">
-                          {task.updated}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {task.age}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <PriorityBadge priority={task.priority} />
-                      </td>
-                      <td
-                        className="px-3 py-3 whitespace-nowrap"
-                        style={{
-                          borderRightWidth: "1px",
-                          border: "1px solid #e7e8ec",
-                        }}
-                      >
-                        <div className="flex items-center gap-2">
-                          {task.assignees.map((assignee) => (
-                            <div key={assignee.id} className="relative group">
-                              <div
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                                style={{
-                                  backgroundColor: "rgb(59, 130, 246)",
-                                  borderColor: "rgb(209, 213, 219)",
-                                  borderWidth: "1px",
-                                }}
-                                title={assignee.name}
-                              >
-                                {assignee.initials}
-                              </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {assignee.name}
-                              </div>
+                      {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          {colKey === "priority" && (
+                            <PriorityBadge priority={task.priority} />
+                          )}
+                          {colKey === "status" && (
+                            <StatusBadge status={task.status} />
+                          )}
+                          {colKey === "title" && (
+                            <button
+                              onClick={() => navigate(`/tasks/${task.id}`)}
+                              className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors"
+                            >
+                              {task.title}
+                            </button>
+                          )}
+                          {colKey === "property" && (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {task.property}
+                            </span>
+                          )}
+                          {colKey === "due" && (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {task.due}
+                            </span>
+                          )}
+                          {colKey === "updated" && (
+                            <span className="text-blue-600 font-normal text-sm hover:underline cursor-pointer">
+                              {task.updated}
+                            </span>
+                          )}
+                          {colKey === "age" && (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {task.age}
+                            </span>
+                          )}
+                          {colKey === "assignee" && (
+                            <div className="flex items-center gap-2">
+                              {task.assignees.map((assignee) => (
+                                <div key={assignee.id} className="relative group">
+                                  <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                    style={{
+                                      backgroundColor: "rgb(59, 130, 246)",
+                                      borderColor: "rgb(209, 213, 219)",
+                                      borderWidth: "1px",
+                                    }}
+                                    title={assignee.name}
+                                  >
+                                    {assignee.initials}
+                                  </div>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {assignee.name}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </td>
+                          )}
+                        </td>
+                      ))}
                       <td
                         className="sticky right-0 px-2 py-3 flex items-center justify-center"
                         style={{
