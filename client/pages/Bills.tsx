@@ -1069,6 +1069,11 @@ export default function Bills() {
                                   {bill.dueDate}
                                 </span>
                               )}
+                              {colKey === "status" && (
+                                <span className={`text-sm font-normal ${bill.status === "pushed" ? "text-green-600" : "text-red-600"}`}>
+                                  {bill.status === "pushed" ? "Pushed" : "Push Failed"}
+                                </span>
+                              )}
                               {colKey === "memo" && (
                                 <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
                                   {bill.memo}
