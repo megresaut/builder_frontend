@@ -844,7 +844,7 @@ export default function Vendors() {
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors text-sm font-medium",
                     currentPage === 1
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-gray-50",
@@ -852,23 +852,23 @@ export default function Vendors() {
                   style={{
                     borderRightWidth: "0.909091px",
                     borderRightColor: "rgb(229, 229, 229)",
+                    color: currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
                   }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
+                    width="16"
+                    height="16"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={
-                      currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
-                    }
+                    stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
                     <path d="m15 18-6-6 6-6" />
                   </svg>
+                  <span>Previous</span>
                 </button>
                 {getPaginationNumbers().map((page) => (
                   <button
