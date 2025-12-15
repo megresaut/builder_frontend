@@ -596,9 +596,17 @@ export default function Bills() {
   };
 
   const approvedBills = billsList.filter((_, idx) => idx % 2 === 0);
-  const displayedBills = selectedTab === "approved" ? approvedBills : billsList;
+  const filteredBills = selectedTab === "approved" ? approvedBills : billsList;
+  const sortedBills = getSortedData();
+  const displayedBills = sortedBills.length > 0 ? sortedBills : filteredBills;
   const totalBills = displayedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
+
+  const getDisplayedBillsForPage = () => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return displayedBills.slice(start, end);
+  };
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
