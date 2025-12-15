@@ -965,7 +965,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                           : "border-[#e5e5e5]"
                       }`}
                     >
-                      <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
+                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
                         {item.amount}
                       </div>
                     </div>
@@ -1317,7 +1317,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         })
                       }
                     >
-                      <div className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
+                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
                         {item.amount}
                       </div>
                     </div>
