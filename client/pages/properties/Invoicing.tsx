@@ -1174,7 +1174,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 {paginatedHistory.map((item) => (
                   <div
                     key={item.id}
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 gap-2.5 px-3 relative"
+                    className="items-center border-b-[0.5px] border-[#e5e5e5] flex justify-center min-h-14 gap-2.5 px-3 relative"
                     style={{ width: "80px" }}
                   >
                     <ActionButton
