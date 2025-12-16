@@ -1328,6 +1328,17 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 />
               </div>
               <button
+                onClick={() => {}}
+                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
+                  Filters
+                </div>
+              </button>
+              <button
                 ref={tasksColumnManagement.columnButtonRef}
                 onClick={() =>
                   tasksColumnManagement.setShowColumnModal(
