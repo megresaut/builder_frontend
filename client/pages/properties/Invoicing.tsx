@@ -1150,6 +1150,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   visibleColumns={visibleHistoryColumns.map((colKey) => ({
                     key: colKey,
                     width: historyColumnConfigs[colKey].width,
+                    flex: historyColumnConfigs[colKey].flex,
                   }))}
                   onRowClick={(item) =>
                     openInvoicePreview({
