@@ -305,8 +305,8 @@ const ActionButton = ({
           >
             <button
               onClick={() => {
-                onEditClick(workOrder);
                 setOpenMenuId(null);
+                navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
             >
