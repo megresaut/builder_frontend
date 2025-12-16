@@ -641,7 +641,7 @@ export default function TaskSummary() {
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <button className="flex items-center gap-2 min-h-[40px] px-4 py-2.5 border border-white bg-[#013764] text-white rounded-lg shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] font-['Geist',sans-serif] text-base font-medium hover:bg-[#014777] transition-colors whitespace-nowrap">
+          <button className="flex items-center gap-2 h-10 px-4 border border-white bg-[#013764] text-white rounded-lg shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] font-['Geist',sans-serif] text-base font-medium hover:bg-[#014777] transition-colors whitespace-nowrap">
             Update task
           </button>
           <button className="flex items-center justify-center w-10 h-10 bg-white border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0">
