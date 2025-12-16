@@ -247,7 +247,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     glAccount: {
       label: "GL Account",
       width: "185px",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/525b056852d683baf01ec82ce654e2cf172fd244?placeholderIfAbsent=true",
+      icon: null,
     },
     description: {
       label: "Description",
