@@ -1290,19 +1290,19 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             </button>
 
             {/* Breadcrumb - Hidden on small screens */}
-            <div className="hidden md:flex items-center gap-2 text-gray-700 truncate flex-1 min-w-0">
+            <div className="hidden md:flex items-center gap-2 text-gray-700 truncate flex-1 min-w-0 h-10 leading-none">
               {breadcrumbItems.map((item, index) => (
                 <React.Fragment key={index}>
                   {item.href ? (
                     <button
                       onClick={() => navigate(item.href)}
-                      className="text-sm font-medium flex-shrink-0 hover:text-gray-900 hover:underline"
+                      className="text-sm font-medium leading-none flex-shrink-0 hover:text-gray-900 hover:underline"
                     >
                       {item.label}
                     </button>
                   ) : (
                     <span
-                      className={`text-sm font-medium ${index === breadcrumbItems.length - 1 ? "truncate" : "flex-shrink-0"}`}
+                      className={`text-sm font-medium leading-none ${index === breadcrumbItems.length - 1 ? "truncate" : "flex-shrink-0"}`}
                     >
                       {item.label}
                     </span>
