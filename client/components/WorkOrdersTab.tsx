@@ -258,8 +258,6 @@ export default function WorkOrdersTab({
     useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const columnButtonRef = useRef<HTMLButtonElement>(null);
-  const [columnMenuPos, setColumnMenuPos] = useState({ top: 100, left: 100 });
 
   const {
     columnOrder,
@@ -269,6 +267,8 @@ export default function WorkOrdersTab({
     dropPosition,
     showColumnModal,
     setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
     toggleColumnVisibility,
     handleColumnDragStart,
     handleColumnDragOver,
@@ -393,33 +393,6 @@ export default function WorkOrdersTab({
     };
   }, [showPageSizeDropdown]);
 
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateColumnMenuPos = () => {
-      if (showColumnModal && columnButtonRef.current) {
-        const rect = columnButtonRef.current.getBoundingClientRect();
-        setColumnMenuPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showColumnModal) {
-        animationFrameId = requestAnimationFrame(updateColumnMenuPos);
-      }
-    };
-
-    if (showColumnModal) {
-      updateColumnMenuPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showColumnModal]);
 
   const totalWorkOrders = mockWorkOrders.length;
   const totalPages = Math.ceil(totalWorkOrders / itemsPerPage);
@@ -506,7 +479,7 @@ export default function WorkOrdersTab({
               </button>
               <button
                 ref={columnButtonRef}
-                onClick={() => setShowColumnModal(!showColumnModal)}
+                onClick={() => setShowColumnModal((prev) => !prev)}
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

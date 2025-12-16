@@ -17,10 +17,22 @@ export function useColumnManagement(defaultColumns: string[]) {
 
     const updateColumnMenuPos = () => {
       if (showColumnModal && columnButtonRef.current) {
+        const MENU_WIDTH = 260;
+        const PADDING = 8;
         const rect = columnButtonRef.current.getBoundingClientRect();
+
+        let left = rect.right - MENU_WIDTH;
+        left = Math.min(
+          Math.max(PADDING, left),
+          Math.max(PADDING, window.innerWidth - MENU_WIDTH - PADDING),
+        );
+
+        let top = rect.bottom + 8;
+        top = Math.min(Math.max(PADDING, top), Math.max(PADDING, window.innerHeight - PADDING));
+
         setColumnMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 260,
+          top,
+          left,
         });
       }
 
@@ -44,10 +56,12 @@ export function useColumnManagement(defaultColumns: string[]) {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const isColumnButtonClick = columnButtonRef.current?.contains(target);
-      const columnDropdownEl = document.querySelector('[style*="260px"]');
-      const isColumnDropdownClick = columnDropdownEl?.contains(target);
+      const columnDropdownEl = document.querySelector<HTMLElement>(
+        '[data-column-filter-modal="true"]',
+      );
+      const isColumnDropdownClick = !!columnDropdownEl && columnDropdownEl.contains(target);
 
-      if (!isColumnButtonClick && !isColumnDropdownClick && target.tagName !== "INPUT") {
+      if (!isColumnButtonClick && !isColumnDropdownClick) {
         setShowColumnModal(false);
       }
     };
