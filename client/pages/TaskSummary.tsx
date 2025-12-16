@@ -1547,7 +1547,7 @@ export default function TaskSummary() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span className="text-white font-medium text-base leading-normal whitespace-nowrap">
+                      <span className="text-white font-medium text-base leading-normal">
                         Create FTO
                       </span>
                     </button>
