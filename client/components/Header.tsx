@@ -1235,7 +1235,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
           }}
         >
           {!isFullscreen && (
-            <div className="flex items-center gap-3 flex-1 min-w-[600px]">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Navigation Buttons */}
             <button
               onClick={handleBackInTab}
@@ -1272,8 +1272,8 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               </svg>
             </button>
 
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-gray-700 truncate">
+            {/* Breadcrumb - Hidden on small screens */}
+            <div className="hidden md:flex items-center gap-2 text-gray-700 truncate flex-1 min-w-0">
               {breadcrumbItems.map((item, index) => (
                 <React.Fragment key={index}>
                   {item.href ? (
