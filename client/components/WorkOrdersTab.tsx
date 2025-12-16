@@ -869,6 +869,30 @@ export default function WorkOrdersTab({
         onOpenChange={setShowCreateWorkOrderModal}
       />
 
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={[
+          "priority",
+          "task",
+          "updated",
+          "age",
+          "status",
+          "due",
+          "billStatus",
+          "billTotal",
+          "assignees",
+        ].map((colKey) => ({
+          key: colKey,
+          label: columnConfig[colKey]?.label || "",
+          icon: columnConfig[colKey]?.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+      />
+
       {showPageSizeDropdown &&
         createPortal(
           <div
