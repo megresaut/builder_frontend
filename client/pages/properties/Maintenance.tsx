@@ -2271,90 +2271,104 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                       onClick={handleRowClick}
                     >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor:
-                                workOrder.priority === "low"
-                                  ? "#059669"
-                                  : workOrder.priority === "normal"
+                      {workordersColumnManagement.visibleColumns.has("priority") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  workOrder.priority === "low"
+                                    ? "#059669"
+                                    : workOrder.priority === "normal"
+                                      ? "#2463eb"
+                                      : "#d97706",
+                              }}
+                            />
+                            <span className="text-gray-900 font-normal text-sm capitalize">
+                              {workOrder.priority}
+                            </span>
+                          </div>
+                        </td>
+                      )}
+                      {workordersColumnManagement.visibleColumns.has("task") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-sm">
+                            {workOrder.task}
+                          </span>
+                        </td>
+                      )}
+                      {workordersColumnManagement.visibleColumns.has("dueDate") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-sm">
+                            {workOrder.dueDate}
+                          </span>
+                        </td>
+                      )}
+                      {workordersColumnManagement.visibleColumns.has("status") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  workOrder.status === "In progress"
                                     ? "#2463eb"
-                                    : "#d97706",
-                            }}
-                          />
-                          <span className="text-gray-900 font-normal text-sm capitalize">
-                            {workOrder.priority}
+                                    : "#059669",
+                              }}
+                            />
+                            <span className="text-gray-900 font-normal text-sm capitalize">
+                              {workOrder.status}
+                            </span>
+                          </div>
+                        </td>
+                      )}
+                      {workordersColumnManagement.visibleColumns.has("billStatus") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  workOrder.billStatus === "Paid"
+                                    ? "#059669"
+                                    : workOrder.billStatus === "Unpaid"
+                                      ? "#DC2626"
+                                      : "#D97706",
+                              }}
+                            />
+                            <span className="text-gray-900 font-normal text-sm capitalize">
+                              {workOrder.billStatus}
+                            </span>
+                          </div>
+                        </td>
+                      )}
+                      {workordersColumnManagement.visibleColumns.has("billTotal") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-sm">
+                            {workOrder.billTotal}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {workOrder.task}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {workOrder.dueDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor:
-                                workOrder.status === "In progress"
-                                  ? "#2463eb"
-                                  : "#059669",
-                            }}
-                          />
-                          <span className="text-gray-900 font-normal text-sm capitalize">
-                            {workOrder.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor:
-                                workOrder.billStatus === "Paid"
-                                  ? "#059669"
-                                  : workOrder.billStatus === "Unpaid"
-                                    ? "#DC2626"
-                                    : "#D97706",
-                            }}
-                          />
-                          <span className="text-gray-900 font-normal text-sm capitalize">
-                            {workOrder.billStatus}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {workOrder.billTotal}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {workOrder.assignees.map((assignee) => (
-                            <div key={assignee.id} className="relative group">
-                              <div
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                                title={assignee.name}
-                              >
-                                {assignee.initials}
+                        </td>
+                      )}
+                      {workordersColumnManagement.visibleColumns.has("assignees") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {workOrder.assignees.map((assignee) => (
+                              <div key={assignee.id} className="relative group">
+                                <div
+                                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
+                                  title={assignee.name}
+                                >
+                                  {assignee.initials}
+                                </div>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                  {assignee.name}
+                                </div>
                               </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {assignee.name}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
+                            ))}
+                          </div>
+                        </td>
+                      )}
                       <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
                         <ActionButton
                           itemId={workOrder.id}
