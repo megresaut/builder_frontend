@@ -913,11 +913,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             }}
           >
             <div
-              className="flex w-full items-center flex-nowrap"
+              className="flex w-full flex-nowrap"
               style={{ borderLeftColor: "transparent" }}
             >
               <div
-                className="flex min-w-60 flex-nowrap flex-1 flex-col w-full"
+                className="flex flex-nowrap flex-1 flex-col w-full"
                 style={{ borderLeftColor: "transparent" }}
               >
                 {/* Headers */}
@@ -1122,11 +1122,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             }}
           >
             <div
-              className="flex w-full items-center flex-nowrap"
+              className="flex w-full flex-nowrap"
               style={{ borderLeftColor: "transparent" }}
             >
               <div
-                className="flex min-w-60 flex-nowrap flex-1 flex-col w-full"
+                className="flex flex-nowrap flex-1 flex-col w-full"
                 style={{ borderLeftColor: "transparent" }}
               >
                 {/* Headers */}
