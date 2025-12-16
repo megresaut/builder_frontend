@@ -1384,171 +1384,46 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {tasksColumnManagement.visibleColumns.has("priority") && (
-                    <th
-                      draggable
-                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("priority")}
-                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "priority")}
-                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "priority")}
-                      onClick={() => handleTasksSortClick("priority")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={tasksColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}
-                    >
-                      {tasksColumnManagement.dropTargetColumn === "priority" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {tasksColumnConfig["priority"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {tasksColumnConfig["priority"]?.label}
-                        </span>
-                        {getTasksSortIndicator("priority") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getTasksSortIndicator("priority")}
-                          </span>
+                  {tasksColumnManagement.columnOrder.filter(colKey => tasksColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
+                    const colConfig = tasksColumnConfig[colKey];
+                    return (
+                      <th
+                        key={colKey}
+                        draggable
+                        onDragStart={() => tasksColumnManagement.handleColumnDragStart(colKey)}
+                        onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, colKey)}
+                        onDragLeave={tasksColumnManagement.handleColumnDragLeave}
+                        onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, colKey)}
+                        onClick={() => handleTasksSortClick(colKey)}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                        style={{
+                          opacity: tasksColumnManagement.draggedColumn === colKey ? 0.5 : 1,
+                          transition: "opacity 0.2s ease",
+                        }}
+                      >
+                        {tasksColumnManagement.dropTargetColumn === colKey && tasksColumnManagement.draggedColumn && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              bottom: 0,
+                              width: "2px",
+                              backgroundColor: "#3b82f6",
+                              left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
+                              right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
+                            }}
+                          />
                         )}
-                      </div>
-                    </th>
-                  )}
-                  {tasksColumnManagement.visibleColumns.has("status") && (
-                    <th
-                      draggable
-                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("status")}
-                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "status")}
-                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "status")}
-                      onClick={() => handleTasksSortClick("status")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={tasksColumnManagement.draggedColumn === "status" ? { opacity: 0.5 } : {}}
-                    >
-                      {tasksColumnManagement.dropTargetColumn === "status" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {tasksColumnConfig["status"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {tasksColumnConfig["status"]?.label}
-                        </span>
-                        {getTasksSortIndicator("status") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getTasksSortIndicator("status")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {tasksColumnManagement.visibleColumns.has("title") && (
-                    <th
-                      draggable
-                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("title")}
-                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "title")}
-                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "title")}
-                      onClick={() => handleTasksSortClick("title")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={tasksColumnManagement.draggedColumn === "title" ? { opacity: 0.5 } : {}}
-                    >
-                      {tasksColumnManagement.dropTargetColumn === "title" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {tasksColumnConfig["title"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {tasksColumnConfig["title"]?.label}
-                        </span>
-                        {getTasksSortIndicator("title") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getTasksSortIndicator("title")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {tasksColumnManagement.visibleColumns.has("due") && (
-                    <th
-                      draggable
-                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("due")}
-                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "due")}
-                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "due")}
-                      onClick={() => handleTasksSortClick("due")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={tasksColumnManagement.draggedColumn === "due" ? { opacity: 0.5 } : {}}
-                    >
-                      {tasksColumnManagement.dropTargetColumn === "due" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {tasksColumnConfig["due"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {tasksColumnConfig["due"]?.label}
-                        </span>
-                        {getTasksSortIndicator("due") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getTasksSortIndicator("due")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {tasksColumnManagement.visibleColumns.has("assignees") && (
-                    <th
-                      draggable
-                      onDragStart={() => tasksColumnManagement.handleColumnDragStart("assignees")}
-                      onDragOver={(e) => tasksColumnManagement.handleColumnDragOver(e, "assignees")}
-                      onDragLeave={tasksColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "assignees")}
-                      onClick={() => handleTasksSortClick("assignees")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={tasksColumnManagement.draggedColumn === "assignees" ? { opacity: 0.5 } : {}}
-                    >
-                      {tasksColumnManagement.dropTargetColumn === "assignees" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {tasksColumnConfig["assignees"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {tasksColumnConfig["assignees"]?.label}
-                        </span>
-                        {getTasksSortIndicator("assignees") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getTasksSortIndicator("assignees")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
+                        <div className="flex items-center gap-2">
+                          {colConfig?.icon}
+                          <span className="font-medium text-sm text-gray-700">{colConfig?.label}</span>
+                          {getTasksSortIndicator(colKey) && (
+                            <span className="text-xs font-bold text-gray-700 ml-1">{getTasksSortIndicator(colKey)}</span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">
                       Actions
