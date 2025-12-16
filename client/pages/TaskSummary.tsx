@@ -1757,7 +1757,7 @@ export default function TaskSummary() {
 
                     {/* Pagination Footer */}
                 <div
-                  className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+                  className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative flex-nowrap"
                   style={{
                     position: "relative",
                     zIndex: 1,
@@ -1852,7 +1852,7 @@ export default function TaskSummary() {
                       </svg>
                       <div
                         className={cn(
-                          "font-medium text-sm",
+                          "font-medium text-sm whitespace-nowrap",
                           currentPage === 1 ? "text-gray-400" : "text-gray-700",
                         )}
                       >
@@ -1920,7 +1920,7 @@ export default function TaskSummary() {
                         backgroundColor: "rgba(0, 0, 0, 0)",
                       }}
                     >
-                      <div className={cn("font-medium text-sm text-gray-700")}>
+                      <div className={cn("font-medium text-sm text-gray-700 whitespace-nowrap")}>
                         Next
                       </div>
                       <svg
