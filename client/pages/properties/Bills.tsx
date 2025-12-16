@@ -970,12 +970,7 @@ export const Bills: React.FC<BillsProps> = ({
                 />
               </div>
               <button
-                ref={billsColumnManagement.columnButtonRef}
-                onClick={() =>
-                  billsColumnManagement.setShowColumnModal(
-                    !billsColumnManagement.showColumnModal,
-                  )
-                }
+                onClick={() => {}}
                 className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
                 <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
@@ -995,6 +990,27 @@ export const Bills: React.FC<BillsProps> = ({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
+                </svg>
+              </button>
+              <button
+                ref={billsColumnManagement.columnButtonRef}
+                onClick={() =>
+                  billsColumnManagement.setShowColumnModal(
+                    !billsColumnManagement.showColumnModal,
+                  )
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
                 </svg>
               </button>
               {billsColumnManagement.showColumnModal &&
