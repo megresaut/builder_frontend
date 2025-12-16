@@ -1557,148 +1557,123 @@ export default function TaskSummary() {
                     {/* Table Content */}
                     <table className="w-full">
                       <thead>
-                      <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <span className="font-medium text-sm text-gray-700">
-                            Priority
-                          </span>
-                        </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                              <circle
-                                cx="7.5"
-                                cy="7.5"
-                                r=".5"
-                                fill="currentColor"
-                              />
-                            </svg>
+                        <tr className="border-b border-gray-200 bg-gray-50 h-12">
+                          {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
+                            const columnConfigs: Record<string, { label: string; icon: React.ReactNode }> = {
+                              priority: {
+                                label: "Priority",
+                                icon: null,
+                              },
+                              description: {
+                                label: "FTO Name",
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                                    <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                                  </svg>
+                                ),
+                              },
+                              dueDate: {
+                                label: "Due Date",
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M8 2v4" />
+                                    <path d="M16 2v4" />
+                                    <rect width="18" height="18" x="3" y="4" rx="2" />
+                                    <path d="M3 10h18" />
+                                  </svg>
+                                ),
+                              },
+                              fieldTeam: {
+                                label: "Field Team",
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                ),
+                              },
+                              status: {
+                                label: "FTO Status",
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                                    <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                                  </svg>
+                                ),
+                              },
+                              timesheetStatus: {
+                                label: "Timesheet Status",
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                ),
+                              },
+                              amount: {
+                                label: "Amount",
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="4" x2="20" y1="9" y2="9" />
+                                    <line x1="4" x2="20" y1="15" y2="15" />
+                                    <line x1="10" x2="8" y1="3" y2="21" />
+                                    <line x1="16" x2="14" y1="3" y2="21" />
+                                  </svg>
+                                ),
+                              },
+                            };
+                            const colConfig = columnConfigs[colKey];
+                            return (
+                              <th
+                                key={colKey}
+                                draggable
+                                onDragStart={() => handleColumnDragStart(colKey)}
+                                onDragOver={(e) => handleColumnDragOver(e, colKey)}
+                                onDragLeave={handleColumnDragLeave}
+                                onDrop={(e) => handleColumnDrop(e, colKey)}
+                                className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                                style={{
+                                  opacity: draggedColumn === colKey ? 0.5 : 1,
+                                  transition: "opacity 0.2s ease",
+                                }}
+                              >
+                                {dropTargetColumn === colKey && draggedColumn && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: 0,
+                                      bottom: 0,
+                                      width: "2px",
+                                      backgroundColor: "#3b82f6",
+                                      left: dropPosition === "before" ? "0" : "auto",
+                                      right: dropPosition === "after" ? "0" : "auto",
+                                    }}
+                                  />
+                                )}
+                                <div className="flex items-center gap-2">
+                                  {colConfig?.icon}
+                                  <span className="font-medium text-sm text-gray-700">
+                                    {colConfig?.label}
+                                  </span>
+                                </div>
+                              </th>
+                            );
+                          })}
+                          <th
+                            className="px-2 py-3 text-center border-gray-200 w-20"
+                            style={{
+                              borderLeftWidth: "2px",
+                              borderLeftColor: "rgb(210,209,207)",
+                              backgroundColor: "white",
+                            }}
+                          >
                             <span className="font-medium text-sm text-gray-700">
-                              FTO Name
+                              Actions
                             </span>
-                          </div>
-                        </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M8 2v4" />
-                              <path d="M16 2v4" />
-                              <rect width="18" height="18" x="3" y="4" rx="2" />
-                              <path d="M3 10h18" />
-                            </svg>
-                            <span className="font-medium text-sm text-gray-700">
-                              Due Date
-                            </span>
-                          </div>
-                        </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                              <circle cx="12" cy="7" r="4" />
-                            </svg>
-                            <span className="font-medium text-sm text-gray-700">
-                              Field Team
-                            </span>
-                          </div>
-                        </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                              <circle
-                                cx="7.5"
-                                cy="7.5"
-                                r=".5"
-                                fill="currentColor"
-                              />
-                            </svg>
-                            <span className="font-medium text-sm text-gray-700">
-                              FTO Status
-                            </span>
-                          </div>
-                        </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                              <circle cx="12" cy="7" r="4" />
-                            </svg>
-                            <span className="font-medium text-sm text-gray-700">
-                              Timesheet Status
-                            </span>
-                          </div>
-                        </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <line x1="4" x2="20" y1="9" y2="9" />
-                              <line x1="4" x2="20" y1="15" y2="15" />
-                              <line x1="10" x2="8" y1="3" y2="21" />
-                              <line x1="16" x2="14" y1="3" y2="21" />
-                            </svg>
-                            <span className="font-medium text-sm text-gray-700">
-                              Amount
-                            </span>
-                          </div>
-                        </th>
-                        <th
-                          className="px-2 py-3 text-center border-gray-200 w-20"
-                          style={{
-                            borderLeftWidth: "2px",
-                            borderLeftColor: "rgb(210,209,207)",
-                            backgroundColor: "white",
-                          }}
-                        >
-                          <span className="font-medium text-sm text-gray-700">
-                            Actions
-                          </span>
-                        </th>
-                      </tr>
-                    </thead>
+                          </th>
+                        </tr>
+                      </thead>
                     <tbody>
                       {getDisplayedOrdersForPage().map((order) => (
                         <tr
