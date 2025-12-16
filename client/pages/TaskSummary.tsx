@@ -1516,7 +1516,7 @@ export default function TaskSummary() {
                       </span>
                     </button>
                   </div>
-                </div>
+                    </div>
 
                     {/* Table Content */}
                     <table className="w-full">
