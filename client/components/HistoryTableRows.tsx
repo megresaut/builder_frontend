@@ -36,7 +36,7 @@ export const HistoryTableRows: React.FC<HistoryTableRowsProps> = ({
       case "invoiceMonth":
       case "amount":
         return (
-          <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
+          <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
             {item[columnKey as keyof InvoiceHistoryItem]}
           </div>
         );
