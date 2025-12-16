@@ -33,25 +33,27 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
   showingPendingInsights,
 }) => {
   const renderCellContent = (columnKey: string, item: InvoiceItem) => {
-    const isPending =
-      showingPendingInsights && item.status === "Pending Approval";
-
     switch (columnKey) {
       case "vendor":
         return (
-          <div
-            className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center"
-            style={{
-              backgroundColor: item.vendorBg,
-              borderColor: item.vendorBorder,
-            }}
-          >
-            <img
-              loading="lazy"
-              src={item.vendorIcon}
-              className="w-5 h-5"
-              alt=""
-            />
+          <div className="flex items-center gap-2.5">
+            <div
+              className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center flex-shrink-0"
+              style={{
+                backgroundColor: item.vendorBg,
+                borderColor: item.vendorBorder,
+              }}
+            >
+              <img
+                loading="lazy"
+                src={item.vendorIcon}
+                className="w-5 h-5"
+                alt=""
+              />
+            </div>
+            <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
+              {item.vendor}
+            </div>
           </div>
         );
       case "glAccount":
@@ -59,7 +61,7 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
       case "amount":
       case "source":
         return (
-          <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
+          <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
             {item[columnKey as keyof InvoiceItem]}
           </div>
         );
