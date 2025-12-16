@@ -1697,7 +1697,7 @@ export default function TaskSummary() {
                               {order.dueDate}
                             </span>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                             <div className="flex items-center gap-2">
                               {order.fieldTeam.map((member, idx) => (
                                 <div key={idx} className="relative group">
@@ -1714,13 +1714,13 @@ export default function TaskSummary() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden min-w-max">
                             {getFTOStatusBadge(order.status)}
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden min-w-max">
                             {getTimesheetStatusBadge(order.timesheetStatus)}
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden min-w-max">
                             <span className="text-gray-900 font-normal text-sm truncate">
                               ${order.amount}
                             </span>
