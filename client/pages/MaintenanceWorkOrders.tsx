@@ -691,19 +691,19 @@ export default function MaintenanceWorkOrders() {
                             );
                           case "task":
                             return (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {workOrder.task}
                               </span>
                             );
                           case "updatedDate":
                             return (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {workOrder.updatedDate}
                               </span>
                             );
                           case "age":
                             return (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {workOrder.age}
                               </span>
                             );
@@ -726,7 +726,7 @@ export default function MaintenanceWorkOrders() {
                             );
                           case "dueDate":
                             return (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {workOrder.dueDate}
                               </span>
                             );
@@ -797,7 +797,7 @@ export default function MaintenanceWorkOrders() {
                             .map((colKey) => (
                               <td
                                 key={colKey}
-                                className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                                className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden"
                               >
                                 {renderCell(colKey)}
                               </td>
