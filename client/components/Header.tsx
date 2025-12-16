@@ -1225,7 +1225,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
       {/* Navigation & Search Section */}
       {!forceCollapse && (
         <div
-          className="flex items-center gap-6 px-6 overflow-hidden"
+          className="flex items-center justify-between px-6"
           style={{
             borderColor: "rgb(210, 209, 207)",
             borderWidth: "1px",
@@ -1235,7 +1235,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
           }}
         >
           {!isFullscreen && (
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1 min-w-[300px]">
             {/* Navigation Buttons */}
             <button
               onClick={handleBackInTab}
