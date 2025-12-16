@@ -711,7 +711,7 @@ export default function AllTasks() {
               <div className="w-fit min-w-full">
                 <table className="w-full">
                   <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 h-12">
+                    <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
                       const colConfig = columnConfig[colKey];
                       return (
