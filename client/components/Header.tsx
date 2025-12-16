@@ -520,16 +520,27 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
   const handleBackInTab = () => {
     if (!selectedTab) return;
 
+    // Property detail pages should always go back to the All Properties list.
+    if (location.pathname.startsWith("/property/")) {
+      const metadata = tabMetadata[selectedTab];
+      setTabMetadata(selectedTab, {
+        ...metadata,
+        label: "All Properties",
+        route: "/all-properties",
+        sectionId: getSectionIdFromPath("/all-properties"),
+        history: ["/all-properties"],
+        historyIndex: 0,
+      });
+      navigate("/all-properties");
+      return;
+    }
+
     const metadata = tabMetadata[selectedTab];
     const currentIndex = metadata?.historyIndex ?? -1;
     const history = metadata?.history || [];
 
     // Can't go back if at the beginning
     if (currentIndex <= 0) {
-      // Fallback: if on a property detail page, go back to all properties
-      if (location.pathname.includes("/property/")) {
-        navigate("/all-properties");
-      }
       return;
     }
 
