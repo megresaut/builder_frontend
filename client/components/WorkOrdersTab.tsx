@@ -481,10 +481,10 @@ export default function WorkOrdersTab({
                       onClick={() => handleSelectWorkOrder(workOrder.id)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-2 h-2 rounded-full"
+                            className="w-2 h-2 rounded-full flex-shrink-0"
                             style={{
                               backgroundColor:
                                 workOrder.priority === "High"
@@ -494,30 +494,30 @@ export default function WorkOrdersTab({
                                     : "#2463EB",
                             }}
                           />
-                          <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                          <span className="text-gray-900 font-normal text-sm capitalize">
                             {workOrder.priority}
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm truncate">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.task}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm truncate">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.updatedDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm truncate">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.age}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-2 h-2 rounded-full"
+                            className="w-2 h-2 rounded-full flex-shrink-0"
                             style={{
                               backgroundColor:
                                 workOrder.status === "Completed"
@@ -525,32 +525,32 @@ export default function WorkOrdersTab({
                                   : "#2463EB",
                             }}
                           />
-                          <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                          <span className="text-gray-900 font-normal text-sm capitalize">
                             {workOrder.status}
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm truncate">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.dueDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm truncate">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.billStatus}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
-                        <span className="text-gray-900 font-normal text-sm truncate">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <span className="text-gray-900 font-normal text-sm">
                           {workOrder.billTotal}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {workOrder.assignees.map((assignee, idx) => (
                             <div key={idx} className="relative group">
                               <div
-                                className={`w-7 h-7 rounded-full ${assignee.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                className={`w-7 h-7 rounded-full ${assignee.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer flex-shrink-0`}
                                 title={assignee.name}
                               >
                                 {assignee.initials}
