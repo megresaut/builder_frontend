@@ -1073,9 +1073,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               <button
                 ref={historyColumnsManagement.columnButtonRef}
                 onClick={() =>
-                  historyColumnsManagement.setShowColumnModal(
-                    !historyColumnsManagement.showColumnModal,
-                  )
+                  historyColumnsManagement.setShowColumnModal((prev) => !prev)
                 }
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
