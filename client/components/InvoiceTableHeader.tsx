@@ -34,7 +34,7 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
   getSortIndicator,
 }) => {
   return (
-    <>
+    <div className="flex w-full items-center flex-nowrap">
       {columns.map((column) => {
         const isDropTarget =
           dropTargetColumn === column.key && draggedColumn !== column.key;
@@ -109,6 +109,6 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
           </div>
         );
       })}
-    </>
+    </div>
   );
 };
