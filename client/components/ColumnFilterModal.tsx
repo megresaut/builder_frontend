@@ -23,7 +23,7 @@ export default function ColumnFilterModal({
   onToggleColumn,
   onClose,
 }: ColumnFilterModalProps) {
-  if (!isOpen || position.top === 0 && position.left === 0) return null;
+  if (!isOpen) return null;
 
   return createPortal(
     <div
@@ -36,11 +36,11 @@ export default function ColumnFilterModal({
           "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
         zIndex: 99999,
         position: "fixed",
-        top: position.top + "px",
-        left: position.left + "px",
+        top: Math.max(0, position.top) + "px",
+        left: Math.max(0, position.left) + "px",
         pointerEvents: "auto",
       }}
-      onClick={(e) => e.stopPropagation()}
+      onMouseLeave={onClose}
     >
       {columns.map((column) => (
         <label
