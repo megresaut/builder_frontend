@@ -215,6 +215,7 @@ const ActionButton = ({
               left: menuPos.left + "px",
               pointerEvents: "auto",
             }}
+            onMouseLeave={() => setOpenMenuId(null)}
             onClick={(e) => e.stopPropagation()}
           >
             <button
