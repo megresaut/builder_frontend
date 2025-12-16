@@ -368,18 +368,17 @@ export default function Vendors() {
 
       const isDropdownButtonClick = dropdownButtonRef.current?.contains(target);
       const isColumnButtonClick = columnButtonRef.current?.contains(target);
-
-      // Check if clicking on the column dropdown itself
-      const columnDropdownEl = document.querySelector('[style*="260px"]');
-      const isColumnDropdownClick = columnDropdownEl?.contains(target);
+      const isColumnFilterModalClick = document.querySelector('[data-column-filter-modal="true"]')?.contains(target);
 
       // If clicking on a dropdown button, close the other dropdown
       if (isDropdownButtonClick) {
         setShowColumnModal(false);
+        setOpenMenuId(null);
       } else if (isColumnButtonClick) {
         setShowPageSizeDropdown(false);
-      } else if (!isColumnDropdownClick && target.tagName !== 'INPUT') {
-        // Clicking outside all dropdowns (but not on column dropdown itself) - close all
+        setOpenMenuId(null);
+      } else if (!isColumnFilterModalClick) {
+        // Clicking outside all dropdowns - close all
         setShowPageSizeDropdown(false);
         setShowColumnModal(false);
         setOpenMenuId(null);
@@ -387,8 +386,8 @@ export default function Vendors() {
     };
 
     if (showPageSizeDropdown || showColumnModal || openMenuId !== null) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showPageSizeDropdown, showColumnModal, openMenuId]);
 
