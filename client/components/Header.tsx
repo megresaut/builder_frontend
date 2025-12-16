@@ -1235,7 +1235,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
           }}
         >
           {!isFullscreen && (
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1" style={{ minWidth: "200px" }}>
             {/* Navigation Buttons */}
             <button
               onClick={handleBackInTab}
