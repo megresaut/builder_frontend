@@ -1735,15 +1735,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 }
                 className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
               >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
-                  Filter
+                  Columns
                 </div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/81afa4c88f6177ebdc84321a1f0691342b9fcd92?placeholderIfAbsent=true"
-                  className="w-[18px] h-[18px]"
-                  alt=""
-                />
               </button>
               <ColumnFilterModal
                 isOpen={recurringColumnManagement.showColumnModal}
@@ -2161,15 +2158,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 }
                 className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
               >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
-                  Filter
+                  Columns
                 </div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/81afa4c88f6177ebdc84321a1f0691342b9fcd92?placeholderIfAbsent=true"
-                  className="w-[18px] h-[18px]"
-                  alt=""
-                />
               </button>
               <ColumnFilterModal
                 isOpen={workordersColumnManagement.showColumnModal}
@@ -2523,15 +2517,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 }
                 className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
               >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
-                  Filter
+                  Columns
                 </div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/81afa4c88f6177ebdc84321a1f0691342b9fcd92?placeholderIfAbsent=true"
-                  className="w-[18px] h-[18px]"
-                  alt=""
-                />
               </button>
               <ColumnFilterModal
                 isOpen={fieldteamColumnManagement.showColumnModal}
