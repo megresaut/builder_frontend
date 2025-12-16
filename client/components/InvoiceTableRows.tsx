@@ -19,6 +19,7 @@ interface InvoiceItem {
 interface ColumnConfig {
   key: string;
   width?: string;
+  minWidth?: string;
   flex?: number;
 }
 
@@ -93,8 +94,8 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
               }`}
               style={{
                 ...(column.flex
-                  ? { flex: column.flex }
-                  : { width: column.width }),
+                  ? { flex: column.flex, minWidth: column.minWidth }
+                  : { width: column.width, minWidth: column.minWidth ?? column.width }),
                 borderLeftColor:
                   showingPendingInsights &&
                   item.status === "Pending Approval"

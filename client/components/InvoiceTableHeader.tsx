@@ -4,6 +4,7 @@ interface ColumnConfig {
   key: string;
   label: string;
   width?: string;
+  minWidth?: string;
   flex?: number;
   icon?: string;
   sortable?: boolean;
@@ -119,8 +120,16 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
             } ${draggedColumn === column.key ? "opacity-50" : ""}`}
             style={{
               ...(column.flex
-                ? { flex: column.flex, borderLeftColor: "transparent" }
-                : { width: column.width, borderLeftColor: "transparent" }),
+                ? {
+                    flex: column.flex,
+                    minWidth: column.minWidth,
+                    borderLeftColor: "transparent",
+                  }
+                : {
+                    width: column.width,
+                    minWidth: column.minWidth ?? column.width,
+                    borderLeftColor: "transparent",
+                  }),
             }}
             draggable={true}
             onDragStart={() => onDragStart(column.key)}

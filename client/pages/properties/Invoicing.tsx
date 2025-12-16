@@ -246,6 +246,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     {
       label: string;
       width?: string;
+      minWidth?: string;
       flex?: number;
       icon?: string;
       sortable?: boolean;
@@ -253,27 +254,33 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   > = {
     vendor: {
       label: "Vendor",
-      width: "130px",
+      flex: 1,
+      minWidth: "160px",
     },
     glAccount: {
       label: "GL Account",
-      width: "130px",
+      flex: 1,
+      minWidth: "170px",
     },
     description: {
       label: "Description",
-      flex: 1,
+      flex: 2,
+      minWidth: "260px",
     },
     amount: {
       label: "Amount",
-      width: "90px",
+      flex: 1,
+      minWidth: "130px",
     },
     source: {
       label: "Source",
-      width: "100px",
+      flex: 1,
+      minWidth: "150px",
     },
     status: {
       label: "Approval Status",
-      width: "120px",
+      flex: 1,
+      minWidth: "180px",
     },
   };
 
@@ -283,6 +290,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     {
       label: string;
       width?: string;
+      minWidth?: string;
       flex?: number;
       icon?: string;
       sortable?: boolean;
@@ -972,6 +980,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     key: colKey,
                     label: invoiceColumnConfigs[colKey].label,
                     width: invoiceColumnConfigs[colKey].width,
+                    minWidth: invoiceColumnConfigs[colKey].minWidth,
                     flex: invoiceColumnConfigs[colKey].flex,
                     icon: invoiceColumnConfigs[colKey].icon,
                     sortable: true,
@@ -992,6 +1001,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   visibleColumns={visibleInvoiceColumns.map((colKey) => ({
                     key: colKey,
                     width: invoiceColumnConfigs[colKey].width,
+                    minWidth: invoiceColumnConfigs[colKey].minWidth,
                     flex: invoiceColumnConfigs[colKey].flex,
                   }))}
                   showingPendingInsights={showingPendingInsights}
