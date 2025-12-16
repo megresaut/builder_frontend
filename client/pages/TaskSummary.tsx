@@ -626,7 +626,7 @@ export default function TaskSummary() {
   return (
     <div
       className="flex flex-col px-6 py-9 pb-6 bg-white"
-      style={{ borderStyle: "none", borderWidth: "1px" }}
+      style={{ borderStyle: "none", borderWidth: "1px", minWidth: "1200px" }}
     >
       {/* Header Section */}
       <div className="flex items-center justify-between gap-10 flex-nowrap w-full">
