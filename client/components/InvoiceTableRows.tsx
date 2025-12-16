@@ -73,7 +73,7 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
   };
 
   return (
-    <>
+    <div className="w-full flex flex-col">
       {items.map((item) => (
         <div
           key={item.id}
@@ -102,6 +102,6 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
           ))}
         </div>
       ))}
-    </>
+    </div>
   );
 };
