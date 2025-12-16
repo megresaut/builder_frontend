@@ -918,266 +918,24 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 className="flex min-w-60 items-center flex-nowrap flex-1"
                 style={{ borderLeftColor: "transparent" }}
               >
-                {/* Vendor Column */}
-                <div
-                  className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[151px]"
-                  style={{ borderLeftColor: "transparent" }}
-                >
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#FBFBFB] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    style={{ borderLeftColor: "transparent" }}
-                    onClick={() => handleInvoiceSortClick("vendor")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5a259bd11d9f5abd6e662f6fa1e8a2e63fa7a635?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Vendor
-                    </div>
-                    {getInvoiceSortIndicator("vendor") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getInvoiceSortIndicator("vendor")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedInvoiceItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF] border-l-4"
-                          : "border-[#e5e5e5]"
-                      }`}
-                      style={{
-                        borderLeftColor:
-                          showingPendingInsights &&
-                          item.status === "Pending Approval"
-                            ? "#6366F1"
-                            : "transparent",
-                      }}
-                    >
-                      <div
-                        className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center"
-                        style={{
-                          backgroundColor: item.vendorBg,
-                          borderColor: item.vendorBorder,
-                        }}
-                      >
-                        <img
-                          loading="lazy"
-                          src={item.vendorIcon}
-                          className="w-5 h-5"
-                          alt=""
-                        />
-                      </div>
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.vendor}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* GL Account Column */}
-                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[185px]">
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => handleInvoiceSortClick("glAccount")}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#525252"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="4" y1="9" x2="20" y2="9" />
-                      <line x1="4" y1="15" x2="20" y2="15" />
-                      <line x1="10" y1="3" x2="8" y2="21" />
-                      <line x1="16" y1="3" x2="14" y2="21" />
-                    </svg>
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      GL Account
-                    </div>
-                    {getInvoiceSortIndicator("glAccount") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getInvoiceSortIndicator("glAccount")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedInvoiceItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#e5e5e5]"
-                      }`}
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.glAccount}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Description Column */}
-                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-1 min-w-[185px]">
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => handleInvoiceSortClick("description")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/525b056852d683baf01ec82ce654e2cf172fd244?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Description
-                    </div>
-                    {getInvoiceSortIndicator("description") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getInvoiceSortIndicator("description")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedInvoiceItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#e5e5e5]"
-                      }`}
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.description}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Amount Column */}
-                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[92px]">
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => handleInvoiceSortClick("amount")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9997108c517c4080bd0f554754253e3ae8b3d5d3?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Amount
-                    </div>
-                    {getInvoiceSortIndicator("amount") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getInvoiceSortIndicator("amount")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedInvoiceItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#e5e5e5]"
-                      }`}
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
-                        {item.amount}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Source Column */}
-                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[113px]">
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => handleInvoiceSortClick("source")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2c8bf4b168dd5c3a5b85fe86577c355415e8373c?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Source
-                    </div>
-                    {getInvoiceSortIndicator("source") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getInvoiceSortIndicator("source")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedInvoiceItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#e5e5e5]"
-                      }`}
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
-                        {item.source}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Status Column */}
-                <div className="border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 w-[140px]">
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => handleInvoiceSortClick("status")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/086dc40cd470d2578aa210283649725e87dab9c2?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Approval Status
-                    </div>
-                    {getInvoiceSortIndicator("status") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getInvoiceSortIndicator("status")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedInvoiceItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex min-h-14 w-full gap-2.5 px-3 ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "border-[#e5e5e5]"
-                      }`}
-                      style={{ borderRightWidth: "0px" }}
-                    >
-                      <StatusBadge status={item.status} />
-                    </div>
-                  ))}
-                </div>
+                <InvoiceTableHeader
+                  columns={visibleInvoiceColumns.map((colKey) => ({
+                    key: colKey,
+                    label: invoiceColumnConfigs[colKey].label,
+                    width: invoiceColumnConfigs[colKey].width,
+                    icon: invoiceColumnConfigs[colKey].icon,
+                    sortable: true,
+                  }))}
+                  draggedColumn={invoiceColumnsManagement.draggedColumn}
+                  dropTargetColumn={invoiceColumnsManagement.dropTargetColumn}
+                  dropPosition={invoiceColumnsManagement.dropPosition}
+                  onDragStart={invoiceColumnsManagement.handleColumnDragStart}
+                  onDragOver={invoiceColumnsManagement.handleColumnDragOver}
+                  onDragLeave={invoiceColumnsManagement.handleColumnDragLeave}
+                  onDrop={invoiceColumnsManagement.handleColumnDrop}
+                  onSort={handleInvoiceSortClick}
+                  getSortIndicator={getInvoiceSortIndicator}
+                />
               </div>
 
               {/* Actions Column */}
@@ -1189,7 +947,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
                 {getSortedInvoiceItems().map((item) => {
                   const isFTO = item.source === "FTO Submission";
-                  const isVendorImport = item.source === "Vendor-Import";
                   return (
                     <div
                       key={item.id}
@@ -1225,6 +982,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 })}
               </div>
             </div>
+            <InvoiceTableRows
+              items={getSortedInvoiceItems()}
+              visibleColumns={visibleInvoiceColumns}
+              showingPendingInsights={showingPendingInsights}
+            />
           </div>
 
           {/* Footer */}
