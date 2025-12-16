@@ -1177,7 +1177,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </div>
             <HistoryTableRows
               items={paginatedHistory}
-              visibleColumns={visibleHistoryColumns}
+              visibleColumns={visibleHistoryColumns.map((colKey) => ({
+                key: colKey,
+                width: historyColumnConfigs[colKey].width,
+              }))}
               onRowClick={(item) =>
                 openInvoicePreview({
                   lineItems: buildPreviewLineItemsFromHistoryItem(item),
