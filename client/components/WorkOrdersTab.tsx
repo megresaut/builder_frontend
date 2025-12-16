@@ -259,7 +259,7 @@ export default function WorkOrdersTab({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const columnButtonRef = useRef<HTMLButtonElement>(null);
-  const [columnMenuPos, setColumnMenuPos] = useState({ top: 0, left: 0 });
+  const [columnMenuPos, setColumnMenuPos] = useState({ top: 100, left: 100 });
 
   const {
     columnOrder,
