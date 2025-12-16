@@ -127,8 +127,8 @@ const ActionButton = ({
       if (
         buttonRef.current &&
         !buttonRef.current.contains(target) &&
-        // Check if clicking outside the portal menu
-        !document.querySelector('[style*="position: fixed"]')?.contains(target)
+        menuRef.current &&
+        !menuRef.current.contains(target)
       ) {
         setOpenMenuId(null);
       }
