@@ -404,56 +404,56 @@ export default function WorkOrdersTab({
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Work Order
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Updated
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Age
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Status
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Due
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Bill Status
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Bill Total
                         </span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Assignees
