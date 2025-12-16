@@ -164,7 +164,7 @@ export default function WorkOrderDetail() {
         padding: "32px 32px 150px",
       }}
     >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
+      <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header with back button */}
         <div className="flex items-center gap-4">
           <button
