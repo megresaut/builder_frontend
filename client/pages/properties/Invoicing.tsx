@@ -19,6 +19,9 @@ import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
 } from "@/components/InvoicePreviewModal";
+import RecordBillModal, {
+  type RecordBillModalData,
+} from "@/components/RecordBillModal";
 
 interface InvoicingProps {
   propertyAddress: string;
@@ -201,6 +204,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     useState<string>("");
   const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] =
     useState(false);
+  const [recordBillModalOpen, setRecordBillModalOpen] = useState(false);
+  const [recordBillModalData, setRecordBillModalData] = useState<
+    RecordBillModalData | undefined
+  >(undefined);
   const [showFTOApprovalModal, setShowFTOApprovalModal] = useState(false);
   const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
   const [showAddAdditionalBillsModal, setShowAddAdditionalBillsModal] =
@@ -534,6 +541,50 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const { handleSortClick: handleHistorySortClick, getSortIndicator: getHistorySortIndicator, getSortedData: getSortedHistoryItems } = useSortingTable(invoiceHistory, "invoiceHistory");
 
   const toIsoDateTime = (date: Date) => date.toISOString();
+
+  const toDateInputValue = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseCurrencyToNumber = (value: string): number => {
+    const parsed = parseFloat(value.replace(/[^\d.]/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const buildRecordBillModalDataFromInvoiceItem = (
+    item: InvoiceItem,
+  ): RecordBillModalData => {
+    const today = new Date();
+    const due = new Date(today);
+    due.setDate(due.getDate() + 30);
+
+    const subtotal = parseCurrencyToNumber(item.amount);
+
+    return {
+      vendor: item.vendor,
+      invoiceNumber: `INV-${String(item.id).padStart(4, "0")}`,
+      invoiceDate: toDateInputValue(today),
+      dueDate: toDateInputValue(due),
+      memo: item.description,
+      lineItems: [
+        {
+          id: 1,
+          property: propertyAddress,
+          unit: "N/A",
+          workOrder: "N/A",
+          description: item.description,
+          glAccount: item.glAccount,
+          reimbursement: false,
+          subtotal,
+          upcharge: 0,
+          total: subtotal,
+        },
+      ],
+    };
+  };
 
   const buildViewBillStateFromInvoiceItem = (
     item: InvoiceItem,
@@ -976,6 +1027,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                             return;
                           }
 
+                          if (item.status === "Approved") {
+                            setRecordBillModalData(
+                              buildRecordBillModalDataFromInvoiceItem(item),
+                            );
+                            setRecordBillModalOpen(true);
+                            return;
+                          }
+
                           openInvoicePreview({
                             lineItems:
                               buildPreviewLineItemsFromInvoiceItem(item),
@@ -1327,6 +1386,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           </div>,
           document.body,
         )}
+
+      <RecordBillModal
+        open={recordBillModalOpen}
+        onOpenChange={setRecordBillModalOpen}
+        mode="view"
+        data={recordBillModalData}
+      />
 
       {/* Invoice Preview Modal */}
       <InvoicePreviewModal
