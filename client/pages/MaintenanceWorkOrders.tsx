@@ -187,15 +187,14 @@ const ActionButton = ({
   workOrder,
   openMenuId,
   setOpenMenuId,
-  onEditClick,
 }: {
   workOrder: WorkOrder;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
-  onEditClick: (data: WorkOrder) => void;
 }) => {
   const taskId = workOrder.id;
   const showMenu = openMenuId === taskId;
+  const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
