@@ -602,9 +602,9 @@ export default function TaskSummary() {
       style={{ borderStyle: "none", borderWidth: "1px" }}
     >
       {/* Header Section */}
-      <div className="flex items-center justify-between gap-10 flex-wrap w-full">
+      <div className="flex items-center justify-between gap-10 flex-nowrap w-full">
         <div className="flex flex-col justify-start font-['Geist',sans-serif]">
-          <div className="text-[#303030] text-[28px] font-semibold leading-[1.07]">
+          <div className="text-[#303030] text-[28px] font-semibold leading-[1.07] whitespace-nowrap">
             Edgerton - Quote
           </div>
           <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
@@ -613,11 +613,11 @@ export default function TaskSummary() {
             <span>10244381</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 min-h-[40px] px-4 py-2.5 border border-white bg-[#013764] text-white rounded-lg shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] font-['Geist',sans-serif] text-base font-medium hover:bg-[#014777] transition-colors">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <button className="flex items-center gap-2 min-h-[40px] px-4 py-2.5 border border-white bg-[#013764] text-white rounded-lg shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] font-['Geist',sans-serif] text-base font-medium hover:bg-[#014777] transition-colors whitespace-nowrap">
             Update task
           </button>
-          <button className="flex items-center justify-center w-10 h-10 bg-white border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+          <button className="flex items-center justify-center w-10 h-10 bg-white border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0">
             <MoreVertical className="w-5 h-5" />
           </button>
         </div>
@@ -625,7 +625,7 @@ export default function TaskSummary() {
 
       {/* Tabs Section */}
       <div className="flex flex-col mt-9 w-full">
-        <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium">
+        <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
           <button
             onClick={() => handleTabChange("summary")}
             className={`flex items-center gap-1.5 py-2 ${
