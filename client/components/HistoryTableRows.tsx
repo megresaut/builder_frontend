@@ -16,18 +16,21 @@ interface InvoiceHistoryItem {
 interface ColumnConfig {
   key: string;
   width?: string;
+  minWidth?: string;
   flex?: number;
 }
 
 interface HistoryTableRowsProps {
   items: InvoiceHistoryItem[];
   visibleColumns: ColumnConfig[];
+  gridTemplateColumns: string;
   onRowClick: (item: InvoiceHistoryItem) => void;
 }
 
 export const HistoryTableRows: React.FC<HistoryTableRowsProps> = ({
   items,
   visibleColumns,
+  gridTemplateColumns,
   onRowClick,
 }) => {
   const renderCellContent = (columnKey: string, item: InvoiceHistoryItem) => {
@@ -50,22 +53,15 @@ export const HistoryTableRows: React.FC<HistoryTableRowsProps> = ({
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex w-full items-center flex-nowrap cursor-pointer hover:bg-gray-50 transition-colors"
+          className="grid w-full cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={() => onRowClick(item)}
-          style={{ borderLeftColor: "transparent" }}
+          style={{ gridTemplateColumns, minWidth: "100%", borderLeftColor: "transparent" }}
         >
           {visibleColumns.map((column) => (
             <div
               key={`${item.id}-${column.key}`}
-              className={`items-center border-r border-b-[0.5px] border-[#e5e5e5] flex overflow-hidden min-h-14 gap-2.5 px-3 ${
-                column.flex ? "" : "flex-shrink-0"
-              }`}
-              style={{
-                ...(column.flex
-                  ? { flex: column.flex }
-                  : { width: column.width }),
-                borderLeftColor: "transparent",
-              }}
+              className="items-center border-r border-b-[0.5px] border-[#e5e5e5] flex overflow-hidden min-h-14 gap-2.5 px-3 min-w-0"
+              style={{ borderLeftColor: "transparent" }}
             >
               {renderCellContent(column.key, item)}
             </div>

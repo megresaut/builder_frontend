@@ -298,15 +298,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   > = {
     dateCreated: {
       label: "Date Created",
-      width: "130px",
+      flex: 1.1,
+      minWidth: "150px",
     },
     invoiceMonth: {
       label: "Invoice Month",
       flex: 1,
+      minWidth: "140px",
     },
     amount: {
       label: "Amount",
-      width: "90px",
+      flex: 0.8,
+      minWidth: "110px",
     },
   };
 
@@ -1228,10 +1231,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     key: colKey,
                     label: historyColumnConfigs[colKey].label,
                     width: historyColumnConfigs[colKey].width,
+                    minWidth: historyColumnConfigs[colKey].minWidth,
                     flex: historyColumnConfigs[colKey].flex,
                     icon: historyColumnConfigs[colKey].icon,
                     sortable: true,
                   }))}
+                  gridTemplateColumns={buildGridTemplateColumns(
+                    visibleHistoryColumns.map((colKey) => ({
+                      width: historyColumnConfigs[colKey].width,
+                      minWidth: historyColumnConfigs[colKey].minWidth,
+                      flex: historyColumnConfigs[colKey].flex,
+                    })),
+                  )}
                   draggedColumn={historyColumnsManagement.draggedColumn}
                   dropTargetColumn={historyColumnsManagement.dropTargetColumn}
                   dropPosition={historyColumnsManagement.dropPosition}
@@ -1248,8 +1259,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   visibleColumns={visibleHistoryColumns.map((colKey) => ({
                     key: colKey,
                     width: historyColumnConfigs[colKey].width,
+                    minWidth: historyColumnConfigs[colKey].minWidth,
                     flex: historyColumnConfigs[colKey].flex,
                   }))}
+                  gridTemplateColumns={buildGridTemplateColumns(
+                    visibleHistoryColumns.map((colKey) => ({
+                      width: historyColumnConfigs[colKey].width,
+                      minWidth: historyColumnConfigs[colKey].minWidth,
+                      flex: historyColumnConfigs[colKey].flex,
+                    })),
+                  )}
                   onRowClick={(item) =>
                     openInvoicePreview({
                       lineItems: buildPreviewLineItemsFromHistoryItem(item),
