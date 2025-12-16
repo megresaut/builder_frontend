@@ -118,6 +118,35 @@ const ActionButton = ({
     };
   }, [showMenu]);
 
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(target) &&
+        // Check if clicking outside the portal menu
+        !document.querySelector('[style*="position: fixed"]')?.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showMenu, setOpenMenuId]);
+
   return (
     <>
       <button
