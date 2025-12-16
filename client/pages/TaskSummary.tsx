@@ -628,7 +628,7 @@ export default function TaskSummary() {
         <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
           <button
             onClick={() => handleTabChange("summary")}
-            className={`flex items-center gap-1.5 py-2 ${
+            className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
               activeTab === "summary"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
                 : "hover:text-[#09090b]"
@@ -638,7 +638,7 @@ export default function TaskSummary() {
           </button>
           <button
             onClick={() => handleTabChange("workorders")}
-            className={`flex items-center gap-1.5 py-2 ${
+            className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
               activeTab === "workorders"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
                 : "hover:text-[#09090b]"
@@ -648,7 +648,7 @@ export default function TaskSummary() {
           </button>
           <button
             onClick={() => handleTabChange("fieldteam")}
-            className={`flex items-center gap-1.5 py-2 ${
+            className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
               activeTab === "fieldteam"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
                 : "hover:text-[#09090b]"
