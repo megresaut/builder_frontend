@@ -97,6 +97,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
           borderLeftWidth: "1.33333px",
           border: "1px none rgb(226, 232, 240)",
           padding: "32px 32px 150px",
+          minWidth: "1200px",
         }}
       >
         <div className="flex flex-col gap-6 w-fit min-w-full">
