@@ -710,6 +710,9 @@ export default function WorkOrdersTab({
                           borderLeftWidth: "1px",
                           backgroundColor: "white",
                         }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
                       >
                         <ActionButton
                           taskId={taskId}
