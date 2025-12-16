@@ -28,10 +28,13 @@ const getColumnIcon = (columnKey: string) => {
   switch (columnKey) {
     case "vendor":
       return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-          <circle cx="8" cy="5" r="2" stroke="#525252" strokeWidth="1.2" fill="none" />
-          <path d="M2 14c0-2.21 2.686-4 6-4s6 1.79 6 4" stroke="#525252" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
+          className="flex-shrink-0"
+          style={{ width: '16px', height: '16px' }}
+          alt=""
+        />
       );
     case "glAccount":
       return (
