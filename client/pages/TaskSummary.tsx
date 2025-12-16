@@ -1668,7 +1668,7 @@ export default function TaskSummary() {
                           key={order.id}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                         >
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             <div className="flex items-center gap-2">
                               <div
                                 className="w-2 h-2 rounded-full"
@@ -1681,18 +1681,18 @@ export default function TaskSummary() {
                                         : "#d97706",
                                 }}
                               />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
+                              <span className="text-gray-900 font-normal text-sm capitalize truncate">
                                 {order.priority}
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {order.description}
                             </span>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {order.dueDate}
                             </span>
                           </td>
@@ -1713,14 +1713,14 @@ export default function TaskSummary() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             {getFTOStatusBadge(order.status)}
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             {getTimesheetStatusBadge(order.timesheetStatus)}
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <span className="text-gray-900 font-normal text-sm">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               ${order.amount}
                             </span>
                           </td>

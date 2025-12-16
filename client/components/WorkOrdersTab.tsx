@@ -710,7 +710,7 @@ export default function WorkOrdersTab({
                     onClick={() => handleSelectWorkOrder(workOrder.id)}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                   >
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                       <div className="flex items-center gap-2">
                         <div
                           className="w-2 h-2 rounded-full"
@@ -723,27 +723,27 @@ export default function WorkOrdersTab({
                                   : "#2463EB",
                           }}
                         />
-                        <span className="text-gray-900 font-normal text-sm capitalize">
+                        <span className="text-gray-900 font-normal text-sm capitalize truncate">
                           {workOrder.priority}
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-sm">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                      <span className="text-gray-900 font-normal text-sm truncate">
                         {workOrder.task}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-sm">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                      <span className="text-gray-900 font-normal text-sm truncate">
                         {workOrder.updatedDate}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-sm">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                      <span className="text-gray-900 font-normal text-sm truncate">
                         {workOrder.age}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                       <div className="flex items-center gap-2">
                         <div
                           className="w-2 h-2 rounded-full"
@@ -754,17 +754,17 @@ export default function WorkOrdersTab({
                                 : "#2463EB",
                           }}
                         />
-                        <span className="text-gray-900 font-normal text-sm capitalize">
+                        <span className="text-gray-900 font-normal text-sm capitalize truncate">
                           {workOrder.status}
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-sm">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                      <span className="text-gray-900 font-normal text-sm truncate">
                         {workOrder.dueDate}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                       <div className="flex items-center gap-2">
                         <div
                           className="w-2 h-2 rounded-full"
@@ -777,13 +777,13 @@ export default function WorkOrdersTab({
                                   : "#D97706",
                           }}
                         />
-                        <span className="text-gray-900 font-normal text-sm capitalize">
+                        <span className="text-gray-900 font-normal text-sm capitalize truncate">
                           {workOrder.billStatus}
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                      <span className="text-gray-900 font-normal text-sm">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                      <span className="text-gray-900 font-normal text-sm truncate">
                         {workOrder.billTotal}
                       </span>
                     </td>

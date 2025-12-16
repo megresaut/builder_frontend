@@ -1047,45 +1047,45 @@ export default function Bills() {
                           onClick={handleRowClick}
                         >
                           {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                            <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                               {colKey === "vendor" && (
                                 <div className="flex items-center gap-2">
                                   <VendorAvatar
                                     name={bill.vendor}
                                     color={bill.vendorColor}
                                   />
-                                  <span className="text-gray-900 font-normal text-sm">
+                                  <span className="text-gray-900 font-normal text-sm truncate">
                                     {bill.vendor}
                                   </span>
                                 </div>
                               )}
                               {colKey === "statementDate" && (
-                                <span className="text-gray-900 font-normal text-sm">
+                                <span className="text-gray-900 font-normal text-sm truncate">
                                   {bill.statementDate}
                                 </span>
                               )}
                               {colKey === "dueDate" && (
-                                <span className="text-gray-900 font-normal text-sm">
+                                <span className="text-gray-900 font-normal text-sm truncate">
                                   {bill.dueDate}
                                 </span>
                               )}
                               {colKey === "status" && (
-                                <span className={`text-sm font-normal ${bill.status === "pushed" ? "text-green-600" : "text-red-600"}`}>
+                                <span className={`text-sm font-normal truncate ${bill.status === "pushed" ? "text-green-600" : "text-red-600"}`}>
                                   {bill.status === "pushed" ? "Pushed" : "Push Failed"}
                                 </span>
                               )}
                               {colKey === "memo" && (
-                                <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
+                                <span className="text-gray-900 font-normal text-sm truncate">
                                   {bill.memo}
                                 </span>
                               )}
                               {colKey === "invoiceNumber" && (
-                                <span className="text-gray-900 font-normal text-sm">
+                                <span className="text-gray-900 font-normal text-sm truncate">
                                   {bill.invoiceNumber}
                                 </span>
                               )}
                               {colKey === "amount" && (
-                                <span className="text-gray-900 font-normal text-sm">
+                                <span className="text-gray-900 font-normal text-sm truncate">
                                   ${bill.amount}
                                 </span>
                               )}
