@@ -65,22 +65,14 @@ export default function ColumnFilterModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose?.();
-      }
-    };
-
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose?.();
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen, onClose]);
@@ -104,7 +96,6 @@ export default function ColumnFilterModal({
         left: Math.max(0, computedPos.left) + "px",
         pointerEvents: "auto",
       }}
-      onMouseLeave={onClose}
     >
       {columns.map((column) => (
         <label
