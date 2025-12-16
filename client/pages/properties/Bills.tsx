@@ -1280,33 +1280,33 @@ export const Bills: React.FC<BillsProps> = ({
                               name={bill.vendor}
                               color={bill.vendorColor}
                             />
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {bill.vendor}
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <span className="text-gray-900 font-normal text-sm truncate">
                             {bill.statementDate}
                           </span>
                         </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <span className="text-gray-900 font-normal text-sm truncate">
                             {bill.dueDate}
                           </span>
                         </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm truncate max-w-xs block">
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <span className="text-gray-900 font-normal text-sm truncate">
                             {bill.memo}
                           </span>
                         </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <span className="text-gray-900 font-normal text-sm truncate">
                             {bill.invoiceNumber}
                           </span>
                         </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <span className="text-gray-900 font-normal text-sm truncate">
                             ${bill.amount}
                           </span>
                         </td>
