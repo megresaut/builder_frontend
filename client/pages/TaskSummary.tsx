@@ -1445,7 +1445,7 @@ export default function TaskSummary() {
                     </h2>
                   </div>
                   <div className="flex items-start gap-2.5 flex-nowrap">
-                    <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] flex-shrink-0">
+                    <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
                       <svg
                         width="20"
                         height="20"
