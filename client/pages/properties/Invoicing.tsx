@@ -234,34 +234,35 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     string,
     {
       label: string;
-      width: string;
+      width?: string;
+      flex?: number;
       icon?: string;
       sortable?: boolean;
     }
   > = {
     vendor: {
       label: "Vendor",
-      width: "140px",
+      width: "130px",
     },
     glAccount: {
       label: "GL Account",
-      width: "140px",
+      width: "130px",
     },
     description: {
       label: "Description",
-      width: "1fr",
+      flex: 1,
     },
     amount: {
       label: "Amount",
-      width: "100px",
+      width: "90px",
     },
     source: {
       label: "Source",
-      width: "110px",
+      width: "100px",
     },
     status: {
       label: "Approval Status",
-      width: "130px",
+      width: "120px",
     },
   };
 
@@ -270,22 +271,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     string,
     {
       label: string;
-      width: string;
+      width?: string;
+      flex?: number;
       icon?: string;
       sortable?: boolean;
     }
   > = {
     dateCreated: {
       label: "Date Created",
-      width: "140px",
+      width: "130px",
     },
     invoiceMonth: {
       label: "Invoice Month",
-      width: "1fr",
+      flex: 1,
     },
     amount: {
       label: "Amount",
-      width: "100px",
+      width: "90px",
     },
   };
 
