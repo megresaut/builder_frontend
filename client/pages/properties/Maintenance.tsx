@@ -2344,7 +2344,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
                   {workordersColumnManagement.visibleColumns.has("priority") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("priority")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "priority")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "priority")} onClick={() => handleWorkOrdersSortClick("priority")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}>
+                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("priority")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "priority")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "priority")} onClick={() => handleWorkOrdersSortClick("priority")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}>
+                      {workordersColumnManagement.dropTargetColumn === "priority" && (
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
+                          style={{
+                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
+                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
+                          }}
+                        />
+                      )}
                       <div className="flex items-center gap-2">
                         <img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true" className="w-3.5 h-3.5" alt="" />
                         <span className="font-medium text-sm text-gray-700">Priority</span>
@@ -2353,7 +2362,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </th>
                   )}
                   {workordersColumnManagement.visibleColumns.has("task") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("task")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "task")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "task")} onClick={() => handleWorkOrdersSortClick("task")} className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "task" ? { opacity: 0.5 } : {}}>
+                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("task")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "task")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "task")} onClick={() => handleWorkOrdersSortClick("task")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "task" ? { opacity: 0.5 } : {}}>
+                      {workordersColumnManagement.dropTargetColumn === "task" && (
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
+                          style={{
+                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
+                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
+                          }}
+                        />
+                      )}
                       <div className="flex items-center gap-2">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.00065 7.33333H3.06732C2.69395 7.33333 2.50727 7.33333 2.36466 7.406C2.23922 7.46991 2.13723 7.5719 2.07331 7.69734C2.00065 7.83995 2.00065 8.02663 2.00065 8.4V14M11.0007 7.33333H12.934C13.3074 7.33333 13.494 7.33333 13.6366 7.406C13.7621 7.46991 13.8641 7.5719 13.928 7.69734C14.0007 7.83995 14.0007 8.02663 14.0007 8.4V14M11.0007 14V4.13333C11.0007 3.3866 11.0007 3.01323 10.8553 2.72801C10.7275 2.47713 10.5235 2.27316 10.2726 2.14532C9.98742 2 9.61405 2 8.86732 2H7.13398C6.38725 2 6.01388 2 5.72866 2.14532C5.47778 2.27316 5.27381 2.47713 5.14598 2.72801C5.00065 3.01323 5.00065 3.3866 5.00065 4.13333V14M14.6673 14H1.33398M7.33398 4.66667H8.66732M7.33398 7.33333H8.66732M7.33398 10H8.66732" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                         <span className="font-medium text-sm text-gray-700">Work Order</span>
