@@ -1516,7 +1516,11 @@ export default function TaskSummary() {
                     </button>
                     <button
                       ref={columnButtonRef}
-                      onClick={() => setShowColumnModal((prev) => !prev)}
+                      onClick={() => {
+                        setShowPageSizeDropdown(false);
+                        setOpenMenuId(null);
+                        setShowColumnModal((prev) => !prev);
+                      }}
                       className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                     >
                       <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
