@@ -1650,7 +1650,7 @@ export default function TaskSummary() {
                           </div>
                         </th>
                         <th
-                          className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
+                          className="px-2 py-3 text-center border-gray-200 w-20"
                           style={{
                             borderLeftWidth: "2px",
                             borderLeftColor: "rgb(210,209,207)",
