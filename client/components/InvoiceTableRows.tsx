@@ -37,7 +37,7 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
     switch (columnKey) {
       case "vendor":
         return (
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 whitespace-nowrap">
             <div
               className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center flex-shrink-0"
               style={{
@@ -52,7 +52,7 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
                 alt=""
               />
             </div>
-            <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
+            <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] truncate">
               {item.vendor}
             </div>
           </div>
@@ -62,7 +62,7 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
       case "amount":
       case "source":
         return (
-          <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
+          <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
             {item[columnKey as keyof InvoiceItem]}
           </div>
         );
