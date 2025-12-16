@@ -708,6 +708,7 @@ export default function AllTasks() {
 
             {/* Table Content */}
             <div className="overflow-x-auto">
+              <div className="w-fit min-w-full">
               <table className="w-full">
               <div className="w-fit min-w-full">
                 <thead>
@@ -852,6 +853,8 @@ export default function AllTasks() {
                   ))}
                 </tbody>
               </table>
+              </div>
+            </div>
             </div>
 
               </div>
