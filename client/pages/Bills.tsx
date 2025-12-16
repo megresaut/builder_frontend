@@ -749,7 +749,7 @@ export default function Bills() {
         minHeight: "1339px",
       }}
     >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
+      <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
           {/* Title and Description */}
