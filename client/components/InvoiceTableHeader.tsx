@@ -35,37 +35,43 @@ const getColumnIcon = (columnKey: string) => {
       );
     case "glAccount":
       return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-          <rect x="2" y="2" width="12" height="12" rx="1" stroke="#525252" strokeWidth="1.2" fill="none" />
-          <line x1="2" y1="5" x2="14" y2="5" stroke="#525252" strokeWidth="1.2" />
-          <line x1="5" y1="2" x2="5" y2="14" stroke="#525252" strokeWidth="1.2" />
-          <line x1="11" y1="2" x2="11" y2="14" stroke="#525252" strokeWidth="1.2" />
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
+          className="flex-shrink-0"
+          style={{ width: '16px', height: '16px' }}
+          alt=""
+        />
       );
     case "description":
       return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-          <path d="M3 2h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" stroke="#525252" strokeWidth="1.2" fill="none" />
-          <line x1="4" y1="5" x2="12" y2="5" stroke="#525252" strokeWidth="1" />
-          <line x1="4" y1="8" x2="12" y2="8" stroke="#525252" strokeWidth="1" />
-          <line x1="4" y1="11" x2="10" y2="11" stroke="#525252" strokeWidth="1" />
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true"
+          className="flex-shrink-0"
+          style={{ width: '16px', height: '16px' }}
+          alt=""
+        />
       );
     case "amount":
       return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-          <circle cx="8" cy="8" r="5.5" stroke="#525252" strokeWidth="1.2" fill="none" />
-          <path d="M8 5.5v5M6.5 8h3" stroke="#525252" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
+          className="flex-shrink-0"
+          style={{ width: '16px', height: '16px' }}
+          alt=""
+        />
       );
     case "source":
       return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-          <path d="M2 4h12M2 8h12M2 12h12" stroke="#525252" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="13" cy="4" r="1.5" fill="#525252" />
-          <circle cx="13" cy="8" r="1.5" fill="#525252" />
-          <circle cx="13" cy="12" r="1.5" fill="#525252" />
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/225d3e057a8e01f2536a35172298a3ee7a373378?placeholderIfAbsent=true"
+          className="flex-shrink-0"
+          style={{ width: '16px', height: '16px' }}
+          alt=""
+        />
       );
     case "status":
       return (
