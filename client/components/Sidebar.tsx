@@ -632,7 +632,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
 
     return (
       <div
-        className="relative h-screen flex-shrink-0 group transition-all hidden"
+        className="relative h-screen flex-shrink-0 group transition-all"
         style={{ width: isHovered ? "262px" : "60px", position: "relative" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => {
