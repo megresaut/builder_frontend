@@ -115,17 +115,18 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
         return (
           <div
             key={column.key}
-            className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden transition-opacity relative ${
+            className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden transition-opacity relative min-w-0 ${
               column.flex ? "" : "flex-shrink-0"
             } ${draggedColumn === column.key ? "opacity-50" : ""}`}
             style={{
               ...(column.flex
                 ? {
-                    flex: column.flex,
+                    flex: `${column.flex} 1 0px`,
                     minWidth: column.minWidth,
                     borderLeftColor: "transparent",
                   }
                 : {
+                    flex: "0 0 auto",
                     width: column.width,
                     minWidth: column.minWidth ?? column.width,
                     borderLeftColor: "transparent",

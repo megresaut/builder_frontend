@@ -85,7 +85,7 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
           {visibleColumns.map((column) => (
             <div
               key={`${item.id}-${column.key}`}
-              className={`border-r border-b-[0.5px] flex items-center overflow-hidden min-h-14 gap-2.5 px-3 ${
+              className={`border-r border-b-[0.5px] flex items-center overflow-hidden min-h-14 gap-2.5 px-3 min-w-0 ${
                 column.flex ? "" : "flex-shrink-0"
               } ${
                 showingPendingInsights && item.status === "Pending Approval"
@@ -94,8 +94,12 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
               }`}
               style={{
                 ...(column.flex
-                  ? { flex: column.flex, minWidth: column.minWidth }
-                  : { width: column.width, minWidth: column.minWidth ?? column.width }),
+                  ? { flex: `${column.flex} 1 0px`, minWidth: column.minWidth }
+                  : {
+                      flex: "0 0 auto",
+                      width: column.width,
+                      minWidth: column.minWidth ?? column.width,
+                    }),
                 borderLeftColor:
                   showingPendingInsights &&
                   item.status === "Pending Approval"
