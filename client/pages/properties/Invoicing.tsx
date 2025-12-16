@@ -1126,30 +1126,28 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               style={{ borderLeftColor: "transparent" }}
             >
               <div
-                className="flex min-w-60 items-center flex-nowrap flex-1 flex-col"
+                className="flex min-w-60 flex-nowrap flex-1 flex-col w-full"
                 style={{ borderLeftColor: "transparent" }}
               >
                 {/* Headers */}
-                <div className="flex w-full items-center">
-                  <InvoiceTableHeader
-                    columns={visibleHistoryColumns.map((colKey) => ({
-                      key: colKey,
-                      label: historyColumnConfigs[colKey].label,
-                      width: historyColumnConfigs[colKey].width,
-                      icon: historyColumnConfigs[colKey].icon,
-                      sortable: true,
-                    }))}
-                    draggedColumn={historyColumnsManagement.draggedColumn}
-                    dropTargetColumn={historyColumnsManagement.dropTargetColumn}
-                    dropPosition={historyColumnsManagement.dropPosition}
-                    onDragStart={historyColumnsManagement.handleColumnDragStart}
-                    onDragOver={historyColumnsManagement.handleColumnDragOver}
-                    onDragLeave={historyColumnsManagement.handleColumnDragLeave}
-                    onDrop={historyColumnsManagement.handleColumnDrop}
-                    onSort={handleHistorySortClick}
-                    getSortIndicator={getHistorySortIndicator}
-                  />
-                </div>
+                <InvoiceTableHeader
+                  columns={visibleHistoryColumns.map((colKey) => ({
+                    key: colKey,
+                    label: historyColumnConfigs[colKey].label,
+                    width: historyColumnConfigs[colKey].width,
+                    icon: historyColumnConfigs[colKey].icon,
+                    sortable: true,
+                  }))}
+                  draggedColumn={historyColumnsManagement.draggedColumn}
+                  dropTargetColumn={historyColumnsManagement.dropTargetColumn}
+                  dropPosition={historyColumnsManagement.dropPosition}
+                  onDragStart={historyColumnsManagement.handleColumnDragStart}
+                  onDragOver={historyColumnsManagement.handleColumnDragOver}
+                  onDragLeave={historyColumnsManagement.handleColumnDragLeave}
+                  onDrop={historyColumnsManagement.handleColumnDrop}
+                  onSort={handleHistorySortClick}
+                  getSortIndicator={getHistorySortIndicator}
+                />
                 {/* Rows */}
                 <HistoryTableRows
                   items={paginatedHistory}
