@@ -18,7 +18,8 @@ interface InvoiceItem {
 
 interface ColumnConfig {
   key: string;
-  width: string;
+  width?: string;
+  flex?: number;
 }
 
 interface InvoiceTableRowsProps {
