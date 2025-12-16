@@ -53,13 +53,16 @@ export const HistoryTableRows: React.FC<HistoryTableRowsProps> = ({
           onClick={() => onRowClick(item)}
           style={{ borderLeftColor: "transparent" }}
         >
-          {visibleColumns.map((columnKey) => (
+          {visibleColumns.map((column) => (
             <div
-              key={`${item.id}-${columnKey}`}
-              className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2.5 px-3"
-              style={{ borderLeftColor: "transparent" }}
+              key={`${item.id}-${column.key}`}
+              className="items-center border-r border-b-[0.5px] border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 min-h-14 gap-2.5 px-3"
+              style={{
+                width: column.width,
+                borderLeftColor: "transparent",
+              }}
             >
-              {renderCellContent(columnKey, item)}
+              {renderCellContent(column.key, item)}
             </div>
           ))}
         </div>
