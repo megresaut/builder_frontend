@@ -394,12 +394,10 @@ export default function WorkOrdersTab({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="w-fit min-w-full">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
+                    <th className="px-3 py-3 text-left border-r border-gray-200">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-700">
                           Priority
@@ -769,8 +767,6 @@ export default function WorkOrdersTab({
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
         </div>
       </div>
 
