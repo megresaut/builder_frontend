@@ -2618,62 +2618,76 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                       onClick={handleRowClick}
                     >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor:
-                                order.priority === "low"
-                                  ? "#059669"
-                                  : order.priority === "normal"
-                                    ? "#2463eb"
-                                    : "#d97706",
-                            }}
-                          />
-                          <span className="text-gray-900 font-normal text-sm capitalize">
-                            {order.priority}
+                      {fieldteamColumnManagement.visibleColumns.has("priority") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  order.priority === "low"
+                                    ? "#059669"
+                                    : order.priority === "normal"
+                                      ? "#2463eb"
+                                      : "#d97706",
+                              }}
+                            />
+                            <span className="text-gray-900 font-normal text-sm capitalize">
+                              {order.priority}
+                            </span>
+                          </div>
+                        </td>
+                      )}
+                      {fieldteamColumnManagement.visibleColumns.has("description") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-sm">
+                            {order.description}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {order.description}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          {order.dueDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {order.fieldTeam.map((member, idx) => (
-                            <div key={idx} className="relative group">
-                              <div
-                                className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                                title={member.name}
-                              >
-                                {member.initials}
+                        </td>
+                      )}
+                      {fieldteamColumnManagement.visibleColumns.has("dueDate") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-sm">
+                            {order.dueDate}
+                          </span>
+                        </td>
+                      )}
+                      {fieldteamColumnManagement.visibleColumns.has("fieldTeam") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {order.fieldTeam.map((member, idx) => (
+                              <div key={idx} className="relative group">
+                                <div
+                                  className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                  title={member.name}
+                                >
+                                  {member.initials}
+                                </div>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                  {member.name}
+                                </div>
                               </div>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                {member.name}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        {getFTOStatusBadge(order.status)}
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        {getTimesheetStatusBadge(order.timesheetStatus)}
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-sm">
-                          ${order.amount}
-                        </span>
-                      </td>
+                            ))}
+                          </div>
+                        </td>
+                      )}
+                      {fieldteamColumnManagement.visibleColumns.has("status") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          {getFTOStatusBadge(order.status)}
+                        </td>
+                      )}
+                      {fieldteamColumnManagement.visibleColumns.has("timesheetStatus") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          {getTimesheetStatusBadge(order.timesheetStatus)}
+                        </td>
+                      )}
+                      {fieldteamColumnManagement.visibleColumns.has("amount") && (
+                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <span className="text-gray-900 font-normal text-sm">
+                            ${order.amount}
+                          </span>
+                        </td>
+                      )}
                       <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
                         <ActionButton
                           itemId={order.id}
