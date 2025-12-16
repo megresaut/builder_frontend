@@ -6,6 +6,7 @@ import { StatusBadge } from "./Utilities";
 import { Search, Plus, MoreVertical, ChevronDown } from "lucide-react";
 import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 
@@ -392,6 +393,12 @@ export default function MaintenanceWorkOrders() {
     usePageState("isCreateWorkOrderModalOpen", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    mockWorkOrders,
+    "allWorkOrders",
+  );
+
   const {
     columnOrder,
     visibleColumns,
@@ -516,6 +523,13 @@ export default function MaintenanceWorkOrders() {
 
   const totalWorkOrders = mockWorkOrders.length;
   const totalPages = Math.ceil(totalWorkOrders / itemsPerPage);
+
+  const getDisplayedWorkOrdersForPage = () => {
+    const sorted = getSortedData();
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sorted.slice(start, end);
+  };
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -654,6 +668,7 @@ export default function MaintenanceWorkOrders() {
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
                       const colConfig = columnConfig[colKey];
+                      const sortIndicator = getSortIndicator(colKey);
                       return (
                         <th
                           key={colKey}
@@ -662,6 +677,7 @@ export default function MaintenanceWorkOrders() {
                           onDragOver={(e) => handleColumnDragOver(e, colKey)}
                           onDragLeave={handleColumnDragLeave}
                           onDrop={(e) => handleColumnDrop(e, colKey)}
+                          onClick={() => handleSortClick(colKey)}
                           className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
                           style={{
                             opacity: draggedColumn === colKey ? 0.5 : 1,
@@ -686,6 +702,11 @@ export default function MaintenanceWorkOrders() {
                             <span className="font-medium text-sm text-gray-700">
                               {colConfig?.label}
                             </span>
+                            {sortIndicator && (
+                              <span className="text-xs font-bold text-gray-700 ml-1">
+                                {sortIndicator}
+                              </span>
+                            )}
                           </div>
                         </th>
                       );
@@ -705,12 +726,7 @@ export default function MaintenanceWorkOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockWorkOrders
-                    .slice(
-                      (currentPage - 1) * itemsPerPage,
-                      currentPage * itemsPerPage,
-                    )
-                    .map((workOrder) => {
+                  {getDisplayedWorkOrdersForPage().map((workOrder) => {
                       const handleRowClick = (e: React.MouseEvent) => {
                         if (
                           (e.target as HTMLElement).closest("td:last-child")
