@@ -862,7 +862,7 @@ export default function FieldTeamOrders() {
                         onClick={handleRowClick}
                       >
                         {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             {colKey === "priority" && (
                               <div className="flex items-center gap-2">
                                 <div
@@ -876,23 +876,23 @@ export default function FieldTeamOrders() {
                                           : "#d97706",
                                   }}
                                 />
-                                <span className="text-gray-900 font-normal text-sm capitalize">
+                                <span className="text-gray-900 font-normal text-sm capitalize truncate">
                                   {order.priority}
                                 </span>
                               </div>
                             )}
                             {colKey === "property" && (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {order.property}
                               </span>
                             )}
                             {colKey === "description" && (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {order.description}
                               </span>
                             )}
                             {colKey === "dueDate" && (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {order.dueDate}
                               </span>
                             )}
