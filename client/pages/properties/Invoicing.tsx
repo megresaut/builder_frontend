@@ -986,7 +986,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </div>
             <InvoiceTableRows
               items={getSortedInvoiceItems()}
-              visibleColumns={visibleInvoiceColumns}
+              visibleColumns={visibleInvoiceColumns.map((colKey) => ({
+                key: colKey,
+                width: invoiceColumnConfigs[colKey].width,
+              }))}
               showingPendingInsights={showingPendingInsights}
             />
           </div>
