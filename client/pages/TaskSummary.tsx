@@ -526,7 +526,10 @@ export default function TaskSummary() {
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(fieldTeamOrders);
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    fieldTeamOrders,
+    `taskSummary_fieldteam_${taskId ?? "unknown"}`,
+  );
 
   const {
     columnOrder,
@@ -1640,6 +1643,7 @@ export default function TaskSummary() {
                                 onDragOver={(e) => handleColumnDragOver(e, colKey)}
                                 onDragLeave={handleColumnDragLeave}
                                 onDrop={(e) => handleColumnDrop(e, colKey)}
+                                onClick={() => handleSortClick(colKey)}
                                 className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
                                 style={{
                                   opacity: draggedColumn === colKey ? 0.5 : 1,
@@ -1664,6 +1668,11 @@ export default function TaskSummary() {
                                   <span className="font-medium text-sm text-gray-700">
                                     {colConfig?.label}
                                   </span>
+                                  {getSortIndicator(colKey) && (
+                                    <span className="text-xs font-bold text-gray-700 ml-1">
+                                      {getSortIndicator(colKey)}
+                                    </span>
+                                  )}
                                 </div>
                               </th>
                             );
