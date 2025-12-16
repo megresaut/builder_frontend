@@ -310,6 +310,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     },
   };
 
+  const buildGridTemplateColumns = (
+    cols: Array<{ width?: string; minWidth?: string; flex?: number }>,
+  ) =>
+    cols
+      .map((col) => {
+        if (col.width) {
+          return `minmax(${col.width}, ${col.width})`;
+        }
+
+        const min = col.minWidth ?? "140px";
+        const fr = col.flex ?? 1;
+        return `minmax(${min}, ${fr}fr)`;
+      })
+      .join(" ");
+
   // Get visible columns in order
   const visibleInvoiceColumns = invoiceColumnsManagement.columnOrder.filter(
     (col) => invoiceColumnsManagement.visibleColumns.has(col),
@@ -985,6 +1000,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     icon: invoiceColumnConfigs[colKey].icon,
                     sortable: true,
                   }))}
+                  gridTemplateColumns={buildGridTemplateColumns(
+                    visibleInvoiceColumns.map((colKey) => ({
+                      width: invoiceColumnConfigs[colKey].width,
+                      minWidth: invoiceColumnConfigs[colKey].minWidth,
+                      flex: invoiceColumnConfigs[colKey].flex,
+                    })),
+                  )}
                   draggedColumn={invoiceColumnsManagement.draggedColumn}
                   dropTargetColumn={invoiceColumnsManagement.dropTargetColumn}
                   dropPosition={invoiceColumnsManagement.dropPosition}
@@ -1004,6 +1026,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     minWidth: invoiceColumnConfigs[colKey].minWidth,
                     flex: invoiceColumnConfigs[colKey].flex,
                   }))}
+                  gridTemplateColumns={buildGridTemplateColumns(
+                    visibleInvoiceColumns.map((colKey) => ({
+                      width: invoiceColumnConfigs[colKey].width,
+                      minWidth: invoiceColumnConfigs[colKey].minWidth,
+                      flex: invoiceColumnConfigs[colKey].flex,
+                    })),
+                  )}
                   showingPendingInsights={showingPendingInsights}
                 />
               </div>

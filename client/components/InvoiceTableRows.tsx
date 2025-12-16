@@ -26,12 +26,14 @@ interface ColumnConfig {
 interface InvoiceTableRowsProps {
   items: InvoiceItem[];
   visibleColumns: ColumnConfig[];
+  gridTemplateColumns: string;
   showingPendingInsights: boolean;
 }
 
 export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
   items,
   visibleColumns,
+  gridTemplateColumns,
   showingPendingInsights,
 }) => {
   const renderCellContent = (columnKey: string, item: InvoiceItem) => {
@@ -79,30 +81,20 @@ export const InvoiceTableRows: React.FC<InvoiceTableRowsProps> = ({
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex w-full items-center flex-nowrap"
-          style={{ borderLeftColor: "transparent" }}
+          className="grid w-full"
+          style={{ gridTemplateColumns, minWidth: "100%", borderLeftColor: "transparent" }}
         >
           {visibleColumns.map((column) => (
             <div
               key={`${item.id}-${column.key}`}
               className={`border-r border-b-[0.5px] flex items-center overflow-hidden min-h-14 gap-2.5 px-3 min-w-0 ${
-                column.flex ? "" : "flex-shrink-0"
-              } ${
                 showingPendingInsights && item.status === "Pending Approval"
                   ? "bg-[#F5F3FF] border-[#E5E5FF]"
                   : "border-[#e5e5e5]"
               }`}
               style={{
-                ...(column.flex
-                  ? { flex: `${column.flex} 1 0px`, minWidth: column.minWidth }
-                  : {
-                      flex: "0 0 auto",
-                      width: column.width,
-                      minWidth: column.minWidth ?? column.width,
-                    }),
                 borderLeftColor:
-                  showingPendingInsights &&
-                  item.status === "Pending Approval"
+                  showingPendingInsights && item.status === "Pending Approval"
                     ? "#6366F1"
                     : "transparent",
               }}

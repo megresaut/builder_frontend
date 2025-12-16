@@ -12,6 +12,7 @@ interface ColumnConfig {
 
 interface InvoiceTableHeaderProps {
   columns: ColumnConfig[];
+  gridTemplateColumns: string;
   draggedColumn: string | null;
   dropTargetColumn: string | null;
   dropPosition: "before" | "after";
@@ -96,6 +97,7 @@ const getColumnIcon = (columnKey: string) => {
 
 export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
   columns,
+  gridTemplateColumns,
   draggedColumn,
   dropTargetColumn,
   dropPosition,
@@ -107,7 +109,10 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
   getSortIndicator,
 }) => {
   return (
-    <div className="flex w-full items-center flex-nowrap">
+    <div
+      className="grid w-full"
+      style={{ gridTemplateColumns, minWidth: "100%" }}
+    >
       {columns.map((column) => {
         const isDropTarget =
           dropTargetColumn === column.key && draggedColumn !== column.key;
@@ -116,22 +121,9 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
           <div
             key={column.key}
             className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden transition-opacity relative min-w-0 ${
-              column.flex ? "" : "flex-shrink-0"
-            } ${draggedColumn === column.key ? "opacity-50" : ""}`}
-            style={{
-              ...(column.flex
-                ? {
-                    flex: `${column.flex} 1 0px`,
-                    minWidth: column.minWidth,
-                    borderLeftColor: "transparent",
-                  }
-                : {
-                    flex: "0 0 auto",
-                    width: column.width,
-                    minWidth: column.minWidth ?? column.width,
-                    borderLeftColor: "transparent",
-                  }),
-            }}
+              draggedColumn === column.key ? "opacity-50" : ""
+            }`}
+            style={{ borderLeftColor: "transparent" }}
             draggable={true}
             onDragStart={() => onDragStart(column.key)}
             onDragOver={(e) => onDragOver(e, column.key)}
