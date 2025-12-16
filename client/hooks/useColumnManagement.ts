@@ -93,6 +93,7 @@ export function useColumnManagement(defaultColumns: string[]) {
 
   const handleColumnDrop = (e: React.DragEvent, targetColumn: string) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!draggedColumn || draggedColumn === targetColumn) {
       setDraggedColumn(null);
