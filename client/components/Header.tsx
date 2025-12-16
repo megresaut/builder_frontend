@@ -1331,7 +1331,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
           {!isFullscreen && (
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* Search Bar */}
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-28">
+            <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-28">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <svg
                   width="18"
