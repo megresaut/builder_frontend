@@ -87,6 +87,7 @@ const ActionButton = ({
   const navigate = useNavigate();
   const showMenu = openMenuId === workOrderId;
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
