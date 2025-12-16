@@ -296,6 +296,19 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
     }
   };
 
+  const handleIconClick = (itemId: string) => {
+    const submenu = submenuMap[itemId];
+    if (submenu && submenu.length > 0) {
+      const firstItem = submenu[0];
+      if (firstItem.path) {
+        navigate(firstItem.path);
+        if (firstItem.label && firstItem.sectionId) {
+          handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
+        }
+      }
+    }
+  };
+
   // Desktop: show expanded sidebar on hover with left edge trigger
   if (!isMobile) {
     const isExpanded = forceCollapse ? false : isHovered || isPinned;
