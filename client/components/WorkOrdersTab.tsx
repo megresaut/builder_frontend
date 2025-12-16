@@ -833,8 +833,6 @@ export default function WorkOrdersTab({
                   </tr>
                 ))}
               </tbody>
-            </div>
-          </div>
             </table>
             </div>
           </div>
