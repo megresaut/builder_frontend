@@ -311,17 +311,19 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
           }
         }}
       >
-        <div
-          className="fixed left-0 top-0 h-screen z-0"
-          style={{ width: "40px", cursor: "default" }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => {
-            if (!isPinned) {
-              setIsHovered(false);
-              setActiveDropdown(null);
-            }
-          }}
-        />
+        {!isMobile && (
+          <div
+            className="fixed left-0 top-0 h-screen z-0"
+            style={{ width: "40px", cursor: "default" }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => {
+              if (!isPinned) {
+                setIsHovered(false);
+                setActiveDropdown(null);
+              }
+            }}
+          />
+        )}
 
         <aside
           className={`bg-gray-50 border-r absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
