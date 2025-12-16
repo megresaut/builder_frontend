@@ -1329,14 +1329,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <button
                 onClick={() => {}}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                   Filters
-                </div>
+                </span>
               </button>
               <button
                 ref={tasksColumnManagement.columnButtonRef}
@@ -1345,21 +1345,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     !tasksColumnManagement.showColumnModal,
                   )
                 }
-                className="flex min-h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="19" cy="12" r="1" />
-                  <circle cx="5" cy="12" r="1" />
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="3" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="13" cy="8" r="1.5" fill="#303030"/>
                 </svg>
               </button>
               <ColumnFilterModal
@@ -1679,14 +1670,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <button
                 onClick={() => {}}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                   Filters
-                </div>
+                </span>
               </button>
               <button
                 ref={recurringColumnManagement.columnButtonRef}
@@ -1695,21 +1686,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     !recurringColumnManagement.showColumnModal,
                   )
                 }
-                className="flex min-h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="19" cy="12" r="1" />
-                  <circle cx="5" cy="12" r="1" />
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="3" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="13" cy="8" r="1.5" fill="#303030"/>
                 </svg>
               </button>
               <ColumnFilterModal
@@ -2029,14 +2011,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <button
                 onClick={() => {}}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                   Filters
-                </div>
+                </span>
               </button>
               <button
                 ref={workordersColumnManagement.columnButtonRef}
@@ -2045,21 +2027,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     !workordersColumnManagement.showColumnModal,
                   )
                 }
-                className="flex min-h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="19" cy="12" r="1" />
-                  <circle cx="5" cy="12" r="1" />
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="3" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="13" cy="8" r="1.5" fill="#303030"/>
                 </svg>
               </button>
               <ColumnFilterModal
@@ -2410,14 +2383,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <button
                 onClick={() => {}}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 4H14M2 8H14M2 12H14" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                   Filters
-                </div>
+                </span>
               </button>
               <button
                 ref={fieldteamColumnManagement.columnButtonRef}
@@ -2426,21 +2399,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     !fieldteamColumnManagement.showColumnModal,
                   )
                 }
-                className="flex min-h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="19" cy="12" r="1" />
-                  <circle cx="5" cy="12" r="1" />
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="3" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="13" cy="8" r="1.5" fill="#303030"/>
                 </svg>
               </button>
               <ColumnFilterModal
