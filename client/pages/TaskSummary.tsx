@@ -1437,8 +1437,10 @@ export default function TaskSummary() {
             <div className="flex flex-col w-full gap-6">
               {/* Field Team Orders Table */}
               <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-                {/* Table Header */}
-                <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+                <div className="overflow-x-auto">
+                  <div className="w-fit min-w-full">
+                    {/* Table Header */}
+                    <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white flex-nowrap">
                   <div className="flex items-center gap-4">
                     <h2 className="text-[#303030] font-medium text-[22px] leading-6">
                       Field Team Orders
@@ -1516,11 +1518,9 @@ export default function TaskSummary() {
                   </div>
                 </div>
 
-                {/* Table Content */}
-                <div className="overflow-x-auto">
-                  <div className="w-fit min-w-full">
+                    {/* Table Content */}
                     <table className="w-full">
-                    <thead>
+                      <thead>
                       <tr className="border-b border-gray-200 bg-gray-50 h-12">
                         <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <span className="font-medium text-sm text-gray-700">
@@ -1754,10 +1754,8 @@ export default function TaskSummary() {
                       ))}
                     </tbody>
                   </table>
-                  </div>
-                </div>
 
-                {/* Pagination Footer */}
+                    {/* Pagination Footer */}
                 <div
                   className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
                   style={{
@@ -1944,6 +1942,8 @@ export default function TaskSummary() {
                         <path d="m12 5 7 7-7 7" />
                       </svg>
                     </button>
+                  </div>
+                </div>
                   </div>
                 </div>
               </div>
