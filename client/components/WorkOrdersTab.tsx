@@ -464,6 +464,7 @@ export default function WorkOrdersTab({
           {/* Table Content */}
           <div className="overflow-x-auto">
             <div className="w-fit min-w-full">
+            <div className="w-fit min-w-full">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
@@ -835,6 +836,8 @@ export default function WorkOrdersTab({
             </div>
           </div>
             </table>
+            </div>
+          </div>
 
             {/* Pagination Footer */}
             <div
