@@ -919,6 +919,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     key: colKey,
                     label: invoiceColumnConfigs[colKey].label,
                     width: invoiceColumnConfigs[colKey].width,
+                    flex: invoiceColumnConfigs[colKey].flex,
                     icon: invoiceColumnConfigs[colKey].icon,
                     sortable: true,
                   }))}
