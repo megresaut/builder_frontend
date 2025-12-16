@@ -42,7 +42,7 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
         return (
           <div
             key={column.key}
-            className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 transition-all relative ${
+            className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 transition-opacity relative ${
               draggedColumn === column.key ? "opacity-50" : ""
             }`}
             style={{
@@ -67,7 +67,8 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
 
             <div
               className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-grab active:cursor-grabbing hover:bg-gray-200 transition-colors"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (column.sortable !== false && onSort) {
                   onSort(column.key);
                 }
