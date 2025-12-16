@@ -347,7 +347,7 @@ export default function WorkOrdersTab({
     <div className="flex flex-col gap-6 w-full">
       <div className="flex flex-col gap-6">
         <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-          <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+          <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
             <div className="flex items-center gap-4">
               <h2 className="text-[#303030] font-medium text-[22px] leading-6 whitespace-nowrap">
                 Work Orders
