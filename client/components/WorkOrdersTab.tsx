@@ -481,7 +481,7 @@ export default function WorkOrdersTab({
                       onClick={() => handleSelectWorkOrder(workOrder.id)}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <div className="flex items-center gap-2">
                           <div
                             className="w-2 h-2 rounded-full flex-shrink-0"
@@ -499,22 +499,22 @@ export default function WorkOrdersTab({
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <span className="text-gray-900 font-normal text-sm">
                           {workOrder.task}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <span className="text-gray-900 font-normal text-sm">
                           {workOrder.updatedDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <span className="text-gray-900 font-normal text-sm">
                           {workOrder.age}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <div className="flex items-center gap-2">
                           <div
                             className="w-2 h-2 rounded-full flex-shrink-0"
@@ -530,22 +530,22 @@ export default function WorkOrdersTab({
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <span className="text-gray-900 font-normal text-sm">
                           {workOrder.dueDate}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <span className="text-gray-900 font-normal text-sm">
                           {workOrder.billStatus}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <span className="text-gray-900 font-normal text-sm">
                           {workOrder.billTotal}
                         </span>
                       </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap min-w-max">
                         <div className="flex items-center gap-2">
                           {workOrder.assignees.map((assignee, idx) => (
                             <div key={idx} className="relative group">
