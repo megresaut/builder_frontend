@@ -1520,12 +1520,12 @@ export default function TaskSummary() {
                     <table className="w-full">
                       <thead>
                       <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <span className="font-medium text-sm text-gray-700">
                             Priority
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1548,7 +1548,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1568,7 +1568,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1586,7 +1586,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1609,7 +1609,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1627,7 +1627,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap min-w-max">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
