@@ -585,7 +585,11 @@ export const Vendors: React.FC<VendorsProps> = ({
                         return (
                           <td
                             key={colKey}
-                            className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden"
+                            className={`px-3 py-3 border-r border-gray-200 ${
+                              typeof cellContent === 'string'
+                                ? 'whitespace-nowrap overflow-hidden'
+                                : ''
+                            }`}
                           >
                             {typeof cellContent === 'string' ? (
                               <span className="text-gray-900 font-normal text-sm truncate">
