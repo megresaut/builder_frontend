@@ -939,6 +939,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   visibleColumns={visibleInvoiceColumns.map((colKey) => ({
                     key: colKey,
                     width: invoiceColumnConfigs[colKey].width,
+                    flex: invoiceColumnConfigs[colKey].flex,
                   }))}
                   showingPendingInsights={showingPendingInsights}
                 />
