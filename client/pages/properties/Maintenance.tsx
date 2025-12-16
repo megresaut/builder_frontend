@@ -276,7 +276,7 @@ const ActionButton = ({
       <button
         ref={buttonRef}
         onClick={() => setOpenMenuId(showMenu ? null : itemId)}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+        className="flex min-h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
           width="18"
