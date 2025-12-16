@@ -89,14 +89,6 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
                 <circle cx="12" cy="8" r="1.5" fill="#999" opacity="0.5" />
                 <circle cx="12" cy="12" r="1.5" fill="#999" opacity="0.5" />
               </svg>
-              {column.icon && (
-                <img
-                  loading="lazy"
-                  src={column.icon}
-                  className="w-4 h-4"
-                  alt=""
-                />
-              )}
               <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                 {column.label}
               </div>
