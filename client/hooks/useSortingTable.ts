@@ -7,21 +7,51 @@ export function useSortingTable<T extends Record<string, any>>(data: T[], namesp
   const getSortedData = () => {
     if (!sortBy) return data;
 
+    const formatArrayValue = (value: unknown[]) =>
+      value
+        .map((item) => {
+          if (item == null) return "";
+          if (
+            typeof item === "string" ||
+            typeof item === "number" ||
+            typeof item === "boolean"
+          ) {
+            return String(item);
+          }
+          if (typeof item === "object") {
+            const obj = item as Record<string, unknown>;
+            const best =
+              obj.name ??
+              obj.title ??
+              obj.label ??
+              obj.value ??
+              obj.initials ??
+              "";
+            return String(best);
+          }
+          return String(item);
+        })
+        .filter(Boolean)
+        .join(", ");
+
     const sorted = [...data].sort((a, b) => {
       let aValue: any = a[sortBy];
       let bValue: any = b[sortBy];
 
-      // Handle arrays by joining them into a string
+      if (aValue == null) aValue = "";
+      if (bValue == null) bValue = "";
+
+      // Handle arrays (including arrays of objects like assignees)
       if (Array.isArray(aValue)) {
-        aValue = aValue.join(", ");
+        aValue = formatArrayValue(aValue);
       }
       if (Array.isArray(bValue)) {
-        bValue = bValue.join(", ");
+        bValue = formatArrayValue(bValue);
       }
 
       if (typeof aValue === "string") {
         aValue = aValue.toLowerCase();
-        bValue = (bValue || "").toLowerCase();
+        bValue = String(bValue || "").toLowerCase();
       }
 
       if (aValue < bValue) {
