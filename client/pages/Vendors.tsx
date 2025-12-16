@@ -716,7 +716,9 @@ export default function Vendors() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200">
+                        <td key={colKey} className={`px-3 py-3 border-r border-gray-200 ${
+                          colKey !== 'servicesProvided' ? 'whitespace-nowrap overflow-hidden' : ''
+                        }`}>
                           {colKey === "name" && (
                             <span className="text-gray-900 font-normal text-sm whitespace-nowrap">
                               {vendor.name}
@@ -728,7 +730,7 @@ export default function Vendors() {
                             </span>
                           )}
                           {colKey === "email" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {vendor.email}
                             </span>
                           )}
@@ -745,7 +747,7 @@ export default function Vendors() {
                             </div>
                           )}
                           {colKey === "notes" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {vendor.notes}
                             </span>
                           )}
