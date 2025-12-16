@@ -649,7 +649,7 @@ export default function FieldTeamOrders() {
         minHeight: "1339px",
       }}
     >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
+      <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex items-center gap-10 justify-between flex-wrap">
           {/* Title and Description */}
