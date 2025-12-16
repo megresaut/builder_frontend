@@ -463,7 +463,7 @@ export default function WorkOrdersTab({
                       </div>
                     </th>
                     <th
-                      className="sticky right-0 px-2 py-3 text-center w-20 whitespace-nowrap"
+                      className="px-2 py-3 text-center w-20 whitespace-nowrap"
                       style={{
                         borderLeftWidth: "2px",
                         border: "1px none rgb(226, 232, 240)",
