@@ -5,6 +5,8 @@ import { ChevronLeft, Search, ChevronDown, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import WorkOrders from "../pages/WorkOrders";
 import CreateWorkOrderModal from "./CreateWorkOrderModal";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "./ColumnFilterModal";
 
 interface Assignee {
   id: number;
