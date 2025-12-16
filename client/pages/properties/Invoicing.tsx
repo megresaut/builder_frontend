@@ -227,6 +227,84 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     "amount",
   ]);
 
+  // Invoice table column configurations
+  const invoiceColumnConfigs: Record<
+    string,
+    {
+      label: string;
+      width: string;
+      icon?: string;
+      sortable?: boolean;
+    }
+  > = {
+    vendor: {
+      label: "Vendor",
+      width: "151px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5a259bd11d9f5abd6e662f6fa1e8a2e63fa7a635?placeholderIfAbsent=true",
+    },
+    glAccount: {
+      label: "GL Account",
+      width: "185px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/525b056852d683baf01ec82ce654e2cf172fd244?placeholderIfAbsent=true",
+    },
+    description: {
+      label: "Description",
+      width: "185px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/525b056852d683baf01ec82ce654e2cf172fd244?placeholderIfAbsent=true",
+    },
+    amount: {
+      label: "Amount",
+      width: "92px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9997108c517c4080bd0f554754253e3ae8b3d5d3?placeholderIfAbsent=true",
+    },
+    source: {
+      label: "Source",
+      width: "113px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2c8bf4b168dd5c3a5b85fe86577c355415e8373c?placeholderIfAbsent=true",
+    },
+    status: {
+      label: "Approval Status",
+      width: "140px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/086dc40cd470d2578aa210283649725e87dab9c2?placeholderIfAbsent=true",
+    },
+  };
+
+  // History table column configurations
+  const historyColumnConfigs: Record<
+    string,
+    {
+      label: string;
+      width: string;
+      icon?: string;
+      sortable?: boolean;
+    }
+  > = {
+    dateCreated: {
+      label: "Date Created",
+      width: "140px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d2b8afe9755fcab34886841ccd885dc23566b8a6?placeholderIfAbsent=true",
+    },
+    invoiceMonth: {
+      label: "Invoice Month",
+      width: "auto",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d2b8afe9755fcab34886841ccd885dc23566b8a6?placeholderIfAbsent=true",
+    },
+    amount: {
+      label: "Amount",
+      width: "92px",
+      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9997108c517c4080bd0f554754253e3ae8b3d5d3?placeholderIfAbsent=true",
+    },
+  };
+
+  // Get visible columns in order
+  const visibleInvoiceColumns = invoiceColumnsManagement.columnOrder.filter(
+    (col) => invoiceColumnsManagement.visibleColumns.has(col),
+  );
+
+  const visibleHistoryColumns = historyColumnsManagement.columnOrder.filter(
+    (col) => historyColumnsManagement.visibleColumns.has(col),
+  );
+
   useEffect(() => {
     let animationFrameId: number;
 
