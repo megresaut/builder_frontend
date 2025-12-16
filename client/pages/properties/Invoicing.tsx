@@ -6,6 +6,8 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import { InvoiceTableHeader } from "@/components/InvoiceTableHeader";
+import { InvoiceTableRows } from "@/components/InvoiceTableRows";
+import { HistoryTableRows } from "@/components/HistoryTableRows";
 import {
   Select,
   SelectContent,
