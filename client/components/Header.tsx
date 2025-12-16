@@ -1252,11 +1252,11 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
           }}
         >
           {!isFullscreen && (
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1 min-w-0 h-10">
             {/* Navigation Buttons */}
             <button
               onClick={handleBackInTab}
-              className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+              className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
               aria-label="Go back"
             >
               <svg
@@ -1273,7 +1273,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             </button>
             <button
               onClick={handleForwardInTab}
-              className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+              className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
               aria-label="Go forward"
             >
               <svg
@@ -1290,19 +1290,19 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             </button>
 
             {/* Breadcrumb - Hidden on small screens */}
-            <div className="hidden md:flex items-center gap-2 text-gray-700 truncate flex-1 min-w-0 h-10 leading-none">
+            <div className="hidden md:flex items-center gap-2 text-gray-700 truncate flex-1 min-w-0 h-10">
               {breadcrumbItems.map((item, index) => (
                 <React.Fragment key={index}>
                   {item.href ? (
                     <button
                       onClick={() => navigate(item.href)}
-                      className="text-sm font-medium leading-none flex-shrink-0 hover:text-gray-900 hover:underline"
+                      className="text-sm font-medium h-10 inline-flex items-center flex-shrink-0 hover:text-gray-900 hover:underline"
                     >
                       {item.label}
                     </button>
                   ) : (
                     <span
-                      className={`text-sm font-medium leading-none ${index === breadcrumbItems.length - 1 ? "truncate" : "flex-shrink-0"}`}
+                      className={`text-sm font-medium h-10 inline-flex items-center ${index === breadcrumbItems.length - 1 ? "truncate" : "flex-shrink-0"}`}
                     >
                       {item.label}
                     </span>
@@ -1315,7 +1315,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className="flex-shrink-0"
+                      className="flex-shrink-0 block"
                     >
                       <path d="m9 18 6-6-6-6" />
                     </svg>
