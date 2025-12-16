@@ -995,9 +995,7 @@ export const Bills: React.FC<BillsProps> = ({
               <button
                 ref={billsColumnManagement.columnButtonRef}
                 onClick={() =>
-                  billsColumnManagement.setShowColumnModal(
-                    !billsColumnManagement.showColumnModal,
-                  )
+                  billsColumnManagement.setShowColumnModal((prev) => !prev)
                 }
                 className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-100 transition-colors"
               >
