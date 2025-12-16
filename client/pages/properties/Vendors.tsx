@@ -515,9 +515,9 @@ export const Vendors: React.FC<VendorsProps> = ({
                             }}
                           />
                         )}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 whitespace-nowrap">
                           {colConfig?.icon}
-                          <span className="font-medium text-sm text-gray-700">
+                          <span className="font-medium text-sm text-gray-700 truncate">
                             {colConfig?.label}
                           </span>
                           {getSortIndicator(colKey) && (
