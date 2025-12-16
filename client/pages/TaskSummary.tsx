@@ -2009,6 +2009,39 @@ export default function TaskSummary() {
               document.body,
             )}
 
+          {/* Column Filter Modal for FTO Table */}
+          <ColumnFilterModal
+            isOpen={showColumnModal}
+            position={columnMenuPos}
+            columns={[
+              "priority",
+              "description",
+              "dueDate",
+              "fieldTeam",
+              "status",
+              "timesheetStatus",
+              "amount",
+            ].map((colKey) => {
+              const labels: Record<string, string> = {
+                priority: "Priority",
+                description: "FTO Name",
+                dueDate: "Due Date",
+                fieldTeam: "Field Team",
+                status: "FTO Status",
+                timesheetStatus: "Timesheet Status",
+                amount: "Amount",
+              };
+              return {
+                key: colKey,
+                label: labels[colKey] || "",
+                icon: null,
+              };
+            })}
+            visibleColumns={visibleColumns}
+            onToggleColumn={toggleColumnVisibility}
+            onClose={() => setShowColumnModal(false)}
+          />
+
           {/* Create/Update FTO Modal */}
           <CreateFTOModal
             open={showFTOModal}
