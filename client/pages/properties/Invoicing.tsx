@@ -1122,135 +1122,24 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 className="flex min-w-60 items-center flex-nowrap flex-1"
                 style={{ borderLeftColor: "transparent" }}
               >
-                {/* Date Created Column */}
-                <div className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0 w-[140px]">
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => handleHistorySortClick("dateCreated")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d2b8afe9755fcab34886841ccd885dc23566b8a6?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Date Created
-                    </div>
-                    {getHistorySortIndicator("dateCreated") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getHistorySortIndicator("dateCreated")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedHistoryItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() =>
-                        openInvoicePreview({
-                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                          invoiceDate: item.invoiceMonth,
-                          showCommitButton: false,
-                        })
-                      }
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.dateCreated}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Invoice Month Column */}
-                <div
-                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-1"
-                  style={{ borderLeftColor: "transparent" }}
-                >
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    style={{ borderLeftColor: "transparent" }}
-                    onClick={() => handleHistorySortClick("invoiceMonth")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d2b8afe9755fcab34886841ccd885dc23566b8a6?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Invoice Month
-                    </div>
-                    {getHistorySortIndicator("invoiceMonth") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getHistorySortIndicator("invoiceMonth")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedHistoryItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2.5 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      style={{ borderLeftColor: "transparent" }}
-                      onClick={() =>
-                        openInvoicePreview({
-                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                          invoiceDate: item.invoiceMonth,
-                          showCommitButton: false,
-                        })
-                      }
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] flex-1">
-                        {item.invoiceMonth}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Amount Column */}
-                <div
-                  className="border-r border-[#e5e5e5] flex min-w-60 flex-col overflow-hidden flex-shrink-0 w-[92px]"
-                  style={{ borderLeftColor: "transparent" }}
-                >
-                  <div
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] bg-[#f9fafb] flex w-full gap-2 overflow-hidden px-3 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                    style={{ borderLeftColor: "transparent" }}
-                    onClick={() => handleHistorySortClick("amount")}
-                  >
-                    <img
-                      loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9997108c517c4080bd0f554754253e3ae8b3d5d3?placeholderIfAbsent=true"
-                      className="w-4 h-4"
-                      alt=""
-                    />
-                    <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                      Amount
-                    </div>
-                    {getHistorySortIndicator("amount") && (
-                      <span className="text-xs font-bold text-gray-500">
-                        {getHistorySortIndicator("amount")}
-                      </span>
-                    )}
-                  </div>
-                  {getSortedHistoryItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full gap-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      style={{ borderLeftColor: "transparent" }}
-                      onClick={() =>
-                        openInvoicePreview({
-                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                          invoiceDate: item.invoiceMonth,
-                          showCommitButton: false,
-                        })
-                      }
-                    >
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
-                        {item.amount}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <InvoiceTableHeader
+                  columns={visibleHistoryColumns.map((colKey) => ({
+                    key: colKey,
+                    label: historyColumnConfigs[colKey].label,
+                    width: historyColumnConfigs[colKey].width,
+                    icon: historyColumnConfigs[colKey].icon,
+                    sortable: true,
+                  }))}
+                  draggedColumn={historyColumnsManagement.draggedColumn}
+                  dropTargetColumn={historyColumnsManagement.dropTargetColumn}
+                  dropPosition={historyColumnsManagement.dropPosition}
+                  onDragStart={historyColumnsManagement.handleColumnDragStart}
+                  onDragOver={historyColumnsManagement.handleColumnDragOver}
+                  onDragLeave={historyColumnsManagement.handleColumnDragLeave}
+                  onDrop={historyColumnsManagement.handleColumnDrop}
+                  onSort={handleHistorySortClick}
+                  getSortIndicator={getHistorySortIndicator}
+                />
               </div>
 
               {/* Actions Column */}
@@ -1281,6 +1170,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 ))}
               </div>
             </div>
+            <HistoryTableRows
+              items={paginatedHistory}
+              visibleColumns={visibleHistoryColumns}
+              onRowClick={(item) =>
+                openInvoicePreview({
+                  lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                  invoiceDate: item.invoiceMonth,
+                  showCommitButton: false,
+                })
+              }
+            />
           </div>
 
           {/* Pagination */}
