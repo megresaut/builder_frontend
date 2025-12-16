@@ -1248,7 +1248,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             borderWidth: "1px",
             borderRightWidth: "0px",
             borderBottomWidth: isFullscreen ? "0px" : "1px",
-            padding: "12px 24px",
+            padding: "16px 24px",
           }}
         >
           {!isFullscreen && (
@@ -1374,6 +1374,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                   ? "border-yellow-400 bg-yellow-50"
                   : "border-gray-300 bg-transparent"
               }`}
+              style={{ lineHeight: "24px" }}
             >
               <svg
                 width="18"
