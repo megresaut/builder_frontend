@@ -525,7 +525,13 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
     const history = metadata?.history || [];
 
     // Can't go back if at the beginning
-    if (currentIndex <= 0) return;
+    if (currentIndex <= 0) {
+      // Fallback: if on a property detail page, go back to all properties
+      if (location.pathname.includes("/property/")) {
+        navigate("/properties");
+      }
+      return;
+    }
 
     const previousRoute = history[currentIndex - 1];
     if (previousRoute) {
