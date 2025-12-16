@@ -76,21 +76,7 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
                 }
               }}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="flex-shrink-0"
-              >
-                <circle cx="4" cy="4" r="1.5" fill="#999" opacity="0.5" />
-                <circle cx="4" cy="8" r="1.5" fill="#999" opacity="0.5" />
-                <circle cx="4" cy="12" r="1.5" fill="#999" opacity="0.5" />
-                <circle cx="12" cy="4" r="1.5" fill="#999" opacity="0.5" />
-                <circle cx="12" cy="8" r="1.5" fill="#999" opacity="0.5" />
-                <circle cx="12" cy="12" r="1.5" fill="#999" opacity="0.5" />
-              </svg>
+              {getColumnIcon(column.key)}
               <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
                 {column.label}
               </div>
