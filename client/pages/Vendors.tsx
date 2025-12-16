@@ -548,10 +548,12 @@ export default function Vendors() {
     name: {
       label: "Name",
       icon: (
-        <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6.67023 6.61C8.28843 6.61 9.60023 5.29819 9.60023 3.68C9.60023 2.06181 8.28843 0.75 6.67023 0.75C5.05204 0.75 3.74023 2.06181 3.74023 3.68C3.74023 5.29819 5.05204 6.61 6.67023 6.61Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M0.75 14.7501V13.0801C0.75 11.1301 2.33 9.56006 4.27 9.56006H9.54C11.49 9.56006 13.06 11.1401 13.06 13.0801V14.7501" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
       ),
     },
     phone: {
