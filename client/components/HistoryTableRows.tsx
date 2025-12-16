@@ -45,7 +45,7 @@ export const HistoryTableRows: React.FC<HistoryTableRowsProps> = ({
   };
 
   return (
-    <>
+    <div className="w-full flex flex-col">
       {items.map((item) => (
         <div
           key={item.id}
@@ -67,6 +67,6 @@ export const HistoryTableRows: React.FC<HistoryTableRowsProps> = ({
           ))}
         </div>
       ))}
-    </>
+    </div>
   );
 };
