@@ -21,6 +21,7 @@ import InvoicePreviewModal, {
 } from "@/components/InvoicePreviewModal";
 import RecordBillModal, {
   type RecordBillModalData,
+  type RecordBillModalMode,
 } from "@/components/RecordBillModal";
 
 interface InvoicingProps {
@@ -205,6 +206,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] =
     useState(false);
   const [recordBillModalOpen, setRecordBillModalOpen] = useState(false);
+  const [recordBillModalMode, setRecordBillModalMode] =
+    useState<RecordBillModalMode>("view");
   const [recordBillModalData, setRecordBillModalData] = useState<
     RecordBillModalData | undefined
   >(undefined);
@@ -1027,20 +1030,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                             return;
                           }
 
+                          const data =
+                            buildRecordBillModalDataFromInvoiceItem(item);
+
                           if (item.status === "Approved") {
-                            setRecordBillModalData(
-                              buildRecordBillModalDataFromInvoiceItem(item),
-                            );
+                            setRecordBillModalMode("view");
+                            setRecordBillModalData(data);
                             setRecordBillModalOpen(true);
                             return;
                           }
 
-                          openInvoicePreview({
-                            lineItems:
-                              buildPreviewLineItemsFromInvoiceItem(item),
-                            invoiceDate: currentInvoiceMonth,
-                            showCommitButton: true,
-                          });
+                          setRecordBillModalMode("create");
+                          setRecordBillModalData(data);
+                          setRecordBillModalOpen(true);
                         }}
                       />
                     </div>
@@ -1390,7 +1392,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       <RecordBillModal
         open={recordBillModalOpen}
         onOpenChange={setRecordBillModalOpen}
-        mode="view"
+        mode={recordBillModalMode}
         data={recordBillModalData}
       />
 
