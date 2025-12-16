@@ -787,7 +787,7 @@ export default function WorkOrdersTab({
                         {workOrder.billTotal}
                       </span>
                     </td>
-                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                    <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                       <div className="flex items-center gap-2">
                         {workOrder.assignees.map((assignee) => (
                           <div key={assignee.id} className="relative group">
