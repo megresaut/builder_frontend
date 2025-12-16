@@ -43,6 +43,7 @@ export default function ColumnFilterModal({
 
   return createPortal(
     <div
+      ref={modalRef}
       className="bg-white flex flex-col justify-center items-start gap-1 p-2"
       style={{
         width: "260px",
