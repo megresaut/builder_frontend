@@ -291,7 +291,9 @@ const ActionButton = ({
               left: menuPos.left + "px",
               pointerEvents: "auto",
             }}
-            onMouseLeave={() => setOpenMenuId(null)}
+            onMouseLeave={() => {
+              setOpenMenuId(null);
+            }}
           >
             <button
               onClick={() => {
