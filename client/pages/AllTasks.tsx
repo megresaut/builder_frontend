@@ -769,7 +769,7 @@ export default function AllTasks() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200">
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                           {colKey === "priority" && (
                             <PriorityBadge priority={task.priority} />
                           )}
