@@ -2249,6 +2249,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                           itemId={workOrder.id}
                           openMenuId={openMenuId}
                           setOpenMenuId={setOpenMenuId}
+                          onEdit={() => navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`)}
+                          onDelete={() => {
+                            console.log("Delete work order", workOrder.id);
+                          }}
                         />
                       </td>
                     </tr>
