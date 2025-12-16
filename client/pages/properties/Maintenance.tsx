@@ -1101,6 +1101,75 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     left: 0,
   });
 
+  const tasksSortedData = getTasksSortedData();
+  const tasksTotalPages = Math.max(
+    1,
+    Math.ceil(tasksSortedData.length / tasksItemsPerPage),
+  );
+  const paginatedTasks = tasksSortedData.slice(
+    (tasksPage - 1) * tasksItemsPerPage,
+    tasksPage * tasksItemsPerPage,
+  );
+
+  const recurringSortedData = getRecurringSortedData();
+  const recurringTotalPages = Math.max(
+    1,
+    Math.ceil(recurringSortedData.length / recurringItemsPerPage),
+  );
+  const paginatedRecurringTasks = recurringSortedData.slice(
+    (recurringPage - 1) * recurringItemsPerPage,
+    recurringPage * recurringItemsPerPage,
+  );
+
+  const workordersSortedData = getWorkOrdersSortedData();
+  const workordersTotalPages = Math.max(
+    1,
+    Math.ceil(workordersSortedData.length / workordersItemsPerPage),
+  );
+  const paginatedWorkOrders = workordersSortedData.slice(
+    (workordersPage - 1) * workordersItemsPerPage,
+    workordersPage * workordersItemsPerPage,
+  );
+
+  const fieldteamSortedData = getFieldTeamSortedData();
+  const fieldteamTotalPages = Math.max(
+    1,
+    Math.ceil(fieldteamSortedData.length / fieldteamItemsPerPage),
+  );
+  const paginatedFieldTeamOrders = fieldteamSortedData.slice(
+    (fieldteamPage - 1) * fieldteamItemsPerPage,
+    fieldteamPage * fieldteamItemsPerPage,
+  );
+
+  useEffect(() => {
+    if (tasksPage > tasksTotalPages) setTasksPage(tasksTotalPages);
+    if (tasksPage < 1) setTasksPage(1);
+  }, [tasksPage, tasksTotalPages, setTasksPage]);
+
+  useEffect(() => {
+    if (recurringPage > recurringTotalPages) setRecurringPage(recurringTotalPages);
+    if (recurringPage < 1) setRecurringPage(1);
+  }, [recurringPage, recurringTotalPages, setRecurringPage]);
+
+  useEffect(() => {
+    if (workordersPage > workordersTotalPages) setWorkordersPage(workordersTotalPages);
+    if (workordersPage < 1) setWorkordersPage(1);
+  }, [workordersPage, workordersTotalPages, setWorkordersPage]);
+
+  useEffect(() => {
+    if (fieldteamPage > fieldteamTotalPages) setFieldteamPage(fieldteamTotalPages);
+    if (fieldteamPage < 1) setFieldteamPage(1);
+  }, [fieldteamPage, fieldteamTotalPages, setFieldteamPage]);
+
+  const tasksCanGoPrev = tasksPage > 1;
+  const tasksCanGoNext = tasksPage < tasksTotalPages;
+  const recurringCanGoPrev = recurringPage > 1;
+  const recurringCanGoNext = recurringPage < recurringTotalPages;
+  const workordersCanGoPrev = workordersPage > 1;
+  const workordersCanGoNext = workordersPage < workordersTotalPages;
+  const fieldteamCanGoPrev = fieldteamPage > 1;
+  const fieldteamCanGoNext = fieldteamPage < fieldteamTotalPages;
+
   // Modal states
   const [showApprovalModal, setShowApprovalModal] = usePageState<boolean>(
     "showApprovalModal",
@@ -1437,7 +1506,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {getTasksSortedData().map((task) => {
+                {paginatedTasks.map((task) => {
                   const handleRowClick = (e: React.MouseEvent) => {
                     if ((e.target as HTMLElement).closest("td:last-child")) {
                       return;
@@ -1575,7 +1644,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setTasksPage(Math.max(1, tasksPage - 1))}
+                onClick={() =>
+                  setTasksPage((prev) => Math.max(1, prev - 1))
+                }
               >
                 <img
                   loading="lazy"
@@ -1594,7 +1665,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setTasksPage(tasksPage + 1)}
+                onClick={() =>
+                  setTasksPage((prev) => Math.min(tasksTotalPages, prev + 1))
+                }
               >
                 <div className="text-[#525252] text-base font-medium">Next</div>
                 <img
@@ -1776,7 +1849,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {getRecurringSortedData().map((task) => (
+                {paginatedRecurringTasks.map((task) => (
                   <tr
                     key={task.id}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
@@ -1914,7 +1987,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setRecurringPage(Math.max(1, recurringPage - 1))}
+                onClick={() =>
+                  setRecurringPage((prev) => Math.max(1, prev - 1))
+                }
               >
                 <img
                   loading="lazy"
@@ -1933,7 +2008,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setRecurringPage(recurringPage + 1)}
+                onClick={() =>
+                  setRecurringPage((prev) =>
+                    Math.min(recurringTotalPages, prev + 1),
+                  )
+                }
               >
                 <div className="text-[#525252] text-base font-medium">Next</div>
                 <img
@@ -2113,7 +2192,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {getWorkOrdersSortedData().map((workOrder) => {
+                {paginatedWorkOrders.map((workOrder) => {
                   const handleRowClick = (e: React.MouseEvent) => {
                     if ((e.target as HTMLElement).closest("td:last-child")) {
                       return;
@@ -2287,7 +2366,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
                 onClick={() =>
-                  setWorkordersPage(Math.max(1, workordersPage - 1))
+                  setWorkordersPage((prev) => Math.max(1, prev - 1))
                 }
               >
                 <img
@@ -2307,7 +2386,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setWorkordersPage(workordersPage + 1)}
+                onClick={() =>
+                  setWorkordersPage((prev) =>
+                    Math.min(workordersTotalPages, prev + 1),
+                  )
+                }
               >
                 <div className="text-[#525252] text-base font-medium">Next</div>
                 <img
@@ -2487,7 +2570,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {getFieldTeamSortedData().map((order) => {
+                {paginatedFieldTeamOrders.map((order) => {
                   const handleRowClick = (e: React.MouseEvent) => {
                     if ((e.target as HTMLElement).closest("td:last-child")) {
                       return;
@@ -2633,7 +2716,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setFieldteamPage(Math.max(1, fieldteamPage - 1))}
+                onClick={() =>
+                  setFieldteamPage((prev) => Math.max(1, prev - 1))
+                }
               >
                 <img
                   loading="lazy"
@@ -2652,7 +2737,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </div>
               <div
                 className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setFieldteamPage(fieldteamPage + 1)}
+                onClick={() =>
+                  setFieldteamPage((prev) =>
+                    Math.min(fieldteamTotalPages, prev + 1),
+                  )
+                }
               >
                 <div className="text-[#525252] text-base font-medium">Next</div>
                 <img
