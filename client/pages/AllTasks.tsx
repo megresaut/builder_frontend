@@ -709,6 +709,7 @@ export default function AllTasks() {
             {/* Table Content */}
             <div className="overflow-x-auto">
               <table className="w-full">
+              <div className="w-fit min-w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
@@ -853,6 +854,8 @@ export default function AllTasks() {
               </table>
             </div>
 
+              </div>
+            </div>
             {/* Pagination Footer */}
             <div
               className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
