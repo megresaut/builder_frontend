@@ -276,10 +276,15 @@ export default function Vendors() {
     "isAddVendorModalOpen",
     false,
   );
+  const [showColumnModal, setShowColumnModal] = usePageState(
+    "showColumnModal",
+    false,
+  );
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(vendors, "vendors");
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const columnButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  
+
   // Column drag-and-drop state
   const [columnOrder, setColumnOrder] = useState<string[]>([
     "name",
@@ -294,7 +299,6 @@ export default function Vendors() {
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
     new Set(["name", "phone", "email", "servicesProvided", "notes"])
   );
-  const [showColumnModal, setShowColumnModal] = useState(false);
   const [columnMenuPos, setColumnMenuPos] = useState({ top: 0, left: 0 });
   const columnButtonRef = useRef<HTMLButtonElement>(null);
   const allAvailableColumns = ["name", "phone", "email", "servicesProvided", "notes"];
