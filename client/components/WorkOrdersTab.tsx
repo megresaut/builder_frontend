@@ -347,55 +347,55 @@ export default function WorkOrdersTab({
     <div className="flex flex-col gap-6 w-full">
       <div className="flex flex-col gap-6">
         <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+          <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+            <div className="flex items-center gap-4">
+              <h2 className="text-[#303030] font-medium text-[22px] leading-6 whitespace-nowrap">
+                Work Orders
+              </h2>
+            </div>
+            <div className="flex items-start gap-2.5 flex-nowrap">
+              <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white">
+                <Search className="w-5 h-5 text-gray-600" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="text-[#303030] font-normal text-base bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                />
+              </div>
+              <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-50 transition-colors">
+                <span className="text-[#303030] font-normal text-base whitespace-nowrap">
+                  Filter
+                </span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowCreateWorkOrderModal(true)}
+                className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10 4.16667V15.8333M4.16667 10H15.8333"
+                    stroke="white"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-white font-medium text-base leading-normal whitespace-nowrap">
+                  Create Work Order
+                </span>
+              </button>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <div className="w-fit min-w-full">
-              <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white flex-nowrap">
-                <div className="flex items-center gap-4">
-                  <h2 className="text-[#303030] font-medium text-[22px] leading-6 whitespace-nowrap">
-                    Work Orders
-                  </h2>
-                </div>
-                <div className="flex items-start gap-2.5 flex-nowrap">
-                  <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white flex-shrink-0">
-                    <Search className="w-5 h-5 text-gray-600" />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="text-[#303030] font-normal text-base bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-                    />
-                  </div>
-                  <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-50 transition-colors flex-shrink-0">
-                    <span className="text-[#303030] font-normal text-base whitespace-nowrap">
-                      Filter
-                    </span>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setShowCreateWorkOrderModal(true)}
-                    className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors flex-shrink-0"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-white font-medium text-base leading-normal whitespace-nowrap">
-                      Create Work Order
-                    </span>
-                  </button>
-                </div>
-              </div>
-
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
