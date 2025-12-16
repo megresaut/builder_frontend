@@ -229,7 +229,6 @@ const ActionButton = ({
   onEditClick: (data: Task) => void;
 }) => {
   const taskId = task.id;
-  const navigate = useNavigate();
   const showMenu = openMenuId === taskId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -336,39 +335,6 @@ const ActionButton = ({
             }}
             onMouseLeave={() => setOpenMenuId(null)}
           >
-            <button
-              type="button"
-              onClick={() => {
-                setOpenMenuId(null);
-                navigate("/bills/record");
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                View Bill
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M14.25 2.25H7.5M14.25 2.25V9M14.25 2.25L2.25 14.25M6 2.25H2.25V6"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
 
             <button
               type="button"
@@ -846,7 +812,8 @@ export default function AllTasks() {
                   {getDisplayedTasksForPage().map((task) => (
                     <tr
                       key={task.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
+                      onClick={() => navigate(`/tasks/${task.id}`)}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
                         <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
@@ -858,7 +825,10 @@ export default function AllTasks() {
                           )}
                           {colKey === "title" && (
                             <button
-                              onClick={() => navigate(`/tasks/${task.id}`)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/tasks/${task.id}`);
+                              }}
                               className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
                             >
                               {task.title}
