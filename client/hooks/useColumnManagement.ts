@@ -67,8 +67,8 @@ export function useColumnManagement(defaultColumns: string[]) {
     };
 
     if (showColumnModal) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showColumnModal]);
 
