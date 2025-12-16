@@ -16,9 +16,14 @@ interface InvoiceItem {
   statusBg: string;
 }
 
+interface ColumnConfig {
+  key: string;
+  width: string;
+}
+
 interface InvoiceTableRowsProps {
   items: InvoiceItem[];
-  visibleColumns: string[];
+  visibleColumns: ColumnConfig[];
   showingPendingInsights: boolean;
 }
 
