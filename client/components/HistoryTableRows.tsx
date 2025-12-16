@@ -13,9 +13,14 @@ interface InvoiceHistoryItem {
   }>;
 }
 
+interface ColumnConfig {
+  key: string;
+  width: string;
+}
+
 interface HistoryTableRowsProps {
   items: InvoiceHistoryItem[];
-  visibleColumns: string[];
+  visibleColumns: ColumnConfig[];
   onRowClick: (item: InvoiceHistoryItem) => void;
 }
 
