@@ -315,7 +315,7 @@ export default function VendorDetail() {
           padding: "32px 32px 150px",
         }}
       >
-        <div className="max-w-full flex flex-col gap-6">
+        <div className="flex flex-col gap-6 w-fit min-w-full">
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
               <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
