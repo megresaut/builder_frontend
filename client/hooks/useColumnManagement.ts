@@ -125,6 +125,7 @@ export function useColumnManagement(defaultColumns: string[]) {
 
     setDraggedColumn(null);
     setDropTargetColumn(null);
+    setDropPosition("before");
   };
 
   return {
