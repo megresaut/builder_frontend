@@ -796,12 +796,12 @@ export default function AllTasks() {
                             </span>
                           )}
                           {colKey === "updated" && (
-                            <span className="text-blue-600 font-normal text-sm hover:underline cursor-pointer">
+                            <span className="text-blue-600 font-normal text-sm hover:underline cursor-pointer truncate">
                               {task.updated}
                             </span>
                           )}
                           {colKey === "age" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {task.age}
                             </span>
                           )}
