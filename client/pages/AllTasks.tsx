@@ -597,42 +597,28 @@ export default function AllTasks() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
 
-      if (showPageSizeDropdown) {
-        const isClickOutsidePageSize =
-          dropdownMenuRef.current &&
-          !dropdownMenuRef.current.contains(target) &&
-          dropdownButtonRef.current &&
-          !dropdownButtonRef.current.contains(target);
-
-        if (isClickOutsidePageSize) {
+        if (isClickOutside) {
           setShowPageSizeDropdown(false);
-        }
-      }
-
-      if (openMenuId !== null) {
-        const isClickOutsideMenu =
-          target !== document.querySelector(
-            `[data-menu-id="${openMenuId}"]`,
-          ) &&
-          !document
-            .querySelector(`[data-menu-id="${openMenuId}"]`)
-            ?.contains(target);
-
-        if (isClickOutsideMenu) {
-          setOpenMenuId(null);
         }
       }
     };
 
-    if (showPageSizeDropdown || openMenuId !== null) {
+    if (showPageSizeDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [showPageSizeDropdown, openMenuId]);
+  }, [showPageSizeDropdown]);
 
   const totalTasks = tasks.length;
   const totalPages = Math.ceil(totalTasks / itemsPerPage);
