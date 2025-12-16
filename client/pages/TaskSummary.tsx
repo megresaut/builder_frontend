@@ -1517,15 +1517,15 @@ export default function TaskSummary() {
                 </div>
 
                     {/* Table Content */}
-                    <table className="w-full">
+                    <table className="">
                       <thead>
                       <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <span className="font-medium text-sm text-gray-700">
                             Priority
                           </span>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1548,7 +1548,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1568,7 +1568,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1586,7 +1586,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1609,7 +1609,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1627,7 +1627,7 @@ export default function TaskSummary() {
                             </span>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left border-r border-gray-200">
+                        <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <svg
                               width="16"
@@ -1667,7 +1667,7 @@ export default function TaskSummary() {
                           key={order.id}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                         >
-                          <td className="px-3 py-3 border-r border-gray-200">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div
                                 className="w-2 h-2 rounded-full"
@@ -1680,27 +1680,27 @@ export default function TaskSummary() {
                                         : "#d97706",
                                 }}
                               />
-                              <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                              <span className="text-gray-900 font-normal text-sm capitalize">
                                 {order.priority}
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200">
-                            <span className="text-gray-900 font-normal text-sm truncate">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-sm">
                               {order.description}
                             </span>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200">
-                            <span className="text-gray-900 font-normal text-sm truncate">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-sm">
                               {order.dueDate}
                             </span>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               {order.fieldTeam.map((member, idx) => (
                                 <div key={idx} className="relative group">
                                   <div
-                                    className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                    className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer flex-shrink-0`}
                                     title={member.name}
                                   >
                                     {member.initials}
@@ -1712,14 +1712,14 @@ export default function TaskSummary() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             {getFTOStatusBadge(order.status)}
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                             {getTimesheetStatusBadge(order.timesheetStatus)}
                           </td>
-                          <td className="px-3 py-3 border-r border-gray-200">
-                            <span className="text-gray-900 font-normal text-sm truncate">
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-sm">
                               ${order.amount}
                             </span>
                           </td>
