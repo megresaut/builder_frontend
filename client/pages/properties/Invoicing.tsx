@@ -770,7 +770,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   }).format(invoiceNow);
 
   return (
-    <div className="flex flex-col gap-0 min-w-[1200px]">
+    <div className="flex flex-col gap-0">
       {/* Alert Banner */}
       {showAlertBanner && (
         <div
