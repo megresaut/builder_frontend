@@ -702,7 +702,7 @@ export default function RecurringTasks() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible">
                           {colKey === "priority" && (
                             <div className="flex items-center gap-2">
                               <div
@@ -751,7 +751,7 @@ export default function RecurringTasks() {
                                   >
                                     {assignee.initials}
                                   </div>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
                                     {assignee.name}
                                   </div>
                                 </div>
