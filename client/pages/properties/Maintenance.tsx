@@ -1734,204 +1734,46 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {recurringColumnManagement.visibleColumns.has("priority") && (
-                    <th
-                      draggable
-                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("priority")}
-                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "priority")}
-                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "priority")}
-                      onClick={() => handleRecurringSortClick("priority")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={recurringColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}
-                    >
-                      {recurringColumnManagement.dropTargetColumn === "priority" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {recurringTasksColumnConfig["priority"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {recurringTasksColumnConfig["priority"]?.label}
-                        </span>
-                        {getRecurringSortIndicator("priority") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getRecurringSortIndicator("priority")}
-                          </span>
+                  {recurringColumnManagement.columnOrder.filter(colKey => recurringColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
+                    const colConfig = recurringTasksColumnConfig[colKey];
+                    return (
+                      <th
+                        key={colKey}
+                        draggable
+                        onDragStart={() => recurringColumnManagement.handleColumnDragStart(colKey)}
+                        onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, colKey)}
+                        onDragLeave={recurringColumnManagement.handleColumnDragLeave}
+                        onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, colKey)}
+                        onClick={() => handleRecurringSortClick(colKey)}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                        style={{
+                          opacity: recurringColumnManagement.draggedColumn === colKey ? 0.5 : 1,
+                          transition: "opacity 0.2s ease",
+                        }}
+                      >
+                        {recurringColumnManagement.dropTargetColumn === colKey && recurringColumnManagement.draggedColumn && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              bottom: 0,
+                              width: "2px",
+                              backgroundColor: "#3b82f6",
+                              left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
+                              right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
+                            }}
+                          />
                         )}
-                      </div>
-                    </th>
-                  )}
-                  {recurringColumnManagement.visibleColumns.has("task") && (
-                    <th
-                      draggable
-                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("task")}
-                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "task")}
-                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "task")}
-                      onClick={() => handleRecurringSortClick("task")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={recurringColumnManagement.draggedColumn === "task" ? { opacity: 0.5 } : {}}
-                    >
-                      {recurringColumnManagement.dropTargetColumn === "task" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {recurringTasksColumnConfig["task"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {recurringTasksColumnConfig["task"]?.label}
-                        </span>
-                        {getRecurringSortIndicator("task") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getRecurringSortIndicator("task")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {recurringColumnManagement.visibleColumns.has("nextDate") && (
-                    <th
-                      draggable
-                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("nextDate")}
-                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "nextDate")}
-                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "nextDate")}
-                      onClick={() => handleRecurringSortClick("nextDate")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={recurringColumnManagement.draggedColumn === "nextDate" ? { opacity: 0.5 } : {}}
-                    >
-                      {recurringColumnManagement.dropTargetColumn === "nextDate" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {recurringTasksColumnConfig["nextDate"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {recurringTasksColumnConfig["nextDate"]?.label}
-                        </span>
-                        {getRecurringSortIndicator("nextDate") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getRecurringSortIndicator("nextDate")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {recurringColumnManagement.visibleColumns.has("category") && (
-                    <th
-                      draggable
-                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("category")}
-                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "category")}
-                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "category")}
-                      onClick={() => handleRecurringSortClick("category")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={recurringColumnManagement.draggedColumn === "category" ? { opacity: 0.5 } : {}}
-                    >
-                      {recurringColumnManagement.dropTargetColumn === "category" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {recurringTasksColumnConfig["category"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {recurringTasksColumnConfig["category"]?.label}
-                        </span>
-                        {getRecurringSortIndicator("category") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getRecurringSortIndicator("category")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {recurringColumnManagement.visibleColumns.has("assignees") && (
-                    <th
-                      draggable
-                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("assignees")}
-                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "assignees")}
-                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "assignees")}
-                      onClick={() => handleRecurringSortClick("assignees")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={recurringColumnManagement.draggedColumn === "assignees" ? { opacity: 0.5 } : {}}
-                    >
-                      {recurringColumnManagement.dropTargetColumn === "assignees" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {recurringTasksColumnConfig["assignees"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {recurringTasksColumnConfig["assignees"]?.label}
-                        </span>
-                        {getRecurringSortIndicator("assignees") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getRecurringSortIndicator("assignees")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {recurringColumnManagement.visibleColumns.has("status") && (
-                    <th
-                      draggable
-                      onDragStart={() => recurringColumnManagement.handleColumnDragStart("status")}
-                      onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, "status")}
-                      onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                      onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, "status")}
-                      onClick={() => handleRecurringSortClick("status")}
-                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      style={recurringColumnManagement.draggedColumn === "status" ? { opacity: 0.5 } : {}}
-                    >
-                      {recurringColumnManagement.dropTargetColumn === "status" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        {recurringTasksColumnConfig["status"]?.icon}
-                        <span className="font-medium text-sm text-gray-700">
-                          {recurringTasksColumnConfig["status"]?.label}
-                        </span>
-                        {getRecurringSortIndicator("status") && (
-                          <span className="text-xs font-bold text-gray-700 ml-1">
-                            {getRecurringSortIndicator("status")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
+                        <div className="flex items-center gap-2">
+                          {colConfig?.icon}
+                          <span className="font-medium text-sm text-gray-700">{colConfig?.label}</span>
+                          {getRecurringSortIndicator(colKey) && (
+                            <span className="text-xs font-bold text-gray-700 ml-1">{getRecurringSortIndicator(colKey)}</span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">
                       Actions
