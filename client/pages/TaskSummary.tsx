@@ -21,6 +21,8 @@ import FTOApprovalModal from "@/components/FTOApprovalModal";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface FieldTeamOrder {
   id: number;
@@ -525,6 +527,31 @@ export default function TaskSummary() {
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(fieldTeamOrders);
+
+  const {
+    columnOrder,
+    visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+  } = useColumnManagement([
+    "priority",
+    "description",
+    "dueDate",
+    "fieldTeam",
+    "status",
+    "timesheetStatus",
+    "amount",
+  ]);
 
   const getDisplayedOrdersForPage = () => {
     const sorted = getSortedData();
