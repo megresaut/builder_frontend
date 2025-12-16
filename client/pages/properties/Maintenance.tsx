@@ -1516,7 +1516,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                                     >
                                       {assignee.initials}
                                     </div>
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
                                       {assignee.name}
                                     </div>
                                   </div>
@@ -1528,7 +1528,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             cellContent = "";
                         }
                         return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible">
                             {cellContent}
                           </td>
                         );
@@ -1836,7 +1836,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                                   >
                                     {assignee.initials}
                                   </div>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
                                     {assignee.name}
                                   </div>
                                 </div>
@@ -2221,7 +2221,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                                     >
                                       {assignee.initials}
                                     </div>
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
                                       {assignee.name}
                                     </div>
                                   </div>
@@ -2233,7 +2233,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             cellContent = "";
                         }
                         return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible">
                             {cellContent}
                           </td>
                         );
@@ -2548,7 +2548,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                                     >
                                       {member.initials}
                                     </div>
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
                                       {member.name}
                                     </div>
                                   </div>
@@ -2573,7 +2573,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             cellContent = null;
                         }
                         return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible">
                             {cellContent}
                           </td>
                         );
