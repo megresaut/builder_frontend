@@ -980,7 +980,12 @@ export default function Bills() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
+                    {columnOrder.filter(colKey => {
+                      if (colKey === "status" && selectedTab !== "drafts") {
+                        return false;
+                      }
+                      return visibleColumns.has(colKey);
+                    }).map((colKey) => {
                       const colConfig = columnConfig[colKey];
                       const sortIndicator = getSortIndicator(colKey);
                       return (
