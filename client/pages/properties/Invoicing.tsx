@@ -801,6 +801,28 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </div>
           </div>
 
+          {invoiceColumnsManagement.showColumnModal &&
+            createPortal(
+              <ColumnFilterModal
+                isOpen={invoiceColumnsManagement.showColumnModal}
+                position={invoiceColumnsManagement.columnMenuPos}
+                columns={[
+                  { key: "vendor", label: "Vendor", icon: null },
+                  { key: "glAccount", label: "GL Account", icon: null },
+                  { key: "description", label: "Description", icon: null },
+                  { key: "amount", label: "Amount", icon: null },
+                  { key: "source", label: "Source", icon: null },
+                  { key: "status", label: "Approval Status", icon: null },
+                ]}
+                visibleColumns={invoiceColumnsManagement.visibleColumns}
+                onToggleColumn={invoiceColumnsManagement.toggleColumnVisibility}
+                onClose={() =>
+                  invoiceColumnsManagement.setShowColumnModal(false)
+                }
+              />,
+              document.body,
+            )}
+
           {/* Table */}
           <div
             className="border-[0.5px] border-[#e5e5e5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-x-auto"
