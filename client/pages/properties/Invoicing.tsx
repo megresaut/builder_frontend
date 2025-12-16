@@ -210,6 +210,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
+  // Column management for Invoice Items table
+  const invoiceColumnsManagement = useColumnManagement([
+    "vendor",
+    "glAccount",
+    "description",
+    "amount",
+    "source",
+    "status",
+  ]);
+
+  // Column management for Invoice History table
+  const historyColumnsManagement = useColumnManagement([
+    "dateCreated",
+    "invoiceMonth",
+    "amount",
+  ]);
+
   useEffect(() => {
     let animationFrameId: number;
 
