@@ -92,15 +92,14 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   return (
     <div className="flex-1 overflow-auto bg-white">
       <div
-        className="bg-white w-full"
+        className="bg-white"
         style={{
           borderLeftWidth: "1.33333px",
           border: "1px none rgb(226, 232, 240)",
           padding: "32px 32px 150px",
-          minWidth: "1200px",
         }}
       >
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 w-fit min-w-full">
           {/* Property Header */}
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
