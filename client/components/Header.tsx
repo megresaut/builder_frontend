@@ -528,7 +528,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
     if (currentIndex <= 0) {
       // Fallback: if on a property detail page, go back to all properties
       if (location.pathname.includes("/property/")) {
-        navigate("/properties");
+        navigate("/all-properties");
       }
       return;
     }
