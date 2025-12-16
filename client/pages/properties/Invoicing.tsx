@@ -1128,26 +1128,44 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               style={{ borderLeftColor: "transparent" }}
             >
               <div
-                className="flex min-w-60 items-center flex-nowrap flex-1"
+                className="flex min-w-60 items-center flex-nowrap flex-1 flex-col"
                 style={{ borderLeftColor: "transparent" }}
               >
-                <InvoiceTableHeader
-                  columns={visibleHistoryColumns.map((colKey) => ({
+                {/* Headers */}
+                <div className="flex w-full items-center">
+                  <InvoiceTableHeader
+                    columns={visibleHistoryColumns.map((colKey) => ({
+                      key: colKey,
+                      label: historyColumnConfigs[colKey].label,
+                      width: historyColumnConfigs[colKey].width,
+                      icon: historyColumnConfigs[colKey].icon,
+                      sortable: true,
+                    }))}
+                    draggedColumn={historyColumnsManagement.draggedColumn}
+                    dropTargetColumn={historyColumnsManagement.dropTargetColumn}
+                    dropPosition={historyColumnsManagement.dropPosition}
+                    onDragStart={historyColumnsManagement.handleColumnDragStart}
+                    onDragOver={historyColumnsManagement.handleColumnDragOver}
+                    onDragLeave={historyColumnsManagement.handleColumnDragLeave}
+                    onDrop={historyColumnsManagement.handleColumnDrop}
+                    onSort={handleHistorySortClick}
+                    getSortIndicator={getHistorySortIndicator}
+                  />
+                </div>
+                {/* Rows */}
+                <HistoryTableRows
+                  items={paginatedHistory}
+                  visibleColumns={visibleHistoryColumns.map((colKey) => ({
                     key: colKey,
-                    label: historyColumnConfigs[colKey].label,
                     width: historyColumnConfigs[colKey].width,
-                    icon: historyColumnConfigs[colKey].icon,
-                    sortable: true,
                   }))}
-                  draggedColumn={historyColumnsManagement.draggedColumn}
-                  dropTargetColumn={historyColumnsManagement.dropTargetColumn}
-                  dropPosition={historyColumnsManagement.dropPosition}
-                  onDragStart={historyColumnsManagement.handleColumnDragStart}
-                  onDragOver={historyColumnsManagement.handleColumnDragOver}
-                  onDragLeave={historyColumnsManagement.handleColumnDragLeave}
-                  onDrop={historyColumnsManagement.handleColumnDrop}
-                  onSort={handleHistorySortClick}
-                  getSortIndicator={getHistorySortIndicator}
+                  onRowClick={(item) =>
+                    openInvoicePreview({
+                      lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                      invoiceDate: item.invoiceMonth,
+                      showCommitButton: false,
+                    })
+                  }
                 />
               </div>
 
@@ -1158,7 +1176,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     Actions
                   </div>
                 </div>
-                {getSortedHistoryItems().map((item) => (
+                {paginatedHistory.map((item) => (
                   <div
                     key={item.id}
                     className="items-center border-b-[0.5px] border-[#e5e5e5] flex min-h-14 w-full max-w-20 gap-2.5 px-3 relative"
@@ -1179,20 +1197,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 ))}
               </div>
             </div>
-            <HistoryTableRows
-              items={paginatedHistory}
-              visibleColumns={visibleHistoryColumns.map((colKey) => ({
-                key: colKey,
-                width: historyColumnConfigs[colKey].width,
-              }))}
-              onRowClick={(item) =>
-                openInvoicePreview({
-                  lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                  invoiceDate: item.invoiceMonth,
-                  showCommitButton: false,
-                })
-              }
-            />
           </div>
 
           {/* Pagination */}
