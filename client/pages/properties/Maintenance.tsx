@@ -1357,9 +1357,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <button
                 ref={tasksColumnManagement.columnButtonRef}
                 onClick={() =>
-                  tasksColumnManagement.setShowColumnModal(
-                    !tasksColumnManagement.showColumnModal,
-                  )
+                  tasksColumnManagement.setShowColumnModal((prev) => !prev)
                 }
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
@@ -1698,9 +1696,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <button
                 ref={recurringColumnManagement.columnButtonRef}
                 onClick={() =>
-                  recurringColumnManagement.setShowColumnModal(
-                    !recurringColumnManagement.showColumnModal,
-                  )
+                  recurringColumnManagement.setShowColumnModal((prev) => !prev)
                 }
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
@@ -2039,9 +2035,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <button
                 ref={workordersColumnManagement.columnButtonRef}
                 onClick={() =>
-                  workordersColumnManagement.setShowColumnModal(
-                    !workordersColumnManagement.showColumnModal,
-                  )
+                  workordersColumnManagement.setShowColumnModal((prev) => !prev)
                 }
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
@@ -2415,9 +2409,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <button
                 ref={fieldteamColumnManagement.columnButtonRef}
                 onClick={() =>
-                  fieldteamColumnManagement.setShowColumnModal(
-                    !fieldteamColumnManagement.showColumnModal,
-                  )
+                  fieldteamColumnManagement.setShowColumnModal((prev) => !prev)
                 }
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
