@@ -917,26 +917,38 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               style={{ borderLeftColor: "transparent" }}
             >
               <div
-                className="flex min-w-60 items-center flex-nowrap flex-1"
+                className="flex min-w-60 items-center flex-nowrap flex-1 flex-col"
                 style={{ borderLeftColor: "transparent" }}
               >
-                <InvoiceTableHeader
-                  columns={visibleInvoiceColumns.map((colKey) => ({
+                {/* Headers */}
+                <div className="flex w-full items-center">
+                  <InvoiceTableHeader
+                    columns={visibleInvoiceColumns.map((colKey) => ({
+                      key: colKey,
+                      label: invoiceColumnConfigs[colKey].label,
+                      width: invoiceColumnConfigs[colKey].width,
+                      icon: invoiceColumnConfigs[colKey].icon,
+                      sortable: true,
+                    }))}
+                    draggedColumn={invoiceColumnsManagement.draggedColumn}
+                    dropTargetColumn={invoiceColumnsManagement.dropTargetColumn}
+                    dropPosition={invoiceColumnsManagement.dropPosition}
+                    onDragStart={invoiceColumnsManagement.handleColumnDragStart}
+                    onDragOver={invoiceColumnsManagement.handleColumnDragOver}
+                    onDragLeave={invoiceColumnsManagement.handleColumnDragLeave}
+                    onDrop={invoiceColumnsManagement.handleColumnDrop}
+                    onSort={handleInvoiceSortClick}
+                    getSortIndicator={getInvoiceSortIndicator}
+                  />
+                </div>
+                {/* Rows */}
+                <InvoiceTableRows
+                  items={getSortedInvoiceItems()}
+                  visibleColumns={visibleInvoiceColumns.map((colKey) => ({
                     key: colKey,
-                    label: invoiceColumnConfigs[colKey].label,
                     width: invoiceColumnConfigs[colKey].width,
-                    icon: invoiceColumnConfigs[colKey].icon,
-                    sortable: true,
                   }))}
-                  draggedColumn={invoiceColumnsManagement.draggedColumn}
-                  dropTargetColumn={invoiceColumnsManagement.dropTargetColumn}
-                  dropPosition={invoiceColumnsManagement.dropPosition}
-                  onDragStart={invoiceColumnsManagement.handleColumnDragStart}
-                  onDragOver={invoiceColumnsManagement.handleColumnDragOver}
-                  onDragLeave={invoiceColumnsManagement.handleColumnDragLeave}
-                  onDrop={invoiceColumnsManagement.handleColumnDrop}
-                  onSort={handleInvoiceSortClick}
-                  getSortIndicator={getInvoiceSortIndicator}
+                  showingPendingInsights={showingPendingInsights}
                 />
               </div>
 
@@ -984,14 +996,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 })}
               </div>
             </div>
-            <InvoiceTableRows
-              items={getSortedInvoiceItems()}
-              visibleColumns={visibleInvoiceColumns.map((colKey) => ({
-                key: colKey,
-                width: invoiceColumnConfigs[colKey].width,
-              }))}
-              showingPendingInsights={showingPendingInsights}
-            />
           </div>
 
           {/* Footer */}
