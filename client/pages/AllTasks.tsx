@@ -770,7 +770,7 @@ export default function AllTasks() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                           {colKey === "priority" && (
                             <PriorityBadge priority={task.priority} />
                           )}
@@ -780,18 +780,18 @@ export default function AllTasks() {
                           {colKey === "title" && (
                             <button
                               onClick={() => navigate(`/tasks/${task.id}`)}
-                              className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors"
+                              className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
                             >
                               {task.title}
                             </button>
                           )}
                           {colKey === "property" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {task.property}
                             </span>
                           )}
                           {colKey === "due" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {task.due}
                             </span>
                           )}
