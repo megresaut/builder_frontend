@@ -1530,7 +1530,7 @@ export default function TaskSummary() {
                         setEditFTOData(null);
                         setShowFTOModal(true);
                       }}
-                      className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] border border-white hover:bg-[#003a73] transition-colors"
+                      className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] border border-white shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] hover:bg-[#003a73] transition-colors"
                     >
                       <svg
                         width="20"

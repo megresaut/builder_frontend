@@ -671,7 +671,7 @@ export default function FieldTeamOrders() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowFTOModal(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_rgb(0,45,90)] hover:bg-[#003a73] transition-colors"
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] hover:bg-[#003a73] transition-colors"
             >
               <svg
                 width="20"
