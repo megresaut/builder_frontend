@@ -7,6 +7,7 @@ import WorkOrders from "../pages/WorkOrders";
 import CreateWorkOrderModal from "./CreateWorkOrderModal";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "./ColumnFilterModal";
+import { useSortingTable } from "@/hooks/useSortingTable";
 
 interface Assignee {
   id: number;
@@ -433,7 +434,26 @@ export default function WorkOrdersTab({
   }, [showPageSizeDropdown]);
 
 
-  const totalWorkOrders = mockWorkOrders.length;
+  type SortableWorkOrder = WorkOrder & {
+    updated: string;
+    due: string;
+    assigneesSort: string[];
+  };
+
+  const sortableWorkOrders: SortableWorkOrder[] = mockWorkOrders.map((wo) => ({
+    ...wo,
+    updated: wo.updatedDate,
+    due: wo.dueDate,
+    assigneesSort: wo.assignees.map((a) => a.name),
+  }));
+
+  const sorting = useSortingTable<SortableWorkOrder>(
+    sortableWorkOrders,
+    `workOrdersTab_${taskId ?? "unknown"}`,
+  );
+
+  const sortedWorkOrders = sorting.getSortedData();
+  const totalWorkOrders = sortedWorkOrders.length;
   const totalPages = Math.ceil(totalWorkOrders / itemsPerPage);
 
   const getPaginationNumbers = () => {
@@ -473,7 +493,7 @@ export default function WorkOrdersTab({
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedWorkOrders = mockWorkOrders.slice(startIndex, endIndex);
+  const paginatedWorkOrders = sortedWorkOrders.slice(startIndex, endIndex);
 
   if (selectedWorkOrderId !== null) {
     return (
@@ -570,6 +590,18 @@ export default function WorkOrdersTab({
                           onDragOver={(e) => handleColumnDragOver(e, colKey)}
                           onDragLeave={handleColumnDragLeave}
                           onDrop={(e) => handleColumnDrop(e, colKey)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const sortKey =
+                              colKey === "updated"
+                                ? "updated"
+                                : colKey === "due"
+                                  ? "due"
+                                  : colKey === "assignees"
+                                    ? "assigneesSort"
+                                    : colKey;
+                            sorting.handleSortClick(sortKey);
+                          }}
                           className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
                           style={{
                             opacity: draggedColumn === colKey ? 0.5 : 1,
@@ -594,6 +626,22 @@ export default function WorkOrdersTab({
                             <span className="font-medium text-sm text-gray-700">
                               {colConfig?.label}
                             </span>
+                            {(() => {
+                              const sortKey =
+                                colKey === "updated"
+                                  ? "updated"
+                                  : colKey === "due"
+                                    ? "due"
+                                    : colKey === "assignees"
+                                      ? "assigneesSort"
+                                      : colKey;
+                              const indicator = sorting.getSortIndicator(sortKey);
+                              return indicator ? (
+                                <span className="text-xs font-bold text-gray-700 ml-1">
+                                  {indicator}
+                                </span>
+                              ) : null;
+                            })()}
                           </div>
                         </th>
                       );
