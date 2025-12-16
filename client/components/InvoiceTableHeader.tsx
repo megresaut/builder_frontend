@@ -3,7 +3,8 @@ import React from "react";
 interface ColumnConfig {
   key: string;
   label: string;
-  width: string;
+  width?: string;
+  flex?: number;
   icon?: string;
   sortable?: boolean;
 }
