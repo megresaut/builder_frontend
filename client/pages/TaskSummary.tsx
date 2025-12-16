@@ -1562,7 +1562,11 @@ export default function TaskSummary() {
                             const columnConfigs: Record<string, { label: string; icon: React.ReactNode }> = {
                               priority: {
                                 label: "Priority",
-                                icon: null,
+                                icon: (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M6 9l6-6 6 6M6 15l6 6 6-6" />
+                                  </svg>
+                                ),
                               },
                               description: {
                                 label: "FTO Name",
