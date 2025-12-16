@@ -707,8 +707,6 @@ export default function AllTasks() {
             </div>
 
             {/* Table Content */}
-            <div className="overflow-x-auto">
-              <div className="w-fit min-w-full">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50 h-12">
@@ -771,7 +769,7 @@ export default function AllTasks() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200">
                           {colKey === "priority" && (
                             <PriorityBadge priority={task.priority} />
                           )}
@@ -852,8 +850,6 @@ export default function AllTasks() {
                   ))}
                 </tbody>
                 </table>
-              </div>
-            </div>
 
             {/* Pagination Footer */}
             <div
