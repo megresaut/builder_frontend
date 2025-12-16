@@ -1450,9 +1450,18 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       onDragLeave={tasksColumnManagement.handleColumnDragLeave}
                       onDrop={(e) => tasksColumnManagement.handleColumnDrop(e, "title")}
                       onClick={() => handleTasksSortClick("title")}
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
                       style={tasksColumnManagement.draggedColumn === "title" ? { opacity: 0.5 } : {}}
                     >
+                      {tasksColumnManagement.dropTargetColumn === "title" && (
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
+                          style={{
+                            left: tasksColumnManagement.dropPosition === "before" ? "0" : "auto",
+                            right: tasksColumnManagement.dropPosition === "after" ? "0" : "auto",
+                          }}
+                        />
+                      )}
                       <div className="flex items-center gap-2">
                         {tasksColumnConfig["title"]?.icon}
                         <span className="font-medium text-sm text-gray-700">
