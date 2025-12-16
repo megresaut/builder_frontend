@@ -210,6 +210,7 @@ const ActionButton = ({
   setOpenMenuId,
   onApprove,
   onEdit,
+  onDelete,
   isFTO,
 }: {
   itemId: number;
@@ -217,6 +218,7 @@ const ActionButton = ({
   setOpenMenuId: (id: number | null) => void;
   onApprove?: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
   isFTO?: boolean;
 }) => {
   const showMenu = openMenuId === itemId;
@@ -265,9 +267,17 @@ const ActionButton = ({
       }
     };
 
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenMenuId(null);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [showMenu, setOpenMenuId]);
 
