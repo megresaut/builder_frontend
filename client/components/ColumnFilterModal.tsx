@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useEffect, useRef } from "react";
 
 interface ColumnOption {
   key: string;
