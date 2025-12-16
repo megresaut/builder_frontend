@@ -1726,7 +1726,7 @@ export default function TaskSummary() {
                             </span>
                           </td>
                           <td
-                            className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
+                            className="px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                             style={{
                               borderLeftWidth: "1px",
                               backgroundColor: "white",
