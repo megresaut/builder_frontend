@@ -1064,7 +1064,12 @@ export default function Bills() {
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                           onClick={handleRowClick}
                         >
-                          {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
+                          {columnOrder.filter(colKey => {
+                            if (colKey === "status" && selectedTab !== "drafts") {
+                              return false;
+                            }
+                            return visibleColumns.has(colKey);
+                          }).map((colKey) => (
                             <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                               {colKey === "vendor" && (
                                 <div className="flex items-center gap-2">
@@ -1087,10 +1092,13 @@ export default function Bills() {
                                   {bill.dueDate}
                                 </span>
                               )}
-                              {colKey === "status" && (
-                                <span className={`text-sm font-normal truncate ${bill.status === "pushed" ? "text-green-600" : "text-red-600"}`}>
-                                  {bill.status === "pushed" ? "Pushed" : "Push Failed"}
-                                </span>
+                              {colKey === "status" && selectedTab === "drafts" && (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  <span className="text-gray-900 font-normal text-sm">
+                                    {getTimeAgo(bill.importedAt)}
+                                  </span>
+                                </div>
                               )}
                               {colKey === "memo" && (
                                 <span className="text-gray-900 font-normal text-sm truncate">
