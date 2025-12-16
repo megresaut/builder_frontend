@@ -456,6 +456,17 @@ export const Vendors: React.FC<VendorsProps> = ({
                 />
               </div>
               <button
+                onClick={() => {}}
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                  Filters
+                </span>
+              </button>
+              <button
                 ref={columnButtonRef}
                 onClick={() => setShowColumnModal(!showColumnModal)}
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
