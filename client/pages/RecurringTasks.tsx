@@ -675,7 +675,7 @@ export default function RecurringTasks() {
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                     >
                       {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                           {colKey === "priority" && (
                             <div className="flex items-center gap-2">
                               <div
@@ -689,23 +689,23 @@ export default function RecurringTasks() {
                                         : "#2463EB",
                                 }}
                               />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
+                              <span className="text-gray-900 font-normal text-sm capitalize truncate">
                                 {task.priority}
                               </span>
                             </div>
                           )}
                           {colKey === "task" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {task.task}
                             </span>
                           )}
                           {colKey === "nextDate" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {task.nextDate}
                             </span>
                           )}
                           {colKey === "category" && (
-                            <span className="text-gray-900 font-normal text-sm">
+                            <span className="text-gray-900 font-normal text-sm truncate">
                               {task.category}
                             </span>
                           )}
