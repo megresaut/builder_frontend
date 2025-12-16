@@ -43,12 +43,13 @@ export const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({
         return (
           <div
             key={column.key}
-            className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden flex-shrink-0 transition-opacity relative ${
-              draggedColumn === column.key ? "opacity-50" : ""
-            }`}
+            className={`border-r border-[#e5e5e5] flex flex-col overflow-hidden transition-opacity relative ${
+              column.flex ? "" : "flex-shrink-0"
+            } ${draggedColumn === column.key ? "opacity-50" : ""}`}
             style={{
-              width: column.width,
-              borderLeftColor: "transparent",
+              ...(column.flex
+                ? { flex: column.flex, borderLeftColor: "transparent" }
+                : { width: column.width, borderLeftColor: "transparent" }),
             }}
             draggable={true}
             onDragStart={() => onDragStart(column.key)}
