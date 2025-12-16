@@ -1369,7 +1369,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             {/* Favorites/Star Button */}
             <button
               onClick={handleFavoriteClick}
-              className={`p-2 hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
+              className={`h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
                 isCurrentPageFavorite
                   ? "border-yellow-400 bg-yellow-50"
                   : "border-gray-300 bg-transparent"
@@ -1397,7 +1397,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             </button>
 
             {/* Notification Button */}
-            <button className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
+            <button className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
               <svg
                 width="18"
                 height="18"
@@ -1415,7 +1415,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             {/* Fullscreen Toggle Button */}
             <button
               onClick={toggleFullscreen}
-              className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative"
+              className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative"
               title={isFullscreen ? "Expand" : "Minimize"}
             >
               <svg
