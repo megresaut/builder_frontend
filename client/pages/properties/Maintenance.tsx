@@ -1643,7 +1643,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !tasksCanGoPrev && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setTasksPage((prev) => Math.max(1, prev - 1))
                 }
@@ -1664,7 +1667,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </div>
               </div>
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !tasksCanGoNext && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setTasksPage((prev) => Math.min(tasksTotalPages, prev + 1))
                 }
@@ -1986,7 +1992,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !recurringCanGoPrev && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setRecurringPage((prev) => Math.max(1, prev - 1))
                 }
@@ -2007,7 +2016,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </div>
               </div>
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !recurringCanGoNext && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setRecurringPage((prev) =>
                     Math.min(recurringTotalPages, prev + 1),
@@ -2364,7 +2376,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !workordersCanGoPrev && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setWorkordersPage((prev) => Math.max(1, prev - 1))
                 }
@@ -2385,7 +2400,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </div>
               </div>
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !workordersCanGoNext && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setWorkordersPage((prev) =>
                     Math.min(workordersTotalPages, prev + 1),
@@ -2715,7 +2733,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </div>
             <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !fieldteamCanGoPrev && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setFieldteamPage((prev) => Math.max(1, prev - 1))
                 }
@@ -2736,7 +2757,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </div>
               </div>
               <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
+                className={cn(
+                  "flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
+                  !fieldteamCanGoNext && "pointer-events-none opacity-50",
+                )}
                 onClick={() =>
                   setFieldteamPage((prev) =>
                     Math.min(fieldteamTotalPages, prev + 1),
