@@ -2465,104 +2465,46 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {fieldteamColumnManagement.visibleColumns.has("priority") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("priority")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "priority")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "priority")} onClick={() => handleFieldTeamSortClick("priority")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "priority" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true" className="w-3.5 h-3.5" alt="" /><span className="font-medium text-sm text-gray-700">Priority</span>{getFieldTeamSortIndicator("priority") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("priority")}</span>)}</div>
-                    </th>
-                  )}
-                  {fieldteamColumnManagement.visibleColumns.has("description") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("description")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "description")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "description")} onClick={() => handleFieldTeamSortClick("description")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "description" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "description" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" /><circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg><span className="font-medium text-sm text-gray-700">FTO Name</span>{getFieldTeamSortIndicator("description") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("description")}</span>)}</div>
-                    </th>
-                  )}
-                  {fieldteamColumnManagement.visibleColumns.has("dueDate") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("dueDate")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "dueDate")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "dueDate")} onClick={() => handleFieldTeamSortClick("dueDate")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "dueDate" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "dueDate" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /></svg><span className="font-medium text-sm text-gray-700">Due Date</span>{getFieldTeamSortIndicator("dueDate") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("dueDate")}</span>)}</div>
-                    </th>
-                  )}
-                  {fieldteamColumnManagement.visibleColumns.has("fieldTeam") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("fieldTeam")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "fieldTeam")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "fieldTeam")} onClick={() => handleFieldTeamSortClick("fieldTeam")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "fieldTeam" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "fieldTeam" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg><span className="font-medium text-sm text-gray-700">Field Team</span>{getFieldTeamSortIndicator("fieldTeam") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("fieldTeam")}</span>)}</div>
-                    </th>
-                  )}
-                  {fieldteamColumnManagement.visibleColumns.has("status") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("status")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "status")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "status")} onClick={() => handleFieldTeamSortClick("status")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "status" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "status" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" /><circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg><span className="font-medium text-sm text-gray-700">FTO Status</span>{getFieldTeamSortIndicator("status") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("status")}</span>)}</div>
-                    </th>
-                  )}
-                  {fieldteamColumnManagement.visibleColumns.has("timesheetStatus") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("timesheetStatus")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "timesheetStatus")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "timesheetStatus")} onClick={() => handleFieldTeamSortClick("timesheetStatus")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "timesheetStatus" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "timesheetStatus" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg><span className="font-medium text-sm text-gray-700">Timesheet Status</span>{getFieldTeamSortIndicator("timesheetStatus") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("timesheetStatus")}</span>)}</div>
-                    </th>
-                  )}
-                  {fieldteamColumnManagement.visibleColumns.has("amount") && (
-                    <th draggable onDragStart={() => fieldteamColumnManagement.handleColumnDragStart("amount")} onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, "amount")} onDragLeave={fieldteamColumnManagement.handleColumnDragLeave} onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, "amount")} onClick={() => handleFieldTeamSortClick("amount")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={fieldteamColumnManagement.draggedColumn === "amount" ? { opacity: 0.5 } : {}}>
-                      {fieldteamColumnManagement.dropTargetColumn === "amount" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" x2="20" y1="9" y2="9" /><line x1="4" x2="20" y1="15" y2="15" /><line x1="10" x2="8" y1="3" y2="21" /><line x1="16" x2="14" y1="3" y2="21" /></svg><span className="font-medium text-sm text-gray-700">Amount</span>{getFieldTeamSortIndicator("amount") && (<span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator("amount")}</span>)}</div>
-                    </th>
-                  )}
+                  {fieldteamColumnManagement.columnOrder.filter(colKey => fieldteamColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
+                    const colConfig = fieldTeamColumnConfig[colKey];
+                    return (
+                      <th
+                        key={colKey}
+                        draggable
+                        onDragStart={() => fieldteamColumnManagement.handleColumnDragStart(colKey)}
+                        onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, colKey)}
+                        onDragLeave={fieldteamColumnManagement.handleColumnDragLeave}
+                        onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, colKey)}
+                        onClick={() => handleFieldTeamSortClick(colKey)}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                        style={{
+                          opacity: fieldteamColumnManagement.draggedColumn === colKey ? 0.5 : 1,
+                          transition: "opacity 0.2s ease",
+                        }}
+                      >
+                        {fieldteamColumnManagement.dropTargetColumn === colKey && fieldteamColumnManagement.draggedColumn && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              bottom: 0,
+                              width: "2px",
+                              backgroundColor: "#3b82f6",
+                              left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
+                              right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
+                            }}
+                          />
+                        )}
+                        <div className="flex items-center gap-2">
+                          {colConfig?.icon}
+                          <span className="font-medium text-sm text-gray-700">{colConfig?.label}</span>
+                          {getFieldTeamSortIndicator(colKey) && (
+                            <span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator(colKey)}</span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">Actions</span>
                   </th>
@@ -2571,11 +2513,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               <tbody>
                 {getFieldTeamSortedData().map((order) => {
                   const handleRowClick = (e: React.MouseEvent) => {
-                    const target = e.target as HTMLElement;
-                    if (
-                      target.closest("td:last-child") ||
-                      target.closest("button")
-                    ) {
+                    if ((e.target as HTMLElement).closest("td:last-child")) {
                       return;
                     }
                     navigate(`/tasks/${order.taskId}/fieldteam`);
@@ -2586,76 +2524,84 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                       onClick={handleRowClick}
                     >
-                      {fieldteamColumnManagement.visibleColumns.has("priority") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{
-                                backgroundColor:
-                                  order.priority === "low"
-                                    ? "#059669"
-                                    : order.priority === "normal"
-                                      ? "#2463eb"
-                                      : "#d97706",
-                              }}
-                            />
-                            <span className="text-gray-900 font-normal text-sm capitalize">
-                              {order.priority}
-                            </span>
-                          </div>
-                        </td>
-                      )}
-                      {fieldteamColumnManagement.visibleColumns.has("description") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            {order.description}
-                          </span>
-                        </td>
-                      )}
-                      {fieldteamColumnManagement.visibleColumns.has("dueDate") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            {order.dueDate}
-                          </span>
-                        </td>
-                      )}
-                      {fieldteamColumnManagement.visibleColumns.has("fieldTeam") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {order.fieldTeam.map((member, idx) => (
-                              <div key={idx} className="relative group">
+                      {fieldteamColumnManagement.columnOrder.filter(colKey => fieldteamColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
+                        let cellContent;
+                        switch (colKey) {
+                          case "priority":
+                            cellContent = (
+                              <div className="flex items-center gap-2">
                                 <div
-                                  className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                                  title={member.name}
-                                >
-                                  {member.initials}
-                                </div>
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                  {member.name}
-                                </div>
+                                  className="w-2 h-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      order.priority === "low"
+                                        ? "#059669"
+                                        : order.priority === "normal"
+                                          ? "#2463eb"
+                                          : "#d97706",
+                                  }}
+                                />
+                                <span className="text-gray-900 font-normal text-sm capitalize">
+                                  {order.priority}
+                                </span>
                               </div>
-                            ))}
-                          </div>
-                        </td>
-                      )}
-                      {fieldteamColumnManagement.visibleColumns.has("status") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          {getFTOStatusBadge(order.status)}
-                        </td>
-                      )}
-                      {fieldteamColumnManagement.visibleColumns.has("timesheetStatus") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          {getTimesheetStatusBadge(order.timesheetStatus)}
-                        </td>
-                      )}
-                      {fieldteamColumnManagement.visibleColumns.has("amount") && (
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <span className="text-gray-900 font-normal text-sm">
-                            ${order.amount}
-                          </span>
-                        </td>
-                      )}
+                            );
+                            break;
+                          case "description":
+                            cellContent = (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {order.description}
+                              </span>
+                            );
+                            break;
+                          case "dueDate":
+                            cellContent = (
+                              <span className="text-gray-900 font-normal text-sm">
+                                {order.dueDate}
+                              </span>
+                            );
+                            break;
+                          case "fieldTeam":
+                            cellContent = (
+                              <div className="flex items-center gap-2">
+                                {order.fieldTeam.map((member, idx) => (
+                                  <div key={idx} className="relative group">
+                                    <div
+                                      className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                      title={member.name}
+                                    >
+                                      {member.initials}
+                                    </div>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                      {member.name}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                            break;
+                          case "status":
+                            cellContent = getFTOStatusBadge(order.status);
+                            break;
+                          case "timesheetStatus":
+                            cellContent = getTimesheetStatusBadge(order.timesheetStatus);
+                            break;
+                          case "amount":
+                            cellContent = (
+                              <span className="text-gray-900 font-normal text-sm">
+                                ${order.amount}
+                              </span>
+                            );
+                            break;
+                          default:
+                            cellContent = null;
+                        }
+                        return (
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            {cellContent}
+                          </td>
+                        );
+                      })}
                       <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
                         <ActionButton
                           itemId={order.id}
