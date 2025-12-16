@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 
@@ -430,6 +431,16 @@ export default function AllTasks() {
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
+  const sortableTasks = tasks.map((task) => ({
+    ...task,
+    assignee: task.assignees.map((a) => a.name).join(", "),
+  }));
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    sortableTasks,
+    "allTasks",
+  );
+
   const {
     columnOrder,
     visibleColumns,
@@ -599,13 +610,14 @@ export default function AllTasks() {
     }
   }, [showPageSizeDropdown]);
 
-  const totalTasks = tasks.length;
+  const totalTasks = sortableTasks.length;
   const totalPages = Math.ceil(totalTasks / itemsPerPage);
 
   const getDisplayedTasksForPage = () => {
+    const sorted = getSortedData();
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    return tasks.slice(start, end);
+    return sorted.slice(start, end);
   };
 
   const getPaginationNumbers = () => {
@@ -771,6 +783,7 @@ export default function AllTasks() {
                     <tr className="border-b border-gray-200 bg-gray-50 h-12">
                     {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
                       const colConfig = columnConfig[colKey];
+                      const sortIndicator = getSortIndicator(colKey);
                       return (
                         <th
                           key={colKey}
@@ -779,6 +792,7 @@ export default function AllTasks() {
                           onDragOver={(e) => handleColumnDragOver(e, colKey)}
                           onDragLeave={handleColumnDragLeave}
                           onDrop={(e) => handleColumnDrop(e, colKey)}
+                          onClick={() => handleSortClick(colKey)}
                           className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
                           style={{
                             opacity: draggedColumn === colKey ? 0.5 : 1,
@@ -803,6 +817,11 @@ export default function AllTasks() {
                             <span className="font-medium text-sm text-gray-700">
                               {colConfig?.label}
                             </span>
+                            {sortIndicator && (
+                              <span className="text-xs font-bold text-gray-700 ml-1">
+                                {sortIndicator}
+                              </span>
+                            )}
                           </div>
                         </th>
                       );
