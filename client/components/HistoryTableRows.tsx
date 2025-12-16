@@ -15,7 +15,8 @@ interface InvoiceHistoryItem {
 
 interface ColumnConfig {
   key: string;
-  width: string;
+  width?: string;
+  flex?: number;
 }
 
 interface HistoryTableRowsProps {
