@@ -392,6 +392,7 @@ export default function MaintenanceWorkOrders() {
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
@@ -520,6 +521,28 @@ export default function MaintenanceWorkOrders() {
       }
     };
   }, [showPageSizeDropdown]);
+
+  useEffect(() => {
+    if (!showPageSizeDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (
+        dropdownButtonRef.current?.contains(target) ||
+        dropdownMenuRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setShowPageSizeDropdown(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showPageSizeDropdown, setShowPageSizeDropdown]);
 
   const totalWorkOrders = mockWorkOrders.length;
   const totalPages = Math.ceil(totalWorkOrders / itemsPerPage);
@@ -1096,6 +1119,7 @@ export default function MaintenanceWorkOrders() {
       {showPageSizeDropdown &&
         createPortal(
           <div
+            ref={dropdownMenuRef}
             className="bg-white overflow-hidden"
             style={{
               border: "0.5px solid #DADADA",
