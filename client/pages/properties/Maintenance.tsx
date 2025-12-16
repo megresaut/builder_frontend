@@ -2084,132 +2084,46 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {workordersColumnManagement.visibleColumns.has("priority") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("priority")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "priority")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "priority")} onClick={() => handleWorkOrdersSortClick("priority")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "priority" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "priority" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true" className="w-3.5 h-3.5" alt="" />
-                        <span className="font-medium text-sm text-gray-700">Priority</span>
-                        {getWorkOrdersSortIndicator("priority") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("priority")}</span>)}
-                      </div>
-                    </th>
-                  )}
-                  {workordersColumnManagement.visibleColumns.has("task") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("task")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "task")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "task")} onClick={() => handleWorkOrdersSortClick("task")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "task" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "task" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.00065 7.33333H3.06732C2.69395 7.33333 2.50727 7.33333 2.36466 7.406C2.23922 7.46991 2.13723 7.5719 2.07331 7.69734C2.00065 7.83995 2.00065 8.02663 2.00065 8.4V14M11.0007 7.33333H12.934C13.3074 7.33333 13.494 7.33333 13.6366 7.406C13.7621 7.46991 13.8641 7.5719 13.928 7.69734C14.0007 7.83995 14.0007 8.02663 14.0007 8.4V14M11.0007 14V4.13333C11.0007 3.3866 11.0007 3.01323 10.8553 2.72801C10.7275 2.47713 10.5235 2.27316 10.2726 2.14532C9.98742 2 9.61405 2 8.86732 2H7.13398C6.38725 2 6.01388 2 5.72866 2.14532C5.47778 2.27316 5.27381 2.47713 5.14598 2.72801C5.00065 3.01323 5.00065 3.3866 5.00065 4.13333V14M14.6673 14H1.33398M7.33398 4.66667H8.66732M7.33398 7.33333H8.66732M7.33398 10H8.66732" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        <span className="font-medium text-sm text-gray-700">Work Order</span>
-                        {getWorkOrdersSortIndicator("task") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("task")}</span>)}
-                      </div>
-                    </th>
-                  )}
-                  {workordersColumnManagement.visibleColumns.has("dueDate") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("dueDate")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "dueDate")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "dueDate")} onClick={() => handleWorkOrdersSortClick("dueDate")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "dueDate" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "dueDate" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 6.66658H2M10.6667 1.33325V3.99992M5.33333 1.33325V3.99992M5.2 14.6666H10.8C11.9201 14.6666 12.4802 14.6666 12.908 14.4486C13.2843 14.2569 13.5903 13.9509 13.782 13.5746C14 13.1467 14 12.5867 14 11.4666V5.86659C14 4.74648 14 4.18643 13.782 3.7586C13.5903 3.38228 13.2843 3.07632 12.908 2.88457C12.4802 2.66659 11.9201 2.66659 10.8 2.66659H5.2C4.0799 2.66659 3.51984 2.66659 3.09202 2.88457C2.71569 3.07632 2.40973 3.38228 2.21799 3.7586C2 4.18643 2 4.74648 2 5.86658V11.4666C2 12.5867 2 13.1467 2.21799 13.5746C2.40973 13.9509 2.71569 14.2569 3.09202 14.4486C3.51984 14.6666 4.0799 14.6666 5.2 14.6666Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        <span className="font-medium text-sm text-gray-700">Due Date</span>
-                        {getWorkOrdersSortIndicator("dueDate") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("dueDate")}</span>)}
-                      </div>
-                    </th>
-                  )}
-                  {workordersColumnManagement.visibleColumns.has("status") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("status")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "status")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "status")} onClick={() => handleWorkOrdersSortClick("status")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "status" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "status" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 4.33341H13.137C13.4228 4.33341 13.5657 4.33341 13.6517 4.3936C13.7268 4.44615 13.777 4.52732 13.7904 4.61803C13.8058 4.7219 13.7419 4.84969 13.6141 5.10526L12.7792 6.77496C12.7379 6.85769 12.7172 6.89905 12.7084 6.94253C12.7006 6.98105 12.6997 7.02064 12.7058 7.05947C12.7125 7.1033 12.7313 7.14556 12.7689 7.23008L13.6667 9.25014C13.7778 9.50008 13.8333 9.62504 13.8151 9.72593C13.7992 9.81409 13.7485 9.89214 13.6744 9.94248C13.5896 10.0001 13.4528 10.0001 13.1793 10.0001H8.06667C7.6933 10.0001 7.50661 10.0001 7.36401 9.92742C7.23856 9.8635 7.13658 9.76152 7.07266 9.63607C7 9.49347 7 9.30678 7 8.93341V7.33341M2 14.0001L2 2.33341M2 7.33341H7.93333C8.3067 7.33341 8.49339 7.33341 8.63599 7.26075C8.76143 7.19684 8.86342 7.09485 8.92734 6.96941C9 6.8268 9 6.64012 9 6.26675V2.73341C9 2.36005 9 2.17336 8.92734 2.03075C8.86342 1.90531 8.76143 1.80333 8.63599 1.73941C8.49339 1.66675 8.3067 1.66675 7.93333 1.66675L3.06667 1.66675C2.6933 1.66675 2.50661 1.66675 2.36401 1.73941C2.23856 1.80333 2.13658 1.90531 2.07266 2.03075C2 2.17336 2 2.36005 2 2.73341V7.33341Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        <span className="font-medium text-sm text-gray-700">Status</span>
-                        {getWorkOrdersSortIndicator("status") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("status")}</span>)}
-                      </div>
-                    </th>
-                  )}
-                  {workordersColumnManagement.visibleColumns.has("billStatus") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("billStatus")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "billStatus")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "billStatus")} onClick={() => handleWorkOrdersSortClick("billStatus")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "billStatus" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "billStatus" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.33399 5.33325H5.34065M1.33398 3.46658L1.33398 6.44959C1.33398 6.77572 1.33398 6.93878 1.37082 7.09223C1.40349 7.22827 1.45736 7.35833 1.53046 7.47763C1.61292 7.61219 1.72822 7.72749 1.95882 7.95809L7.07124 13.0705C7.86328 13.8625 8.25929 14.2586 8.71595 14.4069C9.11764 14.5375 9.55033 14.5375 9.95202 14.4069C10.4087 14.2586 10.8047 13.8625 11.5967 13.0705L13.0712 11.596C13.8633 10.804 14.2593 10.4079 14.4077 9.95128C14.5382 9.5496 14.5382 9.1169 14.4077 8.71522C14.2593 8.25856 13.8633 7.86254 13.0712 7.07051L7.95882 1.95809C7.72822 1.72749 7.61292 1.61219 7.47836 1.52973C7.35907 1.45663 7.22901 1.40275 7.09296 1.37009C6.93951 1.33325 6.77645 1.33325 6.45033 1.33325L3.46732 1.33325C2.72058 1.33325 2.34721 1.33325 2.062 1.47858C1.81111 1.60641 1.60714 1.81038 1.47931 2.06126C1.33398 2.34648 1.33398 2.71985 1.33398 3.46658ZM5.66732 5.33325C5.66732 5.51735 5.51808 5.66658 5.33399 5.66658C5.14989 5.66658 5.00065 5.51735 5.00065 5.33325C5.00065 5.14916 5.14989 4.99992 5.33399 4.99992C5.51808 4.99992 5.66732 5.14916 5.66732 5.33325Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        <span className="font-medium text-sm text-gray-700">Bill Status</span>
-                        {getWorkOrdersSortIndicator("billStatus") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("billStatus")}</span>)}
-                      </div>
-                    </th>
-                  )}
-                  {workordersColumnManagement.visibleColumns.has("billTotal") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("billTotal")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "billTotal")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "billTotal")} onClick={() => handleWorkOrdersSortClick("billTotal")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "billTotal" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "billTotal" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 10.6666C4 12.1393 5.19391 13.3333 6.66667 13.3333H9.33333C10.8061 13.3333 12 12.1393 12 10.6666C12 9.19383 10.8061 7.99992 9.33333 7.99992H6.66667C5.19391 7.99992 4 6.80601 4 5.33325C4 3.86049 5.19391 2.66659 6.66667 2.66659H9.33333C10.8061 2.66659 12 3.86049 12 5.33325M8 1.33325V14.6666" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        <span className="font-medium text-sm text-gray-700">Bill Total</span>
-                        {getWorkOrdersSortIndicator("billTotal") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("billTotal")}</span>)}
-                      </div>
-                    </th>
-                  )}
-                  {workordersColumnManagement.visibleColumns.has("assignees") && (
-                    <th draggable onDragStart={() => workordersColumnManagement.handleColumnDragStart("assignees")} onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, "assignees")} onDragLeave={workordersColumnManagement.handleColumnDragLeave} onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, "assignees")} onClick={() => handleWorkOrdersSortClick("assignees")} className="relative px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" style={workordersColumnManagement.draggedColumn === "assignees" ? { opacity: 0.5 } : {}}>
-                      {workordersColumnManagement.dropTargetColumn === "assignees" && (
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-blue-500"
-                          style={{
-                            left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
-                            right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M2.66722 4.99992C2.66722 2.97487 4.30884 1.33325 6.33388 1.33325C8.35893 1.33325 10.0005 2.97487 10.0005 4.99992C10.0005 7.02496 8.35893 8.66659 6.33388 8.66659C4.30884 8.66659 2.66722 7.02496 2.66722 4.99992Z" fill="#525252" /><path fillRule="evenodd" clipRule="evenodd" d="M6.33388 9.33325C8.46471 9.33325 10.3696 10.536 11.532 12.28C11.6344 12.4336 11.7436 12.5975 11.8199 12.7532C11.9118 12.9407 11.9778 13.156 11.9624 13.4131C11.9501 13.6182 11.882 13.8085 11.8012 13.9596C11.7203 14.1107 11.5996 14.2728 11.4357 14.3967C11.2162 14.5627 10.9796 14.6209 10.7705 14.6453C10.5863 14.6667 10.3682 14.6666 10.1485 14.6666C7.60641 14.6661 5.06234 14.6661 2.51926 14.6666C2.29957 14.6666 2.08147 14.6667 1.89731 14.6453C1.68818 14.6209 1.45158 14.5627 1.23204 14.3967C1.06816 14.2728 0.947505 14.1107 0.86661 13.9596C0.785715 13.8085 0.71768 13.6182 0.705369 13.4131C0.689933 13.156 0.755933 12.9407 0.847831 12.7532C0.924183 12.5975 1.03339 12.4336 1.1358 12.28C2.29819 10.536 4.20306 9.33325 6.33388 9.33325Z" fill="#525252" /></svg>
-                        <span className="font-medium text-sm text-gray-700">Assignees</span>
-                        {getWorkOrdersSortIndicator("assignees") && (<span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator("assignees")}</span>)}
-                      </div>
-                    </th>
-                  )}
+                  {workordersColumnManagement.columnOrder.filter(colKey => workordersColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
+                    const colConfig = workOrdersColumnConfig[colKey];
+                    return (
+                      <th
+                        key={colKey}
+                        draggable
+                        onDragStart={() => workordersColumnManagement.handleColumnDragStart(colKey)}
+                        onDragOver={(e) => workordersColumnManagement.handleColumnDragOver(e, colKey)}
+                        onDragLeave={workordersColumnManagement.handleColumnDragLeave}
+                        onDrop={(e) => workordersColumnManagement.handleColumnDrop(e, colKey)}
+                        onClick={() => handleWorkOrdersSortClick(colKey)}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                        style={{
+                          opacity: workordersColumnManagement.draggedColumn === colKey ? 0.5 : 1,
+                          transition: "opacity 0.2s ease",
+                        }}
+                      >
+                        {workordersColumnManagement.dropTargetColumn === colKey && workordersColumnManagement.draggedColumn && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              bottom: 0,
+                              width: "2px",
+                              backgroundColor: "#3b82f6",
+                              left: workordersColumnManagement.dropPosition === "before" ? "0" : "auto",
+                              right: workordersColumnManagement.dropPosition === "after" ? "0" : "auto",
+                            }}
+                          />
+                        )}
+                        <div className="flex items-center gap-2">
+                          {colConfig?.icon}
+                          <span className="font-medium text-sm text-gray-700">{colConfig?.label}</span>
+                          {getWorkOrdersSortIndicator(colKey) && (
+                            <span className="text-xs font-bold text-gray-700 ml-1">{getWorkOrdersSortIndicator(colKey)}</span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
                     <span className="font-medium text-sm text-gray-700">Actions</span>
                   </th>
