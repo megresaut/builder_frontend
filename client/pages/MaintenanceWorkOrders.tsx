@@ -831,7 +831,6 @@ export default function MaintenanceWorkOrders() {
                               workOrder={workOrder}
                               openMenuId={openMenuId}
                               setOpenMenuId={setOpenMenuId}
-                              onEditClick={handleWorkOrderEdit}
                             />
                           </td>
                         </tr>
