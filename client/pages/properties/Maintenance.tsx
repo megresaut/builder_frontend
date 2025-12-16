@@ -1479,14 +1479,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             break;
                           case "title":
                             cellContent = (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {task.title}
                               </span>
                             );
                             break;
                           case "due":
                             cellContent = (
-                              <span className="text-gray-900 font-normal text-sm">
+                              <span className="text-gray-900 font-normal text-sm truncate">
                                 {task.due}
                               </span>
                             );
@@ -1514,7 +1514,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             cellContent = "";
                         }
                         return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             {cellContent}
                           </td>
                         );
@@ -2223,7 +2223,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             cellContent = "";
                         }
                         return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             {cellContent}
                           </td>
                         );
@@ -2561,7 +2561,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                             cellContent = null;
                         }
                         return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
                             {cellContent}
                           </td>
                         );
