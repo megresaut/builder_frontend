@@ -1718,47 +1718,21 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             navigate(`/tasks/${order.taskId}/fieldteam`);
           }}
           headerActions={
-            <div className="flex min-w-60 items-start gap-2.5">
-              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
-                />
-              </div>
-              <button
-                onClick={() => {}}
-                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              >
-                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
-                  Filters
-                </span>
-              </button>
-              <button
-                ref={fieldteamColumnManagement.columnButtonRef}
-                onClick={() => {
-                  setFieldteamShowDropdown(false);
-                  setOpenMenuId(null);
-                  fieldteamColumnManagement.setShowColumnModal((prev) => !prev);
-                }}
-                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-                </svg>
-              </button>
-            </div>
+            <button
+              ref={fieldteamColumnManagement.columnButtonRef}
+              onClick={() => {
+                setFieldteamShowDropdown(false);
+                setOpenMenuId(null);
+                fieldteamColumnManagement.setShowColumnModal((prev) => !prev);
+              }}
+              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+            >
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
+                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+              </svg>
+            </button>
           }
         />
       )}
