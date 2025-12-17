@@ -694,6 +694,26 @@ export default function FieldTeamOrdersTab({
             ?.name
         }
       />
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Field Team Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{orderToDelete?.description}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteFTO}
+              className="bg-[#982740] text-white hover:bg-[#7a1f33]"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
