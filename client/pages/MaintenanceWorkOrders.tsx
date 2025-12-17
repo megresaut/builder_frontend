@@ -672,7 +672,7 @@ export default function MaintenanceWorkOrders() {
                   </svg>
                 ),
                 onClick: (workOrder: WorkOrder) => {
-                  setWorkOrders(workOrders.filter(wo => wo.id !== workOrder.id));
+                  setWorkOrders((prev) => prev.filter(wo => wo.id !== workOrder.id));
                 },
               },
             ]}
