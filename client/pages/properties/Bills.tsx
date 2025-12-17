@@ -974,6 +974,8 @@ export const Bills: React.FC<BillsProps> = ({
         return next;
       });
 
+      markBillAsNew(newBill.id);
+
       setSyncState("synced");
       setTimeout(() => {
         setSyncState("idle");
