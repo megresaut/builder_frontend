@@ -185,7 +185,7 @@ export default function GlobalTable({
         return;
       }
 
-      onShowPageSizeDropdownChange(false);
+      onShowPageSizeDropdownChange?.(false);
     };
 
     const handleMouseMove = (event: MouseEvent) => {
