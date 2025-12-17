@@ -8,6 +8,7 @@ import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
+import GlobalTable from "@/components/GlobalTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
 
 interface BillsProps {
