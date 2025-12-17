@@ -21,6 +21,7 @@ interface ColumnFilterModalProps {
   visibleColumns: Set<string>;
   onToggleColumn: (columnKey: string) => void;
   onClose?: () => void;
+  buttonRef?: React.RefObject<HTMLElement>;
 }
 
 export default function ColumnFilterModal({
