@@ -118,117 +118,33 @@ export default function Vendors() {
     "isAddVendorModalOpen",
     false,
   );
-  const [showColumnModal, setShowColumnModal] = usePageState(
-    "showColumnModal",
-    false,
-  );
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(vendors, "vendors");
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const columnButtonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  // Column drag-and-drop state
-  const [columnOrder, setColumnOrder] = useState<string[]>([
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    vendors,
+    "vendors"
+  );
+  const {
+    columnOrder,
+    visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+  } = useColumnManagement([
     "name",
     "phone",
     "email",
     "servicesProvided",
     "notes",
   ]);
-  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
-  const [dropTargetColumn, setDropTargetColumn] = useState<string | null>(null);
-  const [dropPosition, setDropPosition] = useState<"before" | "after">("before");
-  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
-    new Set(["name", "phone", "email", "servicesProvided", "notes"])
-  );
-  const [columnMenuPos, setColumnMenuPos] = useState({ top: 0, left: 0 });
-  const allAvailableColumns = ["name", "phone", "email", "servicesProvided", "notes"];
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateDropdownPos = () => {
-      if (showPageSizeDropdown && dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showPageSizeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
-      }
-    };
-
-    if (showPageSizeDropdown) {
-      updateDropdownPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showPageSizeDropdown]);
-
-  // Close dropdowns when clicking outside and ensure only one is open
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      const isDropdownButtonClick = dropdownButtonRef.current?.contains(target);
-      const isColumnButtonClick = columnButtonRef.current?.contains(target);
-      const isColumnFilterModalClick = document.querySelector('[data-column-filter-modal="true"]')?.contains(target);
-
-      // If clicking on a dropdown button, close the other dropdown
-      if (isDropdownButtonClick) {
-        setShowColumnModal(false);
-        setOpenMenuId(null);
-      } else if (isColumnButtonClick) {
-        setShowPageSizeDropdown(false);
-        setOpenMenuId(null);
-      } else if (!isColumnFilterModalClick) {
-        // Clicking outside all dropdowns - close all
-        setShowPageSizeDropdown(false);
-        setShowColumnModal(false);
-        setOpenMenuId(null);
-      }
-    };
-
-    if (showPageSizeDropdown || showColumnModal || openMenuId !== null) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [showPageSizeDropdown, showColumnModal, openMenuId]);
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateColumnMenuPos = () => {
-      if (showColumnModal && columnButtonRef.current) {
-        const rect = columnButtonRef.current.getBoundingClientRect();
-        setColumnMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 260,
-        });
-      }
-
-      if (showColumnModal) {
-        animationFrameId = requestAnimationFrame(updateColumnMenuPos);
-      }
-    };
-
-    if (showColumnModal) {
-      updateColumnMenuPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showColumnModal]);
 
   const handleAddVendor = (vendorData: {
     name: string;
