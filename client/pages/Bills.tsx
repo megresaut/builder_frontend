@@ -465,6 +465,18 @@ export default function Bills() {
     new Set()
   );
 
+  const markBillAsNew = (billId: number) => {
+    setNewlyAddedBillIds((prev) => new Set(prev).add(billId));
+    const timer = setTimeout(() => {
+      setNewlyAddedBillIds((prev) => {
+        const next = new Set(prev);
+        next.delete(billId);
+        return next;
+      });
+    }, 2500);
+    return () => clearTimeout(timer);
+  };
+
   const approvedBills = billsList.filter((b) => approvedBillIds.has(b.id));
   const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
   const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
