@@ -409,9 +409,7 @@ export default function Vendors() {
                     />
                   </svg>
                 ),
-                onClick: (vendor: Vendor) => {
-                  navigate(`/vendors/${vendor.id}`);
-                },
+                onClick: handleEditVendor,
               },
               {
                 label: "Delete",
@@ -432,9 +430,7 @@ export default function Vendors() {
                     />
                   </svg>
                 ),
-                onClick: (vendor: Vendor) => {
-                  setVendors((prev) => prev.filter(v => v.id !== vendor.id));
-                },
+                onClick: handleDeleteVendor,
               },
             ]}
             onRowClick={(vendor) => {
