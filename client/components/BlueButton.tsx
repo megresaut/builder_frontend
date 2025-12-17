@@ -27,7 +27,7 @@ export default function BlueButton({
         boxShadow: "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
       }}
     >
-      {icon && <div className="flex-shrink-0">{icon}</div>}
+      {icon && <div className="flex-shrink-0 text-white">{icon}</div>}
       <span className="text-white font-medium text-base leading-normal">
         {children}
       </span>
