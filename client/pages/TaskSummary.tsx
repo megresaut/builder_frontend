@@ -2066,6 +2066,7 @@ export default function TaskSummary() {
             visibleColumns={visibleColumns}
             onToggleColumn={toggleColumnVisibility}
             onClose={() => setShowColumnModal(false)}
+            buttonRef={columnButtonRef}
           />
 
           {/* Create/Update FTO Modal */}
