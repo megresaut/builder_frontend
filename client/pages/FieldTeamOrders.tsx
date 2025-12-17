@@ -270,6 +270,7 @@ export default function FieldTeamOrders() {
     "showApprovalModal",
     false,
   );
+  const [searchValue, setSearchValue] = usePageState("searchValue", "");
 
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(orders);
