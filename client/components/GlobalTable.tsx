@@ -435,7 +435,7 @@ export default function GlobalTable({
             <button
               ref={dropdownButtonRef}
               onClick={() =>
-                onShowPageSizeDropdownChange(!showPageSizeDropdown)
+                onShowPageSizeDropdownChange?.(!showPageSizeDropdown)
               }
               className="ra-table-page-size-button flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
               style={{
