@@ -1056,6 +1056,7 @@ export default function AllProperties() {
         visibleColumns={visibleColumns}
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
       />
 
       <AddPropertyModal
