@@ -1643,26 +1643,31 @@ export default function Bills() {
       />
 
       {/* Column Filter Modal */}
-      <ColumnFilterModal
-        isOpen={showColumnModal}
-        position={columnMenuPos}
-        columns={[
-          "vendor",
-          "statementDate",
-          "dueDate",
-          "status",
-          "memo",
-          "invoiceNumber",
-          "amount",
-        ].map((colKey) => ({
-          key: colKey,
-          label: columnConfig[colKey]?.label || "",
-          icon: columnConfig[colKey]?.icon || null,
-        }))}
-        visibleColumns={visibleColumns}
-        onToggleColumn={toggleColumnVisibility}
-        onClose={() => setShowColumnModal(false)}
-      />
+      {showColumnModal &&
+        createPortal(
+          <ColumnFilterModal
+            isOpen={showColumnModal}
+            position={columnMenuPos}
+            columns={[
+              "vendor",
+              "statementDate",
+              "dueDate",
+              ...(selectedTab === "drafts" ? ["status"] : []),
+              ...(selectedTab === "approved" ? ["exportedAt"] : []),
+              "memo",
+              "invoiceNumber",
+              "amount",
+            ].map((colKey) => ({
+              key: colKey,
+              label: columnConfig[colKey]?.label || "",
+              icon: columnConfig[colKey]?.icon || null,
+            }))}
+            visibleColumns={visibleColumns}
+            onToggleColumn={toggleColumnVisibility}
+            onClose={() => setShowColumnModal(false)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }
