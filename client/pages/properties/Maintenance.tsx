@@ -1846,14 +1846,181 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
 
       {/* Field Team Orders Table */}
       {activeTab === "fieldteam" && (
-        <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap border-b border-gray-200">
-            <div className="flex items-center gap-4">
-              <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                Field Team Orders
-              </div>
-            </div>
+        <GlobalTable
+          columns={[
+            { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
+            { key: "description", label: "Description", icon: fieldTeamColumnConfig.description.icon },
+            { key: "dueDate", label: "Due Date", icon: fieldTeamColumnConfig.dueDate.icon },
+            { key: "fieldTeam", label: "Field Team", icon: fieldTeamColumnConfig.fieldTeam.icon },
+            { key: "status", label: "Status", icon: fieldTeamColumnConfig.status.icon },
+            { key: "timesheetStatus", label: "Timesheet Status", icon: fieldTeamColumnConfig.timesheetStatus.icon },
+            { key: "amount", label: "Amount", icon: fieldTeamColumnConfig.amount.icon },
+          ]}
+          data={fieldTeamOrdersList}
+          rowKey="id"
+          actions={[
+            {
+              label: "Approve",
+              icon: (
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.25 8.97L6.75 13.47L15.75 4.47"
+                    stroke="#0A7F2F"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+              onClick: (order: FieldTeamOrder) => {
+                setSelectedFTOId(order.id);
+                setShowApprovalModal(true);
+              },
+            },
+            {
+              label: "Edit",
+              icon: (
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                    stroke="#525252"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+              onClick: (order: FieldTeamOrder) => {
+                setEditFTOData({
+                  dueDate: order.dueDate,
+                  priority: "normal",
+                  ftoStatus: order.status,
+                });
+                setShowCreateFTOModal(true);
+              },
+            },
+            {
+              label: "Delete",
+              icon: (
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                    stroke="#982740"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+              onClick: (order: FieldTeamOrder) => {
+                setFieldTeamOrdersList((prev) => prev.filter((o) => o.id !== order.id));
+              },
+            },
+          ]}
+          renderCell={(order: FieldTeamOrder, columnKey: string) => {
+            switch (columnKey) {
+              case "priority":
+                return (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          order.priority === "low"
+                            ? "#059669"
+                            : order.priority === "normal"
+                              ? "#2463eb"
+                              : "#d97706",
+                      }}
+                    />
+                    <span className="text-gray-900 font-normal text-sm capitalize">
+                      {order.priority}
+                    </span>
+                  </div>
+                );
+              case "description":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {order.description}
+                  </span>
+                );
+              case "dueDate":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {order.dueDate}
+                  </span>
+                );
+              case "fieldTeam":
+                return (
+                  <div className="flex items-center gap-2">
+                    {order.fieldTeam.map((member, idx) => (
+                      <div key={idx} className="relative group">
+                        <div
+                          className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                          title={member.name}
+                        >
+                          {member.initials}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                          {member.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              case "status":
+                return getFTOStatusBadge(order.status);
+              case "timesheetStatus":
+                return getTimesheetStatusBadge(order.timesheetStatus);
+              case "amount":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    ${order.amount}
+                  </span>
+                );
+              default:
+                return null;
+            }
+          }}
+          sortingHook={{
+            handleSortClick: handleFieldTeamSortClick,
+            getSortIndicator: getFieldTeamSortIndicator,
+            getSortedData: getFieldTeamSortedData,
+          }}
+          columnManagementHook={fieldteamColumnManagement}
+          currentPage={fieldteamPage}
+          onPageChange={setFieldteamPage}
+          itemsPerPage={fieldteamItemsPerPage}
+          onItemsPerPageChange={setFieldteamItemsPerPage}
+          showPageSizeDropdown={fieldteamShowDropdown}
+          onShowPageSizeDropdownChange={setFieldteamShowDropdown}
+          openMenuId={openMenuId}
+          onOpenMenuIdChange={setOpenMenuId}
+          title="Field Team Orders"
+          showColumnModal={fieldteamColumnManagement.showColumnModal}
+          onShowColumnModalChange={fieldteamColumnManagement.setShowColumnModal}
+          onRowClick={(order: FieldTeamOrder, e: React.MouseEvent) => {
+            navigate(`/tasks/${order.taskId}/fieldteam`);
+          }}
+          headerActions={
             <div className="flex min-w-60 items-start gap-2.5">
               <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
                 <img
@@ -1895,296 +2062,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </svg>
               </button>
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {fieldteamColumnManagement.columnOrder.filter(colKey => fieldteamColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
-                    const colConfig = fieldTeamColumnConfig[colKey];
-                    return (
-                      <th
-                        key={colKey}
-                        draggable
-                        onDragStart={() => fieldteamColumnManagement.handleColumnDragStart(colKey)}
-                        onDragOver={(e) => fieldteamColumnManagement.handleColumnDragOver(e, colKey)}
-                        onDragLeave={fieldteamColumnManagement.handleColumnDragLeave}
-                        onDrop={(e) => fieldteamColumnManagement.handleColumnDrop(e, colKey)}
-                        onClick={() => handleFieldTeamSortClick(colKey)}
-                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
-                        style={{
-                          opacity: fieldteamColumnManagement.draggedColumn === colKey ? 0.5 : 1,
-                          transition: "opacity 0.2s ease",
-                        }}
-                      >
-                        {fieldteamColumnManagement.dropTargetColumn === colKey && fieldteamColumnManagement.draggedColumn && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              bottom: 0,
-                              width: "2px",
-                              backgroundColor: "#3b82f6",
-                              left: fieldteamColumnManagement.dropPosition === "before" ? "0" : "auto",
-                              right: fieldteamColumnManagement.dropPosition === "after" ? "0" : "auto",
-                            }}
-                          />
-                        )}
-                        <div className="flex items-center gap-2">
-                          {colConfig?.icon}
-                          <span className="font-medium text-sm text-gray-700">{colConfig?.label}</span>
-                          {getFieldTeamSortIndicator(colKey) && (
-                            <span className="text-xs font-bold text-gray-700 ml-1">{getFieldTeamSortIndicator(colKey)}</span>
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
-                  <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
-                    <span className="font-medium text-sm text-gray-700">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedFieldTeamOrders.map((order) => {
-                  const handleRowClick = (e: React.MouseEvent) => {
-                    if ((e.target as HTMLElement).closest("td:last-child")) {
-                      return;
-                    }
-                    navigate(`/tasks/${order.taskId}/fieldteam`);
-                  };
-                  return (
-                    <tr
-                      key={order.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={handleRowClick}
-                    >
-                      {fieldteamColumnManagement.columnOrder.filter(colKey => fieldteamColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
-                        let cellContent;
-                        switch (colKey) {
-                          case "priority":
-                            cellContent = (
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-2 h-2 rounded-full"
-                                  style={{
-                                    backgroundColor:
-                                      order.priority === "low"
-                                        ? "#059669"
-                                        : order.priority === "normal"
-                                          ? "#2463eb"
-                                          : "#d97706",
-                                  }}
-                                />
-                                <span className="text-gray-900 font-normal text-sm capitalize">
-                                  {order.priority}
-                                </span>
-                              </div>
-                            );
-                            break;
-                          case "description":
-                            cellContent = (
-                              <span className="text-gray-900 font-normal text-sm">
-                                {order.description}
-                              </span>
-                            );
-                            break;
-                          case "dueDate":
-                            cellContent = (
-                              <span className="text-gray-900 font-normal text-sm">
-                                {order.dueDate}
-                              </span>
-                            );
-                            break;
-                          case "fieldTeam":
-                            cellContent = (
-                              <div className="flex items-center gap-2">
-                                {order.fieldTeam.map((member, idx) => (
-                                  <div key={idx} className="relative group">
-                                    <div
-                                      className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                                      title={member.name}
-                                    >
-                                      {member.initials}
-                                    </div>
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                                      {member.name}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                            break;
-                          case "status":
-                            cellContent = getFTOStatusBadge(order.status);
-                            break;
-                          case "timesheetStatus":
-                            cellContent = getTimesheetStatusBadge(order.timesheetStatus);
-                            break;
-                          case "amount":
-                            cellContent = (
-                              <span className="text-gray-900 font-normal text-sm">
-                                ${order.amount}
-                              </span>
-                            );
-                            break;
-                          default:
-                            cellContent = null;
-                        }
-                        return (
-                          <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible">
-                            {cellContent}
-                          </td>
-                        );
-                      })}
-                      <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
-                        <ActionButton
-                          itemId={order.id}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          isFTO={true}
-                          onApprove={() => {
-                            setSelectedFTOId(order.id);
-                            setShowApprovalModal(true);
-                          }}
-                          onEdit={() => {
-                            setEditFTOData({
-                              dueDate: order.dueDate,
-                              priority: "normal",
-                              ftoStatus: order.status,
-                            });
-                            setShowCreateFTOModal(true);
-                          }}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between w-full gap-4 flex-wrap px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center gap-2">
-              <div className="text-[#525252] text-base font-medium">
-                Showing
-              </div>
-              <button
-                ref={fieldteamDropdownRef}
-                onClick={() => setFieldteamShowDropdown(!fieldteamShowDropdown)}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
-              >
-                <div className="text-[#0A0A0A] text-base font-medium">
-                  {fieldteamItemsPerPage}
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/cc5507ba17118962f81e4f61a415adb6e3ee75ee?placeholderIfAbsent=true"
-                  className="w-[18px] h-[18px]"
-                  alt=""
-                />
-              </button>
-              <div className="text-[#525252] text-base font-medium">
-                of {mockPropertyFieldTeamOrders.length}
-              </div>
-            </div>
-            <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
-              <div
-                className={cn(
-                  "flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
-                  !fieldteamCanGoPrev && "pointer-events-none opacity-50",
-                )}
-                onClick={() =>
-                  setFieldteamPage((prev) => Math.max(1, prev - 1))
-                }
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/dc8342cc7d9ed7372ff27293ef7c08e463e9fba7?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-                <div className="text-[#525252] text-base font-medium">
-                  Previous
-                </div>
-              </div>
-              <div className="flex items-center justify-center min-h-10 min-w-10 px-2 gap-2 border-r border-[#E5E5E5] bg-white">
-                <div className="text-[#0A0A0A] text-base font-medium">
-                  {fieldteamPage}
-                </div>
-              </div>
-              <div
-                className={cn(
-                  "flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
-                  !fieldteamCanGoNext && "pointer-events-none opacity-50",
-                )}
-                onClick={() =>
-                  setFieldteamPage((prev) =>
-                    Math.min(fieldteamTotalPages, prev + 1),
-                  )
-                }
-              >
-                <div className="text-[#525252] text-base font-medium">Next</div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/34c281f37936da4ccce4bfe5d47937be9d7ed9c7?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Field Team Items Per Page Dropdown */}
-          {fieldteamShowDropdown &&
-            createPortal(
-              <div
-                className="bg-white overflow-hidden"
-                style={{
-                  border: "0.5px solid #DADADA",
-                  borderRadius: "8px",
-                  boxShadow:
-                    "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                  zIndex: 99999,
-                  minWidth: "56px",
-                  width: "56px",
-                  position: "fixed",
-                  top: fieldteamDropdownPos.top + "px",
-                  left: fieldteamDropdownPos.left + "px",
-                  pointerEvents: "auto",
-                }}
-                onMouseLeave={() => setFieldteamShowDropdown(false)}
-              >
-                {[10, 25, 50].map((size, index) => (
-                  <button
-                    key={size}
-                    onClick={() => {
-                      setFieldteamItemsPerPage(size);
-                      setFieldteamPage(1);
-                      setFieldteamShowDropdown(false);
-                    }}
-                    className={`w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap ${
-                      fieldteamItemsPerPage === size
-                        ? "bg-gray-50 font-medium text-gray-900"
-                        : "text-[#303030] hover:bg-gray-50"
-                    }`}
-                    style={{
-                      fontFamily:
-                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                      fontSize: "16px",
-                      lineHeight: "140%",
-                      letterSpacing: "-0.32px",
-                      borderRadius: index === 2 ? "0 0 8px 8px" : "0",
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>,
-              document.body,
-            )}
-        </div>
+          }
+        />
       )}
 
       {/* FTO Approval Modal */}
