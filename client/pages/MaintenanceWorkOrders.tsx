@@ -667,10 +667,7 @@ export default function MaintenanceWorkOrders() {
                     />
                   </svg>
                 ),
-                onClick: (workOrder: WorkOrder) => {
-                  setEditingWorkOrder(workOrder);
-                  setIsCreateWorkOrderModalOpen(true);
-                },
+                onClick: handleEditWorkOrder,
               },
               {
                 label: "Delete",
@@ -691,9 +688,7 @@ export default function MaintenanceWorkOrders() {
                     />
                   </svg>
                 ),
-                onClick: (workOrder: WorkOrder) => {
-                  setWorkOrders((prev) => prev.filter(wo => wo.id !== workOrder.id));
-                },
+                onClick: handleDeleteWorkOrder,
               },
             ]}
             onRowClick={(workOrder) => {
