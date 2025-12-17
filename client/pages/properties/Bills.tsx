@@ -275,10 +275,12 @@ const ActionButton = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     setOpenMenuId(null);
-                    const path = propertyId
+                    const basePath = propertyId
                       ? `/property/${propertyId}/bills/record`
                       : "/bills/record";
-                    navigate(path);
+                    navigate(`${basePath}?billId=${billId}`, {
+                      state: { bill: buildBillState(bill) },
+                    });
                   }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
@@ -348,10 +350,12 @@ const ActionButton = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpenMenuId(null);
-                  const path = propertyId
+                  const basePath = propertyId
                     ? `/property/${propertyId}/bills/record?readOnly=true`
                     : "/bills/record?readOnly=true";
-                  navigate(path);
+                  navigate(`${basePath}&billId=${billId}`, {
+                    state: { bill: buildBillState(bill) },
+                  });
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
@@ -608,32 +612,77 @@ export const Bills: React.FC<BillsProps> = ({
   useEffect(() => {
     const handleBillApproved = (event: Event) => {
       const customEvent = event as CustomEvent<{
+        billId?: number;
         timestamp: number;
         vendor?: string;
         invoiceDate?: string;
         dueDate?: string;
         referenceNumber?: string;
         memo?: string;
+        amount?: number;
         lineItems?: any[];
         uploadedFiles?: any[];
       }>;
 
       const billData = customEvent.detail;
+      const resolvedBillId =
+        typeof billData.billId === "number" && !Number.isNaN(billData.billId)
+          ? billData.billId
+          : Date.now();
+
       setApprovedTimestamp(billData.timestamp);
       setRelativeTimeDisplay((prev) => ({
         ...prev,
         approved: formatRelativeTime(billData.timestamp),
       }));
 
-      // Find the first draft bill and mark it as approved
+      setBillsList((prev) => {
+        const existing = prev.find((b) => b.id === resolvedBillId);
+        const nextBill: Bill = {
+          id: resolvedBillId,
+          vendor: (billData.vendor || existing?.vendor || "").trim() || "—",
+          vendorColor: existing?.vendorColor ?? "#7C3AED",
+          property: existing?.property ?? "22 Indian Chase Dr",
+          statementDate:
+            (billData.invoiceDate || existing?.statementDate || "").trim() ||
+            existing?.statementDate ||
+            new Date().toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }),
+          dueDate:
+            (billData.dueDate || existing?.dueDate || "").trim() ||
+            existing?.dueDate ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
+              "en-US",
+              {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              },
+            ),
+          status: existing?.status ?? "push-failed",
+          memo: billData.memo ?? existing?.memo ?? "",
+          invoiceNumber:
+            billData.referenceNumber ?? existing?.invoiceNumber ?? "",
+          amount:
+            typeof billData.amount === "number"
+              ? billData.amount
+              : existing?.amount ?? 0,
+          glAccount: existing?.glAccount ?? "6200 - HVAC Services",
+          importedAt: existing?.importedAt ?? Date.now(),
+        };
+
+        return existing
+          ? prev.map((b) => (b.id === resolvedBillId ? nextBill : b))
+          : [nextBill, ...prev];
+      });
+
       setApprovedBillIds((prev) => {
-        const newSet = new Set(prev);
-        // Find first bill that's not already approved
-        const firstDraftBill = billsList.find((b) => !prev.has(b.id));
-        if (firstDraftBill) {
-          newSet.add(firstDraftBill.id);
-        }
-        return newSet;
+        const next = new Set(prev);
+        next.add(resolvedBillId);
+        return next;
       });
 
       setSelectedTab("approved");
@@ -642,7 +691,90 @@ export const Bills: React.FC<BillsProps> = ({
     window.addEventListener("billApproved", handleBillApproved);
 
     return () => window.removeEventListener("billApproved", handleBillApproved);
-  }, [billsList]);
+  }, []);
+
+  useEffect(() => {
+    const handleBillSaved = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        billId?: number;
+        timestamp: number;
+        vendor?: string;
+        invoiceDate?: string;
+        dueDate?: string;
+        referenceNumber?: string;
+        memo?: string;
+        amount?: number;
+        status?: "draft" | "approved";
+      }>;
+
+      const billData = customEvent.detail;
+      const resolvedBillId =
+        typeof billData.billId === "number" && !Number.isNaN(billData.billId)
+          ? billData.billId
+          : Date.now();
+
+      setDraftsTimestamp(billData.timestamp);
+      setRelativeTimeDisplay((prev) => ({
+        ...prev,
+        drafts: formatRelativeTime(billData.timestamp),
+      }));
+
+      if (billData.status === "draft") {
+        setApprovedBillIds((prev) => {
+          const next = new Set(prev);
+          next.delete(resolvedBillId);
+          return next;
+        });
+      }
+
+      setBillsList((prev) => {
+        const existing = prev.find((b) => b.id === resolvedBillId);
+        const nextBill: Bill = {
+          id: resolvedBillId,
+          vendor: (billData.vendor || existing?.vendor || "").trim() || "—",
+          vendorColor: existing?.vendorColor ?? "#7C3AED",
+          property: existing?.property ?? "22 Indian Chase Dr",
+          statementDate:
+            (billData.invoiceDate || existing?.statementDate || "").trim() ||
+            existing?.statementDate ||
+            new Date().toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }),
+          dueDate:
+            (billData.dueDate || existing?.dueDate || "").trim() ||
+            existing?.dueDate ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
+              "en-US",
+              {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              },
+            ),
+          status: existing?.status ?? "push-failed",
+          memo: billData.memo ?? existing?.memo ?? "",
+          invoiceNumber:
+            billData.referenceNumber ?? existing?.invoiceNumber ?? "",
+          amount:
+            typeof billData.amount === "number"
+              ? billData.amount
+              : existing?.amount ?? 0,
+          glAccount: existing?.glAccount ?? "6200 - HVAC Services",
+          importedAt: existing?.importedAt ?? Date.now(),
+        };
+
+        return existing
+          ? prev.map((b) => (b.id === resolvedBillId ? nextBill : b))
+          : [nextBill, ...prev];
+      });
+    };
+
+    window.addEventListener("billSaved", handleBillSaved);
+
+    return () => window.removeEventListener("billSaved", handleBillSaved);
+  }, []);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -734,8 +866,9 @@ export const Bills: React.FC<BillsProps> = ({
   const handleSync = () => {
     setSyncState("syncing");
     setTimeout(() => {
+      const now = Date.now();
       const newBill: Bill = {
-        id: Math.max(...billsList.map((b) => b.id)) + 1,
+        id: now,
         vendor: "New Vendor Import",
         vendorColor: "#7C3AED",
         property: "22 Indian Chase Dr",
@@ -744,22 +877,34 @@ export const Bills: React.FC<BillsProps> = ({
           day: "numeric",
           year: "numeric",
         }),
-        dueDate: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
+        dueDate: new Date(now + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          },
+        ),
         status: "push-failed",
         memo: "Imported from sync",
         invoiceNumber: `REF-2024-${Math.floor(Math.random() * 1000)}`,
         amount: Math.floor(Math.random() * 500) + 100,
         glAccount: "6200 - HVAC Services",
-        importedAt: Date.now(),
+        importedAt: now,
       };
-      setBillsList([newBill, ...billsList]);
-      setDraftsTimestamp(Date.now());
+
+      setBillsList((prev) => [newBill, ...prev]);
+      setDraftsTimestamp(now);
+      setRelativeTimeDisplay((prev) => ({
+        ...prev,
+        drafts: formatRelativeTime(now),
+      }));
+      setApprovedBillIds((prev) => {
+        const next = new Set(prev);
+        next.delete(newBill.id);
+        return next;
+      });
+
       setSyncState("synced");
       setTimeout(() => {
         setSyncState("idle");
@@ -914,10 +1059,11 @@ export const Bills: React.FC<BillsProps> = ({
 
             <button
               onClick={() => {
+                const billId = Date.now();
                 if (propertyId) {
-                  navigate(`/property/${propertyId}/bills/record`);
+                  navigate(`/property/${propertyId}/bills/record?billId=${billId}`);
                 } else {
-                  navigate("/bills/record");
+                  navigate(`/bills/record?billId=${billId}`);
                 }
               }}
               className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
@@ -1281,10 +1427,13 @@ export const Bills: React.FC<BillsProps> = ({
                         return;
                       }
                       const isApproved = selectedTab === "approved";
-                      const path = propertyId
-                        ? `/property/${propertyId}/bills/record${isApproved ? "?readOnly=true" : ""}`
-                        : `/bills/record${isApproved ? "?readOnly=true" : ""}`;
-                      navigate(path);
+                      const basePath = propertyId
+                        ? `/property/${propertyId}/bills/record`
+                        : "/bills/record";
+                      const path = isApproved
+                        ? `${basePath}?readOnly=true&billId=${bill.id}`
+                        : `${basePath}?billId=${bill.id}`;
+                      navigate(path, { state: { bill: buildBillState(bill) } });
                     };
                     return (
                       <tr
