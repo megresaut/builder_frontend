@@ -1573,7 +1573,7 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.unit}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Unit
+                              Unit <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1581,7 +1581,7 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.workOrder}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Work Order&nbsp;
+                              Work Order <span style={{ color: "rgb(255, 0, 0)" }}>*</span>&nbsp;
                             </span>
                             <span className="text-[#2563eb] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                               + New
@@ -1957,8 +1957,7 @@ export const RecordBill = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                    <line x1="2" x2="22" y1="10" y2="10" />
+                    <polyline points="20 6 9 17 4 12" />
                   </svg>
                   <span className="text-white text-sm font-medium leading-5">Approve & Export</span>
                 </button>
