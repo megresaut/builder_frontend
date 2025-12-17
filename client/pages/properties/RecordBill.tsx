@@ -171,41 +171,59 @@ export const RecordBill = () => {
   const location = useLocation<{ bill?: ViewBillState }>();
   const [searchParams] = useSearchParams();
   const isReadOnly = searchParams.get("readOnly") === "true";
-  const readOnlyBill = isReadOnly
-    ? buildReadOnlyBillFromState(location.state?.bill)
+  const billIdParam = searchParams.get("billId");
+  const billId = billIdParam ? Number(billIdParam) : Number.NaN;
+  const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
+
+  const initialBill = location.state?.bill
+    ? buildReadOnlyBillFromState(location.state.bill)
     : null;
+
+  const readOnlyBill = isReadOnly
+    ? initialBill ?? buildReadOnlyBillFromState(undefined)
+    : null;
+
+  const editableBill = !isReadOnly ? initialBill : null;
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
-    isReadOnly ? (readOnlyBill?.vendor ?? placeholderBill.vendor) : null,
+    isReadOnly
+      ? (readOnlyBill?.vendor ?? placeholderBill.vendor)
+      : (editableBill?.vendor ?? null),
   );
   const [referenceNumber, setReferenceNumber] = useState<string>(
     isReadOnly
       ? (readOnlyBill?.referenceNumber ?? placeholderBill.referenceNumber)
-      : "",
+      : (editableBill?.referenceNumber ?? ""),
   );
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(
     isReadOnly
       ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
-      : null,
+      : (editableBill?.invoiceDate ?? null),
   );
   const [dueDate, setDueDate] = useState<Date | null>(
-    isReadOnly ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate) : null,
+    isReadOnly
+      ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate)
+      : (editableBill?.dueDate ?? null),
   );
-  const [invoiceDateInput, setInvoiceDateInput] = useState<string>(
-    isReadOnly && (readOnlyBill?.invoiceDate || placeholderBill.invoiceDate)
-      ? format(
-          readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate,
-          "MM/dd/yyyy",
-        )
-      : "",
-  );
-  const [dueDateInput, setDueDateInput] = useState<string>(
-    isReadOnly && (readOnlyBill?.dueDate || placeholderBill.dueDate)
-      ? format(readOnlyBill?.dueDate ?? placeholderBill.dueDate, "MM/dd/yyyy")
-      : "",
-  );
+  const [invoiceDateInput, setInvoiceDateInput] = useState<string>(() => {
+    const date =
+      (isReadOnly
+        ? readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate
+        : editableBill?.invoiceDate) ?? null;
+    return date ? format(date, "MM/dd/yyyy") : "";
+  });
+  const [dueDateInput, setDueDateInput] = useState<string>(() => {
+    const date =
+      (isReadOnly
+        ? readOnlyBill?.dueDate ?? placeholderBill.dueDate
+        : editableBill?.dueDate) ?? null;
+    return date ? format(date, "MM/dd/yyyy") : "";
+  });
   const [memo, setMemo] = useState<string>(
-    isReadOnly ? (readOnlyBill?.memo ?? placeholderBill.memo) : "",
+    isReadOnly
+      ? (readOnlyBill?.memo ?? placeholderBill.memo)
+      : (editableBill?.memo ?? ""),
   );
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
@@ -235,7 +253,7 @@ export const RecordBill = () => {
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
       ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
-      : [
+      : (editableBill?.lineItems ?? [
           {
             id: 1,
             property: "",
@@ -245,7 +263,7 @@ export const RecordBill = () => {
             glAccount: "",
             total: "",
           },
-        ],
+        ]),
   );
 
   // Dynamic column width tracking with default minimum widths
