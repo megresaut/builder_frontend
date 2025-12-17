@@ -210,7 +210,7 @@ export default function GlobalTable({
         clientY <= menuRect.bottom + DISTANCE_THRESHOLD;
 
       if (!isNearButton && !isNearMenu) {
-        onShowPageSizeDropdownChange(false);
+        onShowPageSizeDropdownChange?.(false);
       }
     };
 
