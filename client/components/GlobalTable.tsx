@@ -167,9 +167,37 @@ export default function GlobalTable({
       onShowPageSizeDropdownChange(false);
     };
 
+    const handleMouseMove = (event: MouseEvent) => {
+      const buttonRect = dropdownButtonRef.current?.getBoundingClientRect();
+      const menuRect = dropdownMenuRef.current?.getBoundingClientRect();
+
+      if (!buttonRect || !menuRect) return;
+
+      const { clientX, clientY } = event;
+      const DISTANCE_THRESHOLD = 150;
+
+      const isNearButton =
+        clientX >= buttonRect.left - DISTANCE_THRESHOLD &&
+        clientX <= buttonRect.right + DISTANCE_THRESHOLD &&
+        clientY >= buttonRect.top - DISTANCE_THRESHOLD &&
+        clientY <= buttonRect.bottom + DISTANCE_THRESHOLD;
+
+      const isNearMenu =
+        clientX >= menuRect.left - DISTANCE_THRESHOLD &&
+        clientX <= menuRect.right + DISTANCE_THRESHOLD &&
+        clientY >= menuRect.top - DISTANCE_THRESHOLD &&
+        clientY <= menuRect.bottom + DISTANCE_THRESHOLD;
+
+      if (!isNearButton && !isNearMenu) {
+        onShowPageSizeDropdownChange(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousemove", handleMouseMove);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousemove", handleMouseMove);
     };
   }, [showPageSizeDropdown, onShowPageSizeDropdownChange]);
 
