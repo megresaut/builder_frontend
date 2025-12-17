@@ -1460,7 +1460,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </svg>
               ),
               onClick: (task: RecurringTask) => {
-                // Delete action - can be implemented when needed
+                setRecurringTasksList((prev) => prev.filter((t) => t.id !== task.id));
               },
             },
           ]}
