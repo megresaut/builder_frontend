@@ -1999,6 +1999,7 @@ export const RecordBill = () => {
                       calculateTotal().replace(/[^0-9.]/g, ""),
                     );
 
+                    const isNewBill = !Number.isFinite(billId);
                     const detail = {
                       billId: resolvedBillId,
                       timestamp,
@@ -2013,7 +2014,7 @@ export const RecordBill = () => {
                       memo,
                       amount: Number.isFinite(amount) ? amount : 0,
                       status: "draft" as const,
-                      importStatus: "Manual Import" as const,
+                      ...(isNewBill && { importStatus: "Manual Import" as const }),
                     };
 
                     localStorage.setItem(
