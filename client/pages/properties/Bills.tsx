@@ -29,6 +29,7 @@ interface Bill {
   amount: number;
   glAccount: string;
   importedAt: number;
+  exportedAt?: number;
 }
 
 const bills: Bill[] = [
@@ -571,7 +572,9 @@ export const Bills: React.FC<BillsProps> = ({
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
     "idle",
   );
-  const [billsList, setBillsList] = useState<Bill[]>(bills);
+  const [billsList, setBillsList] = useState<Bill[]>(() =>
+    bills.map((bill) => ({ ...bill, exportedAt: bill.importedAt })),
+  );
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(
     new Set(bills.filter((_, idx) => idx % 2 === 0).map((b) => b.id))
   );
@@ -1425,6 +1428,34 @@ export const Bills: React.FC<BillsProps> = ({
                       </div>
                     </th>
                   )}
+                  {selectedTab === "approved" && (
+                    <th
+                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSortClick("exportedAt")}
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 6v6l4 2" />
+                        </svg>
+                        <span className="font-medium text-sm text-gray-700">
+                          Last Exported
+                        </span>
+                        {getSortIndicator("exportedAt") && (
+                          <span className="text-xs font-bold text-gray-500">
+                            {getSortIndicator("exportedAt")}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  )}
                   <th
                     className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
                     style={{
@@ -1507,6 +1538,18 @@ export const Bills: React.FC<BillsProps> = ({
                               <div className="w-2 h-2 rounded-full bg-green-500" />
                               <span className="text-gray-900 font-normal text-sm">
                                 {getTimeAgo(bill.importedAt)}
+                              </span>
+                            </div>
+                          </td>
+                        )}
+                        {selectedTab === "approved" && (
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-green-500" />
+                              <span className="text-gray-900 font-normal text-sm">
+                                {formatRelativeTime(
+                                  bill.exportedAt ?? approvedTimestamp,
+                                )}
                               </span>
                             </div>
                           </td>
