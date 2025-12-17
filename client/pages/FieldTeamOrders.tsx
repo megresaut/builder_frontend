@@ -272,8 +272,22 @@ export default function FieldTeamOrders() {
   );
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
 
+  const filteredOrders = orders.filter((order) => {
+    const searchLower = searchValue.toLowerCase();
+    return (
+      order.property.toLowerCase().includes(searchLower) ||
+      order.description.toLowerCase().includes(searchLower) ||
+      order.dueDate.toLowerCase().includes(searchLower) ||
+      order.status.toLowerCase().includes(searchLower) ||
+      order.priority.toLowerCase().includes(searchLower) ||
+      order.fieldTeam.some((member) =>
+        member.name.toLowerCase().includes(searchLower)
+      )
+    );
+  });
+
   const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(orders);
+    useSortingTable(filteredOrders);
   const {
     columnOrder,
     visibleColumns,
