@@ -387,8 +387,6 @@ export const Bills: React.FC<BillsProps> = ({
     "status",
     "exportedAt",
     "memo",
-    "invoiceNumber",
-    "amount",
   ]);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
