@@ -62,10 +62,7 @@ export default function TaskSummary() {
 
 
   return (
-    <div
-      className="flex flex-col px-6 py-9 pb-6 bg-white"
-      style={{ borderStyle: "none", borderWidth: "1px", minWidth: "1200px" }}
-    >
+    <PageTemplate>
       {/* Header Section */}
       <PageHeader
         title="Edgerton - Quote"
@@ -899,6 +896,6 @@ export default function TaskSummary() {
           {activeTab === "fieldteam" && <FieldTeamOrdersTab />}
         </div>
       </div>
-    </div>
+    </PageTemplate>
   );
 }
