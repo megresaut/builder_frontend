@@ -122,7 +122,7 @@
   }
 
   .ra-table-header-cell {
-    @apply px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative font-medium text-sm text-gray-700;
+    @apply px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative;
   }
 
   .ra-table-header-label {
