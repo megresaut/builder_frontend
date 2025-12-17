@@ -392,7 +392,11 @@ export default function GlobalTable({
                         />
                       )}
                       <div className="flex items-center gap-2">
-                        {colConfig?.icon}
+                        {colConfig?.icon && (
+                          <div className="ra-table-header-icon">
+                            {colConfig.icon}
+                          </div>
+                        )}
                         <span className="ra-table-header-label font-medium text-sm text-gray-700">
                           {colConfig?.label}
                         </span>
