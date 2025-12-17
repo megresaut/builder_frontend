@@ -782,6 +782,8 @@ export default function Bills() {
           ? prev.map((b) => (b.id === resolvedBillId ? nextBill : b))
           : [nextBill, ...prev];
       });
+
+      markBillAsNew(resolvedBillId);
     };
 
     window.addEventListener("billSaved", handleBillSaved);
