@@ -217,18 +217,12 @@ export const RecordBill = () => {
   const billId = billIdParam ? Number(billIdParam) : Number.NaN;
   const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
 
-  const initialBill = location.state?.bill
-    ? isReadOnly
-      ? buildReadOnlyBillFromState(location.state.bill)
-      : buildEditableBillFromState(location.state.bill)
-    : null;
+  const stateBill = location.state?.bill;
 
-  const readOnlyBill = isReadOnly
-    ? (initialBill ? (initialBill as ReturnType<typeof buildReadOnlyBillFromState>) : buildReadOnlyBillFromState(undefined))
-    : null;
+  const readOnlyBill = isReadOnly ? buildReadOnlyBillFromState(stateBill) : null;
 
-  const editableBill = !isReadOnly
-    ? (initialBill ? (initialBill as ReturnType<typeof buildEditableBillFromState>) : null)
+  const editableBill = !isReadOnly && stateBill
+    ? buildEditableBillFromState(stateBill)
     : null;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
