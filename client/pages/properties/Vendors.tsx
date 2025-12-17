@@ -78,6 +78,7 @@ export const Vendors: React.FC<VendorsProps> = ({
   propertyType,
   propertyUnits,
 }) => {
+  const [vendorsList, setVendorsList] = useState<Vendor[]>(mockVendors);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -92,26 +93,9 @@ export const Vendors: React.FC<VendorsProps> = ({
     "isAddVendorModalOpen",
     false,
   );
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const navigate = useNavigate();
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(mockVendors);
-  const {
-    columnOrder,
-    visibleColumns,
-    draggedColumn,
-    dropTargetColumn,
-    dropPosition,
-    showColumnModal,
-    setShowColumnModal,
-    columnMenuPos,
-    columnButtonRef,
-    toggleColumnVisibility,
-    handleColumnDragStart,
-    handleColumnDragOver,
-    handleColumnDragLeave,
-    handleColumnDrop,
-  } = useColumnManagement([
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(vendorsList);
+  const columnManagement = useColumnManagement([
     "name",
     "phone",
     "email",
