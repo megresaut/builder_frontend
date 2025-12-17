@@ -587,7 +587,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       ? `/property/${propertyId}/bills/record`
       : "/bills/record";
 
-    navigateToModal(`${basePath}?readOnly=true`);
+    navigate(`${basePath}?readOnly=true`);
   };
 
   const openEditBill = (bill: ViewBillState) => {
@@ -595,7 +595,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       ? `/property/${propertyId}/bills/record`
       : "/bills/record";
 
-    navigateToModal(basePath);
+    navigate(basePath);
   };
 
   const openViewFTO = (ftoId: number) => {
