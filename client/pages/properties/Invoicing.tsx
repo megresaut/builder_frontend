@@ -59,8 +59,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [showHistoryPageSizeDropdown, setShowHistoryPageSizeDropdown] =
-    useState(false);
   const [invoiceOpenMenuId, setInvoiceOpenMenuId] = useState<
     string | number | null
   >(null);
