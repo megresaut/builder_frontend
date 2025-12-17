@@ -174,6 +174,7 @@ interface ActionButtonProps {
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   tab?: "approved" | "drafts";
+  onDeleteBill?: (billId: number) => void;
 }
 
 const ActionButton = ({
