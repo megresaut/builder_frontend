@@ -10,8 +10,8 @@ interface Column {
 }
 
 interface ActionItem {
-  label: string;
-  icon: ReactNode;
+  label: string | ((row: any) => string);
+  icon: ReactNode | ((row: any) => ReactNode);
   onClick: (row: any) => void;
   className?: string;
 }
@@ -38,6 +38,9 @@ interface GlobalTableProps {
   headerActions?: ReactNode;
   showColumnModal: boolean;
   onShowColumnModalChange: (show: boolean) => void;
+  showPagination?: boolean;
+  getRowClassName?: (row: any) => string;
+  getCellClassName?: (row: any, columnKey: string) => string;
 }
 
 export default function GlobalTable({
@@ -62,6 +65,9 @@ export default function GlobalTable({
   headerActions,
   showColumnModal,
   onShowColumnModalChange,
+  showPagination = true,
+  getRowClassName,
+  getCellClassName,
 }: GlobalTableProps) {
   const { handleSortClick, getSortIndicator, getSortedData } = sortingHook;
   const {
@@ -85,9 +91,11 @@ export default function GlobalTable({
 
   const sorted = getSortedData();
   const totalRows = sorted.length;
-  const totalPages = Math.ceil(totalRows / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(totalRows / itemsPerPage));
 
   const getDisplayedRowsForPage = () => {
+    if (!showPagination) return sorted;
+
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     return sorted.slice(start, end);
@@ -124,6 +132,8 @@ export default function GlobalTable({
   };
 
   useEffect(() => {
+    if (!showPagination) return;
+
     let animationFrameId: number;
 
     const updateDropdownPos = () => {
@@ -149,10 +159,10 @@ export default function GlobalTable({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showPageSizeDropdown]);
+  }, [showPageSizeDropdown, showPagination]);
 
   useEffect(() => {
-    if (!showPageSizeDropdown) return;
+    if (!showPagination || !showPageSizeDropdown) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -199,7 +209,7 @@ export default function GlobalTable({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [showPageSizeDropdown, onShowPageSizeDropdownChange]);
+  }, [showPageSizeDropdown, onShowPageSizeDropdownChange, showPagination]);
 
   const createColumnConfig = (): Record<string, { label: string; icon: ReactNode }> => {
     const config: Record<string, { label: string; icon: ReactNode }> = {};
@@ -323,12 +333,19 @@ export default function GlobalTable({
                 <tr
                   key={row[rowKey]}
                   onClick={handleRowClick}
-                  className="ra-table-row border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                  className={cn(
+                    "ra-table-row border-b border-gray-200 hover:bg-gray-50 transition-colors h-12",
+                    onRowClick ? "cursor-pointer" : "",
+                    getRowClassName?.(row),
+                  )}
                 >
                   {displayedColumnKeys.map((colKey) => (
                       <td
                         key={colKey}
-                        className="ra-table-cell px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible"
+                        className={cn(
+                          "ra-table-cell px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible",
+                          getCellClassName?.(row, colKey),
+                        )}
                       >
                         {renderCell(row, colKey)}
                       </td>
@@ -336,7 +353,10 @@ export default function GlobalTable({
                   {actions.length > 0 && (
                     <td
                       data-global-table-actions-cell="true"
-                      className="ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center"
+                      className={cn(
+                        "ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center",
+                        getCellClassName?.(row, "__actions__"),
+                      )}
                       style={{
                         borderLeftWidth: "2px",
                         width: "80px",
@@ -361,10 +381,11 @@ export default function GlobalTable({
       </div>
 
       {/* Pagination Footer */}
-      <div
-        className="ra-table-pagination flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
-        style={{ position: "relative", zIndex: 1, overflow: "visible" }}
-      >
+      {showPagination && (
+        <div
+          className="ra-table-pagination flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
+          style={{ position: "relative", zIndex: 1, overflow: "visible" }}
+        >
         <div className="flex items-center gap-2">
           <span className="ra-table-pagination-label text-gray-700 text-sm font-medium">
             Showing
@@ -522,10 +543,12 @@ export default function GlobalTable({
             </svg>
           </button>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Dropdown Menu - Rendered via Portal at body level */}
-      {showPageSizeDropdown &&
+      {showPagination &&
+        showPageSizeDropdown &&
         createPortal(
           <div
             ref={dropdownMenuRef}
