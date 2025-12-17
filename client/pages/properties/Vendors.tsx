@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Search, Plus, ChevronDown } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
+import GlobalTable from "@/components/GlobalTable";
 import AddVendorModal from "@/components/AddVendorModal";
 
 interface Vendor {
