@@ -1275,220 +1275,77 @@ export const Bills: React.FC<BillsProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    style={{ lineHeight: "24px" }}
-                    onClick={() => handleSortClick("vendor")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <img
-                        loading="lazy"
-                        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
-                        style={{ width: '16px', height: '16px' }}
-                        alt=""
-                      />
-                      <span className="font-medium text-sm text-gray-700">
-                        Vendor
-                      </span>
-                      {getSortIndicator("vendor") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("vendor")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("statementDate")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                  {billsColumnManagement.columnOrder.filter((colKey) => {
+                    if (colKey === "status" && selectedTab !== "drafts") {
+                      return false;
+                    }
+                    if (colKey === "exportedAt" && selectedTab !== "approved") {
+                      return false;
+                    }
+                    return billsColumnManagement.visibleColumns.has(colKey);
+                  }).map((colKey) => {
+                    const colConfig = billsColumnConfig[colKey];
+                    const sortIndicator = getSortIndicator(colKey);
+                    return (
+                      <th
+                        key={colKey}
+                        draggable
+                        onDragStart={() =>
+                          billsColumnManagement.handleColumnDragStart(colKey)
+                        }
+                        onDragOver={(e) =>
+                          billsColumnManagement.handleColumnDragOver(e, colKey)
+                        }
+                        onDragLeave={
+                          billsColumnManagement.handleColumnDragLeave
+                        }
+                        onDrop={(e) =>
+                          billsColumnManagement.handleColumnDrop(e, colKey)
+                        }
+                        onClick={() => handleSortClick(colKey)}
+                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                        style={{
+                          opacity:
+                            billsColumnManagement.draggedColumn === colKey
+                              ? 0.5
+                              : 1,
+                          transition: "opacity 0.2s ease",
+                        }}
                       >
-                        <path d="M8 2v4" />
-                        <path d="M16 2v4" />
-                        <rect width="18" height="18" x="3" y="4" rx="2" />
-                        <path d="M3 10h18" />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Statement Date
-                      </span>
-                      {getSortIndicator("statementDate") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("statementDate")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("dueDate")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M8 2v4" />
-                        <path d="M16 2v4" />
-                        <rect width="18" height="18" x="3" y="4" rx="2" />
-                        <path d="M3 10h18" />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Due Date
-                      </span>
-                      {getSortIndicator("dueDate") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("dueDate")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("memo")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                        <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Memo
-                      </span>
-                      {getSortIndicator("memo") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("memo")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("invoiceNumber")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <line x1="4" x2="20" y1="9" y2="9" />
-                        <line x1="4" x2="20" y1="15" y2="15" />
-                        <line x1="10" x2="8" y1="3" y2="21" />
-                        <line x1="16" x2="14" y1="3" y2="21" />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Reference #
-                      </span>
-                      {getSortIndicator("invoiceNumber") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("invoiceNumber")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("amount")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <line x1="12" x2="12" y1="2" y2="22" />
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                      </svg>
-                      <span className="font-medium text-sm text-gray-700">
-                        Amount
-                      </span>
-                      {getSortIndicator("amount") && (
-                        <span className="text-xs font-bold text-gray-500">
-                          {getSortIndicator("amount")}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                  {selectedTab === "drafts" && (
-                    <th
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSortClick("status")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Import Status
-                        </span>
-                        {getSortIndicator("status") && (
-                          <span className="text-xs font-bold text-gray-500">
-                            {getSortIndicator("status")}
+                        {billsColumnManagement.dropTargetColumn === colKey &&
+                          billsColumnManagement.draggedColumn && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                bottom: 0,
+                                width: "2px",
+                                backgroundColor: "#3b82f6",
+                                left:
+                                  billsColumnManagement.dropPosition === "before"
+                                    ? "0"
+                                    : "auto",
+                                right:
+                                  billsColumnManagement.dropPosition === "after"
+                                    ? "0"
+                                    : "auto",
+                              }}
+                            />
+                          )}
+                        <div className="flex items-center gap-2">
+                          {colConfig?.icon}
+                          <span className="font-medium text-sm text-gray-700">
+                            {colConfig?.label}
                           </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
-                  {selectedTab === "approved" && (
-                    <th
-                      className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSortClick("exportedAt")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Last Exported
-                        </span>
-                        {getSortIndicator("exportedAt") && (
-                          <span className="text-xs font-bold text-gray-500">
-                            {getSortIndicator("exportedAt")}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  )}
+                          {sortIndicator && (
+                            <span className="text-xs font-bold text-gray-700 ml-1">
+                              {sortIndicator}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th
                     className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
                     style={{
@@ -1529,64 +1386,79 @@ export const Bills: React.FC<BillsProps> = ({
                         className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                         onClick={handleRowClick}
                       >
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <VendorAvatar
-                              name={bill.vendor}
-                              color={bill.vendorColor}
-                            />
-                            <span className="text-gray-900 font-normal text-sm truncate">
-                              {bill.vendor}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
-                          <span className="text-gray-900 font-normal text-sm truncate">
-                            {bill.statementDate}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
-                          <span className="text-gray-900 font-normal text-sm truncate">
-                            {bill.dueDate}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
-                          <span className="text-gray-900 font-normal text-sm truncate">
-                            {bill.memo}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
-                          <span className="text-gray-900 font-normal text-sm truncate">
-                            {bill.invoiceNumber}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
-                          <span className="text-gray-900 font-normal text-sm truncate">
-                            ${bill.amount}
-                          </span>
-                        </td>
-                        {selectedTab === "drafts" && (
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-green-500" />
-                              <span className="text-gray-900 font-normal text-sm">
-                                {bill.importStatus ?? getTimeAgo(bill.importedAt)}
-                              </span>
-                            </div>
-                          </td>
-                        )}
-                        {selectedTab === "approved" && (
-                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-green-500" />
-                              <span className="text-gray-900 font-normal text-sm">
-                                {formatRelativeTime(
-                                  bill.exportedAt ?? approvedTimestamp,
-                                )}
-                              </span>
-                            </div>
-                          </td>
-                        )}
+                        {billsColumnManagement.columnOrder
+                          .filter((colKey) => {
+                            if (colKey === "status" && selectedTab !== "drafts") {
+                              return false;
+                            }
+                            if (colKey === "exportedAt" && selectedTab !== "approved") {
+                              return false;
+                            }
+                            return billsColumnManagement.visibleColumns.has(
+                              colKey
+                            );
+                          })
+                          .map((colKey) => (
+                            <td
+                              key={colKey}
+                              className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden"
+                            >
+                              {colKey === "vendor" && (
+                                <div className="flex items-center gap-2">
+                                  <VendorAvatar
+                                    name={bill.vendor}
+                                    color={bill.vendorColor}
+                                  />
+                                  <span className="text-gray-900 font-normal text-sm truncate">
+                                    {bill.vendor}
+                                  </span>
+                                </div>
+                              )}
+                              {colKey === "statementDate" && (
+                                <span className="text-gray-900 font-normal text-sm truncate">
+                                  {bill.statementDate}
+                                </span>
+                              )}
+                              {colKey === "dueDate" && (
+                                <span className="text-gray-900 font-normal text-sm truncate">
+                                  {bill.dueDate}
+                                </span>
+                              )}
+                              {colKey === "status" && selectedTab === "drafts" && (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  <span className="text-gray-900 font-normal text-sm">
+                                    {bill.importStatus ?? getTimeAgo(bill.importedAt)}
+                                  </span>
+                                </div>
+                              )}
+                              {colKey === "exportedAt" && selectedTab === "approved" && (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  <span className="text-gray-900 font-normal text-sm">
+                                    {formatRelativeTime(
+                                      bill.exportedAt ?? approvedTimestamp,
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                              {colKey === "memo" && (
+                                <span className="text-gray-900 font-normal text-sm truncate">
+                                  {bill.memo}
+                                </span>
+                              )}
+                              {colKey === "invoiceNumber" && (
+                                <span className="text-gray-900 font-normal text-sm truncate">
+                                  {bill.invoiceNumber}
+                                </span>
+                              )}
+                              {colKey === "amount" && (
+                                <span className="text-gray-900 font-normal text-sm truncate">
+                                  ${bill.amount}
+                                </span>
+                              )}
+                            </td>
+                          ))}
                         <td
                           className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
                           style={{
