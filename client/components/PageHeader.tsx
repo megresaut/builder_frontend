@@ -4,7 +4,7 @@ import BlueButton from "./BlueButton";
 
 interface PageHeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: string | ReactNode;
   actionButton?: {
     label: string;
     onClick: () => void;
