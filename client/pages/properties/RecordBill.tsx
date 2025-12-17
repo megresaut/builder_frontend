@@ -1973,6 +1973,24 @@ export const RecordBill = () => {
           </div>
         </div>
       </div>
+      <AddVendorModal
+        open={showAddVendorModal}
+        onOpenChange={setShowAddVendorModal}
+        onAddVendor={(vendor) => {
+          setSelectedVendor({
+            id: Math.random(),
+            name: vendor.name,
+            email: vendor.email,
+            phone: vendor.phone,
+            notes: vendor.notes,
+          });
+          setShowAddVendorModal(false);
+        }}
+      />
+      <CreateWorkOrderModal
+        open={showCreateWorkOrderModal}
+        onOpenChange={setShowCreateWorkOrderModal}
+      />
     </div>
   );
 };
