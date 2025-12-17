@@ -624,13 +624,25 @@ export const Bills: React.FC<BillsProps> = ({
         ...prev,
         approved: formatRelativeTime(billData.timestamp),
       }));
+
+      // Find the first draft bill and mark it as approved
+      setApprovedBillIds((prev) => {
+        const newSet = new Set(prev);
+        // Find first bill that's not already approved
+        const firstDraftBill = billsList.find((b) => !prev.has(b.id));
+        if (firstDraftBill) {
+          newSet.add(firstDraftBill.id);
+        }
+        return newSet;
+      });
+
       setSelectedTab("approved");
     };
 
     window.addEventListener("billApproved", handleBillApproved);
 
     return () => window.removeEventListener("billApproved", handleBillApproved);
-  }, []);
+  }, [billsList]);
 
   useEffect(() => {
     let animationFrameId: number;
