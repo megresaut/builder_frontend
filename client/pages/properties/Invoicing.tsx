@@ -288,7 +288,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const noopPageChange = (_page: number) => {};
   const noopItemsPerPageChange = (_itemsPerPage: number) => {};
-  const noopShowDropdownChange = (_show: boolean) => {};
 
   const getInvoiceItemRowClassName = (item: any) => {
     const isHighlighted =
