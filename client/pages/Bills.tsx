@@ -23,6 +23,7 @@ interface Bill {
   amount: number;
   glAccount: string;
   importedAt: number;
+  exportedAt?: number;
 }
 
 const bills: Bill[] = [
@@ -440,7 +441,9 @@ export default function Bills() {
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
     "idle",
   );
-  const [billsList, setBillsList] = useState<Bill[]>(bills);
+  const [billsList, setBillsList] = useState<Bill[]>(() =>
+    bills.map((bill) => ({ ...bill, exportedAt: bill.importedAt })),
+  );
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(
     new Set(bills.filter((_, idx) => idx % 2 === 0).map((b) => b.id))
   );
@@ -484,6 +487,7 @@ export default function Bills() {
     "statementDate",
     "dueDate",
     "status",
+    "exportedAt",
     "memo",
     "invoiceNumber",
     "amount",
@@ -527,6 +531,22 @@ export default function Bills() {
       label: "Import Status",
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      ),
+    },
+    exportedAt: {
+      label: "Last Exported",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
@@ -645,6 +665,7 @@ export default function Bills() {
               : existing?.amount ?? 0,
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
+          exportedAt: billData.timestamp,
         };
 
         return existing
@@ -734,6 +755,7 @@ export default function Bills() {
               : existing?.amount ?? 0,
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
+          exportedAt: billData.status === "draft" ? undefined : existing?.exportedAt,
         };
 
         return existing
@@ -886,6 +908,7 @@ export default function Bills() {
         amount: Math.floor(Math.random() * 500) + 100,
         glAccount: "6200 - HVAC Services",
         importedAt: now,
+        exportedAt: now,
       };
 
       setBillsList((prev) => [newBill, ...prev]);
@@ -1190,6 +1213,9 @@ export default function Bills() {
                       if (colKey === "status" && selectedTab !== "drafts") {
                         return false;
                       }
+                      if (colKey === "exportedAt" && selectedTab !== "approved") {
+                        return false;
+                      }
                       return visibleColumns.has(colKey);
                     }).map((colKey) => {
                       const colConfig = columnConfig[colKey];
@@ -1274,6 +1300,9 @@ export default function Bills() {
                             if (colKey === "status" && selectedTab !== "drafts") {
                               return false;
                             }
+                            if (colKey === "exportedAt" && selectedTab !== "approved") {
+                              return false;
+                            }
                             return visibleColumns.has(colKey);
                           }).map((colKey) => (
                             <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden">
@@ -1303,6 +1332,16 @@ export default function Bills() {
                                   <div className="w-2 h-2 rounded-full bg-green-500" />
                                   <span className="text-gray-900 font-normal text-sm">
                                     {getTimeAgo(bill.importedAt)}
+                                  </span>
+                                </div>
+                              )}
+                              {colKey === "exportedAt" && selectedTab === "approved" && (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  <span className="text-gray-900 font-normal text-sm">
+                                    {formatRelativeTime(
+                                      bill.exportedAt ?? approvedTimestamp,
+                                    )}
                                   </span>
                                 </div>
                               )}
