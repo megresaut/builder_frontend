@@ -1970,6 +1970,29 @@ export const RecordBill = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+
+                    // Validate top-level form fields
+                    const formFieldErrors = new Set<string>();
+                    let hasErrors = false;
+
+                    if (!selectedVendor) {
+                      formFieldErrors.add("vendor");
+                      hasErrors = true;
+                    }
+                    if (!invoiceDate) {
+                      formFieldErrors.add("invoiceDate");
+                      hasErrors = true;
+                    }
+                    if (!dueDate) {
+                      formFieldErrors.add("dueDate");
+                      hasErrors = true;
+                    }
+
+                    if (hasErrors) {
+                      setFormErrors(formFieldErrors);
+                      return;
+                    }
+
                     const timestamp = Date.now();
                     const amount = Number.parseFloat(
                       calculateTotal().replace(/[^0-9.]/g, ""),
@@ -1989,6 +2012,7 @@ export const RecordBill = () => {
                       memo,
                       amount: Number.isFinite(amount) ? amount : 0,
                       status: "draft" as const,
+                      importStatus: "Manual Import" as const,
                     };
 
                     localStorage.setItem(
@@ -2001,6 +2025,8 @@ export const RecordBill = () => {
                         detail,
                       }),
                     );
+
+                    navigate(-1);
                   }}
                   className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
                 >
