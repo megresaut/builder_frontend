@@ -286,18 +286,20 @@ export default function GlobalTable({
                     </th>
                   );
                 })}
-              <th
-                className="ra-table-actions-header sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
-                style={{
-                  borderLeftWidth: "2px",
-                  borderLeftColor: "rgb(210,209,207)",
-                  backgroundColor: "white",
-                }}
-              >
-                <span className="ra-table-actions-label font-medium text-sm text-gray-700">
-                  Actions
-                </span>
-              </th>
+              {actions.length > 0 && (
+                <th
+                  className="ra-table-actions-header sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
+                  style={{
+                    borderLeftWidth: "2px",
+                    borderLeftColor: "rgb(210,209,207)",
+                    backgroundColor: "white",
+                  }}
+                >
+                  <span className="ra-table-actions-label font-medium text-sm text-gray-700">
+                    Actions
+                  </span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
