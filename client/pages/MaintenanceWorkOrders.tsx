@@ -730,6 +730,7 @@ export default function MaintenanceWorkOrders() {
         visibleColumns={visibleColumns}
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
       />
     </div>
   );

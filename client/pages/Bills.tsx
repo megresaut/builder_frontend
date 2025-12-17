@@ -1079,6 +1079,7 @@ export default function Bills() {
         visibleColumns={visibleColumns}
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
       />
     </div>
   );

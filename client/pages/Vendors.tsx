@@ -454,6 +454,7 @@ export default function Vendors() {
         visibleColumns={visibleColumns}
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
       />
     </div>
   );

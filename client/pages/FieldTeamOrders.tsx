@@ -697,6 +697,7 @@ export default function FieldTeamOrders() {
         visibleColumns={visibleColumns}
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
       />
     </div>
   );
