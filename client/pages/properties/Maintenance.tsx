@@ -1350,14 +1350,111 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
 
       {/* Recurring Tasks Table */}
       {activeTab === "recurring" && (
-        <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap border-b border-gray-200">
-            <div className="flex items-center gap-4">
-              <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                Recurring Tasks
-              </div>
-            </div>
+        <GlobalTable
+          columns={[
+            { key: "priority", label: "Priority", icon: recurringTasksColumnConfig.priority.icon },
+            { key: "task", label: "Task", icon: recurringTasksColumnConfig.task.icon },
+            { key: "nextDate", label: "Next Date", icon: recurringTasksColumnConfig.nextDate.icon },
+            { key: "category", label: "Category", icon: recurringTasksColumnConfig.category.icon },
+            { key: "assignees", label: "Assignees", icon: recurringTasksColumnConfig.assignees.icon },
+            { key: "status", label: "Status", icon: recurringTasksColumnConfig.status.icon },
+          ]}
+          data={mockPropertyRecurringTasks}
+          rowKey="id"
+          renderCell={(task: RecurringTask, columnKey: string) => {
+            switch (columnKey) {
+              case "priority":
+                return (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          task.priority === "low"
+                            ? "#059669"
+                            : task.priority === "normal"
+                              ? "#2463eb"
+                              : "#d97706",
+                      }}
+                    />
+                    <span className="text-gray-900 font-normal text-sm capitalize">
+                      {task.priority}
+                    </span>
+                  </div>
+                );
+              case "task":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {task.task}
+                  </span>
+                );
+              case "nextDate":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {task.nextDate}
+                  </span>
+                );
+              case "category":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {task.category}
+                  </span>
+                );
+              case "assignees":
+                return (
+                  <div className="flex items-center gap-2">
+                    {task.assignees.map((assignee) => (
+                      <div key={assignee.id} className="relative group">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
+                          title={assignee.name}
+                        >
+                          {assignee.initials}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                          {assignee.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              case "status":
+                return (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          task.status === "active" ? "#059669" : "#999999",
+                      }}
+                    />
+                    <span className="text-gray-900 font-normal text-sm capitalize">
+                      {task.status}
+                    </span>
+                  </div>
+                );
+              default:
+                return null;
+            }
+          }}
+          sortingHook={{
+            handleSortClick: handleRecurringSortClick,
+            getSortIndicator: getRecurringSortIndicator,
+            getSortedData: getRecurringSortedData,
+          }}
+          columnManagementHook={recurringColumnManagement}
+          currentPage={recurringPage}
+          onPageChange={setRecurringPage}
+          itemsPerPage={recurringItemsPerPage}
+          onItemsPerPageChange={setRecurringItemsPerPage}
+          showPageSizeDropdown={recurringShowDropdown}
+          onShowPageSizeDropdownChange={setRecurringShowDropdown}
+          openMenuId={openMenuId}
+          onOpenMenuIdChange={setOpenMenuId}
+          title="Recurring Tasks"
+          showColumnModal={recurringColumnManagement.showColumnModal}
+          onShowColumnModalChange={recurringColumnManagement.setShowColumnModal}
+          headerActions={
             <div className="flex min-w-60 items-start gap-2.5">
               <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#DADADA] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
                 <img
@@ -1383,320 +1480,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   Filters
                 </span>
               </button>
-              <button
-                ref={recurringColumnManagement.columnButtonRef}
-                onClick={() =>
-                  recurringColumnManagement.setShowColumnModal((prev) => !prev)
-                }
-                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-                </svg>
-              </button>
-              <ColumnFilterModal
-                isOpen={recurringColumnManagement.showColumnModal}
-                position={recurringColumnManagement.columnMenuPos}
-                columns={recurringColumnManagement.columnOrder.map((key) => ({
-                  key,
-                  label: recurringTasksColumnConfig[key]?.label || key,
-                  icon: recurringTasksColumnConfig[key]?.icon,
-                }))}
-                visibleColumns={recurringColumnManagement.visibleColumns}
-                onToggleColumn={
-                  recurringColumnManagement.toggleColumnVisibility
-                }
-                onClose={() =>
-                  recurringColumnManagement.setShowColumnModal(false)
-                }
-              />
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {recurringColumnManagement.columnOrder.filter(colKey => recurringColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
-                    const colConfig = recurringTasksColumnConfig[colKey];
-                    return (
-                      <th
-                        key={colKey}
-                        draggable
-                        onDragStart={() => recurringColumnManagement.handleColumnDragStart(colKey)}
-                        onDragOver={(e) => recurringColumnManagement.handleColumnDragOver(e, colKey)}
-                        onDragLeave={recurringColumnManagement.handleColumnDragLeave}
-                        onDrop={(e) => recurringColumnManagement.handleColumnDrop(e, colKey)}
-                        onClick={() => handleRecurringSortClick(colKey)}
-                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
-                        style={{
-                          opacity: recurringColumnManagement.draggedColumn === colKey ? 0.5 : 1,
-                          transition: "opacity 0.2s ease",
-                        }}
-                      >
-                        {recurringColumnManagement.dropTargetColumn === colKey && recurringColumnManagement.draggedColumn && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              bottom: 0,
-                              width: "2px",
-                              backgroundColor: "#3b82f6",
-                              left: recurringColumnManagement.dropPosition === "before" ? "0" : "auto",
-                              right: recurringColumnManagement.dropPosition === "after" ? "0" : "auto",
-                            }}
-                          />
-                        )}
-                        <div className="flex items-center gap-2">
-                          {colConfig?.icon}
-                          <span className="font-medium text-sm text-gray-700">{colConfig?.label}</span>
-                          {getRecurringSortIndicator(colKey) && (
-                            <span className="text-xs font-bold text-gray-700 ml-1">{getRecurringSortIndicator(colKey)}</span>
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
-                  <th className="sticky right-0 px-2 py-3 text-center w-20 bg-white border-l border-gray-200">
-                    <span className="font-medium text-sm text-gray-700">
-                      Actions
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedRecurringTasks.map((task) => (
-                  <tr
-                    key={task.id}
-                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
-                  >
-                    {recurringColumnManagement.columnOrder.filter(colKey => recurringColumnManagement.visibleColumns.has(colKey)).map((colKey) => {
-                      let cellContent;
-                      switch (colKey) {
-                        case "priority":
-                          cellContent = (
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    task.priority === "low"
-                                      ? "#059669"
-                                      : task.priority === "normal"
-                                        ? "#2463eb"
-                                        : "#d97706",
-                                }}
-                              />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
-                                {task.priority}
-                              </span>
-                            </div>
-                          );
-                          break;
-                        case "task":
-                          cellContent = (
-                            <span className="text-gray-900 font-normal text-sm">
-                              {task.task}
-                            </span>
-                          );
-                          break;
-                        case "nextDate":
-                          cellContent = (
-                            <span className="text-gray-900 font-normal text-sm">
-                              {task.nextDate}
-                            </span>
-                          );
-                          break;
-                        case "category":
-                          cellContent = (
-                            <span className="text-gray-900 font-normal text-sm">
-                              {task.category}
-                            </span>
-                          );
-                          break;
-                        case "assignees":
-                          cellContent = (
-                            <div className="flex items-center gap-2">
-                              {task.assignees.map((assignee) => (
-                                <div key={assignee.id} className="relative group">
-                                  <div
-                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                                    title={assignee.name}
-                                  >
-                                    {assignee.initials}
-                                  </div>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                                    {assignee.name}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                          break;
-                        case "status":
-                          cellContent = (
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    task.status === "active" ? "#059669" : "#999999",
-                                }}
-                              />
-                              <span className="text-gray-900 font-normal text-sm capitalize">
-                                {task.status}
-                              </span>
-                            </div>
-                          );
-                          break;
-                        default:
-                          cellContent = "";
-                      }
-                      return (
-                        <td key={colKey} className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                          {cellContent}
-                        </td>
-                      );
-                    })}
-                    <td className="sticky right-0 px-2 py-3 flex items-center justify-center bg-white border-l border-gray-200">
-                      <ActionButton
-                        itemId={task.id}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
-                        onEdit={() => {
-                          setEditingRecurringTask(task);
-                          setShowCreateRecurringTaskModal(true);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between w-full gap-4 flex-wrap px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center gap-2">
-              <div className="text-[#525252] text-base font-medium">
-                Showing
-              </div>
-              <button
-                ref={recurringDropdownRef}
-                onClick={() => setRecurringShowDropdown(!recurringShowDropdown)}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
-              >
-                <div className="text-[#0A0A0A] text-base font-medium">
-                  {recurringItemsPerPage}
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/cc5507ba17118962f81e4f61a415adb6e3ee75ee?placeholderIfAbsent=true"
-                  className="w-[18px] h-[18px]"
-                  alt=""
-                />
-              </button>
-              <div className="text-[#525252] text-base font-medium">
-                of {mockPropertyRecurringTasks.length}
-              </div>
-            </div>
-            <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#DADADA] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
-              <div
-                className={cn(
-                  "flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
-                  !recurringCanGoPrev && "pointer-events-none opacity-50",
-                )}
-                onClick={() =>
-                  setRecurringPage((prev) => Math.max(1, prev - 1))
-                }
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/dc8342cc7d9ed7372ff27293ef7c08e463e9fba7?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-                <div className="text-[#525252] text-base font-medium">
-                  Previous
-                </div>
-              </div>
-              <div className="flex items-center justify-center min-h-10 min-w-10 px-2 gap-2 border-r border-[#E5E5E5] bg-white">
-                <div className="text-[#0A0A0A] text-base font-medium">
-                  {recurringPage}
-                </div>
-              </div>
-              <div
-                className={cn(
-                  "flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50",
-                  !recurringCanGoNext && "pointer-events-none opacity-50",
-                )}
-                onClick={() =>
-                  setRecurringPage((prev) =>
-                    Math.min(recurringTotalPages, prev + 1),
-                  )
-                }
-              >
-                <div className="text-[#525252] text-base font-medium">Next</div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/34c281f37936da4ccce4bfe5d47937be9d7ed9c7?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Recurring Items Per Page Dropdown */}
-          {recurringShowDropdown &&
-            createPortal(
-              <div
-                className="bg-white overflow-hidden"
-                style={{
-                  border: "0.5px solid #DADADA",
-                  borderRadius: "8px",
-                  boxShadow:
-                    "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                  zIndex: 99999,
-                  minWidth: "56px",
-                  width: "56px",
-                  position: "fixed",
-                  top: recurringDropdownPos.top + "px",
-                  left: recurringDropdownPos.left + "px",
-                  pointerEvents: "auto",
-                }}
-                onMouseLeave={() => setRecurringShowDropdown(false)}
-              >
-                {[10, 25, 50].map((size, index) => (
-                  <button
-                    key={size}
-                    onClick={() => {
-                      setRecurringItemsPerPage(size);
-                      setRecurringPage(1);
-                      setRecurringShowDropdown(false);
-                    }}
-                    className={`w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap ${
-                      recurringItemsPerPage === size
-                        ? "bg-gray-50 font-medium text-gray-900"
-                        : "text-[#303030] hover:bg-gray-50"
-                    }`}
-                    style={{
-                      fontFamily:
-                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                      fontSize: "16px",
-                      lineHeight: "140%",
-                      letterSpacing: "-0.32px",
-                      borderRadius: index === 2 ? "0 0 8px 8px" : "0",
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>,
-              document.body,
-            )}
-        </div>
+          }
+        />
       )}
 
       {/* Work Orders Table */}
