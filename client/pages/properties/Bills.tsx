@@ -1071,10 +1071,11 @@ export const Bills: React.FC<BillsProps> = ({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                style={{ marginTop: "-2px" }}
               >
                 <path d="M5 12h14M12 5v14" />
               </svg>
-              <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
+              <span className="text-[#303030] font-normal text-sm leading-[22.4px]" style={{ marginTop: "-1px" }}>
                 Add Vendor
               </span>
             </button>
@@ -1094,13 +1095,14 @@ export const Bills: React.FC<BillsProps> = ({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                style={{ marginTop: "-1px" }}
               >
                 <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
                 <path d="M21 3v5h-5" />
                 <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
                 <path d="M8 16H3v5" />
               </svg>
-              <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
+              <span className="text-[#303030] font-normal text-sm leading-[22.4px]" style={{ marginTop: "-1px" }}>
                 {syncState === "idle" && "Sync"}
                 {syncState === "syncing" && "Syncing..."}
                 {syncState === "synced" && "Synced"}
@@ -1128,6 +1130,7 @@ export const Bills: React.FC<BillsProps> = ({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                style={{ marginTop: "-1px" }}
               >
                 <rect width="20" height="14" x="2" y="5" rx="2" />
                 <line x1="2" x2="22" y1="10" y2="10" />
@@ -1165,7 +1168,7 @@ export const Bills: React.FC<BillsProps> = ({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
+                <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]" style={{ marginTop: "1px" }}>
                   {selectedTab === "approved"
                     ? `Last exported ${relativeTimeDisplay.approved}`
                     : `Updated ${relativeTimeDisplay.drafts}`}
