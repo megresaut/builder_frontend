@@ -1138,7 +1138,7 @@ export const RecordBill = () => {
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                           Vendor{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                          <span style={{ color: "rgb(255, 0, 0)" }}>&nbsp;*</span>
                         </label>
                         <Select
                           value={selectedVendor?.id.toString() || ""}
@@ -1215,7 +1215,7 @@ export const RecordBill = () => {
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                           Invoice Date{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                          <span style={{ color: "rgb(255, 0, 0)" }}>&nbsp;*</span>
                         </label>
                         <div className="relative" onClick={() => {
                           if (!isReadOnly && !showInvoiceDateCalendar) {
@@ -1354,7 +1354,7 @@ export const RecordBill = () => {
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                           Due Date{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                          <span style={{ color: "rgb(255, 0, 0)" }}>&nbsp;*</span>
                         </label>
                         <div className="relative" onClick={() => {
                           if (!isReadOnly && !showDueDateCalendar) {
@@ -1540,7 +1540,7 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.property}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Property / Ledger
+                              Property / Ledger <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1556,7 +1556,10 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.workOrder}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Work Order
+                              Work Order&nbsp;
+                            </span>
+                            <span className="text-[#2563eb] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              + New
                             </span>
                           </div>
                           <div
@@ -1574,7 +1577,7 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.glAccount}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              GL Account
+                              GL Account&nbsp;<span style={{ color: "rgb(255, 0, 0)", letterSpacing: "-0.26px" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1582,7 +1585,7 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.total}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Total
+                              Total&nbsp;<span style={{ color: "rgb(255, 0, 0)", letterSpacing: "-0.26px" }}>*</span>
                             </span>
                           </div>
                           <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
@@ -1892,56 +1895,47 @@ export const RecordBill = () => {
             {!isReadOnly && (
               <>
                 <button
-                  onClick={handleRecordBill}
-                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d] border border-white"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "rgb(1, 55, 100)",
-                    borderRadius: "8px",
-                    boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-                    color: "rgb(255, 255, 255)",
-                    fontWeight: "500",
-                    gap: "8px",
-                    minHeight: "36px",
-                    overflowX: "hidden",
-                    overflowY: "hidden",
-                    transitionDuration: "0.15s",
-                    transitionProperty:
-                      "color, background-color, border-color, text-decoration-color, fill, stroke",
-                    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                    borderColor: "white",
-                    padding: "8px 12px",
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                   }}
+                  className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
                 >
-                  <span>Approve</span>
+                  <span>Save</span>
                 </button>
                 <button
                   onClick={handleRecordBill}
-                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d] border border-white"
+                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "rgb(1, 55, 100)",
-                    borderRadius: "8px",
                     boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-                    color: "rgb(255, 255, 255)",
-                    fontWeight: "500",
-                    gap: "8px",
-                    minHeight: "36px",
-                    overflowX: "hidden",
-                    overflowY: "hidden",
-                    transitionDuration: "0.15s",
-                    transitionProperty:
-                      "color, background-color, border-color, text-decoration-color, fill, stroke",
-                    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                    borderColor: "white",
-                    padding: "8px 12px",
+                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 0px 10px -5px",
                   }}
                 >
-                  <span>Approve & Export</span>
+                  <span className="text-white text-sm font-medium leading-5">Approve</span>
+                </button>
+                <button
+                  onClick={handleRecordBill}
+                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
+                  style={{
+                    boxShadow:
+                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 0px 10px -5px",
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                    <line x1="2" x2="22" y1="10" y2="10" />
+                  </svg>
+                  <span className="text-white text-sm font-medium leading-5">Approve & Export</span>
                 </button>
               </>
             )}
