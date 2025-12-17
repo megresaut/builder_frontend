@@ -74,11 +74,40 @@ export default function ColumnFilterModal({
       }
     };
 
+    const handleMouseMove = (event: MouseEvent) => {
+      const modalRect = modalRef.current?.getBoundingClientRect();
+      const buttonRect = buttonRef?.current?.getBoundingClientRect();
+
+      if (!modalRect) return;
+
+      const { clientX, clientY } = event;
+      const DISTANCE_THRESHOLD = 150;
+
+      const isNearModal =
+        clientX >= modalRect.left - DISTANCE_THRESHOLD &&
+        clientX <= modalRect.right + DISTANCE_THRESHOLD &&
+        clientY >= modalRect.top - DISTANCE_THRESHOLD &&
+        clientY <= modalRect.bottom + DISTANCE_THRESHOLD;
+
+      const isNearButton = buttonRect
+        ? clientX >= buttonRect.left - DISTANCE_THRESHOLD &&
+          clientX <= buttonRect.right + DISTANCE_THRESHOLD &&
+          clientY >= buttonRect.top - DISTANCE_THRESHOLD &&
+          clientY <= buttonRect.bottom + DISTANCE_THRESHOLD
+        : false;
+
+      if (!isNearModal && !isNearButton) {
+        onClose?.();
+      }
+    };
+
     document.addEventListener("keydown", handleEscape);
+    document.addEventListener("mousemove", handleMouseMove);
     return () => {
       document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, buttonRef]);
 
   if (!isOpen) return null;
 
