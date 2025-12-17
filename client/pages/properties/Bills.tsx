@@ -777,6 +777,30 @@ export const Bills: React.FC<BillsProps> = ({
   }, []);
 
   useEffect(() => {
+    const raw = localStorage.getItem("avm:lastBillEvent");
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw) as {
+        type?: "approved" | "saved";
+        detail?: any;
+      };
+
+      if (parsed?.type === "approved" && parsed.detail) {
+        window.dispatchEvent(
+          new CustomEvent("billApproved", { detail: parsed.detail }),
+        );
+      }
+
+      if (parsed?.type === "saved" && parsed.detail) {
+        window.dispatchEvent(new CustomEvent("billSaved", { detail: parsed.detail }));
+      }
+    } finally {
+      localStorage.removeItem("avm:lastBillEvent");
+    }
+  }, []);
+
+  useEffect(() => {
     let animationFrameId: number;
 
     const updateDropdownPos = () => {
