@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import GlobalActionsDropdown from "@/components/GlobalActionsDropdown";
+import { Search, ChevronDown } from "lucide-react";
 
 interface Column {
   key: string;
