@@ -258,6 +258,7 @@ export default function FieldTeamOrdersTab({
   onApprove,
   onEdit,
 }: FieldTeamOrdersTabProps) {
+  const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>(initialFieldTeamOrders);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
@@ -271,6 +272,8 @@ export default function FieldTeamOrdersTab({
   } | null>(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<FieldTeamOrder | null>(null);
 
   const {
     columnOrder,
