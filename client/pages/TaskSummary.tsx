@@ -1,10 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronDown,
-  Calendar,
-  MoreVertical,
   Bell,
   Edit,
   Upload,
@@ -21,38 +18,7 @@ import FieldTeamOrdersTab from "@/components/FieldTeamOrdersTab";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
 
-interface FieldTeamOrder {
-  id: number;
-  property: string;
-  description: string;
-  dueDate: string;
-  unit?: string;
-  priority: "low" | "normal" | "high";
-  fieldTeam: Array<{ initials: string; color: string; name: string }>;
-  status: "dispatched" | "approved" | "pending-approval";
-  timesheetStatus:
-    | "awaiting-submission"
-    | "submitted"
-    | "rejected"
-    | "approved";
-  amount: number;
-}
-
-const getRandomTimesheetStatus = ():
-  | "awaiting-submission"
-  | "submitted"
-  | "rejected"
-  | "approved" => {
-  const statuses: (
-    | "awaiting-submission"
-    | "submitted"
-    | "rejected"
-    | "approved"
-  )[] = ["awaiting-submission", "submitted", "rejected", "approved"];
-  return statuses[Math.floor(Math.random() * statuses.length)];
-};
-
-const fieldTeamOrders: FieldTeamOrder[] = [
+const fieldTeamOrders: any[] = [
   {
     id: 1,
     property: "22 Indian Chase Dr",
