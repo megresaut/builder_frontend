@@ -433,6 +433,9 @@ export default function Bills() {
     "idle",
   );
   const [billsList, setBillsList] = useState<Bill[]>(bills);
+  const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(
+    new Set(bills.filter((_, idx) => idx % 2 === 0).map((b) => b.id))
+  );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
