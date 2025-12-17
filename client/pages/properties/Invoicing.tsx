@@ -1112,24 +1112,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </div>
           </div>
 
-          {historyColumnsManagement.showColumnModal &&
-            createPortal(
-              <ColumnFilterModal
-                isOpen={historyColumnsManagement.showColumnModal}
-                position={historyColumnsManagement.columnMenuPos}
-                columns={[
-                  { key: "dateCreated", label: "Date Created", icon: null },
-                  { key: "invoiceMonth", label: "Invoice Month", icon: null },
-                  { key: "amount", label: "Amount", icon: null },
-                ]}
-                visibleColumns={historyColumnsManagement.visibleColumns}
-                onToggleColumn={historyColumnsManagement.toggleColumnVisibility}
-                onClose={() =>
-                  historyColumnsManagement.setShowColumnModal(false)
-                }
-              />,
-              document.body,
-            )}
+          <ColumnFilterModal
+            isOpen={historyColumnsManagement.showColumnModal}
+            position={historyColumnsManagement.columnMenuPos}
+            columns={historyTableColumns}
+            visibleColumns={historyColumnsManagement.visibleColumns}
+            onToggleColumn={historyColumnsManagement.toggleColumnVisibility}
+            onClose={() => historyColumnsManagement.setShowColumnModal(false)}
+            buttonRef={historyColumnsManagement.columnButtonRef}
+          />
 
           {/* Table */}
           <div
