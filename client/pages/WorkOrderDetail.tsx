@@ -199,22 +199,117 @@ export default function WorkOrderDetail() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "High":
-        return "bg-[#fef3c7] text-[#d97706]";
+        return "#d97706";
       case "Low":
-        return "bg-[#d1fae5] text-[#059669]";
+        return "#059669";
       case "Normal":
-        return "bg-[#dbe9fe] text-[#2463eb]";
+        return "#2463eb";
       default:
-        return "bg-[#dbe9fe] text-[#2463eb]";
+        return "#2463eb";
     }
   };
 
   const getStatusColor = (status: string) => {
-    if (status === "Completed" || status === "In Progress") {
-      return "bg-emerald-100 text-emerald-600";
-    }
-    return "bg-blue-100 text-blue-600";
+    if (status === "Completed") return "#059669";
+    if (status === "In Progress") return "#2463EB";
+    return "#d97706";
   };
+
+  const getFTOStatusColor = (status: string) => {
+    if (status === "Completed") return "#059669";
+    if (status === "In Progress") return "#2463EB";
+    return "#d97706";
+  };
+
+  // Tasks table column definitions
+  const tasksColumns = [
+    {
+      key: "name",
+      label: "Task Name",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+        </svg>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ),
+    },
+    {
+      key: "dueDate",
+      label: "Due Date",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 2v4" />
+          <path d="M16 2v4" />
+          <rect width="18" height="18" x="3" y="4" rx="2" />
+          <path d="M3 10h18" />
+        </svg>
+      ),
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <polyline points="19 12 12 19 5 12" />
+        </svg>
+      ),
+    },
+  ];
+
+  // FTOs table column definitions
+  const ftosColumns = [
+    {
+      key: "name",
+      label: "FTO Name",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+        </svg>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ),
+    },
+    {
+      key: "assignee",
+      label: "Assignee",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
+    {
+      key: "dueDate",
+      label: "Due Date",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 2v4" />
+          <path d="M16 2v4" />
+          <rect width="18" height="18" x="3" y="4" rx="2" />
+          <path d="M3 10h18" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <div
