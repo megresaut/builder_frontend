@@ -286,23 +286,14 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         <div className="rounded-lg bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-[#E5E5E5] flex flex-col w-full p-4">
           {/* Property Details Section */}
           <div className="flex flex-col w-full font-medium">
-            <div className="flex w-full items-center justify-between gap-4 flex-wrap">
-              <div className="text-[#303030] text-xl leading-[1.1]">
-                Property Details
-              </div>
-              <button
-                onClick={() => setShowEditPropertyModal(true)}
-                className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
-                  className="w-3 h-3"
-                  alt=""
-                />
-                <span>Edit</span>
-              </button>
-            </div>
+            <PageHeader
+              title="Property Details"
+              actionButton={{
+                label: "Edit",
+                onClick: () => setShowEditPropertyModal(true),
+              }}
+              moreOptions={{}}
+            />
 
             <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
               <img
