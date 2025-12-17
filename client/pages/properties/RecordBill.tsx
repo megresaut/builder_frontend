@@ -1207,9 +1207,34 @@ export const RecordBill = () => {
                       </div>
                     </div>
 
-                    {/* Invoice Date and Due Date Row */}
+                    {/* Add Vendor Link Row */}
                     <div
                       className="flex mt-5 items-start gap-5 flex-wrap"
+                      style={{ width: "600px" }}
+                    >
+                      <div className="flex flex-col flex-1 min-w-[240px]">
+                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+                          <button
+                            type="button"
+                            className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline"
+                            style={{
+                              backgroundColor: "rgba(0, 0, 0, 0)",
+                              border: "none",
+                              margin: "-5px auto 0 0",
+                            }}
+                          >
+                            + Add Vendor
+                          </button>
+                        </label>
+                      </div>
+                      <div className="flex flex-col flex-1 min-w-[240px]">
+                        <label className="text-[#303030] text-sm font-medium leading-[1.43]" />
+                      </div>
+                    </div>
+
+                    {/* Invoice Date and Due Date Row */}
+                    <div
+                      className="flex mt-2.5 items-start gap-5 flex-wrap"
                       style={{ width: "600px" }}
                     >
                       <div className="flex flex-col flex-1 min-w-[240px]">
