@@ -1022,8 +1022,9 @@ export default function Bills() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  style={{ marginTop: "-2px" }}
                 >
-                  <path d="M5 12h14M12 5v14" />
+                  <path d="M5 12h14M12 5v14" style={{ marginTop: "-2px" }} />
                 </svg>
                 <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
                   Add Vendor
@@ -1045,6 +1046,7 @@ export default function Bills() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  style={{ marginTop: "-1px" }}
                 >
                   <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
                   <path d="M21 3v5h-5" />
@@ -1111,7 +1113,7 @@ export default function Bills() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
+                  <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]" style={{ marginTop: "1px" }}>
                     {selectedTab === "approved"
                       ? `Last exported ${relativeTimeDisplay.approved}`
                       : `Updated ${relativeTimeDisplay.drafts}`}
