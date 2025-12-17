@@ -1588,9 +1588,13 @@ export const RecordBill = () => {
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                               Work Order <span style={{ color: "rgb(255, 0, 0)" }}>*</span>&nbsp;
                             </span>
-                            <span className="text-[#2563eb] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => setShowCreateWorkOrderModal(true)}
+                              className="text-[#2563eb] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap hover:underline bg-transparent border-none p-0"
+                            >
                               + New
-                            </span>
+                            </button>
                           </div>
                           <div
                             className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1"
