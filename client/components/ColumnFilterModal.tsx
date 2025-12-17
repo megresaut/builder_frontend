@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import GlobalColumnFilterItem from "@/components/GlobalColumnFilterItem";
 
 interface ColumnOption {
   key: string;
@@ -83,7 +84,7 @@ export default function ColumnFilterModal({
     <div
       ref={modalRef}
       data-column-filter-modal="true"
-      className="bg-white flex flex-col justify-center items-start gap-1 p-2"
+      className="ra-column-filter-modal bg-white flex flex-col justify-center items-start gap-1 p-2"
       style={{
         width: "260px",
         border: "0.5px solid #DADADA",
@@ -98,34 +99,14 @@ export default function ColumnFilterModal({
       }}
     >
       {columns.map((column) => (
-        <label
+        <GlobalColumnFilterItem
           key={column.key}
-          className="flex items-center justify-between gap-3 w-full px-3 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={visibleColumns.has(column.key)}
-              onChange={() => onToggleColumn(column.key)}
-              className="w-4 h-4 rounded cursor-pointer"
-              style={{
-                accentColor: "#013764",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <span
-              className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]"
-              style={{
-                fontFamily:
-                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              }}
-            >
-              {column.label}
-            </span>
-          </div>
-          {column.icon}
-        </label>
+          columnKey={column.key}
+          label={column.label}
+          icon={column.icon}
+          isVisible={visibleColumns.has(column.key)}
+          onToggle={onToggleColumn}
+        />
       ))}
     </div>,
     document.body,
