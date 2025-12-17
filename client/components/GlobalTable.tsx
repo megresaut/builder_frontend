@@ -17,6 +17,7 @@ interface ActionItem {
 }
 
 interface GlobalTableProps {
+  className?: string;
   columns: Column[];
   data: any[];
   rowKey: string;
@@ -44,6 +45,7 @@ interface GlobalTableProps {
 }
 
 export default function GlobalTable({
+  className,
   columns,
   data,
   rowKey,
@@ -229,7 +231,12 @@ export default function GlobalTable({
   );
 
   return (
-    <div className="ra-table w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+    <div
+      className={cn(
+        "ra-table w-full border border-gray-200 bg-white rounded-lg overflow-hidden",
+        className,
+      )}
+    >
       {/* Table Header */}
       {(title || headerActions) && (
         <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
