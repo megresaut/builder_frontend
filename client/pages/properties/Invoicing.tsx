@@ -1057,46 +1057,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             rowKey="id"
             title="Invoice History"
             headerActions={
-              <div className="flex min-w-60 items-start gap-2.5 flex-wrap">
-                <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#e5e5e5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
-                    className="w-5 h-5"
-                    alt=""
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
-                  />
-                </div>
-                <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#e5e5e5] flex min-h-9 px-3 py-1.5 items-center gap-2 cursor-pointer hover:bg-gray-100">
-                  <div className="text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]">
-                    Filter
-                  </div>
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/81afa4c88f6177ebdc84321a1f0691342b9fcd92?placeholderIfAbsent=true"
-                    className="w-[18px] h-[18px]"
-                    alt=""
-                  />
-                </div>
-                <button
-                  ref={historyColumnsManagement.columnButtonRef}
-                  onClick={() =>
-                    historyColumnsManagement.setShowColumnModal((prev) => !prev)
-                  }
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                >
-                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                    <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                    <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-                  </svg>
-                </button>
-              </div>
+              <button
+                ref={historyColumnsManagement.columnButtonRef}
+                onClick={() =>
+                  historyColumnsManagement.setShowColumnModal((prev) => !prev)
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                </svg>
+              </button>
             }
+            showSearchBar={true}
             actions={[
               {
                 label: "View PDF",
