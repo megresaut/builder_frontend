@@ -85,6 +85,7 @@ export default function ColumnFilterModal({
       ref={modalRef}
       data-column-filter-modal="true"
       className="ra-column-filter-modal bg-white flex flex-col justify-center items-start gap-1 p-2"
+      onMouseLeave={onClose}
       style={{
         width: "260px",
         border: "0.5px solid #DADADA",
