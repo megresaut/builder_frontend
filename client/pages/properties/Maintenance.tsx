@@ -2395,6 +2395,36 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         }}
         editData={editFTOData || undefined}
       />
+
+      {/* Tasks Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={tasksColumnManagement.showColumnModal}
+        position={tasksColumnManagement.columnMenuPos}
+        columns={tasksColumnManagement.columnOrder.map((key) => ({
+          key,
+          label: tasksColumnConfig[key]?.label || key,
+          icon: tasksColumnConfig[key]?.icon,
+        }))}
+        visibleColumns={tasksColumnManagement.visibleColumns}
+        onToggleColumn={tasksColumnManagement.toggleColumnVisibility}
+        onClose={() => tasksColumnManagement.setShowColumnModal(false)}
+        buttonRef={tasksColumnManagement.columnButtonRef}
+      />
+
+      {/* Recurring Tasks Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={recurringColumnManagement.showColumnModal}
+        position={recurringColumnManagement.columnMenuPos}
+        columns={recurringColumnManagement.columnOrder.map((key) => ({
+          key,
+          label: recurringTasksColumnConfig[key]?.label || key,
+          icon: recurringTasksColumnConfig[key]?.icon,
+        }))}
+        visibleColumns={recurringColumnManagement.visibleColumns}
+        onToggleColumn={recurringColumnManagement.toggleColumnVisibility}
+        onClose={() => recurringColumnManagement.setShowColumnModal(false)}
+        buttonRef={recurringColumnManagement.columnButtonRef}
+      />
     </div>
   );
 };
