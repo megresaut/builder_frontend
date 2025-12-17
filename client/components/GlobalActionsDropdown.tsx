@@ -13,8 +13,8 @@ interface GlobalActionsDropdownProps {
   row: any;
   rowKey: string;
   actions: ActionItem[];
-  openMenuId: number | null;
-  setOpenMenuId: (id: number | null) => void;
+  openMenuId: string | number | null;
+  setOpenMenuId: (id: string | number | null) => void;
 }
 
 export default function GlobalActionsDropdown({
@@ -24,7 +24,7 @@ export default function GlobalActionsDropdown({
   openMenuId,
   setOpenMenuId,
 }: GlobalActionsDropdownProps) {
-  const taskId = row[rowKey];
+  const taskId: string | number = row[rowKey];
   const showMenu = openMenuId === taskId;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -89,7 +89,10 @@ export default function GlobalActionsDropdown({
     <>
       <button
         ref={buttonRef}
+        type="button"
+        aria-label="Actions"
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           setOpenMenuId(showMenu ? null : taskId);
         }}
@@ -116,6 +119,14 @@ export default function GlobalActionsDropdown({
           <div
             ref={menuRef}
             className="ra-actions-dropdown bg-white flex flex-col justify-center items-start gap-4 p-4"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             style={{
               width: "145px",
               border: "0.5px solid #DADADA",
@@ -135,7 +146,10 @@ export default function GlobalActionsDropdown({
             {actions.map((action, idx) => (
               <button
                 key={idx}
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setOpenMenuId(null);
                   action.onClick(row);
                 }}
