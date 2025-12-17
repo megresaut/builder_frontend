@@ -724,8 +724,9 @@ export default function Bills() {
     }, 1500);
   };
 
-  const approvedBills = billsList.filter((_, idx) => idx % 2 === 0);
-  const filteredBills = selectedTab === "approved" ? approvedBills : billsList;
+  const approvedBills = billsList.filter((b) => approvedBillIds.has(b.id));
+  const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
+  const filteredBills = selectedTab === "approved" ? approvedBills : draftBills;
   const sortedBills = getSortedData();
   const displayedBills = sortedBills.length > 0 ? sortedBills : filteredBills;
   const totalBills = displayedBills.length;
