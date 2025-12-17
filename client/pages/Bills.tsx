@@ -9,6 +9,8 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
+import GlobalTable from "@/components/GlobalTable";
+import { Search, Plus, ChevronDown } from "lucide-react";
 
 interface Bill {
   id: number;
