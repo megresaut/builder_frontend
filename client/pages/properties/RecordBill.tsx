@@ -378,23 +378,28 @@ export const RecordBill = () => {
       for (const item of lineItems) {
         const itemErrors = new Set<string>();
 
-        if (!String(item.property).trim()) {
+        const propertyVal = String(item.property).trim();
+        if (!propertyVal || propertyVal === "N/A") {
           itemErrors.add("property");
           hasErrors = true;
         }
-        if (!String(item.unit).trim()) {
+        const unitVal = String(item.unit).trim();
+        if (!unitVal || unitVal === "N/A") {
           itemErrors.add("unit");
           hasErrors = true;
         }
-        if (!String(item.workOrder).trim()) {
+        const workOrderVal = String(item.workOrder).trim();
+        if (!workOrderVal || workOrderVal === "N/A") {
           itemErrors.add("workOrder");
           hasErrors = true;
         }
-        if (!String(item.glAccount).trim()) {
+        const glAccountVal = String(item.glAccount).trim();
+        if (!glAccountVal || glAccountVal === "N/A") {
           itemErrors.add("glAccount");
           hasErrors = true;
         }
-        if (!String(item.total).trim()) {
+        const totalVal = String(item.total).trim();
+        if (!totalVal || totalVal === "N/A") {
           itemErrors.add("total");
           hasErrors = true;
         }
