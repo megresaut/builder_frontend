@@ -1239,11 +1239,21 @@ export const Bills: React.FC<BillsProps> = ({
                   <ColumnFilterModal
                     isOpen={billsColumnManagement.showColumnModal}
                     position={billsColumnManagement.columnMenuPos}
-                    columns={billsColumnManagement.columnOrder.map((key) => ({
-                      key,
-                      label: billsColumnConfig[key]?.label || key,
-                      icon: billsColumnConfig[key]?.icon,
-                    }))}
+                    columns={billsColumnManagement.columnOrder
+                      .filter((key) => {
+                        if (key === "status" && selectedTab !== "drafts") {
+                          return false;
+                        }
+                        if (key === "exportedAt" && selectedTab !== "approved") {
+                          return false;
+                        }
+                        return true;
+                      })
+                      .map((key) => ({
+                        key,
+                        label: billsColumnConfig[key]?.label || key,
+                        icon: billsColumnConfig[key]?.icon,
+                      }))}
                     visibleColumns={billsColumnManagement.visibleColumns}
                     onToggleColumn={
                       billsColumnManagement.toggleColumnVisibility
