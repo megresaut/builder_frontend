@@ -1220,6 +1220,7 @@ export const RecordBill = () => {
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
                           <button
                             type="button"
+                            onClick={() => setShowAddVendorModal(true)}
                             className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline"
                             style={{
                               backgroundColor: "rgba(0, 0, 0, 0)",
