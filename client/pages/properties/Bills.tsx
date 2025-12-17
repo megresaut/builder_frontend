@@ -675,6 +675,7 @@ export const Bills: React.FC<BillsProps> = ({
               : existing?.amount ?? 0,
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
+          exportedAt: billData.timestamp,
         };
 
         return existing
@@ -766,6 +767,7 @@ export const Bills: React.FC<BillsProps> = ({
               : existing?.amount ?? 0,
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
+          exportedAt: billData.status === "draft" ? undefined : existing?.exportedAt,
         };
 
         return existing
