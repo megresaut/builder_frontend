@@ -584,23 +584,22 @@ export default function Bills() {
       const billData = customEvent.detail;
       setApprovedTimestamp(billData.timestamp);
 
-      // Move the first draft bill to approved
-      setBillsList((prevList) => {
-        const newList = [...prevList];
-        // Move the bill from draft position to approved position
-        if (newList.length > 0) {
-          // Reorder so approved bills are at the beginning
-          const [movedBill] = newList.splice(0, 1);
-          newList.unshift(movedBill);
+      // Find the first draft bill and mark it as approved
+      setApprovedBillIds((prev) => {
+        const newSet = new Set(prev);
+        // Find first bill that's not already approved
+        const firstDraftBill = billsList.find((b) => !prev.has(b.id));
+        if (firstDraftBill) {
+          newSet.add(firstDraftBill.id);
         }
-        return newList;
+        return newSet;
       });
     };
 
     window.addEventListener("billApproved", handleBillApproved);
 
     return () => window.removeEventListener("billApproved", handleBillApproved);
-  }, []);
+  }, [billsList]);
 
   useEffect(() => {
     let animationFrameId: number;
