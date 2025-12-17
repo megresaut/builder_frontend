@@ -181,6 +181,7 @@ interface ActionButtonProps {
   setOpenMenuId: (id: number | null) => void;
   tab?: "approved" | "drafts";
   propertyId?: string;
+  onDeleteBill?: (billId: number) => void;
 }
 
 const ActionButton = ({
@@ -190,6 +191,7 @@ const ActionButton = ({
   setOpenMenuId,
   tab = "approved",
   propertyId,
+  onDeleteBill,
 }: ActionButtonProps) => {
   const showMenu = openMenuId === billId;
   const buttonRef = useRef<HTMLButtonElement>(null);
