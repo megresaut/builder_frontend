@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
