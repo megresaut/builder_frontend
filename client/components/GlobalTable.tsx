@@ -32,7 +32,7 @@ interface GlobalTableProps {
   itemsPerPage: number;
   onItemsPerPageChange: (itemsPerPage: number) => void;
   showPageSizeDropdown: boolean;
-  onShowPageSizeDropdownChange: (show: boolean) => void;
+  onShowPageSizeDropdownChange?: (show: boolean) => void;
   openMenuId: string | number | null;
   onOpenMenuIdChange: (id: string | number | null) => void;
   title?: string;
