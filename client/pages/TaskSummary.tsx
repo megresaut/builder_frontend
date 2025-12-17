@@ -17,13 +17,9 @@ import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
 import WorkOrders from "./WorkOrders";
 import WorkOrdersTab from "@/components/WorkOrdersTab";
-import CreateFTOModal from "@/components/CreateFTOModal";
-import FTOApprovalModal from "@/components/FTOApprovalModal";
+import FieldTeamOrdersTab from "@/components/FieldTeamOrdersTab";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
-import { useSortingTable } from "@/hooks/useSortingTable";
-import { useColumnManagement } from "@/hooks/useColumnManagement";
-import ColumnFilterModal from "@/components/ColumnFilterModal";
 
 interface FieldTeamOrder {
   id: number;
