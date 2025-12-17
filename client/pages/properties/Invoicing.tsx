@@ -892,146 +892,130 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </div>
           </div>
 
-          {invoiceColumnsManagement.showColumnModal &&
-            createPortal(
-              <ColumnFilterModal
-                isOpen={invoiceColumnsManagement.showColumnModal}
-                position={invoiceColumnsManagement.columnMenuPos}
-                columns={[
-                  { key: "vendor", label: "Vendor", icon: null },
-                  { key: "glAccount", label: "GL Account", icon: null },
-                  { key: "description", label: "Description", icon: null },
-                  { key: "amount", label: "Amount", icon: null },
-                  { key: "source", label: "Source", icon: null },
-                  { key: "status", label: "Approval Status", icon: null },
-                ]}
-                visibleColumns={invoiceColumnsManagement.visibleColumns}
-                onToggleColumn={invoiceColumnsManagement.toggleColumnVisibility}
-                onClose={() =>
-                  invoiceColumnsManagement.setShowColumnModal(false)
-                }
-              />,
-              document.body,
-            )}
+          <ColumnFilterModal
+            isOpen={invoiceColumnsManagement.showColumnModal}
+            position={invoiceColumnsManagement.columnMenuPos}
+            columns={invoiceTableColumns}
+            visibleColumns={invoiceColumnsManagement.visibleColumns}
+            onToggleColumn={invoiceColumnsManagement.toggleColumnVisibility}
+            onClose={() => invoiceColumnsManagement.setShowColumnModal(false)}
+            buttonRef={invoiceColumnsManagement.columnButtonRef}
+          />
 
           {/* Table */}
-          <div
-            className="border-[0.5px] border-[#e5e5e5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex w-full max-w-full flex-col overflow-x-auto"
-            style={{
-              borderLeftWidth: "0px",
-              borderBottomWidth: "0px",
-              borderRightWidth: "0px",
-            }}
-          >
-            <div
-              className="flex w-full flex-nowrap"
-              style={{ borderLeftColor: "transparent" }}
-            >
-              <div
-                className="flex flex-nowrap flex-1 flex-col w-full"
-                style={{ borderLeftColor: "transparent" }}
-              >
-                {/* Headers */}
-                <InvoiceTableHeader
-                  columns={visibleInvoiceColumns.map((colKey) => ({
-                    key: colKey,
-                    label: invoiceColumnConfigs[colKey].label,
-                    width: invoiceColumnConfigs[colKey].width,
-                    minWidth: invoiceColumnConfigs[colKey].minWidth,
-                    flex: invoiceColumnConfigs[colKey].flex,
-                    icon: invoiceColumnConfigs[colKey].icon,
-                    sortable: true,
-                  }))}
-                  gridTemplateColumns={buildGridTemplateColumns(
-                    visibleInvoiceColumns.map((colKey) => ({
-                      width: invoiceColumnConfigs[colKey].width,
-                      minWidth: invoiceColumnConfigs[colKey].minWidth,
-                      flex: invoiceColumnConfigs[colKey].flex,
-                    })),
-                  )}
-                  draggedColumn={invoiceColumnsManagement.draggedColumn}
-                  dropTargetColumn={invoiceColumnsManagement.dropTargetColumn}
-                  dropPosition={invoiceColumnsManagement.dropPosition}
-                  onDragStart={invoiceColumnsManagement.handleColumnDragStart}
-                  onDragOver={invoiceColumnsManagement.handleColumnDragOver}
-                  onDragLeave={invoiceColumnsManagement.handleColumnDragLeave}
-                  onDrop={invoiceColumnsManagement.handleColumnDrop}
-                  onSort={handleInvoiceSortClick}
-                  getSortIndicator={getInvoiceSortIndicator}
-                />
-                {/* Rows */}
-                <InvoiceTableRows
-                  items={getSortedInvoiceItems()}
-                  visibleColumns={visibleInvoiceColumns.map((colKey) => ({
-                    key: colKey,
-                    width: invoiceColumnConfigs[colKey].width,
-                    minWidth: invoiceColumnConfigs[colKey].minWidth,
-                    flex: invoiceColumnConfigs[colKey].flex,
-                  }))}
-                  gridTemplateColumns={buildGridTemplateColumns(
-                    visibleInvoiceColumns.map((colKey) => ({
-                      width: invoiceColumnConfigs[colKey].width,
-                      minWidth: invoiceColumnConfigs[colKey].minWidth,
-                      flex: invoiceColumnConfigs[colKey].flex,
-                    })),
-                  )}
-                  showingPendingInsights={showingPendingInsights}
-                />
-              </div>
+          <GlobalTable
+            className="border-0 rounded-none"
+            columns={invoiceTableColumns}
+            data={invoiceItems}
+            rowKey="id"
+            actions={[
+              {
+                label: (item: any) =>
+                  item?.source === "FTO Submission" ? "View FTO" : "View Bill",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  const isFTO = item?.source === "FTO Submission";
+                  if (isFTO) {
+                    openViewFTO(item.id);
+                    return;
+                  }
 
-              {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible w-20 sticky right-0 z-40" style={{ border: "1px none rgb(229, 229, 229)", width: "80px" }}>
-                <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex justify-center w-20 gap-2 overflow-visible px-3 py-3">
-                  <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                    Actions
-                  </div>
-                </div>
-                {getSortedInvoiceItems().map((item) => {
-                  const isFTO = item.source === "FTO Submission";
+                  const data = buildRecordBillModalDataFromInvoiceItem(item);
+                  if (item?.status === "Approved") {
+                    setRecordBillModalMode("view");
+                    setRecordBillModalData(data);
+                    setRecordBillModalOpen(true);
+                    return;
+                  }
+
+                  setRecordBillModalMode("create");
+                  setRecordBillModalData(data);
+                  setRecordBillModalOpen(true);
+                },
+              },
+            ]}
+            renderCell={(item: any, columnKey: string) => {
+              switch (columnKey) {
+                case "vendor":
                   return (
-                    <div
-                      key={item.id}
-                      className={`items-center border-b-[0.5px] flex justify-center min-h-14 gap-2.5 px-3 relative ${
-                        showingPendingInsights &&
-                        item.status === "Pending Approval"
-                          ? "bg-[#F5F3FF] border-[#E5E5FF]"
-                          : "bg-white border-[#e5e5e5]"
-                      }`}
-                      style={{ width: "80px" }}
-                    >
-                      <ActionButton
-                        itemId={`invoice-${item.id}`}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
-                        isFTO={isFTO}
-                        ftoActionLabel={isFTO ? "View FTO" : "View Bill"}
-                        onView={() => {
-                          if (isFTO) {
-                            openViewFTO(item.id);
-                            return;
-                          }
-
-                          const data =
-                            buildRecordBillModalDataFromInvoiceItem(item);
-
-                          if (item.status === "Approved") {
-                            setRecordBillModalMode("view");
-                            setRecordBillModalData(data);
-                            setRecordBillModalOpen(true);
-                            return;
-                          }
-
-                          setRecordBillModalMode("create");
-                          setRecordBillModalData(data);
-                          setRecordBillModalOpen(true);
+                    <div className="flex items-center gap-2.5 whitespace-nowrap">
+                      <div
+                        className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center flex-shrink-0"
+                        style={{
+                          backgroundColor: item.vendorBg,
+                          borderColor: item.vendorBorder,
                         }}
-                      />
+                      >
+                        <img
+                          loading="lazy"
+                          src={item.vendorIcon}
+                          className="w-5 h-5"
+                          alt=""
+                        />
+                      </div>
+                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] truncate">
+                        {item.vendor}
+                      </div>
                     </div>
                   );
-                })}
-              </div>
-            </div>
-          </div>
+                case "status":
+                  return <StatusBadge status={item.status} />;
+                case "glAccount":
+                case "description":
+                case "amount":
+                case "source":
+                  return (
+                    <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
+                      {item[columnKey]}
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick: handleInvoiceSortClick,
+              getSortIndicator: getInvoiceSortIndicator,
+              getSortedData: getSortedInvoiceItems,
+            }}
+            columnManagementHook={invoiceColumnsManagement}
+            currentPage={1}
+            onPageChange={noopPageChange}
+            itemsPerPage={invoiceItems.length || 10}
+            onItemsPerPageChange={noopItemsPerPageChange}
+            showPageSizeDropdown={false}
+            onShowPageSizeDropdownChange={noopShowDropdownChange}
+            openMenuId={invoiceOpenMenuId}
+            onOpenMenuIdChange={setInvoiceOpenMenuId}
+            showColumnModal={invoiceColumnsManagement.showColumnModal}
+            onShowColumnModalChange={invoiceColumnsManagement.setShowColumnModal}
+            showPagination={false}
+            getRowClassName={getInvoiceItemRowClassName}
+            getCellClassName={getInvoiceItemCellClassName}
+          />
 
           {/* Footer */}
           <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
