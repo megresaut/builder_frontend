@@ -395,6 +395,26 @@ export default function MaintenanceWorkOrders() {
     },
   ];
 
+  const handleDeleteWorkOrder = useCallback(
+    (workOrder: WorkOrder) => {
+      console.log("handleDeleteWorkOrder called for:", workOrder.id);
+      setWorkOrders((prev) => {
+        const updated = prev.filter((wo) => wo.id !== workOrder.id);
+        console.log("WorkOrders after delete:", updated);
+        return updated;
+      });
+    },
+    []
+  );
+
+  const handleEditWorkOrder = useCallback(
+    (workOrder: WorkOrder) => {
+      setEditingWorkOrder(workOrder);
+      setIsCreateWorkOrderModalOpen(true);
+    },
+    [setIsCreateWorkOrderModalOpen]
+  );
+
   return (
     <div
       className="bg-white"
