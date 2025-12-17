@@ -406,10 +406,10 @@ export default function GlobalTable({
                   );
                 })}
               <th
-                className="ra-table-actions-header sticky right-0 px-2 py-3 text-center w-20"
+                className="ra-table-actions-header sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
                 style={{
                   borderLeftWidth: "2px",
-                  border: "1px none rgb(226, 232, 240)",
+                  borderLeftColor: "rgb(210,209,207)",
                   backgroundColor: "white",
                 }}
               >
