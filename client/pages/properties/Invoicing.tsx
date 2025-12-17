@@ -108,139 +108,210 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     "amount",
   ]);
 
-  // Invoice table column configurations
-  const invoiceColumnConfigs: Record<
+  const invoicingColumnConfig: Record<
     string,
-    {
-      label: string;
-      width?: string;
-      minWidth?: string;
-      flex?: number;
-      icon?: string;
-      sortable?: boolean;
-    }
+    { label: string; icon: ReactNode | null }
   > = {
     vendor: {
       label: "Vendor",
-      flex: 1,
-      minWidth: "160px",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
     },
     glAccount: {
       label: "GL Account",
-      flex: 1,
-      minWidth: "170px",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
     },
     description: {
       label: "Description",
-      flex: 2,
-      minWidth: "260px",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
     },
     amount: {
       label: "Amount",
-      flex: 1,
-      minWidth: "130px",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
     },
     source: {
       label: "Source",
-      flex: 1,
-      minWidth: "150px",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/225d3e057a8e01f2536a35172298a3ee7a373378?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
     },
     status: {
       label: "Approval Status",
-      flex: 1,
-      minWidth: "180px",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="8"
+            cy="8"
+            r="5.5"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <path
+            d="M6 8l1.5 1.5L10 6.5"
+            stroke="#525252"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
     },
-  };
-
-  // History table column configurations
-  const historyColumnConfigs: Record<
-    string,
-    {
-      label: string;
-      width?: string;
-      minWidth?: string;
-      flex?: number;
-      icon?: string;
-      sortable?: boolean;
-    }
-  > = {
     dateCreated: {
       label: "Date Created",
-      flex: 1.1,
-      minWidth: "150px",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="2"
+            y="3"
+            width="12"
+            height="11"
+            rx="1"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <path
+            d="M5 1v4M11 1v4"
+            stroke="#525252"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+          <line
+            x1="2"
+            y1="6"
+            x2="14"
+            y2="6"
+            stroke="#525252"
+            strokeWidth="1.2"
+          />
+        </svg>
+      ),
     },
     invoiceMonth: {
       label: "Invoice Month",
-      flex: 1,
-      minWidth: "140px",
-    },
-    amount: {
-      label: "Amount",
-      flex: 0.8,
-      minWidth: "110px",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="2"
+            y="3"
+            width="12"
+            height="11"
+            rx="1"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <path
+            d="M5 1v4M11 1v4"
+            stroke="#525252"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+          <line
+            x1="2"
+            y1="6"
+            x2="14"
+            y2="6"
+            stroke="#525252"
+            strokeWidth="1.2"
+          />
+        </svg>
+      ),
     },
   };
 
-  const buildGridTemplateColumns = (
-    cols: Array<{ width?: string; minWidth?: string; flex?: number }>,
-  ) =>
-    cols
-      .map((col) => {
-        if (col.width) {
-          return `minmax(${col.width}, ${col.width})`;
-        }
+  const invoiceTableColumns = invoiceColumnsManagement.columnOrder.map((key) => ({
+    key,
+    label: invoicingColumnConfig[key]?.label ?? key,
+    icon: invoicingColumnConfig[key]?.icon ?? null,
+  }));
 
-        const min = col.minWidth ?? "140px";
-        const fr = col.flex ?? 1;
-        return `minmax(${min}, ${fr}fr)`;
-      })
-      .join(" ");
+  const historyTableColumns = historyColumnsManagement.columnOrder.map((key) => ({
+    key,
+    label: invoicingColumnConfig[key]?.label ?? key,
+    icon: invoicingColumnConfig[key]?.icon ?? null,
+  }));
 
-  // Get visible columns in order
-  const visibleInvoiceColumns = invoiceColumnsManagement.columnOrder.filter(
-    (col) => invoiceColumnsManagement.visibleColumns.has(col),
-  );
+  const handleHistoryItemsPerPageChange = (nextPageSize: number) => {
+    setItemsPerPage(nextPageSize);
+    setCurrentPage(1);
+  };
 
-  const visibleHistoryColumns = historyColumnsManagement.columnOrder.filter(
-    (col) => historyColumnsManagement.visibleColumns.has(col),
-  );
+  const noopPageChange = (_page: number) => {};
+  const noopItemsPerPageChange = (_itemsPerPage: number) => {};
+  const noopShowDropdownChange = (_show: boolean) => {};
 
-  useEffect(() => {
-    let animationFrameId: number;
+  const getInvoiceItemRowClassName = (item: any) => {
+    const isHighlighted =
+      showingPendingInsights && item?.status === "Pending Approval";
 
-    const updateDropdownPos = () => {
-      if (showPageSizeDropdown && dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-    };
+    return isHighlighted ? "h-14 bg-[#F5F3FF] border-[#E5E5FF]" : "h-14";
+  };
 
-    updateDropdownPos();
+  const getInvoiceItemCellClassName = (item: any, columnKey: string) => {
+    const isHighlighted =
+      showingPendingInsights && item?.status === "Pending Approval";
 
-    if (showPageSizeDropdown) {
-      animationFrameId = requestAnimationFrame(updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
-      window.addEventListener("scroll", updateDropdownPos);
+    if (!isHighlighted) return "";
+
+    const base = "border-[#E5E5FF]";
+    if (columnKey === "vendor") {
+      return `${base} border-l-4 border-l-[#6366F1] pl-2`;
     }
 
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", updateDropdownPos);
-      window.removeEventListener("scroll", updateDropdownPos);
-    };
-  }, [showPageSizeDropdown]);
-
-  useEffect(() => {
-    const handleClickAnywhere = () => {
-      setOpenMenuId(null);
-    };
-
-    document.addEventListener("mousedown", handleClickAnywhere);
-    return () => document.removeEventListener("mousedown", handleClickAnywhere);
-  }, []);
+    return base;
+  };
 
   type InvoiceItemStatus = "Pending Approval" | "Approved";
 
