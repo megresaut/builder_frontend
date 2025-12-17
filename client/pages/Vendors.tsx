@@ -160,120 +160,9 @@ export default function Vendors() {
     setVendors([...vendors, newVendor]);
   };
 
-  const totalVendors = vendors.length;
-  const totalPages = Math.ceil(totalVendors / itemsPerPage);
-
-  const getSortedAndPaginatedVendors = () => {
-    const sorted = getSortedData();
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return sorted.slice(start, end);
-  };
-
-  const getPaginationNumbers = () => {
-    const pages: (number | string)[] = [];
-
-    if (totalPages <= 1) {
-      return [1];
-    }
-
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-      return pages;
-    }
-
-    const windowSize = 7;
-    let start = Math.max(1, currentPage - 2);
-    let end = start + windowSize - 1;
-
-    if (end > totalPages) {
-      end = totalPages;
-      start = Math.max(1, end - windowSize + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  };
-
-  // Toggle column visibility
-  const toggleColumnVisibility = (columnKey: string) => {
-    const newVisibleColumns = new Set(visibleColumns);
-    if (newVisibleColumns.has(columnKey)) {
-      // Prevent unchecking if it would result in 0 visible columns
-      if (newVisibleColumns.size > 1) {
-        newVisibleColumns.delete(columnKey);
-      }
-    } else {
-      newVisibleColumns.add(columnKey);
-    }
-    setVisibleColumns(newVisibleColumns);
-  };
-
-  // Column drag-and-drop handlers
-  const handleColumnDragStart = (columnKey: string) => {
-    setDraggedColumn(columnKey);
-  };
-
-  const handleColumnDragOver = (e: React.DragEvent, columnKey: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-
-    const element = e.currentTarget as HTMLElement;
-    const rect = element.getBoundingClientRect();
-    const midpoint = rect.left + rect.width / 2;
-    const position = e.clientX < midpoint ? "before" : "after";
-
-    setDropTargetColumn(columnKey);
-    setDropPosition(position);
-  };
-
-  const handleColumnDragLeave = () => {
-    setDropTargetColumn(null);
-  };
-
-  const handleColumnDrop = (e: React.DragEvent, targetColumn: string) => {
-    e.preventDefault();
-
-    if (!draggedColumn || draggedColumn === targetColumn) {
-      setDraggedColumn(null);
-      setDropTargetColumn(null);
-      return;
-    }
-
-    const draggedIndex = columnOrder.indexOf(draggedColumn);
-    const targetIndex = columnOrder.indexOf(targetColumn);
-
-    if (draggedIndex === -1 || targetIndex === -1) {
-      setDraggedColumn(null);
-      setDropTargetColumn(null);
-      return;
-    }
-
-    const newColumnOrder = [...columnOrder];
-    newColumnOrder.splice(draggedIndex, 1);
-
-    let insertIndex: number;
-    if (dropPosition === "before") {
-      insertIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
-    } else {
-      insertIndex = draggedIndex < targetIndex ? targetIndex : targetIndex + 1;
-    }
-
-    newColumnOrder.splice(insertIndex, 0, draggedColumn);
-    setColumnOrder(newColumnOrder);
-
-    setDraggedColumn(null);
-    setDropTargetColumn(null);
-  };
-
-  // Column configuration with icons
-  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
-    name: {
+  const columns = [
+    {
+      key: "name",
       label: "Name",
       icon: (
         <img
@@ -284,7 +173,8 @@ export default function Vendors() {
         />
       ),
     },
-    phone: {
+    {
+      key: "phone",
       label: "Phone",
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -292,7 +182,8 @@ export default function Vendors() {
         </svg>
       ),
     },
-    email: {
+    {
+      key: "email",
       label: "Email",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -301,7 +192,8 @@ export default function Vendors() {
         </svg>
       ),
     },
-    servicesProvided: {
+    {
+      key: "servicesProvided",
       label: "Services Provided",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -311,7 +203,8 @@ export default function Vendors() {
         </svg>
       ),
     },
-    notes: {
+    {
+      key: "notes",
       label: "Notes",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -322,7 +215,7 @@ export default function Vendors() {
         </svg>
       ),
     },
-  };
+  ];
 
   return (
     <div
