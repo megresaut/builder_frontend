@@ -619,6 +619,21 @@ export const Bills: React.FC<BillsProps> = ({
     approved: formatRelativeTime(Date.now() - 3 * 60 * 1000),
     drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
   }));
+  const [newlyAddedBillIds, setNewlyAddedBillIds] = useState<Set<number>>(
+    new Set()
+  );
+
+  const markBillAsNew = (billId: number) => {
+    setNewlyAddedBillIds((prev) => new Set(prev).add(billId));
+    const timer = setTimeout(() => {
+      setNewlyAddedBillIds((prev) => {
+        const next = new Set(prev);
+        next.delete(billId);
+        return next;
+      });
+    }, 2500);
+    return () => clearTimeout(timer);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
