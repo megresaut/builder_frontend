@@ -14,6 +14,7 @@ import {
   Paperclip,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import PageHeader from "@/components/PageHeader";
 import WorkOrders from "./WorkOrders";
 import WorkOrdersTab from "@/components/WorkOrdersTab";
 import CreateFTOModal from "@/components/CreateFTOModal";
