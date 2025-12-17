@@ -372,32 +372,36 @@ export const RecordBill = () => {
     // Validate all line items have required fields
     const lineItemsErrors: { [key: number]: Set<string> } = {};
 
-    for (const item of lineItems) {
-      const itemErrors = new Set<string>();
+    if (lineItems.length === 0) {
+      hasErrors = true;
+    } else {
+      for (const item of lineItems) {
+        const itemErrors = new Set<string>();
 
-      if (!item.property.trim()) {
-        itemErrors.add("property");
-        hasErrors = true;
-      }
-      if (!item.unit.trim()) {
-        itemErrors.add("unit");
-        hasErrors = true;
-      }
-      if (!item.workOrder.trim()) {
-        itemErrors.add("workOrder");
-        hasErrors = true;
-      }
-      if (!item.glAccount.trim()) {
-        itemErrors.add("glAccount");
-        hasErrors = true;
-      }
-      if (!item.total.trim()) {
-        itemErrors.add("total");
-        hasErrors = true;
-      }
+        if (!item.property.trim()) {
+          itemErrors.add("property");
+          hasErrors = true;
+        }
+        if (!item.unit.trim()) {
+          itemErrors.add("unit");
+          hasErrors = true;
+        }
+        if (!item.workOrder.trim()) {
+          itemErrors.add("workOrder");
+          hasErrors = true;
+        }
+        if (!item.glAccount.trim()) {
+          itemErrors.add("glAccount");
+          hasErrors = true;
+        }
+        if (!item.total.trim()) {
+          itemErrors.add("total");
+          hasErrors = true;
+        }
 
-      if (itemErrors.size > 0) {
-        lineItemsErrors[item.id] = itemErrors;
+        if (itemErrors.size > 0) {
+          lineItemsErrors[item.id] = itemErrors;
+        }
       }
     }
 
