@@ -607,7 +607,7 @@ export default function GlobalTable({
               left: dropdownPos.left + "px",
               pointerEvents: "auto",
             }}
-            onMouseLeave={() => onShowPageSizeDropdownChange(false)}
+            onMouseLeave={() => onShowPageSizeDropdownChange?.(false)}
           >
             {[10, 25, 50].map((size, index) => (
               <button
