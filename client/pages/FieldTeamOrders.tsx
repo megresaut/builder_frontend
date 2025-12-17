@@ -461,8 +461,11 @@ export default function FieldTeamOrders() {
           {/* Field Team Orders Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns}
-            data={orders}
+            data={filteredOrders}
             rowKey="id"
+            showSearchBar={true}
+            searchValue={searchValue}
+            onSearchChange={setSearchValue}
             renderCell={(order, columnKey) => {
               if (columnKey === "priority") {
                 return (
