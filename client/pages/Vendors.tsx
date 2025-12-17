@@ -219,12 +219,7 @@ export default function Vendors() {
 
   const handleDeleteVendor = useCallback(
     (vendor: Vendor) => {
-      console.log("handleDeleteVendor called for:", vendor.id);
-      setVendors((prev) => {
-        const updated = prev.filter((v) => v.id !== vendor.id);
-        console.log("Vendors after delete:", updated);
-        return updated;
-      });
+      setVendors((prev) => prev.filter((v) => v.id !== vendor.id));
     },
     []
   );

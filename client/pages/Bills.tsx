@@ -667,12 +667,7 @@ export default function Bills() {
 
   const handleDeleteBill = useCallback(
     (bill: Bill) => {
-      console.log("handleDeleteBill called for:", bill.id);
-      setBillsList((prev) => {
-        const updated = prev.filter((b) => b.id !== bill.id);
-        console.log("Bills after delete:", updated);
-        return updated;
-      });
+      setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
     },
     []
   );

@@ -379,12 +379,7 @@ export default function FieldTeamOrders() {
 
   const handleDeleteOrder = useCallback(
     (order: FieldTeamOrder) => {
-      console.log("handleDeleteOrder called for:", order.id);
-      setOrders((prev) => {
-        const updated = prev.filter((o) => o.id !== order.id);
-        console.log("Orders after delete:", updated);
-        return updated;
-      });
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
     },
     []
   );

@@ -397,12 +397,7 @@ export default function MaintenanceWorkOrders() {
 
   const handleDeleteWorkOrder = useCallback(
     (workOrder: WorkOrder) => {
-      console.log("handleDeleteWorkOrder called for:", workOrder.id);
-      setWorkOrders((prev) => {
-        const updated = prev.filter((wo) => wo.id !== workOrder.id);
-        console.log("WorkOrders after delete:", updated);
-        return updated;
-      });
+      setWorkOrders((prev) => prev.filter((wo) => wo.id !== workOrder.id));
     },
     []
   );
