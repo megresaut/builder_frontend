@@ -523,62 +523,125 @@ export default function WorkOrderDetail() {
         )}
 
         {activeTab === "tasks" && (
-          <div className="flex flex-col gap-4">
-            {associatedTasks.length === 0 ? (
-              <p className="text-[#717179] font-normal text-base">
-                No associated tasks
-              </p>
-            ) : (
-              associatedTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => navigate(`/tasks/${task.id}`)}
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex flex-col gap-2 flex-1">
-                      <h3 className="text-[#303030] font-medium text-base">
-                        {task.name}
-                      </h3>
-                      <p className="text-[#717179] font-normal text-sm">
-                        Due: {task.dueDate}
-                      </p>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              task.status === "Completed" ? "#059669" : "#2463EB",
-                          }}
-                        />
-                        <span className="text-sm text-gray-900">
-                          {task.status}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              task.priority === "High"
-                                ? "#D97706"
-                                : task.priority === "Low"
-                                  ? "#059669"
-                                  : "#2463EB",
-                          }}
-                        />
-                        <span className="text-sm text-gray-900">
-                          {task.priority}
-                        </span>
-                      </div>
-                    </div>
+          <GlobalTable
+            columns={tasksColumns}
+            data={filteredTasks}
+            rowKey="id"
+            showSearchBar={true}
+            searchValue={tasksSearchValue}
+            onSearchChange={setTasksSearchValue}
+            renderCell={(task: AssociatedTask, columnKey: string) => {
+              if (columnKey === "name") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {task.name}
+                  </span>
+                );
+              }
+              if (columnKey === "status") {
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: getStatusColor(task.status),
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontSize: "14px", color: getStatusColor(task.status) }}>
+                      {task.status}
+                    </span>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                );
+              }
+              if (columnKey === "dueDate") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {task.dueDate}
+                  </span>
+                );
+              }
+              if (columnKey === "priority") {
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: getPriorityColor(task.priority),
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontSize: "14px", color: getPriorityColor(task.priority) }}>
+                      {task.priority}
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            }}
+            sortingHook={{
+              handleSortClick: tasksHandleSortClick,
+              getSortIndicator: tasksGetSortIndicator,
+              getSortedData: tasksGetSortedData,
+            }}
+            columnManagementHook={{
+              columnOrder: tasksColumnManagement.columnOrder,
+              visibleColumns: tasksColumnManagement.visibleColumns,
+              draggedColumn: tasksColumnManagement.draggedColumn,
+              dropTargetColumn: tasksColumnManagement.dropTargetColumn,
+              dropPosition: tasksColumnManagement.dropPosition,
+              columnMenuPos: tasksColumnManagement.columnMenuPos,
+              columnButtonRef: tasksColumnManagement.columnButtonRef,
+              toggleColumnVisibility: tasksColumnManagement.toggleColumnVisibility,
+              handleColumnDragStart: tasksColumnManagement.handleColumnDragStart,
+              handleColumnDragOver: tasksColumnManagement.handleColumnDragOver,
+              handleColumnDragLeave: tasksColumnManagement.handleColumnDragLeave,
+              handleColumnDrop: tasksColumnManagement.handleColumnDrop,
+            }}
+            currentPage={tasksCurrentPage}
+            onPageChange={setTasksCurrentPage}
+            itemsPerPage={tasksItemsPerPage}
+            onItemsPerPageChange={setTasksItemsPerPage}
+            showPageSizeDropdown={tasksShowPageSizeDropdown}
+            onShowPageSizeDropdownChange={setTasksShowPageSizeDropdown}
+            openMenuId={tasksOpenMenuId}
+            onOpenMenuIdChange={setTasksOpenMenuId}
+            actions={[
+              {
+                label: "View",
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ),
+                onClick: (task: AssociatedTask) => navigate(`/tasks/${task.id}`),
+              },
+            ]}
+            headerActions={
+              <button
+                ref={tasksColumnManagement.columnButtonRef}
+                onClick={() => {
+                  setTasksShowPageSizeDropdown(false);
+                  setTasksOpenMenuId(null);
+                  tasksColumnManagement.setShowColumnModal((prev) => !prev);
+                }}
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                </svg>
+              </button>
+            }
+            showColumnModal={tasksColumnManagement.showColumnModal}
+            onShowColumnModalChange={tasksColumnManagement.setShowColumnModal}
+          />
         )}
 
         {activeTab === "ftos" && (
