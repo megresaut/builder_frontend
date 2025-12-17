@@ -403,6 +403,7 @@ export const RecordBill = () => {
 
     if (hasErrors) {
       setLineItemErrors(lineItemsErrors);
+      return;
     }
 
     const amount = Number.parseFloat(
