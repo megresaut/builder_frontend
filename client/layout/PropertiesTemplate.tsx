@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import PageHeader from "@/components/PageHeader";
+import PageTemplate from "@/layout/PageTemplate";
 
 interface Manager {
   id: number;
