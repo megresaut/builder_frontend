@@ -130,6 +130,48 @@ const parseDateWithFallback = (value: string | undefined, fallback: Date) => {
   return fallback;
 };
 
+const parseDateNullable = (value: string | undefined): Date | null => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const emptyLineItem = (id: number): LineItem => ({
+  id,
+  property: "",
+  unit: "",
+  workOrder: "",
+  description: "",
+  glAccount: "",
+  total: "",
+});
+
+const buildEditableBillFromState = (stateBill?: ViewBillState) => {
+  const vendorName = (stateBill?.vendorName ?? "").trim();
+  const vendor =
+    vendorName && vendorName !== "—"
+      ? mockVendors.find((v) => v.name === vendorName) ?? null
+      : null;
+
+  const referenceNumber = stateBill?.referenceNumber ?? "";
+  const invoiceDate = parseDateNullable(stateBill?.invoiceDate);
+  const dueDate = parseDateNullable(stateBill?.dueDate);
+  const memo = stateBill?.memo ?? "";
+  const lineItems =
+    stateBill?.lineItems && stateBill.lineItems.length > 0
+      ? stateBill.lineItems
+      : [emptyLineItem(1)];
+
+  return {
+    vendor,
+    referenceNumber,
+    invoiceDate,
+    dueDate,
+    memo,
+    lineItems,
+  };
+};
+
 const buildReadOnlyBillFromState = (stateBill?: ViewBillState) => {
   const vendor =
     (stateBill?.vendorName &&
@@ -176,14 +218,18 @@ export const RecordBill = () => {
   const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
 
   const initialBill = location.state?.bill
-    ? buildReadOnlyBillFromState(location.state.bill)
+    ? isReadOnly
+      ? buildReadOnlyBillFromState(location.state.bill)
+      : buildEditableBillFromState(location.state.bill)
     : null;
 
   const readOnlyBill = isReadOnly
-    ? initialBill ?? buildReadOnlyBillFromState(undefined)
+    ? (initialBill ? (initialBill as ReturnType<typeof buildReadOnlyBillFromState>) : buildReadOnlyBillFromState(undefined))
     : null;
 
-  const editableBill = !isReadOnly ? initialBill : null;
+  const editableBill = !isReadOnly
+    ? (initialBill ? (initialBill as ReturnType<typeof buildEditableBillFromState>) : null)
+    : null;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
@@ -573,20 +619,24 @@ export const RecordBill = () => {
     setInvoiceDateInput(formatted);
     setInvoiceDateError("");
 
-    // Only validate when we have a complete date (mm/dd/yyyy)
-    if (formatted.length === 10) {
-      const parsedDate = validateDateFormat(formatted);
-      if (parsedDate) {
-        setInvoiceDate(parsedDate);
-        setFormErrors((prev) => {
-          const newErrors = new Set(prev);
-          newErrors.delete("invoiceDate");
-          return newErrors;
-        });
-      } else {
-        setInvoiceDateError("Invalid date. Please use mm/dd/yyyy format.");
-      }
+    if (formatted.length !== 10) {
+      setInvoiceDate(null);
+      return;
     }
+
+    const parsedDate = validateDateFormat(formatted);
+    if (parsedDate) {
+      setInvoiceDate(parsedDate);
+      setFormErrors((prev) => {
+        const newErrors = new Set(prev);
+        newErrors.delete("invoiceDate");
+        return newErrors;
+      });
+      return;
+    }
+
+    setInvoiceDate(null);
+    setInvoiceDateError("Invalid date. Please use mm/dd/yyyy format.");
   };
 
   const handleDueDateInputChange = (value: string) => {
@@ -594,20 +644,24 @@ export const RecordBill = () => {
     setDueDateInput(formatted);
     setDueDateError("");
 
-    // Only validate when we have a complete date (mm/dd/yyyy)
-    if (formatted.length === 10) {
-      const parsedDate = validateDateFormat(formatted);
-      if (parsedDate) {
-        setDueDate(parsedDate);
-        setFormErrors((prev) => {
-          const newErrors = new Set(prev);
-          newErrors.delete("dueDate");
-          return newErrors;
-        });
-      } else {
-        setDueDateError("Invalid date. Please use mm/dd/yyyy format.");
-      }
+    if (formatted.length !== 10) {
+      setDueDate(null);
+      return;
     }
+
+    const parsedDate = validateDateFormat(formatted);
+    if (parsedDate) {
+      setDueDate(parsedDate);
+      setFormErrors((prev) => {
+        const newErrors = new Set(prev);
+        newErrors.delete("dueDate");
+        return newErrors;
+      });
+      return;
+    }
+
+    setDueDate(null);
+    setDueDateError("Invalid date. Please use mm/dd/yyyy format.");
   };
 
   const handleInvoiceDateSelect = (date: Date) => {
