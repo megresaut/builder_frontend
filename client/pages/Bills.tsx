@@ -694,6 +694,8 @@ export default function Bills() {
         next.add(resolvedBillId);
         return next;
       });
+
+      markBillAsNew(resolvedBillId);
     };
 
     window.addEventListener("billApproved", handleBillApproved);
