@@ -388,8 +388,19 @@ export const RecordBill = () => {
       return;
     }
 
+    const billData = {
+      timestamp: Date.now(),
+      vendor: selectedVendor?.name,
+      invoiceDate: invoiceDate ? format(invoiceDate, "MMM d, yyyy") : "",
+      dueDate: dueDate ? format(dueDate, "MMM d, yyyy") : "",
+      referenceNumber,
+      memo,
+      lineItems,
+      uploadedFiles,
+    };
+
     window.dispatchEvent(
-      new CustomEvent("billApproved", { detail: { timestamp: Date.now() } }),
+      new CustomEvent("billApproved", { detail: billData }),
     );
     navigate(-1);
   };
