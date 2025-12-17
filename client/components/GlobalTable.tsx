@@ -31,8 +31,8 @@ interface GlobalTableProps {
   onItemsPerPageChange: (itemsPerPage: number) => void;
   showPageSizeDropdown: boolean;
   onShowPageSizeDropdownChange: (show: boolean) => void;
-  openMenuId: number | null;
-  onOpenMenuIdChange: (id: number | null) => void;
+  openMenuId: string | number | null;
+  onOpenMenuIdChange: (id: string | number | null) => void;
   title?: string;
   subtitle?: string;
   headerActions?: ReactNode;
