@@ -1340,6 +1340,11 @@ export const Bills: React.FC<BillsProps> = ({
                             setOpenMenuId={setOpenMenuId}
                             tab={selectedTab}
                             propertyId={propertyId}
+                            onDeleteBill={(billId) => {
+                              setBillsList((prev) =>
+                                prev.filter((b) => b.id !== billId)
+                              );
+                            }}
                           />
                         </td>
                       </tr>
