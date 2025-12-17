@@ -1361,6 +1361,32 @@ export const Bills: React.FC<BillsProps> = ({
           />
         )}
       </div>
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={billsColumnManagement.showColumnModal}
+        position={billsColumnManagement.columnMenuPos}
+        columns={billsColumnManagement.columnOrder
+          .filter((key) => {
+            if (key === "status" && selectedTab !== "drafts") {
+              return false;
+            }
+            if (key === "exportedAt" && selectedTab !== "approved") {
+              return false;
+            }
+            return true;
+          })
+          .map((key) => ({
+            key,
+            label: billsColumnConfig[key]?.label || key,
+            icon: billsColumnConfig[key]?.icon,
+          }))}
+        visibleColumns={billsColumnManagement.visibleColumns}
+        onToggleColumn={billsColumnManagement.toggleColumnVisibility}
+        onClose={() => billsColumnManagement.setShowColumnModal(false)}
+        buttonRef={billsColumnManagement.columnButtonRef}
+      />
+
       {/* Dropdown Menu - Rendered via Portal at body level */}
       {showPageSizeDropdown &&
         createPortal(
