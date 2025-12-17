@@ -1232,7 +1232,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             { key: "due", label: "Due", icon: tasksColumnConfig.due.icon },
             { key: "assignees", label: "Assignees", icon: tasksColumnConfig.assignees.icon },
           ]}
-          data={mockPropertyTasks}
+          data={tasksList}
           rowKey="id"
           actions={[
             {
