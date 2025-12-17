@@ -559,8 +559,31 @@ export default function Bills() {
 
   useEffect(() => {
     const handleBillApproved = (event: Event) => {
-      const customEvent = event as CustomEvent<{ timestamp: number }>;
-      setApprovedTimestamp(customEvent.detail.timestamp);
+      const customEvent = event as CustomEvent<{
+        timestamp: number;
+        vendor?: string;
+        invoiceDate?: string;
+        dueDate?: string;
+        referenceNumber?: string;
+        memo?: string;
+        lineItems?: any[];
+        uploadedFiles?: any[];
+      }>;
+
+      const billData = customEvent.detail;
+      setApprovedTimestamp(billData.timestamp);
+
+      // Move the first draft bill to approved
+      setBillsList((prevList) => {
+        const newList = [...prevList];
+        // Move the bill from draft position to approved position
+        if (newList.length > 0) {
+          // Reorder so approved bills are at the beginning
+          const [movedBill] = newList.splice(0, 1);
+          newList.unshift(movedBill);
+        }
+        return newList;
+      });
     };
 
     window.addEventListener("billApproved", handleBillApproved);
