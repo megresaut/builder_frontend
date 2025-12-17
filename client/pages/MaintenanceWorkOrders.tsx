@@ -184,6 +184,7 @@ const mockWorkOrders: WorkOrder[] = [
 
 export default function MaintenanceWorkOrders() {
   const navigate = useNavigate();
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -201,7 +202,7 @@ export default function MaintenanceWorkOrders() {
     usePageState("isCreateWorkOrderModalOpen", false);
 
   const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(mockWorkOrders, "allWorkOrders");
+    useSortingTable(workOrders, "allWorkOrders");
   const {
     columnOrder,
     visibleColumns,
