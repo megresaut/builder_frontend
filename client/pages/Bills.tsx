@@ -183,6 +183,7 @@ const ActionButton = ({
   openMenuId,
   setOpenMenuId,
   tab = "approved",
+  onDeleteBill,
 }: ActionButtonProps) => {
   const showMenu = openMenuId === billId;
   const buttonRef = useRef<HTMLButtonElement>(null);
