@@ -377,6 +377,34 @@ export default function FieldTeamOrders() {
     },
   ];
 
+  const handleDeleteOrder = useCallback(
+    (order: FieldTeamOrder) => {
+      console.log("handleDeleteOrder called for:", order.id);
+      setOrders((prev) => {
+        const updated = prev.filter((o) => o.id !== order.id);
+        console.log("Orders after delete:", updated);
+        return updated;
+      });
+    },
+    []
+  );
+
+  const handleEditOrder = useCallback(
+    (order: FieldTeamOrder) => {
+      setEditingOrder(order);
+      setShowFTOModal(true);
+    },
+    [setShowFTOModal]
+  );
+
+  const handleApproveOrder = useCallback(
+    (order: FieldTeamOrder) => {
+      setEditingOrder(order);
+      setShowApprovalModal(true);
+    },
+    [setShowApprovalModal]
+  );
+
   return (
     <div
       className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
