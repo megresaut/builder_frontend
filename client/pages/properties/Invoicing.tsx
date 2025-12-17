@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useSortingTable } from "@/hooks/useSortingTable";
