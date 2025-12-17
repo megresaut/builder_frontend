@@ -390,26 +390,38 @@ export const RecordBill = () => {
   };
 
   const handleRecordBill = () => {
-    // Validate top-level form fields
     const formFieldErrors = new Set<string>();
     let hasErrors = false;
 
-    if (!selectedVendor) {
+    const isValidVendor =
+      !!selectedVendor && mockVendors.some((v) => v.id === selectedVendor.id);
+
+    const parsedInvoiceDate = validateDateFormat(invoiceDateInput);
+    const parsedDueDate = validateDateFormat(dueDateInput);
+
+    if (!isValidVendor) {
       formFieldErrors.add("vendor");
       hasErrors = true;
     }
-    if (!invoiceDate) {
+
+    if (!parsedInvoiceDate) {
       formFieldErrors.add("invoiceDate");
       hasErrors = true;
+      if (invoiceDateInput.trim().length > 0) {
+        setInvoiceDateError("Invalid date. Please use mm/dd/yyyy format.");
+      }
     }
-    if (!dueDate) {
+
+    if (!parsedDueDate) {
       formFieldErrors.add("dueDate");
       hasErrors = true;
+      if (dueDateInput.trim().length > 0) {
+        setDueDateError("Invalid date. Please use mm/dd/yyyy format.");
+      }
     }
 
     setFormErrors(formFieldErrors);
 
-    // Validate all line items have required fields
     const lineItemsErrors: { [key: number]: Set<string> } = {};
 
     if (lineItems.length === 0) {
@@ -418,23 +430,37 @@ export const RecordBill = () => {
       for (const item of lineItems) {
         const itemErrors = new Set<string>();
 
-        if (!String(item.property).trim()) {
+        const propertyVal = String(item.property).trim();
+        if (!propertyVal || !mockProperties.includes(propertyVal)) {
           itemErrors.add("property");
           hasErrors = true;
         }
-        if (!String(item.unit).trim()) {
+
+        const unitVal = String(item.unit).trim();
+        if (!unitVal || unitVal === "N/A" || !mockUnits.includes(unitVal)) {
           itemErrors.add("unit");
           hasErrors = true;
         }
-        if (!String(item.workOrder).trim()) {
+
+        const workOrderVal = String(item.workOrder).trim();
+        if (
+          !workOrderVal ||
+          workOrderVal === "N/A" ||
+          !mockWorkOrders.includes(workOrderVal)
+        ) {
           itemErrors.add("workOrder");
           hasErrors = true;
         }
-        if (!String(item.glAccount).trim()) {
+
+        const glAccountVal = String(item.glAccount).trim();
+        if (!glAccountVal || !mockGLAccounts.includes(glAccountVal)) {
           itemErrors.add("glAccount");
           hasErrors = true;
         }
-        if (!String(item.total).trim()) {
+
+        const totalVal = String(item.total).trim();
+        const parsedTotal = Number.parseFloat(totalVal.replace(/[^0-9.]/g, ""));
+        if (!totalVal || !Number.isFinite(parsedTotal)) {
           itemErrors.add("total");
           hasErrors = true;
         }
@@ -445,8 +471,9 @@ export const RecordBill = () => {
       }
     }
 
+    setLineItemErrors(lineItemsErrors);
+
     if (hasErrors) {
-      setLineItemErrors(lineItemsErrors);
       return;
     }
 
@@ -458,8 +485,8 @@ export const RecordBill = () => {
       billId: resolvedBillId,
       timestamp: Date.now(),
       vendor: selectedVendor?.name,
-      invoiceDate: invoiceDate ? format(invoiceDate, "MMM d, yyyy") : "",
-      dueDate: dueDate ? format(dueDate, "MMM d, yyyy") : "",
+      invoiceDate: format(parsedInvoiceDate, "MMM d, yyyy"),
+      dueDate: format(parsedDueDate, "MMM d, yyyy"),
       referenceNumber,
       memo,
       amount: Number.isFinite(amount) ? amount : 0,
