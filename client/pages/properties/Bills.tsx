@@ -30,6 +30,7 @@ interface Bill {
   glAccount: string;
   importedAt: number;
   exportedAt?: number;
+  importStatus?: string;
 }
 
 const bills: Bill[] = [
