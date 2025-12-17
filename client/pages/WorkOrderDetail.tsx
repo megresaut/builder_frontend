@@ -756,6 +756,36 @@ export default function WorkOrderDetail() {
             onShowColumnModalChange={ftosColumnManagement.setShowColumnModal}
           />
         )}
+
+      {/* Column Filter Modal for Associated Tasks */}
+      <ColumnFilterModal
+        isOpen={tasksColumnManagement.showColumnModal}
+        position={tasksColumnManagement.columnMenuPos}
+        columns={tasksColumns.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={tasksColumnManagement.visibleColumns}
+        onToggleColumn={tasksColumnManagement.toggleColumnVisibility}
+        onClose={() => tasksColumnManagement.setShowColumnModal(false)}
+        buttonRef={tasksColumnManagement.columnButtonRef}
+      />
+
+      {/* Column Filter Modal for Field Team Orders */}
+      <ColumnFilterModal
+        isOpen={ftosColumnManagement.showColumnModal}
+        position={ftosColumnManagement.columnMenuPos}
+        columns={ftosColumns.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={ftosColumnManagement.visibleColumns}
+        onToggleColumn={ftosColumnManagement.toggleColumnVisibility}
+        onClose={() => ftosColumnManagement.setShowColumnModal(false)}
+        buttonRef={ftosColumnManagement.columnButtonRef}
+      />
       </div>
     </div>
   );
