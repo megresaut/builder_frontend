@@ -889,8 +889,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   // Sorting hooks for each table
   const { handleSortClick: handleTasksSortClick, getSortIndicator: getTasksSortIndicator, getSortedData: getTasksSortedData } = useSortingTable(tasksList);
   const { handleSortClick: handleRecurringSortClick, getSortIndicator: getRecurringSortIndicator, getSortedData: getRecurringSortedData } = useSortingTable(recurringTasksList);
-  const { handleSortClick: handleWorkOrdersSortClick, getSortIndicator: getWorkOrdersSortIndicator, getSortedData: getWorkOrdersSortedData } = useSortingTable(mockPropertyWorkOrders);
-  const { handleSortClick: handleFieldTeamSortClick, getSortIndicator: getFieldTeamSortIndicator, getSortedData: getFieldTeamSortedData } = useSortingTable(mockPropertyFieldTeamOrders);
+  const { handleSortClick: handleWorkOrdersSortClick, getSortIndicator: getWorkOrdersSortIndicator, getSortedData: getWorkOrdersSortedData } = useSortingTable(workOrdersList);
+  const { handleSortClick: handleFieldTeamSortClick, getSortIndicator: getFieldTeamSortIndicator, getSortedData: getFieldTeamSortedData } = useSortingTable(fieldTeamOrdersList);
 
   // Pagination state for each table
   const [tasksPage, setTasksPage] = usePageState<number>("tasksPage", 1);
