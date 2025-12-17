@@ -43,6 +43,10 @@ interface GlobalTableProps {
   showPagination?: boolean;
   getRowClassName?: (row: any) => string;
   getCellClassName?: (row: any, columnKey: string) => string;
+  showSearchBar?: boolean;
+  onSearchChange?: (value: string) => void;
+  searchValue?: string;
+  onFilterClick?: () => void;
 }
 
 export default function GlobalTable({
