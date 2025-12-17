@@ -609,6 +609,10 @@ export const Bills: React.FC<BillsProps> = ({
 
       const billData = customEvent.detail;
       setApprovedTimestamp(billData.timestamp);
+      setRelativeTimeDisplay((prev) => ({
+        ...prev,
+        approved: formatRelativeTime(billData.timestamp),
+      }));
       setSelectedTab("approved");
     };
 
