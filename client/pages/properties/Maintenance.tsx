@@ -839,6 +839,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     null,
   );
 
+  // State for tasks data
+  const [tasksList, setTasksList] = useState<Task[]>(mockPropertyTasks);
+  const [recurringTasksList, setRecurringTasksList] = useState<RecurringTask[]>(
+    mockPropertyRecurringTasks,
+  );
+
   // Column management hooks for each table
   const tasksColumnManagement = useColumnManagement([
     "priority",
