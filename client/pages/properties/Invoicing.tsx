@@ -59,8 +59,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+  const [showHistoryPageSizeDropdown, setShowHistoryPageSizeDropdown] =
+    useState(false);
+  const [invoiceOpenMenuId, setInvoiceOpenMenuId] = useState<
+    string | number | null
+  >(null);
+  const [historyOpenMenuId, setHistoryOpenMenuId] = useState<
+    string | number | null
+  >(null);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [invoicePreviewLineItems, setInvoicePreviewLineItems] = useState<
     InvoiceLineItem[]
@@ -84,8 +90,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [selectedAdditionalFtoId, setSelectedAdditionalFtoId] =
     useState<string>("");
   const [showingPendingInsights, setShowingPendingInsights] = useState(false);
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   // Column management for Invoice Items table
   const invoiceColumnsManagement = useColumnManagement([
