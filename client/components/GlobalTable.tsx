@@ -327,16 +327,16 @@ export default function GlobalTable({
                         {renderCell(row, colKey)}
                       </td>
                     ))}
-                  <td
-                    className="ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center"
-                    style={{
-                      borderLeftWidth: "2px",
-                      width: "80px",
-                      borderLeftColor: "transparent",
-                      backgroundColor: "white",
-                    }}
-                  >
-                    {actions.length > 0 && (
+                  {actions.length > 0 && (
+                    <td
+                      className="ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center"
+                      style={{
+                        borderLeftWidth: "2px",
+                        width: "80px",
+                        borderLeftColor: "transparent",
+                        backgroundColor: "white",
+                      }}
+                    >
                       <GlobalActionsDropdown
                         row={row}
                         rowKey={rowKey}
@@ -344,8 +344,8 @@ export default function GlobalTable({
                         openMenuId={openMenuId}
                         setOpenMenuId={onOpenMenuIdChange}
                       />
-                    )}
-                  </td>
+                    </td>
+                  )}
                 </tr>
               );
             })}
