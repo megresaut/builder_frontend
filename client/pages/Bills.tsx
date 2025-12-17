@@ -945,6 +945,8 @@ export default function Bills() {
         return next;
       });
 
+      markBillAsNew(newBill.id);
+
       setSyncState("synced");
       setTimeout(() => {
         setSyncState("idle");
