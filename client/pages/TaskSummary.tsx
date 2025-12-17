@@ -633,26 +633,24 @@ export default function TaskSummary() {
       style={{ borderStyle: "none", borderWidth: "1px", minWidth: "1200px" }}
     >
       {/* Header Section */}
-      <div className="flex items-center justify-between gap-10 flex-nowrap w-full">
-        <div className="flex flex-col justify-start font-['Geist',sans-serif]">
-          <div className="text-[#303030] text-[28px] font-semibold leading-[1.07] whitespace-nowrap">
-            Edgerton - Quote
-          </div>
-          <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
-            <span>Resident Request</span>
-            <span>/</span>
-            <span>10244381</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <button className="flex items-center gap-2 h-10 px-4 border border-white bg-[#013764] text-white rounded-lg shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] font-['Geist',sans-serif] text-base font-medium hover:bg-[#014777] transition-colors whitespace-nowrap">
-            Update task
-          </button>
-          <button className="flex items-center justify-center w-10 h-10 bg-white border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0">
-            <MoreVertical className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Edgerton - Quote"
+        subtitle="Resident Request / 10244381"
+        actionButton={{
+          label: "Update task",
+          onClick: () => {
+            // Handle update task click
+          },
+        }}
+        moreOptions={{
+          onView: () => {
+            // Handle view
+          },
+          onDelete: () => {
+            // Handle delete
+          },
+        }}
+      />
 
       {/* Tabs Section */}
       <div className="flex flex-col mt-9 w-full">
