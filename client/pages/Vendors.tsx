@@ -414,7 +414,7 @@ export default function Vendors() {
                   </svg>
                 ),
                 onClick: (vendor: Vendor) => {
-                  setVendors(vendors.filter(v => v.id !== vendor.id));
+                  setVendors((prev) => prev.filter(v => v.id !== vendor.id));
                 },
               },
             ]}
