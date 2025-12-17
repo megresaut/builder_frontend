@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, ChevronDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import { usePageState } from "@/hooks/usePageState";
