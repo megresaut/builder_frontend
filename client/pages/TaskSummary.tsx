@@ -1464,8 +1464,8 @@ export default function TaskSummary() {
           {/* Field Team Orders tab content */}
           {activeTab === "fieldteam" && (
             <div className="flex flex-col w-full gap-6">
-              {/* Field Team Orders Table */}
-              <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
+              {/* Field Team Orders Table - Using GlobalTable */}
+              <div>
                 {/* Table Header */}
                 <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
                   <div className="flex items-center gap-4">
