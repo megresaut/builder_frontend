@@ -115,6 +115,86 @@
   }
 }
 
+/* Global Table Styles */
+@layer components {
+  .ra-table {
+    @apply w-full border border-gray-200 bg-white rounded-lg overflow-hidden;
+  }
+
+  .ra-table-header-cell {
+    @apply px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative font-medium text-sm text-gray-700;
+  }
+
+  .ra-table-header-label {
+    @apply font-medium text-sm text-gray-700;
+  }
+
+  .ra-table-sort-indicator {
+    @apply text-xs font-bold text-gray-700 ml-1;
+  }
+
+  .ra-table-actions-header {
+    @apply sticky right-0 px-2 py-3 text-center w-20 font-medium text-sm text-gray-700;
+  }
+
+  .ra-table-actions-label {
+    @apply font-medium text-sm text-gray-700;
+  }
+
+  .ra-table-row {
+    @apply border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer;
+  }
+
+  .ra-table-cell {
+    @apply px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible text-gray-900 font-normal text-sm;
+  }
+
+  .ra-table-actions-cell {
+    @apply sticky right-0 px-2 py-3 flex items-center justify-center;
+  }
+
+  .ra-table-actions-button {
+    @apply flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors;
+  }
+
+  .ra-table-pagination {
+    @apply flex justify-between items-center px-6 py-4 bg-white gap-4 relative;
+  }
+
+  .ra-table-pagination-label {
+    @apply text-gray-700 text-sm font-medium;
+  }
+
+  .ra-table-pagination-total {
+    @apply text-gray-700 text-sm font-medium;
+  }
+
+  .ra-table-pagination-controls {
+    @apply flex items-center rounded-lg border bg-white overflow-hidden;
+  }
+
+  .ra-table-page-size-button {
+    @apply flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative;
+  }
+
+  .ra-table-page-size-menu {
+    @apply bg-white overflow-hidden;
+  }
+
+  .ra-table-page-size-option {
+    @apply w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap;
+  }
+
+  .ra-table-prev-button,
+  .ra-table-next-button {
+    @apply flex items-center justify-center gap-1.5 h-10 px-3 transition-colors;
+  }
+
+  .ra-table-pagination-page {
+    @apply flex items-center justify-center h-10 min-w-10 transition-colors font-medium text-sm;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
