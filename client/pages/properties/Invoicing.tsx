@@ -1123,192 +1123,87 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           />
 
           {/* Table */}
-          <div
-            className="bg-white flex w-full flex-col overflow-x-auto"
-            style={{
-              borderTopWidth: "1.33333px",
-              borderTopColor: "#e5e5e5",
-              boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(10, 13, 18, 0.05) 0px 1px 2px 0px",
-            }}
-          >
-            <div
-              className="flex w-full flex-nowrap"
-              style={{ borderLeftColor: "transparent" }}
-            >
-              <div
-                className="flex flex-nowrap flex-1 flex-col w-full"
-                style={{ borderLeftColor: "transparent" }}
-              >
-                {/* Headers */}
-                <InvoiceTableHeader
-                  columns={visibleHistoryColumns.map((colKey) => ({
-                    key: colKey,
-                    label: historyColumnConfigs[colKey].label,
-                    width: historyColumnConfigs[colKey].width,
-                    minWidth: historyColumnConfigs[colKey].minWidth,
-                    flex: historyColumnConfigs[colKey].flex,
-                    icon: historyColumnConfigs[colKey].icon,
-                    sortable: true,
-                  }))}
-                  gridTemplateColumns={buildGridTemplateColumns(
-                    visibleHistoryColumns.map((colKey) => ({
-                      width: historyColumnConfigs[colKey].width,
-                      minWidth: historyColumnConfigs[colKey].minWidth,
-                      flex: historyColumnConfigs[colKey].flex,
-                    })),
-                  )}
-                  draggedColumn={historyColumnsManagement.draggedColumn}
-                  dropTargetColumn={historyColumnsManagement.dropTargetColumn}
-                  dropPosition={historyColumnsManagement.dropPosition}
-                  onDragStart={historyColumnsManagement.handleColumnDragStart}
-                  onDragOver={historyColumnsManagement.handleColumnDragOver}
-                  onDragLeave={historyColumnsManagement.handleColumnDragLeave}
-                  onDrop={historyColumnsManagement.handleColumnDrop}
-                  onSort={handleHistorySortClick}
-                  getSortIndicator={getHistorySortIndicator}
-                />
-                {/* Rows */}
-                <HistoryTableRows
-                  items={paginatedHistory}
-                  visibleColumns={visibleHistoryColumns.map((colKey) => ({
-                    key: colKey,
-                    width: historyColumnConfigs[colKey].width,
-                    minWidth: historyColumnConfigs[colKey].minWidth,
-                    flex: historyColumnConfigs[colKey].flex,
-                  }))}
-                  gridTemplateColumns={buildGridTemplateColumns(
-                    visibleHistoryColumns.map((colKey) => ({
-                      width: historyColumnConfigs[colKey].width,
-                      minWidth: historyColumnConfigs[colKey].minWidth,
-                      flex: historyColumnConfigs[colKey].flex,
-                    })),
-                  )}
-                  onRowClick={(item) =>
-                    openInvoicePreview({
-                      lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                      invoiceDate: item.invoiceMonth,
-                      showCommitButton: false,
-                    })
-                  }
-                />
-              </div>
-
-              {/* Actions Column */}
-              <div className="items-center shadow-[-1px_1px_2px_0_rgba(10,13,18,0.05)] border-l border-[#e5e5e5] bg-white flex flex-col overflow-visible sticky right-0 z-40" style={{ border: "1px none rgb(229, 229, 229)", width: "80px" }}>
-                <div className="items-center border-b-[0.5px] border-[#e5e5e5] flex justify-center gap-2 overflow-hidden px-3 py-3">
-                  <div className="text-[#525252] font-medium text-sm tracking-[-0.32px] leading-6 whitespace-nowrap">
-                    Actions
-                  </div>
-                </div>
-                {paginatedHistory.map((item) => (
-                  <div
-                    key={item.id}
-                    className="items-center border-b-[0.5px] border-[#e5e5e5] flex justify-center min-h-14 gap-2.5 px-3 relative"
-                    style={{ width: "80px" }}
+          <GlobalTable
+            className="border-0 rounded-none"
+            columns={historyTableColumns}
+            data={invoiceHistory}
+            rowKey="id"
+            actions={[
+              {
+                label: "View PDF",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <ActionButton
-                      itemId={`history-${item.id}`}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                      onView={() =>
-                        openInvoicePreview({
-                          lineItems: buildPreviewLineItemsFromHistoryItem(item),
-                          invoiceDate: item.invoiceMonth,
-                          showCommitButton: false,
-                        })
-                      }
+                    <path
+                      d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between w-full gap-4 flex-wrap px-6 py-4">
-            <div className="flex items-center gap-2">
-              <div className="text-[#525252] text-base font-medium">
-                Showing
-              </div>
-              <button
-                ref={dropdownButtonRef}
-                onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
-                className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#e5e5e5] flex min-h-10 px-3 py-2.5 items-center gap-2 cursor-pointer hover:bg-gray-100"
-              >
-                <div className="text-[#0A0A0A] text-base font-medium">
-                  {itemsPerPage}
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/cc5507ba17118962f81e4f61a415adb6e3ee75ee?placeholderIfAbsent=true"
-                  className="w-[18px] h-[18px]"
-                  alt=""
-                />
-              </button>
-              <div className="text-[#525252] text-base font-medium">
-                of {totalInvoices}
-              </div>
-            </div>
-            <div className="rounded-lg bg-[#FBFBFB] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border border-[#e5e5e5] flex min-w-60 min-h-10 items-center overflow-hidden flex-wrap justify-center">
-              <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/dc8342cc7d9ed7372ff27293ef7c08e463e9fba7?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-                <div className="text-[#525252] text-base font-medium">
-                  Previous
-                </div>
-              </div>
-              {getPaginationNumbers().map((page, idx) => {
-                if (page === "...") {
+                    <path
+                      d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  openInvoicePreview({
+                    lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                    invoiceDate: item.invoiceMonth,
+                    showCommitButton: false,
+                  });
+                },
+              },
+            ]}
+            renderCell={(item: any, columnKey: string) => {
+              switch (columnKey) {
+                case "dateCreated":
+                case "invoiceMonth":
+                case "amount":
                   return (
-                    <div
-                      key={`ellipsis-${idx}`}
-                      className="flex items-center justify-center min-h-10 min-w-10 px-2 gap-2 border-r border-[#E5E5E5] bg-white"
-                    >
-                      <div className="text-[#A3A3A3] text-base font-medium">
-                        ...
-                      </div>
+                    <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
+                      {item[columnKey]}
                     </div>
                   );
-                }
-                return (
-                  <div
-                    key={page}
-                    className={`flex items-center justify-center min-h-10 min-w-10 px-2 gap-2 border-r border-[#E5E5E5] cursor-pointer hover:bg-gray-50 ${
-                      currentPage === page ? "bg-white" : "bg-white"
-                    }`}
-                    onClick={() => setCurrentPage(page as number)}
-                  >
-                    <div
-                      className={`text-base font-medium ${currentPage === page ? "text-[#0A0A0A]" : "text-[#A3A3A3]"}`}
-                    >
-                      {page}
-                    </div>
-                  </div>
-                );
-              })}
-              <div
-                className="flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 border-r border-[#E5E5E5] bg-white cursor-pointer hover:bg-gray-50"
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-              >
-                <div className="text-[#525252] text-base font-medium">Next</div>
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/34c281f37936da4ccce4bfe5d47937be9d7ed9c7?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-              </div>
-            </div>
-          </div>
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick: handleHistorySortClick,
+              getSortIndicator: getHistorySortIndicator,
+              getSortedData: getSortedHistoryItems,
+            }}
+            columnManagementHook={historyColumnsManagement}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={handleHistoryItemsPerPageChange}
+            showPageSizeDropdown={showHistoryPageSizeDropdown}
+            onShowPageSizeDropdownChange={setShowHistoryPageSizeDropdown}
+            openMenuId={historyOpenMenuId}
+            onOpenMenuIdChange={setHistoryOpenMenuId}
+            showColumnModal={historyColumnsManagement.showColumnModal}
+            onShowColumnModalChange={historyColumnsManagement.setShowColumnModal}
+            showPagination={true}
+            onRowClick={(item: any) => {
+              openInvoicePreview({
+                lineItems: buildPreviewLineItemsFromHistoryItem(item),
+                invoiceDate: item.invoiceMonth,
+                showCommitButton: false,
+              });
+            }}
+            getRowClassName={() => "h-14"}
+          />
         </div>
       </div>
 
