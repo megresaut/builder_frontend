@@ -308,7 +308,13 @@ const ActionButton = ({
                   </svg>
                 </button>
                 <button
-                  onClick={() => setOpenMenuId(null)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId(null);
+                    if (onDeleteBill) {
+                      onDeleteBill(billId);
+                    }
+                  }}
                   className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
                 >
                   <span
