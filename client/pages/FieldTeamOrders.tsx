@@ -601,10 +601,7 @@ export default function FieldTeamOrders() {
                     alt=""
                   />
                 ),
-                onClick: (order: FieldTeamOrder) => {
-                  setEditingOrder(order);
-                  setShowApprovalModal(true);
-                },
+                onClick: handleApproveOrder,
               },
               {
                 label: "Edit",
@@ -625,10 +622,7 @@ export default function FieldTeamOrders() {
                     />
                   </svg>
                 ),
-                onClick: (order: FieldTeamOrder) => {
-                  setEditingOrder(order);
-                  setShowFTOModal(true);
-                },
+                onClick: handleEditOrder,
               },
               {
                 label: "Delete",
@@ -649,9 +643,7 @@ export default function FieldTeamOrders() {
                     />
                   </svg>
                 ),
-                onClick: (order: FieldTeamOrder) => {
-                  setOrders((prev) => prev.filter(o => o.id !== order.id));
-                },
+                onClick: handleDeleteOrder,
               },
             ]}
             onRowClick={(order) => {
