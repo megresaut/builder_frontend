@@ -403,7 +403,6 @@ export const RecordBill = () => {
 
     if (hasErrors) {
       setLineItemErrors(lineItemsErrors);
-      return;
     }
 
     const amount = Number.parseFloat(
@@ -424,9 +423,12 @@ export const RecordBill = () => {
       status: "approved" as const,
     };
 
-    window.dispatchEvent(
-      new CustomEvent("billApproved", { detail: billData }),
+    localStorage.setItem(
+      "avm:lastBillEvent",
+      JSON.stringify({ type: "approved", detail: billData }),
     );
+
+    window.dispatchEvent(new CustomEvent("billApproved", { detail: billData }));
     navigate(-1);
   };
 
@@ -1973,23 +1975,30 @@ export const RecordBill = () => {
                       calculateTotal().replace(/[^0-9.]/g, ""),
                     );
 
+                    const detail = {
+                      billId: resolvedBillId,
+                      timestamp,
+                      vendor: selectedVendor?.name,
+                      invoiceDate: invoiceDate
+                        ? format(invoiceDate, "MMM d, yyyy")
+                        : invoiceDateInput,
+                      dueDate: dueDate
+                        ? format(dueDate, "MMM d, yyyy")
+                        : dueDateInput,
+                      referenceNumber,
+                      memo,
+                      amount: Number.isFinite(amount) ? amount : 0,
+                      status: "draft" as const,
+                    };
+
+                    localStorage.setItem(
+                      "avm:lastBillEvent",
+                      JSON.stringify({ type: "saved", detail }),
+                    );
+
                     window.dispatchEvent(
                       new CustomEvent("billSaved", {
-                        detail: {
-                          billId: resolvedBillId,
-                          timestamp,
-                          vendor: selectedVendor?.name,
-                          invoiceDate: invoiceDate
-                            ? format(invoiceDate, "MMM d, yyyy")
-                            : invoiceDateInput,
-                          dueDate: dueDate
-                            ? format(dueDate, "MMM d, yyyy")
-                            : dueDateInput,
-                          referenceNumber,
-                          memo,
-                          amount: Number.isFinite(amount) ? amount : 0,
-                          status: "draft" as const,
-                        },
+                        detail,
                       }),
                     );
                   }}
