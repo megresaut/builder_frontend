@@ -1334,7 +1334,10 @@ export default function TaskSummary() {
           )}
 
           {/* Field Team Orders tab content */}
-          {activeTab === "fieldteam" && (
+          {activeTab === "fieldteam" && <FieldTeamOrdersTab />}
+
+          {/* OLD SECTION REMOVED - Now handled by FieldTeamOrdersTab component */}
+          {false && (
             <div className="flex flex-col w-full gap-6">
               {/* Field Team Orders Table - Using GlobalTable */}
               <div>
