@@ -31,6 +31,7 @@ export default function ColumnFilterModal({
   visibleColumns,
   onToggleColumn,
   onClose,
+  buttonRef,
 }: ColumnFilterModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [computedPos, setComputedPos] = useState(position);
