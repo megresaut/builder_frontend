@@ -409,7 +409,7 @@ export default function GlobalTable({
                 className="ra-table-actions-header sticky right-0 px-2 py-3 text-center w-20"
                 style={{
                   borderLeftWidth: "2px",
-                  borderLeftColor: "rgb(210,209,207)",
+                  border: "1px none rgb(226, 232, 240)",
                   backgroundColor: "white",
                 }}
               >
