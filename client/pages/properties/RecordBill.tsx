@@ -230,6 +230,8 @@ export const RecordBill = () => {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showAddVendorModal, setShowAddVendorModal] = useState(false);
+  const [showCreateWorkOrderModal, setShowCreateWorkOrderModal] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
       ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
