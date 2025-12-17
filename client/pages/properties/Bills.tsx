@@ -596,8 +596,20 @@ export const Bills: React.FC<BillsProps> = ({
 
   useEffect(() => {
     const handleBillApproved = (event: Event) => {
-      const customEvent = event as CustomEvent<{ timestamp: number }>;
-      setApprovedTimestamp(customEvent.detail.timestamp);
+      const customEvent = event as CustomEvent<{
+        timestamp: number;
+        vendor?: string;
+        invoiceDate?: string;
+        dueDate?: string;
+        referenceNumber?: string;
+        memo?: string;
+        lineItems?: any[];
+        uploadedFiles?: any[];
+      }>;
+
+      const billData = customEvent.detail;
+      setApprovedTimestamp(billData.timestamp);
+      setSelectedTab("approved");
     };
 
     window.addEventListener("billApproved", handleBillApproved);
