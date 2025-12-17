@@ -755,8 +755,9 @@ export const Bills: React.FC<BillsProps> = ({
     }, 1500);
   };
 
-  const approvedBills = billsList.filter((_, idx) => idx % 2 === 0);
-  const displayedBills = selectedTab === "approved" ? approvedBills : billsList;
+  const approvedBills = billsList.filter((b) => approvedBillIds.has(b.id));
+  const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
+  const displayedBills = selectedTab === "approved" ? approvedBills : draftBills;
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(displayedBills);
   const sortedBills = getSortedData();
   const totalBills = sortedBills.length;
