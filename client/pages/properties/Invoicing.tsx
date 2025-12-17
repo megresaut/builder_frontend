@@ -1,13 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
-import { InvoiceTableHeader } from "@/components/InvoiceTableHeader";
-import { InvoiceTableRows } from "@/components/InvoiceTableRows";
-import { HistoryTableRows } from "@/components/HistoryTableRows";
+import GlobalTable from "@/components/GlobalTable";
 import {
   Select,
   SelectContent,
@@ -31,139 +28,6 @@ interface InvoicingProps {
   propertyLocation?: string;
 }
 
-const ActionButton = ({
-  itemId,
-  openMenuId,
-  setOpenMenuId,
-  onView,
-  isFTO = false,
-  ftoActionLabel = "View Bill",
-}: {
-  itemId: string;
-  openMenuId: string | null;
-  setOpenMenuId: (id: string | null) => void;
-  onView: () => void;
-  isFTO?: boolean;
-  ftoActionLabel?: string;
-}) => {
-  const showMenu = openMenuId === itemId;
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateMenuPos = () => {
-      if (showMenu && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 145,
-        });
-      }
-
-      if (showMenu) {
-        animationFrameId = requestAnimationFrame(updateMenuPos);
-      }
-    };
-
-    if (showMenu) {
-      updateMenuPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showMenu]);
-
-  return (
-    <>
-      <button
-        ref={buttonRef}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={() => setOpenMenuId(showMenu ? null : itemId)}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ transform: "rotate(90deg)" }}
-        >
-          <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-          <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-          <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-        </svg>
-      </button>
-
-      {showMenu &&
-        createPortal(
-          <div
-            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
-            onMouseDown={(e) => e.stopPropagation()}
-            style={{
-              width: "145px",
-              border: "0.5px solid #e5e5e5",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              position: "fixed",
-              top: menuPos.top + "px",
-              left: menuPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setOpenMenuId(null)}
-          >
-            <button
-              onClick={() => {
-                onView();
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                {isFTO ? "View FTO" : "View Bill"}
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>,
-          document.body,
-        )}
-    </>
-  );
-};
 
 type ViewBillLineItem = {
   id: number;
