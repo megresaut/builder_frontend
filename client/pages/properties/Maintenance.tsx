@@ -1881,9 +1881,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               </button>
               <button
                 ref={fieldteamColumnManagement.columnButtonRef}
-                onClick={() =>
-                  fieldteamColumnManagement.setShowColumnModal((prev) => !prev)
-                }
+                onClick={() => {
+                  setFieldteamShowDropdown(false);
+                  setOpenMenuId(null);
+                  fieldteamColumnManagement.setShowColumnModal((prev) => !prev);
+                }}
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1892,22 +1894,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   <circle cx="8" cy="13" r="1.5" fill="#303030"/>
                 </svg>
               </button>
-              <ColumnFilterModal
-                isOpen={fieldteamColumnManagement.showColumnModal}
-                position={fieldteamColumnManagement.columnMenuPos}
-                columns={fieldteamColumnManagement.columnOrder.map((key) => ({
-                  key,
-                  label: fieldTeamColumnConfig[key]?.label || key,
-                  icon: fieldTeamColumnConfig[key]?.icon,
-                }))}
-                visibleColumns={fieldteamColumnManagement.visibleColumns}
-                onToggleColumn={
-                  fieldteamColumnManagement.toggleColumnVisibility
-                }
-                onClose={() =>
-                  fieldteamColumnManagement.setShowColumnModal(false)
-                }
-              />
             </div>
           </div>
           <div className="overflow-x-auto">
