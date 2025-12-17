@@ -856,24 +856,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             rowKey="id"
             title={`${currentInvoiceMonthName} Invoice`}
             headerActions={
-              <button
-                type="button"
-                onClick={handleOpenAddAdditionalBillsModal}
-                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors whitespace-nowrap"
-                style={{
-                  boxShadow:
-                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
-                }}
-              >
-                <span className="text-white font-medium text-base leading-normal">
-                  Add line item
-                </span>
-              </button>
-            }
-            showSearchBar={true}
-            headerActions={
               <>
-                {headerActions}
                 <button
                   ref={invoiceColumnsManagement.columnButtonRef}
                   onClick={() =>
@@ -887,8 +870,22 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <circle cx="8" cy="13" r="1.5" fill="#303030"/>
                   </svg>
                 </button>
+                <button
+                  type="button"
+                  onClick={handleOpenAddAdditionalBillsModal}
+                  className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors whitespace-nowrap"
+                  style={{
+                    boxShadow:
+                      "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                  }}
+                >
+                  <span className="text-white font-medium text-base leading-normal">
+                    Add line item
+                  </span>
+                </button>
               </>
             }
+            showSearchBar={true}
             actions={[
               {
                 label: (item: any) =>
