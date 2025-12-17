@@ -425,7 +425,18 @@ export default function FieldTeamOrdersTab({
     [onApprove]
   );
 
-  const handleDeleteFTO = useCallback(() => {}, []);
+  const handleDeleteFTO = useCallback((order: FieldTeamOrder) => {
+    setOrderToDelete(order);
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const confirmDeleteFTO = useCallback(() => {
+    if (orderToDelete) {
+      setFieldTeamOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+      setShowDeleteConfirm(false);
+      setOrderToDelete(null);
+    }
+  }, [orderToDelete]);
 
   return (
     <div className="flex flex-col gap-6 w-full">
