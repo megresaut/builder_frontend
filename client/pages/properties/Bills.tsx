@@ -723,6 +723,8 @@ export const Bills: React.FC<BillsProps> = ({
         return next;
       });
 
+      markBillAsNew(resolvedBillId);
+
       setSelectedTab("approved");
     };
 
