@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Plus, Search, ChevronDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import { usePageState } from "@/hooks/usePageState";
