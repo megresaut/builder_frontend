@@ -423,7 +423,7 @@ export default function FieldTeamOrders() {
           {/* Field Team Orders Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns}
-            data={fieldTeamOrders}
+            data={orders}
             rowKey="id"
             renderCell={(order, columnKey) => {
               if (columnKey === "priority") {
