@@ -75,6 +75,10 @@ export default function GlobalTable({
   showPagination = true,
   getRowClassName,
   getCellClassName,
+  showSearchBar = true,
+  onSearchChange,
+  searchValue = "",
+  onFilterClick,
 }: GlobalTableProps) {
   const { handleSortClick, getSortIndicator, getSortedData } = sortingHook;
   const {
