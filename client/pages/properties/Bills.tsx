@@ -812,6 +812,8 @@ export const Bills: React.FC<BillsProps> = ({
           ? prev.map((b) => (b.id === resolvedBillId ? nextBill : b))
           : [nextBill, ...prev];
       });
+
+      markBillAsNew(resolvedBillId);
     };
 
     window.addEventListener("billSaved", handleBillSaved);
