@@ -2035,7 +2035,11 @@ export const RecordBill = () => {
                   <span>Save</span>
                 </button>
                 <button
-                  onClick={handleRecordBill}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRecordBill();
+                  }}
                   className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
                   style={{
                     boxShadow:
