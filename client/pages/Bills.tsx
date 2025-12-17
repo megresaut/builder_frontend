@@ -698,6 +698,7 @@ export default function Bills() {
         memo?: string;
         amount?: number;
         status?: "draft" | "approved";
+        importStatus?: string;
       }>;
 
       const billData = customEvent.detail;
@@ -757,6 +758,7 @@ export default function Bills() {
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
           exportedAt: billData.status === "draft" ? undefined : existing?.exportedAt,
+          importStatus: billData.importStatus ?? existing?.importStatus,
         };
 
         return existing
