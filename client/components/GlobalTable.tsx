@@ -307,7 +307,7 @@ export default function GlobalTable({
                     }}
                   >
                     {actions.length > 0 && (
-                      <ActionButton
+                      <GlobalActionsDropdown
                         row={row}
                         rowKey={rowKey}
                         actions={actions}
