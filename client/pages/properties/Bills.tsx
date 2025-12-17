@@ -947,546 +947,419 @@ export const Bills: React.FC<BillsProps> = ({
           </div>
         </div>
 
-        {/* Bills Table */}
-        <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-          {/* Table Header */}
-          <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
-            <div className="flex items-center gap-4">
-              <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                {selectedTab === "approved"
-                  ? "Approved & Exported Bills"
-                  : "Draft Bills"}
-              </h2>
-              <div className="flex items-center gap-2 h-6">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1.16699 8.16667C1.16699 8.16667 1.23776 8.66206 3.28802 10.7123C5.33827 12.7626 8.66238 12.7626 10.7126 10.7123C11.439 9.9859 11.9081 9.09958 12.1198 8.16667M1.16699 8.16667V11.6667M1.16699 8.16667H4.66699M12.8337 5.83333C12.8337 5.83333 12.7629 5.33794 10.7126 3.28769C8.66238 1.23744 5.33827 1.23744 3.28802 3.28769C2.56161 4.0141 2.09256 4.90042 1.88089 5.83333M12.8337 5.83333V2.33333M12.8337 5.83333H9.33366"
-                    stroke="#8B8D8D"
-                    strokeWidth="1.3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]" style={{ marginTop: "1px" }}>
-                  {selectedTab === "approved"
-                    ? `Last exported ${relativeTimeDisplay.approved}`
-                    : `Updated ${relativeTimeDisplay.drafts}`}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
-                    stroke="#303030"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-                />
-              </div>
-              <button
-                onClick={() => {}}
-                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
-                  Filter
-                </span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M4.5 6.75L9 11.25L13.5 6.75"
-                    stroke="#303030"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <button
-                ref={billsColumnManagement.columnButtonRef}
-                onClick={() =>
-                  billsColumnManagement.setShowColumnModal((prev) => !prev)
-                }
-                className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-100 transition-colors"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
-                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
-                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
-                </svg>
-              </button>
-              {billsColumnManagement.showColumnModal &&
-                createPortal(
-                  <ColumnFilterModal
-                    isOpen={billsColumnManagement.showColumnModal}
-                    position={billsColumnManagement.columnMenuPos}
-                    columns={billsColumnManagement.columnOrder
-                      .filter((key) => {
-                        if (key === "status" && selectedTab !== "drafts") {
-                          return false;
-                        }
-                        if (key === "exportedAt" && selectedTab !== "approved") {
-                          return false;
-                        }
-                        return true;
-                      })
-                      .map((key) => ({
-                        key,
-                        label: billsColumnConfig[key]?.label || key,
-                        icon: billsColumnConfig[key]?.icon,
-                      }))}
-                    visibleColumns={billsColumnManagement.visibleColumns}
-                    onToggleColumn={
-                      billsColumnManagement.toggleColumnVisibility
-                    }
-                    onClose={() =>
-                      billsColumnManagement.setShowColumnModal(false)
-                    }
-                  />,
-                  document.body,
-                )}
-            </div>
-          </div>
-
-          {/* Table Content */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                  {billsColumnManagement.columnOrder.filter((colKey) => {
-                    if (colKey === "status" && selectedTab !== "drafts") {
-                      return false;
-                    }
-                    if (colKey === "exportedAt" && selectedTab !== "approved") {
-                      return false;
-                    }
-                    return billsColumnManagement.visibleColumns.has(colKey);
-                  }).map((colKey) => {
-                    const colConfig = billsColumnConfig[colKey];
-                    const sortIndicator = getSortIndicator(colKey);
-                    return (
-                      <th
-                        key={colKey}
-                        draggable
-                        onDragStart={() =>
-                          billsColumnManagement.handleColumnDragStart(colKey)
-                        }
-                        onDragOver={(e) =>
-                          billsColumnManagement.handleColumnDragOver(e, colKey)
-                        }
-                        onDragLeave={
-                          billsColumnManagement.handleColumnDragLeave
-                        }
-                        onDrop={(e) =>
-                          billsColumnManagement.handleColumnDrop(e, colKey)
-                        }
-                        onClick={() => handleSortClick(colKey)}
-                        className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
-                        style={{
-                          opacity:
-                            billsColumnManagement.draggedColumn === colKey
-                              ? 0.5
-                              : 1,
-                          transition: "opacity 0.2s ease",
-                        }}
-                      >
-                        {billsColumnManagement.dropTargetColumn === colKey &&
-                          billsColumnManagement.draggedColumn && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                top: 0,
-                                bottom: 0,
-                                width: "2px",
-                                backgroundColor: "#3b82f6",
-                                left:
-                                  billsColumnManagement.dropPosition === "before"
-                                    ? "0"
-                                    : "auto",
-                                right:
-                                  billsColumnManagement.dropPosition === "after"
-                                    ? "0"
-                                    : "auto",
-                              }}
-                            />
-                          )}
-                        <div className="flex items-center gap-2">
-                          {colConfig?.icon}
-                          <span className="font-medium text-sm text-gray-700">
-                            {colConfig?.label}
-                          </span>
-                          {sortIndicator && (
-                            <span className="text-xs font-bold text-gray-700 ml-1">
-                              {sortIndicator}
-                            </span>
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
-                  <th
-                    className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
-                    style={{
-                      borderLeftWidth: "2px",
-                      borderLeftColor: "rgb(210,209,207)",
-                      backgroundColor: "white",
-                    }}
-                  >
-                    <span className="font-medium text-sm text-gray-700">
-                      Actions
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {getSortedData()
-                  .slice(
-                    (currentPage - 1) * itemsPerPage,
-                    currentPage * itemsPerPage,
-                  )
-                  .map((bill) => {
-                    const handleRowClick = (e: React.MouseEvent) => {
-                      if ((e.target as HTMLElement).closest("td:last-child")) {
-                        return;
-                      }
-                      const isApproved = selectedTab === "approved";
-                      const basePath = propertyId
-                        ? `/property/${propertyId}/bills/record`
-                        : "/bills/record";
-                      const path = isApproved
-                        ? `${basePath}?readOnly=true&billId=${bill.id}`
-                        : `${basePath}?billId=${bill.id}`;
-                      navigate(path, { state: { bill: buildBillState(bill) } });
-                    };
-                    return (
-                      <tr
-                        key={bill.id}
-                        className={cn(
-                          "border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer",
-                          newlyAddedBillIds.has(bill.id) && "animate-fadeInBill"
-                        )}
-                        onClick={handleRowClick}
-                      >
-                        {billsColumnManagement.columnOrder
-                          .filter((colKey) => {
-                            if (colKey === "status" && selectedTab !== "drafts") {
-                              return false;
-                            }
-                            if (colKey === "exportedAt" && selectedTab !== "approved") {
-                              return false;
-                            }
-                            return billsColumnManagement.visibleColumns.has(
-                              colKey
-                            );
-                          })
-                          .map((colKey) => (
-                            <td
-                              key={colKey}
-                              className="px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-hidden"
-                            >
-                              {colKey === "vendor" && (
-                                <div className="flex items-center gap-2">
-                                  <VendorAvatar
-                                    name={bill.vendor}
-                                    color={bill.vendorColor}
-                                  />
-                                  <span className="text-gray-900 font-normal text-sm truncate">
-                                    {bill.vendor}
-                                  </span>
-                                </div>
-                              )}
-                              {colKey === "statementDate" && (
-                                <span className="text-gray-900 font-normal text-sm truncate">
-                                  {bill.statementDate}
-                                </span>
-                              )}
-                              {colKey === "dueDate" && (
-                                <span className="text-gray-900 font-normal text-sm truncate">
-                                  {bill.dueDate}
-                                </span>
-                              )}
-                              {colKey === "status" && selectedTab === "drafts" && (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                                  <span className="text-gray-900 font-normal text-sm">
-                                    {bill.importStatus ?? getTimeAgo(bill.importedAt)}
-                                  </span>
-                                </div>
-                              )}
-                              {colKey === "exportedAt" && selectedTab === "approved" && (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                                  <span className="text-gray-900 font-normal text-sm">
-                                    {formatRelativeTime(
-                                      bill.exportedAt ?? approvedTimestamp,
-                                    )}
-                                  </span>
-                                </div>
-                              )}
-                              {colKey === "memo" && (
-                                <span className="text-gray-900 font-normal text-sm truncate">
-                                  {bill.memo}
-                                </span>
-                              )}
-                              {colKey === "invoiceNumber" && (
-                                <span className="text-gray-900 font-normal text-sm truncate">
-                                  {bill.invoiceNumber}
-                                </span>
-                              )}
-                              {colKey === "amount" && (
-                                <span className="text-gray-900 font-normal text-sm truncate">
-                                  ${bill.amount}
-                                </span>
-                              )}
-                            </td>
-                          ))}
-                        <td
-                          className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                          style={{
-                            borderLeftWidth: "1px",
-                            backgroundColor: "white",
-                          }}
-                        >
-                          <ActionButton
-                            billId={bill.id}
-                            bill={bill}
-                            openMenuId={openMenuId}
-                            setOpenMenuId={setOpenMenuId}
-                            tab={selectedTab}
-                            propertyId={propertyId}
-                            onDeleteBill={(billId) => {
-                              setBillsList((prev) =>
-                                prev.filter((b) => b.id !== billId)
-                              );
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Footer */}
-          <div
-            className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
-            style={{ position: "relative", zIndex: 1, overflow: "visible" }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-gray-700 text-sm font-medium">Showing</span>
-              <div
-                className="relative"
-                style={{ position: "relative", zIndex: 10 }}
-              >
-                <button
-                  ref={dropdownButtonRef}
-                  onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
-                  className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
-                  style={{
-                    borderColor: "rgb(218, 218, 218)",
-                    borderWidth: "0.909091px",
-                    boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                  }}
-                >
-                  <div className="text-gray-900 font-medium text-sm">
-                    {itemsPerPage}
-                  </div>
+        {/* Bills Table Container */}
+        {selectedTab === "approved" && (
+          <GlobalTable
+            columns={billsColumnManagement.columnOrder
+              .filter((key) => key !== "status")
+              .map((key) => ({
+                key,
+                label: billsColumnConfig[key]?.label || key,
+                icon: billsColumnConfig[key]?.icon,
+              }))}
+            data={approvedBills}
+            rowKey="id"
+            title="Approved & Exported Bills"
+            subtitle={`Last exported ${relativeTimeDisplay.approved}`}
+            actions={[
+              {
+                label: "View Bill",
+                icon: (
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
                     width="18"
                     height="18"
-                    viewBox="0 0 24 24"
+                    viewBox="0 0 18 18"
                     fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <path d="m6 9 6 6 6-6" />
+                    <path
+                      d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (bill: Bill) => {
+                  const basePath = propertyId
+                    ? `/property/${propertyId}/bills/record?readOnly=true`
+                    : "/bills/record?readOnly=true";
+                  navigate(`${basePath}&billId=${bill.id}`, {
+                    state: { bill: buildBillState(bill) },
+                  });
+                },
+              },
+            ]}
+            renderCell={(bill: Bill, columnKey: string) => {
+              switch (columnKey) {
+                case "vendor":
+                  return (
+                    <div className="flex items-center gap-2">
+                      <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
+                      <span className="text-gray-900 font-normal text-sm truncate">
+                        {bill.vendor}
+                      </span>
+                    </div>
+                  );
+                case "statementDate":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.statementDate}
+                    </span>
+                  );
+                case "dueDate":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.dueDate}
+                    </span>
+                  );
+                case "exportedAt":
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-gray-900 font-normal text-sm">
+                        {formatRelativeTime(
+                          bill.exportedAt ?? approvedTimestamp,
+                        )}
+                      </span>
+                    </div>
+                  );
+                case "memo":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.memo}
+                    </span>
+                  );
+                case "invoiceNumber":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.invoiceNumber}
+                    </span>
+                  );
+                case "amount":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      ${bill.amount}
+                    </span>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick,
+              getSortIndicator,
+              getSortedData,
+            }}
+            columnManagementHook={billsColumnManagement}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            showPageSizeDropdown={showPageSizeDropdown}
+            onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+            openMenuId={openMenuId}
+            onOpenMenuIdChange={setOpenMenuId}
+            showColumnModal={billsColumnManagement.showColumnModal}
+            onShowColumnModalChange={billsColumnManagement.setShowColumnModal}
+            onRowClick={(bill: Bill) => {
+              const basePath = propertyId
+                ? `/property/${propertyId}/bills/record`
+                : "/bills/record";
+              navigate(`${basePath}?readOnly=true&billId=${bill.id}`, {
+                state: { bill: buildBillState(bill) },
+              });
+            }}
+            headerActions={
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                  />
+                </div>
+                <button
+                  onClick={() => {}}
+                  className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                >
+                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    Filter
+                  </span>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M4.5 6.75L9 11.25L13.5 6.75"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button
+                  ref={billsColumnManagement.columnButtonRef}
+                  onClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    billsColumnManagement.setShowColumnModal((prev) => !prev);
+                  }}
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-100 transition-colors"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                    <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                    <circle cx="8" cy="13" r="1.5" fill="#303030" />
                   </svg>
                 </button>
               </div>
-              <span className="text-gray-700 text-sm font-medium">
-                of {totalBills}
-              </span>
-            </div>
-            <div
-              className="flex items-center rounded-lg border bg-white overflow-hidden"
-              style={{
-                borderColor: "rgb(218, 218, 218)",
-                borderWidth: "0.909091px",
-                boxShadow:
-                  "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-              }}
-            >
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                className={cn(
-                  "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-                  currentPage === 1
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-50",
-                )}
-                style={{
-                  borderRightWidth: "0.909091px",
-                  borderRightColor: "rgb(229, 229, 229)",
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={
-                    currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m12 19-7-7 7-7" />
-                  <path d="M19 12H5" />
-                </svg>
-                <div
-                  className={cn(
-                    "font-medium text-sm",
-                    currentPage === 1 ? "text-gray-400" : "text-gray-700",
-                  )}
-                >
-                  Previous
-                </div>
-              </button>
-              {getPaginationNumbers().map((page, idx) => {
-                if (page === "...") {
-                  return (
-                    <button
-                      key={`ellipsis-${idx}`}
-                      disabled
-                      className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
-                      style={{
-                        borderRightWidth: "0.909091px",
-                        borderRightColor: "rgb(229, 229, 229)",
-                        backgroundColor: "rgba(0, 0, 0, 0)",
-                      }}
-                    >
-                      <div className="text-gray-500 font-medium text-sm">
-                        ...
-                      </div>
-                    </button>
-                  );
-                }
+            }
+          />
+        )}
 
-                return (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page as number)}
-                    className={cn(
-                      "flex items-center justify-center h-10 min-w-10 transition-colors",
-                      currentPage === page
-                        ? "hover:bg-gray-50"
-                        : "hover:bg-gray-50",
-                    )}
-                    style={{
-                      borderRightWidth: "0.909091px",
-                      borderRightColor: "rgb(229, 229, 229)",
-                      backgroundColor:
-                        currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
-                    }}
+        {selectedTab === "drafts" && (
+          <GlobalTable
+            columns={billsColumnManagement.columnOrder
+              .filter((key) => key !== "exportedAt")
+              .map((key) => ({
+                key,
+                label: billsColumnConfig[key]?.label || key,
+                icon: billsColumnConfig[key]?.icon,
+              }))}
+            data={draftBills}
+            rowKey="id"
+            title="Draft Bills"
+            subtitle={`Updated ${relativeTimeDisplay.drafts}`}
+            actions={[
+              {
+                label: "Edit Bill",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <div
-                      className={cn(
-                        "font-medium text-sm",
-                        currentPage === page
-                          ? "text-gray-900 font-bold"
-                          : "text-gray-500",
-                      )}
-                    >
-                      {page}
+                    <path
+                      d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (bill: Bill) => {
+                  const basePath = propertyId
+                    ? `/property/${propertyId}/bills/record`
+                    : "/bills/record";
+                  navigate(`${basePath}?billId=${bill.id}`, {
+                    state: { bill: buildBillState(bill) },
+                  });
+                },
+              },
+              {
+                label: "Delete",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                      stroke="#982740"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (bill: Bill) => {
+                  setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
+                },
+              },
+            ]}
+            renderCell={(bill: Bill, columnKey: string) => {
+              switch (columnKey) {
+                case "vendor":
+                  return (
+                    <div className="flex items-center gap-2">
+                      <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
+                      <span className="text-gray-900 font-normal text-sm truncate">
+                        {bill.vendor}
+                      </span>
                     </div>
-                  </button>
-                );
-              })}
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() =>
-                  setCurrentPage(Math.min(currentPage + 1, totalPages))
-                }
-                className={cn(
-                  "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-                  currentPage === totalPages
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-50",
-                )}
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0)",
-                }}
-              >
-                <div
-                  className={cn(
-                    "font-medium text-sm",
-                    currentPage === totalPages
-                      ? "text-gray-400"
-                      : "text-gray-700",
-                  )}
-                >
-                  Next
+                  );
+                case "statementDate":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.statementDate}
+                    </span>
+                  );
+                case "dueDate":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.dueDate}
+                    </span>
+                  );
+                case "status":
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-gray-900 font-normal text-sm">
+                        {bill.importStatus ?? getTimeAgo(bill.importedAt)}
+                      </span>
+                    </div>
+                  );
+                case "memo":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.memo}
+                    </span>
+                  );
+                case "invoiceNumber":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.invoiceNumber}
+                    </span>
+                  );
+                case "amount":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      ${bill.amount}
+                    </span>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick,
+              getSortIndicator,
+              getSortedData,
+            }}
+            columnManagementHook={billsColumnManagement}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            showPageSizeDropdown={showPageSizeDropdown}
+            onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+            openMenuId={openMenuId}
+            onOpenMenuIdChange={setOpenMenuId}
+            showColumnModal={billsColumnManagement.showColumnModal}
+            onShowColumnModalChange={billsColumnManagement.setShowColumnModal}
+            onRowClick={(bill: Bill) => {
+              const basePath = propertyId
+                ? `/property/${propertyId}/bills/record`
+                : "/bills/record";
+              navigate(`${basePath}?billId=${bill.id}`, {
+                state: { bill: buildBillState(bill) },
+              });
+            }}
+            headerActions={
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                  />
                 </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={
-                    currentPage === totalPages
-                      ? "rgb(163, 163, 163)"
-                      : "currentColor"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <button
+                  onClick={() => {}}
+                  className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 >
-                  <path d="M5 12h14" />
-                  <path d="m12 5 7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                    Filter
+                  </span>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M4.5 6.75L9 11.25L13.5 6.75"
+                      stroke="#303030"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button
+                  ref={billsColumnManagement.columnButtonRef}
+                  onClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    billsColumnManagement.setShowColumnModal((prev) => !prev);
+                  }}
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-100 transition-colors"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                    <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                    <circle cx="8" cy="13" r="1.5" fill="#303030" />
+                  </svg>
+                </button>
+              </div>
+            }
+          />
+        )}
       </div>
       {/* Dropdown Menu - Rendered via Portal at body level */}
       {showPageSizeDropdown &&
