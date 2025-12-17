@@ -414,7 +414,7 @@ export default function Vendors() {
                   </svg>
                 ),
                 onClick: (vendor: Vendor) => {
-                  console.log("Delete clicked for vendor", vendor.id);
+                  setVendors(vendors.filter(v => v.id !== vendor.id));
                 },
               },
             ]}
