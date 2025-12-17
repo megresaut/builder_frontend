@@ -839,56 +839,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       {/* This Month's Invoice */}
       <div className="bg-white flex w-full flex-col mt-6">
         <div className="rounded-xl border border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] flex w-full flex-col overflow-hidden">
-          {/* Header */}
-          <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
-            <div className="flex items-center gap-4">
-              <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                {currentInvoiceMonthName} Invoice
-              </div>
-            </div>
-            <div className="flex min-w-60 items-start gap-2.5">
-              <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#e5e5e5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
-                  className="w-5 h-5"
-                  alt=""
-                />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
-                />
-              </div>
-              <button
-                ref={invoiceColumnsManagement.columnButtonRef}
-                onClick={() =>
-                  invoiceColumnsManagement.setShowColumnModal((prev) => !prev)
-                }
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={handleOpenAddAdditionalBillsModal}
-                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors whitespace-nowrap"
-                style={{
-                  boxShadow:
-                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
-                }}
-              >
-                <span className="text-white font-medium text-base leading-normal">
-                  Add line item
-                </span>
-              </button>
-            </div>
-          </div>
-
           <ColumnFilterModal
             isOpen={invoiceColumnsManagement.showColumnModal}
             position={invoiceColumnsManagement.columnMenuPos}
@@ -899,12 +849,55 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             buttonRef={invoiceColumnsManagement.columnButtonRef}
           />
 
-          {/* Table */}
           <GlobalTable
             className="border-0 rounded-none"
             columns={invoiceTableColumns}
             data={invoiceItems}
             rowKey="id"
+            title={`${currentInvoiceMonthName} Invoice`}
+            headerActions={
+              <div className="flex min-w-60 items-start gap-2.5">
+                <div className="flex min-w-60 min-h-9 gap-2 items-center px-3 rounded-lg border-[0.5px] border-[#e5e5e5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] bg-[#FBFBFB]">
+                  <img
+                    loading="lazy"
+                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b47ca0b4fcf9eb132889213ca1e6a92de1087150?placeholderIfAbsent=true"
+                    className="w-5 h-5"
+                    alt=""
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="bg-transparent border-none outline-none text-[#303030] font-normal text-base leading-[1.4] tracking-[-0.32px]"
+                  />
+                </div>
+                <button
+                  ref={invoiceColumnsManagement.columnButtonRef}
+                  onClick={() =>
+                    invoiceColumnsManagement.setShowColumnModal((prev) => !prev)
+                  }
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                >
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="3" r="1.5" fill="#303030"/>
+                    <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                    <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenAddAdditionalBillsModal}
+                  className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors whitespace-nowrap"
+                  style={{
+                    boxShadow:
+                      "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
+                  }}
+                >
+                  <span className="text-white font-medium text-base leading-normal">
+                    Add line item
+                  </span>
+                </button>
+              </div>
+            }
             actions={[
               {
                 label: (item: any) =>
