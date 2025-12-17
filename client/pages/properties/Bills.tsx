@@ -568,6 +568,9 @@ export const Bills: React.FC<BillsProps> = ({
     "idle",
   );
   const [billsList, setBillsList] = useState<Bill[]>(bills);
+  const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(
+    new Set(bills.filter((_, idx) => idx % 2 === 0).map((b) => b.id))
+  );
 
   const billsColumnManagement = useColumnManagement([
     "vendor",
