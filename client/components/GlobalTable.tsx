@@ -214,6 +214,10 @@ export default function GlobalTable({
 
   const columnConfig = createColumnConfig();
 
+  const displayedColumnKeys = columnOrder.filter(
+    (colKey) => visibleColumns.has(colKey) && Boolean(columnConfig[colKey]),
+  );
+
   return (
     <div className="ra-table w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
       {/* Table Header */}
@@ -235,9 +239,7 @@ export default function GlobalTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50 h-12">
-              {columnOrder
-                .filter((colKey) => visibleColumns.has(colKey))
-                .map((colKey) => {
+              {displayedColumnKeys.map((colKey) => {
                   const colConfig = columnConfig[colKey];
                   const sortIndicator = getSortIndicator(colKey);
                   return (
@@ -305,9 +307,15 @@ export default function GlobalTable({
           <tbody>
             {getDisplayedRowsForPage().map((row) => {
               const handleRowClick = (e: React.MouseEvent) => {
-                if ((e.target as HTMLElement).closest("td:last-child")) {
+                if (
+                  actions.length > 0 &&
+                  (e.target as HTMLElement).closest(
+                    '[data-global-table-actions-cell="true"]',
+                  )
+                ) {
                   return;
                 }
+
                 onRowClick?.(row, e);
               };
 
@@ -317,9 +325,7 @@ export default function GlobalTable({
                   onClick={handleRowClick}
                   className="ra-table-row border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
                 >
-                  {columnOrder
-                    .filter((colKey) => visibleColumns.has(colKey))
-                    .map((colKey) => (
+                  {displayedColumnKeys.map((colKey) => (
                       <td
                         key={colKey}
                         className="ra-table-cell px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible"
@@ -329,6 +335,7 @@ export default function GlobalTable({
                     ))}
                   {actions.length > 0 && (
                     <td
+                      data-global-table-actions-cell="true"
                       className="ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center"
                       style={{
                         borderLeftWidth: "2px",
