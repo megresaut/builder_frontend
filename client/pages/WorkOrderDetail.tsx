@@ -137,8 +137,64 @@ export default function WorkOrderDetail() {
 
   const id = parseInt(workOrderId || "1", 10);
   const workOrder = mockWorkOrderDetails[id] || mockWorkOrderDetails[1];
-  const associatedTasks = mockAssociatedTasks[id] || [];
-  const associatedFTOs = mockAssociatedFTOs[id] || [];
+  const [tasksList, setTasksList] = useState<AssociatedTask[]>(mockAssociatedTasks[id] || []);
+  const [ftosList, setFtosList] = useState<AssociatedFTO[]>(mockAssociatedFTOs[id] || []);
+
+  // Tasks table state management
+  const [tasksCurrentPage, setTasksCurrentPage] = usePageState("tasksCurrentPage", 1);
+  const [tasksItemsPerPage, setTasksItemsPerPage] = usePageState("tasksItemsPerPage", 50);
+  const [tasksShowPageSizeDropdown, setTasksShowPageSizeDropdown] = usePageState("tasksShowPageSizeDropdown", false);
+  const [tasksOpenMenuId, setTasksOpenMenuId] = usePageState<number | null>("tasksOpenMenuId", null);
+  const [tasksSearchValue, setTasksSearchValue] = usePageState("tasksSearchValue", "");
+
+  // FTOs table state management
+  const [ftosCurrentPage, setFtosCurrentPage] = usePageState("ftosCurrentPage", 1);
+  const [ftosItemsPerPage, setFtosItemsPerPage] = usePageState("ftosItemsPerPage", 50);
+  const [ftosShowPageSizeDropdown, setFtosShowPageSizeDropdown] = usePageState("ftosShowPageSizeDropdown", false);
+  const [ftosOpenMenuId, setFtosOpenMenuId] = usePageState<number | null>("ftosOpenMenuId", null);
+  const [ftosSearchValue, setFtosSearchValue] = usePageState("ftosSearchValue", "");
+
+  // Tasks column management
+  const tasksColumnManagement = useColumnManagement([
+    "name",
+    "status",
+    "dueDate",
+    "priority",
+  ]);
+
+  // FTOs column management
+  const ftosColumnManagement = useColumnManagement([
+    "name",
+    "status",
+    "assignee",
+    "dueDate",
+  ]);
+
+  // Tasks table sorting
+  const filteredTasks = tasksList.filter((task) => {
+    const searchLower = tasksSearchValue.toLowerCase();
+    return (
+      task.name.toLowerCase().includes(searchLower) ||
+      task.status.toLowerCase().includes(searchLower) ||
+      task.dueDate.toLowerCase().includes(searchLower) ||
+      task.priority.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const { handleSortClick: tasksHandleSortClick, getSortIndicator: tasksGetSortIndicator, getSortedData: tasksGetSortedData } = useSortingTable(filteredTasks, "workOrderTasks");
+
+  // FTOs table sorting
+  const filteredFTOs = ftosList.filter((fto) => {
+    const searchLower = ftosSearchValue.toLowerCase();
+    return (
+      fto.name.toLowerCase().includes(searchLower) ||
+      fto.status.toLowerCase().includes(searchLower) ||
+      fto.assignee.toLowerCase().includes(searchLower) ||
+      fto.dueDate.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const { handleSortClick: ftosHandleSortClick, getSortIndicator: ftosGetSortIndicator, getSortedData: ftosGetSortedData } = useSortingTable(filteredFTOs, "workOrderFTOs");
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
