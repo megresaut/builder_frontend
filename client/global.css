@@ -146,7 +146,7 @@
   }
 
   .ra-table-cell {
-    @apply px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible text-gray-900 font-normal text-sm;
+    @apply px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible;
   }
 
   .ra-table-actions-cell {
