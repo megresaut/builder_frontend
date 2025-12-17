@@ -615,7 +615,7 @@ export default function GlobalTable({
                 onClick={() => {
                   onItemsPerPageChange(size);
                   onPageChange(1);
-                  onShowPageSizeDropdownChange(false);
+                  onShowPageSizeDropdownChange?.(false);
                 }}
                 className={cn(
                   "ra-table-page-size-option w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
