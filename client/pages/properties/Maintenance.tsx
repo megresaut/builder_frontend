@@ -1413,7 +1413,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             { key: "assignees", label: "Assignees", icon: recurringTasksColumnConfig.assignees.icon },
             { key: "status", label: "Status", icon: recurringTasksColumnConfig.status.icon },
           ]}
-          data={mockPropertyRecurringTasks}
+          data={recurringTasksList}
           rowKey="id"
           actions={[
             {
