@@ -406,15 +406,22 @@ export const RecordBill = () => {
       return;
     }
 
+    const amount = Number.parseFloat(
+      calculateTotal().replace(/[^0-9.]/g, ""),
+    );
+
     const billData = {
+      billId: resolvedBillId,
       timestamp: Date.now(),
       vendor: selectedVendor?.name,
       invoiceDate: invoiceDate ? format(invoiceDate, "MMM d, yyyy") : "",
       dueDate: dueDate ? format(dueDate, "MMM d, yyyy") : "",
       referenceNumber,
       memo,
+      amount: Number.isFinite(amount) ? amount : 0,
       lineItems,
       uploadedFiles,
+      status: "approved" as const,
     };
 
     window.dispatchEvent(
@@ -1961,12 +1968,28 @@ export const RecordBill = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    const timestamp = Date.now();
+                    const amount = Number.parseFloat(
+                      calculateTotal().replace(/[^0-9.]/g, ""),
+                    );
+
                     window.dispatchEvent(
                       new CustomEvent("billSaved", {
                         detail: {
-                          timestamp: Date.now(),
-                          status: "draft"
-                        }
+                          billId: resolvedBillId,
+                          timestamp,
+                          vendor: selectedVendor?.name,
+                          invoiceDate: invoiceDate
+                            ? format(invoiceDate, "MMM d, yyyy")
+                            : invoiceDateInput,
+                          dueDate: dueDate
+                            ? format(dueDate, "MMM d, yyyy")
+                            : dueDateInput,
+                          referenceNumber,
+                          memo,
+                          amount: Number.isFinite(amount) ? amount : 0,
+                          status: "draft" as const,
+                        },
                       }),
                     );
                   }}
