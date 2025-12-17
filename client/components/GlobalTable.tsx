@@ -248,7 +248,7 @@ export default function GlobalTable({
     >
       {/* Table Header */}
       {(title || headerActions) && (
-        <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             {title && (
               <h2 className="text-[#303030] font-medium text-[22px] leading-6">
@@ -256,7 +256,32 @@ export default function GlobalTable({
               </h2>
             )}
           </div>
-          <div className="flex items-start gap-2.5">{headerActions}</div>
+          <div className="flex items-center gap-2.5">
+            {showSearchBar && (
+              <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+                <Search className="w-5 h-5 text-gray-600" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchValue}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                />
+              </div>
+            )}
+            {onFilterClick && (
+              <button
+                onClick={onFilterClick}
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                  Filter
+                </span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            )}
+            {headerActions}
+          </div>
         </div>
       )}
 
