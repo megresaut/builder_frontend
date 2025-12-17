@@ -8,7 +8,7 @@ import { formatRelativeTime } from "@/lib/timeUtils";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
-import { Search, Plus, ChevronDown } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface Bill {
   id: number;
