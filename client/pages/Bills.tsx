@@ -1014,9 +1014,7 @@ export default function Bills() {
                     />
                   </svg>
                 ),
-                onClick: (bill: Bill) => {
-                  setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
-                },
+                onClick: handleDeleteBill,
               },
             ] : [
               {
