@@ -47,7 +47,7 @@ const getRandomTimesheetStatus = ():
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-const fieldTeamOrders: FieldTeamOrder[] = [
+const initialFieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
     property: "22 Indian Chase Dr",
