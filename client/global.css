@@ -100,6 +100,21 @@
   }
 }
 
+@layer utilities {
+  @keyframes fadeInBill {
+    0% {
+      background-color: rgba(254, 243, 199, 0.8);
+    }
+    100% {
+      background-color: rgba(254, 243, 199, 0);
+    }
+  }
+
+  .animate-fadeInBill {
+    animation: fadeInBill 2.5s ease-out forwards;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
