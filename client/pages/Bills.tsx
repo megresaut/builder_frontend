@@ -583,6 +583,10 @@ export default function Bills() {
 
       const billData = customEvent.detail;
       setApprovedTimestamp(billData.timestamp);
+      setRelativeTimeDisplay((prev) => ({
+        ...prev,
+        approved: formatRelativeTime(billData.timestamp),
+      }));
 
       // Find the first draft bill and mark it as approved
       setApprovedBillIds((prev) => {
