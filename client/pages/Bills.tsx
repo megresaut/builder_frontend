@@ -665,6 +665,18 @@ export default function Bills() {
     }, 1500);
   };
 
+  const handleDeleteBill = useCallback(
+    (bill: Bill) => {
+      console.log("handleDeleteBill called for:", bill.id);
+      setBillsList((prev) => {
+        const updated = prev.filter((b) => b.id !== bill.id);
+        console.log("Bills after delete:", updated);
+        return updated;
+      });
+    },
+    []
+  );
+
   return (
     <div
       className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
