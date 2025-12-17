@@ -1004,8 +1004,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </div>
             </div>
             <div className="flex items-start gap-2.5">
-              <button
-                type="button"
+              <BlueButton
                 onClick={() =>
                   openInvoicePreview({
                     lineItems: invoiceItems.map((item) => ({
@@ -1018,16 +1017,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     showCommitButton: true,
                   })
                 }
-                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
-                style={{
-                  boxShadow:
-                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
-                }}
+                className="h-10"
               >
-                <span className="text-white font-medium text-base leading-normal">
-                  Preview PDF
-                </span>
-              </button>
+                Preview PDF
+              </BlueButton>
             </div>
           </div>
         </div>
