@@ -2297,6 +2297,36 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         onClose={() => recurringColumnManagement.setShowColumnModal(false)}
         buttonRef={recurringColumnManagement.columnButtonRef}
       />
+
+      {/* Work Orders Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={workordersColumnManagement.showColumnModal}
+        position={workordersColumnManagement.columnMenuPos}
+        columns={workordersColumnManagement.columnOrder.map((key) => ({
+          key,
+          label: workOrdersColumnConfig[key]?.label || key,
+          icon: workOrdersColumnConfig[key]?.icon,
+        }))}
+        visibleColumns={workordersColumnManagement.visibleColumns}
+        onToggleColumn={workordersColumnManagement.toggleColumnVisibility}
+        onClose={() => workordersColumnManagement.setShowColumnModal(false)}
+        buttonRef={workordersColumnManagement.columnButtonRef}
+      />
+
+      {/* Field Team Orders Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={fieldteamColumnManagement.showColumnModal}
+        position={fieldteamColumnManagement.columnMenuPos}
+        columns={fieldteamColumnManagement.columnOrder.map((key) => ({
+          key,
+          label: fieldTeamColumnConfig[key]?.label || key,
+          icon: fieldTeamColumnConfig[key]?.icon,
+        }))}
+        visibleColumns={fieldteamColumnManagement.visibleColumns}
+        onToggleColumn={fieldteamColumnManagement.toggleColumnVisibility}
+        onClose={() => fieldteamColumnManagement.setShowColumnModal(false)}
+        buttonRef={fieldteamColumnManagement.columnButtonRef}
+      />
     </div>
   );
 };
