@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
+import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
 import WorkOrdersTab from "@/components/WorkOrdersTab";
 import FieldTeamOrdersTab from "@/components/FieldTeamOrdersTab";
