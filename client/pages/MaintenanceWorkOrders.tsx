@@ -440,7 +440,7 @@ export default function MaintenanceWorkOrders() {
           {/* Work Orders Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns}
-            data={mockWorkOrders}
+            data={workOrders}
             rowKey="id"
             renderCell={(workOrder, columnKey) => {
               if (columnKey === "priority") {
