@@ -46,7 +46,7 @@ interface GlobalTableProps {
   showSearchBar?: boolean;
   onSearchChange?: (value: string) => void;
   searchValue?: string;
-  onFilterClick?: () => void;
+  onFilterClick?: () => void | undefined;
 }
 
 export default function GlobalTable({
