@@ -461,6 +461,9 @@ export default function Bills() {
     approved: formatRelativeTime(Date.now() - 3 * 60 * 1000),
     drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
   }));
+  const [newlyAddedBillIds, setNewlyAddedBillIds] = useState<Set<number>>(
+    new Set()
+  );
 
   const approvedBills = billsList.filter((b) => approvedBillIds.has(b.id));
   const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
