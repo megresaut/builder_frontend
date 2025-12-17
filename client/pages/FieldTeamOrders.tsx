@@ -622,7 +622,7 @@ export default function FieldTeamOrders() {
                   </svg>
                 ),
                 onClick: (order: FieldTeamOrder) => {
-                  console.log("Delete clicked for order", order.id);
+                  setOrders(orders.filter(o => o.id !== order.id));
                 },
               },
             ]}
