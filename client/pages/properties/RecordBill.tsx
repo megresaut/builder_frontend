@@ -1932,20 +1932,18 @@ export const RecordBill = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    window.dispatchEvent(
+                      new CustomEvent("billSaved", {
+                        detail: {
+                          timestamp: Date.now(),
+                          status: "draft"
+                        }
+                      }),
+                    );
                   }}
                   className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
                 >
                   <span>Save</span>
-                </button>
-                <button
-                  onClick={handleRecordBill}
-                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
-                  style={{
-                    boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 0px 10px -5px",
-                  }}
-                >
-                  <span className="text-white text-sm font-medium leading-5">Approve</span>
                 </button>
                 <button
                   onClick={handleRecordBill}
