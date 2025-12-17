@@ -1150,6 +1150,11 @@ export default function Bills() {
                               openMenuId={openMenuId}
                               setOpenMenuId={setOpenMenuId}
                               tab={selectedTab}
+                              onDeleteBill={(billId) => {
+                                setBillsList((prev) =>
+                                  prev.filter((b) => b.id !== billId)
+                                );
+                              }}
                             />
                           </td>
                         </tr>
