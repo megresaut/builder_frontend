@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
+import AddVendorModal from "@/components/AddVendorModal";
+import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
 
 interface Vendor {
   id: number;
