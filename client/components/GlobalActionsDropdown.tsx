@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 interface ActionItem {
-  label: string;
-  icon: ReactNode;
+  label: string | ((row: any) => string);
+  icon: ReactNode | ((row: any) => ReactNode);
   onClick: (row: any) => void;
   className?: string;
 }
@@ -171,8 +171,14 @@ export default function GlobalActionsDropdown({
               setOpenMenuId(null);
             }}
           >
-            {actions.map((action, idx) => (
-              <button
+            {actions.map((action, idx) => {
+              const resolvedLabel =
+                typeof action.label === "function" ? action.label(row) : action.label;
+              const resolvedIcon =
+                typeof action.icon === "function" ? action.icon(row) : action.icon;
+
+              return (
+                <button
                 key={idx}
                 type="button"
                 onClick={(e) => {
@@ -193,11 +199,12 @@ export default function GlobalActionsDropdown({
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   }}
                 >
-                  {action.label}
+                  {resolvedLabel}
                 </span>
-                {action.icon}
+                {resolvedIcon}
               </button>
-            ))}
+              );
+            })}
           </div>,
           document.body,
         )}
