@@ -886,6 +886,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </>
             }
             showSearchBar={true}
+            showFilterButton={false}
             actions={[
               {
                 label: (item: any) =>
