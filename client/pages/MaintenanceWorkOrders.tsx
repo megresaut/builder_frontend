@@ -672,7 +672,7 @@ export default function MaintenanceWorkOrders() {
                   </svg>
                 ),
                 onClick: (workOrder: WorkOrder) => {
-                  console.log("Delete clicked for work order", workOrder.id);
+                  setWorkOrders(workOrders.filter(wo => wo.id !== workOrder.id));
                 },
               },
             ]}
