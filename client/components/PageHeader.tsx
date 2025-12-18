@@ -22,7 +22,7 @@ export default function PageHeader({
   moreOptions,
 }: PageHeaderProps) {
   return (
-    <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="flex justify-between gap-4 flex-row">
       {/* Left side - Heading and Subheading */}
       <div className="flex flex-col justify-start font-['Geist',sans-serif]">
         <div className="text-[#303030] text-[28px] font-semibold leading-[1.07] whitespace-nowrap">
