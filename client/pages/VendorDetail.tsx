@@ -354,7 +354,9 @@ export default function VendorDetail() {
               label: isInactive ? "Activate Vendor" : "Inactivate Vendor",
               onClick: () => setIsInactivateConfirmOpen(true),
             }}
-            moreOptions={{}}
+            moreOptions={{
+              onView: () => setIsVendorActionsOpen(true),
+            }}
           />
 
           <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
