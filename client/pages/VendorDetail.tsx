@@ -61,7 +61,7 @@ interface VendorFile {
 const MOCK_VENDORS: Vendor[] = [
   {
     id: 1,
-    name: "Dolce Heating & Plumbing",
+    name: "Dolce Heating &amp; Plumbing",
     category: "Uncategorized",
     email: "staff@avappraisalmgmt.com",
     phone: undefined,
@@ -315,9 +315,9 @@ export default function VendorDetail() {
             title={vendor.name}
             subtitle={
               <div className="flex items-center gap-3">
-                <span className="text-[#717179] font-medium text-base leading-4">
+                <div className="text-[#717179] font-medium text-base leading-4">
                   Vendor
-                </span>
+                </div>
                 <svg
                   width="4"
                   height="4"
@@ -328,6 +328,7 @@ export default function VendorDetail() {
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
                 <span className="text-[#717179] font-medium text-base leading-4">
+                  {" "}
                   {vendor.category}
                 </span>
                 <svg
@@ -339,6 +340,9 @@ export default function VendorDetail() {
                 >
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
+                <div className="text-[#1357D5] font-medium text-base leading-[1.4]">
+                  View on Map
+                </div>
               </div>
             }
             actionButton={{
