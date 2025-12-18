@@ -433,14 +433,12 @@ export default function VendorDetail() {
             </div>
           </div>
 
-          <div className="flex h-9 items-start gap-6 self-stretch border-b border-[#E5E5E5]">
+          <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
             <button
               onClick={() => handleTabClick("Overview")}
-              className="flex items-center gap-1.5 pb-2 border-b-[1.5px] border-b-[#09090B] transition-colors"
+              className={`flex items-center gap-1.5 py-2 whitespace-nowrap border-b-2 border-[#09090b] text-[#09090b] transition-colors`}
             >
-              <span className="font-medium text-base leading-5 text-[#09090B]">
-                Overview
-              </span>
+              Overview
             </button>
           </div>
 
