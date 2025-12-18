@@ -252,15 +252,21 @@ export default function AddVendorModal({
             />
           </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={!vendorName.trim()}
-            className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="text-white font-medium text-base">
+          <div className="modal-template-footer">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="modal-template-cancel-btn"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!vendorName.trim()}
+              className="modal-template-save-btn disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Create Vendor
-            </span>
-          </button>
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
