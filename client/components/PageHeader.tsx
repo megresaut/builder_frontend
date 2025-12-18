@@ -30,7 +30,7 @@ export default function PageHeader({
         </div>
         {subtitle && (
           <div className="mt-2 text-[#717179] font-medium text-sm leading-4">
-            <span>{subtitle}</span>
+            <span className="inline">{subtitle}</span>
           </div>
         )}
       </div>
