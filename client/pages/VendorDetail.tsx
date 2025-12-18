@@ -340,9 +340,12 @@ export default function VendorDetail() {
                 >
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
-                <div className="text-[#1357D5] font-medium text-base leading-[1.4]">
-                  View on Map
-                </div>
+                <button
+                  onClick={openEditVendor}
+                  className="text-[#1357D5] font-medium text-base leading-[1.4] hover:underline bg-none border-none cursor-pointer p-0"
+                >
+                  Edit
+                </button>
               </div>
             }
             actionButton={{
