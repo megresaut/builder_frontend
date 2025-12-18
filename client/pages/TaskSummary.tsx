@@ -97,7 +97,7 @@ export default function TaskSummary() {
       />
 
       {/* Tabs Section */}
-      <div className="flex flex-col mt-9 w-full">
+      <div className="flex flex-col mt-6 w-full">
         <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
           <button
             onClick={() => handleTabChange("summary")}
