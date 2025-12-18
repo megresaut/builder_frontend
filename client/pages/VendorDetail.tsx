@@ -61,7 +61,7 @@ interface VendorFile {
 const MOCK_VENDORS: Vendor[] = [
   {
     id: 1,
-    name: "Dolce Heating &amp; Plumbing",
+    name: "Dolce Heating & Plumbing",
     category: "Uncategorized",
     email: "staff@avappraisalmgmt.com",
     phone: undefined,
