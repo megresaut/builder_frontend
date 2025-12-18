@@ -8,6 +8,7 @@ import { formatRelativeTime } from "@/lib/timeUtils";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
+import PageTemplate from "@/layout/PageTemplate";
 import { Plus } from "lucide-react";
 
 interface Bill {
@@ -673,15 +674,7 @@ export default function Bills() {
   );
 
   return (
-    <div
-      className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
-      style={{
-        borderLeftWidth: "1.33333px",
-        border: "1px none rgb(226, 232, 240)",
-        padding: "32px 32px 150px",
-        minHeight: "1339px",
-      }}
-    >
+    <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
@@ -1066,6 +1059,6 @@ export default function Bills() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </div>
+    </PageTemplate>
   );
 }
