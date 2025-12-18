@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import { usePageState } from "@/hooks/usePageState";
+import { fetchJSON } from "@/api/fetchJSON";
 
 
 export function StatusBadge({ status }: { status: string }) {
@@ -359,11 +360,10 @@ export default function FieldTeamOrders() {
   const [approvingOrder, setApprovingOrder] = useState<FieldTeamOrder | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/maintenance/ftos")
-      .then((res) => res.json())
+    fetchJSON("/maintenance/ftos")    
       .then((data) => setFieldTeamOrders(data))
       .catch((err) => console.error("Failed to load FTOs:", err));
-  }, []);
+  }, []);  
 
   useEffect(() => {
     let animationFrameId: number;
