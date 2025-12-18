@@ -157,6 +157,7 @@ export default function VendorDetail() {
   const [vendorDraft, setVendorDraft] = useState<Vendor>(vendorFromRoute);
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
+  const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
 
   const openAddNote = () => {
     setEditingNoteId(null);
