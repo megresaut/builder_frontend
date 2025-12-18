@@ -125,7 +125,7 @@ export default function AddVendorModal({
           </button>
         </div>
 
-        <div className="w-full h-px bg-[#E5E5E5] my-4" />
+        <div className="w-full h-px bg-[#E5E5E5] mt-4 mb-7" />
 
         <div className="flex flex-col gap-4 flex-1">
           <div className="flex flex-col sm:flex-row gap-3">
