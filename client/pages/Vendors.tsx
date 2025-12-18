@@ -7,6 +7,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import AddVendorModal from "@/components/AddVendorModal";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
+import PageTemplate from "@/layout/PageTemplate";
 
 interface Vendor {
   id: number;
@@ -232,14 +233,7 @@ export default function Vendors() {
   );
 
   return (
-    <div
-      className="bg-white"
-      style={{
-        borderStyle: "none",
-        borderWidth: "1px",
-        padding: "32px 32px 150px",
-      }}
-    >
+    <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex items-center gap-10 justify-between flex-wrap">
@@ -440,6 +434,6 @@ export default function Vendors() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </div>
+    </PageTemplate>
   );
 }
