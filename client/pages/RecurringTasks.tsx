@@ -7,6 +7,7 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
+import PageTemplate from "@/layout/PageTemplate";
 import { StatusBadge } from "./Utilities";
 
 interface Assignee {
@@ -323,14 +324,7 @@ export default function RecurringTasks() {
   ];
 
   return (
-    <div
-      className="bg-white"
-      style={{
-        borderStyle: "none",
-        borderWidth: "1px",
-        padding: "32px 32px 150px",
-      }}
-    >
+    <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
         <div className="flex items-center gap-10 justify-between flex-wrap">
           <div className="flex flex-col gap-1 min-w-[240px]">
@@ -507,6 +501,6 @@ export default function RecurringTasks() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </div>
+    </PageTemplate>
   );
 }
