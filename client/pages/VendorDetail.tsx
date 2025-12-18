@@ -311,20 +311,13 @@ export default function VendorDetail() {
     <>
       <PageTemplate>
         <div className="flex flex-col gap-6 w-fit min-w-full">
-          <div className="flex justify-between items-center w-full">
-            <div className="flex flex-col items-start gap-1">
-              <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-                {vendor.name}
-                {isInactive ? (
-                  <span className="ml-3 text-sm font-medium text-[#982740]">
-                    Inactive
-                  </span>
-                ) : null}
-              </h1>
+          <PageHeader
+            title={vendor.name}
+            subtitle={
               <div className="flex items-center gap-3">
-                <div className="text-[#717179] font-medium text-base leading-4">
+                <span className="text-[#717179] font-medium text-base leading-4">
                   Vendor
-                </div>
+                </span>
                 <svg
                   width="4"
                   height="4"
@@ -346,93 +339,14 @@ export default function VendorDetail() {
                 >
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
-                <button
-                  onClick={openEditVendor}
-                  className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M10.7145 2.68607C11.1052 2.29537 11.7383 2.29537 12.129 2.68607L11.9749 2.84016C12.3656 3.23085 12.3656 3.86402 11.9749 4.25472L5.6117 10.6179C5.46262 10.767 5.28452 10.8795 5.08646 10.9445L2.03645 11.7978C1.74626 11.8816 1.44259 11.7399 1.35879 11.4497L0.505513 8.39971C0.440448 8.20165 0.552982 8.02355 0.701865 7.87467L7.06503 1.51149C7.45572 1.1208 8.08889 1.1208 8.47958 1.51149L10.7145 2.68607Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  <div>Edit</div>
-                </button>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                />
               </div>
-              <div className="flex items-center gap-3" />
-            </div>
-            <div
-              className="flex"
-              style={{
-                flexDirection: "row",
-                gap: "8px",
-                width: "auto",
-                alignSelf: "center",
-                justifyContent: "flex-start",
-                alignItems: "center",
-              }}
-            >
-              <button
-                onClick={() => setIsInactivateConfirmOpen(true)}
-                className="flex h-10 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors"
-                style={{
-                  boxShadow:
-                    "0 0 0 1px #002D5A, 0 0 10px -5px rgba(0, 0, 0, 0.20)",
-                }}
-              >
-                <div className="text-white font-medium text-base leading-normal">
-                  {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
-                </div>
-              </button>
-              <button
-                className="flex w-10 h-10 justify-center items-center gap-2.5 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                style={{ borderWidth: "0.5px" }}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9.99984 10.8335C10.4601 10.8335 10.8332 10.4604 10.8332 10.0002C10.8332 9.53993 10.4601 9.16683 9.99984 9.16683C9.5396 9.16683 9.1665 9.53993 9.1665 10.0002C9.1665 10.4604 9.5396 10.8335 9.99984 10.8335Z"
-                    stroke="#303030"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M9.99984 5.00016C10.4601 5.00016 10.8332 4.62707 10.8332 4.16683C10.8332 3.70659 10.4601 3.3335 9.99984 3.3335C9.5396 3.3335 9.1665 3.70659 9.1665 4.16683C9.1665 4.62707 9.5396 5.00016 9.99984 5.00016Z"
-                    stroke="#303030"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M9.99984 16.6668C10.4601 16.6668 10.8332 16.2937 10.8332 15.8335C10.8332 15.3733 10.4601 15.0002 9.99984 15.0002C9.5396 15.0002 9.1665 15.3733 9.1665 15.8335C9.1665 16.2937 9.5396 16.6668 9.99984 16.6668Z"
-                    stroke="#303030"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
+            }
+            actionButton={{
+              label: isInactive ? "Activate Vendor" : "Inactivate Vendor",
+              onClick: () => setIsInactivateConfirmOpen(true),
+            }}
+            moreOptions={{}}
+          />
 
           <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
             <button
