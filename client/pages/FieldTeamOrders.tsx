@@ -8,6 +8,7 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
+import PageTemplate from "@/layout/PageTemplate";
 
 interface FieldTeamOrder {
   id: number;
@@ -416,15 +417,7 @@ export default function FieldTeamOrders() {
   );
 
   return (
-    <div
-      className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
-      style={{
-        borderStyle: "none",
-        borderWidth: "1px",
-        padding: "32px 32px 150px",
-        minHeight: "1339px",
-      }}
-    >
+    <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex items-center gap-10 justify-between flex-wrap">
@@ -701,6 +694,6 @@ export default function FieldTeamOrders() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </div>
+    </PageTemplate>
   );
 }
