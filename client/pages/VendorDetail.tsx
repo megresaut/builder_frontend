@@ -1302,6 +1302,13 @@ export default function VendorDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <VendorActionsModal
+        open={isVendorActionsOpen}
+        onOpenChange={setIsVendorActionsOpen}
+        onEdit={openEditVendor}
+        onInactivate={() => setIsInactivateConfirmOpen(true)}
+      />
     </>
   );
 }
