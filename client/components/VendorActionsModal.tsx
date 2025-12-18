@@ -17,7 +17,7 @@ export default function VendorActionsModal({
 }: VendorActionsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-template max-w-[320px]">
+      <DialogContent className="modal-template">
         <DialogTitle className="sr-only">Vendor Actions</DialogTitle>
 
         <div className="modal-template-header">
@@ -42,16 +42,16 @@ export default function VendorActionsModal({
           </button>
         </div>
 
-        <div className="w-full h-px bg-[#E5E5E5] mt-4 mb-7" />
+        <div className="modal-template-divider" />
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {onEdit && (
             <button
               onClick={() => {
                 onEdit();
                 onOpenChange(false);
               }}
-              className="flex items-center justify-start px-4 py-3 rounded-lg bg-white border border-[#E5E5E5] text-[#303030] font-medium text-sm hover:bg-gray-50 transition-colors"
+              className="text-[#1357D5] font-medium text-base hover:underline bg-none border-none cursor-pointer p-0 text-left"
             >
               Edit Vendor
             </button>
@@ -63,7 +63,7 @@ export default function VendorActionsModal({
                 onInactivate();
                 onOpenChange(false);
               }}
-              className="flex items-center justify-start px-4 py-3 rounded-lg bg-white border border-[#E5E5E5] text-[#303030] font-medium text-sm hover:bg-gray-50 transition-colors"
+              className="text-[#1357D5] font-medium text-base hover:underline bg-none border-none cursor-pointer p-0 text-left"
             >
               Inactivate Vendor
             </button>
@@ -75,11 +75,20 @@ export default function VendorActionsModal({
                 onDelete();
                 onOpenChange(false);
               }}
-              className="flex items-center justify-start px-4 py-3 rounded-lg bg-white border border-red-200 text-red-600 font-medium text-sm hover:bg-red-50 transition-colors"
+              className="text-red-600 font-medium text-base hover:underline bg-none border-none cursor-pointer p-0 text-left"
             >
               Delete Vendor
             </button>
           )}
+        </div>
+
+        <div className="modal-template-footer">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="modal-template-cancel-btn"
+          >
+            Cancel
+          </button>
         </div>
       </DialogContent>
     </Dialog>
