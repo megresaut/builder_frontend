@@ -45,10 +45,7 @@ export default function PageHeader({
 
         {moreOptions && (
           <button
-            onClick={() => {
-              // Handle dropdown menu toggle here
-              // This is a placeholder for the dropdown menu trigger
-            }}
+            onClick={moreOptions.onView}
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
           >
             <MoreVertical className="w-4 h-4 text-[#303030]" />
