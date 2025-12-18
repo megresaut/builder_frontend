@@ -103,6 +103,7 @@ export default function AddVendorModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-template max-w-[480px]">
+        <DialogTitle className="sr-only">Add Vendor</DialogTitle>
         <div className="modal-template-header">
           <h2 className="modal-template-title">Add Vendor</h2>
           <button
