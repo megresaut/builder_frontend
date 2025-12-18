@@ -102,12 +102,32 @@ export default function AddVendorModal({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[694px] p-8 gap-0">
-        <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-          Add Vendor
-        </DialogTitle>
+      <DialogContent className="modal-template max-w-[480px]">
+        <div className="modal-template-header">
+          <h2 className="modal-template-title">Add Vendor</h2>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="modal-template-close-btn"
+            aria-label="Close"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-5 h-5 text-[#303030]"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="w-full h-px bg-[#E5E5E5] my-4" />
+
+        <div className="flex flex-col gap-4 flex-1">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[20px]">
