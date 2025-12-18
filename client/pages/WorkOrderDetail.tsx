@@ -6,6 +6,7 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
+import PageTemplate from "@/layout/PageTemplate";
 
 interface WorkOrderDetailData {
   id: number;
@@ -312,14 +313,7 @@ export default function WorkOrderDetail() {
   ];
 
   return (
-    <div
-      className="bg-white"
-      style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
-        padding: "32px 32px 150px",
-      }}
-    >
+    <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header with back button */}
         <div className="flex items-center gap-4">
@@ -787,6 +781,6 @@ export default function WorkOrderDetail() {
         buttonRef={ftosColumnManagement.columnButtonRef}
       />
       </div>
-    </div>
+    </PageTemplate>
   );
 }
