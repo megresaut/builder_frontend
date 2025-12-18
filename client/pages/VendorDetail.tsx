@@ -307,15 +307,8 @@ export default function VendorDetail() {
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-white">
-      <div
-        className="bg-white"
-        style={{
-          borderStyle: "none",
-          borderWidth: "1px",
-          padding: "32px 32px 150px",
-        }}
-      >
+    <>
+      <PageTemplate>
         <div className="flex flex-col gap-6 w-fit min-w-full">
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col items-start gap-1">
@@ -926,7 +919,7 @@ export default function VendorDetail() {
             </div>
           </div>
         </div>
-      </div>
+      </PageTemplate>
 
       <PdfViewerModal
         open={isViewFileOpen}
@@ -1385,6 +1378,6 @@ export default function VendorDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
