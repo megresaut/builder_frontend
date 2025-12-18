@@ -9,12 +9,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// interface EditUtilityAccountModalProps {
+//   open: boolean;
+//   onOpenChange: (open: boolean) => void;
+//   mode?: "add" | "edit";
+//   editData?: {
+//     provider: string;
+//     serviceAddress: string;
+//     accountNumber: string;
+//     status: "active" | "inactive";
+//     username: string;
+//     password: string;
+//   } | null;
+// }
 interface EditUtilityAccountModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave: (payload: {
+    username?: string;
+    password?: string;
+    active?: boolean;
+    account_number?: string;
+    service_address?: string;
+  }) => Promise<void> | void;
   mode?: "add" | "edit";
   editData?: {
     provider: string;
+    serviceAddress: string;
     accountNumber: string;
     status: "active" | "inactive";
     username: string;
@@ -24,6 +45,7 @@ interface EditUtilityAccountModalProps {
 
 export default function EditUtilityAccountModal({
   open,
+  onSave,
   onOpenChange,
   mode = "edit",
   editData,
@@ -34,6 +56,10 @@ export default function EditUtilityAccountModal({
   );
   const [status, setStatus] = useState<"active" | "inactive">(
     editData?.status || "active",
+  );
+
+  const [serviceAddress, setServiceAddress] = useState(
+    editData?.serviceAddress || ""
   );
   const [username, setUsername] = useState(editData?.username || "");
   const [password, setPassword] = useState(editData?.password || "");
@@ -49,11 +75,13 @@ export default function EditUtilityAccountModal({
     if (mode === "add") {
       setProvider("");
       setAccountNumber("");
+      setServiceAddress("");
       setStatus("active");
       setUsername("");
       setPassword("");
     } else if (editData) {
       setProvider(editData.provider || "");
+      setServiceAddress(editData.serviceAddress || "");
       setAccountNumber(editData.accountNumber || "");
       setStatus(editData.status || "active");
       setUsername(editData.username || "");
@@ -61,18 +89,30 @@ export default function EditUtilityAccountModal({
     }
   }, [mode, editData]);
 
-  const handleSave = () => {
-    const action = isAddMode ? "Adding" : "Saving";
-    console.log(`${action} utility account:`, {
-      provider,
-      accountNumber,
-      status,
-      username,
-      password,
-    });
+  const handleSave = async () => {
+    const payload: {
+      username?: string;
+      password?: string;
+      active?: boolean;
+      account_number?: string;
+      service_address?: string;
+    } = {};
+  
+    // Only send fields that make sense
+    payload.username = username;
+    payload.account_number = accountNumber;
+    payload.service_address = serviceAddress;
+    payload.active = status === "active";
+  
+    // Only send password if user typed one
+    if (password.trim()) {
+      payload.password = password;
+    }
+  
+    await onSave(payload);
     onOpenChange(false);
   };
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[694px] p-8 gap-0 rounded-2xl">
@@ -86,7 +126,7 @@ export default function EditUtilityAccountModal({
             <label className="text-[#303030] text-sm font-medium leading-[1.43]">
               Utility Provider <span className="text-red-600">*</span>
             </label>
-            <Select value={provider} onValueChange={setProvider}>
+            <Select value={provider} onValueChange={setProvider} disabled={mode === "edit"}>
               <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] data-[state=open]:text-[#303030]">
                 <SelectValue placeholder="Select Provider">
                   {provider && provider}
@@ -100,7 +140,18 @@ export default function EditUtilityAccountModal({
               </SelectContent>
             </Select>
           </div>
-
+          {/* Service Address */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[#303030] text-sm font-medium leading-[1.43]">
+              Service Address <span className="text-red-600">*</span>
+            </label>
+            <Input
+              value={serviceAddress}
+              onChange={(e) => setServiceAddress(e.target.value)}
+              placeholder="Input Service Address"
+              className="rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] placeholder:text-[#A1A1A9]"
+            />
+          </div>
           {/* Account Number and Status */}
           <div className="flex gap-3 flex-wrap">
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">

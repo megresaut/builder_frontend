@@ -7,7 +7,7 @@ import {
   BillStatusBadge,
   AIInsightBadge,
   ActionButton,
-} from "../Utilities";
+} from "../Utilities_wrong";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
@@ -17,11 +17,13 @@ interface UtilityAccount {
   id: number;
   provider: string;
   account: string;
+  serviceAddress: string;
   status: "active" | "inactive";
   lastBillDate: string;
   lastBillAmount: string;
   lastImport: string;
   icon?: React.ReactNode;
+  username: string;
 }
 
 interface Bill {
@@ -58,6 +60,7 @@ type MappedBill = {
   type: string | null | undefined;
 };
 
+const API_BASE = "http://localhost:8080"; 
 
 // --- Utilities import types & helpers ---
 
@@ -80,6 +83,40 @@ type UtilityJobStatusDTO = {
   ts?: string;
   message?: string | null;
 };
+
+// ----------------------
+// LOCAL STORAGE HELPERS
+// ----------------------
+
+const JOB_STORAGE_KEY = "utility-import-jobs";
+
+type StoredJobMap = Record<
+  number,
+  {
+    jobId: number;
+    startedAt: number;
+  }
+>;
+
+const loadStoredJobs = (): StoredJobMap => {
+  try {
+    const raw = localStorage.getItem(JOB_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStoredJobs = (jobs: StoredJobMap) => {
+  localStorage.setItem(JOB_STORAGE_KEY, JSON.stringify(jobs));
+};
+
+const removeStoredJob = (accountId: number) => {
+  const jobs = loadStoredJobs();
+  delete jobs[accountId];
+  saveStoredJobs(jobs);
+};
+
 
 /**
  * Turn a raw job error string into a friendly message.
@@ -318,6 +355,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
       setSubmitting(false);
     }
   };
+  
 
   return (
     <div
@@ -666,6 +704,7 @@ const mappedAccounts = safeAccounts.map((ua: any) => ({
   id: ua.id,
   provider: ua.provider_name,
   account: ua.account_number,
+  serviceAddress: ua.service_address,
   status: (ua.active ? "active" : "inactive") as "active" | "inactive",
   lastBillDate: ua.last_bill_date
     ? new Date(ua.last_bill_date).toLocaleDateString()
@@ -678,7 +717,12 @@ const mappedAccounts = safeAccounts.map((ua: any) => ({
     : "—",
   icon: getCategoryIcon(ua.provider_category),
   type: ua.provider_category,
+  username: ua.username ?? "",
 }));
+
+const activeMappedAccounts = mappedAccounts.filter(
+  (a) => a.status === "active"
+);
 
 // ----------------------
 // MAP BILLS
@@ -787,7 +831,13 @@ const handleImportAccount = async (utilityAccountId: number) => {
       }));
       return;
     }
-
+    const existing = loadStoredJobs();
+    existing[utilityAccountId] = {
+      jobId,
+      startedAt: Date.now(),
+    };
+    saveStoredJobs(existing);
+    
     // 2) poll job
     const job = await pollJobStatus(jobId);
 
@@ -813,13 +863,15 @@ const handleImportAccount = async (utilityAccountId: number) => {
       ...prev,
       [utilityAccountId]: { state: "imported" }
     }));
+    removeStoredJob(utilityAccountId);
   } catch (err: any) {
     const pretty = prettifyImportError(err?.message ?? null);
 
     setAccountImportStatus(prev => ({
       ...prev,
       [utilityAccountId]: { state: "failed", message: pretty }
-    }));
+    }));  
+    removeStoredJob(utilityAccountId);
   } finally {
     setImportingAccountId(null);
   }
@@ -1105,6 +1157,43 @@ const getBillsPaginationNumbers = () => {
 };
 
 
+// ----------------------
+// RESTORE IN-FLIGHT IMPORTS ON PAGE LOAD
+// ----------------------
+useEffect(() => {
+  const stored = loadStoredJobs();
+
+  Object.entries(stored).forEach(([accountIdStr, info]) => {
+    const accountId = Number(accountIdStr);
+    const jobId = info.jobId;
+
+    // show importing immediately
+    setAccountImportStatus(prev => ({
+      ...prev,
+      [accountId]: { state: "importing" },
+    }));
+
+    // poll once to resolve
+    pollJobStatus(jobId).then(job => {
+      if (job.status === "failed") {
+        const pretty = prettifyImportError(job.message);
+        setAccountImportStatus(prev => ({
+          ...prev,
+          [accountId]: { state: "failed", message: pretty },
+        }));
+      } else {
+        setAccountImportStatus(prev => ({
+          ...prev,
+          [accountId]: { state: "imported" },
+        }));
+      }
+
+      removeStoredJob(accountId);
+    });
+  });
+}, []);
+
+
   return (
     <div className="flex flex-col gap-6">
       {/* High Usage Insight Banner */}
@@ -1259,7 +1348,7 @@ const getBillsPaginationNumbers = () => {
         <div className="flex flex-col items-start gap-3 flex-1 p-4 rounded-xl border border-[#E5E5E5] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
           <div className="flex items-center self-stretch">
             <div className="flex-1 text-[#717179] font-medium text-base leading-[18px]">
-              Total YoY Utility Spend Change Spend
+              Total Spend
             </div>
             <svg
               width="16"
@@ -1307,15 +1396,15 @@ const getBillsPaginationNumbers = () => {
                   >
                     <path
                       d="M2.0347 4.36018C2.06908 4.25359 2.12733 4.16248 2.20206 4.09837C2.2768 4.03426 2.36467 4.00002 2.45457 4H11.5451C11.6351 3.99991 11.723 4.03407 11.7978 4.09816C11.8726 4.16224 11.9309 4.25338 11.9654 4.36002C11.9998 4.46666 12.0088 4.58401 11.9912 4.69722C11.9737 4.81043 11.9303 4.9144 11.8667 4.99598L7.32142 10.8289C7.27921 10.8832 7.22908 10.9262 7.1739 10.9555C7.11872 10.9849 7.05957 11 6.99984 11C6.94011 11 6.88096 10.9849 6.82578 10.9555C6.7706 10.9262 6.72048 10.8832 6.67826 10.8289L2.13299 4.99598C2.06944 4.91436 2.02619 4.81039 2.00869 4.69721C1.99119 4.58404 2.00024 4.46675 2.0347 4.36018Z"
-                      fill="#982740"
+                      fill="#FFFFFF"
                     />
                   </svg>
                   <div className="text-[#982740] font-medium text-xs leading-normal">
-                    -12.3%
+                     
                   </div>
                 </div>
                 <div className="text-[#717179] font-normal text-sm leading-4">
-                  vs last month
+                   
                 </div>
               </div>
             </div>
@@ -1532,7 +1621,7 @@ const getBillsPaginationNumbers = () => {
               </tr>
             </thead>
             <tbody>
-              {mappedAccounts.map((account, index) => (
+              {activeMappedAccounts.map((account, index) => (
                 <tr
                   key={account.id}
                   className={cn(
@@ -1627,17 +1716,34 @@ const getBillsPaginationNumbers = () => {
                       borderLeftColor: "transparent",
                     }}
                   >
-                    <ActionButton
-                      propertyId={account.id}
-                      openMenuId={openUtilityMenuId}
-                      setOpenMenuId={setOpenUtilityMenuId}
-                      onEdit={() => {
-                        setEditingUtilityAccount(account);
-                        setUtilityModalMode("edit");
-                        setIsEditUtilityModalOpen(true);
-                      }}
-                      onImport={() => handleImportAccount(account.id)}
-                    />
+                  <ActionButton
+                    propertyId={account.id}
+                    openMenuId={openUtilityMenuId}
+                    setOpenMenuId={setOpenUtilityMenuId}
+
+                    onView={() => {
+                      navigate(`/utilities/accounts/${account.id}`);
+                    }}
+
+                    onEdit={() => {
+                      setEditingUtilityAccount(account);
+                      setUtilityModalMode("edit");
+                      setIsEditUtilityModalOpen(true);
+                    }}
+
+                    onImport={() => handleImportAccount(account.id)}
+
+                    onDelete={async () => {
+                      await fetchJSON(`/utilities/accounts/${account.id}`, {
+                        method: "DELETE",
+                      });
+
+                      // Refresh the utility accounts list
+                      await queryClient.invalidateQueries({
+                        queryKey: ["utility-accounts", propertyId],
+                      });
+                    }}
+                  />
                   </td>
                 </tr>
               ))}
@@ -1764,7 +1870,7 @@ const getBillsPaginationNumbers = () => {
                     Statement Date
                   </span>
                 </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                {/* <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <svg
                       width="16"
@@ -1780,8 +1886,8 @@ const getBillsPaginationNumbers = () => {
                     </svg>
                     AI Usage Insight
                   </span>
-                </th>
-                <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
+                </th> */}
+                {/* <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <img
                       loading="lazy"
@@ -1791,7 +1897,7 @@ const getBillsPaginationNumbers = () => {
                     />
                     Change from Last Bill
                   </span>
-                </th>
+                </th> */}
                 <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
                   <span className="flex items-center gap-2 font-medium text-sm text-gray-700">
                     <svg
@@ -1883,13 +1989,13 @@ const getBillsPaginationNumbers = () => {
                       {bill.date}
                     </span>
                   </td>
-
+{/* 
                   <td className="px-3 py-3 border-r border-gray-200">
                     <AIInsightBadge
                       insight={bill.aiUsageInsight as "Normal" | "High" | "Low"}
                     />
-                  </td>
-
+                  </td> */}
+{/* 
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span
                       className={cn(
@@ -1901,7 +2007,7 @@ const getBillsPaginationNumbers = () => {
                     >
                       {bill.changeFromLastBill}
                     </span>
-                  </td>
+                  </td> */}
 
                   <td className="px-3 py-3 border-r border-gray-200">
                     <BillStatusBadge
@@ -1929,7 +2035,9 @@ const getBillsPaginationNumbers = () => {
                       propertyId={bill.id}
                       openMenuId={openBillsMenuId}
                       setOpenMenuId={setOpenBillsMenuId}
-                      onView={() => navigate(`/bills/${bill.id}`)}  
+                      onView={() => {
+                        window.open(`${API_BASE}/utilities/bills/${bill.id}`, "_blank");
+                      }}
                     />
                   </td>
                 </tr>
@@ -2183,14 +2291,31 @@ const getBillsPaginationNumbers = () => {
           editingUtilityAccount
             ? {
                 provider: editingUtilityAccount.provider,
+                serviceAddress: editingUtilityAccount.serviceAddress,
                 accountNumber: editingUtilityAccount.account,
                 status: editingUtilityAccount.status,
-                username: "",
+                username: editingUtilityAccount.username,
                 password: "",
               }
             : null
         }
+        onSave={async (payload) => {
+          if (!editingUtilityAccount || !propertyId) return;
+        
+          console.log("[PATCH utility account]", editingUtilityAccount.id, payload);
+        
+          await fetchJSON(`/utilities/accounts/${editingUtilityAccount.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+        
+          // React Query refresh
+          await queryClient.invalidateQueries({
+            queryKey: ["utility-accounts", propertyId],
+          });
+        }}        
       />
+
     </div>
   );
 };

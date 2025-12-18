@@ -359,7 +359,7 @@ export default function FieldTeamOrders() {
   const [approvingOrder, setApprovingOrder] = useState<FieldTeamOrder | null>(null);
 
   useEffect(() => {
-    fetch("/api/maintenance/ftos")
+    fetch("http://localhost:8080/maintenance/ftos")
       .then((res) => res.json())
       .then((data) => setFieldTeamOrders(data))
       .catch((err) => console.error("Failed to load FTOs:", err));
