@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import VendorActionsModal from "@/components/VendorActionsModal";
 import {
   Dialog,
   DialogContent,
