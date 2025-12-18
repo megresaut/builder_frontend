@@ -141,22 +141,22 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
         const propertyId = match[1];
         const tab = match[2];
 
-        // Map property types for unique identification
-        const propertyTypes: Record<string, string> = {
-          "1": "Concierge",
-          "2": "Rental",
-          "3": "Commercial",
-          "4": "OR",
-          "5": "HOA",
-          "6": "Concierge",
-          "7": "Concierge",
-          "8": "Concierge",
-          "9": "Concierge",
-          "10": "Concierge",
+        // Map property IDs to property addresses
+        const propertyAddresses: Record<string, string> = {
+          "1": "22 Indian Chase Dr",
+          "2": "22 Indian Chase Dr",
+          "3": "22 Indian Chase Dr",
+          "4": "22 Indian Chase Dr",
+          "5": "22 Indian Chase Dr",
+          "6": "22 Indian Chase Dr",
+          "7": "22 Indian Chase Dr",
+          "8": "22 Indian Chase Dr",
+          "9": "22 Indian Chase Dr",
+          "10": "22 Indian Chase Dr",
         };
 
-        const propertyType = propertyTypes[propertyId] || "Property";
-        const label = `${propertyType} - Property ${propertyId}`;
+        const propertyAddress = propertyAddresses[propertyId] || `Property ${propertyId}`;
+        const label = propertyAddress;
 
         if (tab && tab !== "Overview") {
           return {
