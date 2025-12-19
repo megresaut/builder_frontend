@@ -1273,7 +1273,7 @@ export default function VendorDetail() {
         open={isInactivateConfirmOpen}
         onOpenChange={setIsInactivateConfirmOpen}
       >
-        <DialogContent className="gap-0 [&>button]:hidden" style={{ borderRadius: '16px', backgroundColor: 'rgba(255, 255, 255, 1)', display: 'flex', maxWidth: '442px', padding: '32px', paddingLeft: '32px', paddingRight: '32px', paddingTop: '32px', paddingBottom: '32px', flexDirection: 'column', fontFamily: 'Geist, -apple-system, Roboto, Helvetica, sans-serif' }}>
+        <DialogContent className="small-modal gap-0 [&>button]:hidden">
           <DialogTitle className="sr-only">
             {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
           </DialogTitle>
