@@ -248,20 +248,19 @@ export default function AddVendorModal({
             />
           </div>
 
-          <div className="modal-template-footer">
-            <button
+          <div className="small-modal-footer">
+            <div
               onClick={() => onOpenChange(false)}
-              className="modal-template-cancel-btn"
+              className="small-modal-cancel-btn"
             >
-              Cancel
-            </button>
-            <button
+              <div className="self-stretch my-auto">Cancel</div>
+            </div>
+            <div
               onClick={handleSubmit}
-              disabled={!vendorName.trim()}
-              className="modal-template-save-btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`small-modal-save-btn ${!vendorName.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Create Vendor
-            </button>
+              <div className="self-stretch my-auto">Create Vendor</div>
+            </div>
           </div>
         </div>
       </DialogContent>
