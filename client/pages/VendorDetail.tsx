@@ -1304,63 +1304,22 @@ export default function VendorDetail() {
           </p>
 
           <div style={{ display: 'flex', marginTop: '28px', width: '100%', alignItems: 'center', gap: '10px', fontSize: '16px', whiteSpace: 'nowrap', justifyContent: 'end' }}>
-            <div
+            <button
               onClick={() => setIsInactivateConfirmOpen(false)}
-              style={{
-                borderRadius: '8px',
-                backgroundColor: 'rgba(251, 251, 251, 1)',
-                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.03)',
-                border: '1px solid rgba(218, 218, 218, 1)',
-                display: 'flex',
-                alignSelf: 'stretch',
-                marginTop: 'auto',
-                marginBottom: 'auto',
-                minHeight: '36px',
-                paddingLeft: '12px',
-                paddingRight: '12px',
-                paddingTop: '7px',
-                paddingBottom: '7px',
-                alignItems: 'center',
-                gap: '8px',
-                color: 'rgba(48, 48, 48, 1)',
-                fontWeight: 400,
-                letterSpacing: '-0.32px',
-                lineHeight: 1.4,
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
+              className="grey-button"
             >
-              <div style={{ alignSelf: 'stretch', marginTop: 'auto', marginBottom: 'auto' }}>Cancel</div>
-            </div>
-            <div
+              Cancel
+            </button>
+            <button
               onClick={() => {
                 setIsInactive((v) => !v);
                 setIsInactivateConfirmOpen(false);
               }}
-              style={{
-                borderRadius: '8px',
-                backgroundColor: 'rgba(1, 55, 100, 1)',
-                boxShadow: '0px 0px 0px 1px rgba(0, 45, 90, 1)',
-                display: 'flex',
-                alignSelf: 'stretch',
-                marginTop: 'auto',
-                marginBottom: 'auto',
-                minHeight: '36px',
-                paddingLeft: '12px',
-                paddingRight: '12px',
-                paddingTop: '8px',
-                paddingBottom: '8px',
-                alignItems: 'center',
-                gap: '8px',
-                overflow: 'hidden',
-                color: 'rgba(255, 255, 255, 1)',
-                fontWeight: 500,
-                justifyContent: 'start',
-                cursor: 'pointer',
-              }}
+              className="flex h-9 items-center gap-2 px-3 py-2 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors text-white font-medium text-base whitespace-nowrap"
+              style={{ boxShadow: '0px 0px 0px 1px rgba(0, 45, 90, 1)' }}
             >
-              <div style={{ alignSelf: 'stretch', marginTop: 'auto', marginBottom: 'auto' }}>Confirm</div>
-            </div>
+              Confirm
+            </button>
           </div>
         </DialogContent>
       </Dialog>

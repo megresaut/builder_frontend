@@ -263,6 +263,19 @@
     @apply rounded-lg bg-[#013764] flex self-stretch my-auto min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium cursor-pointer hover:bg-[#014578] transition-colors;
     box-shadow: 0px 0px 0px 1px rgba(0, 45, 90, 1);
   }
+
+  /* Grey Button Template */
+  .grey-button {
+    @apply rounded-lg bg-[#fbfbfb] border border-[#dadada] flex items-center gap-2 text-[#303030] font-normal cursor-pointer hover:bg-gray-100 transition-colors;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03);
+    padding: 7px 12px;
+    font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
+    font-size: 16px;
+    letter-spacing: -0.32px;
+    line-height: 1.4;
+    white-space: nowrap;
+    justify-content: center;
+  }
 }
 
 @layer base {
