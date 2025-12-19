@@ -1273,33 +1273,97 @@ export default function VendorDetail() {
         open={isInactivateConfirmOpen}
         onOpenChange={setIsInactivateConfirmOpen}
       >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-2">
+        <DialogContent className="gap-0 [&>button]:hidden" style={{ borderRadius: '16px', backgroundColor: 'rgba(255, 255, 255, 1)', display: 'flex', maxWidth: '442px', padding: '32px', paddingLeft: '32px', paddingRight: '32px', paddingTop: '32px', paddingBottom: '32px', flexDirection: 'column', fontFamily: 'Geist, -apple-system, Roboto, Helvetica, sans-serif' }}>
+          <DialogTitle className="sr-only">
             {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
           </DialogTitle>
-          <p className="text-[#303030] text-sm leading-[1.4] mt-2">
+
+          <div style={{ display: 'flex', width: '100%', flexDirection: 'column', fontSize: '24px', color: 'rgba(48, 48, 48, 1)', fontWeight: 600, lineHeight: 1.08 }}>
+            <div style={{ display: 'flex', width: '100%', alignItems: 'start', gap: '40px 100px', justifyContent: 'space-between' }}>
+              <div>{isInactive ? "Activate Vendor" : "Inactivate Vendor"}</div>
+              <img
+                loading="lazy"
+                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2a270b52419cae9104b1782181d0a66d1f416309?placeholderIfAbsent=true"
+                style={{ aspectRatio: 1, objectFit: 'contain', objectPosition: 'center', width: '18px', cursor: 'pointer' }}
+                onClick={() => setIsInactivateConfirmOpen(false)}
+                alt="Close"
+              />
+            </div>
+            <img
+              loading="lazy"
+              src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/249a395a76423ecabf7f10a2086df5d9cd674ac7?placeholderIfAbsent=true"
+              style={{ aspectRatio: '333.33', objectFit: 'contain', objectPosition: 'center', width: '100%', marginTop: '16px' }}
+              alt=""
+            />
+          </div>
+
+          <p style={{ fontSize: '14px', color: 'rgba(48, 48, 48, 1)', marginTop: '16px' }}>
             {isInactive
               ? "Activating will make this vendor available for new work orders and tasks."
               : "Inactivating will prevent this vendor from being used for new work orders and tasks."}
           </p>
 
-          <DialogFooter className="mt-6 gap-3">
-            <button
+          <div style={{ display: 'flex', marginTop: '28px', width: '100%', alignItems: 'center', gap: '10px', fontSize: '16px', whiteSpace: 'nowrap', justifyContent: 'end' }}>
+            <div
               onClick={() => setIsInactivateConfirmOpen(false)}
-              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+              style={{
+                borderRadius: '8px',
+                backgroundColor: 'rgba(251, 251, 251, 1)',
+                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.03)',
+                borderColor: 'rgba(218, 218, 218, 1)',
+                borderStyle: 'solid',
+                borderWidth: '1px',
+                alignSelf: 'stretch',
+                display: 'flex',
+                marginTop: 'auto',
+                marginBottom: 'auto',
+                minHeight: '36px',
+                paddingLeft: '12px',
+                paddingRight: '12px',
+                paddingTop: '7px',
+                paddingBottom: '7px',
+                alignItems: 'center',
+                gap: '8px',
+                color: 'rgba(48, 48, 48, 1)',
+                fontWeight: 400,
+                letterSpacing: '-0.32px',
+                lineHeight: 1.4,
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
             >
-              Cancel
-            </button>
-            <button
+              <div style={{ alignSelf: 'stretch', marginTop: 'auto', marginBottom: 'auto' }}>Cancel</div>
+            </div>
+            <div
               onClick={() => {
                 setIsInactive((v) => !v);
                 setIsInactivateConfirmOpen(false);
               }}
-              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
+              style={{
+                borderRadius: '8px',
+                backgroundColor: 'rgba(1, 55, 100, 1)',
+                boxShadow: '0px 0px 0px 1px rgba(0, 45, 90, 1)',
+                alignSelf: 'stretch',
+                display: 'flex',
+                marginTop: 'auto',
+                marginBottom: 'auto',
+                minHeight: '36px',
+                paddingLeft: '12px',
+                paddingRight: '12px',
+                paddingTop: '8px',
+                paddingBottom: '8px',
+                alignItems: 'center',
+                gap: '8px',
+                overflow: 'hidden',
+                color: 'rgba(255, 255, 255, 1)',
+                fontWeight: 500,
+                justifyContent: 'start',
+                cursor: 'pointer',
+              }}
             >
-              Confirm
-            </button>
-          </DialogFooter>
+              <div style={{ alignSelf: 'stretch', marginTop: 'auto', marginBottom: 'auto' }}>Confirm</div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
