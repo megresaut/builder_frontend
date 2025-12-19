@@ -17,7 +17,7 @@ export default function VendorActionsModal({
 }: VendorActionsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-template">
+      <DialogContent className="modal-template p-0 [&>button]:hidden">
         <DialogTitle className="sr-only">Vendor Actions</DialogTitle>
 
         <div className="modal-template-header">
