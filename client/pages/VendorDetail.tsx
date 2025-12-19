@@ -6,6 +6,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
+import { useDelayedAction } from "@/hooks/useDelayedAction";
 import {
   Dialog,
   DialogContent,
@@ -158,6 +159,12 @@ export default function VendorDetail() {
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
+
+  const handleConfirmInactivate = useDelayedAction({
+    onClose: setIsInactivateConfirmOpen,
+    onAction: () => setIsInactive((v) => !v),
+    delayMs: 600,
+  });
 
   const openAddNote = () => {
     setEditingNoteId(null);
@@ -1311,12 +1318,7 @@ export default function VendorDetail() {
               Cancel
             </button>
             <button
-              onClick={() => {
-                setIsInactivateConfirmOpen(false);
-                setTimeout(() => {
-                  setIsInactive((v) => !v);
-                }, 300);
-              }}
+              onClick={handleConfirmInactivate}
               className="flex h-9 items-center gap-2 px-3 py-2 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors text-white font-medium text-base whitespace-nowrap"
               style={{ boxShadow: '0px 0px 0px 1px rgba(0, 45, 90, 1)' }}
             >
