@@ -27,22 +27,18 @@ export default function VendorActionsModal({
             className="modal-template-close-btn"
             aria-label="Close"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5 h-5 text-[#303030]"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <img
+              src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2a270b52419cae9104b1782181d0a66d1f416309?placeholderIfAbsent=true"
+              alt="Close"
+            />
           </button>
         </div>
 
-        <div className="modal-template-divider" />
+        <img
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/249a395a76423ecabf7f10a2086df5d9cd674ac7?placeholderIfAbsent=true"
+          className="modal-template-divider"
+          alt=""
+        />
 
         <div className="flex flex-col gap-4">
           {onEdit && (
@@ -51,7 +47,7 @@ export default function VendorActionsModal({
                 onEdit();
                 onOpenChange(false);
               }}
-              className="text-[#1357D5] font-medium text-base hover:underline bg-none border-none cursor-pointer p-0 text-left"
+              className="text-left p-0 border-none bg-none cursor-pointer font-medium text-base text-[#303030] hover:opacity-70"
             >
               Edit Vendor
             </button>
@@ -63,7 +59,7 @@ export default function VendorActionsModal({
                 onInactivate();
                 onOpenChange(false);
               }}
-              className="text-[#1357D5] font-medium text-base hover:underline bg-none border-none cursor-pointer p-0 text-left"
+              className="text-left p-0 border-none bg-none cursor-pointer font-medium text-base text-[#303030] hover:opacity-70"
             >
               Inactivate Vendor
             </button>
@@ -75,7 +71,7 @@ export default function VendorActionsModal({
                 onDelete();
                 onOpenChange(false);
               }}
-              className="text-red-600 font-medium text-base hover:underline bg-none border-none cursor-pointer p-0 text-left"
+              className="text-left p-0 border-none bg-none cursor-pointer font-medium text-base text-red-600 hover:opacity-70"
             >
               Delete Vendor
             </button>
