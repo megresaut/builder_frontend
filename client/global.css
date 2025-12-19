@@ -238,7 +238,7 @@
   }
 
   .modal-template-divider {
-    @apply w-full mt-4 mb-7 object-contain;
+    @apply w-full mt-4 mb-4 object-contain;
     aspect-ratio: 333.33;
   }
 
