@@ -1312,8 +1312,10 @@ export default function VendorDetail() {
             </button>
             <button
               onClick={() => {
-                setIsInactive((v) => !v);
                 setIsInactivateConfirmOpen(false);
+                setTimeout(() => {
+                  setIsInactive((v) => !v);
+                }, 300);
               }}
               className="flex h-9 items-center gap-2 px-3 py-2 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors text-white font-medium text-base whitespace-nowrap"
               style={{ boxShadow: '0px 0px 0px 1px rgba(0, 45, 90, 1)' }}
