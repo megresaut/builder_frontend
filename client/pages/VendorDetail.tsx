@@ -9,7 +9,6 @@ import VendorActionsModal from "@/components/VendorActionsModal";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
