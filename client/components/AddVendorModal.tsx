@@ -102,31 +102,26 @@ export default function AddVendorModal({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-template max-w-[480px]">
+      <DialogContent className="small-modal p-0 gap-0 max-w-[694px] [&>button]:hidden">
         <DialogTitle className="sr-only">Add Vendor</DialogTitle>
-        <div className="modal-template-header">
-          <h2 className="modal-template-title">Add Vendor</h2>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="modal-template-close-btn"
-            aria-label="Close"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5 h-5 text-[#303030]"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+        <div className="small-modal-header-wrapper">
+          <div className="small-modal-header">
+            <div>Add Vendor</div>
+            <img
+              loading="lazy"
+              src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2a270b52419cae9104b1782181d0a66d1f416309?placeholderIfAbsent=true"
+              className="small-modal-close-btn"
+              onClick={() => onOpenChange(false)}
+              alt="Close"
+            />
+          </div>
+          <img
+            loading="lazy"
+            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/249a395a76423ecabf7f10a2086df5d9cd674ac7?placeholderIfAbsent=true"
+            className="small-modal-divider"
+            alt=""
+          />
         </div>
-
-        <div className="w-full h-px bg-[#E5E5E5] mt-4 mb-4" />
 
         <div className="flex flex-col gap-4 flex-1">
           <div className="flex flex-col sm:flex-row gap-3">
