@@ -114,15 +114,6 @@ export const DatePicker = ({
       } else {
         setCalendarMonth(new Date());
       }
-
-      // Calculate position
-      if (inputRef.current) {
-        const rect = inputRef.current.getBoundingClientRect();
-        setCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
     }
   };
 
