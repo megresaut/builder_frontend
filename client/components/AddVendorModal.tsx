@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogTitle } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  ModalTemplate,
+  ModalField,
+  ModalButtons,
+} from "@/components/ui/ModalTemplate";
 
 interface AddVendorModalProps {
   open: boolean;
