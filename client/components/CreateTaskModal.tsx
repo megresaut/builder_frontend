@@ -73,7 +73,7 @@ export default function CreateTaskModal({
     if (!title.trim()) {
       newErrors.title = true;
     }
-    if (!dueDate.trim()) {
+    if (!selectedDate) {
       newErrors.dueDate = true;
     }
     if (selectedAssignees.length === 0) {
@@ -89,7 +89,7 @@ export default function CreateTaskModal({
         property,
         title,
         priority,
-        dueDate,
+        dueDate: selectedDate ? format(selectedDate, "MM/dd/yyyy") : "",
         selectedAssignees,
       });
       onOpenChange(false);
