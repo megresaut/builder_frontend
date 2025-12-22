@@ -236,7 +236,11 @@
     @apply flex items-center justify-center flex-shrink-0;
   }
 
-  /* Small Modal Template Styles */
+  /**
+   * SMALL MODAL TEMPLATE STYLES
+   * Used by: AddVendorModal, CreateWorkOrderModal, CreateTaskModal, etc.
+   * Pattern: Dialog + Form wrapper
+   */
   .small-modal {
     @apply rounded-2xl bg-white flex flex-col max-w-[442px] px-8 py-8;
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
@@ -270,6 +274,7 @@
     @apply flex mt-7 w-full items-center gap-2.5 justify-end text-base whitespace-nowrap;
   }
 
+  /* Secondary action button (Cancel) */
   .small-modal-cancel-btn {
     @apply rounded-lg bg-[#fbfbfb] border border-[#dadada] flex self-stretch my-auto min-h-9 px-3 py-[7px] items-center gap-2 text-[#303030] font-normal cursor-pointer hover:bg-gray-100 transition-colors;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03);
@@ -277,12 +282,16 @@
     line-height: 1.4;
   }
 
+  /* Primary action button (Save/Create) */
   .small-modal-save-btn {
     @apply rounded-lg bg-[#013764] flex self-stretch my-auto min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium cursor-pointer hover:bg-[#014578] transition-colors;
     box-shadow: 0px 0px 0px 1px rgba(0, 45, 90, 1);
   }
 
-  /* Grey Button Template */
+  /**
+   * GREY BUTTON - Secondary action button style
+   * Used for: Cancel, secondary actions throughout app
+   */
   .grey-button {
     @apply rounded-lg bg-[#fbfbfb] border border-[#dadada] flex items-center gap-2 text-[#303030] font-normal cursor-pointer hover:bg-gray-100 transition-colors;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03);
