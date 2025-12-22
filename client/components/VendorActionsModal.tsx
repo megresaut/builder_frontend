@@ -1,7 +1,5 @@
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
 
-import { ModalTemplate } from "@/components/ui/ModalTemplate";
-
 interface VendorActionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
