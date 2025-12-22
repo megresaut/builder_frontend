@@ -79,6 +79,11 @@ const SelectContent = React.forwardRef<
         className,
       )}
       position={position}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+        }
+      }}
       {...props}
     >
       <SelectScrollUpButton />
