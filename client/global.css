@@ -373,7 +373,11 @@
     @apply cursor-default;
   }
 
-  /* Global Floating Panel Style */
+  /**
+   * GLOBAL FLOATING PANEL STYLE
+   * Shared by: DatePicker, Select dropdowns, DropdownMenu, Popovers
+   * Features: Elevation shadow, subtle border, max-height with scroll, z-index management
+   */
   .ra-floating-panel {
     @apply bg-white;
     border: 0.5px solid #dadada;
@@ -384,7 +388,10 @@
     pointer-events: auto;
   }
 
-  /* Dropdown Primitive Styles */
+  /**
+   * DROPDOWN PRIMITIVE STYLES
+   * Base container for custom dropdowns (DropdownPrimitive component)
+   */
   .ra-dropdown {
     @apply relative;
   }
@@ -393,6 +400,7 @@
     @apply cursor-pointer;
   }
 
+  /* Dropdown panel inherits .ra-floating-panel styling */
   .ra-dropdown-panel {
     @apply ra-floating-panel;
   }
