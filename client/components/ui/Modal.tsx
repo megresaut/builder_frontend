@@ -4,6 +4,14 @@ import { cn } from "@/lib/utils";
 
 type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
 
+const MODAL_WIDTHS: Record<ModalSize, number> = {
+  xs: 360,
+  sm: 442,
+  md: 600,
+  lg: 800,
+  xl: 1000,
+};
+
 interface ModalProps extends React.ComponentPropsWithoutRef<typeof DialogContent> {
   /** Modal size: xs (360px), sm (442px), md (600px), lg (800px), xl (1000px) */
   size?: ModalSize;
@@ -40,10 +48,18 @@ export const Modal = React.forwardRef<
   ModalProps
 >(
   (
-    { size = "sm", hideCloseButton = false, className, children, ...props },
+    {
+      size = "sm",
+      hideCloseButton = false,
+      className,
+      children,
+      style,
+      ...props
+    },
     ref,
   ) => {
     const sizeClass = `ra-modal--${size}`;
+    const widthValue = MODAL_WIDTHS[size];
 
     return (
       <DialogContent
@@ -57,6 +73,11 @@ export const Modal = React.forwardRef<
             "[&>button]:hidden": hideCloseButton,
           }
         )}
+        style={{
+          width: `${widthValue}px`,
+          maxWidth: "calc(100vw - 32px)",
+          ...style,
+        }}
         {...props}
       >
         {children}
