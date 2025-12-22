@@ -304,7 +304,11 @@
     justify-content: center;
   }
 
-  /* Date Picker Component */
+  /**
+   * DATE PICKER COMPONENT STYLES
+   * Used by: DatePicker component (code/client/components/ui/date-picker.tsx)
+   * Features: Inline calendar, respects overflow boundaries, ESC support
+   */
   .ra-date-picker-input {
     @apply rounded-lg bg-white border mt-2 w-full px-3 py-2 pr-10 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] border-[#E5E5E5] disabled:opacity-50 disabled:cursor-not-allowed;
   }
@@ -313,16 +317,19 @@
     @apply border-red-500 border-2;
   }
 
+  /* Calendar icon (absolute positioned in input container) */
   .ra-date-picker-icon {
     @apply absolute right-2 top-[55%] -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none;
   }
 
+  /* Calendar panel (extends .ra-floating-panel) */
   .ra-date-picker-calendar {
     @apply ra-floating-panel flex flex-col gap-3 p-4;
     width: 280px;
     position: absolute;
   }
 
+  /* Month/year header with prev/next buttons */
   .ra-date-picker-header {
     @apply flex items-center justify-between gap-2;
   }
@@ -335,6 +342,7 @@
     @apply text-sm font-medium text-[#303030];
   }
 
+  /* Days-of-week header (Sun-Sat) */
   .ra-date-picker-weekdays {
     @apply grid gap-1;
     grid-template-columns: repeat(7, 1fr);
@@ -344,19 +352,23 @@
     @apply w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8b8d8d];
   }
 
+  /* Calendar day grid */
   .ra-date-picker-days {
     @apply grid gap-1;
     grid-template-columns: repeat(7, 1fr);
   }
 
+  /* Individual day button */
   .ra-date-picker-day {
     @apply w-8 h-8 flex items-center justify-center text-xs rounded transition-colors text-[#303030] hover:bg-gray-100 disabled:text-transparent disabled:cursor-default;
   }
 
+  /* Selected day state */
   .ra-date-picker-day--selected {
     @apply bg-[#2463EB] text-white font-medium hover:bg-[#2463EB];
   }
 
+  /* Empty/disabled day state */
   .ra-date-picker-day--empty {
     @apply cursor-default;
   }
