@@ -39,7 +39,7 @@ export default function PdfViewerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[900px] p-0 gap-0">
+      <Modal size="xl">
         <div className="px-6 py-4 border-b border-[#E5E5E5]">
           <DialogTitle className="text-[#303030] font-semibold text-xl leading-[26px]">
             {title}
@@ -85,7 +85,7 @@ export default function PdfViewerModal({
             </a>
           ) : null}
         </DialogFooter>
-      </DialogContent>
+      </Modal>
     </Dialog>
   );
 }
