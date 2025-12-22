@@ -606,7 +606,7 @@ export default function CreateWorkOrderModal({
                 !addToTask.trim() ||
                 !task.trim() ||
                 !vendor.trim() ||
-                !dueDate.trim()
+                !selectedDueDate
               }
             >
               <span className="text-white font-medium text-base">
