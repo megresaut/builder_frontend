@@ -71,7 +71,6 @@ export default function CreateFTOModal({
 
   useEffect(() => {
     if (editData) {
-      setDueDate(editData.dueDate);
       setPriority(editData.priority.toLowerCase());
       setFtoStatus(editData.ftoStatus || "pending-approval");
     }
@@ -91,7 +90,7 @@ export default function CreateFTOModal({
     if (!ftoName.trim()) {
       newErrors.ftoName = true;
     }
-    if (!dueDate.trim()) {
+    if (!selectedDate) {
       newErrors.dueDate = true;
     }
     if (selectedAssignees.length === 0) {
