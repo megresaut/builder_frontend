@@ -1042,6 +1042,7 @@ export const RecordBill = () => {
               overflowX: "auto",
               overflowY: "auto",
               marginBottom: "4px",
+              position: "relative",
             }}
           >
             <div
@@ -1049,6 +1050,7 @@ export const RecordBill = () => {
               style={{
                 minWidth: "fit-content",
                 padding: "24px 32px 24px 16px",
+                position: "relative",
               }}
             >
               {/* Bill Details Section */}
