@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ModalTemplate,
-  ModalField,
   ModalButtons,
 } from "@/components/ui/ModalTemplate";
 
