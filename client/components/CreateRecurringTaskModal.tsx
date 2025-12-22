@@ -285,7 +285,7 @@ export default function CreateRecurringTaskModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[694px] p-8 gap-0">
+      <Modal size="lg">
         <div className="flex flex-col gap-4">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
@@ -604,7 +604,7 @@ export default function CreateRecurringTaskModal({
             </span>
           </button>
         </div>
-      </DialogContent>
+      </Modal>
     </Dialog>
   );
 }
