@@ -1,5 +1,7 @@
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
 
+import { ModalTemplate } from "@/components/ui/ModalTemplate";
+
 interface VendorActionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -15,37 +17,12 @@ export default function VendorActionsModal({
   onInactivate,
   onDelete,
 }: VendorActionsModalProps) {
+  const handleClose = () => onOpenChange(false);
+
   const footer = (
-    <div
-      onClick={() => onOpenChange(false)}
-      style={{
-        borderRadius: "8px",
-        backgroundColor: "rgba(251, 251, 251, 1)",
-        border: "1px solid rgba(218, 218, 218, 1)",
-        alignSelf: "stretch",
-        display: "flex",
-        marginTop: "auto",
-        marginBottom: "auto",
-        minHeight: "36px",
-        paddingLeft: "12px",
-        paddingRight: "12px",
-        paddingTop: "7px",
-        paddingBottom: "7px",
-        alignItems: "center",
-        gap: "8px",
-        color: "rgba(48, 48, 48, 1)",
-        fontWeight: "400",
-        letterSpacing: "-0.32px",
-        lineHeight: 1.4,
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
-      }}
-    >
-      <div style={{ alignSelf: "stretch", marginTop: "auto", marginBottom: "auto" }}>
-        Cancel
-      </div>
-    </div>
+    <button onClick={handleClose} className="ra-modal-cancel-btn">
+      Cancel
+    </button>
   );
 
   return (
@@ -53,8 +30,20 @@ export default function VendorActionsModal({
       open={open}
       onOpenChange={onOpenChange}
       title="Actions"
-      size="lg"
+      size="xs"
       footer={footer}
-    />
+    >
+      <div className="flex flex-col gap-4 text-[#303030] text-sm font-medium">
+        <button className="ra-modal-cancel-btn" onClick={onEdit}>
+          Edit Vendor
+        </button>
+        <button className="ra-modal-cancel-btn" onClick={onInactivate}>
+          Inactivate Vendor
+        </button>
+        <button className="ra-modal-cancel-btn" onClick={onDelete}>
+          Delete Vendor
+        </button>
+      </div>
+    </ModalTemplate>
   );
 }
