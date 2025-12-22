@@ -311,8 +311,7 @@ File: `code/client/components/CreateMyResourceModal.tsx`
 
 ```typescript
 import { useForm } from "react-hook-form";
-import { Dialog, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
+import { ModalTemplate } from "@/components/ui/ModalTemplate";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -349,98 +348,99 @@ export function CreateMyResourceModal({
     form.reset();
   };
 
+  const footer = (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => onOpenChange(false)}
+      >
+        Cancel
+      </Button>
+      <Button type="submit" form="resource-form">Create</Button>
+    </>
+  );
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="md">
-        <DialogHeader>
-          <DialogTitle>Create My Resource</DialogTitle>
-        </DialogHeader>
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Create Resource"
+      size="md"
+      footer={footer}
+    >
+      <Form {...form}>
+        <form id="resource-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Field 1: Name */}
+          <FormField
+            control={form.control}
+            name="name"
+            rules={{
+              required: "Name is required",
+              minLength: {
+                value: 2,
+                message: "Name must be at least 2 characters",
+              },
+            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Field 1: Name */}
-            <FormField
-              control={form.control}
-              name="name"
-              rules={{
-                required: "Name is required",
-                minLength: {
-                  value: 2,
-                  message: "Name must be at least 2 characters",
-                },
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Field 2: Category (Select) */}
+          <FormField
+            control={form.control}
+            name="category"
+            rules={{ required: "Category is required" }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category *</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cat1">Category 1</SelectItem>
+                      <SelectItem value="cat2">Category 2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            {/* Field 2: Category (Select) */}
-            <FormField
-              control={form.control}
-              name="category"
-              rules={{ required: "Category is required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category *</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cat1">Category 1</SelectItem>
-                        <SelectItem value="cat2">Category 2</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Field 3: Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              rules={{
-                required: "Email is required",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Invalid email format",
-                },
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email *</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="Enter email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Footer Buttons */}
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Create</Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </Modal>
-    </Dialog>
+          {/* Field 3: Email */}
+          <FormField
+            control={form.control}
+            name="email"
+            rules={{
+              required: "Email is required",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Invalid email format",
+              },
+            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email *</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="Enter email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+    </ModalTemplate>
   );
 }
 ```
