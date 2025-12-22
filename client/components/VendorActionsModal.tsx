@@ -30,18 +30,6 @@ export default function VendorActionsModal({
       title="Actions"
       size="xs"
       footer={footer}
-    >
-      <div className="flex flex-col gap-4 text-[#303030] text-sm font-medium">
-        <button className="ra-modal-cancel-btn" onClick={onEdit}>
-          Edit Vendor
-        </button>
-        <button className="ra-modal-cancel-btn" onClick={onInactivate}>
-          Inactivate Vendor
-        </button>
-        <button className="ra-modal-cancel-btn" onClick={onDelete}>
-          Delete Vendor
-        </button>
-      </div>
-    </ModalTemplate>
+    />
   );
 }
