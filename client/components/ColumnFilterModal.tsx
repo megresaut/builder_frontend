@@ -70,6 +70,8 @@ export default function ColumnFilterModal({
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.stopPropagation();
+        event.preventDefault();
         onClose?.();
       }
     };
