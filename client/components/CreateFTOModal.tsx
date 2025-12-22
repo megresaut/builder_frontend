@@ -302,8 +302,8 @@ export default function CreateFTOModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[694px] p-0 gap-0 font-['Geist',sans-serif]">
-        <div className="flex flex-col gap-4 px-8 py-8 bg-white rounded-2xl">
+      <Modal size="lg">
+        <div className="flex flex-col gap-4">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25]">
             {editData ? "Edit FTO" : "Create FTO"}
@@ -696,7 +696,7 @@ export default function CreateFTOModal({
             </span>
           </button>
         </div>
-      </DialogContent>
+      </Modal>
     </Dialog>
   );
 }
