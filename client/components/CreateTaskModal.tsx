@@ -99,7 +99,6 @@ export default function CreateTaskModal({
   useEffect(() => {
     if (editData) {
       setTitle(editData.title);
-      setDueDate(editData.due);
       setPriority(editData.priority.toLowerCase());
     }
   }, [editData]);
