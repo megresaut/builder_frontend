@@ -51,6 +51,18 @@ export default function AddVendorModal({
     };
   }, [showServicesList]);
 
+  useEffect(() => {
+    if (open) {
+      setVendorName("");
+      setEmail("");
+      setPhone("");
+      setServicesProvided([]);
+      setNotes("");
+      setErrors({});
+      setShowServicesList(false);
+    }
+  }, [open]);
+
   const availableServices = [
     "HVAC",
     "Plumbing",
