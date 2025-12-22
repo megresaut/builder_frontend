@@ -592,16 +592,22 @@ task: {
 
 ### Pattern 3: Modal Dialog
 ```tsx
-// Use: Dialog + DialogContent components
+// Use: Dialog + Modal components with size variants
 <Dialog open={open} onOpenChange={setOpen}>
-  <DialogContent>
+  <Modal size="md">
     <DialogHeader>
       <DialogTitle>Title</DialogTitle>
     </DialogHeader>
     {/* Form or content */}
-  </DialogContent>
+  </Modal>
 </Dialog>
 ```
+
+**Size Reference**:
+- `size="sm"`: max-width 442px (small forms, add vendor, create task)
+- `size="md"`: max-width 600px (medium dialogs)
+- `size="lg"`: max-width 800px (large dialogs)
+- `size="xl"`: max-width 1000px (full-width forms, complex layouts)
 
 ### Pattern 4: Data Table
 ```tsx
