@@ -349,7 +349,7 @@ export default function AddVendorModal({
                 borderStyle: "solid",
                 borderWidth: "1px",
                 borderRadius: "8px",
-                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.08)",
                 zIndex: 50,
                 padding: "12px",
               }}
@@ -369,23 +369,24 @@ export default function AddVendorModal({
                     type="button"
                     onClick={() => toggleService(service)}
                     style={{
-                      padding: "8px",
+                      padding: "8px 12px",
                       borderRadius: "8px",
                       fontSize: "14px",
                       fontWeight: 500,
-                      transition: "colors 0.2s",
+                      transition: "background-color 0.2s",
                       textAlign: "left",
                       border: "1px solid",
                       borderColor: servicesProvided.includes(service)
                         ? "rgba(37, 99, 235, 1)"
-                        : "rgba(209, 213, 219, 1)",
+                        : "rgba(229, 229, 229, 1)",
                       backgroundColor: servicesProvided.includes(service)
                         ? "rgba(219, 234, 254, 1)"
-                        : "rgba(249, 250, 251, 1)",
+                        : "rgba(255, 255, 255, 1)",
                       color: servicesProvided.includes(service)
                         ? "rgba(30, 58, 138, 1)"
-                        : "rgba(55, 65, 81, 1)",
+                        : "rgba(48, 48, 48, 1)",
                       cursor: "pointer",
+                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                     }}
                   >
                     {service}
