@@ -13,6 +13,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Modal } from "@/components/ui/Modal";
 import {
   DropdownMenu,
   DropdownMenuContent,
