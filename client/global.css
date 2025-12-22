@@ -250,28 +250,29 @@
    * - .ra-modal--xl: max-w-[1000px]
    */
   .ra-modal {
-    @apply w-full rounded-2xl bg-white flex flex-col px-8 py-8;
+    @apply rounded-2xl bg-white flex flex-col px-8 py-8;
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
+    width: fit-content;
   }
 
   .ra-modal--xs {
-    @apply max-w-[360px];
+    width: 360px;
   }
 
   .ra-modal--sm {
-    @apply max-w-[442px];
+    width: 442px;
   }
 
   .ra-modal--md {
-    @apply max-w-[600px];
+    width: 600px;
   }
 
   .ra-modal--lg {
-    @apply max-w-[800px];
+    width: 800px;
   }
 
   .ra-modal--xl {
-    @apply max-w-[1000px];
+    width: 1000px;
   }
 
   .ra-modal-header-wrapper {
