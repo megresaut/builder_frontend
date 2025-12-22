@@ -202,17 +202,16 @@ export const DatePicker = ({
       />
       <Calendar className="ra-date-picker-icon" aria-hidden="true" />
 
-      {showCalendar &&
-        createPortal(
-          <div
-            ref={calendarRef}
-            className="ra-date-picker-calendar"
-            style={{
-              top: calendarPos.top + "px",
-              left: calendarPos.left + "px",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+      {showCalendar && (
+        <div
+          ref={calendarRef}
+          className="ra-date-picker-calendar"
+          style={{
+            top: "calc(100% + 8px)",
+            left: "0",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
             <div className="ra-date-picker-header">
               <button
                 onClick={previousMonth}
@@ -272,8 +271,7 @@ export const DatePicker = ({
                 </button>
               ))}
             </div>
-          </div>,
-          document.body,
+          </div>
         )}
     </div>
   );
