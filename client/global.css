@@ -238,11 +238,12 @@
 
   /**
    * MODAL COMPONENT STYLES - Generic sizes
-   * Supports: sm (small), md (medium), lg (large), xl (extra-large)
+   * Supports: xs (extra-small), sm (small), md (medium), lg (large), xl (extra-large)
    * Used by: AddVendorModal, CreateWorkOrderModal, CreateTaskModal, etc.
    * Pattern: Dialog + Form wrapper with DialogContent
    *
    * Size Mappings:
+   * - .ra-modal--xs: max-w-[360px] (extra small, compact modals)
    * - .ra-modal--sm: max-w-[442px] (original small-modal)
    * - .ra-modal--md: max-w-[600px]
    * - .ra-modal--lg: max-w-[800px]
@@ -251,6 +252,10 @@
   .ra-modal {
     @apply rounded-2xl bg-white flex flex-col px-8 py-8;
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
+  }
+
+  .ra-modal--xs {
+    @apply max-w-[360px];
   }
 
   .ra-modal--sm {
