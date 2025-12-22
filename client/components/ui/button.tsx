@@ -4,6 +4,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Button styling variants using class-variance-authority
+ *
+ * @param variant - Button style variant
+ *   - default: Primary blue button
+ *   - destructive: Red button for dangerous actions
+ *   - outline: Bordered button with transparent background
+ *   - secondary: Light button for secondary actions
+ *   - ghost: No border or background
+ *   - link: Text link style
+ *
+ * @param size - Button size
+ *   - default: Standard button height
+ *   - sm: Smaller button
+ *   - lg: Larger button
+ *   - icon: Square icon button
+ *
+ * @example
+ * <Button variant="default">Click me</Button>
+ * <Button variant="destructive" size="sm">Delete</Button>
+ * <Button variant="outline">Cancel</Button>
+ * <Button asChild><a href="/path">Link</a></Button>
+ */
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
