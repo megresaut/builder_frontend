@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Dialog, DialogTitle } from "@/components/ui/dialog";
 import { Modal, type ModalSize } from "@/components/ui/Modal";
-import { cn } from "@/lib/utils";
 
 interface ModalTemplateProps {
   open: boolean;
@@ -25,17 +24,6 @@ interface ModalTemplateProps {
  * - Optional footer with actions
  *
  * This ensures consistency across all modals in the app.
- *
- * @example
- * <ModalTemplate
- *   open={open}
- *   onOpenChange={setOpen}
- *   title="Add Vendor"
- *   size="lg"
- *   footer={<Button onClick={handleSave}>Save</Button>}
- * >
- *   {/* Modal content goes here */}
- * </ModalTemplate>
  */
 export const ModalTemplate = React.forwardRef<
   HTMLDivElement,
@@ -114,9 +102,7 @@ export const ModalTemplate = React.forwardRef<
 
           {/* Footer */}
           {footer && (
-            <div
-              className="flex mt-7 w-full items-center gap-2.5 justify-end text-base whitespace-nowrap"
-            >
+            <div className="flex mt-7 w-full items-center gap-2.5 justify-end text-base whitespace-nowrap">
               {footer}
             </div>
           )}
