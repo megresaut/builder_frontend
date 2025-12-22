@@ -1281,7 +1281,7 @@ export default function VendorDetail() {
         open={isInactivateConfirmOpen}
         onOpenChange={setIsInactivateConfirmOpen}
       >
-        <Modal size="lg" hideCloseButton>
+        <Modal size="sm" hideCloseButton>
           <DialogTitle className="sr-only">
             {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
           </DialogTitle>
