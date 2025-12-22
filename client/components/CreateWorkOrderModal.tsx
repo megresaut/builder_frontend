@@ -125,28 +125,20 @@ export default function CreateWorkOrderModal({
     let animationFrameId: number;
 
     const updatePositions = () => {
-      if (showDueDateCalendar && dueDateInputRef.current) {
-        const rect = dueDateInputRef.current.getBoundingClientRect();
-        setDueDateCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
       if (showAssigneeDropdown && assigneeButtonRef.current) {
         const rect = assigneeButtonRef.current.getBoundingClientRect();
         setAssigneeDropdownPos({
           top: rect.bottom + 8,
           left: rect.left,
         });
-      }
 
-      if (showDueDateCalendar || showAssigneeDropdown) {
-        animationFrameId = requestAnimationFrame(updatePositions);
+        if (showAssigneeDropdown) {
+          animationFrameId = requestAnimationFrame(updatePositions);
+        }
       }
     };
 
-    if (showDueDateCalendar || showAssigneeDropdown) {
+    if (showAssigneeDropdown) {
       updatePositions();
     }
 
@@ -155,7 +147,7 @@ export default function CreateWorkOrderModal({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showDueDateCalendar, showAssigneeDropdown]);
+  }, [showAssigneeDropdown]);
 
   const getStatusIcon = () => {
     return (
