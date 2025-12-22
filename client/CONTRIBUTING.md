@@ -288,7 +288,14 @@ All forms must follow this structure:
 1. Use `react-hook-form` for validation
 2. Wrap with `<Form>` component
 3. Use `<FormField>` + `<FormItem>` for each field
-4. Wrap with `<Dialog>` for modal
+4. Wrap with `<Dialog>` + `<Modal>` for modal
+5. Choose appropriate modal size (sm, md, lg, xl)
+
+**Size Guide**:
+- `size="sm"`: Small forms (add vendor, quick edit)
+- `size="md"`: Medium dialogs (most forms)
+- `size="lg"`: Large dialogs (complex forms)
+- `size="xl"`: Extra large (full-width forms)
 
 ### Step 1: Create the Component File
 
@@ -298,7 +305,8 @@ File: `code/client/components/CreateMyResourceModal.tsx`
 
 ```typescript
 import { useForm } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Modal } from "@/components/ui/Modal";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
