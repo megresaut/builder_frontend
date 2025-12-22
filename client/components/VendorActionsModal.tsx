@@ -3,17 +3,11 @@ import { ModalTemplate } from "@/components/ui/ModalTemplate";
 interface VendorActionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEdit?: () => void;
-  onInactivate?: () => void;
-  onDelete?: () => void;
 }
 
 export default function VendorActionsModal({
   open,
   onOpenChange,
-  onEdit,
-  onInactivate,
-  onDelete,
 }: VendorActionsModalProps) {
   const handleClose = () => onOpenChange(false);
 
