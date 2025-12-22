@@ -250,7 +250,7 @@
    * - .ra-modal--xl: max-w-[1000px]
    */
   .ra-modal {
-    @apply rounded-2xl bg-white flex flex-col px-8 py-8;
+    @apply w-full rounded-2xl bg-white flex flex-col px-8 py-8;
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
   }
 
