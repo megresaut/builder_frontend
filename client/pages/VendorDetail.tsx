@@ -1278,38 +1278,13 @@ export default function VendorDetail() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ModalTemplate
         open={isInactivateConfirmOpen}
         onOpenChange={setIsInactivateConfirmOpen}
-      >
-        <Modal size="sm" hideCloseButton>
-          <DialogTitle className="sr-only">
-            {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
-          </DialogTitle>
-
-          <div style={{ display: 'flex', width: '100%', flexDirection: 'column', fontSize: '24px', color: 'rgba(48, 48, 48, 1)', fontWeight: 600, lineHeight: 1.08 }}>
-            <div style={{ display: 'flex', width: '100%', alignItems: 'start', gap: '40px 100px', justifyContent: 'space-between' }}>
-              <div>{isInactive ? "Activate Vendor" : "Inactivate Vendor"}</div>
-              <img
-                loading="lazy"
-                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2a270b52419cae9104b1782181d0a66d1f416309?placeholderIfAbsent=true"
-                style={{ aspectRatio: 1, objectFit: 'contain', objectPosition: 'center', width: '18px', cursor: 'pointer' }}
-                onClick={() => setIsInactivateConfirmOpen(false)}
-                alt="Close"
-              />
-            </div>
-            <div
-              style={{ width: '100%', height: '1px', backgroundColor: '#e5e5e5', marginTop: '16px' }}
-            />
-          </div>
-
-          <p style={{ fontSize: '14px', color: 'rgba(48, 48, 48, 1)', marginTop: '16px' }}>
-            {isInactive
-              ? "Activating will make this vendor available for new work orders and tasks."
-              : "Inactivating will prevent this vendor from being used for new work orders and tasks."}
-          </p>
-
-          <div style={{ display: 'flex', marginTop: '28px', width: '100%', alignItems: 'center', gap: '10px', fontSize: '16px', whiteSpace: 'nowrap', justifyContent: 'end' }}>
+        title={isInactive ? "Activate Vendor" : "Inactivate Vendor"}
+        size="sm"
+        footer={
+          <div className="flex gap-2.5 w-full justify-end">
             <button
               onClick={() => setIsInactivateConfirmOpen(false)}
               className="grey-button"
@@ -1324,8 +1299,14 @@ export default function VendorDetail() {
               Confirm
             </button>
           </div>
-        </Modal>
-      </Dialog>
+        }
+      >
+        <p style={{ fontSize: '14px', color: 'rgba(48, 48, 48, 1)' }}>
+          {isInactive
+            ? "Activating will make this vendor available for new work orders and tasks."
+            : "Inactivating will prevent this vendor from being used for new work orders and tasks."}
+        </p>
+      </ModalTemplate>
 
       <VendorActionsModal
         open={isVendorActionsOpen}
