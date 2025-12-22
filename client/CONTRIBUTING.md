@@ -298,7 +298,8 @@ All form modals must follow this structure:
 - Footer for action buttons
 
 **Size Guide**:
-- `size="sm"`: Small forms (add vendor, actions modal - 442px)
+- `size="xs"`: Extra small (compact modals, actions, quick confirmations - 360px)
+- `size="sm"`: Small forms (add vendor, basic modals - 442px)
 - `size="md"`: Medium dialogs (standard forms - 600px)
 - `size="lg"`: Large dialogs (complex multi-field forms - 800px)
 - `size="xl"`: Extra large (full-width forms, complex layouts - 1000px)
