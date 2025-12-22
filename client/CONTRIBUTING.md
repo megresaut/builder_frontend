@@ -433,7 +433,7 @@ export function CreateMyResourceModal({
             </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </Modal>
     </Dialog>
   );
 }
