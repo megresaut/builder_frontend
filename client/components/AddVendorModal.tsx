@@ -200,15 +200,39 @@ export default function AddVendorModal({
         </div>
       </div>
 
-      <ModalField label="Vendor Phone Number" spacing="tight">
+      <div className="flex flex-col">
+        <label
+          style={{
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "14px",
+            color: "rgba(48, 48, 48, 1)",
+            fontWeight: 500,
+            lineHeight: 1.43,
+            marginBottom: "8px",
+          }}
+        >
+          Vendor Phone Number
+        </label>
         <Input
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Input Vendor Phone"
-          className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+          style={{
+            borderRadius: "8px",
+            backgroundColor: "rgba(255, 255, 255, 1)",
+            borderColor: "rgba(229, 229, 229, 1)",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            padding: "8px 12px",
+            fontSize: "16px",
+            fontWeight: 400,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          }}
         />
-      </ModalField>
+      </div>
 
       <ModalField label="Services Provided" spacing="tight">
         <div className="relative" ref={servicesRef}>
