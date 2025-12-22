@@ -709,7 +709,6 @@ export const RecordBill = () => {
               display: "flex",
               flexDirection: "column",
               padding: "24px 32px",
-              zIndex: 100,
               position: "relative",
             }}
           >
