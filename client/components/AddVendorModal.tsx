@@ -234,12 +234,42 @@ export default function AddVendorModal({
         />
       </div>
 
-      <ModalField label="Services Provided" spacing="tight">
+      <div className="flex flex-col" style={{ marginBottom: "12px" }}>
+        <label
+          style={{
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "14px",
+            color: "rgba(48, 48, 48, 1)",
+            fontWeight: 500,
+            lineHeight: 1.43,
+            marginBottom: "8px",
+          }}
+        >
+          Services Provided
+        </label>
         <div className="relative" ref={servicesRef}>
           <button
             type="button"
             onClick={() => setShowServicesList(!showServicesList)}
-            className="w-full h-10 rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] text-base font-normal tracking-[-0.32px] leading-[140%] px-3 py-2 text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
+            style={{
+              width: "100%",
+              borderRadius: "8px",
+              backgroundColor: "rgba(255, 255, 255, 1)",
+              borderColor: "rgba(229, 229, 229, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              padding: "8px 12px",
+              fontSize: "16px",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              cursor: "pointer",
+            }}
           >
             <div className="flex flex-wrap gap-2 items-center flex-1">
               {servicesProvided.length > 0 ? (
@@ -293,16 +323,42 @@ export default function AddVendorModal({
             </div>
           )}
         </div>
-      </ModalField>
+      </div>
 
-      <ModalField label="Notes" spacing="default">
+      <div className="flex flex-col">
+        <label
+          style={{
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "14px",
+            color: "rgba(48, 48, 48, 1)",
+            fontWeight: 500,
+            lineHeight: 1.43,
+            marginBottom: "8px",
+          }}
+        >
+          Notes
+        </label>
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Insert Vendor Notes"
-          className="min-h-[169px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
+          style={{
+            borderRadius: "8px",
+            backgroundColor: "rgba(255, 255, 255, 1)",
+            borderColor: "rgba(229, 229, 229, 1)",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            padding: "8px 12px",
+            fontSize: "16px",
+            fontWeight: 400,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            minHeight: "169px",
+            resize: "none",
+          }}
         />
-      </ModalField>
+      </div>
     </ModalTemplate>
   );
 }
