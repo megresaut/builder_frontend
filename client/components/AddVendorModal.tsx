@@ -126,8 +126,8 @@ export default function AddVendorModal({
         />
       }
     >
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1 min-w-[240px] flex flex-col">
+      <div style={{ display: "flex", width: "100%", gap: "12px", marginBottom: "12px" }}>
+        <div style={{ flex: 1, minWidth: "240px" }}>
           <label
             style={{
               fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -136,6 +136,7 @@ export default function AddVendorModal({
               fontWeight: 500,
               lineHeight: 1.43,
               marginBottom: "8px",
+              display: "block",
             }}
           >
             Vendor Name
@@ -156,6 +157,8 @@ export default function AddVendorModal({
               letterSpacing: "-0.32px",
               lineHeight: 1.4,
               fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              width: "100%",
+              boxSizing: "border-box",
             }}
           />
           {errors.vendorName && (
@@ -164,7 +167,7 @@ export default function AddVendorModal({
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-[240px] flex flex-col">
+        <div style={{ flex: 1, minWidth: "240px" }}>
           <label
             style={{
               fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -173,6 +176,7 @@ export default function AddVendorModal({
               fontWeight: 500,
               lineHeight: 1.43,
               marginBottom: "8px",
+              display: "block",
             }}
           >
             Primary Email
@@ -194,12 +198,14 @@ export default function AddVendorModal({
               letterSpacing: "-0.32px",
               lineHeight: 1.4,
               fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              width: "100%",
+              boxSizing: "border-box",
             }}
           />
         </div>
       </div>
 
-      <div className="flex flex-col">
+      <div style={{ marginBottom: "12px" }}>
         <label
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -208,6 +214,7 @@ export default function AddVendorModal({
             fontWeight: 500,
             lineHeight: 1.43,
             marginBottom: "8px",
+            display: "block",
           }}
         >
           Vendor Phone Number
@@ -229,11 +236,13 @@ export default function AddVendorModal({
             letterSpacing: "-0.32px",
             lineHeight: 1.4,
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            width: "100%",
+            boxSizing: "border-box",
           }}
         />
       </div>
 
-      <div className="flex flex-col" style={{ marginBottom: "12px" }}>
+      <div style={{ marginBottom: "12px" }}>
         <label
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -242,6 +251,7 @@ export default function AddVendorModal({
             fontWeight: 500,
             lineHeight: 1.43,
             marginBottom: "8px",
+            display: "block",
           }}
         >
           Services Provided
@@ -268,26 +278,39 @@ export default function AddVendorModal({
               alignItems: "center",
               justifyContent: "space-between",
               cursor: "pointer",
+              boxSizing: "border-box",
             }}
           >
-            <div className="flex flex-wrap gap-2 items-center flex-1">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", flex: 1 }}>
               {servicesProvided.length > 0 ? (
                 servicesProvided.map((service) => (
                   <span
                     key={service}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      paddingLeft: "10px",
+                      paddingRight: "10px",
+                      paddingTop: "4px",
+                      paddingBottom: "4px",
+                      borderRadius: "16px",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      backgroundColor: "rgba(219, 234, 254, 1)",
+                      color: "rgba(30, 58, 138, 1)",
+                    }}
                   >
                     {service}
                   </span>
                 ))
               ) : (
-                <span className="text-[#A1A1A9]">
+                <span style={{ color: "rgba(161, 161, 169, 1)", fontSize: "16px" }}>
                   Select Services Provided
                 </span>
               )}
             </div>
             <svg
-              className="w-4 h-4 text-gray-400 flex-shrink-0"
+              style={{ width: "16px", height: "16px", color: "rgba(156, 163, 175, 1)", flexShrink: 0 }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -302,18 +325,56 @@ export default function AddVendorModal({
           </button>
 
           {showServicesList && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-50 p-3">
-              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                marginTop: "8px",
+                backgroundColor: "rgba(255, 255, 255, 1)",
+                borderColor: "rgba(229, 229, 229, 1)",
+                borderStyle: "solid",
+                borderWidth: "1px",
+                borderRadius: "8px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                zIndex: 50,
+                padding: "12px",
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "8px",
+                  maxHeight: "256px",
+                  overflowY: "auto",
+                }}
+              >
                 {availableServices.map((service) => (
                   <button
                     key={service}
                     type="button"
                     onClick={() => toggleService(service)}
-                    className={`p-2 rounded-lg text-sm font-medium transition-colors text-left ${
-                      servicesProvided.includes(service)
-                        ? "bg-blue-100 text-blue-800 border border-blue-300"
-                        : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
-                    }`}
+                    style={{
+                      padding: "8px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      transition: "colors 0.2s",
+                      textAlign: "left",
+                      border: "1px solid",
+                      borderColor: servicesProvided.includes(service)
+                        ? "rgba(37, 99, 235, 1)"
+                        : "rgba(209, 213, 219, 1)",
+                      backgroundColor: servicesProvided.includes(service)
+                        ? "rgba(219, 234, 254, 1)"
+                        : "rgba(249, 250, 251, 1)",
+                      color: servicesProvided.includes(service)
+                        ? "rgba(30, 58, 138, 1)"
+                        : "rgba(55, 65, 81, 1)",
+                      cursor: "pointer",
+                    }}
                   >
                     {service}
                   </button>
@@ -324,7 +385,7 @@ export default function AddVendorModal({
         </div>
       </div>
 
-      <div className="flex flex-col">
+      <div>
         <label
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -333,6 +394,7 @@ export default function AddVendorModal({
             fontWeight: 500,
             lineHeight: 1.43,
             marginBottom: "8px",
+            display: "block",
           }}
         >
           Notes
@@ -355,6 +417,8 @@ export default function AddVendorModal({
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             minHeight: "169px",
             resize: "none",
+            width: "100%",
+            boxSizing: "border-box",
           }}
         />
       </div>
