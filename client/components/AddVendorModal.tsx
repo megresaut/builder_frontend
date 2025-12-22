@@ -124,7 +124,6 @@ export default function AddVendorModal({
           onConfirm={handleSubmit}
           cancelLabel="Cancel"
           confirmLabel="Create Vendor"
-          confirmDisabled={!vendorName.trim()}
         />
       }
     >
