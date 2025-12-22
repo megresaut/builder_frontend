@@ -289,7 +289,7 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
         style={{
           borderRadius: "8px",
           backgroundColor: "rgba(1, 55, 100, 1)",
-          boxShadow: "0px 0px 0px 1px rgba(0, 45, 90, 1)",
+          boxShadow: "0px 0px 0px 1px rgba(255, 255, 255, 1)",
           display: "flex",
           minHeight: "36px",
           paddingLeft: "12px",
@@ -305,6 +305,7 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
           opacity: confirmDisabled ? 0.5 : 1,
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
           fontSize: "16px",
+          border: "none",
         }}
       >
         {confirmLabel}
