@@ -87,6 +87,7 @@ export const ModalTemplate = React.forwardRef<
                   height: "1px",
                   backgroundColor: "#e5e5e5",
                   marginTop: "16px",
+                  marginBottom: "16px",
                 }}
               />
             )}
