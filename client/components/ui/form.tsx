@@ -13,6 +13,16 @@ import {
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
+/**
+ * Form - Wrapper providing react-hook-form context
+ *
+ * This is FormProvider from react-hook-form.
+ * Wrap your entire form with this component and pass useForm() result.
+ *
+ * Example:
+ * const form = useForm({ defaultValues: {...} });
+ * wrap with Form {...form} and FormField, FormItem, FormLabel, FormControl inside
+ */
 const Form = FormProvider;
 
 type FormFieldContextValue<
