@@ -2,7 +2,7 @@ import * as React from "react";
 import { DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-type ModalSize = "sm" | "md" | "lg" | "xl";
+type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface ModalProps extends React.ComponentPropsWithoutRef<typeof DialogContent> {
   /** Modal size: sm (442px), md (600px), lg (800px), xl (1000px) */
