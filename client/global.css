@@ -115,7 +115,19 @@
   }
 }
 
-/* Global Table Styles */
+/**
+ * ============================================================================
+ * GLOBAL COMPONENT STYLES - ra-* prefix (REUSABLE PATTERNS)
+ * ============================================================================
+ *
+ * These classes define reusable UI patterns used across multiple components.
+ * Use these when a style pattern repeats 3+ times in the app.
+ *
+ * Naming Convention: .ra-[category]-[element]--[state]
+ * Examples: .ra-table-row, .ra-date-picker-day--selected, .ra-floating-panel
+ */
+
+/* Global Table Styles - Used by table displays and data lists */
 @layer components {
   .ra-table {
     @apply w-full border border-gray-200 bg-white rounded-lg overflow-hidden;
