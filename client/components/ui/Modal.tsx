@@ -18,6 +18,7 @@ interface ModalProps extends React.ComponentPropsWithoutRef<typeof DialogContent
  * with multiple size options.
  *
  * Size variants:
+ * - xs: 360px (extra small, compact modals like actions/confirmations)
  * - sm: 442px (small modals like add vendor, create task)
  * - md: 600px (medium modals)
  * - lg: 800px (large modals)
