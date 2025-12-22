@@ -100,7 +100,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 #### Modal
 - **File**: `components/ui/Modal.tsx`
 - **Export**: `Modal`
-- **Size Variants**: `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
+- **Size Variants**: `xs` (360px), `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
 - **Props**: `size` (default: "sm"), `hideCloseButton`, plus standard DialogContent props
 - **Key Features**: Pre-styled wrapper around DialogContent with semantic size variants
 - **Styling**: Uses `.ra-modal` and `.ra-modal--{size}` classes from global.css
@@ -117,7 +117,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 #### ModalTemplate
 - **File**: `components/ui/ModalTemplate.tsx`
 - **Export**: `ModalTemplate`
-- **Size Variants**: `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
+- **Size Variants**: `xs` (360px), `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
 - **Props**: `open`, `onOpenChange`, `title`, `size`, `footer`, `showDivider`, `hideCloseButton`, `onClose`
 - **Key Features**: Complete modal structure with header, divider, content area, and footer
 - **Structure**: Title + close button | Divider | Content | Footer
