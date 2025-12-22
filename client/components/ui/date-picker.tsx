@@ -137,6 +137,25 @@ export const DatePicker = ({
     };
   }, [showCalendar]);
 
+  // Handle ESC key
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showCalendar) {
+        e.stopPropagation();
+        e.preventDefault();
+        setShowCalendar(false);
+      }
+    };
+
+    if (showCalendar) {
+      document.addEventListener("keydown", handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [showCalendar]);
+
 
   const previousMonth = () => {
     setCalendarMonth(
