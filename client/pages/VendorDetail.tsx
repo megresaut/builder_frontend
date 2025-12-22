@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Modal } from "@/components/ui/Modal";
+import { ModalTemplate } from "@/components/ui/ModalTemplate";
 import {
   DropdownMenu,
   DropdownMenuContent,
