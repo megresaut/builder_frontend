@@ -108,14 +108,6 @@ export default function CreateTaskModal({
     let animationFrameId: number;
 
     const updatePositions = () => {
-      if (showCalendar && dueDateInputRef.current) {
-        const rect = dueDateInputRef.current.getBoundingClientRect();
-        setCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
       if (showAssigneeDropdown && assigneeButtonRef.current) {
         const rect = assigneeButtonRef.current.getBoundingClientRect();
         setAssigneeDropdownPos({
@@ -124,12 +116,12 @@ export default function CreateTaskModal({
         });
       }
 
-      if (showCalendar || showAssigneeDropdown) {
+      if (showAssigneeDropdown) {
         animationFrameId = requestAnimationFrame(updatePositions);
       }
     };
 
-    if (showCalendar || showAssigneeDropdown) {
+    if (showAssigneeDropdown) {
       updatePositions();
     }
 
@@ -138,7 +130,7 @@ export default function CreateTaskModal({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showCalendar, showAssigneeDropdown]);
+  }, [showAssigneeDropdown]);
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
@@ -230,33 +222,6 @@ export default function CreateTaskModal({
     setShowCalendar(false);
   };
 
-  const getCalendarDays = () => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
-    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
-
-    const days: (number | null)[] = [];
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-
-  const previousMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
-    );
-  };
-
-  const nextMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
-    );
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -373,146 +338,17 @@ export default function CreateTaskModal({
               <label className="text-[#303030] font-medium text-sm leading-5">
                 Due Date <span className="text-red-600">*</span>
               </label>
-              <div className="relative">
-                <Input
-                  ref={dueDateInputRef}
-                  type="text"
-                  placeholder="MM/DD/YYYY"
-                  value={dueDate}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, "");
-                    if (value.length > 0) {
-                      if (value.length <= 2) {
-                        value = value;
-                      } else if (value.length <= 4) {
-                        value = value.slice(0, 2) + "/" + value.slice(2);
-                      } else {
-                        value =
-                          value.slice(0, 2) +
-                          "/" +
-                          value.slice(2, 4) +
-                          "/" +
-                          value.slice(4, 8);
-                      }
-                    }
-                    setDueDate(value);
-                    const parsed = parse(value, "MM/dd/yyyy", new Date());
-                    if (isValid(parsed)) {
-                      setSelectedDate(parsed);
-                      setCalendarMonth(parsed);
-                      if (errors.dueDate) {
-                        setErrors((prev) => ({ ...prev, dueDate: false }));
-                      }
-                    }
-                  }}
-                  maxLength={10}
-                  className={`h-11 rounded-lg placeholder:text-[#A1A1A9] ${
-                    errors.dueDate
-                      ? "border-red-500 border-2"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-                <button
-                  onClick={() => setShowCalendar(!showCalendar)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity p-1"
-                  type="button"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 6.66668H2M10.6667 1.33334V4.00001M5.33333 1.33334V4.00001M5.2 14.6667H10.8C11.9201 14.6667 12.4802 14.6667 12.908 14.4487C13.2843 14.2569 13.5903 13.951 13.782 13.5747C14 13.1468 14 12.5868 14 11.4667V5.86668C14 4.74657 14 4.18652 13.782 3.7587C13.5903 3.38237 13.2843 3.07641 12.908 2.88466C12.4802 2.66668 11.9201 2.66668 10.8 2.66668H5.2C4.0799 2.66668 3.51984 2.66668 3.09202 2.88466C2.71569 3.07641 2.40973 3.38237 2.21799 3.7587C2 4.18652 2 4.74657 2 5.86668V11.4667C2 12.5868 2 13.1468 2.21799 13.5747C2.40973 13.951 2.71569 14.2569 3.09202 14.4487C3.51984 14.6667 4.0799 14.6667 5.2 14.6667Z"
-                      stroke="black"
-                      strokeWidth="1.48576"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                {showCalendar &&
-                  createPortal(
-                    <div
-                      className="bg-white flex flex-col gap-3 p-4"
-                      style={{
-                        width: "280px",
-                        border: "0.5px solid #DADADA",
-                        borderRadius: "8px",
-                        boxShadow:
-                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                        zIndex: 99999,
-                        position: "fixed",
-                        top: calendarPos.top + "px",
-                        left: calendarPos.left + "px",
-                        pointerEvents: "auto",
-                      }}
-                      onMouseLeave={() => setShowCalendar(false)}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <button
-                          onClick={previousMonth}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          type="button"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <span className="text-sm font-medium text-[#303030]">
-                          {format(calendarMonth, "MMMM yyyy")}
-                        </span>
-                        <button
-                          onClick={nextMonth}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          type="button"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-7 gap-1">
-                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
-                          (day) => (
-                            <div
-                              key={day}
-                              className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
-                            >
-                              {day}
-                            </div>
-                          ),
-                        )}
-
-                        {getCalendarDays().map((day, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() =>
-                              day !== null && handleDateSelect(day)
-                            }
-                            disabled={day === null}
-                            className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
-                              day === null
-                                ? "text-transparent cursor-default"
-                                : selectedDate &&
-                                    selectedDate.getDate() === day &&
-                                    selectedDate.getMonth() ===
-                                      calendarMonth.getMonth() &&
-                                    selectedDate.getFullYear() ===
-                                      calendarMonth.getFullYear()
-                                  ? "bg-[#2463EB] text-white font-medium"
-                                  : "hover:bg-gray-100 text-[#303030]"
-                            }`}
-                            type="button"
-                          >
-                            {day}
-                          </button>
-                        ))}
-                      </div>
-                    </div>,
-                    document.body,
-                  )}
-              </div>
+              <DatePicker
+                value={selectedDate}
+                onChange={(date) => {
+                  setSelectedDate(date);
+                  if (errors.dueDate && date) {
+                    setErrors((prev) => ({ ...prev, dueDate: false }));
+                  }
+                }}
+                error={errors.dueDate}
+                placeholder="MM/DD/YYYY"
+              />
             </div>
             <div className="flex flex-col gap-2 flex-1">
               <label className="text-[#303030] font-medium text-sm leading-5">
