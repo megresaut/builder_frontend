@@ -47,9 +47,15 @@ export const Modal = React.forwardRef<
     return (
       <DialogContent
         ref={ref}
-        className={cn("ra-modal", sizeClass, "gap-0", className, {
-          "[&>button]:hidden": hideCloseButton,
-        })}
+        className={cn(
+          "ra-modal",
+          sizeClass,
+          "gap-0 border-none",
+          className,
+          {
+            "[&>button]:hidden": hideCloseButton,
+          }
+        )}
         {...props}
       >
         {children}
