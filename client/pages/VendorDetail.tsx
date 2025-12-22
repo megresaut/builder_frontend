@@ -1332,8 +1332,6 @@ export default function VendorDetail() {
       <VendorActionsModal
         open={isVendorActionsOpen}
         onOpenChange={setIsVendorActionsOpen}
-        onEdit={openEditVendor}
-        onInactivate={() => setIsInactivateConfirmOpen(true)}
       />
     </>
   );
