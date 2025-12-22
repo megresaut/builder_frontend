@@ -338,6 +338,19 @@
   .ra-date-picker-day--empty {
     @apply cursor-default;
   }
+
+  /* Dropdown Primitive Styles */
+  .ra-dropdown {
+    @apply relative;
+  }
+
+  .ra-dropdown-trigger {
+    @apply cursor-pointer;
+  }
+
+  .ra-dropdown-panel {
+    @apply bg-white border border-[#DADADA] rounded-lg shadow-lg;
+  }
 }
 
 @layer base {
