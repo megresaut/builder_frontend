@@ -494,197 +494,35 @@ export const RecordBill = () => {
     navigate(-1);
   };
 
-  useEffect(() => {
-    const updatePositions = () => {
-      if (showInvoiceDateCalendar && invoiceDateInputRef.current) {
-        const rect = invoiceDateInputRef.current.getBoundingClientRect();
-        setInvoiceDateCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-      if (showDueDateCalendar && dueDateInputRef.current) {
-        const rect = dueDateInputRef.current.getBoundingClientRect();
-        setDueDateCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-    };
 
-    let animationFrameId: number;
-    if (showInvoiceDateCalendar || showDueDateCalendar) {
-      animationFrameId = requestAnimationFrame(updatePositions);
-    }
-
-    if (showInvoiceDateCalendar || showDueDateCalendar) {
-      updatePositions();
-    }
-
-    return () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    };
-  }, [showInvoiceDateCalendar, showDueDateCalendar]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-
-      // Check if click is outside both invoice date elements
-      const isClickInInvoiceDateInput = invoiceDateInputRef.current?.contains(target);
-      const isClickInInvoiceDateDropdown = invoiceDateCalendarRef.current?.contains(target);
-
-      // Check if click is outside both due date elements
-      const isClickInDueDateInput = dueDateInputRef.current?.contains(target);
-      const isClickInDueDateDropdown = dueDateCalendarRef.current?.contains(target);
-
-      // Close invoice date calendar if click is outside
-      if (!isClickInInvoiceDateInput && !isClickInInvoiceDateDropdown) {
-        setShowInvoiceDateCalendar(false);
-      }
-
-      // Close due date calendar if click is outside
-      if (!isClickInDueDateInput && !isClickInDueDateDropdown) {
-        setShowDueDateCalendar(false);
-      }
-    };
-
-    if (showInvoiceDateCalendar || showDueDateCalendar) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showInvoiceDateCalendar, showDueDateCalendar]);
-
-  const getDaysInCurrentMonth = () => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
-    const firstDayOfMonth = getDay(startOfMonth(new Date(year, month, 1)));
-
-    const days: (number | null)[] = [];
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-
-  const previousMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
-    );
-  };
-
-  const nextMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
-    );
-  };
-
-  const validateDateFormat = (dateString: string): Date | null => {
-    if (!dateString) return null;
-
-    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
-    if (!dateRegex.test(dateString)) {
-      return null;
-    }
-
-    const [month, day, year] = dateString.split("/").map(Number);
-    const date = new Date(year, month - 1, day);
-
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
-    }
-
-    return date;
-  };
-
-  const formatDateInput = (input: string): string => {
-    // Remove all non-digit characters
-    const digits = input.replace(/\D/g, "");
-
-    // Limit to 8 digits (mmddyyyy)
-    const limited = digits.slice(0, 8);
-
-    // Format as mm/dd/yyyy as user types
-    if (limited.length <= 2) {
-      return limited;
-    } else if (limited.length <= 4) {
-      return `${limited.slice(0, 2)}/${limited.slice(2)}`;
-    } else {
-      return `${limited.slice(0, 2)}/${limited.slice(2, 4)}/${limited.slice(4)}`;
-    }
-  };
-
-  const handleInvoiceDateInputChange = (value: string) => {
-    const formatted = formatDateInput(value);
-    setInvoiceDateInput(formatted);
-    setInvoiceDateError("");
-
-    if (formatted.length !== 10) {
-      setInvoiceDate(null);
-      return;
-    }
-
-    const parsedDate = validateDateFormat(formatted);
-    if (parsedDate) {
-      setInvoiceDate(parsedDate);
+  const handleInvoiceDateChange = (date: Date | null) => {
+    setInvoiceDate(date);
+    if (date) {
+      setInvoiceDateInput(format(date, "MM/dd/yyyy"));
+      setInvoiceDateError("");
       setFormErrors((prev) => {
         const newErrors = new Set(prev);
         newErrors.delete("invoiceDate");
         return newErrors;
       });
-      return;
+    } else {
+      setInvoiceDateInput("");
     }
-
-    setInvoiceDate(null);
-    setInvoiceDateError("Invalid date. Please use mm/dd/yyyy format.");
   };
 
-  const handleDueDateInputChange = (value: string) => {
-    const formatted = formatDateInput(value);
-    setDueDateInput(formatted);
-    setDueDateError("");
-
-    if (formatted.length !== 10) {
-      setDueDate(null);
-      return;
-    }
-
-    const parsedDate = validateDateFormat(formatted);
-    if (parsedDate) {
-      setDueDate(parsedDate);
+  const handleDueDateChange = (date: Date | null) => {
+    setDueDate(date);
+    if (date) {
+      setDueDateInput(format(date, "MM/dd/yyyy"));
+      setDueDateError("");
       setFormErrors((prev) => {
         const newErrors = new Set(prev);
         newErrors.delete("dueDate");
         return newErrors;
       });
-      return;
+    } else {
+      setDueDateInput("");
     }
-
-    setDueDate(null);
-    setDueDateError("Invalid date. Please use mm/dd/yyyy format.");
-  };
-
-  const handleInvoiceDateSelect = (date: Date) => {
-    setInvoiceDate(date);
-    setInvoiceDateInput(format(date, "MM/dd/yyyy"));
-    setInvoiceDateError("");
-  };
-
-  const handleDueDateSelect = (date: Date) => {
-    setDueDate(date);
-    setDueDateInput(format(date, "MM/dd/yyyy"));
-    setDueDateError("");
   };
 
   // Add Escape key handler
