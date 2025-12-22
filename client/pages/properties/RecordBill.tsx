@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { createPortal } from "react-dom";
-import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -10,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 import AddVendorModal from "@/components/AddVendorModal";
 import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
@@ -271,15 +270,6 @@ export const RecordBill = () => {
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileIndex, setViewingFileIndex] = useState<number | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [showInvoiceDateCalendar, setShowInvoiceDateCalendar] = useState(false);
-  const [showDueDateCalendar, setShowDueDateCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [invoiceDateCalendarPos, setInvoiceDateCalendarPos] = useState({ top: 0, left: 0 });
-  const [dueDateCalendarPos, setDueDateCalendarPos] = useState({ top: 0, left: 0 });
-  const invoiceDateInputRef = useRef<HTMLInputElement>(null);
-  const dueDateInputRef = useRef<HTMLInputElement>(null);
-  const invoiceDateCalendarRef = useRef<HTMLDivElement>(null);
-  const dueDateCalendarRef = useRef<HTMLDivElement>(null);
   const [lineItemErrors, setLineItemErrors] = useState<{
     [key: number]: Set<string>;
   }>({});
