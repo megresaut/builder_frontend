@@ -53,17 +53,8 @@ export default function CreateRecurringTaskModal({
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("normal");
   const [category, setCategory] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
-  const [showStartCalendar, setShowStartCalendar] = useState(false);
-  const [showEndCalendar, setShowEndCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const startDateInputRef = useRef<HTMLInputElement>(null);
-  const endDateInputRef = useRef<HTMLInputElement>(null);
-  const [startCalendarPos, setStartCalendarPos] = useState({ top: 0, left: 0 });
-  const [endCalendarPos, setEndCalendarPos] = useState({ top: 0, left: 0 });
   const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([
     AVAILABLE_ASSIGNEES[0],
     AVAILABLE_ASSIGNEES[0],
