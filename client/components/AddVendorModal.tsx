@@ -103,15 +103,15 @@ export default function AddVendorModal({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="small-modal p-0 gap-0 max-w-[694px] [&>button]:hidden">
+      <Modal size="lg" hideCloseButton>
         <DialogTitle className="sr-only">Add Vendor</DialogTitle>
-        <div className="small-modal-header-wrapper">
-          <div className="small-modal-header">
+        <div className="ra-modal-header-wrapper">
+          <div className="ra-modal-header">
             <div>Add Vendor</div>
             <img
               loading="lazy"
               src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2a270b52419cae9104b1782181d0a66d1f416309?placeholderIfAbsent=true"
-              className="small-modal-close-btn"
+              className="ra-modal-close-btn"
               onClick={() => onOpenChange(false)}
               alt="Close"
             />
@@ -119,7 +119,7 @@ export default function AddVendorModal({
           <img
             loading="lazy"
             src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/249a395a76423ecabf7f10a2086df5d9cd674ac7?placeholderIfAbsent=true"
-            className="small-modal-divider"
+            className="ra-modal-divider"
             alt=""
           />
         </div>
@@ -249,22 +249,22 @@ export default function AddVendorModal({
             />
           </div>
 
-          <div className="small-modal-footer">
+          <div className="ra-modal-footer">
             <div
               onClick={() => onOpenChange(false)}
-              className="small-modal-cancel-btn"
+              className="ra-modal-cancel-btn"
             >
               <div className="self-stretch my-auto">Cancel</div>
             </div>
             <div
               onClick={handleSubmit}
-              className={`small-modal-save-btn ${!vendorName.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`ra-modal-save-btn ${!vendorName.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="self-stretch my-auto">Create Vendor</div>
             </div>
           </div>
         </div>
-      </DialogContent>
+      </Modal>
     </Dialog>
   );
 }
