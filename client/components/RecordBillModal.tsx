@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 
 export interface LineItem {
@@ -270,31 +271,41 @@ export default function RecordBillModal({
                       <label className="text-[#303030] font-medium text-sm">
                         Invoice Date
                       </label>
-                      <div className="relative">
-                        <Input
-                          type="date"
-                          value={invoiceDate}
-                          onChange={(e) => setInvoiceDate(e.target.value)}
-                          disabled={isView}
-                          placeholder="mm/dd/yyyy"
-                          className="h-11 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-                        />
-                      </div>
+                      <DatePicker
+                        value={invoiceDate ? new Date(invoiceDate) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            setInvoiceDate(`${year}-${month}-${day}`);
+                          } else {
+                            setInvoiceDate("");
+                          }
+                        }}
+                        disabled={isView}
+                        placeholder="mm/dd/yyyy"
+                      />
                     </div>
                     <div className="flex flex-col gap-2 flex-1">
                       <label className="text-[#303030] font-medium text-sm">
                         Due Date
                       </label>
-                      <div className="relative">
-                        <Input
-                          type="date"
-                          value={dueDate}
-                          onChange={(e) => setDueDate(e.target.value)}
-                          disabled={isView}
-                          placeholder="mm/dd/yyyy"
-                          className="h-11 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-                        />
-                      </div>
+                      <DatePicker
+                        value={dueDate ? new Date(dueDate) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            setDueDate(`${year}-${month}-${day}`);
+                          } else {
+                            setDueDate("");
+                          }
+                        }}
+                        disabled={isView}
+                        placeholder="mm/dd/yyyy"
+                      />
                     </div>
                   </div>
 
