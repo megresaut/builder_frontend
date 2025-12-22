@@ -36,6 +36,10 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue,
 );
 
+/**
+ * FormField - Controller wrapper for react-hook-form
+ * Use with FormItem, FormLabel, FormControl, FormMessage inside render prop
+ */
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -49,6 +53,9 @@ const FormField = <
   );
 };
 
+/**
+ * useFormField hook - Access field context (used by FormLabel, FormControl, FormMessage)
+ */
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
@@ -80,6 +87,9 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
 );
 
+/**
+ * FormItem - Container for a form field (wraps label, input, error message)
+ */
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -94,6 +104,9 @@ const FormItem = React.forwardRef<
 });
 FormItem.displayName = "FormItem";
 
+/**
+ * FormLabel - Field label (auto-associates with input, turns red on error)
+ */
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
@@ -111,6 +124,9 @@ const FormLabel = React.forwardRef<
 });
 FormLabel.displayName = "FormLabel";
 
+/**
+ * FormControl - Wraps input elements (Input, Select, Textarea) with accessibility attrs
+ */
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
@@ -134,6 +150,9 @@ const FormControl = React.forwardRef<
 });
 FormControl.displayName = "FormControl";
 
+/**
+ * FormDescription - Helper text (optional, appears below input)
+ */
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -151,6 +170,9 @@ const FormDescription = React.forwardRef<
 });
 FormDescription.displayName = "FormDescription";
 
+/**
+ * FormMessage - Error message display (auto-shows on validation fail, always include it)
+ */
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
