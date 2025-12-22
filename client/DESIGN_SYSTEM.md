@@ -97,6 +97,25 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   </Dialog>
   ```
 
+#### Modal
+- **File**: `components/ui/Modal.tsx`
+- **Export**: `Modal`
+- **Size Variants**: `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
+- **Props**: `size` (default: "sm"), `hideCloseButton`, plus standard DialogContent props
+- **Key Features**: Pre-styled wrapper around DialogContent with semantic size variants
+- **Styling**: Uses `.ra-modal` and `.ra-modal--{size}` classes from global.css
+- **Used In**: Forms, confirmations, any sized modal dialog
+- **Replaces**: Direct DialogContent usage with ad-hoc max-width classes
+- **Example**:
+  ```tsx
+  <Dialog open={open} onOpenChange={setOpen}>
+    <Modal size="md">
+      <DialogTitle>My Modal</DialogTitle>
+      {/* content */}
+    </Modal>
+  </Dialog>
+  ```
+
 #### Popover
 - **File**: `components/ui/popover.tsx`
 - **Exports**: `Popover`, `PopoverTrigger`, `PopoverContent`
