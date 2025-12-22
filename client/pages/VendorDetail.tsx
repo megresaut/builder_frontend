@@ -1280,7 +1280,7 @@ export default function VendorDetail() {
         open={isInactivateConfirmOpen}
         onOpenChange={setIsInactivateConfirmOpen}
       >
-        <DialogContent className="small-modal gap-0 [&>button]:hidden">
+        <Modal size="lg" hideCloseButton>
           <DialogTitle className="sr-only">
             {isInactive ? "Activate Vendor" : "Inactivate Vendor"}
           </DialogTitle>
@@ -1325,7 +1325,7 @@ export default function VendorDetail() {
               Confirm
             </button>
           </div>
-        </DialogContent>
+        </Modal>
       </Dialog>
 
       <VendorActionsModal
