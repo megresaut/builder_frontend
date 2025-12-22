@@ -284,18 +284,24 @@ Examples:
 
 ### Pattern Overview
 
-All forms must follow this structure:
-1. Use `react-hook-form` for validation
-2. Wrap with `<Form>` component
-3. Use `<FormField>` + `<FormItem>` for each field
-4. Wrap with `<Dialog>` + `<Modal>` for modal
+All form modals must follow this structure:
+1. Use `ModalTemplate` for consistent modal structure
+2. Use `react-hook-form` for validation
+3. Wrap fields with `<Form>` component
+4. Use `<FormField>` + `<FormItem>` for each field
 5. Choose appropriate modal size (sm, md, lg, xl)
 
+**ModalTemplate** provides:
+- Automatic header with title + close button
+- Divider separator
+- Content area with proper spacing
+- Footer for action buttons
+
 **Size Guide**:
-- `size="sm"`: Small forms (add vendor, quick edit)
-- `size="md"`: Medium dialogs (most forms)
-- `size="lg"`: Large dialogs (complex forms)
-- `size="xl"`: Extra large (full-width forms)
+- `size="sm"`: Small forms (add vendor, actions modal - 442px)
+- `size="md"`: Medium dialogs (standard forms - 600px)
+- `size="lg"`: Large dialogs (complex multi-field forms - 800px)
+- `size="xl"`: Extra large (full-width forms, complex layouts - 1000px)
 
 ### Step 1: Create the Component File
 
