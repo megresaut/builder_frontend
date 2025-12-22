@@ -525,19 +525,17 @@ export const RecordBill = () => {
     }
   };
 
-  // Add Escape key handler
+  // Add Escape key handler for file viewer
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
+      if (event.key === "Escape" && viewingFileUrl) {
         closeViewer();
-        navigate(-1);
       }
     };
 
     window.addEventListener("keydown", handleEscapeKey);
     return () => window.removeEventListener("keydown", handleEscapeKey);
-  }, [navigate]);
+  }, [viewingFileUrl]);
 
   // Effect to measure widths whenever lineItems change
   useEffect(() => {
