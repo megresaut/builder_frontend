@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,15 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  format,
-  parse,
-  isValid,
-  getDaysInMonth,
-  startOfMonth,
-  getDay,
-} from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
+import { X, ChevronDown } from "lucide-react";
+import { format } from "date-fns";
 
 interface Assignee {
   id: string;
