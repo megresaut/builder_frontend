@@ -1043,6 +1043,7 @@ export const RecordBill = () => {
               overflowY: "auto",
               marginBottom: "4px",
               position: "relative",
+              overscrollBehavior: "contain",
             }}
           >
             <div
