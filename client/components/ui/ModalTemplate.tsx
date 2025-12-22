@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Dialog, DialogTitle } from "@/components/ui/dialog";
 import { Modal, type ModalSize } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/button";
 
 interface ModalTemplateProps {
   open: boolean;
