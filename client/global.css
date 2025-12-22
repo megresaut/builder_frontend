@@ -296,7 +296,7 @@
     border: 0.5px solid #dadada;
     border-radius: 8px;
     box-shadow: 0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07);
-    z-index: 52;
+    z-index: 40;
     position: fixed;
     pointer-events: auto;
   }
