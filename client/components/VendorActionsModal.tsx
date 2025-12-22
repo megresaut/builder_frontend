@@ -53,7 +53,7 @@ export default function VendorActionsModal({
       open={open}
       onOpenChange={onOpenChange}
       title="Actions"
-      size="sm"
+      size="xs"
       footer={footer}
     />
   );
