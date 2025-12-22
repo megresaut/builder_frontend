@@ -148,6 +148,27 @@ export const DatePicker = ({
     };
   }, [showCalendar]);
 
+  // Update calendar position on scroll to keep it aligned with input
+  useEffect(() => {
+    const updateCalendarPosition = () => {
+      if (inputRef.current && showCalendar) {
+        const rect = inputRef.current.getBoundingClientRect();
+        setCalendarPos({
+          top: rect.bottom + 8,
+          left: rect.left,
+        });
+      }
+    };
+
+    if (showCalendar) {
+      window.addEventListener("scroll", updateCalendarPosition, true);
+    }
+
+    return () => {
+      window.removeEventListener("scroll", updateCalendarPosition, true);
+    };
+  }, [showCalendar]);
+
   const previousMonth = () => {
     setCalendarMonth(
       new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
