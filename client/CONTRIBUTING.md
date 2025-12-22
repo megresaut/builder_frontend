@@ -345,7 +345,7 @@ export function CreateMyResourceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <Modal size="md">
         <DialogHeader>
           <DialogTitle>Create My Resource</DialogTitle>
         </DialogHeader>
