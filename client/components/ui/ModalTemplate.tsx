@@ -86,7 +86,7 @@ export const ModalTemplate = React.forwardRef<
                 src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/249a395a76423ecabf7f10a2086df5d9cd674ac7?placeholderIfAbsent=true"
                 style={{
                   width: "100%",
-                  aspectRatio: "333.33",
+                  height: "2px",
                   objectFit: "contain",
                   objectPosition: "center",
                   marginTop: "16px",
