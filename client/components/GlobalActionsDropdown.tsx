@@ -73,6 +73,8 @@ export default function GlobalActionsDropdown({
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.stopPropagation();
+        event.preventDefault();
         setOpenMenuId(null);
       }
     };
