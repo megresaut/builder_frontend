@@ -15,21 +15,6 @@ export default function VendorActionsModal({
   onInactivate,
   onDelete,
 }: VendorActionsModalProps) {
-  const handleEdit = () => {
-    onEdit?.();
-    onOpenChange(false);
-  };
-
-  const handleInactivate = () => {
-    onInactivate?.();
-    onOpenChange(false);
-  };
-
-  const handleDelete = () => {
-    onDelete?.();
-    onOpenChange(false);
-  };
-
   const footer = (
     <div
       onClick={() => onOpenChange(false)}
@@ -70,85 +55,6 @@ export default function VendorActionsModal({
       title="Actions"
       size="sm"
       footer={footer}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          width: "100%",
-        }}
-      >
-        <button
-          onClick={handleEdit}
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "#f7f7f7",
-            border: "1px solid #e5e5e5",
-            borderRadius: "8px",
-            cursor: "pointer",
-            textAlign: "left",
-            fontSize: "16px",
-            color: "#303030",
-            fontWeight: "500",
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#e8e8e8")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#f7f7f7")
-          }
-        >
-          Edit Vendor
-        </button>
-        <button
-          onClick={handleInactivate}
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "#f7f7f7",
-            border: "1px solid #e5e5e5",
-            borderRadius: "8px",
-            cursor: "pointer",
-            textAlign: "left",
-            fontSize: "16px",
-            color: "#303030",
-            fontWeight: "500",
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#e8e8e8")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#f7f7f7")
-          }
-        >
-          Inactivate Vendor
-        </button>
-        <button
-          onClick={handleDelete}
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "#f7f7f7",
-            border: "1px solid #e5e5e5",
-            borderRadius: "8px",
-            cursor: "pointer",
-            textAlign: "left",
-            fontSize: "16px",
-            color: "#d32f2f",
-            fontWeight: "500",
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#e8e8e8")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#f7f7f7")
-          }
-        >
-          Delete Vendor
-        </button>
-      </div>
-    </ModalTemplate>
+    />
   );
 }
