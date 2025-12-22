@@ -104,16 +104,36 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 - **Props**: `size` (default: "sm"), `hideCloseButton`, plus standard DialogContent props
 - **Key Features**: Pre-styled wrapper around DialogContent with semantic size variants
 - **Styling**: Uses `.ra-modal` and `.ra-modal--{size}` classes from global.css
-- **Used In**: Forms, confirmations, any sized modal dialog
-- **Replaces**: Direct DialogContent usage with ad-hoc max-width classes
+- **Used In**: Low-level wrapper; prefer ModalTemplate for most use cases
 - **Example**:
   ```tsx
   <Dialog open={open} onOpenChange={setOpen}>
     <Modal size="md">
-      <DialogTitle>My Modal</DialogTitle>
       {/* content */}
     </Modal>
   </Dialog>
+  ```
+
+#### ModalTemplate
+- **File**: `components/ui/ModalTemplate.tsx`
+- **Export**: `ModalTemplate`
+- **Size Variants**: `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
+- **Props**: `open`, `onOpenChange`, `title`, `size`, `footer`, `showDivider`, `hideCloseButton`, `onClose`
+- **Key Features**: Complete modal structure with header, divider, content area, and footer
+- **Structure**: Title + close button | Divider | Content | Footer
+- **Used In**: All modal dialogs, forms, confirmations
+- **Replaces**: Custom header/footer implementations
+- **Example**:
+  ```tsx
+  <ModalTemplate
+    open={open}
+    onOpenChange={setOpen}
+    title="Add Item"
+    size="md"
+    footer={<Button onClick={handleSave}>Save</Button>}
+  >
+    {/* content goes here */}
+  </ModalTemplate>
   ```
 
 #### Popover
