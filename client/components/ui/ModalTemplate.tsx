@@ -35,6 +35,7 @@ export const ModalTemplate = React.forwardRef<
       open,
       onOpenChange,
       title,
+      subheader,
       size = "sm",
       hideCloseButton = false,
       onClose,
