@@ -51,6 +51,7 @@ export const ModalTemplate = React.forwardRef<
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <Modal size={size} hideCloseButton={true}>
+          <DialogTitle className="sr-only">{title}</DialogTitle>
           {/* Header */}
           <div
             className="flex w-full flex-col text-2xl text-[#303030] font-semibold"
