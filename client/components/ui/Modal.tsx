@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface ModalProps extends React.ComponentPropsWithoutRef<typeof DialogContent> {
-  /** Modal size: sm (442px), md (600px), lg (800px), xl (1000px) */
+  /** Modal size: xs (360px), sm (442px), md (600px), lg (800px), xl (1000px) */
   size?: ModalSize;
   /** Hide the default close button */
   hideCloseButton?: boolean;
