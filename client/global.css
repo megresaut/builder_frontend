@@ -339,6 +339,17 @@
     @apply cursor-default;
   }
 
+  /* Global Floating Panel Style */
+  .ra-floating-panel {
+    @apply bg-white;
+    border: 0.5px solid #dadada;
+    border-radius: 8px;
+    box-shadow: 0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07);
+    z-index: 40;
+    max-height: 400px;
+    pointer-events: auto;
+  }
+
   /* Dropdown Primitive Styles */
   .ra-dropdown {
     @apply relative;
@@ -349,7 +360,7 @@
   }
 
   .ra-dropdown-panel {
-    @apply bg-white border border-[#DADADA] rounded-lg shadow-lg;
+    @apply ra-floating-panel;
   }
 }
 
