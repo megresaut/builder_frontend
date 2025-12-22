@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,15 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  format,
-  parse,
-  isValid,
-  getDaysInMonth,
-  startOfMonth,
-  getDay,
-} from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
+import { X } from "lucide-react";
+import { format } from "date-fns";
 
 interface Assignee {
   id: string;
@@ -52,12 +45,7 @@ export default function CreateTaskModal({
   const [property, setProperty] = useState("");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
-  const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const dueDateInputRef = useRef<HTMLInputElement>(null);
-  const [calendarPos, setCalendarPos] = useState({ top: 0, left: 0 });
   const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const assigneeButtonRef = useRef<HTMLButtonElement>(null);
