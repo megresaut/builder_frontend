@@ -1044,16 +1044,7 @@ export const RecordBill = () => {
               marginBottom: "4px",
               position: "relative",
               overscrollBehavior: "contain",
-            }}
-            onWheel={(e) => {
-              const element = e.currentTarget;
-              // Check if the element can scroll horizontally
-              const canScrollHorizontal = element.scrollWidth > element.clientWidth;
-
-              // If scrolling horizontally (deltaX is significant), prevent default
-              if (canScrollHorizontal && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                e.preventDefault();
-              }
+              touchAction: "pan-x pan-y",
             }}
           >
             <div
