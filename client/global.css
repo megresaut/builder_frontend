@@ -252,27 +252,31 @@
   .ra-modal {
     @apply rounded-2xl bg-white flex flex-col px-8 py-8;
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
-    width: fit-content;
   }
 
   .ra-modal--xs {
-    width: 360px;
+    @apply max-w-xs;
+    width: 360px !important;
   }
 
   .ra-modal--sm {
-    width: 442px;
+    @apply max-w-sm;
+    width: 442px !important;
   }
 
   .ra-modal--md {
-    width: 600px;
+    @apply max-w-md;
+    width: 600px !important;
   }
 
   .ra-modal--lg {
-    width: 800px;
+    @apply max-w-lg;
+    width: 800px !important;
   }
 
   .ra-modal--xl {
-    width: 1000px;
+    @apply max-w-xl;
+    width: 1000px !important;
   }
 
   .ra-modal-header-wrapper {
