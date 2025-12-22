@@ -95,6 +95,32 @@ export const ModalTemplate = React.forwardRef<
             )}
           </div>
 
+          {/* Subheader */}
+          {subheader && (
+            <div style={{ marginTop: "28px" }}>
+              <div
+                style={{
+                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "20px",
+                  color: "rgba(48, 48, 48, 1)",
+                  fontWeight: 600,
+                  lineHeight: 1.3,
+                }}
+              >
+                {subheader}
+              </div>
+              <div
+                style={{
+                  width: "100%",
+                  height: "1px",
+                  backgroundColor: "#e5e5e5",
+                  marginTop: "12px",
+                  marginBottom: "12px",
+                }}
+              />
+            </div>
+          )}
+
           {/* Content */}
           <div className="flex flex-col gap-4 flex-1" ref={ref}>
             {children}
