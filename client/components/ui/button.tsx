@@ -56,12 +56,45 @@ const buttonVariants = cva(
   },
 );
 
+/**
+ * Props for the Button component
+ *
+ * @property variant - Button style variant (default: "default")
+ * @property size - Button size (default: "default")
+ * @property asChild - If true, renders as child element for polymorphic usage
+ */
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
+/**
+ * Button component - Core button element
+ *
+ * A flexible button component that supports multiple variants and sizes.
+ * Uses Radix Slot for polymorphic rendering when asChild={true}.
+ *
+ * @param props - Button props
+ * @param ref - Forward ref for accessing DOM element
+ *
+ * @example
+ * // Basic button
+ * <Button>Click me</Button>
+ *
+ * // With variant and size
+ * <Button variant="destructive" size="lg">Delete Item</Button>
+ *
+ * // As different element
+ * <Button asChild>
+ *   <a href="/page">Navigate</a>
+ * </Button>
+ *
+ * // Icon button
+ * <Button size="icon">
+ *   <Icon />
+ * </Button>
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
