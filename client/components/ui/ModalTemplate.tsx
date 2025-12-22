@@ -6,6 +6,7 @@ interface ModalTemplateProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  subheader?: string;
   size?: ModalSize;
   hideCloseButton?: boolean;
   onClose?: () => void;
