@@ -104,6 +104,13 @@ export default function AddVendorModal({
       onOpenChange(false);
     }
   };
+
+  const handleVendorNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVendorName(e.target.value);
+    if (errors.vendorName && e.target.value.trim()) {
+      setErrors((prev) => ({ ...prev, vendorName: false }));
+    }
+  };
   return (
     <ModalTemplate
       open={open}
