@@ -128,32 +128,76 @@ export default function AddVendorModal({
       }
     >
       <div className="flex flex-col sm:flex-row gap-3">
-        <ModalField label="Vendor Name" spacing="tight">
+        <div className="flex-1 min-w-[240px] flex flex-col">
+          <label
+            style={{
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "14px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 500,
+              lineHeight: 1.43,
+              marginBottom: "8px",
+            }}
+          >
+            Vendor Name
+          </label>
           <Input
             value={vendorName}
-            onChange={(e) => {
-              setVendorName(e.target.value);
-              if (errors.vendorName && e.target.value.trim()) {
-                setErrors((prev) => ({ ...prev, vendorName: false }));
-              }
-            }}
+            onChange={handleVendorNameChange}
             placeholder="Input Vendor Name"
-            className={`h-10 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] ${
-              errors.vendorName
-                ? "border-red-500 border-2"
-                : "border-[#E5E5E5]"
-            }`}
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(255, 255, 255, 1)",
+              borderColor: errors.vendorName ? "rgba(220, 38, 38, 1)" : "rgba(229, 229, 229, 1)",
+              borderStyle: "solid",
+              borderWidth: errors.vendorName ? "2px" : "1px",
+              padding: "8px 12px",
+              fontSize: "16px",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            }}
           />
-        </ModalField>
-        <ModalField label="Primary Email" spacing="tight">
+          {errors.vendorName && (
+            <div style={{ color: "rgba(220, 38, 38, 1)", fontSize: "12px", marginTop: "4px" }}>
+              Vendor Name is required
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-[240px] flex flex-col">
+          <label
+            style={{
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "14px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 500,
+              lineHeight: 1.43,
+              marginBottom: "8px",
+            }}
+          >
+            Primary Email
+          </label>
           <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Input Vendor Email"
-            className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(255, 255, 255, 1)",
+              borderColor: "rgba(229, 229, 229, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              padding: "8px 12px",
+              fontSize: "16px",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            }}
           />
-        </ModalField>
+        </div>
       </div>
 
       <ModalField label="Vendor Phone Number" spacing="tight">
