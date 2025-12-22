@@ -1107,10 +1107,6 @@ export const RecordBill = () => {
                             }
                           }}
                           disabled={isReadOnly}
-                          onOpenChange={() => {
-                            setShowInvoiceDateCalendar(false);
-                            setShowDueDateCalendar(false);
-                          }}
                         >
                           <SelectTrigger
                             className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base font-normal tracking-[-0.32px] leading-[1.4] ${
