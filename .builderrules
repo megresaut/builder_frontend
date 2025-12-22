@@ -1,0 +1,15 @@
+You are contributing to an existing global design system.
+
+Rules:
+- Do NOT invent new visual styles.
+- Prefer existing semantic components.
+- If a needed component does not exist, define it ONCE as a reusable component.
+- Do NOT inline Tailwind utility soup for layout or styling.
+- All reusable styles must live in @layer components with semantic class names.
+- All element defaults must live in @layer base.
+- Utilities may be used ONLY for local overrides.
+- No unlayered CSS unless explicitly instructed.
+- Naming convention: ra-[component]-[part].
+- Assume this is a long-lived enterprise dashboard.
+
+If unsure, ask before inventing.
