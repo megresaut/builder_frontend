@@ -155,6 +155,7 @@ export function FormShowcaseModal({
       title="Field Components Showcase"
       size="lg"
       onClose={handleClose}
+      contentRef={modalContentRef}
       footer={
         <ModalButtons
           onCancel={handleClose}
