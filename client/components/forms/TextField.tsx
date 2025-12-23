@@ -9,6 +9,7 @@ interface TextFieldProps
   description?: string;
   error?: string;
   id?: string;
+  readOnly?: boolean;
 }
 
 /**
