@@ -97,6 +97,7 @@ export function useFloatingLayer({
 }: UseFloatingLayerProps) {
   const triggerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLElement>(null);
+  const isMountedRef = useRef(true);
 
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
