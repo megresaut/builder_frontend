@@ -110,10 +110,12 @@ export function useFloatingLayer({
   useEffect(() => {
     if (!open || !triggerRef.current) {
       isMountedRef.current = false;
-      setPlacement(initialPlacement);
-      setAlign(initialAlign);
-      setWidthValue(undefined);
-      setComputedZIndex(50);
+      if (isMountedRef.current) {
+        setPlacement(initialPlacement);
+        setAlign(initialAlign);
+        setWidthValue(undefined);
+        setComputedZIndex(50);
+      }
       return;
     }
 
