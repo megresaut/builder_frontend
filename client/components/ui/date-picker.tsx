@@ -206,8 +206,13 @@ export const DatePicker = ({
         <div
           ref={calendarRef}
           className={styles.calendar}
-          style={{
-            [positionAbove ? "bottom" : "top"]: positionAbove ? "calc(100% + 8px)" : "calc(100% + 8px)",
+          style={positionAbove ? {
+            bottom: "calc(100% + 8px)",
+            left: "0",
+            position: "absolute",
+            zIndex: 50,
+          } : {
+            top: "calc(100% + 8px)",
             left: "0",
             position: "absolute",
             zIndex: 50,
