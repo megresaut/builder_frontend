@@ -148,7 +148,7 @@ export const DatePicker = ({
             transform: "translateY(-50%)",
             width: "1rem",
             height: "1rem",
-            color: "var(--color-text-muted)",
+            color: "#303030",
             pointerEvents: "none",
           }}
         />
