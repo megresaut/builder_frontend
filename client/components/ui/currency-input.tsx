@@ -83,11 +83,16 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     };
 
     const parseInput = (inputValue: string): number => {
+      if (!inputValue || inputValue.trim() === "") return 0;
+
       // Remove currency symbol and whitespace
       let cleaned = inputValue.replace(new RegExp(`\\${currencySymbol}`, "g"), "").trim();
 
       // Remove commas
       cleaned = cleaned.replace(/,/g, "");
+
+      // Handle empty or just minus sign
+      if (!cleaned || cleaned === "-") return 0;
 
       // Handle negative
       const isNegative = cleaned.startsWith("-");
@@ -125,15 +130,24 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       // Allow: numbers and decimal point
       if (!(/[0-9.]/.test(key))) {
         e.preventDefault();
+        return;
       }
 
-      // Prevent multiple decimal points
-      if (key === "." && input.value.includes(".")) {
+      // Prevent multiple decimal points (check formatted value without currency symbol)
+      const cleanedValue = input.value.replace(new RegExp(`\\${currencySymbol}`, "g"), "").replace(/,/g, "");
+      if (key === "." && cleanedValue.includes(".")) {
         e.preventDefault();
+        return;
       }
 
       // Allow negative only if allowNegative is true
       if (key === "-" && !allowNegative) {
+        e.preventDefault();
+        return;
+      }
+
+      // Prevent minus in middle of input
+      if (key === "-" && input.selectionStart !== 0) {
         e.preventDefault();
       }
     };
