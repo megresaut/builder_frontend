@@ -68,6 +68,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
       value = "",
       maxLength,
       onChange,
+      readOnly = false,
       ...textareaProps
     },
     ref,
@@ -76,6 +77,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     const [charCount, setCharCount] = useState(String(value).length);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (readOnly) return;
       setCharCount(e.target.value.length);
       onChange?.(e);
     };
@@ -88,8 +90,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         label={label}
         required={required}
         description={description}
-        error={error}
-        disabled={disabled}
+        error={readOnly ? undefined : error}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <div style={{ position: "relative" }}>
@@ -97,6 +99,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
             ref={ref}
             id={fieldId}
             disabled={disabled}
+            readOnly={readOnly}
             autoGrow={autoGrow}
             value={value}
             maxLength={maxLength}
