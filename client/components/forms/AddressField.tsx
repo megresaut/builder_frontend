@@ -275,6 +275,8 @@ export const AddressField: React.FC<AddressFieldProps> = ({
           type="text"
           value={value.city}
           onChange={(e) => handleCityChange(e.target.value)}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           placeholder="City"
           disabled={disabled}
           style={{ ...inputBaseStyle, flex: 1 }}
