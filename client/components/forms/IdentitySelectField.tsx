@@ -328,7 +328,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                   fontSize: "14px",
                 }}
               >
-                No options
+                {searchText ? "No matching options" : "No options"}
               </div>
             ) : (
               filteredOptions.map((option) => {
