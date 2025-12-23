@@ -296,6 +296,7 @@ export default function CreateTaskModal({
                   setProperty(value);
                   if (errors.property && value.trim()) {
                     setErrors((prev) => ({ ...prev, property: false }));
+                    setErrorMessages((prev) => ({ ...prev, property: undefined }));
                   }
                 }}
               >
@@ -316,6 +317,7 @@ export default function CreateTaskModal({
                   <SelectItem value="property2">Property 2</SelectItem>
                 </SelectContent>
               </Select>
+              <ErrorMessage message={errorMessages.property} />
             </ModalField>
           </FieldRowItem>
           <FieldRowItem>
