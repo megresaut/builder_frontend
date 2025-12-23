@@ -64,6 +64,14 @@ export default function AddVendorModal({
     "General Maintenance",
   ];
 
+  const toggleService = (service: string) => {
+    setServicesProvided((prev) =>
+      prev.includes(service)
+        ? prev.filter((s) => s !== service)
+        : [...prev, service]
+    );
+  };
+
   const validateForm = (): boolean => {
     const newErrors: { vendorName?: boolean } = {};
     if (!vendorName.trim()) {
