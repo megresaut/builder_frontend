@@ -14,6 +14,7 @@ Enhanced Radix Popover wrapper for form field dropdowns (SelectField, ComboboxFi
 - **ResizeObserver Width Syncing** - Real-time trigger width synchronization using ResizeObserver
 - **Intelligent Collision Detection** - Auto-flips above trigger when space below is limited
 - **Smart Boundary Detection** - Automatically closes/hides if can't fit in viewport (via `hideWhenDetached={true}`)
+- **Internal Scrolling** - Content automatically scrolls when it exceeds max-height (280px by default)
 - **Modal Support** - Optional `containerRef` prop to render inside modal containers instead of document.body
 - **Portal Rendering** - Floats content above page content with proper z-index
 
