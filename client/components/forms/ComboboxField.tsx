@@ -81,7 +81,9 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
-  const selectedLabel = options.find((opt) => opt.value === value)?.label || placeholder;
+  const selectedOption = options.find((opt) => opt.value === value);
+  const selectedLabel = selectedOption?.label ?? placeholder;
+  const isShowingPlaceholder = !selectedOption;
 
   return (
     <FieldShell
@@ -106,12 +108,18 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             error ? "border-red-600" : "border-[var(--color-border-light)]"
           }`}
           style={{
-            color: value ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             lineHeight: 1.43,
           }}
         >
-          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+          <span
+            className="overflow-hidden text-ellipsis whitespace-nowrap"
+            style={{
+              color: isShowingPlaceholder
+                ? "var(--color-text-placeholder)"
+                : "var(--color-text-primary)",
+            }}
+          >
             {selectedLabel}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
