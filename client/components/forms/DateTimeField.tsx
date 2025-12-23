@@ -50,6 +50,7 @@ interface DateTimeFieldProps {
  * @param maxDate - Maximum date (YYYY-MM-DD)
  * @param minTime - Minimum time (HH:MM)
  * @param maxTime - Maximum time (HH:MM)
+ * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  *
  * Example:
  * ```tsx
