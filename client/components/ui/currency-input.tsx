@@ -90,7 +90,16 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+      let val = e.target.value;
+
+      // Ensure currency symbol is always present if enabled
+      if (showCurrencySymbol && !val.startsWith(currencySymbol)) {
+        // If user has typed numbers without the symbol, add it
+        if (val && /\d/.test(val)) {
+          val = currencySymbol + val.replace(new RegExp(`^\\${currencySymbol}`), "");
+        }
+      }
+
       setInputValue(val);
     };
 
