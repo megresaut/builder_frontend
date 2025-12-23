@@ -160,10 +160,11 @@ export function useFloatingLayer({
         };
       }
 
-      // Calculate available space
+      // Calculate available space within the container
       const availableBelow = boundsRect!.bottom - triggerRect.bottom;
       const availableAbove = triggerRect.top - boundsRect!.top;
       const gap = offset;
+      const containerMargin = 8;
 
       // Determine placement based on available space
       let newPlacement: Placement = initialPlacement;
