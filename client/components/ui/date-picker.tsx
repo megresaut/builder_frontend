@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import styles from "./date-picker.module.css";
 
 interface DatePickerProps {
   value: Date | null;
