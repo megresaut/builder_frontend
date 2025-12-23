@@ -68,7 +68,6 @@ export function useFloatingLayer({
 
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
-  const lockedPlacementRef = useRef<Placement | null>(null);
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
   const [scrollParents, setScrollParents] = useState<Element[]>([]);
   const [computedZIndex, setComputedZIndex] = useState(50);
@@ -98,13 +97,6 @@ export function useFloatingLayer({
 
     return parents;
   }, []);
-
-  useEffect(() => {
-    if (open) return;
-    lockedPlacementRef.current = null;
-    setPlacement(initialPlacement);
-    setAlign(initialAlign);
-  }, [open, initialPlacement, initialAlign]);
 
   const calculatePosition = useCallback(() => {
     if (!open || !triggerRef.current) return;
@@ -171,13 +163,11 @@ export function useFloatingLayer({
       newPlacement = initialPlacement;
     }
 
-    if (lockedPlacementRef.current) {
-      newPlacement = lockedPlacementRef.current;
-    } else if (newPlacement !== initialPlacement) {
-      lockedPlacementRef.current = newPlacement;
-    }
-
-    setPlacement(newPlacement);
+    setPlacement((prev) => {
+      // Freeze once we flip away from the initial placement (prevents jitter).
+      if (prev !== initialPlacement) return prev;
+      return newPlacement;
+    });
 
     let newAlign: Align = initialAlign;
     if (initialAlign === "start") {
@@ -252,6 +242,12 @@ export function useFloatingLayer({
       });
       document.removeEventListener("scroll", scrollHandler, true);
       window.removeEventListener("resize", calculatePosition);
+
+      // Reset between openings so the next open can re-evaluate placement.
+      setPlacement(initialPlacement);
+      setAlign(initialAlign);
+      setWidthValue(undefined);
+      setScrollParents([]);
     };
   }, [open, calculatePosition, scrollParents]);
 
