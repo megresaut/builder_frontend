@@ -272,7 +272,7 @@ export default function AddVendorModal({
                 ))
               ) : (
                 <span style={{
-                  color: "rgba(209, 213, 219, 1)",
+                  color: "#303030",
                   fontSize: "16px",
                   fontWeight: 400,
                   letterSpacing: "-0.32px",
