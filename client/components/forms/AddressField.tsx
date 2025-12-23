@@ -151,11 +151,21 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
   };
 
+  const stateButtonRef = React.useRef<HTMLButtonElement>(null);
+  const [stateButtonWidth, setStateButtonWidth] = React.useState(0);
+
+  React.useEffect(() => {
+    if (stateButtonRef.current) {
+      setStateButtonWidth(stateButtonRef.current.offsetWidth);
+    }
+  }, []);
+
   const StatePopover = useMemo(
     () => (
       <Popover open={stateOpen} onOpenChange={setStateOpen}>
         <PopoverTrigger asChild>
           <button
+            ref={stateButtonRef}
             disabled={disabled}
             style={{
               ...stateTriggerStyle,
@@ -181,12 +191,16 @@ export const AddressField: React.FC<AddressFieldProps> = ({
 
         <PopoverContent
           align="start"
-          sideOffset={8}
-          className="w-72 p-0"
+          side="bottom"
+          sideOffset={4}
+          avoidCollisions={true}
+          className="p-0"
           style={{
-            width: "auto",
-            minWidth: "150px",
+            width: stateButtonWidth > 0 ? `${stateButtonWidth}px` : "auto",
+            minWidth: "100px",
             padding: "0",
+            maxHeight: "300px",
+            overflow: "hidden",
           }}
         >
           <div
