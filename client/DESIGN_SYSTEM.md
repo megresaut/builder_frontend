@@ -686,7 +686,21 @@ task: {
 
 ### Pattern 2: Dropdown/Select
 ```tsx
-// Option A: Radix Select (already styled with ra-floating-panel)
+// Preferred: Use SelectField (Popover-based, handles all field styling)
+<SelectField
+  label="Status"
+  value={status}
+  onChange={setStatus}
+  options={[...]}
+/>
+
+// For custom dropdowns in modals, provide containerRef:
+<Popover containerRef={modalRef}>
+  <PopoverTrigger>Open</PopoverTrigger>
+  <PopoverContent>Content</PopoverContent>
+</Popover>
+
+// Legacy: Radix Select (still supported, use for non-form dropdowns)
 <Select value={val} onValueChange={setVal}>
   <SelectTrigger>
     <SelectValue placeholder="Choose..." />
@@ -696,7 +710,7 @@ task: {
   </SelectContent>
 </Select>
 
-// Option B: Radix DropdownMenu
+// Legacy: Radix DropdownMenu (for action menus)
 <DropdownMenu>
   <DropdownMenuTrigger>Menu</DropdownMenuTrigger>
   <DropdownMenuContent>
@@ -704,6 +718,14 @@ task: {
   </DropdownMenuContent>
 </DropdownMenu>
 ```
+
+**Popover Behavior in Modals**:
+- By default, Popovers render to `document.body` (outside modal hierarchy)
+- If popover "bleeds" onto other pages, pass `containerRef={modalContainerRef}` to `Popover`
+- Popover automatically:
+  - Flips above trigger if space below is limited (via collision detection)
+  - Hides if it can't fit in either direction
+  - Won't extend beyond viewport/modal boundaries
 
 ### Pattern 3: Modal Dialog
 ```tsx
