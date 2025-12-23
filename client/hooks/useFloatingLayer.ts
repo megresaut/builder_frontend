@@ -15,6 +15,7 @@ interface UseFloatingLayerProps {
 interface FloatingPosition {
   placement: Placement;
   align: Align;
+  isVisible: boolean;
   style: {
     position: "fixed";
     transform: string;
