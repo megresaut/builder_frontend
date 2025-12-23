@@ -91,6 +91,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   multiple = false,
 }) => {
   const [open, setOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
   const selectedIds = multiple ? (Array.isArray(value) ? value : []) : [];
@@ -98,6 +99,17 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   const selectedOptions = options.filter(
     multiple ? (opt) => selectedIds.includes(opt.id) : (opt) => opt.id === selectedId,
   );
+
+  // Filter options based on search text
+  const filteredOptions = useMemo(() => {
+    if (!searchText) return options;
+    const lowerSearch = searchText.toLowerCase();
+    return options.filter(
+      (opt) =>
+        opt.label.toLowerCase().includes(lowerSearch) ||
+        opt.subtitle?.toLowerCase().includes(lowerSearch),
+    );
+  }, [options, searchText]);
 
   const displayLabel =
     multiple && selectedOptions.length > 0
