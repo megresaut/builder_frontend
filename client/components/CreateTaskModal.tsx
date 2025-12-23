@@ -395,11 +395,13 @@ export default function CreateTaskModal({
                   setSelectedDate(date);
                   if (errors.dueDate && date) {
                     setErrors((prev) => ({ ...prev, dueDate: false }));
+                    setErrorMessages((prev) => ({ ...prev, dueDate: undefined }));
                   }
                 }}
                 error={errors.dueDate}
                 placeholder="MM/DD/YYYY"
               />
+              <ErrorMessage message={errorMessages.dueDate} />
             </ModalField>
           </FieldRowItem>
           <FieldRowItem>
