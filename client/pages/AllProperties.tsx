@@ -540,9 +540,22 @@ export default function AllProperties() {
 
           {/* Add Property Button */}
           <div className="flex items-center gap-4">
-            <Button
+            <button
               onClick={() => setIsAddPropertyModalOpen(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 h-10 px-4 rounded-lg border border-white text-white font-medium text-sm transition-colors"
+              style={{
+                backgroundColor: "var(--color-button-primary)",
+                boxShadow:
+                  "0 0 0 1px var(--color-button-primary-shadow), 0 0 10px -5px rgba(0,0,0,0.2)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                  "var(--color-button-primary-hover)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                  "var(--color-button-primary)";
+              }}
             >
               <svg
                 width="20"
@@ -560,7 +573,7 @@ export default function AllProperties() {
                 />
               </svg>
               <span>Add Property</span>
-            </Button>
+            </button>
           </div>
         </div>
 
