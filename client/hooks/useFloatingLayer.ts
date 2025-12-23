@@ -218,9 +218,39 @@ export function useFloatingLayer({
         y = Math.min(maxY, maxAllowedY);
       }
 
+      // Additional container bounds clamping: prevent overflow outside modal/container
+      // If boundsRect is not the full viewport, clamp to container edges
+      let finalX = x;
+      let finalY = y;
+
+      if (boundsRect && (boundsRect.top !== 0 || boundsRect.left !== 0 || boundsRect.bottom !== window.innerHeight || boundsRect.right !== window.innerWidth)) {
+        // This is a constrained container (modal, scrollable box, etc), not full viewport
+        const containerMargin = 8;
+
+        // Clamp X to container bounds
+        const minContainerX = boundsRect.left + containerMargin;
+        const maxContainerX = boundsRect.right - floatingWidth - containerMargin;
+        if (maxContainerX >= minContainerX) {
+          finalX = clamp(finalX, minContainerX, maxContainerX);
+        } else if (floatingWidth < boundsRect.right - boundsRect.left) {
+          // Container is too narrow, center it
+          finalX = boundsRect.left + (boundsRect.right - boundsRect.left) / 2 - floatingWidth / 2;
+        }
+
+        // Clamp Y to container bounds
+        const minContainerY = boundsRect.top + containerMargin;
+        const maxContainerY = boundsRect.bottom - floatingHeight - containerMargin;
+        if (maxContainerY >= minContainerY) {
+          finalY = clamp(finalY, minContainerY, maxContainerY);
+        } else if (floatingHeight < boundsRect.bottom - boundsRect.top) {
+          // Container is too short, center it
+          finalY = boundsRect.top + (boundsRect.bottom - boundsRect.top) / 2 - floatingHeight / 2;
+        }
+      }
+
       if (isMountedRef.current) {
-        setTranslateX(Math.round(x));
-        setTranslateY(Math.round(y));
+        setTranslateX(Math.round(finalX));
+        setTranslateY(Math.round(finalY));
       }
 
       // Sync width if requested
