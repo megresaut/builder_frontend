@@ -178,10 +178,7 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField spacing="tight">
-        <FieldShell
-          label="Notes"
-          htmlFor="notes"
-        >
+        <FieldShell label="Notes" htmlFor="notes">
           <Textarea
             id="notes"
             value={notes}
