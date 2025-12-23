@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogTitle } from "@/components/ui/dialog";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { X, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
-
-interface Assignee {
-  id: string;
-  name: string;
-  initials: string;
-}
+import { MultiSelectField, type MultiSelectOption } from "@/components/forms";
 
 interface CreateRecurringTaskModalProps {
   open: boolean;
@@ -31,12 +25,12 @@ interface CreateRecurringTaskModalProps {
   };
 }
 
-const AVAILABLE_ASSIGNEES: Assignee[] = [
-  { id: "1", name: "David Harris", initials: "DH" },
-  { id: "2", name: "Sarah Johnson", initials: "SJ" },
-  { id: "3", name: "Michael Chen", initials: "MC" },
-  { id: "4", name: "Emily Rodriguez", initials: "ER" },
-  { id: "5", name: "James Wilson", initials: "JW" },
+const AVAILABLE_ASSIGNEES: MultiSelectOption[] = [
+  { id: "1", label: "David Harris", initials: "DH" },
+  { id: "2", label: "Sarah Johnson", initials: "SJ" },
+  { id: "3", label: "Michael Chen", initials: "MC" },
+  { id: "4", label: "Emily Rodriguez", initials: "ER" },
+  { id: "5", label: "James Wilson", initials: "JW" },
 ];
 
 export default function CreateRecurringTaskModal({
