@@ -181,6 +181,37 @@ export function FormShowcaseModal({
             </FieldRowItem>
           </FieldRow>
 
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <SelectField
+                label="Priority"
+                value={priority}
+                onChange={setPriority}
+                placeholder="Select a priority"
+                options={[
+                  { value: "low", label: "Low" },
+                  { value: "medium", label: "Medium" },
+                  { value: "high", label: "High" },
+                  { value: "critical", label: "Critical" },
+                ]}
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <SelectField
+                label="Department"
+                value={department}
+                onChange={setDepartment}
+                placeholder="Select a department"
+                options={[
+                  { value: "maintenance", label: "Maintenance" },
+                  { value: "operations", label: "Operations" },
+                  { value: "finance", label: "Finance" },
+                  { value: "sales", label: "Sales" },
+                ]}
+              />
+            </FieldRowItem>
+          </FieldRow>
+
           <ComboboxField
             label="Link to Vendor"
             value={selectedVendor}
@@ -194,6 +225,21 @@ export function FormShowcaseModal({
               { value: "v4", label: "SmartHome HVAC" },
             ]}
             description="Search and select from existing vendors"
+          />
+
+          <ComboboxField
+            label="Link to Property"
+            value={selectedProperty}
+            onChange={setSelectedProperty}
+            placeholder="Search for a property..."
+            searchPlaceholder="Type to search..."
+            options={[
+              { value: "p1", label: "Downtown Office - 123 Main St" },
+              { value: "p2", label: "Warehouse - 456 Industrial Ave" },
+              { value: "p3", label: "Retail Store - 789 Shopping Center" },
+              { value: "p4", label: "Corporate Campus - 321 Executive Blvd" },
+            ]}
+            description="Search and select from existing properties"
           />
         </FormSection>
 
