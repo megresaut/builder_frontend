@@ -260,6 +260,213 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   toast.error("Error occurred");
   ```
 
+#### Standardized Form Fields
+
+All form fields use a consistent `FieldShell` wrapper for label, required indicator, helper text, error messages, and spacing. This ensures uniform styling and behavior across the entire application.
+
+**File**: `components/forms/`
+**Exports**: `FieldShell`, `TextField`, `TextAreaField`, `NumberField`, `CurrencyField`, `DateField`, `SelectField`, `ComboboxField`, `FieldRow`, `FormSection`
+
+##### FieldShell (Base Wrapper)
+- **File**: `components/forms/FieldShell.tsx`
+- **Export**: `FieldShell`
+- **Props**: `label`, `required`, `description`, `error`, `disabled`, `htmlFor`, `children` (the input control)
+- **Key Features**:
+  - Label with required asterisk styling
+  - Optional helper text
+  - Error message in red below input
+  - Disabled state (0.6 opacity)
+  - Consistent 8px vertical spacing
+- **Used As Base For**: All other field components
+- **Example**:
+  ```tsx
+  <FieldShell
+    label="Email Address"
+    required
+    description="We'll never share your email"
+    error={errors.email}
+    htmlFor="email-field"
+  >
+    <Input id="email-field" placeholder="you@example.com" />
+  </FieldShell>
+  ```
+
+##### TextField
+- **File**: `components/forms/TextField.tsx`
+- **Export**: `TextField`
+- **Composition**: `FieldShell` + `Input`
+- **Props**: All FieldShell props + standard input attributes (`placeholder`, `disabled`, `onChange`, `value`, etc.)
+- **Covers**: Name, memo, invoice number, address, reference fields
+- **Example**:
+  ```tsx
+  <TextField
+    label="First Name"
+    required
+    placeholder="John"
+    error={errors.firstName}
+    value={firstName}
+    onChange={(e) => setFirstName(e.target.value)}
+  />
+  ```
+
+##### TextAreaField
+- **File**: `components/forms/TextAreaField.tsx`
+- **Export**: `TextAreaField`
+- **Composition**: `FieldShell` + `Textarea`
+- **Props**: All FieldShell props + textarea attributes + `autoGrow` (default: true)
+- **Covers**: Notes, descriptions, internal comments
+- **Key Features**: Auto-expanding textarea
+- **Example**:
+  ```tsx
+  <TextAreaField
+    label="Notes"
+    placeholder="Enter any notes..."
+    autoGrow
+    value={notes}
+    onChange={(e) => setNotes(e.target.value)}
+  />
+  ```
+
+##### NumberField
+- **File**: `components/forms/NumberField.tsx`
+- **Export**: `NumberField`
+- **Composition**: `FieldShell` + `Input` (type="number")
+- **Props**: All FieldShell props + number input attributes (`step`, `min`, `max`)
+- **Covers**: Quantities, unit counts
+- **Example**:
+  ```tsx
+  <NumberField
+    label="Quantity"
+    required
+    min="0"
+    step="1"
+    error={errors.quantity}
+    value={quantity}
+    onChange={(e) => setQuantity(Number(e.target.value))}
+  />
+  ```
+
+##### CurrencyField ⭐ (Most Important PM Field)
+- **File**: `components/forms/CurrencyField.tsx`
+- **Export**: `CurrencyField`
+- **Composition**: `FieldShell` + `CurrencyInput`
+- **Props**: All FieldShell props + `value` (number), `onChange` (receives raw number), `showCurrencySymbol`, `currencySymbol`, `decimalPlaces`
+- **Covers**: Bill amount, HOA fees, deposits, credits
+- **Key Features**:
+  - Automatic thousand separators
+  - Currency symbol ($)
+  - 2 decimal places by default
+  - Right-aligned for scannability
+  - Returns raw numeric value
+- **Example**:
+  ```tsx
+  <CurrencyField
+    label="Bill Amount"
+    required
+    value={amount}
+    onChange={setAmount}
+    error={errors.amount}
+  />
+  ```
+
+##### DateField
+- **File**: `components/forms/DateField.tsx`
+- **Export**: `DateField`
+- **Composition**: `FieldShell` + `DatePicker`
+- **Props**: All FieldShell props + `value` (Date | null), `onChange` (receives Date or null), `placeholder`
+- **Covers**: Due date, service date, posted date, statement date
+- **Example**:
+  ```tsx
+  <DateField
+    label="Due Date"
+    required
+    value={dueDate}
+    onChange={setDueDate}
+    error={errors.dueDate}
+  />
+  ```
+
+##### SelectField
+- **File**: `components/forms/SelectField.tsx`
+- **Export**: `SelectField`
+- **Composition**: `FieldShell` + `Select`
+- **Props**: All FieldShell props + `value`, `onChange`, `options` (array of {value, label})
+- **Covers**: Status, priority, yes/no, enums
+- **Example**:
+  ```tsx
+  <SelectField
+    label="Status"
+    required
+    value={status}
+    onChange={setStatus}
+    error={errors.status}
+    placeholder="Select a status"
+    options={[
+      { value: "pending", label: "Pending" },
+      { value: "completed", label: "Completed" },
+    ]}
+  />
+  ```
+
+##### ComboboxField
+- **File**: `components/forms/ComboboxField.tsx`
+- **Export**: `ComboboxField`
+- **Composition**: `FieldShell` + `Combobox` (Command + Popover)
+- **Props**: All FieldShell props + `value`, `onChange`, `options` (array of {value, label}), `searchPlaceholder`, `emptyMessage`
+- **Covers**: Vendor, property, GL account (searchable lists with many options)
+- **Key Features**: Search filtering within large option lists
+- **Example**:
+  ```tsx
+  <ComboboxField
+    label="Vendor"
+    required
+    value={vendorId}
+    onChange={setVendorId}
+    error={errors.vendor}
+    placeholder="Select vendor"
+    options={vendors.map(v => ({ value: v.id, label: v.name }))}
+  />
+  ```
+
+##### FieldRow (Layout Component)
+- **File**: `components/ui/field-row.tsx`
+- **Export**: `FieldRow`, `FieldRowItem`
+- **Props**: `columns` (2 | 3, default: 2), `children` (should be FieldRowItem components)
+- **Key Features**:
+  - Grid layout with responsive stacking
+  - 12px gap between fields
+  - Stacks to 1 column on mobile
+- **Example**:
+  ```tsx
+  <FieldRow columns={2}>
+    <FieldRowItem>
+      <TextField label="First Name" />
+    </FieldRowItem>
+    <FieldRowItem>
+      <TextField label="Last Name" />
+    </FieldRowItem>
+  </FieldRow>
+  ```
+
+##### FormSection (Layout Component)
+- **File**: `components/ui/form-section.tsx`
+- **Export**: `FormSection`
+- **Props**: `title`, `description` (optional), `showDivider` (default: true), `children`
+- **Key Features**: Section header with optional divider, groups related fields
+- **Example**:
+  ```tsx
+  <FormSection title="Contact Information" description="Primary contact details">
+    <FieldRow columns={2}>
+      <FieldRowItem>
+        <TextField label="Email" type="email" />
+      </FieldRowItem>
+      <FieldRowItem>
+        <TextField label="Phone" type="tel" />
+      </FieldRowItem>
+    </FieldRow>
+  </FormSection>
+  ```
+
 #### Other Components
 Additional components available: `accordion.tsx`, `tabs.tsx`, `sheet.tsx`, `drawer.tsx`, `card.tsx`, `badge.tsx`, `avatar.tsx`, `slider.tsx`, `pagination.tsx`, `calendar.tsx`, `collapsible.tsx`, `command.tsx`, `context-menu.tsx`, `hover-card.tsx`, `input-otp.tsx`, `menubar.tsx`, `navigation-menu.tsx`, `progress.tsx`, `radio-group.tsx`, `resizable.tsx`, `scroll-area.tsx`, `separator.tsx`, `skeleton.tsx`, `toggle.tsx`, `tooltip.tsx`, etc.
 
