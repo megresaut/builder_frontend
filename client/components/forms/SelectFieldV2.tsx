@@ -15,11 +15,12 @@ interface SelectFieldV2Props {
   description?: string;
   error?: string;
   id?: string;
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: string | string[];
+  onChange?: (value: string | string[]) => void;
   disabled?: boolean;
   placeholder?: string;
   options: SelectOption[];
+  multiple?: boolean;
 }
 
 /**
@@ -33,6 +34,7 @@ interface SelectFieldV2Props {
  * - Automatic collision detection and side flipping
  * - Real-time repositioning on scroll/resize
  * - Modal-aware z-index stacking
+ * - Support for both single-select and multi-select modes
  *
  * Keyboard Interactions:
  * - Enter/Space: Open dropdown (when closed) or select highlighted option
@@ -46,11 +48,12 @@ interface SelectFieldV2Props {
  * @param description - Helper text
  * @param error - Error message
  * @param id - HTML id attribute (used in label's "for")
- * @param value - Selected value
- * @param onChange - Change handler (receives selected value string)
+ * @param value - Selected value (string for single-select, string[] for multi-select)
+ * @param onChange - Change handler (receives selected value string or string[])
  * @param disabled - Disable field
  * @param placeholder - Placeholder text shown when no selection
  * @param options - Array of {value, label} options
+ * @param multiple - Enable multi-select mode (default: false)
  */
 export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
   label,
@@ -63,6 +66,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
   onChange,
   placeholder = "Select an option",
   options,
+  multiple = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -70,9 +74,25 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout>();
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
-  const selectedOption = options.find((opt) => opt.value === value);
-  const selectedLabel = selectedOption?.label ?? placeholder;
-  const isShowingPlaceholder = !selectedOption;
+
+  // Determine if we're in multi-select mode
+  const isMultiple = multiple;
+  const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
+  const selectedValue = !isMultiple ? (typeof value === "string" ? value : "") : "";
+
+  // Get labels for display
+  let displayLabel = placeholder;
+  if (isMultiple) {
+    const selectedOptions = options.filter((opt) => selectedValues.includes(opt.value));
+    if (selectedOptions.length > 0) {
+      displayLabel = `${selectedOptions.length} selected`;
+    }
+  } else {
+    const selectedOption = options.find((opt) => opt.value === selectedValue);
+    displayLabel = selectedOption?.label ?? placeholder;
+  }
+
+  const isShowingPlaceholder = isMultiple ? selectedValues.length === 0 : !selectedValue;
 
   // Filter options based on search text
   const filteredOptions = searchText
@@ -140,9 +160,17 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
   };
 
   const handleOptionSelect = (optionValue: string) => {
-    onChange?.(optionValue);
-    setOpen(false);
-    setSearchText("");
+    if (isMultiple) {
+      const newValues = selectedValues.includes(optionValue)
+        ? selectedValues.filter((v) => v !== optionValue)
+        : [...selectedValues, optionValue];
+      onChange?.(newValues);
+      // Keep dropdown open in multi-select mode
+    } else {
+      onChange?.(optionValue);
+      setOpen(false);
+      setSearchText("");
+    }
   };
 
   const handleOptionKeyDown = (
@@ -239,7 +267,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
               color: "var(--color-text-primary)",
             }}
           >
-            {selectedLabel}
+            {displayLabel}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0" style={{ color: "#303030" }} />
         </Dropdown.Trigger>
@@ -266,37 +294,42 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
                 {searchText ? "No matching options" : "No options"}
               </div>
             ) : (
-              filteredOptions.map((option, index) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleOptionSelect(option.value)}
-                  onKeyDown={(e) => handleOptionKeyDown(e, index)}
-                  className={cn(
-                    "ra-select-field-v2-option",
-                    "w-full px-3 py-2 text-left text-sm",
-                    "flex items-center gap-2",
-                    "border-none cursor-pointer",
-                    "transition-colors",
-                    value === option.value
-                      ? "bg-[rgba(36,99,235,0.15)]"
-                      : "bg-transparent",
-                    highlightedIndex === index
-                      ? "bg-[rgba(36,99,235,0.1)]"
-                      : "",
-                  )}
-                  style={{
-                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    color: "var(--color-text-primary)",
-                  }}
-                >
-                  {value === option.value ? (
-                    <Check className="h-4 w-4 shrink-0 text-blue-600" />
-                  ) : (
-                    <div className="h-4 w-4 shrink-0" />
-                  )}
-                  <span>{option.label}</span>
-                </button>
-              ))
+              filteredOptions.map((option, index) => {
+                const isSelected = isMultiple
+                  ? selectedValues.includes(option.value)
+                  : selectedValue === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => handleOptionSelect(option.value)}
+                    onKeyDown={(e) => handleOptionKeyDown(e, index)}
+                    className={cn(
+                      "ra-select-field-v2-option",
+                      "w-full px-3 py-2 text-left text-sm",
+                      "flex items-center gap-2",
+                      "border-none cursor-pointer",
+                      "transition-colors",
+                      isSelected
+                        ? "bg-[rgba(36,99,235,0.15)]"
+                        : "bg-transparent",
+                      highlightedIndex === index
+                        ? "bg-[rgba(36,99,235,0.1)]"
+                        : "",
+                    )}
+                    style={{
+                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      color: "var(--color-text-primary)",
+                    }}
+                  >
+                    {isSelected ? (
+                      <Check className="h-4 w-4 shrink-0 text-blue-600" />
+                    ) : (
+                      <div className="h-4 w-4 shrink-0" />
+                    )}
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })
             )}
           </div>
         </Dropdown.Content>
