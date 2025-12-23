@@ -252,10 +252,19 @@ export default function AddPropertyModal({
               <MultiSelectField
                 label="Property Manager"
                 required
-                value={selectedManagers}
-                onChange={setSelectedManagers}
+                value={selectedManagers.map((m) => ({
+                  id: String(m.id),
+                  label: m.name,
+                  initials: m.initials,
+                }))}
+                onChange={(newOptions) => {
+                  const managers = AVAILABLE_MANAGERS.filter((m) =>
+                    newOptions.some((opt) => String(opt.id) === String(m.id))
+                  );
+                  setSelectedManagers(managers);
+                }}
                 placeholder="Select managers"
-                options={AVAILABLE_MANAGERS}
+                options={MANAGER_OPTIONS}
                 error={errors.managers}
               />
             </FieldRowItem>
