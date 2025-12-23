@@ -303,9 +303,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
             ) : (
               <span
                 style={{
-                  color: isShowingPlaceholder
-                    ? "var(--color-text-placeholder)"
-                    : "var(--color-text-primary)",
+                  color: isShowingPlaceholder ? "#303030" : "var(--color-text-primary)",
                   fontSize: "14px",
                 }}
               >
