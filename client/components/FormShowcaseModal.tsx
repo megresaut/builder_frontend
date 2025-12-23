@@ -91,6 +91,26 @@ export function FormShowcaseModal({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+
+      // Scroll to the first field with an error
+      if (modalContentRef.current) {
+        const firstErrorKey = Object.keys(newErrors)[0];
+        const fieldId = firstErrorKey
+          .replace(/([A-Z])/g, "-$1")
+          .toLowerCase()
+          .replace(/^-/, "");
+
+        const errorElement = modalContentRef.current.querySelector(
+          `#${fieldId}, [data-field-id="${fieldId}"]`,
+        ) as HTMLElement | null;
+
+        if (errorElement) {
+          setTimeout(() => {
+            errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 0);
+        }
+      }
+
       return;
     }
 
