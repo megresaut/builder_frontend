@@ -123,7 +123,7 @@ export default function AddVendorModal({
         />
       }
     >
-      <ModalField label="Vendor Name" required spacing="tight" error={errors.vendorName ? "Vendor Name is required" : undefined}>
+      <ModalField label="Vendor Name" required spacing="tight" error={errors.vendorName}>
         <Input
           type="text"
           value={vendorName}
