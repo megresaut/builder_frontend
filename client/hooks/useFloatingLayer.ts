@@ -112,7 +112,7 @@ export function useFloatingLayer({
    * calculatePosition - Compute placement (top/bottom) based on available space
    * This runs on every scroll/resize and can flip placement both directions
    */
-  const calculatePosition = useCallback(() => {
+  const calculatePosition = useCallback((): void => {
     if (!open || !triggerRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
