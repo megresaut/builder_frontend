@@ -90,29 +90,40 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
       e.preventDefault();
       if (!isRevealed || !value) return;
 
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
+      let success = false;
+
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
           await navigator.clipboard.writeText(value);
-          setCopySuccess(true);
-          setTimeout(() => setCopySuccess(false), 2000);
-        } else {
-          // Fallback: use deprecated but more compatible method
+          success = true;
+        } catch (err) {
+          // Clipboard API blocked, will try fallback
+          console.debug("Clipboard API blocked, using fallback method");
+        }
+      }
+
+      // Fallback for blocked or unavailable Clipboard API
+      if (!success) {
+        try {
           const textArea = document.createElement("textarea");
           textArea.value = value;
           textArea.style.position = "fixed";
           textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
           document.body.appendChild(textArea);
           textArea.select();
-          try {
-            document.execCommand("copy");
-            setCopySuccess(true);
-            setTimeout(() => setCopySuccess(false), 2000);
-          } finally {
-            document.body.removeChild(textArea);
-          }
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          success = true;
+        } catch (err) {
+          console.error("Failed to copy using fallback method:", err);
         }
-      } catch (err) {
-        console.error("Failed to copy:", err);
+      }
+
+      if (success) {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
       }
     };
 
