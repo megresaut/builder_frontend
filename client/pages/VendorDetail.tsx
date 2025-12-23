@@ -387,24 +387,45 @@ export default function VendorDetail() {
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Vendor Information
                     </h2>
-                    <button
-                      onClick={openEditVendor}
-                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 14 14"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsFormShowcaseOpen(true)}
+                        className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                        title="View field components showcase"
                       >
-                        <path
-                          d="M10.7145 2.68607C11.1052 2.29537 11.7383 2.29537 12.129 2.68607L11.9749 2.84016C12.3656 3.23085 12.3656 3.86402 11.9749 4.25472L5.6117 10.6179C5.46262 10.767 5.28452 10.8795 5.08646 10.9445L2.03645 11.7978C1.74626 11.8816 1.44259 11.7399 1.35879 11.4497L0.505513 8.39971C0.440448 8.20165 0.552982 8.02355 0.701865 7.87467L7.06503 1.51149C7.45572 1.1208 8.08889 1.1208 8.47958 1.51149L10.7145 2.68607Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      <span>Edit</span>
-                    </button>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M11.2 1H2.8C1.81 1 1.009 1.81 1.009 2.8L1 12.2C1 13.19 1.81 14 2.8 14H11.2C12.19 14 13 13.19 13 12.2V2.8C13 1.81 12.19 1 11.2 1ZM11.2 12.2H2.8V2.8H11.2V12.2ZM3.5 5.25H8.75V6.75H3.5V5.25ZM3.5 7.75H10.5V9.25H3.5V7.75Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <span>Showcase</span>
+                      </button>
+                      <button
+                        onClick={openEditVendor}
+                        className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M10.7145 2.68607C11.1052 2.29537 11.7383 2.29537 12.129 2.68607L11.9749 2.84016C12.3656 3.23085 12.3656 3.86402 11.9749 4.25472L5.6117 10.6179C5.46262 10.767 5.28452 10.8795 5.08646 10.9445L2.03645 11.7978C1.74626 11.8816 1.44259 11.7399 1.35879 11.4497L0.505513 8.39971C0.440448 8.20165 0.552982 8.02355 0.701865 7.87467L7.06503 1.51149C7.45572 1.1208 8.08889 1.1208 8.47958 1.51149L10.7145 2.68607Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <span>Edit</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-3 flex flex-col whitespace-nowrap">
