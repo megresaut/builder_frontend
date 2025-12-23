@@ -71,11 +71,14 @@ export default function AddVendorModal({
   const handleSubmit = () => {
     if (validateForm()) {
       if (onAddVendor) {
+        const serviceLabels = servicesProvided.map(
+          (value) => availableServices.find((s) => s.value === value)?.label || value
+        );
         onAddVendor({
           name: vendorName,
           email,
           phone,
-          servicesProvided: servicesProvided.map((s) => s.label),
+          servicesProvided: serviceLabels,
           notes,
         });
       }
