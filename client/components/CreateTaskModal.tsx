@@ -155,34 +155,6 @@ export default function CreateTaskModal({
     }
   }, [open, editData]);
 
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updatePositions = () => {
-      if (showAssigneeDropdown && assigneeButtonRef.current) {
-        const rect = assigneeButtonRef.current.getBoundingClientRect();
-        setAssigneeDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showAssigneeDropdown) {
-        animationFrameId = requestAnimationFrame(updatePositions);
-      }
-    };
-
-    if (showAssigneeDropdown) {
-      updatePositions();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showAssigneeDropdown]);
-
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
       low: "#059669",
