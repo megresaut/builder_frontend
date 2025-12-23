@@ -43,7 +43,7 @@ interface ModalButtonsProps {
   onConfirm?: () => void;
   cancelLabel?: string;
   confirmLabel?: string;
-  confirmDisabled?: boolean;
+  confirmDisabled?: boolean; // @deprecated - not used; primary button is always blue and clickable
   cancelDisabled?: boolean;
 }
 
