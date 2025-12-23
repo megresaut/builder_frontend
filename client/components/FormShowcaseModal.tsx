@@ -28,6 +28,8 @@ export function FormShowcaseModal({
   open,
   onOpenChange,
 }: FormShowcaseModalProps) {
+  const modalContentRef = useRef<HTMLDivElement>(null);
+
   // Text fields
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
