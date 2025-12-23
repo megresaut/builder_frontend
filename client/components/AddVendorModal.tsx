@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   ModalTemplate,
   ModalButtons,
@@ -8,6 +6,11 @@ import {
   FieldRow,
   FieldRowItem,
 } from "@/components/ui/ModalTemplate";
+import { TextField } from "@/components/forms/TextField";
+import { EmailField } from "@/components/forms/EmailField";
+import { PhoneNumberField } from "@/components/forms/PhoneNumberField";
+import { TextAreaField } from "@/components/forms/TextAreaField";
+import { MultiSelectField } from "@/components/forms/MultiSelectField";
 
 interface AddVendorModalProps {
   open: boolean;
