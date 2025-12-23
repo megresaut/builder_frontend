@@ -112,7 +112,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             alignItems: "center",
             cursor: disabled ? "not-allowed" : "pointer",
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
+            fontSize: "14px",
+            lineHeight: 1.43,
             border: "solid",
           }}
         >
