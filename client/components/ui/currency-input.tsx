@@ -250,6 +250,15 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
           textAlign: "right",
           opacity: disabled ? 0.6 : 1,
           cursor: disabled ? "not-allowed" : "text",
+          outline: "none",
+        }}
+        onFocus={(e) => {
+          handleFocus(e);
+          e.currentTarget.style.borderColor = "#000000";
+        }}
+        onBlur={(e) => {
+          handleBlur(e);
+          e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
         }}
         {...rest}
       />
