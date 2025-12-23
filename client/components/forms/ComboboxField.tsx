@@ -203,7 +203,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             "h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal",
             "transition-colors flex items-center justify-between",
             "disabled:cursor-not-allowed disabled:opacity-60",
-            error ? "border-red-600" : "border-[var(--color-border-light)]",
+            error ? "border-red-600" : open ? "border-black" : "border-[var(--color-border-light)]",
           )}
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
