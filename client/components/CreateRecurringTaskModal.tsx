@@ -182,29 +182,6 @@ export default function CreateRecurringTaskModal({
     return colors[priority] || colors.normal;
   };
 
-  const toggleAssignee = (assignee: Assignee) => {
-    setSelectedAssignees((prev) => {
-      const isSelected = prev.some((a) => a.id === assignee.id);
-      let newAssignees;
-      if (isSelected) {
-        newAssignees = prev.filter((a) => a.id !== assignee.id);
-      } else {
-        newAssignees = [...prev, assignee];
-      }
-      if (errors.selectedAssignees && newAssignees.length > 0) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          selectedAssignees: false,
-        }));
-      }
-      return newAssignees;
-    });
-  };
-
-  const removeAssignee = (index: number) => {
-    setSelectedAssignees((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const handleStartDateSelect = (day: number) => {
     const selected = new Date(
       calendarMonth.getFullYear(),
