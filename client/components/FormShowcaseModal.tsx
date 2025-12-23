@@ -30,6 +30,8 @@ export function FormShowcaseModal({
   // Select fields
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
+  const [priority, setPriority] = useState("");
+  const [department, setDepartment] = useState("");
 
   // Number and currency
   const [quantity, setQuantity] = useState(0);
@@ -43,6 +45,11 @@ export function FormShowcaseModal({
 
   // Combobox
   const [selectedVendor, setSelectedVendor] = useState("");
+  const [selectedProperty, setSelectedProperty] = useState("");
+
+  // Footer section fields
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [approvalStatus, setApprovalStatus] = useState("");
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
