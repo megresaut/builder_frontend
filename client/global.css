@@ -282,6 +282,11 @@
       sans-serif;
   }
 
+  /* Input placeholder color using design system token */
+  input::placeholder {
+    color: var(--color-text-placeholder);
+  }
+
   #root {
     height: 100%;
     width: 100%;
