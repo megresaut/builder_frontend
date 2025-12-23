@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { FieldShell } from "./FieldShell";
 
@@ -10,6 +10,7 @@ interface TextAreaFieldProps
   error?: string;
   id?: string;
   autoGrow?: boolean;
+  showCharCount?: boolean;
 }
 
 /**
