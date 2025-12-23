@@ -331,7 +331,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                 No options
               </div>
             ) : (
-              options.map((option) => {
+              filteredOptions.map((option) => {
                 const isSelected = multiple
                   ? selectedIds.includes(option.id)
                   : selectedId === option.id;
