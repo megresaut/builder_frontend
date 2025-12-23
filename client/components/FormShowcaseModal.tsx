@@ -291,6 +291,38 @@ export function FormShowcaseModal({
             description="This textarea automatically expands as you type"
           />
         </FormSection>
+
+        {/* FOOTER SECTION - 2 COLUMN FIELDROW */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <SelectField
+              label="Payment Method"
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+              placeholder="Select payment method"
+              options={[
+                { value: "check", label: "Check" },
+                { value: "ach", label: "ACH Transfer" },
+                { value: "credit_card", label: "Credit Card" },
+                { value: "wire", label: "Wire Transfer" },
+              ]}
+            />
+          </FieldRowItem>
+          <FieldRowItem>
+            <SelectField
+              label="Approval Status"
+              value={approvalStatus}
+              onChange={setApprovalStatus}
+              placeholder="Select approval status"
+              options={[
+                { value: "pending", label: "Pending" },
+                { value: "approved", label: "Approved" },
+                { value: "rejected", label: "Rejected" },
+                { value: "on_hold", label: "On Hold" },
+              ]}
+            />
+          </FieldRowItem>
+        </FieldRow>
       </div>
     </ModalTemplate>
   );
