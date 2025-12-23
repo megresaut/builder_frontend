@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { X, Upload, File } from "lucide-react";
+import { X, Upload, File, Eye } from "lucide-react";
 
 export interface UploadedFile {
   id: string;
@@ -12,6 +12,7 @@ export interface UploadedFile {
 interface AttachmentUploaderProps {
   onFilesAdded?: (files: UploadedFile[]) => void;
   onFileRemoved?: (fileId: string) => void;
+  onViewFile?: (file: UploadedFile) => void;
   files?: UploadedFile[];
   accept?: string;
   maxFiles?: number;
@@ -39,6 +40,7 @@ interface AttachmentUploaderProps {
  *
  * @param onFilesAdded - Callback when files are added
  * @param onFileRemoved - Callback when file is removed (pass fileId)
+ * @param onViewFile - Callback when View button is clicked (pass UploadedFile)
  * @param files - Current list of uploaded files
  * @param accept - Accepted file types (e.g., "image/*,.pdf")
  * @param maxFiles - Maximum number of files (default: 10)
@@ -68,6 +70,7 @@ interface AttachmentUploaderProps {
 export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   onFilesAdded,
   onFileRemoved,
+  onViewFile,
   files = [],
   accept = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif",
   maxFiles = 10,
@@ -79,6 +82,25 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isViewableFile = (file: UploadedFile): boolean => {
+    const viewableTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
+    const viewableExtensions = [".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp"];
+
+    const isViewableType = viewableTypes.includes(file.type);
+    const isViewableExt = viewableExtensions.some((ext) =>
+      file.name.toLowerCase().endsWith(ext)
+    );
+
+    return isViewableType || isViewableExt;
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -321,24 +343,52 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleRemoveFile(file.id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "var(--color-text-muted)",
-                  flexShrink: 0,
-                  marginLeft: "12px",
-                }}
-                aria-label={`Remove ${file.name}`}
-              >
-                <X width={18} height={18} />
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0, marginLeft: "12px" }}>
+                {isViewableFile(file) && onViewFile && (
+                  <button
+                    onClick={() => onViewFile(file)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--color-button-primary)",
+                      flexShrink: 0,
+                      transition: "opacity 0.2s",
+                    }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                    aria-label={`View ${file.name}`}
+                    title="View document"
+                  >
+                    <Eye width={18} height={18} />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleRemoveFile(file.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--color-text-muted)",
+                    flexShrink: 0,
+                    transition: "opacity 0.2s",
+                  }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                  aria-label={`Remove ${file.name}`}
+                  title="Remove file"
+                >
+                  <X width={18} height={18} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
