@@ -693,7 +693,7 @@ export default function Bills() {
 
           {/* Segmented Tabs and Action Buttons */}
           <div className="flex items-center justify-between w-full bg-white gap-6">
-            <div className="flex bg-gray-50 rounded-lg shadow-[0_0_0_0.5px_#D2D1CF] p-0.5">
+            <div className="flex bg-gray-50 rounded-lg p-0.5" style={{ boxShadow: "0 0 0 0.5px var(--color-border-default)" }}>
               <button
                 onClick={() => setSelectedTab("approved")}
                 className={cn(
