@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React from "react";
 import {
   Select,
   SelectContent,
@@ -31,6 +31,9 @@ interface SelectFieldProps {
  *
  * Composed of FieldShell + Select for consistent select field styling.
  * Handles option lists for status, priority, and other enums.
+ *
+ * Uses Radix UI's Select which includes built-in collision detection and
+ * automatic side flipping when near viewport edges.
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
@@ -71,53 +74,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   placeholder = "Select an option",
   options,
 }) => {
-  const [selectSide, setSelectSide] = useState<"bottom" | "top">("bottom");
-  const triggerRef = useRef<HTMLButtonElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
-
-  // Check if select should flip to top based on available space
-  const checkSelectPosition = useCallback(() => {
-    if (!triggerRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const spaceAbove = triggerRect.top;
-    const contentHeight = 280; // Approximate height for dropdown list
-
-    if (spaceBelow < contentHeight + 20 && spaceAbove > contentHeight + 20) {
-      setSelectSide("top");
-    } else {
-      setSelectSide("bottom");
-    }
-  }, []);
-
-  // Monitor for size changes
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(checkSelectPosition);
-    const scrollHandler = () => checkSelectPosition();
-
-    // Observe the trigger and parent containers
-    if (triggerRef.current) {
-      resizeObserver.observe(triggerRef.current);
-      let parent = triggerRef.current.parentElement;
-      let depth = 0;
-      while (parent && depth < 5) {
-        resizeObserver.observe(parent);
-        parent = parent.parentElement;
-        depth++;
-      }
-    }
-
-    // Listen for scroll and resize events
-    document.addEventListener("scroll", scrollHandler, true);
-    window.addEventListener("resize", checkSelectPosition);
-
-    return () => {
-      resizeObserver.disconnect();
-      document.removeEventListener("scroll", scrollHandler, true);
-      window.removeEventListener("resize", checkSelectPosition);
-    };
-  }, [checkSelectPosition]);
 
   return (
     <FieldShell
@@ -131,7 +88,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger
           id={fieldId}
-          ref={triggerRef}
           style={{
             borderColor: error ? "#ef4444" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
@@ -141,7 +97,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent side={selectSide} align="start" avoidCollisions={true}>
+        <SelectContent side="bottom" align="start" avoidCollisions={true}>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
