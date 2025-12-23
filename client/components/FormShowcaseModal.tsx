@@ -544,6 +544,140 @@ export function FormShowcaseModal({
           />
         </FormSection>
 
+        {/* MULTI-SELECT FIELDS SECTION */}
+        <FormSection title="Multi-Select Fields" description="Select multiple options from dropdown">
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <SelectField
+                label="Categories"
+                value={selectedCategories}
+                onChange={setSelectedCategories}
+                placeholder="Select categories"
+                options={[
+                  { value: "hvac", label: "HVAC" },
+                  { value: "plumbing", label: "Plumbing" },
+                  { value: "electrical", label: "Electrical" },
+                  { value: "roofing", label: "Roofing" },
+                  { value: "landscaping", label: "Landscaping" },
+                ]}
+                multiple
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <SelectFieldV2
+                label="Departments"
+                value={selectedDepartments}
+                onChange={setSelectedDepartments}
+                placeholder="Select departments"
+                options={[
+                  { value: "maintenance", label: "Maintenance" },
+                  { value: "operations", label: "Operations" },
+                  { value: "finance", label: "Finance" },
+                  { value: "sales", label: "Sales" },
+                  { value: "admin", label: "Administration" },
+                ]}
+                multiple
+              />
+            </FieldRowItem>
+          </FieldRow>
+        </FormSection>
+
+        {/* ADDRESS FIELD SECTION */}
+        <FormSection title="Address Information" description="Property location with normalized state and ZIP">
+          <AddressField
+            label="Property Address"
+            value={propertyAddress}
+            onChange={setPropertyAddress}
+            description="Street, city, state, and ZIP code are required"
+          />
+        </FormSection>
+
+        {/* IDENTITY SELECT SECTION */}
+        <FormSection title="Entity Pickers" description="Select from vendors and properties with rich info">
+          <IdentitySelectField
+            label="Preferred Vendors"
+            value={selectedVendors}
+            onChange={setSelectedVendors}
+            placeholder="Search for vendors..."
+            multiple
+            options={[
+              {
+                id: "v1",
+                label: "Dolce Heating & Plumbing",
+                subtitle: "heating@dolce.com",
+                initials: "DH",
+                avatarColor: "bg-blue-500",
+                tags: ["HVAC", "Plumbing"],
+              },
+              {
+                id: "v2",
+                label: "ABC Electric Services",
+                subtitle: "info@abcelectric.com",
+                initials: "AE",
+                avatarColor: "bg-purple-500",
+                tags: ["Electrical"],
+              },
+              {
+                id: "v3",
+                label: "Premier Roofing Co",
+                subtitle: "roofing@premier.com",
+                initials: "PR",
+                avatarColor: "bg-green-500",
+                tags: ["Roofing", "Construction"],
+              },
+            ]}
+            description="Select one or more vendors to prioritize"
+          />
+
+          <IdentitySelectField
+            label="Primary Property"
+            value={selectedProperty}
+            onChange={setSelectedProperty}
+            placeholder="Search for property..."
+            options={[
+              {
+                id: "p1",
+                label: "Downtown Office - 123 Main St",
+                subtitle: "New York, NY 10001",
+                initials: "DO",
+                badgeColor: "bg-blue-600",
+                tags: ["Commercial", "Office"],
+              },
+              {
+                id: "p2",
+                label: "Warehouse - 456 Industrial Ave",
+                subtitle: "New Jersey, NJ 07001",
+                initials: "WH",
+                badgeColor: "bg-gray-600",
+                tags: ["Industrial", "Warehouse"],
+              },
+              {
+                id: "p3",
+                label: "Retail Store - 789 Shopping Center",
+                subtitle: "Connecticut, CT 06001",
+                initials: "RS",
+                badgeColor: "bg-red-600",
+                tags: ["Retail", "Commercial"],
+              },
+            ]}
+            description="Choose the primary property for this record"
+          />
+        </FormSection>
+
+        {/* FILE UPLOAD SECTION */}
+        <FormSection title="Attachments" description="Upload supporting documents and files">
+          <FileUploadField
+            label="Document Upload"
+            description="PDF, Word, Excel, and image files supported (max 10MB each)"
+            files={attachments}
+            onFilesAdded={(newFiles) => setAttachments([...attachments, ...newFiles])}
+            onFileRemoved={(fileId) => setAttachments(attachments.filter((f) => f.id !== fileId))}
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+            maxFiles={10}
+            maxSize={10 * 1024 * 1024}
+          />
+        </FormSection>
+
         {/* FOOTER SECTION - 2 COLUMN FIELDROW */}
         <FormSection title="Additional Options" description="Payment and approval settings">
           <FieldRow columns={2}>
