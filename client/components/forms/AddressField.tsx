@@ -201,12 +201,16 @@ export const AddressField: React.FC<AddressFieldProps> = ({
             padding: "0",
             maxHeight: "300px",
             overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <div
             style={{
-              maxHeight: "280px",
+              flex: 1,
+              maxHeight: "300px",
               overflowY: "auto",
+              overflowX: "hidden",
               padding: "4px 0",
             }}
           >
