@@ -133,12 +133,12 @@ const PopoverContent = React.forwardRef<
           "z-[999] rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className,
         )}
-        collisionPadding={16}
+        collisionPadding={32}
         avoidCollisions={true}
         sticky="never"
         hideWhenDetached={true}
         style={{
-          maxHeight: "340px",
+          maxHeight: "280px",
           maxWidth: "calc(100vw - 32px)",
           width: triggerWidth ? `${triggerWidth}px` : undefined,
           ...style,
