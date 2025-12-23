@@ -200,55 +200,47 @@ export const AddressField: React.FC<AddressFieldProps> = ({
             minWidth: "100px",
             padding: "0",
             maxHeight: "300px",
-            overflow: "auto",
+            overflowY: "auto",
+            overflowX: "hidden",
           }}
         >
-          <div
-            style={{
-              maxHeight: "300px",
-              overflowY: "auto",
-              overflowX: "hidden",
-              padding: "4px 0",
-            }}
-          >
-            {US_STATES.map((state) => {
-              const isSelected = state === value.state;
-              return (
-                <button
-                  key={state}
-                  type="button"
-                  onClick={() => {
-                    handleStateChange(state);
-                    setStateOpen(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    backgroundColor: isSelected ? "rgba(36, 99, 235, 0.15)" : "transparent",
-                    color: "#303030",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    transition: "background-color 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isSelected
-                      ? "rgba(36, 99, 235, 0.15)"
-                      : "rgba(36, 99, 235, 0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = isSelected
-                      ? "rgba(36, 99, 235, 0.15)"
-                      : "transparent";
-                  }}
-                >
-                  {state}
-                </button>
-              );
-            })}
-          </div>
+          {US_STATES.map((state) => {
+            const isSelected = state === value.state;
+            return (
+              <button
+                key={state}
+                type="button"
+                onClick={() => {
+                  handleStateChange(state);
+                  setStateOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  textAlign: "left",
+                  backgroundColor: isSelected ? "rgba(36, 99, 235, 0.15)" : "transparent",
+                  color: "#303030",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  transition: "background-color 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = isSelected
+                    ? "rgba(36, 99, 235, 0.15)"
+                    : "rgba(36, 99, 235, 0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isSelected
+                    ? "rgba(36, 99, 235, 0.15)"
+                    : "transparent";
+                }}
+              >
+                {state}
+              </button>
+            );
+          })}
         </PopoverContent>
       </Popover>
     ),
