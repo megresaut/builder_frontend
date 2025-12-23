@@ -179,7 +179,9 @@ export function useFloatingLayer({
           newPlacement = "top";
         }
       }
-      setPlacement(newPlacement);
+      if (isMountedRef.current) {
+        setPlacement(newPlacement);
+      }
 
       // Calculate X position (viewport coords)
       let x = triggerRect.left;
@@ -213,18 +215,22 @@ export function useFloatingLayer({
         y = Math.min(maxY, maxAllowedY);
       }
 
-      setTranslateX(Math.round(x));
-      setTranslateY(Math.round(y));
+      if (isMountedRef.current) {
+        setTranslateX(Math.round(x));
+        setTranslateY(Math.round(y));
+      }
 
       // Sync width if requested
-      if (triggerWidth) {
+      if (triggerWidth && isMountedRef.current) {
         const nextWidth = Math.round(triggerRect.width);
         setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
       }
 
       // Calculate z-index
-      const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
-      setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
+      if (isMountedRef.current) {
+        const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
+        setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
+      }
     };
 
     // Find all scrollable ancestors
