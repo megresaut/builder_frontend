@@ -29,6 +29,15 @@ interface ModalFieldProps {
   spacing?: "default" | "tight";
 }
 
+interface FieldRowProps {
+  children: React.ReactNode;
+  columns?: number;
+}
+
+interface FieldRowItemProps {
+  children: React.ReactNode;
+}
+
 interface ModalButtonsProps {
   onCancel?: () => void;
   onConfirm?: () => void;
@@ -322,7 +331,7 @@ ModalButtons.displayName = "ModalButtons";
 
 /**
  * ModalSection - Container for grouping related content
- * 
+ *
  * Use this to add spacing between major sections in the modal.
  * Default spacing matches the design system (28px top margin).
  */
@@ -335,3 +344,36 @@ export const ModalSection: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 ModalSection.displayName = "ModalSection";
+
+/**
+ * FieldRow - Multi-column field layout
+ *
+ * Arranges multiple fields horizontally on desktop, stacking vertically on mobile.
+ * Each child should be a FieldRowItem wrapping a field.
+ *
+ * @param columns - Number of columns on desktop (default: 2)
+ */
+export const FieldRow: React.FC<FieldRowProps> = ({ children, columns = 2 }) => {
+  return (
+    <div className="ra-field-row" style={{ "--field-row-columns": columns } as React.CSSProperties}>
+      {children}
+    </div>
+  );
+};
+
+FieldRow.displayName = "FieldRow";
+
+/**
+ * FieldRowItem - Individual field container within a FieldRow
+ *
+ * Wraps a field to ensure consistent sizing and spacing within a row.
+ */
+export const FieldRowItem: React.FC<FieldRowItemProps> = ({ children }) => {
+  return (
+    <div className="ra-field-row-item">
+      {children}
+    </div>
+  );
+};
+
+FieldRowItem.displayName = "FieldRowItem";
