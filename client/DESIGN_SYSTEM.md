@@ -163,6 +163,13 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   </DropdownMenu>
   ```
 
+#### Dropdown (Specialized)
+- **File**: `components/ui/dropdown.tsx`
+- **Exports**: `Dropdown`, `Dropdown.Trigger`, `Dropdown.Content`
+- **Used For**: DatePicker calendar, custom dropdowns with specialized positioning
+- **Key Props**: `open`, `onOpenChange`, `initialPlacement`, `syncTriggerWidth`, `minSpaceBelow`, `offset`
+- **Note**: For most form fields (Select, Combobox), use the Popover-based components instead. Use Dropdown only for date picker or specialized cases requiring custom positioning logic.
+
 #### Checkbox
 - **File**: `components/ui/checkbox.tsx`
 - **Exports**: `Checkbox`
