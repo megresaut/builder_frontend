@@ -155,6 +155,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
           <Button
             id={fieldId}
             ref={(el) => {
+              triggerRef.current = el;
               if (el && !triggerWidth) {
                 setTriggerWidth(el.offsetWidth);
               }
@@ -183,9 +184,10 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
+          ref={contentRef}
           className="p-0"
           style={{ width: triggerWidth ? `${triggerWidth}px` : "auto", maxHeight: "300px", overflow: "auto" }}
-          side="bottom"
+          side={popoverSide}
           align="start"
           avoidCollisions={true}
           sideOffset={8}
