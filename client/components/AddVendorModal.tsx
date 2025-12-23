@@ -146,252 +146,50 @@ export default function AddVendorModal({
     >
       <FieldRow columns={2}>
         <FieldRowItem>
-          <ModalField label="Vendor Name" spacing="tight">
-            <Input
-              value={vendorName}
-              onChange={handleVendorNameChange}
-              placeholder="Vendor Name"
-              style={{
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: errors.vendorName ? "var(--color-status-error)" : "var(--color-border-light)",
-                borderStyle: "solid",
-                borderWidth: errors.vendorName ? "2px" : "1px",
-                padding: "8px 12px",
-                fontSize: "16px",
-                fontWeight: 400,
-                letterSpacing: "-0.32px",
-                lineHeight: 1.4,
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "var(--color-text-primary)",
-                width: "100%",
-                boxSizing: "border-box",
-              }}
-            />
-            {errors.vendorName && (
-              <div style={{ color: "var(--color-status-error)", fontSize: "12px", marginTop: "4px" }}>
-                Vendor Name is required
-              </div>
-            )}
-          </ModalField>
+          <TextField
+            label="Vendor Name"
+            required
+            value={vendorName}
+            onChange={handleVendorNameChange}
+            placeholder="Vendor Name"
+            error={errors.vendorName ? "Vendor Name is required" : undefined}
+          />
         </FieldRowItem>
         <FieldRowItem>
-          <ModalField label="Primary Email" spacing="tight">
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Primary Email"
-              style={{
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: "var(--color-border-light)",
-                borderStyle: "solid",
-                borderWidth: "1px",
-                padding: "8px 12px",
-                fontSize: "16px",
-                fontWeight: 400,
-                letterSpacing: "-0.32px",
-                lineHeight: 1.4,
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "var(--color-text-primary)",
-                width: "100%",
-                boxSizing: "border-box",
-              }}
-            />
-          </ModalField>
+          <EmailField
+            label="Primary Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="vendor@example.com"
+          />
         </FieldRowItem>
       </FieldRow>
 
-      <ModalField label="Vendor Phone Number" spacing="tight">
-        <Input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Vendor Phone Number"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            borderColor: "var(--color-border-light)",
-            borderStyle: "solid",
-            borderWidth: "1px",
-            padding: "8px 12px",
-            fontSize: "16px",
-            fontWeight: 400,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            color: "var(--color-text-primary)",
-            width: "100%",
-            boxSizing: "border-box",
-          }}
-        />
-      </ModalField>
+      <PhoneNumberField
+        label="Vendor Phone Number"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="(123) 456-7890"
+      />
 
-      <ModalField label="Services Provided" spacing="tight">
-        <div className="relative" ref={servicesRef}>
-          <button
-            type="button"
-            onClick={() => setShowServicesList(!showServicesList)}
-            style={{
-              width: "100%",
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 1)",
-              borderColor: "var(--color-border-light)",
-              borderStyle: "solid",
-              borderWidth: "1px",
-              padding: "8px 12px",
-              fontSize: "16px",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              textAlign: "left",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              cursor: "pointer",
-              color: "var(--color-text-primary)",
-              boxSizing: "border-box",
-            }}
-          >
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", flex: 1 }}>
-              {servicesProvided.length > 0 ? (
-                servicesProvided.map((service) => (
-                  <span
-                    key={service}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      paddingLeft: "10px",
-                      paddingRight: "10px",
-                      paddingTop: "4px",
-                      paddingBottom: "4px",
-                      borderRadius: "16px",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      backgroundColor: "rgba(219, 234, 254, 1)",
-                      color: "rgba(30, 58, 138, 1)",
-                    }}
-                  >
-                    {service}
-                  </span>
-                ))
-              ) : (
-                <span style={{
-                  color: "var(--color-text-primary)",
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  letterSpacing: "-0.32px",
-                  lineHeight: 1.4,
-                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}>
-                  Select Services Provided
-                </span>
-              )}
-            </div>
-            <svg
-              style={{ width: "16px", height: "16px", color: "var(--color-text-muted)", flexShrink: 0 }}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
-          </button>
+      <MultiSelectField
+        label="Services Provided"
+        value={servicesProvided}
+        onChange={setServicesProvided}
+        placeholder="Select services provided..."
+        options={availableServices.map((service) => ({
+          value: service,
+          label: service,
+        }))}
+      />
 
-          {showServicesList && (
-            <div
-              style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
-                marginTop: "8px",
-                backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: "var(--color-border-light)",
-                borderStyle: "solid",
-                borderWidth: "1px",
-                borderRadius: "8px",
-                boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.08)",
-                zIndex: 50,
-                padding: "12px",
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                  maxHeight: "256px",
-                  overflowY: "auto",
-                }}
-              >
-                {availableServices.map((service) => (
-                  <button
-                    key={service}
-                    type="button"
-                    onClick={() => toggleService(service)}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      transition: "background-color 0.2s",
-                      textAlign: "left",
-                      border: "1px solid",
-                      borderColor: servicesProvided.includes(service)
-                        ? "rgba(37, 99, 235, 1)"
-                        : "var(--color-border-light)",
-                      backgroundColor: servicesProvided.includes(service)
-                        ? "rgba(219, 234, 254, 1)"
-                        : "rgba(255, 255, 255, 1)",
-                      color: servicesProvided.includes(service)
-                        ? "rgba(30, 58, 138, 1)"
-                        : "var(--color-text-primary)",
-                      cursor: "pointer",
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    }}
-                  >
-                    {service}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </ModalField>
-
-      <ModalField label="Notes">
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Insert Vendor Notes"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            borderColor: "var(--color-border-light)",
-            borderStyle: "solid",
-            borderWidth: "1px",
-            padding: "8px 12px",
-            fontSize: "16px",
-            fontWeight: 400,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            color: "var(--color-text-primary)",
-            minHeight: "169px",
-            resize: "none",
-            width: "100%",
-            boxSizing: "border-box",
-          }}
-        />
-      </ModalField>
+      <TextAreaField
+        label="Notes"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Insert Vendor Notes"
+        autoGrow
+      />
     </ModalTemplate>
   );
 }
