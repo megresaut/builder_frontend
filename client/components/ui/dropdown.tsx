@@ -103,7 +103,7 @@ export const Dropdown = React.forwardRef<
 
     return (
       <DropdownContext.Provider value={value}>
-        <div ref={ref}>{children}</div>
+        <div ref={ref} style={{ position: "relative" }}>{children}</div>
       </DropdownContext.Provider>
     );
   },
