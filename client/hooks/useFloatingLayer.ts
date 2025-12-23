@@ -93,22 +93,69 @@ export function useFloatingLayer({
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const contentHeight = contentRef.current?.offsetHeight || minSpaceBelow;
-    
+
     const spaceBelow = window.innerHeight - triggerRect.bottom;
     const spaceAbove = triggerRect.top;
     const bufferSpace = 20;
 
-    // Determine placement: flip to top if not enough space below
+    // Find the nearest scrollable container/modal ancestor
+    let containerRect: DOMRect | null = null;
+    let element = triggerRef.current.parentElement;
+    while (element) {
+      const style = window.getComputedStyle(element);
+      const isScrollable =
+        (element.scrollHeight > element.clientHeight ||
+          element.scrollWidth > element.clientWidth) &&
+        (style.overflow === "auto" ||
+          style.overflow === "scroll" ||
+          style.overflowY === "auto" ||
+          style.overflowY === "scroll" ||
+          style.overflowX === "auto" ||
+          style.overflowX === "scroll");
+
+      // Check if this is a modal or dialog (common container patterns)
+      const isModal =
+        element.getAttribute("role") === "dialog" ||
+        element.getAttribute("role") === "alertdialog" ||
+        element.classList.contains("modal") ||
+        element.classList.contains("dialog") ||
+        element.tagName === "DIALOG";
+
+      if (isScrollable || isModal) {
+        containerRect = element.getBoundingClientRect();
+        break;
+      }
+
+      element = element.parentElement;
+    }
+
+    // Check container boundaries if a container was found
+    let wouldExceedBottom = false;
+    let wouldExceedTop = false;
+
+    if (containerRect) {
+      // Check if content would exceed container bottom
+      const contentBottomPosition = triggerRect.bottom + bufferSpace + contentHeight;
+      wouldExceedBottom = contentBottomPosition > containerRect.bottom;
+
+      // Check if content would exceed container top
+      const contentTopPosition = triggerRect.top - bufferSpace - contentHeight;
+      wouldExceedTop = contentTopPosition < containerRect.top;
+    }
+
+    // Determine placement: flip to top if not enough space below or would exceed container
     let newPlacement: Placement = initialPlacement;
     if (
-      spaceBelow < contentHeight + bufferSpace &&
-      spaceAbove > contentHeight + bufferSpace
+      (spaceBelow < contentHeight + bufferSpace && spaceAbove > contentHeight + bufferSpace) ||
+      wouldExceedBottom
     ) {
       newPlacement = "top";
-    } else {
+    } else if (wouldExceedTop) {
       newPlacement = "bottom";
+    } else {
+      newPlacement = initialPlacement;
     }
-    
+
     setPlacement(newPlacement);
 
     // Determine alignment based on viewport
