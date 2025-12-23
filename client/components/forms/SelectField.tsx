@@ -71,7 +71,53 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   placeholder = "Select an option",
   options,
 }) => {
+  const [selectSide, setSelectSide] = useState<"bottom" | "top">("bottom");
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  // Check if select should flip to top based on available space
+  const checkSelectPosition = useCallback(() => {
+    if (!triggerRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+    const contentHeight = 280; // Approximate height for dropdown list
+
+    if (spaceBelow < contentHeight + 20 && spaceAbove > contentHeight + 20) {
+      setSelectSide("top");
+    } else {
+      setSelectSide("bottom");
+    }
+  }, []);
+
+  // Monitor for size changes
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(checkSelectPosition);
+    const scrollHandler = () => checkSelectPosition();
+
+    // Observe the trigger and parent containers
+    if (triggerRef.current) {
+      resizeObserver.observe(triggerRef.current);
+      let parent = triggerRef.current.parentElement;
+      let depth = 0;
+      while (parent && depth < 5) {
+        resizeObserver.observe(parent);
+        parent = parent.parentElement;
+        depth++;
+      }
+    }
+
+    // Listen for scroll and resize events
+    document.addEventListener("scroll", scrollHandler, true);
+    window.addEventListener("resize", checkSelectPosition);
+
+    return () => {
+      resizeObserver.disconnect();
+      document.removeEventListener("scroll", scrollHandler, true);
+      window.removeEventListener("resize", checkSelectPosition);
+    };
+  }, [checkSelectPosition]);
 
   return (
     <FieldShell
