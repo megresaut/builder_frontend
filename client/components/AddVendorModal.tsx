@@ -147,7 +147,7 @@ export default function AddVendorModal({
             <Input
               value={vendorName}
               onChange={handleVendorNameChange}
-              placeholder="Input Vendor Name"
+              placeholder="Vendor Name"
               style={{
                 borderRadius: "8px",
                 backgroundColor: "rgba(255, 255, 255, 1)",
@@ -160,6 +160,7 @@ export default function AddVendorModal({
                 letterSpacing: "-0.32px",
                 lineHeight: 1.4,
                 fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                color: "#303030",
                 width: "100%",
                 boxSizing: "border-box",
               }}
@@ -177,7 +178,7 @@ export default function AddVendorModal({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Input Vendor Email"
+              placeholder="Primary Email"
               style={{
                 borderRadius: "8px",
                 backgroundColor: "rgba(255, 255, 255, 1)",
@@ -190,6 +191,7 @@ export default function AddVendorModal({
                 letterSpacing: "-0.32px",
                 lineHeight: 1.4,
                 fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                color: "#303030",
                 width: "100%",
                 boxSizing: "border-box",
               }}
@@ -203,7 +205,7 @@ export default function AddVendorModal({
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Input Vendor Phone"
+          placeholder="Vendor Phone Number"
           style={{
             borderRadius: "8px",
             backgroundColor: "rgba(255, 255, 255, 1)",
@@ -216,6 +218,7 @@ export default function AddVendorModal({
             letterSpacing: "-0.32px",
             lineHeight: 1.4,
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            color: "#303030",
             width: "100%",
             boxSizing: "border-box",
           }}
@@ -377,6 +380,7 @@ export default function AddVendorModal({
             letterSpacing: "-0.32px",
             lineHeight: 1.4,
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            color: "#303030",
             minHeight: "169px",
             resize: "none",
             width: "100%",

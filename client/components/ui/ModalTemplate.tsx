@@ -223,6 +223,7 @@ ModalText.displayName = "ModalText";
  *   letterSpacing: "-0.32px",
  *   lineHeight: 1.4,
  *   fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+ *   color: "#303030",  // Text color
  *   width: "100%",
  *   boxSizing: "border-box",
  * }}
@@ -234,6 +235,7 @@ ModalText.displayName = "ModalText";
  * - Letter spacing: -0.32px (tracking)
  * - Line height: 1.4
  * - Font weight: 400 (normal)
+ * - Text color: #303030
  *
  * For placeholder-like text (non-input elements that display placeholder values),
  * use inline styles matching the input styling:
