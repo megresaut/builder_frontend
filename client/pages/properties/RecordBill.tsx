@@ -1638,6 +1638,30 @@ export const RecordBill = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+
+                    // Validate top-level form fields (same as Save button)
+                    const formFieldErrors = new Set<string>();
+                    let hasErrors = false;
+
+                    if (!selectedVendor) {
+                      formFieldErrors.add("vendor");
+                      hasErrors = true;
+                    }
+                    if (!invoiceDate) {
+                      formFieldErrors.add("invoiceDate");
+                      hasErrors = true;
+                    }
+                    if (!dueDate) {
+                      formFieldErrors.add("dueDate");
+                      hasErrors = true;
+                    }
+
+                    if (hasErrors) {
+                      setFormErrors(formFieldErrors);
+                      return;
+                    }
+
+                    // If quick validation passes, run full validation including line items
                     handleRecordBill();
                   }}
                   className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
