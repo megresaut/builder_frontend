@@ -164,6 +164,7 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
 
     const handleCountryCodeChange = (newCode: string) => {
       setCountryCode(newCode);
+      setCountryCodeOpen(false);
       setValidationError("");
       // Update value with new country code
       if (phoneNumberOnly) {
