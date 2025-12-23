@@ -151,6 +151,7 @@ export function FormShowcaseModal({
             placeholder="(123) 456-7890"
             value={phone}
             onChange={setPhone}
+            onValidationChange={setIsPhoneValid}
             description="Optional contact number"
           />
         </FormSection>
