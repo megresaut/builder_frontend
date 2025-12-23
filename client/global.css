@@ -190,12 +190,29 @@
 
 @layer components {
   /**
+   * FIELD SHELL - Base field wrapper styling
+   * Container for label, required indicator, helper text, input, and error message.
+   *
+   * All form fields (TextField, SelectField, CurrencyField, etc.) use this wrapper
+   * for consistent styling and vertical rhythm.
+   *
+   * Structure:
+   * - Label with required indicator
+   * - Description / helper text
+   * - Input control (Input, Select, DatePicker, etc.)
+   * - Error message
+   */
+  .ra-field-shell {
+    /* Handled by React component inline styles for flexibility */
+  }
+
+  /**
    * FIELD ROW - Multi-column field layout
    * Container for laying out multiple form fields horizontally on desktop,
    * stacking vertically on mobile for responsive design.
    *
    * Usage: FieldRow(columns=2) contains FieldRowItem children
-   * Each FieldRowItem should wrap a ModalField
+   * Each FieldRowItem should wrap a field component (TextField, SelectField, etc.)
    */
   .ra-field-row {
     display: grid;
