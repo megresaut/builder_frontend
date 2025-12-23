@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useEffect } from "react";
+import React, { forwardRef, useState, useCallback } from "react";
 
 interface CurrencyInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
@@ -13,17 +13,15 @@ interface CurrencyInputProps
 }
 
 /**
- * CurrencyInput - Formatted currency input field with natural typing behavior
+ * CurrencyInput - Formatted currency input field with clean editing experience
  *
  * Features:
- * - User can type naturally: "1", "12", "12.", "12.3", "12.34"
- * - Only allows numbers + one decimal point
- * - Limits to 2 decimal places
- * - Supports backspace/delete naturally
- * - Accepts pasted values like "$1,234.56" or "1,234.56" and normalizes
- * - Shows thousands separators while editing (removed on focus, restored on blur)
- * - Always stores and emits numeric value consistently
- * - Displays currency formatted "$1,234.56" when not focused
+ * - While focused: raw, unformatted numeric string (e.g. "1234.5")
+ * - While not focused: formatted currency (e.g. "$1,234.50")
+ * - User can freely edit dollars and decimals
+ * - Formatting happens ONLY on blur, never during typing
+ * - Accepts pasted values like "$1,234.56" and normalizes
+ * - Always emits numeric value via onChange
  *
  * @param value - Numeric value (e.g., 1234.56)
  * @param onChange - Callback with raw numeric value
@@ -33,17 +31,6 @@ interface CurrencyInputProps
  * @param currencySymbol - Custom currency symbol (default: "$")
  * @param decimalPlaces - Number of decimal places (default: 2)
  * @param allowNegative - Allow negative values (default: false)
- *
- * Example:
- * ```tsx
- * const [amount, setAmount] = useState(0);
- * 
- * <CurrencyInput
- *   value={amount}
- *   onChange={setAmount}
- *   placeholder="0.00"
- * />
- * ```
  */
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
@@ -61,44 +48,34 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     },
     ref,
   ) => {
-    const [displayValue, setDisplayValue] = useState<string>("");
     const [isFocused, setIsFocused] = useState(false);
-
-    // Initialize display value when external value changes
-    useEffect(() => {
-      if (value !== undefined && value !== null && value !== "") {
-        const numValue = typeof value === "string" ? parseFloat(value) : value;
-        if (!isNaN(numValue)) {
-          setDisplayValue(formatForDisplay(numValue, !isFocused));
-        }
-      } else {
-        setDisplayValue("");
-      }
-    }, [value, isFocused]);
+    const [draftValue, setDraftValue] = useState<string>("");
 
     /**
-     * Format a numeric value for display
-     * @param num - Numeric value
-     * @param includeFormatting - Whether to include thousands separators and currency symbol
+     * Format a numeric value as currency for display (when NOT focused)
+     * Uses Intl.NumberFormat for proper locale-aware formatting
      */
-    function formatForDisplay(num: number, includeFormatting: boolean): string {
-      if (!includeFormatting) {
-        // Show plain number without thousands separators (for editing)
-        return num.toFixed(decimalPlaces);
-      }
+    const formatForDisplay = useCallback(
+      (num: number): string => {
+        if (isNaN(num)) return "";
 
-      // Show formatted with thousands separators and currency symbol
-      const formatted = num
-        .toFixed(decimalPlaces)
-        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return showCurrencySymbol ? `${currencySymbol}${formatted}` : formatted;
-    }
+        const formatter = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: decimalPlaces,
+          maximumFractionDigits: decimalPlaces,
+        });
+
+        return formatter.format(num);
+      },
+      [decimalPlaces]
+    );
 
     /**
      * Parse input string to numeric value
-     * Accepts: "1", "12.34", "1,234.56", "$1,234.56"
+     * Accepts: "1", "12.34", "$1,234.56", "1,234.56"
      */
-    function parseInputValue(input: string): number {
+    const parseInputValue = useCallback((input: string): number => {
       // Remove currency symbol and thousand separators
       const cleaned = input
         .replace(currencySymbol, "")
@@ -112,53 +89,65 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
       const num = parseFloat(cleaned);
       return isNaN(num) ? 0 : num;
-    }
+    }, [currencySymbol]);
 
     /**
-     * Validate and constrain input
-     * - Only allows digits, decimal point, and minus sign (if allowed)
-     * - Limits to 2 decimal places
+     * Convert numeric value to unformatted string for editing
      */
-    function sanitizeInput(input: string): string {
-      // Remove any non-digit, non-decimal characters (except minus for negative)
-      let sanitized = input.replace(/[^\d.-]/g, "");
+    const numToEditString = useCallback((num: number): string => {
+      if (num === 0) return "";
+      return num.toString();
+    }, []);
 
-      // Handle multiple minus signs
-      const minusCount = (sanitized.match(/-/g) || []).length;
-      if (minusCount > 1) {
-        sanitized = sanitized.replace(/-/g, "");
-        sanitized = "-" + sanitized;
-      }
+    /**
+     * Sanitize user input to allow only digits, one decimal point, and optional minus
+     * Does NOT format or pad with zeros
+     */
+    const sanitizeInput = useCallback(
+      (input: string): string => {
+        // Remove any non-digit, non-decimal characters (except minus)
+        let sanitized = input.replace(/[^\d.-]/g, "");
 
-      // Prevent leading minus if not allowed
-      if (!allowNegative && sanitized.startsWith("-")) {
-        sanitized = sanitized.slice(1);
-      }
+        // Handle multiple minus signs (keep only the first)
+        const minusCount = (sanitized.match(/-/g) || []).length;
+        if (minusCount > 1) {
+          sanitized = sanitized.replace(/-/g, "");
+          if (allowNegative && input.includes("-")) {
+            sanitized = "-" + sanitized;
+          }
+        }
 
-      // Handle multiple decimal points
-      const parts = sanitized.split(".");
-      if (parts.length > 2) {
-        sanitized = parts[0] + "." + parts.slice(1).join("");
-      }
+        // Prevent leading minus if not allowed
+        if (!allowNegative && sanitized.startsWith("-")) {
+          sanitized = sanitized.slice(1);
+        }
 
-      // Limit decimal places
-      if (parts.length === 2 && parts[1].length > decimalPlaces) {
-        sanitized = parts[0] + "." + parts[1].slice(0, decimalPlaces);
-      }
+        // Handle multiple decimal points (keep only the first)
+        const parts = sanitized.split(".");
+        if (parts.length > 2) {
+          sanitized = parts[0] + "." + parts.slice(1).join("");
+        }
 
-      return sanitized;
-    }
+        // Limit decimal places
+        if (parts.length === 2 && parts[1].length > decimalPlaces) {
+          sanitized = parts[0] + "." + parts[1].slice(0, decimalPlaces);
+        }
+
+        return sanitized;
+      },
+      [allowNegative, decimalPlaces]
+    );
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value;
 
-      // Sanitize input
+      // Sanitize input (no formatting, no padding)
       const sanitized = sanitizeInput(input);
 
-      // Update display value (without formatting while editing)
-      setDisplayValue(sanitized);
+      // Update draft value for display while typing
+      setDraftValue(sanitized);
 
-      // Parse and emit numeric value
+      // Parse and emit numeric value immediately
       const numValue = parseInputValue(sanitized);
       onChange?.(numValue);
     };
@@ -166,12 +155,12 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
 
-      // Show unformatted value when focused
-      const numValue = parseInputValue(displayValue);
-      if (numValue === 0 && displayValue === "") {
-        setDisplayValue("");
+      // Show unformatted, unpaded value (e.g., "1234.5" not "1234.50" and not "$1,234.50")
+      const numValue = typeof value === "string" ? parseFloat(value) : (value as number);
+      if (!isNaN(numValue) && numValue !== 0) {
+        setDraftValue(numToEditString(numValue));
       } else {
-        setDisplayValue(numValue.toFixed(decimalPlaces));
+        setDraftValue("");
       }
 
       rest.onFocus?.(e);
@@ -180,15 +169,20 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
 
-      // Format value on blur
-      const numValue = parseInputValue(displayValue);
-      setDisplayValue(formatForDisplay(numValue, true));
+      // Parse the draft value to get numeric value
+      const numValue = parseInputValue(draftValue);
+
+      // Update the numeric model
+      onChange?.(numValue);
+
+      // Clear draft (formatted value will be displayed)
+      setDraftValue("");
 
       rest.onBlur?.(e);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      // Allow standard keys
+      // Allow standard navigation and editing keys
       if (
         e.key === "Backspace" ||
         e.key === "Delete" ||
@@ -219,6 +213,9 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       // Prevent all other keys
       e.preventDefault();
     };
+
+    // Determine what to display
+    const displayValue = isFocused ? draftValue : formatForDisplay(parseInputValue(draftValue || (value as string)));
 
     return (
       <input
@@ -254,7 +251,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         {...rest}
       />
     );
-  },
+  }
 );
 
 CurrencyInput.displayName = "CurrencyInput";
