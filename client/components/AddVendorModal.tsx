@@ -166,13 +166,14 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField spacing="tight">
-        <MultiSelectField
+        <SelectField
           label="Services Provided"
           id="services-provided"
           value={servicesProvided}
-          onChange={setServicesProvided}
+          onChange={(val) => setServicesProvided(Array.isArray(val) ? val : [val])}
           options={availableServices}
           placeholder="Select services..."
+          multiple
         />
       </ModalField>
 
