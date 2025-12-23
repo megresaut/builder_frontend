@@ -47,7 +47,6 @@ function clamp(value: number, min: number, max: number) {
 
 /**
  * findScrollableAncestors - Find all scrollable ancestor elements
- * Returns array of elements that can scroll (including document/window)
  */
 function findScrollableAncestors(el: HTMLElement | null): Element[] {
   const scrollables: Element[] = [];
@@ -84,12 +83,12 @@ function findScrollableAncestors(el: HTMLElement | null): Element[] {
  * useFloatingLayer - Manages placement, collision detection, and positioning of floating elements
  *
  * Handles:
- * - Automatic placement flipping (bottom ↔ top) based on available space (no freezing)
+ * - Automatic placement flipping (bottom ↔ top) based on available space
  * - All scrollable ancestor detection and monitoring
  * - Real-time repositioning on scroll/resize
  * - Optional width syncing to trigger element
  * - Modal-aware z-index stacking
- * - Consistent coordinate system (all positions use viewport/fixed coordinates)
+ * - Consistent viewport-based coordinate system
  */
 export function useFloatingLayer({
   open,
@@ -105,115 +104,86 @@ export function useFloatingLayer({
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
-  const [scrollParents, setScrollParents] = useState<Element[]>([]);
   const [computedZIndex, setComputedZIndex] = useState(50);
 
-  /**
-   * calculatePosition - Compute placement (top/bottom) based on available space
-   * This runs on every scroll/resize and can flip placement both directions
-   */
-  const calculatePosition = useCallback((): void => {
-    if (!open || !triggerRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const contentHeight = contentRef.current?.offsetHeight || minSpaceBelow;
-
-    // Calculate available space in viewport
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const spaceAbove = triggerRect.top;
-
-    // Decide placement based on available space
-    // Prefer bottom initially, but flip to top if not enough space below
-    let newPlacement: Placement = initialPlacement;
-
-    if (initialPlacement === "bottom") {
-      // Check if there's enough space below
-      const neededSpaceBelow = contentHeight + offset;
-      if (spaceBelow < neededSpaceBelow && spaceAbove > contentHeight + offset) {
-        newPlacement = "top";
-      } else {
-        newPlacement = "bottom";
-      }
-    } else {
-      // initialPlacement === "top"
-      const neededSpaceAbove = contentHeight + offset;
-      if (spaceAbove < neededSpaceAbove && spaceBelow > contentHeight + offset) {
-        newPlacement = "bottom";
-      } else {
-        newPlacement = "top";
-      }
-    }
-
-    setPlacement(newPlacement);
-
-    // Calculate horizontal alignment
-    let newAlign: Align = initialAlign;
-    if (initialAlign === "start") {
-      const contentWidth = contentRef.current?.offsetWidth ?? widthValue ?? triggerRect.width;
-      const spaceRight = window.innerWidth - triggerRect.left;
-
-      // If not enough space on right, try to shift left
-      if (spaceRight < contentWidth && triggerRect.right < window.innerWidth) {
-        newAlign = "end";
-      }
-    }
-    setAlign(newAlign);
-
-    // Sync width to trigger if requested
-    if (triggerWidth) {
-      const nextWidth = Math.round(triggerRect.width);
-      setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
-    } else {
-      setWidthValue(undefined);
-    }
-
-    // Calculate z-index based on ancestors
-    const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
-    setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
-  }, [
-    open,
-    initialPlacement,
-    initialAlign,
-    minSpaceBelow,
-    triggerWidth,
-    widthValue,
-    offset,
-  ]);
-
-  /**
-   * Setup scroll listeners on all scrollable ancestors
-   * This ensures position updates whenever ANY ancestor scrolls
-   */
+  // Main effect for setting up all listeners and observers
   useEffect(() => {
-    if (!open) {
+    if (!open || !triggerRef.current) {
+      // Reset state when closed
       setPlacement(initialPlacement);
       setAlign(initialAlign);
       setWidthValue(undefined);
-      setScrollParents([]);
       setComputedZIndex(50);
       return;
     }
 
-    // Find all scrollable ancestors
-    const scrollables = findScrollableAncestors(triggerRef.current);
-    setScrollParents(scrollables);
+    // Function to recalculate position based on available space
+    const updatePosition = () => {
+      if (!triggerRef.current) return;
 
-    // ResizeObserver to detect content size changes
-    const resizeObserver = new ResizeObserver(() => {
-      calculatePosition();
-    });
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const contentHeight = contentRef.current?.offsetHeight || minSpaceBelow;
 
-    // Observe trigger (in case it changes size)
+      // Calculate available space
+      const spaceBelow = window.innerHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+
+      // Determine placement
+      let newPlacement: Placement = initialPlacement;
+      if (initialPlacement === "bottom") {
+        const neededSpaceBelow = contentHeight + offset;
+        if (spaceBelow < neededSpaceBelow && spaceAbove > contentHeight + offset) {
+          newPlacement = "top";
+        } else {
+          newPlacement = "bottom";
+        }
+      } else {
+        const neededSpaceAbove = contentHeight + offset;
+        if (spaceAbove < neededSpaceAbove && spaceBelow > contentHeight + offset) {
+          newPlacement = "bottom";
+        } else {
+          newPlacement = "top";
+        }
+      }
+      setPlacement(newPlacement);
+
+      // Determine horizontal alignment
+      let newAlign: Align = initialAlign;
+      if (initialAlign === "start") {
+        const contentWidth =
+          contentRef.current?.offsetWidth ?? widthValue ?? triggerRect.width;
+        const spaceRight = window.innerWidth - triggerRect.left;
+
+        if (spaceRight < contentWidth && triggerRect.right < window.innerWidth) {
+          newAlign = "end";
+        }
+      }
+      setAlign(newAlign);
+
+      // Sync width if requested
+      if (triggerWidth) {
+        const nextWidth = Math.round(triggerRect.width);
+        setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
+      } else {
+        setWidthValue(undefined);
+      }
+
+      // Calculate z-index
+      const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
+      setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
+    };
+
+    // Setup ResizeObserver
+    const resizeObserver = new ResizeObserver(updatePosition);
+
     if (triggerRef.current) {
       resizeObserver.observe(triggerRef.current);
     }
-
-    // Observe content (in case it changes size)
     if (contentRef.current) {
       resizeObserver.observe(contentRef.current);
     }
 
-    // Observe a few ancestor levels (for container resizes)
+    // Observe ancestor levels
     let ancestor = triggerRef.current?.parentElement;
     let depth = 0;
     while (ancestor && depth < 6) {
@@ -222,43 +192,31 @@ export function useFloatingLayer({
       depth++;
     }
 
-    // Scroll handler - recompute position on every scroll
-    const handleScroll = () => {
-      calculatePosition();
-    };
-
-    // Listen to scroll on all scrollable ancestors (capture phase for reliability)
+    // Find and listen to scrollable ancestors
+    const scrollables = findScrollableAncestors(triggerRef.current);
     scrollables.forEach((scrollable) => {
-      scrollable.addEventListener("scroll", handleScroll, { capture: true });
+      scrollable.addEventListener("scroll", updatePosition, { capture: true });
     });
 
-    // Also listen to window resize
-    const handleResize = () => {
-      calculatePosition();
-    };
-    window.addEventListener("resize", handleResize);
+    // Listen to window resize
+    window.addEventListener("resize", updatePosition);
 
-    // Initial position calculation
-    calculatePosition();
+    // Initial calculation
+    updatePosition();
 
     // Cleanup
     return () => {
       resizeObserver.disconnect();
       scrollables.forEach((scrollable) => {
-        scrollable.removeEventListener("scroll", handleScroll, { capture: true });
+        scrollable.removeEventListener("scroll", updatePosition, { capture: true });
       });
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", updatePosition);
     };
-  }, [open, calculatePosition, initialPlacement, initialAlign]);
+    // Stable dependency array - only these should change
+  }, [open, initialPlacement, initialAlign, offset, minSpaceBelow, triggerWidth, widthValue]);
 
   /**
    * getPositionStyle - Convert trigger position to fixed coordinates for the dropdown
-   * 
-   * Uses viewport-based coordinates (position: fixed) since content is portaled to body.
-   * Anchors the dropdown to the trigger:
-   * - Bottom placement: y = trigger.bottom + offset
-   * - Top placement: y = trigger.top - contentHeight - offset
-   * - Horizontal: aligned based on trigger position and content width
    */
   const getPositionStyle = useCallback((): FloatingPosition["style"] => {
     if (!triggerRef.current) {
@@ -305,17 +263,13 @@ export function useFloatingLayer({
       const viewportMinY = viewportMargin;
       const viewportMaxY = window.innerHeight - contentHeight - viewportMargin;
 
-      // For bottom placement, don't let it go above the minimum
-      // For top placement, don't let it go below the maximum
       if (placement === "bottom") {
-        // Keep at least the gap from the trigger bottom, but respect viewport bounds
         const minTop = triggerRect.bottom + gap;
         top = Math.max(viewportMinY, minTop);
         if (top + contentHeight > window.innerHeight - viewportMargin) {
           top = Math.max(viewportMinY, window.innerHeight - contentHeight - viewportMargin);
         }
       } else {
-        // Top placement
         const maxTop = triggerRect.top - contentHeight - gap;
         top = Math.min(viewportMaxY, maxTop);
         if (top < viewportMinY) {
