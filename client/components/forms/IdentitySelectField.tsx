@@ -337,7 +337,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
           )}
           <div
             style={{
-              flex: 1,
               maxHeight: "320px",
               overflowY: "auto",
               overflowX: "hidden",
