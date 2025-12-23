@@ -151,47 +151,42 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
   };
 
-  const StateDropdown = useMemo(
+  const StatePopover = useMemo(
     () => (
-      <Dropdown
-        open={stateOpen}
-        onOpenChange={setStateOpen}
-        initialPlacement="bottom"
-        minSpaceBelow={280}
-        syncTriggerWidth={true}
-        offset={8}
-      >
-        <Dropdown.Trigger
-          disabled={disabled}
-          style={{
-            ...stateTriggerStyle,
-            flex: 0.5,
-            borderColor: error ? "#ef4444" : stateOpen ? "#000000" : "var(--color-border-light)",
-          }}
-        >
-          <span
+      <Popover open={stateOpen} onOpenChange={setStateOpen}>
+        <PopoverTrigger asChild>
+          <button
+            disabled={disabled}
             style={{
-              color: value.state ? "#303030" : "#303030",
-              fontSize: "14px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              ...stateTriggerStyle,
+              flex: 0.5,
+              borderColor: error ? "#ef4444" : stateOpen ? "#000000" : "var(--color-border-light)",
             }}
+            type="button"
           >
-            {value.state || "State"}
-          </span>
-          <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "#303030" }} />
-        </Dropdown.Trigger>
+            <span
+              style={{
+                color: value.state ? "#303030" : "#303030",
+                fontSize: "14px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {value.state || "State"}
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "#303030" }} />
+          </button>
+        </PopoverTrigger>
 
-        <Dropdown.Content
-          closeOnOutsideClick={true}
-          closeOnEscape={true}
+        <PopoverContent
+          align="start"
+          sideOffset={8}
+          className="w-72 p-0"
           style={{
-            backgroundColor: "white",
-            border: "1px solid var(--color-border-light)",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            zIndex: 50,
+            width: "auto",
+            minWidth: "150px",
+            padding: "0",
           }}
         >
           <div
@@ -221,6 +216,17 @@ export const AddressField: React.FC<AddressFieldProps> = ({
                     cursor: "pointer",
                     fontSize: "14px",
                     fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    transition: "background-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = isSelected
+                      ? "rgba(36, 99, 235, 0.15)"
+                      : "rgba(36, 99, 235, 0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isSelected
+                      ? "rgba(36, 99, 235, 0.15)"
+                      : "transparent";
                   }}
                 >
                   {state}
@@ -228,10 +234,10 @@ export const AddressField: React.FC<AddressFieldProps> = ({
               );
             })}
           </div>
-        </Dropdown.Content>
-      </Dropdown>
+        </PopoverContent>
+      </Popover>
     ),
-    [disabled, handleStateChange, stateOpen, stateTriggerStyle, value.state],
+    [disabled, handleStateChange, stateOpen, stateTriggerStyle, value.state, error],
   );
 
   const content = (
