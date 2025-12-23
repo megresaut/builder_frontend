@@ -310,13 +310,14 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                   <span style={{ color: "var(--color-text-primary)" }}>
                     {opt.label}
                   </span>
-                  <button
+                  <div
+                    role="button"
                     onClick={(e) => removeItem(opt.value, e)}
-                    className="hover:opacity-70 transition-opacity"
+                    className="hover:opacity-70 transition-opacity cursor-pointer"
                     tabIndex={-1}
                   >
                     <X className="w-3 h-3 text-[#2463EB]" />
-                  </button>
+                  </div>
                 </div>
               ))
             ) : (
