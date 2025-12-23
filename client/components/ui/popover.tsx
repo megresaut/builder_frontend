@@ -51,9 +51,9 @@ const PopoverContent = React.forwardRef<
             className,
           )}
           style={{
-            ...style,
             maxHeight: "calc(100vh - 40px)",
             maxWidth: "calc(100vw - 32px)",
+            ...style,
             overflowY: "auto",
             overflowX: "hidden",
             overscrollBehavior: "contain",
