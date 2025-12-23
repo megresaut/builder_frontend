@@ -33,7 +33,7 @@ export default function AddVendorModal({
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: boolean }>({});
   const [showServicesList, setShowServicesList] = useState(false);
-  const [filteredServices, setFilteredServices] = useState<string[]>([]);
+  const [serviceSearchQuery, setServiceSearchQuery] = useState("");
 
   useEffect(() => {
     if (open) {
