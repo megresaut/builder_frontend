@@ -329,7 +329,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           <ChevronDown className="h-4 w-4 shrink-0 flex-none" style={{ color: "#303030" }} />
         </PopoverTrigger>
 
-        <PopoverContent className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md" align="start">
+        <PopoverContent
+          className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
+          align="start"
+          syncTriggerWidth={true}
+        >
           {isMultiple && (
             <div
               style={{
