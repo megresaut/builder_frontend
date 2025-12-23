@@ -130,7 +130,13 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0" style={{ width: triggerWidth ? `${triggerWidth}px` : "auto" }}>
+        <PopoverContent
+          className="p-0"
+          style={{ width: triggerWidth ? `${triggerWidth}px` : "auto", maxHeight: "300px", overflow: "hidden" }}
+          side="bottom"
+          align="start"
+          avoidCollisions={true}
+        >
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
             <CommandEmpty>{emptyMessage}</CommandEmpty>
