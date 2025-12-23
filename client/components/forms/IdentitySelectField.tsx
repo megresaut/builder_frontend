@@ -206,7 +206,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Dropdown
+      <Popover
         open={open}
         onOpenChange={(isOpen) => {
           setOpen(isOpen);
@@ -214,12 +214,9 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             setSearchText("");
           }
         }}
-        initialPlacement="bottom"
-        minSpaceBelow={320}
-        offset={8}
-        syncTriggerWidth={true}
       >
-        <Dropdown.Trigger
+        <PopoverTrigger asChild>
+          <button
           id={fieldId}
           disabled={disabled}
           style={{
@@ -274,17 +271,22 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             )}
           </div>
           <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "#303030" }} />
-        </Dropdown.Trigger>
+          </button>
+        </PopoverTrigger>
 
-        <Dropdown.Content
-          closeOnOutsideClick={true}
-          closeOnEscape={true}
+        <PopoverContent
+          align="start"
+          sideOffset={8}
+          className="w-72 p-0"
           style={{
             backgroundColor: "white",
             border: "1px solid var(--color-border-light)",
             borderRadius: "8px",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             zIndex: 50,
+            width: "auto",
+            minWidth: "300px",
+            padding: "0",
           }}
         >
           {multiple && (
@@ -373,8 +375,8 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
               })
             )}
           </div>
-        </Dropdown.Content>
-      </Dropdown>
+        </PopoverContent>
+      </Popover>
     </FieldShell>
   );
 };
