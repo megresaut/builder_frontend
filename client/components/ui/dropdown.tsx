@@ -125,18 +125,25 @@ const DropdownTrigger = React.forwardRef<HTMLElement, DropdownTriggerProps>(
     const { open, setOpen, triggerId, contentId, triggerRef } =
       useDropdownContext();
 
+    const isInput = type &&
+      ["text", "email", "number", "password"].includes(type);
+
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
-      setOpen(!open);
+      if (isInput) {
+        setOpen(true);
+      } else {
+        setOpen(!open);
+      }
       onClick?.(e as any);
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
-      setOpen(true);
+      if (isInput) {
+        setOpen(true);
+      }
       onFocus?.(e as any);
     };
 
-    const isInput = type &&
-      ["text", "email", "number", "password"].includes(type);
     const Element = isInput ? "input" : "button";
 
     const element = React.createElement(Element, {
@@ -154,6 +161,13 @@ const DropdownTrigger = React.forwardRef<HTMLElement, DropdownTriggerProps>(
       "aria-controls": contentId,
       onClick: handleClick,
       onFocus: isInput ? handleFocus : undefined,
+      onMouseDown: isInput
+        ? (e: React.MouseEvent<HTMLElement>) => {
+            if (e.button === 0) {
+              setOpen(true);
+            }
+          }
+        : undefined,
       type: type || "button",
       ...props,
     });
