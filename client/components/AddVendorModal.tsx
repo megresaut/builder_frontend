@@ -4,10 +4,6 @@ import {
   ModalButtons,
   ModalField,
 } from "@/components/ui/ModalTemplate";
-import { TextField } from "@/components/forms/TextField";
-import { EmailField } from "@/components/forms/EmailField";
-import { PhoneNumberField } from "@/components/forms/PhoneNumberField";
-import { TextAreaField } from "@/components/forms/TextAreaField";
 
 interface AddVendorModalProps {
   open: boolean;
