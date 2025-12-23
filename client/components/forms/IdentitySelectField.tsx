@@ -282,6 +282,37 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             zIndex: 50,
           }}
         >
+          {multiple && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 12px",
+                borderBottom: "1px solid var(--color-border-light)",
+              }}
+            >
+              <Search className="h-4 w-4" style={{ color: "#717179" }} />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                autoFocus
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  padding: 0,
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "14px",
+                  color: "var(--color-text-primary)",
+                  backgroundColor: "transparent",
+                }}
+              />
+            </div>
+          )}
           <div
             style={{
               maxHeight: "320px",
@@ -289,7 +320,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
               padding: "4px 0",
             }}
           >
-            {options.length === 0 ? (
+            {filteredOptions.length === 0 ? (
               <div
                 style={{
                   padding: "8px 12px",
