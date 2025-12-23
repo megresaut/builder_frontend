@@ -73,7 +73,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     },
     ref,
   ) => {
-    const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+    const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : `textarea-${Math.random().toString(36).substr(2, 9)}`);
     const [charCount, setCharCount] = useState(String(value).length);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
