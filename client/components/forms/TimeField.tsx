@@ -1,7 +1,6 @@
 import React, { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { FieldShell } from "./FieldShell";
-import { Clock } from "lucide-react";
 
 interface TimeFieldProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
