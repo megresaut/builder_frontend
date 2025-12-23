@@ -74,6 +74,8 @@ const PopoverContent = React.forwardRef<
       syncTriggerWidth = true,
       scrollable = true,
       maxHeight = "280px",
+      onWheelCapture,
+      onTouchMoveCapture,
       ...props
     },
     ref,
@@ -111,6 +113,24 @@ const PopoverContent = React.forwardRef<
       else if (ref) (ref as React.MutableRefObject<React.ElementRef<typeof PopoverPrimitive.Content> | null>).current = node;
     };
 
+    const handleWheelCapture: React.WheelEventHandler<
+      React.ElementRef<typeof PopoverPrimitive.Content>
+    > = (e) => {
+      onWheelCapture?.(e);
+      if (!e.defaultPrevented) {
+        e.stopPropagation();
+      }
+    };
+
+    const handleTouchMoveCapture: React.TouchEventHandler<
+      React.ElementRef<typeof PopoverPrimitive.Content>
+    > = (e) => {
+      onTouchMoveCapture?.(e);
+      if (!e.defaultPrevented) {
+        e.stopPropagation();
+      }
+    };
+
     const content = (
       <PopoverPrimitive.Content
         ref={setRefs}
@@ -125,6 +145,8 @@ const PopoverContent = React.forwardRef<
         avoidCollisions={true}
         sticky="never"
         hideWhenDetached={true}
+        onWheelCapture={handleWheelCapture}
+        onTouchMoveCapture={handleTouchMoveCapture}
         style={{
           maxHeight: typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight,
           maxWidth: "calc(100vw - 32px)",

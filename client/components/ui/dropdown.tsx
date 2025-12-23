@@ -197,6 +197,8 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
       closeOnOutsideClick = true,
       closeOnEscape = true,
       onClick,
+      onWheelCapture,
+      onTouchMoveCapture,
       ...props
     },
     ref,
@@ -263,6 +265,20 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
 
     const positionStyle = getPositionStyle();
 
+    const handleWheelCapture: React.WheelEventHandler<HTMLDivElement> = (e) => {
+      onWheelCapture?.(e);
+      if (!e.defaultPrevented) {
+        e.stopPropagation();
+      }
+    };
+
+    const handleTouchMoveCapture: React.TouchEventHandler<HTMLDivElement> = (e) => {
+      onTouchMoveCapture?.(e);
+      if (!e.defaultPrevented) {
+        e.stopPropagation();
+      }
+    };
+
     const node = (
       <div
         ref={(el) => {
@@ -281,6 +297,8 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
           e.stopPropagation();
           onClick?.(e);
         }}
+        onWheelCapture={handleWheelCapture}
+        onTouchMoveCapture={handleTouchMoveCapture}
         style={{
           ...positionStyle,
           width: contentWidth ? `${contentWidth}px` : undefined,
