@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 
 interface CurrencyInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
@@ -63,6 +63,16 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     },
     ref,
   ) => {
+    const [displayValue, setDisplayValue] = useState<string>("");
+    const [isFocused, setIsFocused] = useState(false);
+
+    // Update display value when external value prop changes
+    useEffect(() => {
+      if (!isFocused) {
+        setDisplayValue(formatCurrency(value));
+      }
+    }, [value, isFocused]);
+
     const formatCurrency = (num: number | string) => {
       if (!num && num !== 0) return "";
 
@@ -106,10 +116,30 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
+      setDisplayValue(inputValue);
+      
       const numericValue = parseInput(inputValue);
-
       if (onChange) {
         onChange(numericValue);
+      }
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      // Format the display when user leaves the field
+      const numericValue = parseInput(displayValue);
+      setDisplayValue(formatCurrency(numericValue));
+      
+      if (rest.onBlur) {
+        rest.onBlur(e);
+      }
+    };
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      
+      if (rest.onFocus) {
+        rest.onFocus(e);
       }
     };
 
@@ -133,9 +163,8 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         return;
       }
 
-      // Prevent multiple decimal points (check formatted value without currency symbol)
-      const cleanedValue = input.value.replace(new RegExp(`\\${currencySymbol}`, "g"), "").replace(/,/g, "");
-      if (key === "." && cleanedValue.includes(".")) {
+      // Prevent multiple decimal points (check current display value)
+      if (key === "." && displayValue.includes(".")) {
         e.preventDefault();
         return;
       }
@@ -157,9 +186,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         ref={ref}
         type="text"
         inputMode="decimal"
-        value={formatCurrency(value)}
+        value={displayValue}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
         style={{
