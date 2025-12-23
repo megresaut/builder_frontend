@@ -249,16 +249,17 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                   <span style={{ fontSize: "12px", color: "var(--color-text-primary)" }}>
                     {opt.label}
                   </span>
-                  <button
+                  <div
+                    role="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       removeItem(opt.id);
                     }}
-                    className="hover:opacity-70 transition-opacity"
+                    className="hover:opacity-70 transition-opacity cursor-pointer"
                     tabIndex={-1}
                   >
                     <X className="w-3 h-3 text-[#2463EB]" />
-                  </button>
+                  </div>
                 </div>
               ))
             ) : (
