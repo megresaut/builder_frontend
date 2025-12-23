@@ -29,6 +29,8 @@ export { SelectField } from "./SelectField";
 export { SelectFieldV2 } from "./SelectFieldV2";
 export { ComboboxField } from "./ComboboxField";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
+export { EmailField } from "./EmailField";
+export { PhoneNumberField } from "./PhoneNumberField";
 
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";
