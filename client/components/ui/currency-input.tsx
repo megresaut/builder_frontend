@@ -75,9 +75,12 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
      * Parse input string to numeric value
      * Accepts: "1", "12.34", "$1,234.56", "1,234.56"
      */
-    const parseInputValue = useCallback((input: string): number => {
+    const parseInputValue = useCallback((input: string | number): number => {
+      // Ensure input is a string
+      const inputStr = typeof input === "number" ? input.toString() : (input || "");
+
       // Remove currency symbol and thousand separators
-      const cleaned = input
+      const cleaned = inputStr
         .replace(currencySymbol, "")
         .replace(/,/g, "")
         .trim();
