@@ -362,8 +362,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           )}
           <div
             style={{
-              maxHeight: "280px",
-              overflowY: "auto",
               padding: "4px 0",
             }}
           >
