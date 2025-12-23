@@ -275,6 +275,7 @@ export function useFloatingLayer({
 
     // Cleanup
     return () => {
+      isMountedRef.current = false;
       resizeObserver.disconnect();
       scrollables.forEach((scrollable) => {
         scrollable.removeEventListener("scroll", handleUpdate, { capture: true });
