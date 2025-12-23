@@ -11,6 +11,7 @@ interface TextAreaFieldProps
   id?: string;
   autoGrow?: boolean;
   showCharCount?: boolean;
+  readOnly?: boolean;
 }
 
 /**
