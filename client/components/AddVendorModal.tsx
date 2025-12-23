@@ -271,7 +271,14 @@ export default function AddVendorModal({
                   </span>
                 ))
               ) : (
-                <span style={{ color: "rgba(209, 213, 219, 1)", fontSize: "16px", fontWeight: 400 }}>
+                <span style={{
+                  color: "rgba(209, 213, 219, 1)",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  letterSpacing: "-0.32px",
+                  lineHeight: 1.4,
+                }}>
                   Select Services Provided
                 </span>
               )}

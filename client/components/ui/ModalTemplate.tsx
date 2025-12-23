@@ -207,11 +207,41 @@ export const ModalText: React.FC<ModalTextProps> = ({ children, className = "" }
 ModalText.displayName = "ModalText";
 
 /**
+ * Standard Input Styling for Modal Fields
+ *
+ * All inputs within modal fields should use this consistent styling:
+ * ```
+ * style={{
+ *   borderRadius: "8px",
+ *   backgroundColor: "rgba(255, 255, 255, 1)",
+ *   borderColor: "rgba(229, 229, 229, 1)",  // or error color
+ *   borderStyle: "solid",
+ *   borderWidth: "1px",  // or "2px" for errors
+ *   padding: "8px 12px",
+ *   fontSize: "16px",
+ *   fontWeight: 400,
+ *   letterSpacing: "-0.32px",
+ *   lineHeight: 1.4,
+ *   fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+ *   width: "100%",
+ *   boxSizing: "border-box",
+ * }}
+ * ```
+ *
+ * This ensures all inputs (text, email, tel, textarea, button-like inputs) have:
+ * - Font family: Geist system fonts
+ * - Font size: 16px
+ * - Letter spacing: -0.32px (tracking)
+ * - Line height: 1.4
+ * - Font weight: 400 (normal)
+ */
+
+/**
  * ModalField - Form field with label
- * 
+ *
  * Consistent field layout matching the design system.
  * Supports custom spacing between fields.
- * 
+ *
  * @param spacing - "default" (20px) or "tight" (12px) spacing after field
  */
 export const ModalField: React.FC<ModalFieldProps> = ({
@@ -220,7 +250,7 @@ export const ModalField: React.FC<ModalFieldProps> = ({
   spacing = "default",
 }) => {
   const marginBottom = spacing === "tight" ? "12px" : "20px";
-  
+
   return (
     <div
       className="flex w-full flex-col"
