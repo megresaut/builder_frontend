@@ -36,23 +36,44 @@ const PopoverContent = React.forwardRef<
           node;
     };
 
+    const rafRef = React.useRef<number[]>([]);
+
     React.useLayoutEffect(() => {
-      // Mount hidden, compute constraints, then reveal (prevents flash at 0,0)
+      // Mount hidden and only reveal after Popper has had a chance to compute coordinates.
+      setIsPositioned(false);
+
       const dialogContents = Array.from(
         document.querySelectorAll<HTMLElement>("[data-ra-dialog-content]"),
       );
       setPortalContainer(dialogContents.length ? dialogContents[dialogContents.length - 1] : null);
-      setIsPositioned(true);
+
+      const raf1 = window.requestAnimationFrame(() => {
+        const raf2 = window.requestAnimationFrame(() => {
+          setIsPositioned(true);
+        });
+        rafRef.current.push(raf2);
+      });
+      rafRef.current.push(raf1);
+
       return () => {
+        rafRef.current.forEach((id) => window.cancelAnimationFrame(id));
+        rafRef.current = [];
         setIsPositioned(false);
         setPortalContainer(null);
       };
     }, []);
 
-    const collisionBoundary =
-      (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).collisionBoundary ??
-      portalContainer ??
-      undefined;
+    const typedProps =
+      props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
+        onPlaced?: () => void;
+      };
+
+    const collisionBoundary = typedProps.collisionBoundary ?? portalContainer ?? undefined;
+
+    const handlePlaced = () => {
+      setIsPositioned(true);
+      typedProps.onPlaced?.();
+    };
 
     return (
       <PopoverPrimitive.Portal container={portalContainer ?? undefined}>
@@ -80,6 +101,7 @@ const PopoverContent = React.forwardRef<
             (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).hideWhenDetached ??
             true
           }
+          onPlaced={handlePlaced}
           style={{
             maxHeight: "calc(100vh - 40px)",
             maxWidth: "calc(100vw - 32px)",
@@ -89,6 +111,8 @@ const PopoverContent = React.forwardRef<
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
             visibility: isPositioned ? "visible" : "hidden",
+            opacity: isPositioned ? 1 : 0,
+            pointerEvents: isPositioned ? "auto" : "none",
           }}
           onWheel={(e) => {
             onWheel?.(e);
