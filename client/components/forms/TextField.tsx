@@ -25,6 +25,7 @@ interface TextFieldProps
  * @param id - HTML id attribute (used in label's "for")
  * @param placeholder - Input placeholder
  * @param disabled - Disable field
+ * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  * @param onChange - Change handler
  * @param value - Field value
  *
