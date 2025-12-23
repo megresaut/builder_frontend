@@ -162,6 +162,7 @@ export default function VendorDetail() {
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
+  const [isFormShowcaseOpen, setIsFormShowcaseOpen] = useState(false);
 
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
