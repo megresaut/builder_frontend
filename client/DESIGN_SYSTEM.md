@@ -36,48 +36,6 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   <Button asChild><a href="/path">Link as Button</a></Button>
   ```
 
-#### Input
-- **File**: `components/ui/input.tsx`
-- **Export**: `Input`
-- **Variants**: None (single style)
-- **Key Styling**: border-input, bg-background, focus ring-ring, placeholder styling
-- **Props**: Standard input attributes
-- **Used In**: Forms, search fields, text entry
-- **Example**:
-  ```tsx
-  <Input placeholder="Enter value" type="text" />
-  ```
-
-#### Textarea
-- **File**: `components/ui/textarea.tsx`
-- **Export**: `Textarea`
-- **Key Styling**: Similar to Input, adapted for multi-line
-- **Props**: Standard textarea attributes
-- **Used In**: Notes, comments, long-form input
-- **Example**:
-  ```tsx
-  <Textarea placeholder="Notes..." rows={4} />
-  ```
-
-#### Label
-- **File**: `components/ui/label.tsx`
-- **Export**: `Label`, `labelVariants`
-- **Variants**: Simple styling with peer-disabled support
-- **Props**: htmlFor association, className
-- **Used In**: Form labels, field labels
-- **Example**:
-  ```tsx
-  <Label htmlFor="email">Email Address</Label>
-  <Input id="email" />
-  ```
-
-#### Form Components (Form Pattern)
-- **File**: `components/ui/form.tsx`
-- **Exports**: `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`
-- **Pattern**: react-hook-form integration with context-based validation
-- **Key Features**: Auto-generates IDs, handles aria attributes, error state
-- **Used In**: Every form with validation
-- **Example**: See [Form Pattern](#form-pattern) section below
 
 #### Dialog
 - **File**: `components/ui/dialog.tsx`
