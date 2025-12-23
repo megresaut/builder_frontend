@@ -104,7 +104,11 @@ export default function AddVendorModal({
   const handleVendorNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVendorName(e.target.value);
     if (errors.vendorName && e.target.value.trim()) {
-      setErrors((prev) => ({ ...prev, vendorName: false }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.vendorName;
+        return newErrors;
+      });
     }
   };
   return (
