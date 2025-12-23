@@ -97,6 +97,7 @@ export const ModalTemplate = React.forwardRef<
       children,
       footer,
       showDivider = true,
+      contentRef,
     },
     ref,
   ) => {
