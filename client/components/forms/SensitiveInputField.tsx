@@ -150,10 +150,10 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
           <input
             ref={ref}
             id={fieldId}
-            type="text"
+            type={isRevealed ? "text" : "password"}
             disabled={disabled || readOnly}
             readOnly={readOnly}
-            value={displayValue}
+            value={value}
             onChange={handleChange}
             placeholder={placeholder}
             style={{
