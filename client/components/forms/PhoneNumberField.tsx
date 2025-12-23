@@ -201,8 +201,8 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
       >
         <div style={{ display: "flex", gap: "8px", alignItems: "stretch" }}>
           <Dropdown
-            open={false}
-            onOpenChange={() => {}}
+            open={countryCodeOpen}
+            onOpenChange={setCountryCodeOpen}
             initialPlacement="bottom"
             minSpaceBelow={300}
             syncTriggerWidth={false}
