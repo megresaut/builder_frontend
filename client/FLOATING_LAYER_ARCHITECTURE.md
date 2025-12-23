@@ -228,64 +228,137 @@ State dropdown within address fields uses **Popover** primitive:
 
 ## Architecture Benefits
 
-1. **Single Source of Truth** - All floating element logic in one hook
-2. **Consistency** - All dropdowns behave identically
-3. **Maintainability** - Changes to collision detection apply everywhere
-4. **Live Updates** - Dropdowns reposition in real-time as container changes
-5. **Modal Support** - Z-index management keeps dropdowns visible in modals
-6. **A11y** - All accessibility attributes automatically managed
-7. **Reusability** - Hook can be used for tooltips, popovers, etc.
+### Popover-Based Approach (Modern)
+1. **Context-Based Tracking** - Reliable trigger element reference via React Context (no generic selectors)
+2. **ResizeObserver Integration** - Real-time width syncing as trigger changes
+3. **Radix UI Foundation** - Built on battle-tested Radix UI Popover primitive
+4. **Smart Auto-Flip** - Automatically positions above trigger when space below is limited
+5. **Modal Safety** - `containerRef` prop prevents "bleeding" onto other pages
+6. **Consistent Form UX** - All form field dropdowns (SelectField, ComboboxField) behave identically
+7. **Accessible** - Radix UI handles ARIA attributes, focus management
 
-## Collision Detection Algorithm
+### Legacy Approach (Dropdown + useFloatingLayer)
+- Still functional for specialized cases (DatePicker)
+- Useful for dropdowns needing custom positioning logic
+- Can be migrated to Popover as needed
 
-The system checks space availability before placing the dropdown:
+## Collision Detection (Popover)
+
+Radix UI's built-in collision detection with custom configuration:
 
 ```
-if (spaceBelow >= contentHeight + 20) {
-  position = "bottom" (below trigger)
-} else if (spaceAbove >= contentHeight + 20) {
-  position = "top" (above trigger)
-} else {
-  position = "bottom" (default, might clip - constrained by viewport max-height)
+Configuration:
+  avoidCollisions={true}    // Enable collision detection
+  collisionPadding={32}     // Flip when 32px from edge
+  sticky="never"            // Don't stick to boundaries
+  hideWhenDetached={true}   // Auto-close if clipped
+
+Behavior:
+  1. Popover tries to position below trigger (side="bottom")
+  2. Measures space available
+  3. If < 280px (maxHeight) available below:
+     → Flips above trigger (side="top")
+  4. If can't fit in either direction:
+     → Closes automatically (hideWhenDetached)
+```
+
+## Event Monitoring (Popover)
+
+ResizeObserver monitors:
+- Trigger element width changes (for syncTriggerWidth)
+- Reposition on scroll (handled by Radix)
+- Window resize (handled by Radix)
+
+**No manual scroll listeners needed** - Radix handles viewport monitoring.
+
+## Modal Integration
+
+### Default Behavior (Body Portal)
+```tsx
+<Popover>
+  <PopoverTrigger>Open</PopoverTrigger>
+  <PopoverContent>
+    {/* Renders to document.body via Portal */}
+  </PopoverContent>
+</Popover>
+```
+
+**Issue**: May bleed onto adjacent pages if not careful
+
+### Modal-Safe Behavior (Container Portal)
+```tsx
+const modalRef = useRef<HTMLDivElement>(null);
+
+<div ref={modalRef} className="modal-dialog">
+  <Popover containerRef={modalRef}>
+    <PopoverTrigger>Open</PopoverTrigger>
+    <PopoverContent>
+      {/* Renders inside modalRef container */}
+      {/* Clipped by modal boundaries, never bleeds */}
+    </PopoverContent>
+  </Popover>
+</div>
+```
+
+**Benefits**:
+- Popover stays within modal bounds
+- Auto-closes if clipped by modal edges
+- No z-index conflicts with other pages
+
+## Creating New Dropdown Fields
+
+### Using Popover (Recommended)
+
+```tsx
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { FieldShell } from "./FieldShell";
+
+export function CustomSelectField({ label, options, value, onChange, ...props }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <FieldShell label={label} {...props}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger>{value || "Select..."}</PopoverTrigger>
+        <PopoverContent syncTriggerWidth={true}>
+          {options.map(opt => (
+            <div key={opt.value} onClick={() => onChange(opt.value)}>
+              {opt.label}
+            </div>
+          ))}
+        </PopoverContent>
+      </Popover>
+    </FieldShell>
+  );
 }
 ```
 
-The 20px buffer ensures visual separation from viewport edge.
+**Why Popover?**
+- ✅ Works with FieldShell for consistent styling
+- ✅ Auto-flip and collision detection out-of-box
+- ✅ Modal-safe with `containerRef`
+- ✅ Simpler than Dropdown for form fields
 
-## Event Monitoring
-
-Real-time repositioning listens to:
-- `ResizeObserver` - Content or trigger size changes
-- Scroll events on all parent containers
-- Window resize events
-- Detects scroll parents up to 5 levels up
-
-## Extending for New Dropdowns
-
-To create a new dropdown type (e.g., custom Autocomplete):
+### Using Dropdown (Legacy)
 
 ```tsx
 import { Dropdown } from "@/components/ui/dropdown";
 
-export function AutocompleteField({ options, ...props }) {
+export function CustomField({ options, value, onChange }) {
   const [open, setOpen] = useState(false);
-  
+
   return (
-    <Dropdown 
-      open={open} 
-      onOpenChange={setOpen}
-      minSpaceBelow={300}
-      syncTriggerWidth
-    >
-      <Dropdown.Trigger>
-        {/* Your input or button */}
-      </Dropdown.Trigger>
+    <Dropdown open={open} onOpenChange={setOpen} syncTriggerWidth>
+      <Dropdown.Trigger>{value || "Select..."}</Dropdown.Trigger>
       <Dropdown.Content>
-        {/* Your menu options */}
+        {options.map(opt => (...))}
       </Dropdown.Content>
     </Dropdown>
   );
 }
 ```
 
-The floating layer handles all positioning and collision detection automatically.
+**When to use Dropdown:**
+- ❌ Not recommended for new form fields
+- ✅ DatePicker (calendar positioning is specialized)
+- ✅ Custom cases requiring useFloatingLayer behavior
