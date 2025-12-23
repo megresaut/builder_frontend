@@ -223,7 +223,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
           id={fieldId}
           disabled={disabled}
           style={{
-            borderColor: error ? "#ef4444" : "var(--color-border-light)",
+            borderColor: error ? "#ef4444" : open ? "#000000" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
             minHeight: "44px",
             height: "auto",
