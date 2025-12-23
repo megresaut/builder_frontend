@@ -139,6 +139,21 @@ export const DatePicker = ({
     };
   }, [showCalendar]);
 
+  // Calculate whether to show calendar above or below
+  useEffect(() => {
+    if (showCalendar && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const calendarHeight = 280; // Approximate height of calendar
+
+      if (spaceBelow < calendarHeight + 20) {
+        setPositionAbove(true);
+      } else {
+        setPositionAbove(false);
+      }
+    }
+  }, [showCalendar]);
+
   // Handle ESC key
   useEffect(() => {
     const handleEscapeKey = (e: KeyboardEvent) => {
