@@ -84,6 +84,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   emptyMessage = "No results found",
 }) => {
   const [open, setOpen] = useState(false);
+  const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
   const selectedLabel = options.find((opt) => opt.value === value)?.label || placeholder;
@@ -101,6 +102,11 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
         <PopoverTrigger asChild>
           <Button
             id={fieldId}
+            ref={(el) => {
+              if (el && !triggerWidth) {
+                setTriggerWidth(el.offsetWidth);
+              }
+            }}
             variant="outline"
             role="combobox"
             aria-expanded={open}
@@ -115,6 +121,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
               color: value ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
               fontWeight: 400,
               opacity: disabled ? 0.6 : 1,
+              width: "100%",
             }}
           >
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -123,7 +130,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0" style={{ width: "auto" }}>
+        <PopoverContent className="p-0" style={{ width: triggerWidth ? `${triggerWidth}px` : "auto" }}>
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
             <CommandEmpty>{emptyMessage}</CommandEmpty>
