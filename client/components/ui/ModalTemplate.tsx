@@ -56,6 +56,10 @@ interface ModalButtonsProps {
  * - Content area
  * - Optional footer with actions
  *
+ * Behavior:
+ * - The underlying <Modal> container is capped to 85vh and scrolls vertically
+ *   (rather than expanding beyond the viewport).
+ *
  * This ensures consistency across all modals in the app.
  */
 export const ModalTemplate = React.forwardRef<
