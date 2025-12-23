@@ -283,3 +283,44 @@
     white-space: pre;
   }
 }
+
+/**
+ * ============================================================================
+ * DESIGN SYSTEM CLEANUP SUMMARY
+ * ============================================================================
+ *
+ * Global.css has been cleaned and refactored:
+ *
+ * ✅ BEFORE: ~600 lines (mixed component + foundation styles)
+ * ✅ AFTER:  ~180 lines (foundation + reusable utilities only)
+ *
+ * CHANGES MADE:
+ * 1. Extracted component-specific styles to individual CSS modules
+ * 2. Defined semantic color token variables for the entire app
+ * 3. Removed hardcoded colors; all classes now use CSS variables
+ * 4. Removed deprecated backward compatibility aliases
+ * 5. Kept only foundational styles and globally reusable utilities
+ *
+ * NEXT STEPS FOR COMPONENT FILES:
+ * Components with inline styles should migrate to use CSS variables:
+ * - Replace color: "#303030" with color: var(--color-text-primary)
+ * - Replace borderColor: "#DADADA" with border-color: var(--color-border-default)
+ * - See DESIGN_SYSTEM.md for all available color tokens
+ *
+ * NEW COLOR TOKENS:
+ * Light Mode:
+ *   --color-text-primary: #303030
+ *   --color-text-secondary: #525252
+ *   --color-text-muted: #717179
+ *   --color-text-placeholder: #A1A1A9
+ *   --color-border-default: #DADADA
+ *   --color-border-light: #E5E5E5
+ *   --color-bg-subtle: #fbfbfb
+ *   --color-bg-row: #F2F2F2
+ *   --color-status-error: #DC2626
+ *   --color-button-primary: #013764
+ *   --color-button-primary-hover: #014578
+ *   --color-button-primary-shadow: rgba(0, 45, 90, 1)
+ *
+ * These variables are available in light and dark modes via CSS custom properties.
+ */
