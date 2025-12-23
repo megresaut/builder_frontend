@@ -31,7 +31,7 @@ export default function AddVendorModal({
   const [phone, setPhone] = useState("");
   const [servicesProvided, setServicesProvided] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
-  const [errors, setErrors] = useState<{ vendorName?: boolean }>({});
+  const [errors, setErrors] = useState<{ vendorName?: string }>({});
   const [showServicesList, setShowServicesList] = useState(false);
   const [serviceSearchQuery, setServiceSearchQuery] = useState("");
 
