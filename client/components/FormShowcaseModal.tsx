@@ -140,6 +140,7 @@ export function FormShowcaseModal({
                 placeholder="vendor@example.com"
                 value={email}
                 onChange={setEmail}
+                onValidationChange={setIsEmailValid}
                 error={errors.email}
               />
             </FieldRowItem>
