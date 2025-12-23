@@ -237,22 +237,12 @@ ModalText.displayName = "ModalText";
  * - Font weight: 400 (normal)
  * - Text color: #303030
  *
- * For placeholder-like text (non-input elements that display placeholder values),
- * use inline styles matching the input styling:
- * ```
- * <span style={{
- *   color: "#303030",
- *   fontSize: "16px",
- *   fontWeight: 400,
- *   letterSpacing: "-0.32px",
- *   lineHeight: 1.4,
- *   fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
- * }}>
- *   Placeholder text
- * </span>
- * ```
+ * Note: for standard <input> and <textarea> elements inside a `.ra-modal`, both
+ * the field text color and placeholder color are enforced to `#303030` via
+ * global CSS (see `code/client/global.css`).
  *
- * This ensures visual consistency between actual inputs and input-like elements.
+ * For placeholder-like text (non-input elements that display placeholder values),
+ * match the same font + color (e.g. via `.ra-input-placeholder`).
  */
 
 /**
