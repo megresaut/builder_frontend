@@ -44,7 +44,7 @@ export default function AddVendorModal({
       setNotes("");
       setErrors({});
       setShowServicesList(false);
-      setFilteredServices(availableServices);
+      setServiceSearchQuery("");
     }
   }, [open]);
 
