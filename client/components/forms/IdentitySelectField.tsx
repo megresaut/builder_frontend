@@ -208,7 +208,12 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
     >
       <Dropdown
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setSearchText("");
+          }
+        }}
         initialPlacement="bottom"
         minSpaceBelow={320}
         offset={8}
