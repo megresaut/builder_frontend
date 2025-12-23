@@ -26,6 +26,7 @@ export { NumberField } from "./NumberField";
 export { CurrencyField } from "./CurrencyField";
 export { DateField } from "./DateField";
 export { SelectField } from "./SelectField";
+export { SelectFieldV2 } from "./SelectFieldV2";
 export { ComboboxField } from "./ComboboxField";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
 
