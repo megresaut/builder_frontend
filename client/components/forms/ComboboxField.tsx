@@ -41,6 +41,20 @@ interface ComboboxFieldProps {
  * Composed of FieldShell + Dropdown primitive + Command for search + consistent styling.
  * Supports searching within large option lists (vendor, property, GL account).
  *
+ * Features:
+ * - Search input inside dropdown for filtering options
+ * - Selected state indicator with checkmark
+ * - Optional "Create new" option for creating items not in list
+ * - Min/max dropdown height with scrollable content
+ * - Arrow key navigation, typeahead search, Enter/Escape support (via Command)
+ * - Clear error messaging
+ *
+ * Keyboard Interactions:
+ * - Type: Filter options in real-time
+ * - ArrowDown/ArrowUp: Navigate options
+ * - Enter: Select highlighted option or create new
+ * - Escape: Close dropdown
+ *
  * @param label - Field label (required)
  * @param required - Show required asterisk
  * @param description - Helper text
@@ -53,14 +67,18 @@ interface ComboboxFieldProps {
  * @param searchPlaceholder - Placeholder text in search input (default: "Search...")
  * @param options - Array of {value, label} options
  * @param emptyMessage - Message when no options match search (default: "No results found")
+ * @param creatable - Enable "Create new" option (default: false)
+ * @param onCreateNew - Callback when user creates a new item (receives search term)
  *
  * Example:
  * ```tsx
  * <ComboboxField
  *   label="Vendor"
  *   required
+ *   creatable
  *   value={vendorId}
  *   onChange={setVendorId}
+ *   onCreateNew={(name) => createVendor(name)}
  *   error={errors.vendor}
  *   placeholder="Select vendor"
  *   options={vendors.map(v => ({ value: v.id, label: v.name }))}
