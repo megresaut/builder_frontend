@@ -144,6 +144,14 @@ export const AddressField: React.FC<AddressFieldProps> = ({
           disabled={disabled}
           style={inputBaseStyle}
         />
+        <input
+          type="text"
+          value={value.street2 || ""}
+          onChange={(e) => handleStreet2Change(e.target.value)}
+          placeholder="Street Address 2 (Apt, Suite, etc.)"
+          disabled={disabled}
+          style={inputBaseStyle}
+        />
         <div className="flex gap-3">
           <input
             type="text"
@@ -157,7 +165,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
             value={value.state}
             onChange={(e) => handleStateChange(e.target.value)}
             disabled={disabled}
-            style={{ ...inputBaseStyle, flex: 0.5 }}
+            style={{ ...selectStyle, flex: 0.5 }}
           >
             <option value="">State</option>
             {US_STATES.map((state) => (
