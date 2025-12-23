@@ -244,67 +244,15 @@ export default function AddPropertyModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <div>
-                <label className="text-sm font-medium text-[#303030] block mb-2">
-                  Property Manager <span className="text-red-600">*</span>
-                </label>
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
-                    {selectedManagers.map((manager) => (
-                      <div
-                        key={manager.id}
-                        className="flex items-center gap-2 bg-white rounded-full border border-[#2463EB] px-3 py-1.5"
-                      >
-                        <div className="w-5 h-5 rounded-full bg-[#2463EB] flex items-center justify-center">
-                          <span className="text-white font-semibold text-[9px]">
-                            {manager.initials}
-                          </span>
-                        </div>
-                        <span className="text-sm text-[#303030]">
-                          {manager.name}
-                        </span>
-                        <button
-                          onClick={() => toggleManager(manager)}
-                          className="text-[#2463EB] hover:opacity-70 ml-1"
-                          type="button"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-1 max-h-40 overflow-y-auto">
-                    {AVAILABLE_MANAGERS.map((manager) => {
-                      const isSelected = selectedManagers.some(
-                        (m) => String(m.id) === String(manager.id)
-                      );
-                      return (
-                        <button
-                          key={manager.id}
-                          onClick={() => toggleManager(manager)}
-                          className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-100 rounded transition-colors text-left"
-                          type="button"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-[#2463EB] flex items-center justify-center">
-                              <span className="text-white font-semibold text-[10px]">
-                                {manager.initials}
-                              </span>
-                            </div>
-                            <span className="text-sm text-[#303030]">
-                              {manager.name}
-                            </span>
-                          </div>
-                          {isSelected && <Check className="w-4 h-4 text-[#2463EB]" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {errors.managers && (
-                    <p className="text-sm text-red-600">{errors.managers}</p>
-                  )}
-                </div>
-              </div>
+              <MultiSelectField
+                label="Property Manager"
+                required
+                value={selectedManagers}
+                onChange={setSelectedManagers}
+                placeholder="Select managers"
+                options={AVAILABLE_MANAGERS}
+                error={errors.managers}
+              />
             </FieldRowItem>
           </FieldRow>
 
