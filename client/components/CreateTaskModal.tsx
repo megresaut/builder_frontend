@@ -273,12 +273,6 @@ export default function CreateTaskModal({
           onConfirm={handleSubmit}
           cancelLabel="Cancel"
           confirmLabel={editData ? "Update Task" : "Create Task"}
-          confirmDisabled={
-            !property.trim() ||
-            !title.trim() ||
-            !dueDate.trim() ||
-            selectedAssignees.length === 0
-          }
         />
       }
     >
