@@ -116,20 +116,12 @@ export default function CreateFTOModal({
         });
       }
 
-      if (showAssigneeDropdown && assigneeButtonRef.current) {
-        const rect = assigneeButtonRef.current.getBoundingClientRect();
-        setAssigneeDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showCalendar || showAssigneeDropdown) {
+      if (showCalendar) {
         animationFrameId = requestAnimationFrame(updatePositions);
       }
     };
 
-    if (showCalendar || showAssigneeDropdown) {
+    if (showCalendar) {
       updatePositions();
     }
 
@@ -138,7 +130,7 @@ export default function CreateFTOModal({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showCalendar, showAssigneeDropdown]);
+  }, [showCalendar]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,46 +143,15 @@ export default function CreateFTOModal({
           setShowCalendar(false);
         }
       }
-
-      if (showAssigneeDropdown) {
-        const isClickInButton = assigneeButtonRef.current?.contains(target);
-        const isClickInDropdown = assigneeDropdownRef.current?.contains(target);
-        if (!isClickInButton && !isClickInDropdown) {
-          setShowAssigneeDropdown(false);
-        }
-      }
     };
 
-    if (showCalendar || showAssigneeDropdown) {
+    if (showCalendar) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [showCalendar, showAssigneeDropdown]);
-
-  const toggleAssignee = (assignee: Assignee) => {
-    setSelectedAssignees((prev) => {
-      const isSelected = prev.some((a) => a.id === assignee.id);
-      let newAssignees;
-      if (isSelected) {
-        newAssignees = prev.filter((a) => a.id !== assignee.id);
-      } else {
-        newAssignees = [...prev, assignee];
-      }
-      if (errors.selectedAssignees && newAssignees.length > 0) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          selectedAssignees: false,
-        }));
-      }
-      return newAssignees;
-    });
-  };
-
-  const removeAssignee = (assigneeId: string) => {
-    setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
-  };
+  }, [showCalendar]);
 
   const handleDateSelect = (day: number) => {
     const selected = new Date(
