@@ -34,6 +34,9 @@ export { ComboboxField } from "./ComboboxField";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
 export { EmailField } from "./EmailField";
 export { PhoneNumberField } from "./PhoneNumberField";
+export { AddressField, type AddressValue } from "./AddressField";
+export { IdentitySelectField, type IdentityOption } from "./IdentitySelectField";
+export { FileUploadField } from "./FileUploadField";
 
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";
