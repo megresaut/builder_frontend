@@ -222,6 +222,10 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
         <Dropdown.Trigger
           id={fieldId}
           disabled={disabled}
+          onClick={(e) => {
+            if (disabled) return;
+            e.preventDefault();
+          }}
           style={{
             borderColor: error ? "#ef4444" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
@@ -241,6 +245,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             border: "solid",
             opacity: disabled ? 0.6 : 1,
             justifyContent: "space-between",
+            pointerEvents: disabled ? "none" : "auto",
           }}
         >
           <div className="flex items-center gap-2 flex-wrap flex-1">
