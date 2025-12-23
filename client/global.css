@@ -161,7 +161,8 @@
 
   /* Table header cell - sticky sorting support */
   .ra-table-header-cell {
-    @apply px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative;
+    @apply px-3 py-3 text-left whitespace-nowrap cursor-pointer transition-colors relative;
+    border-right: 1px solid var(--color-border-light);
   }
 
   .ra-table-header-icon {
@@ -169,29 +170,35 @@
   }
 
   .ra-table-header-label {
-    @apply font-medium text-sm text-gray-700;
+    @apply font-medium text-sm;
+    color: var(--color-text-primary);
   }
 
   .ra-table-sort-indicator {
-    @apply text-xs font-bold text-gray-700 ml-1;
+    @apply text-xs font-bold ml-1;
+    color: var(--color-text-primary);
   }
 
   /* Table action column (sticky right) */
   .ra-table-actions-header {
-    @apply sticky right-0 px-2 py-3 text-center w-20 font-medium text-sm text-gray-700;
+    @apply sticky right-0 px-2 py-3 text-center w-20 font-medium text-sm;
+    color: var(--color-text-primary);
   }
 
   .ra-table-actions-label {
-    @apply font-medium text-sm text-gray-700;
+    @apply font-medium text-sm;
+    color: var(--color-text-primary);
   }
 
   /* Table row - hover highlight */
   .ra-table-row {
-    @apply border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer;
+    @apply h-12 cursor-pointer transition-colors;
+    border-bottom: 1px solid var(--color-border-light);
   }
 
   .ra-table-cell {
-    @apply px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible;
+    @apply px-3 py-3 whitespace-nowrap overflow-visible;
+    border-right: 1px solid var(--color-border-light);
   }
 
   .ra-table-actions-cell {
@@ -199,20 +206,24 @@
   }
 
   .ra-table-actions-button {
-    @apply flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors;
+    @apply flex h-7 w-7 items-center justify-center rounded-md transition-colors;
+    border: 1px solid var(--color-border-light);
+    background-color: var(--color-bg-subtle);
   }
 
   /* Pagination controls - bottom of table */
   .ra-table-pagination {
-    @apply flex justify-between items-center px-6 py-4 bg-white gap-4 relative;
+    @apply flex justify-between items-center px-6 py-4 gap-4 relative bg-white;
   }
 
   .ra-table-pagination-label {
-    @apply text-gray-700 text-sm font-medium;
+    @apply text-sm font-medium;
+    color: var(--color-text-primary);
   }
 
   .ra-table-pagination-total {
-    @apply text-gray-700 text-sm font-medium;
+    @apply text-sm font-medium;
+    color: var(--color-text-primary);
   }
 
   .ra-table-pagination-controls {
@@ -220,7 +231,9 @@
   }
 
   .ra-table-page-size-button {
-    @apply flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative;
+    @apply flex items-center justify-center gap-2 h-10 px-3 rounded-lg bg-white transition-colors font-medium text-sm relative;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-default);
   }
 
   .ra-table-page-size-menu {
@@ -234,10 +247,12 @@
   .ra-table-prev-button,
   .ra-table-next-button {
     @apply flex items-center justify-center gap-1.5 h-10 px-3 transition-colors;
+    color: var(--color-text-primary);
   }
 
   .ra-table-pagination-page {
     @apply flex items-center justify-center h-10 min-w-10 transition-colors font-medium text-sm;
+    color: var(--color-text-primary);
   }
 
   /* Action/context dropdown menu */
@@ -280,15 +295,15 @@
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
   }
 
-  /* Modal field text + placeholder text should default to #303030 */
+  /* Modal field text + placeholder text should default to primary text color */
   .ra-modal input,
   .ra-modal textarea {
-    color: #303030;
+    color: var(--color-text-primary);
   }
 
   .ra-modal input::placeholder,
   .ra-modal textarea::placeholder {
-    color: #303030;
+    color: var(--color-text-primary);
     opacity: 1;
   }
 
@@ -318,7 +333,8 @@
   }
 
   .ra-modal-header-wrapper {
-    @apply flex w-full flex-col text-2xl text-[#303030] font-semibold;
+    @apply flex w-full flex-col text-2xl font-semibold;
+    color: var(--color-text-primary);
     line-height: 1.08;
   }
 
@@ -347,7 +363,10 @@
 
   /* Secondary action button (Cancel) */
   .ra-modal-cancel-btn {
-    @apply rounded-lg bg-[#fbfbfb] border border-[#dadada] flex self-stretch my-auto min-h-9 px-3 py-[7px] items-center gap-2 text-[#303030] font-normal cursor-pointer hover:bg-gray-100 transition-colors;
+    @apply rounded-lg flex self-stretch my-auto min-h-9 px-3 py-[7px] items-center gap-2 font-normal cursor-pointer transition-colors;
+    background-color: var(--color-bg-subtle);
+    border: 1px solid var(--color-border-default);
+    color: var(--color-text-primary);
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03);
     letter-spacing: -0.32px;
     line-height: 1.4;
@@ -355,8 +374,13 @@
 
   /* Primary action button (Save/Create) */
   .ra-modal-save-btn {
-    @apply rounded-lg bg-[#013764] flex self-stretch my-auto min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium cursor-pointer hover:bg-[#014578] transition-colors;
-    box-shadow: 0px 0px 0px 1px rgba(0, 45, 90, 1);
+    @apply rounded-lg flex self-stretch my-auto min-h-9 px-3 py-2 items-center gap-2 overflow-hidden text-white font-medium cursor-pointer transition-colors;
+    background-color: var(--color-button-primary);
+    box-shadow: 0px 0px 0px 1px var(--color-button-primary-shadow);
+  }
+
+  .ra-modal-save-btn:hover {
+    background-color: var(--color-button-primary-hover);
   }
 
   /**
@@ -401,7 +425,10 @@
    * Used for: Cancel, secondary actions throughout app
    */
   .grey-button {
-    @apply rounded-lg bg-[#fbfbfb] border border-[#dadada] flex items-center gap-2 text-[#303030] font-normal cursor-pointer hover:bg-gray-100 transition-colors;
+    @apply rounded-lg flex items-center gap-2 font-normal cursor-pointer transition-colors;
+    background-color: var(--color-bg-subtle);
+    border: 1px solid var(--color-border-default);
+    color: var(--color-text-primary);
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03);
     padding: 7px 12px;
     font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
@@ -418,7 +445,17 @@
    * Features: Inline calendar, respects overflow boundaries, ESC support
    */
   .ra-date-picker-input {
-    @apply rounded-lg bg-white border mt-2 w-full px-3 py-2 pr-10 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] border-[#E5E5E5] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply rounded-lg bg-white mt-2 w-full px-3 py-2 pr-10 text-base font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-light);
+  }
+
+  .ra-date-picker-input::placeholder {
+    color: var(--color-text-placeholder);
+  }
+
+  .ra-date-picker-input:focus {
+    border-color: #3b82f6;
   }
 
   .ra-date-picker-input--error {
@@ -427,7 +464,8 @@
 
   /* Calendar icon (absolute positioned in input container) */
   .ra-date-picker-icon {
-    @apply absolute right-2 top-[55%] -translate-y-1/2 w-4 h-4 text-[#717179] pointer-events-none;
+    @apply absolute right-2 top-[55%] -translate-y-1/2 w-4 h-4 pointer-events-none;
+    color: var(--color-text-muted);
   }
 
   /* Calendar panel (extends .ra-floating-panel) */
@@ -447,7 +485,8 @@
   }
 
   .ra-date-picker-month-label {
-    @apply text-sm font-medium text-[#303030];
+    @apply text-sm font-medium;
+    color: var(--color-text-primary);
   }
 
   /* Days-of-week header (Sun-Sat) */
@@ -457,7 +496,8 @@
   }
 
   .ra-date-picker-weekday {
-    @apply w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8b8d8d];
+    @apply w-8 h-8 flex items-center justify-center text-xs font-medium;
+    color: var(--color-text-muted);
   }
 
   /* Calendar day grid */
@@ -468,7 +508,8 @@
 
   /* Individual day button */
   .ra-date-picker-day {
-    @apply w-8 h-8 flex items-center justify-center text-xs rounded transition-colors text-[#303030] hover:bg-gray-100 disabled:text-transparent disabled:cursor-default;
+    @apply w-8 h-8 flex items-center justify-center text-xs rounded transition-colors disabled:text-transparent disabled:cursor-default;
+    color: var(--color-text-primary);
   }
 
   /* Selected day state */
@@ -524,7 +565,7 @@
     font-weight: 400;
     letter-spacing: -0.32px;
     line-height: 1.4;
-    color: #303030;
+    color: var(--color-text-primary);
   }
 
   /**
