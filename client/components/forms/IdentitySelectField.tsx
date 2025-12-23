@@ -217,6 +217,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
       >
         <PopoverTrigger asChild>
           <button
+          type="button"
           id={fieldId}
           disabled={disabled}
           style={{
