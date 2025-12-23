@@ -145,22 +145,34 @@ export default function AddVendorModal({
         </FieldShell>
       </ModalField>
 
-      <ModalField label="Primary Email" spacing="tight">
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="vendor@example.com"
-        />
+      <ModalField spacing="tight">
+        <FieldShell
+          label="Primary Email"
+          htmlFor="primary-email"
+        >
+          <Input
+            id="primary-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="vendor@example.com"
+          />
+        </FieldShell>
       </ModalField>
 
-      <ModalField label="Vendor Phone Number" spacing="tight">
-        <Input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="(123) 456-7890"
-        />
+      <ModalField spacing="tight">
+        <FieldShell
+          label="Vendor Phone Number"
+          htmlFor="vendor-phone"
+        >
+          <Input
+            id="vendor-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="(123) 456-7890"
+          />
+        </FieldShell>
       </ModalField>
 
       <ModalField label="Services Provided" spacing="tight">
