@@ -741,7 +741,7 @@ export default function Bills() {
                 >
                   <path d="M5 12h14M12 5v14" style={{ marginTop: "-2px" }} />
                 </svg>
-                <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
+                <span className="font-normal text-sm leading-[22.4px]" style={{ color: "var(--color-text-primary)" }}>
                   Add Vendor
                 </span>
               </button>
