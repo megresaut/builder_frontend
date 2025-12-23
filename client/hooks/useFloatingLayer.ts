@@ -66,10 +66,6 @@ export function useFloatingLayer({
   const triggerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLElement>(null);
 
-  // Once we flip away from the initial placement while open, we lock it
-  // to prevent jitter (top↔bottom) during scroll/resize.
-  const lockedPlacementRef = useRef<Placement | null>(null);
-
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
@@ -167,14 +163,11 @@ export function useFloatingLayer({
       newPlacement = initialPlacement;
     }
 
-    // If we ever flip away from the initial placement while open, lock it.
-    if (lockedPlacementRef.current) {
-      newPlacement = lockedPlacementRef.current;
-    } else if (newPlacement !== initialPlacement) {
-      lockedPlacementRef.current = newPlacement;
-    }
-
-    setPlacement((prev) => (prev === newPlacement ? prev : newPlacement));
+    setPlacement((prev) => {
+      // Freeze once we flip away from the initial placement (prevents jitter).
+      if (prev !== initialPlacement) return prev;
+      return prev === newPlacement ? prev : newPlacement;
+    });
 
     let newAlign: Align = initialAlign;
     if (initialAlign === "start") {
@@ -215,7 +208,6 @@ export function useFloatingLayer({
 
   useEffect(() => {
     if (!open) {
-      lockedPlacementRef.current = null;
       setPlacement((prev) => (prev === initialPlacement ? prev : initialPlacement));
       setAlign((prev) => (prev === initialAlign ? prev : initialAlign));
       setWidthValue((prev) => (prev === undefined ? prev : undefined));
@@ -287,10 +279,30 @@ export function useFloatingLayer({
     }
 
     left = clamp(left, margin, window.innerWidth - contentWidth - margin);
+    // Clamp to viewport, but never "cross" the trigger to the opposite side.
+    // If there isn't enough space on the chosen side, we prefer preserving the
+    // 8px gap to the trigger over forcing it inside the viewport.
     if (contentHeight > 0) {
-      top = clamp(top, margin, window.innerHeight - contentHeight - margin);
+      const viewportMinTop = margin;
+      const viewportMaxTop = window.innerHeight - contentHeight - margin;
+
+      if (placement === "bottom") {
+        const minTop = triggerRect.bottom + offset;
+        if (viewportMaxTop < Math.max(viewportMinTop, minTop)) {
+          top = minTop;
+        } else {
+          top = clamp(top, Math.max(viewportMinTop, minTop), viewportMaxTop);
+        }
+      } else {
+        const maxTop = triggerRect.top - contentHeight - offset;
+        if (maxTop < viewportMinTop) {
+          top = maxTop;
+        } else {
+          top = clamp(top, viewportMinTop, Math.min(viewportMaxTop, maxTop));
+        }
+      }
     } else {
-      top = clamp(top, margin, window.innerHeight - margin);
+      top = placement === "bottom" ? triggerRect.bottom + offset : triggerRect.top - offset;
     }
 
     return {
