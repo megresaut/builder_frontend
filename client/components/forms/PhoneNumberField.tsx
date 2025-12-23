@@ -130,24 +130,41 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
     ref,
   ) => {
     const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+    const [isFocused, setIsFocused] = React.useState(false);
+    const [draftValue, setDraftValue] = React.useState("");
     const [validationError, setValidationError] = React.useState<string>("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange?.(e.target.value);
+      const input = e.target.value;
+      setDraftValue(input);
+      onChange?.(input);
       setValidationError("");
     };
 
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      // Show unformatted value while editing
+      setDraftValue(value);
+      inputProps.onFocus?.(e);
+    };
+
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      const phoneInput = e.target.value.trim();
+      setIsFocused(false);
+      const phoneInput = draftValue.trim();
 
       if (phoneInput === "") {
         setValidationError("");
+        setDraftValue("");
+        onChange?.("");
         onValidationChange?.(false);
       } else if (!validatePhoneNumber(phoneInput)) {
         setValidationError("Please enter a valid phone number");
         onValidationChange?.(false);
       } else {
         setValidationError("");
+        const formatted = formatPhoneNumber(phoneInput);
+        setDraftValue("");
+        onChange?.(formatted);
         onValidationChange?.(true);
       }
 
@@ -155,6 +172,7 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
     };
 
     const displayError = externalError || validationError;
+    const displayValue = isFocused ? draftValue : value;
 
     return (
       <FieldShell
@@ -170,8 +188,9 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
           id={fieldId}
           type="tel"
           disabled={disabled}
-          value={value}
+          value={displayValue}
           onChange={handleChange}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder={placeholder}
           {...inputProps}
