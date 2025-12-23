@@ -132,6 +132,10 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
     };
   }, [open]);
 
+  const handleTriggerClick = () => {
+    setOpen(!open);
+  };
+
   const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (disabled) return;
 
