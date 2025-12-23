@@ -72,6 +72,8 @@ const PopoverContent = React.forwardRef<
       sideOffset = 8,
       style,
       syncTriggerWidth = true,
+      scrollable = true,
+      maxHeight = "280px",
       ...props
     },
     ref,
