@@ -227,23 +227,21 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
               padding: "4px 0",
             }}
           >
-            {options.length === 0 ? (
+            {filteredOptions.length === 0 ? (
               <div
                 className="px-3 py-2 text-sm"
                 style={{
                   color: "var(--color-text-muted)",
                 }}
               >
-                No options
+                {searchText ? "No matching options" : "No options"}
               </div>
             ) : (
-              options.map((option) => (
+              filteredOptions.map((option, index) => (
                 <button
                   key={option.value}
-                  onClick={() => {
-                    onChange?.(option.value);
-                    setOpen(false);
-                  }}
+                  onClick={() => handleOptionSelect(option.value)}
+                  onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   className={cn(
                     "ra-select-field-v2-option",
                     "w-full px-3 py-2 text-left text-sm",
@@ -251,8 +249,11 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
                     "border-none cursor-pointer",
                     "transition-colors",
                     value === option.value
+                      ? "bg-[rgba(36,99,235,0.15)]"
+                      : "bg-transparent",
+                    highlightedIndex === index
                       ? "bg-[rgba(36,99,235,0.1)]"
-                      : "bg-transparent hover:bg-[rgba(36,99,235,0.08)]"
+                      : "",
                   )}
                   style={{
                     fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
