@@ -164,32 +164,67 @@ Shared UI wrapper with built-in floating layer integration:
 
 ## Field Components Using Primitives
 
-### DatePicker
-**Location:** `code/client/components/ui/date-picker.tsx`
-
-Refactored to use `Dropdown` primitive:
-- Calendar input uses `Dropdown.Trigger` (type="text")
-- Calendar panel uses `Dropdown.Content`
-- Automatically flips above when approaching modal bottom
-- Live updates when container resizes
-
-### ComboboxField
-**Location:** `code/client/components/forms/ComboboxField.tsx`
-
-Refactored to use `Dropdown` primitive:
-- Trigger uses `Dropdown.Trigger` button
-- Search menu uses `Dropdown.Content`
-- Syncs dropdown width to trigger width
-- Supports live repositioning
-
-### SelectField
+### SelectField ⭐ (Popover)
 **Location:** `code/client/components/forms/SelectField.tsx`
 
-Uses Radix UI's `Select` which already includes:
-- Built-in collision detection
-- Automatic side flipping
-- Portal rendering
-- No changes needed - works out of the box
+Uses **Popover** primitive for modern, reliable floating behavior:
+- Trigger renders as styled button with selected value/pills
+- Content uses PopoverContent with trigger-width syncing
+- Keyboard navigation: Arrow keys, Enter to select, Escape to close
+- Typeahead search via single-key filtering
+- Multi-select support with removable pills
+- Auto-flips above trigger when space is limited
+
+**Example:**
+```tsx
+<Popover open={open} onOpenChange={setOpen}>
+  <PopoverTrigger id={fieldId} className={triggerStyles}>
+    {/* Selected value or "Select option" */}
+  </PopoverTrigger>
+  <PopoverContent syncTriggerWidth={true}>
+    {/* Options list with keyboard support */}
+  </PopoverContent>
+</Popover>
+```
+
+### ComboboxField ⭐ (Popover)
+**Location:** `code/client/components/forms/ComboboxField.tsx`
+
+Uses **Popover** primitive with search input:
+- Trigger renders as button with selected label
+- Content wraps search input + filtered options list
+- ResizeObserver tracks trigger width for sync
+- Keyboard navigation through options
+- Escape closes dropdown and clears search
+- Auto-repositioning on scroll/resize
+
+### IdentitySelectField ⭐ (Popover)
+**Location:** `code/client/components/forms/IdentitySelectField.tsx`
+
+Uses **Popover** primitive with rich option rendering:
+- Supports single and multi-select modes
+- Options display avatars, subtitles, tags
+- Trigger-width syncing via PopoverContent
+- Multi-select shows selected items as pills with remove buttons
+- Search filtering across label and subtitle text
+
+### DatePicker (Dropdown)
+**Location:** `code/client/components/ui/date-picker.tsx`
+
+Uses **Dropdown** primitive (legacy but functional):
+- Calendar input uses `Dropdown.Trigger` (type="text")
+- Calendar panel uses `Dropdown.Content`
+- Explicitly sets `syncTriggerWidth={false}` to maintain calendar dimensions
+- Flips above when approaching modal bottom
+- Note: Could be migrated to Popover in future for consistency
+
+### AddressField (Popover)
+**Location:** `code/client/components/forms/AddressField.tsx`
+
+State dropdown within address fields uses **Popover** primitive:
+- Nested popover for state/province selection
+- Tracks trigger (state button) width
+- Fixed-height options list with scrolling
 
 ## Architecture Benefits
 
