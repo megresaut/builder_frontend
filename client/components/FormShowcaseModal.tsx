@@ -18,6 +18,7 @@ import {
   PhoneNumberField,
   AddressField,
   IdentitySelectField,
+  SensitiveInputField,
   FileUploadField,
   FieldRow,
   FieldRowItem,
