@@ -674,12 +674,12 @@ export default function Bills() {
     []
   );
 
-  const headerTabs: BillsPageHeaderTab[] = [
+  const headerTabs: PageHeaderTab[] = [
     { id: "approved", label: "Approved" },
     { id: "drafts", label: "Drafts" },
   ];
 
-  const headerActions: BillsPageHeaderAction[] = [
+  const headerActions: PageHeaderAction[] = [
     {
       id: "add-vendor",
       label: "Add Vendor",
