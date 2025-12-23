@@ -222,10 +222,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
         <Dropdown.Trigger
           id={fieldId}
           disabled={disabled}
-          onClick={(e) => {
-            if (disabled) return;
-            e.preventDefault();
-          }}
           style={{
             borderColor: error ? "#ef4444" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
@@ -248,13 +244,12 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             pointerEvents: disabled ? "none" : "auto",
           }}
         >
-          <div className="flex items-center gap-2 flex-wrap flex-1" style={{ pointerEvents: "auto" }}>
+          <div className="flex items-center gap-2 flex-wrap flex-1">
             {multiple && selectedOptions.length > 0 ? (
               selectedOptions.map((opt) => (
                 <div
                   key={opt.id}
                   className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
-                  style={{ pointerEvents: "auto" }}
                 >
                   {renderAvatar(opt)}
                   <span style={{ fontSize: "12px", color: "var(--color-text-primary)" }}>
