@@ -46,14 +46,50 @@ function clamp(value: number, min: number, max: number) {
 }
 
 /**
+ * findScrollableAncestors - Find all scrollable ancestor elements
+ * Returns array of elements that can scroll (including document/window)
+ */
+function findScrollableAncestors(el: HTMLElement | null): Element[] {
+  const scrollables: Element[] = [];
+  let current = el?.parentElement;
+
+  while (current) {
+    const style = window.getComputedStyle(current);
+    const canScroll =
+      current.scrollHeight > current.clientHeight ||
+      current.scrollWidth > current.clientWidth;
+
+    const hasScrollStyle =
+      style.overflow === "auto" ||
+      style.overflow === "scroll" ||
+      style.overflowY === "auto" ||
+      style.overflowY === "scroll" ||
+      style.overflowX === "auto" ||
+      style.overflowX === "scroll";
+
+    if (canScroll && hasScrollStyle) {
+      scrollables.push(current);
+    }
+
+    current = current.parentElement;
+  }
+
+  // Always include document and window
+  scrollables.push(document.documentElement);
+
+  return scrollables;
+}
+
+/**
  * useFloatingLayer - Manages placement, collision detection, and positioning of floating elements
  *
  * Handles:
- * - Automatic placement flipping (bottom ↔ top) based on available space
- * - Scroll parent detection and monitoring
- * - Real-time repositioning on resize/scroll
+ * - Automatic placement flipping (bottom ↔ top) based on available space (no freezing)
+ * - All scrollable ancestor detection and monitoring
+ * - Real-time repositioning on scroll/resize
  * - Optional width syncing to trigger element
  * - Modal-aware z-index stacking
+ * - Consistent coordinate system (all positions use viewport/fixed coordinates)
  */
 export function useFloatingLayer({
   open,
@@ -72,115 +108,58 @@ export function useFloatingLayer({
   const [scrollParents, setScrollParents] = useState<Element[]>([]);
   const [computedZIndex, setComputedZIndex] = useState(50);
 
-  const findScrollParents = useCallback(() => {
-    const parents: Element[] = [];
-    let element = triggerRef.current?.parentElement;
-
-    while (element) {
-      const style = window.getComputedStyle(element);
-      const isScrollable =
-        (element.scrollHeight > element.clientHeight ||
-          element.scrollWidth > element.clientWidth) &&
-        (style.overflow === "auto" ||
-          style.overflow === "scroll" ||
-          style.overflowY === "auto" ||
-          style.overflowY === "scroll" ||
-          style.overflowX === "auto" ||
-          style.overflowX === "scroll");
-
-      if (isScrollable || element === document.documentElement) {
-        parents.push(element);
-      }
-
-      element = element.parentElement;
-    }
-
-    return parents;
-  }, []);
-
+  /**
+   * calculatePosition - Compute placement (top/bottom) based on available space
+   * This runs on every scroll/resize and can flip placement both directions
+   */
   const calculatePosition = useCallback(() => {
     if (!open || !triggerRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const contentHeight = contentRef.current?.offsetHeight || minSpaceBelow;
 
+    // Calculate available space in viewport
     const spaceBelow = window.innerHeight - triggerRect.bottom;
     const spaceAbove = triggerRect.top;
-    const bufferSpace = 20;
 
-    let containerRect: DOMRect | null = null;
-    let element = triggerRef.current.parentElement;
-    while (element) {
-      const style = window.getComputedStyle(element);
-      const isScrollable =
-        (element.scrollHeight > element.clientHeight ||
-          element.scrollWidth > element.clientWidth) &&
-        (style.overflow === "auto" ||
-          style.overflow === "scroll" ||
-          style.overflowY === "auto" ||
-          style.overflowY === "scroll" ||
-          style.overflowX === "auto" ||
-          style.overflowX === "scroll");
-
-      const isModal =
-        element.getAttribute("role") === "dialog" ||
-        element.getAttribute("role") === "alertdialog" ||
-        element.classList.contains("modal") ||
-        element.classList.contains("dialog") ||
-        element.tagName === "DIALOG";
-
-      if (isScrollable || isModal) {
-        containerRect = element.getBoundingClientRect();
-        break;
-      }
-
-      element = element.parentElement;
-    }
-
-    let wouldExceedBottom = false;
-    let wouldExceedTop = false;
-
-    if (containerRect) {
-      const contentBottomPosition =
-        triggerRect.bottom + offset + contentHeight + bufferSpace;
-      wouldExceedBottom = contentBottomPosition > containerRect.bottom;
-
-      const contentTopPosition =
-        triggerRect.top - offset - contentHeight - bufferSpace;
-      wouldExceedTop = contentTopPosition < containerRect.top;
-    }
-
+    // Decide placement based on available space
+    // Prefer bottom initially, but flip to top if not enough space below
     let newPlacement: Placement = initialPlacement;
-    if (
-      (spaceBelow < contentHeight + offset + bufferSpace &&
-        spaceAbove > contentHeight + offset + bufferSpace) ||
-      wouldExceedBottom
-    ) {
-      newPlacement = "top";
-    } else if (wouldExceedTop) {
-      newPlacement = "bottom";
+
+    if (initialPlacement === "bottom") {
+      // Check if there's enough space below
+      const neededSpaceBelow = contentHeight + offset;
+      if (spaceBelow < neededSpaceBelow && spaceAbove > contentHeight + offset) {
+        newPlacement = "top";
+      } else {
+        newPlacement = "bottom";
+      }
     } else {
-      newPlacement = initialPlacement;
+      // initialPlacement === "top"
+      const neededSpaceAbove = contentHeight + offset;
+      if (spaceAbove < neededSpaceAbove && spaceBelow > contentHeight + offset) {
+        newPlacement = "bottom";
+      } else {
+        newPlacement = "top";
+      }
     }
 
-    setPlacement((prev) => {
-      // Freeze once we flip away from the initial placement (prevents jitter).
-      if (prev !== initialPlacement) return prev;
-      return prev === newPlacement ? prev : newPlacement;
-    });
+    setPlacement(newPlacement);
 
+    // Calculate horizontal alignment
     let newAlign: Align = initialAlign;
     if (initialAlign === "start") {
+      const contentWidth = contentRef.current?.offsetWidth ?? widthValue ?? triggerRect.width;
       const spaceRight = window.innerWidth - triggerRect.left;
-      const contentWidth =
-        contentRef.current?.offsetWidth || widthValue || triggerRect.width;
 
+      // If not enough space on right, try to shift left
       if (spaceRight < contentWidth && triggerRect.right < window.innerWidth) {
         newAlign = "end";
       }
     }
     setAlign(newAlign);
 
+    // Sync width to trigger if requested
     if (triggerWidth) {
       const nextWidth = Math.round(triggerRect.width);
       setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
@@ -188,12 +167,9 @@ export function useFloatingLayer({
       setWidthValue(undefined);
     }
 
+    // Calculate z-index based on ancestors
     const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
     setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
-
-    if (scrollParents.length === 0) {
-      setScrollParents(findScrollParents());
-    }
   }, [
     open,
     initialPlacement,
@@ -201,57 +177,89 @@ export function useFloatingLayer({
     minSpaceBelow,
     triggerWidth,
     widthValue,
-    scrollParents.length,
-    findScrollParents,
     offset,
   ]);
 
+  /**
+   * Setup scroll listeners on all scrollable ancestors
+   * This ensures position updates whenever ANY ancestor scrolls
+   */
   useEffect(() => {
     if (!open) {
-      setPlacement((prev) => (prev === initialPlacement ? prev : initialPlacement));
-      setAlign((prev) => (prev === initialAlign ? prev : initialAlign));
-      setWidthValue((prev) => (prev === undefined ? prev : undefined));
-      setScrollParents((prev) => (prev.length === 0 ? prev : []));
-      setComputedZIndex((prev) => (prev === 50 ? prev : 50));
+      setPlacement(initialPlacement);
+      setAlign(initialAlign);
+      setWidthValue(undefined);
+      setScrollParents([]);
+      setComputedZIndex(50);
       return;
     }
 
-    const resizeObserver = new ResizeObserver(calculatePosition);
-    const scrollHandler = () => calculatePosition();
+    // Find all scrollable ancestors
+    const scrollables = findScrollableAncestors(triggerRef.current);
+    setScrollParents(scrollables);
 
+    // ResizeObserver to detect content size changes
+    const resizeObserver = new ResizeObserver(() => {
+      calculatePosition();
+    });
+
+    // Observe trigger (in case it changes size)
     if (triggerRef.current) {
       resizeObserver.observe(triggerRef.current);
     }
+
+    // Observe content (in case it changes size)
     if (contentRef.current) {
       resizeObserver.observe(contentRef.current);
     }
 
-    let parent = triggerRef.current?.parentElement;
+    // Observe a few ancestor levels (for container resizes)
+    let ancestor = triggerRef.current?.parentElement;
     let depth = 0;
-    while (parent && depth < 5) {
-      resizeObserver.observe(parent);
-      parent = parent.parentElement;
+    while (ancestor && depth < 6) {
+      resizeObserver.observe(ancestor);
+      ancestor = ancestor.parentElement;
       depth++;
     }
 
-    scrollParents.forEach((parentEl) => {
-      parentEl.addEventListener("scroll", scrollHandler, true);
-    });
-    document.addEventListener("scroll", scrollHandler, true);
-    window.addEventListener("resize", calculatePosition);
+    // Scroll handler - recompute position on every scroll
+    const handleScroll = () => {
+      calculatePosition();
+    };
 
+    // Listen to scroll on all scrollable ancestors (capture phase for reliability)
+    scrollables.forEach((scrollable) => {
+      scrollable.addEventListener("scroll", handleScroll, { capture: true });
+    });
+
+    // Also listen to window resize
+    const handleResize = () => {
+      calculatePosition();
+    };
+    window.addEventListener("resize", handleResize);
+
+    // Initial position calculation
     calculatePosition();
 
+    // Cleanup
     return () => {
       resizeObserver.disconnect();
-      scrollParents.forEach((parentEl) => {
-        parentEl.removeEventListener("scroll", scrollHandler, true);
+      scrollables.forEach((scrollable) => {
+        scrollable.removeEventListener("scroll", handleScroll, { capture: true });
       });
-      document.removeEventListener("scroll", scrollHandler, true);
-      window.removeEventListener("resize", calculatePosition);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [open, calculatePosition, scrollParents]);
+  }, [open, calculatePosition, initialPlacement, initialAlign]);
 
+  /**
+   * getPositionStyle - Convert trigger position to fixed coordinates for the dropdown
+   * 
+   * Uses viewport-based coordinates (position: fixed) since content is portaled to body.
+   * Anchors the dropdown to the trigger:
+   * - Bottom placement: y = trigger.bottom + offset
+   * - Top placement: y = trigger.top - contentHeight - offset
+   * - Horizontal: aligned based on trigger position and content width
+   */
   const getPositionStyle = useCallback((): FloatingPosition["style"] => {
     if (!triggerRef.current) {
       return { position: "fixed", zIndex: computedZIndex };
@@ -260,49 +268,60 @@ export function useFloatingLayer({
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const contentEl = contentRef.current;
 
+    // Determine content dimensions
     const contentWidth =
       widthValue ?? contentEl?.offsetWidth ?? Math.round(triggerRect.width);
     const contentHeight = contentEl?.offsetHeight ?? 0;
 
-    const margin = 8;
+    const gap = offset;
+    const viewportMargin = 8;
 
-    let top =
-      placement === "bottom"
-        ? triggerRect.bottom + offset
-        : triggerRect.top - contentHeight - offset;
+    // Calculate Y position based on placement
+    let top: number;
+    if (placement === "bottom") {
+      // Bottom: dropdown sits directly below trigger
+      top = triggerRect.bottom + gap;
+    } else {
+      // Top: dropdown sits directly above trigger
+      top = triggerRect.top - contentHeight - gap;
+    }
 
-    let left = triggerRect.left;
+    // Calculate X position based on alignment
+    let left: number;
     if (align === "end") {
       left = triggerRect.right - contentWidth;
     } else if (align === "center") {
       left = triggerRect.left + triggerRect.width / 2 - contentWidth / 2;
+    } else {
+      // "start" (default)
+      left = triggerRect.left;
     }
 
-    left = clamp(left, margin, window.innerWidth - contentWidth - margin);
-    // Clamp to viewport, but never "cross" the trigger to the opposite side.
-    // If there isn't enough space on the chosen side, we prefer preserving the
-    // 8px gap to the trigger over forcing it inside the viewport.
-    if (contentHeight > 0) {
-      const viewportMinTop = margin;
-      const viewportMaxTop = window.innerHeight - contentHeight - margin;
+    // Clamp X to keep within viewport
+    left = clamp(left, viewportMargin, window.innerWidth - contentWidth - viewportMargin);
 
+    // Clamp Y but preserve the gap from the trigger
+    if (contentHeight > 0) {
+      const viewportMinY = viewportMargin;
+      const viewportMaxY = window.innerHeight - contentHeight - viewportMargin;
+
+      // For bottom placement, don't let it go above the minimum
+      // For top placement, don't let it go below the maximum
       if (placement === "bottom") {
-        const minTop = triggerRect.bottom + offset;
-        if (viewportMaxTop < Math.max(viewportMinTop, minTop)) {
-          top = minTop;
-        } else {
-          top = clamp(top, Math.max(viewportMinTop, minTop), viewportMaxTop);
+        // Keep at least the gap from the trigger bottom, but respect viewport bounds
+        const minTop = triggerRect.bottom + gap;
+        top = Math.max(viewportMinY, minTop);
+        if (top + contentHeight > window.innerHeight - viewportMargin) {
+          top = Math.max(viewportMinY, window.innerHeight - contentHeight - viewportMargin);
         }
       } else {
-        const maxTop = triggerRect.top - contentHeight - offset;
-        if (maxTop < viewportMinTop) {
-          top = maxTop;
-        } else {
-          top = clamp(top, viewportMinTop, Math.min(viewportMaxTop, maxTop));
+        // Top placement
+        const maxTop = triggerRect.top - contentHeight - gap;
+        top = Math.min(viewportMaxY, maxTop);
+        if (top < viewportMinY) {
+          top = Math.min(viewportMaxY, viewportMinY);
         }
       }
-    } else {
-      top = placement === "bottom" ? triggerRect.bottom + offset : triggerRect.top - offset;
     }
 
     return {
