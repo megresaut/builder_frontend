@@ -79,10 +79,9 @@ export const Modal = React.forwardRef<
           maxWidth: "calc(100vw - 32px)",
           maxHeight: "85vh",
           overflowY: "auto",
-          overflowX: "visible",
+          overflowX: "hidden",
           overscrollBehavior: "contain",
           WebkitOverflowScrolling: "touch",
-          isolation: "isolate",
           ...style,
         }}
         {...props}
