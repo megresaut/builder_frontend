@@ -119,8 +119,26 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      const input = e.currentTarget;
+
+      // Prevent deleting the currency symbol
+      if (showCurrencySymbol) {
+        const currencyLength = currencySymbol.length;
+        if (input.selectionStart !== null && input.selectionStart <= currencyLength) {
+          if (e.key === "Backspace" || e.key === "Delete") {
+            e.preventDefault();
+            return;
+          }
+          // If cursor is in the currency symbol area, move it to the right
+          if (input.selectionStart < currencyLength) {
+            e.preventDefault();
+            input.setSelectionRange(currencyLength, currencyLength);
+            return;
+          }
+        }
+      }
+
       if (e.key === "Enter") {
-        const input = e.currentTarget;
         const val = input.value;
 
         if (val && validateAmount(val)) {
@@ -135,6 +153,21 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
             onChange(0);
           }
         }
+      }
+    };
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      const input = e.currentTarget;
+      // Position cursor after the currency symbol
+      if (showCurrencySymbol) {
+        const currencyLength = currencySymbol.length;
+        setTimeout(() => {
+          input.setSelectionRange(currencyLength, currencyLength);
+        }, 0);
+      }
+
+      if (rest.onFocus) {
+        rest.onFocus(e);
       }
     };
 
