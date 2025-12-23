@@ -112,48 +112,58 @@ export const Dropdown = React.forwardRef<
 Dropdown.displayName = "Dropdown";
 
 interface DropdownTriggerProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  extends React.HTMLAttributes<HTMLElement> {
   asChild?: boolean;
+  type?: string;
 }
 
 /**
  * Dropdown.Trigger - The button/input that opens the dropdown
- * 
+ *
+ * Can be used as button, input, or any interactive element.
  * Automatically wired with:
  * - aria-expanded
  * - aria-controls
- * - onClick handler
+ * - onClick/onFocus handler for opening
  */
 const DropdownTrigger = React.forwardRef<
-  HTMLButtonElement,
+  HTMLElement,
   DropdownTriggerProps
->(({ asChild = false, onClick, ...props }, ref) => {
+>(({ asChild = false, onClick, onFocus, type, ...props }, ref) => {
   const { open, setOpen, triggerId, contentId, triggerRef } =
     useDropdownContext();
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     setOpen(!open);
-    onClick?.(e);
+    onClick?.(e as any);
   };
 
-  const element = (
-    <button
-      ref={(el) => {
-        // @ts-ignore - ref forwarding complexity
-        triggerRef.current = el;
-        if (typeof ref === "function") {
-          ref(el);
-        } else if (ref) {
-          ref.current = el;
-        }
-      }}
-      id={triggerId}
-      aria-expanded={open}
-      aria-controls={contentId}
-      onClick={handleClick}
-      {...props}
-    />
-  );
+  const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
+    setOpen(true);
+    onFocus?.(e as any);
+  };
+
+  const isInput = type && ["text", "email", "number", "password"].includes(type);
+  const Element = isInput ? "input" : "button";
+
+  const element = React.createElement(Element, {
+    ref: (el: HTMLElement) => {
+      // @ts-ignore - ref forwarding complexity
+      triggerRef.current = el;
+      if (typeof ref === "function") {
+        ref(el);
+      } else if (ref) {
+        ref.current = el;
+      }
+    },
+    id: triggerId,
+    "aria-expanded": open,
+    "aria-controls": contentId,
+    onClick: handleClick,
+    onFocus: isInput ? handleFocus : undefined,
+    type: type || "button",
+    ...props,
+  });
 
   return element;
 });
