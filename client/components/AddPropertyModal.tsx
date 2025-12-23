@@ -186,7 +186,7 @@ export default function AddPropertyModal({
       <div className="space-y-6">
         {/* Address Section */}
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-[#71717A]">Address</h3>
+          <ModalSubheader>Address</ModalSubheader>
 
           <SelectField
             label="Country"
