@@ -18,7 +18,7 @@ interface TextFieldProps
  * Composed of FieldShell + Input for consistent text field styling.
  * Handles label, required indicator, helper text, and error messages.
  *
- * @param label - Field label (required)
+ * @param label - Field label (optional)
  * @param required - Show required asterisk
  * @param description - Helper text
  * @param error - Error message
