@@ -14,6 +14,7 @@ interface TimeFieldProps
   min?: string;
   max?: string;
   disabled?: boolean;
+  readOnly?: boolean;
 }
 
 /**
@@ -50,6 +51,7 @@ function validateTimeFormat(time: string): boolean {
  * @param min - Minimum time (e.g., "09:00")
  * @param max - Maximum time (e.g., "17:30")
  * @param disabled - Disable field
+ * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  *
  * Example:
  * ```tsx
@@ -78,6 +80,7 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(
       min,
       max,
       placeholder = "HH:MM",
+      readOnly = false,
       ...inputProps
     },
     ref,
@@ -86,11 +89,13 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(
     const [validationError, setValidationError] = React.useState<string>("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (readOnly) return;
       onChange?.(e.target.value);
       setValidationError("");
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (readOnly) return;
       const timeInput = e.target.value.trim();
 
       if (timeInput === "") {
@@ -115,8 +120,8 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(
         label={label}
         required={required}
         description={description}
-        error={displayError}
-        disabled={disabled}
+        error={readOnly ? undefined : displayError}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <Input
