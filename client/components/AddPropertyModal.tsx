@@ -11,10 +11,11 @@ import {
 } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 
-interface Manager {
+interface Manager extends MultiSelectOption {
   id: string | number;
-  name: string;
+  label: string;
   initials: string;
+  name?: string; // Keep for backward compatibility
 }
 
 interface AddPropertyModalProps {
