@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 export interface PdfViewerState {
   isOpen: boolean;
@@ -11,6 +11,7 @@ export interface PdfViewerState {
  *
  * Provides state management for opening/closing the PDF viewer modal
  * and tracking the current file being viewed.
+ * Properly manages blob URL lifecycle to prevent garbage collection.
  *
  * @returns Object with:
  *   - isOpen: Whether the modal is currently open
@@ -43,8 +44,19 @@ export function usePdfViewer() {
   const [state, setState] = useState<PdfViewerState>({
     isOpen: false,
   });
+  const blobUrlRef = useRef<string | null>(null);
 
   const openPdf = useCallback((url: string, title?: string) => {
+    // Revoke previous blob URL if it exists
+    if (blobUrlRef.current && blobUrlRef.current.startsWith("blob:")) {
+      URL.revokeObjectURL(blobUrlRef.current);
+    }
+
+    // Store the URL for lifecycle management
+    if (url.startsWith("blob:")) {
+      blobUrlRef.current = url;
+    }
+
     setState({
       isOpen: true,
       url,
@@ -53,11 +65,26 @@ export function usePdfViewer() {
   }, []);
 
   const closePdf = useCallback(() => {
+    // Revoke blob URL on close to free memory
+    if (blobUrlRef.current && blobUrlRef.current.startsWith("blob:")) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+
     setState({
       isOpen: false,
       url: undefined,
       title: undefined,
     });
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current && blobUrlRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+    };
   }, []);
 
   return {
