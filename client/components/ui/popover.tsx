@@ -157,4 +157,31 @@ const PopoverContent = React.forwardRef<
 );
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverTrigger, PopoverContent };
+/**
+ * PopoverScroll - Wrapper component for scrollable content inside PopoverContent
+ *
+ * Use this to explicitly mark content that should scroll when the popover is full.
+ * The popover itself handles scrolling via the scrollable prop on PopoverContent.
+ * This component is useful for custom scroll styling or nested scrollable areas.
+ */
+const PopoverScroll = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode }
+>(({ className, children, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("overflow-y-auto", className)}
+    style={{
+      overflowY: "auto",
+      overflowX: "hidden",
+      overscrollBehavior: "contain",
+      WebkitOverflowScrolling: "touch",
+    }}
+    {...props}
+  >
+    {children}
+  </div>
+));
+PopoverScroll.displayName = "PopoverScroll";
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverScroll };
