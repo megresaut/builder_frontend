@@ -114,20 +114,12 @@ export default function CreateRecurringTaskModal({
         });
       }
 
-      if (showAssigneeDropdown && assigneeButtonRef.current) {
-        const rect = assigneeButtonRef.current.getBoundingClientRect();
-        setAssigneeDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showStartCalendar || showEndCalendar || showAssigneeDropdown) {
+      if (showStartCalendar || showEndCalendar) {
         animationFrameId = requestAnimationFrame(updatePositions);
       }
     };
 
-    if (showStartCalendar || showEndCalendar || showAssigneeDropdown) {
+    if (showStartCalendar || showEndCalendar) {
       updatePositions();
     }
 
@@ -136,7 +128,7 @@ export default function CreateRecurringTaskModal({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [showStartCalendar, showEndCalendar, showAssigneeDropdown]);
+  }, [showStartCalendar, showEndCalendar]);
 
   const getPriorityIcon = (priorityLevel: string = priority) => {
     const colors: Record<string, string> = {
