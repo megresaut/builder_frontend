@@ -90,20 +90,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let val = e.target.value;
-
-      // Remove any existing currency symbols and commas to get clean input
-      const cleanVal = val.replace(/[$,]/g, "");
-
-      // If currency symbol is enabled, prepend it to the clean input
-      if (showCurrencySymbol && cleanVal) {
-        val = currencySymbol + cleanVal;
-      } else if (!cleanVal) {
-        val = "";
-      } else {
-        val = cleanVal;
-      }
-
+      const val = e.target.value;
       setInputValue(val);
     };
 
