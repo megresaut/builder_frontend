@@ -131,6 +131,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger
           id={fieldId}
+          ref={triggerRef}
           style={{
             borderColor: error ? "#ef4444" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
@@ -140,7 +141,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent side="bottom" align="start" avoidCollisions={true}>
+        <SelectContent side={selectSide} align="start" avoidCollisions={true}>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
