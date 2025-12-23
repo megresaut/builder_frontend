@@ -36,6 +36,8 @@ interface PopoverProps {
 
 interface PopoverContentProps {
   syncTriggerWidth?: boolean;        // Match trigger width (default: true)
+  scrollable?: boolean;              // Enable internal scrolling (default: true)
+  maxHeight?: string | number;       // Max height before scroll (default: "280px")
   className?: string;
   align?: "start" | "center" | "end"; // Horizontal alignment (default: start)
   sideOffset?: number;               // Distance from trigger (default: 8)
@@ -43,6 +45,12 @@ interface PopoverContentProps {
   // ... other Radix Popover.Content props
 }
 ```
+
+**Scrolling Behavior:**
+- Content automatically scrolls when exceeding `maxHeight` (280px by default)
+- Smooth scrolling on mobile (WebKit optimization)
+- `overscrollBehavior: contain` prevents momentum scroll from closing popover
+- Use `scrollable={false}` to disable scrolling (content expands instead)
 
 **Usage:**
 ```tsx
