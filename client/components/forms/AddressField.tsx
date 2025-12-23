@@ -240,6 +240,8 @@ export const AddressField: React.FC<AddressFieldProps> = ({
           type="text"
           value={value.country || ""}
           onChange={(e) => handleCountryChange(e.target.value)}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           placeholder="Country"
           disabled={disabled}
           style={inputBaseStyle}
