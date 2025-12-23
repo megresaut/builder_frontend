@@ -139,11 +139,11 @@ export function FormShowcaseModal({
             </FieldRowItem>
           </FieldRow>
 
-          <TextField
+          <PhoneNumberField
             label="Phone"
             placeholder="(123) 456-7890"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={setPhone}
             description="Optional contact number"
           />
         </FormSection>
