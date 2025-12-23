@@ -3,9 +3,55 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "@/lib/utils";
 
-const Popover = PopoverPrimitive.Root;
+interface PopoverContextType {
+  triggerRef: React.RefObject<HTMLButtonElement | HTMLInputElement>;
+}
 
-const PopoverTrigger = PopoverPrimitive.Trigger;
+const PopoverContext = React.createContext<PopoverContextType | undefined>(undefined);
+
+const usePopoverContext = () => {
+  const context = React.useContext(PopoverContext);
+  if (!context) {
+    throw new Error("PopoverContent must be used within Popover");
+  }
+  return context;
+};
+
+interface PopoverProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Root> {
+  children?: React.ReactNode;
+}
+
+const Popover = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Root>, PopoverProps>(
+  ({ children, ...props }, ref) => {
+    const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
+
+    return (
+      <PopoverContext.Provider value={{ triggerRef }}>
+        <PopoverPrimitive.Root {...props} ref={ref}>
+          {children}
+        </PopoverPrimitive.Root>
+      </PopoverContext.Provider>
+    );
+  }
+);
+Popover.displayName = "Popover";
+
+interface PopoverTriggerProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger> {}
+
+const PopoverTrigger = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Trigger>, PopoverTriggerProps>(
+  (props, ref) => {
+    const { triggerRef } = usePopoverContext();
+
+    const setRefs = (node: HTMLButtonElement | null) => {
+      triggerRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLButtonElement | null>).current = node;
+    };
+
+    return <PopoverPrimitive.Trigger {...props} ref={setRefs} />;
+  }
+);
+PopoverTrigger.displayName = "PopoverTrigger";
 
 interface PopoverContentProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {
   syncTriggerWidth?: boolean;
@@ -26,20 +72,32 @@ const PopoverContent = React.forwardRef<
     },
     ref,
   ) => {
+    const { triggerRef } = usePopoverContext();
     const localRef = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content> | null>(null);
     const [triggerWidth, setTriggerWidth] = React.useState<number | undefined>();
 
     React.useEffect(() => {
-      if (!syncTriggerWidth || !localRef.current) return;
+      if (!syncTriggerWidth || !triggerRef.current) return;
 
-      // Find the trigger element (PopoverPrimitive tracks this)
-      const trigger = document.querySelector('[data-state="open"][role="button"]') ||
-                      document.querySelector('[data-state="open"]');
-
-      if (trigger instanceof HTMLElement) {
+      const trigger = triggerRef.current;
+      const updateWidth = () => {
         setTriggerWidth(trigger.offsetWidth);
-      }
-    }, [syncTriggerWidth]);
+      };
+
+      // Initial measurement
+      updateWidth();
+
+      // Use ResizeObserver to track trigger width changes
+      const resizeObserver = new ResizeObserver(() => {
+        updateWidth();
+      });
+
+      resizeObserver.observe(trigger);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }, [syncTriggerWidth, triggerRef]);
 
     const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
       localRef.current = node;
