@@ -345,6 +345,7 @@ export default function CreateTaskModal({
                   setTitle(e.target.value);
                   if (errors.title && e.target.value.trim()) {
                     setErrors((prev) => ({ ...prev, title: false }));
+                    setErrorMessages((prev) => ({ ...prev, title: undefined }));
                   }
                 }}
                 placeholder="Type Task Name"
@@ -354,6 +355,7 @@ export default function CreateTaskModal({
                 }}
                 className="h-11 rounded-lg"
               />
+              <ErrorMessage message={errorMessages.title} />
             </ModalField>
           </FieldRowItem>
           <FieldRowItem>
