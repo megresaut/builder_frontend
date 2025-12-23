@@ -1,11 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-
-import {
-  Dialog,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
+import { ModalTemplate } from "@/components/ui/ModalTemplate";
 
 type PdfViewerModalProps = {
   open: boolean;
@@ -38,39 +32,41 @@ export default function PdfViewerModal({
   }, [open, safeUrl]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="xl">
-        <div className="px-6 py-4 border-b border-[#E5E5E5]">
-          <DialogTitle className="text-[#303030] font-semibold text-xl leading-[26px]">
-            {title}
-          </DialogTitle>
-        </div>
-
-        <div className="px-6 py-4">
-          {safeUrl ? (
-            <div className="w-full h-[70vh] rounded-lg overflow-hidden border border-[#E5E5E5] bg-white">
-              <iframe
-                title={title}
-                src={
-                  isProbablyPdfUrl(safeUrl)
-                    ? `${safeUrl}#view=FitH&toolbar=1&navpanes=0`
-                    : safeUrl
-                }
-                className="w-full h-full"
-              />
-            </div>
-          ) : (
-            <div className="w-full rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] p-4 text-sm text-[#71717A]">
-              No preview available for this file.
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-3">
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      size="lg"
+      footer={
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(251, 251, 251, 1)",
+              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+              borderColor: "rgba(218, 218, 218, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              minHeight: "36px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              justifyContent: "center",
+              cursor: "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              whiteSpace: "nowrap",
+            }}
           >
             Close
           </button>
@@ -79,13 +75,77 @@ export default function PdfViewerModal({
               href={safeUrl}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
+              style={{
+                borderRadius: "8px",
+                backgroundColor: "var(--color-button-primary)",
+                border: "1px solid rgba(255, 255, 255, 1)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minHeight: "36px",
+                color: "rgba(255, 255, 255, 1)",
+                fontWeight: 500,
+                letterSpacing: "-0.32px",
+                lineHeight: 1.4,
+                justifyContent: "center",
+                cursor: "pointer",
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontSize: "16px",
+                whiteSpace: "nowrap",
+                boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+                textDecoration: "none",
+                transition: "background-color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
             >
               Open in new tab
             </a>
           ) : null}
-        </DialogFooter>
-      </Modal>
-    </Dialog>
+        </div>
+      }
+    >
+      {safeUrl ? (
+        <div style={{
+          width: "100%",
+          height: "70vh",
+          borderRadius: "8px",
+          overflow: "hidden",
+          border: "1px solid #E5E5E5",
+          backgroundColor: "white",
+        }}>
+          <iframe
+            title={title}
+            src={
+              isProbablyPdfUrl(safeUrl)
+                ? `${safeUrl}#view=FitH&toolbar=1&navpanes=0`
+                : safeUrl
+            }
+            style={{
+              width: "100%",
+              height: "100%",
+              border: "none",
+            }}
+          />
+        </div>
+      ) : (
+        <div style={{
+          width: "100%",
+          borderRadius: "8px",
+          border: "1px solid #E5E5E5",
+          backgroundColor: "#F7F7F7",
+          padding: "16px",
+          fontSize: "14px",
+          color: "#71717A",
+          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+        }}>
+          No preview available for this file.
+        </div>
+      )}
+    </ModalTemplate>
   );
 }
