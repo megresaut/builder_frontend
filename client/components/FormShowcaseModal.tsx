@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   TextField,
@@ -77,6 +77,58 @@ export function FormShowcaseModal({
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isPhoneValid, setIsPhoneValid] = useState(true); // Phone is optional
 
+  // Reset all state when modal closes
+  useEffect(() => {
+    if (!open) {
+      // Text fields
+      setVendorName("");
+      setEmail("");
+      setPhone("");
+
+      // Select fields
+      setStatus("");
+      setCategory("");
+      setPriority("");
+      setDepartment("");
+
+      // Number and currency
+      setQuantity(0);
+      setAmount(0);
+
+      // Percent/Rate
+      setTaxRate("");
+      setMarkupPercent("");
+
+      // Date fields
+      setDueDate(null);
+      setBillingDate("");
+
+      // Time fields
+      setAppointmentTime("");
+      setMaintenanceTime("");
+
+      // DateTime field
+      setScheduledMaintenance("");
+
+      // Textarea
+      setNotes("");
+      setIssueDescription("");
+
+      // Combobox
+      setSelectedVendor("");
+      setSelectedProperty("");
+
+      // Footer section fields
+      setPaymentMethod("");
+      setApprovalStatus("");
+
+      // Validation states
+      setErrors({});
+      setIsEmailValid(false);
+      setIsPhoneValid(true);
+    }
+  }, [open]);
+
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
 
@@ -144,7 +196,6 @@ export function FormShowcaseModal({
   };
 
   const handleClose = () => {
-    setErrors({});
     onOpenChange(false);
   };
 
