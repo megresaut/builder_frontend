@@ -2,6 +2,20 @@
 
 This document is the **single source of truth** for how to build UI in this application. It covers component patterns, global styles, and decision frameworks to prevent recreating components and ensure consistency.
 
+## Recent Updates (Latest)
+
+**Popover Enhancements** (Latest refactor):
+- Popover primitive now uses React Context for robust trigger tracking
+- Added ResizeObserver for real-time trigger width syncing
+- Improved collision detection: auto-flips above trigger when space is limited, closes if can't fit
+- Added `containerRef` prop to render popovers inside modal containers (prevents "bleeding" to other pages)
+- Max-height reduced to 280px for better modal integration
+- All form dropdowns (SelectField, ComboboxField, IdentitySelectField) now use Popover primitive
+
+**Component Renames & Deprecations**:
+- ✅ `BillsPageHeader` → `PageHeader` (renamed for broader reusability)
+- ❌ `SelectFieldV2` → Removed (use `SelectField` instead, now supports multi-select via `multiple` prop)
+
 ---
 
 ## Table of Contents
