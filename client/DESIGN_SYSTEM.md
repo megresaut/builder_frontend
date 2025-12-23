@@ -736,10 +736,100 @@ export function MyForm() {
 - Building labels + inputs without FormItem wrapper
 - Creating custom input components when Input exists
 
+### Standardized Field Components (Simpler Alternative)
+
+For most forms, use the built-in field components for consistency and speed:
+
+```tsx
+import {
+  TextField,
+  SelectField,
+  DateField,
+  CurrencyField,
+  FieldRow,
+  FieldRowItem,
+  FormSection,
+} from "@/components/forms";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+export function SimpleVendorForm() {
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const handleSubmit = () => {
+    // Validation
+    const newErrors = {};
+    if (!name) newErrors.name = "Name is required";
+    if (!status) newErrors.status = "Status is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    console.log({ name, status });
+    // Submit form
+  };
+
+  return (
+    <div className="space-y-6">
+      <FormSection title="Vendor Details">
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <TextField
+              label="Vendor Name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              error={errors.name}
+              placeholder="Enter vendor name"
+            />
+          </FieldRowItem>
+          <FieldRowItem>
+            <SelectField
+              label="Status"
+              required
+              value={status}
+              onChange={setStatus}
+              error={errors.status}
+              placeholder="Select status"
+              options={[
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" },
+              ]}
+            />
+          </FieldRowItem>
+        </FieldRow>
+      </FormSection>
+
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline">Cancel</Button>
+        <Button onClick={handleSubmit}>Save</Button>
+      </div>
+    </div>
+  );
+}
+```
+
+**Benefits**:
+- ✅ Less boilerplate than react-hook-form
+- ✅ Consistent styling automatically
+- ✅ Responsive layouts (FieldRow)
+- ✅ Standard error handling
+- ✅ Perfect for simple to medium forms
+
+**When to use this**:
+- Modal forms with 3-10 fields
+- Simple CRUD operations
+- Straightforward validation rules
+
 ### References
 
 - **Working Example**: `code/client/components/forms/FormTemplate.example.tsx` (reference template)
 - **Real Example**: `code/client/components/AddVendorModal.tsx` (if using react-hook-form)
+- **Field Components**: Import from `code/client/components/forms/`
 
 ---
 
