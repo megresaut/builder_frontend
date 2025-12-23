@@ -549,6 +549,7 @@ export default function CreateTaskModal({
                     document.body,
                   )}
               </div>
+              <ErrorMessage message={errorMessages.selectedAssignees} />
             </ModalField>
           </FieldRowItem>
         </FieldRow>
