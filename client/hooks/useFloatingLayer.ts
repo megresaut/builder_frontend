@@ -106,7 +106,7 @@ export function useFloatingLayer({
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
   const [computedZIndex, setComputedZIndex] = useState(50);
 
-  // Callback to get position style - must be called before effect to maintain hook order
+  // Callback to get position style - defined early to maintain hook order
   const getPositionStyle = useCallback((): FloatingPosition["style"] => {
     if (!triggerRef.current) {
       return { position: "fixed", zIndex: computedZIndex };
@@ -278,7 +278,6 @@ export function useFloatingLayer({
       });
       window.removeEventListener("resize", updatePosition);
     };
-    // Stable dependency array - only these should change
   }, [open, initialPlacement, initialAlign, offset, minSpaceBelow, triggerWidth, widthValue]);
 
   return {
