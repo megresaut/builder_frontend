@@ -6,7 +6,7 @@ import {
   NumberField,
   CurrencyField,
   DateField,
-  SelectField,
+  SelectFieldV2,
   ComboboxField,
   FieldRow,
   FieldRowItem,
