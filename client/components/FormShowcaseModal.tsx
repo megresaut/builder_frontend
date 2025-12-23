@@ -55,6 +55,8 @@ export function FormShowcaseModal({
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isPhoneValid, setIsPhoneValid] = useState(true); // Phone is optional
 
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
