@@ -235,7 +235,7 @@ export default function AddPropertyModal({
 
         {/* Basics Section */}
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-[#71717A]">Basics</h3>
+          <ModalSubheader>Basics</ModalSubheader>
 
           <FieldRow columns={2}>
             <FieldRowItem>
