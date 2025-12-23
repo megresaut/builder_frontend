@@ -17,7 +17,13 @@ interface TextAreaFieldProps
  * TextAreaField - Textarea input field with FieldShell wrapper
  *
  * Composed of FieldShell + Textarea for consistent textarea styling.
- * Supports auto-growing textarea that expands with content.
+ * Supports auto-growing textarea that expands with content and optional character count.
+ *
+ * Features:
+ * - Auto-expanding height as user types
+ * - Optional character count display (e.g., "45 / 500")
+ * - Validates against maxLength if provided
+ * - Accessible label and error handling
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
@@ -27,6 +33,8 @@ interface TextAreaFieldProps
  * @param placeholder - Textarea placeholder
  * @param disabled - Disable field
  * @param autoGrow - Auto expand height as user types (default: true)
+ * @param showCharCount - Show character count display (default: false)
+ * @param maxLength - Maximum number of characters (enables char count if showCharCount=true)
  * @param onChange - Change handler
  * @param value - Field value
  *
@@ -36,6 +44,8 @@ interface TextAreaFieldProps
  *   label="Notes"
  *   placeholder="Enter any additional notes..."
  *   autoGrow
+ *   showCharCount
+ *   maxLength={500}
  *   error={errors.notes}
  *   value={notes}
  *   onChange={(e) => setNotes(e.target.value)}
@@ -52,11 +62,24 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
       id,
       disabled = false,
       autoGrow = true,
+      showCharCount = false,
+      value = "",
+      maxLength,
+      onChange,
       ...textareaProps
     },
     ref,
   ) => {
     const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+    const [charCount, setCharCount] = useState(String(value).length);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setCharCount(e.target.value.length);
+      onChange?.(e);
+    };
+
+    const charCountText = maxLength ? `${charCount} / ${maxLength}` : `${charCount}`;
+    const isNearLimit = maxLength && charCount >= maxLength * 0.9;
 
     return (
       <FieldShell
@@ -67,13 +90,31 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         disabled={disabled}
         htmlFor={fieldId}
       >
-        <Textarea
-          ref={ref}
-          id={fieldId}
-          disabled={disabled}
-          autoGrow={autoGrow}
-          {...textareaProps}
-        />
+        <div style={{ position: "relative" }}>
+          <Textarea
+            ref={ref}
+            id={fieldId}
+            disabled={disabled}
+            autoGrow={autoGrow}
+            value={value}
+            maxLength={maxLength}
+            onChange={handleChange}
+            {...textareaProps}
+          />
+          {showCharCount && (
+            <div
+              style={{
+                fontSize: "12px",
+                color: isNearLimit ? "#ef4444" : "var(--color-text-muted)",
+                marginTop: "4px",
+                textAlign: "right",
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              }}
+            >
+              {charCountText}
+            </div>
+          )}
+        </div>
       </FieldShell>
     );
   },
