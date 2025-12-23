@@ -120,19 +120,35 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(
         disabled={disabled}
         htmlFor={fieldId}
       >
-        <Input
-          ref={ref}
-          id={fieldId}
-          type="time"
-          disabled={disabled}
-          value={value}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          min={min}
-          max={max}
-          placeholder={placeholder}
-          {...inputProps}
-        />
+        <div style={{ position: "relative" }}>
+          <Input
+            ref={ref}
+            id={fieldId}
+            type="time"
+            disabled={disabled}
+            value={value}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            min={min}
+            max={max}
+            placeholder={placeholder}
+            style={{ paddingRight: "2.5rem" }}
+            {...inputProps}
+          />
+          <Clock
+            style={{
+              position: "absolute",
+              right: "0.5rem",
+              top: "55%",
+              transform: "translateY(-50%)",
+              width: "1rem",
+              height: "1rem",
+              color: "#303030",
+              pointerEvents: "none",
+            }}
+            aria-hidden="true"
+          />
+        </div>
       </FieldShell>
     );
   },
