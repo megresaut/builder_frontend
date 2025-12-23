@@ -109,13 +109,11 @@ export function useFloatingLayer({
   // Setup listeners and observers
   useEffect(() => {
     if (!open || !triggerRef.current) {
+      setPlacement(initialPlacement);
+      setAlign(initialAlign);
+      setWidthValue(undefined);
+      setComputedZIndex(50);
       isMountedRef.current = false;
-      if (isMountedRef.current) {
-        setPlacement(initialPlacement);
-        setAlign(initialAlign);
-        setWidthValue(undefined);
-        setComputedZIndex(50);
-      }
       return;
     }
 
