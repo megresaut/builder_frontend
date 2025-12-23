@@ -225,6 +225,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
           style={{
             borderColor: error ? "#ef4444" : open ? "#000000" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
+            borderStyle: "solid",
             minHeight: "44px",
             height: "auto",
             borderRadius: "8px",
@@ -238,7 +239,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             cursor: disabled ? "not-allowed" : "pointer",
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             fontSize: "16px",
-            border: "solid",
             opacity: disabled ? 0.6 : 1,
             justifyContent: "space-between",
           }}
