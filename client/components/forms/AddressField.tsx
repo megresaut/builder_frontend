@@ -143,6 +143,14 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     onChange({ ...value, country: newCountry });
   };
 
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "#000000";
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
+  };
+
   const StateDropdown = useMemo(
     () => (
       <Dropdown
