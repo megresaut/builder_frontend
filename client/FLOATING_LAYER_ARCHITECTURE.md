@@ -1,71 +1,166 @@
 # Floating Layer Architecture
 
-A unified system for managing floating/dropdown elements across the application.
+A unified system for managing floating/dropdown elements (popovers, dropdowns, tooltips) across the application using Radix UI primitives enhanced with custom logic.
 
 ## Components
 
-### 1. `useFloatingLayer` Hook
-**Location:** `code/client/hooks/useFloatingLayer.ts`
+### 1. `Popover` Primitive (Primary for Form Fields)
+**Location:** `code/client/components/ui/popover.tsx`
 
-Manages all the repetitive floating element logic:
-- **Placement detection** - Automatically decides if element goes below or above trigger
-- **Collision detection** - Monitors viewport space and flips placement when needed
-- **Scroll parent monitoring** - Finds and monitors all scrollable parent elements
-- **Real-time updates** - Uses ResizeObserver and scroll listeners to reposition dynamically
-- **Width syncing** - Optional: match floating element width to trigger element
-- **Z-index management** - Handles stacking context for modals
+Enhanced Radix Popover wrapper for form field dropdowns (SelectField, ComboboxField, IdentitySelectField, etc.).
+
+**Key Features:**
+- **Context-based Trigger Tracking** - Uses React Context to reliably track the trigger element (replaces generic querySelector)
+- **ResizeObserver Width Syncing** - Real-time trigger width synchronization using ResizeObserver
+- **Intelligent Collision Detection** - Auto-flips above trigger when space below is limited
+- **Smart Boundary Detection** - Automatically closes/hides if can't fit in viewport (via `hideWhenDetached={true}`)
+- **Modal Support** - Optional `containerRef` prop to render inside modal containers instead of document.body
+- **Portal Rendering** - Floats content above page content with proper z-index
+
+**Default Behavior:**
+- Placement: `bottom` (with auto-flip via `avoidCollisions={true}`)
+- Max-height: `280px` with internal scrolling
+- Collision padding: `32px` (triggers flip earlier)
+- Sticky: `never` (won't stick to edges)
+- Sync trigger width: `true` (default)
+
+**Props:**
+```tsx
+interface PopoverProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
+  containerRef?: React.RefObject<HTMLDivElement>; // For modal popovers
+}
+
+interface PopoverContentProps {
+  syncTriggerWidth?: boolean;        // Match trigger width (default: true)
+  className?: string;
+  align?: "start" | "center" | "end"; // Horizontal alignment (default: start)
+  sideOffset?: number;               // Distance from trigger (default: 8)
+  style?: React.CSSProperties;
+  // ... other Radix Popover.Content props
+}
+```
 
 **Usage:**
 ```tsx
-const floatingLayer = useFloatingLayer({
-  open: isOpen,
-  initialPlacement: "bottom",
-  minSpaceBelow: 300,
-  offset: 8,
-  triggerWidth: true, // sync content width to trigger
-});
+// Form field (SelectField, ComboboxField)
+<Popover>
+  <PopoverTrigger>Select Option</PopoverTrigger>
+  <PopoverContent syncTriggerWidth={true}>
+    {/* Dropdown content - auto-flips if space is limited */}
+  </PopoverContent>
+</Popover>
 
-// Returns:
-// - triggerRef: attach to trigger element
-// - contentRef: attach to floating content
-// - placement: "top" | "bottom" (current)
-// - align: "start" | "center" | "end" (current)
-// - widthValue: width to apply to content (if triggerWidth=true)
-// - getPositionStyle(): Returns positioning style object
+// Modal dropdown (with containerRef to prevent bleeding)
+<Popover containerRef={modalRef}>
+  <PopoverTrigger>Select</PopoverTrigger>
+  <PopoverContent>Content</PopoverContent>
+</Popover>
+
+// Custom width (no syncing to trigger)
+<Popover>
+  <PopoverTrigger>Menu</PopoverTrigger>
+  <PopoverContent syncTriggerWidth={false} style={{ width: "200px" }}>
+    Fixed-width content
+  </PopoverContent>
+</Popover>
 ```
 
-### 2. `Dropdown` Primitive
+**Architecture Details:**
+```tsx
+// PopoverContext provides trigger ref to Content component
+const PopoverContext = createContext<{ triggerRef, containerRef }>();
+
+// PopoverTrigger captures the trigger element
+const PopoverTrigger = forwardRef((props, ref) => {
+  const { triggerRef } = usePopoverContext();
+  // Assigns trigger element to context for PopoverContent to measure
+  return <PopoverPrimitive.Trigger ref={setRefs} {...props} />;
+});
+
+// PopoverContent uses trigger ref for width syncing and collision detection
+const PopoverContent = forwardRef((props, ref) => {
+  const { triggerRef, containerRef } = usePopoverContext();
+
+  // ResizeObserver watches trigger width changes
+  const resizeObserver = new ResizeObserver(() => {
+    setTriggerWidth(trigger.offsetWidth);
+  });
+
+  // Portal optionally renders inside containerRef or document.body
+  return (
+    <PopoverPrimitive.Portal container={containerRef?.current}>
+      <PopoverPrimitive.Content
+        ref={setRefs}
+        avoidCollisions={true}      // Auto-flip above if needed
+        collisionPadding={32}        // Buffer before flip
+        hideWhenDetached={true}      // Auto-close if clipped
+        sticky="never"               // Don't stick to edges
+        style={{
+          width: triggerWidth,       // Sync to trigger
+          maxHeight: "280px",        // Scrollable content
+          ...style
+        }}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  );
+});
+```
+
+### 2. `useFloatingLayer` Hook (Legacy)
+**Location:** `code/client/hooks/useFloatingLayer.ts`
+
+**Status**: Still available but now primarily used by `Dropdown` primitive for specialized cases (DatePicker).
+
+Manages floating element positioning logic:
+- Placement detection (top/bottom)
+- Collision detection with viewport
+- Scroll parent monitoring
+- ResizeObserver integration
+- Width syncing optional
+
+**Note**: For new form field dropdowns, use `Popover` primitive directly instead of `useFloatingLayer`.
+
+### 3. `Dropdown` Primitive (Specialized)
 **Location:** `code/client/components/ui/dropdown.tsx`
 
-Shared UI wrapper that every dropdown type uses:
+**Status**: Used primarily for DatePicker calendar and other specialized cases requiring custom positioning logic.
+
+Shared UI wrapper with built-in floating layer integration:
 
 **Features:**
 - State management (open/close)
 - A11y wiring (aria-expanded, aria-controls, role=menu)
 - Click-outside detection
 - Escape key handling
-- Floating layer integration
+- useFloatingLayer integration for positioning
 
 **Subcomponents:**
-- `Dropdown.Trigger` - The button/input that opens the dropdown
-  - Works with both button and input elements
-  - Automatically sets aria-expanded, aria-controls
-  - Handles focus/click to open
-  
-- `Dropdown.Content` - The floating menu container
-  - Automatically positioned based on collision detection
-  - Handles click-outside and escape key
-  - Sets proper ARIA attributes (role=menu, aria-labelledby)
+- `Dropdown.Trigger` - Button/input that opens dropdown
+- `Dropdown.Content` - Floating container with automatic positioning
 
 **Usage:**
 ```tsx
-<Dropdown open={open} onOpenChange={setOpen} syncTriggerWidth>
-  <Dropdown.Trigger>Open Menu</Dropdown.Trigger>
+<Dropdown
+  open={open}
+  onOpenChange={setOpen}
+  initialPlacement="bottom"
+  syncTriggerWidth={false}  // DatePicker uses fixed width
+  minSpaceBelow={340}
+>
+  <Dropdown.Trigger type="text">Calendar</Dropdown.Trigger>
   <Dropdown.Content>
-    {/* Menu content */}
+    {/* Calendar grid */}
   </Dropdown.Content>
 </Dropdown>
 ```
+
+**When to use Dropdown vs Popover:**
+- **Popover**: Form field dropdowns (SelectField, ComboboxField) - better integration with FieldShell
+- **Dropdown**: DatePicker, custom cases needing useFloatingLayer - legacy but functional
 
 ## Field Components Using Primitives
 
