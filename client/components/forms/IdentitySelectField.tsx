@@ -92,7 +92,15 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [triggerWidth, setTriggerWidth] = useState(0);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  React.useEffect(() => {
+    if (triggerRef.current) {
+      setTriggerWidth(triggerRef.current.offsetWidth);
+    }
+  }, []);
 
   const selectedIds = multiple ? (Array.isArray(value) ? value : []) : [];
   const selectedId = !multiple ? (typeof value === "string" ? value : "") : "";
@@ -217,6 +225,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
       >
         <PopoverTrigger asChild>
           <button
+          ref={triggerRef}
           type="button"
           id={fieldId}
           disabled={disabled}
@@ -277,17 +286,22 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
 
         <PopoverContent
           align="start"
-          sideOffset={8}
-          className="w-72 p-0"
+          side="bottom"
+          sideOffset={4}
+          avoidCollisions={true}
+          className="p-0"
           style={{
             backgroundColor: "white",
             border: "1px solid var(--color-border-light)",
             borderRadius: "8px",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             zIndex: 50,
-            width: "auto",
-            minWidth: "300px",
+            width: triggerWidth > 0 ? `${triggerWidth}px` : "auto",
+            minWidth: "200px",
+            maxWidth: triggerWidth > 0 ? `${triggerWidth}px` : "auto",
             padding: "0",
+            maxHeight: "320px",
+            overflow: "hidden",
           }}
         >
           {multiple && (
