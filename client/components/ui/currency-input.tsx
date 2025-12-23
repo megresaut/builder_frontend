@@ -220,6 +220,16 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     // Determine what to display
     const displayValue = isFocused ? draftValue : formatForDisplay(parseInputValue(draftValue || (value as string)));
 
+    const handleFocusWithBorder = (e: React.FocusEvent<HTMLInputElement>) => {
+      handleFocus(e);
+      e.currentTarget.style.borderColor = "#000000";
+    };
+
+    const handleBlurWithBorder = (e: React.FocusEvent<HTMLInputElement>) => {
+      handleBlur(e);
+      e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
+    };
+
     return (
       <input
         ref={ref}
@@ -227,8 +237,8 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         inputMode="decimal"
         value={displayValue}
         onChange={handleChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
+        onFocus={handleFocusWithBorder}
+        onBlur={handleBlurWithBorder}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
@@ -251,14 +261,6 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
           opacity: disabled ? 0.6 : 1,
           cursor: disabled ? "not-allowed" : "text",
           outline: "none",
-        }}
-        onFocus={(e) => {
-          handleFocus(e);
-          e.currentTarget.style.borderColor = "#000000";
-        }}
-        onBlur={(e) => {
-          handleBlur(e);
-          e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
         }}
         {...rest}
       />
