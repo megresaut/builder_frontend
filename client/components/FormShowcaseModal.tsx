@@ -11,7 +11,6 @@ import {
   TimeField,
   DateTimeField,
   PercentField,
-  SelectFieldV2,
   SelectField,
   ComboboxField,
   EmailField,
