@@ -180,11 +180,11 @@ export const DatePicker = ({
         onChange={(e) => handleInputChange(e.target.value)}
         onFocus={handleOpenCalendar}
         disabled={disabled}
-        className={`ra-date-picker-input ${
-          error ? "ra-date-picker-input--error" : ""
+        className={`${styles.input} ${
+          error ? styles.inputError : ""
         } ${className}`}
       />
-      <Calendar className="ra-date-picker-icon" aria-hidden="true" />
+      <Calendar className={styles.icon} aria-hidden="true" />
 
       {showCalendar && (
         <div
