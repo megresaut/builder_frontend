@@ -12,6 +12,7 @@ interface PhoneNumberFieldProps
   value?: string;
   onChange?: (value: string) => void;
   onValidationChange?: (isValid: boolean) => void;
+  readOnly?: boolean;
 }
 
 /**
