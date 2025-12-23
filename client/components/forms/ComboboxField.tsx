@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -9,7 +8,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Dropdown } from "@/components/ui/dropdown";
 import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
 
@@ -36,9 +34,6 @@ interface ComboboxFieldProps {
 /**
  * ComboboxField - Searchable combobox field with FieldShell wrapper
  *
- * Composed of FieldShell + Dropdown primitive + Command for search + consistent styling.
- * Supports searching within large option lists (vendor, property, GL account).
- *
  * Features:
  * - Search input inside dropdown for filtering options
  * - Selected state indicator with checkmark
@@ -47,6 +42,7 @@ interface ComboboxFieldProps {
  * - Clear error messaging
  *
  * Keyboard Interactions:
+ * - Click or Space/Enter: Open dropdown
  * - Type in search field: Filter options in real-time
  * - ArrowDown/ArrowUp: Navigate options
  * - Enter: Select highlighted option
@@ -93,8 +89,11 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   emptyMessage = "No results found",
 }) => {
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const commandRef = useRef<any>(null);
+
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
   const selectedLabel = selectedOption?.label ?? placeholder;
@@ -106,6 +105,44 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
       )
     : options;
 
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => {
+        const input = contentRef.current?.querySelector(
+          'input[type="text"]',
+        ) as HTMLInputElement;
+        if (input) {
+          input.focus();
+        }
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  const handleTriggerClick = () => {
+    setOpen(!open);
+  };
+
+  const handleTriggerKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    if (disabled) return;
+
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpen(true);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const handleSelect = (optionValue: string) => {
+    onChange?.(optionValue === value ? "" : optionValue);
+    setOpen(false);
+    setSearchTerm("");
+  };
+
   return (
     <FieldShell
       label={label}
@@ -115,14 +152,10 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Dropdown
-        open={open}
-        onOpenChange={setOpen}
-        initialPlacement="bottom"
-        minSpaceBelow={320}
-        syncTriggerWidth={true}
-      >
-        <Dropdown.Trigger
+      <div style={{ position: "relative" }}>
+        {/* Trigger Button */}
+        <button
+          ref={triggerRef}
           id={fieldId}
           disabled={disabled}
           className={`h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
@@ -132,81 +165,116 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             lineHeight: 1.43,
           }}
+          onClick={handleTriggerClick}
+          onKeyDown={handleTriggerKeyDown}
+          type="button"
         >
           <span
             className="overflow-hidden text-ellipsis whitespace-nowrap"
             style={{
               color: "var(--color-text-primary)",
+              textAlign: "left",
             }}
           >
             {selectedLabel}
           </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0" style={{ color: "#303030" }} />
-        </Dropdown.Trigger>
+          <ChevronsUpDown
+            className="ml-2 h-4 w-4 shrink-0"
+            style={{ color: "#303030" }}
+          />
+        </button>
 
-        <Dropdown.Content
-          closeOnOutsideClick={true}
-          closeOnEscape={true}
-          className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
-        >
-          <Command shouldFilter={false}>
-            <CommandInput
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onValueChange={(term) => {
-                setSearchTerm(term);
-                setHighlightedIndex(0);
-              }}
-            />
-            {filteredOptions.length === 0 && (
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
-            )}
-            <CommandGroup>
-              <CommandList style={{ maxHeight: "280px", minHeight: "150px" }}>
-                {filteredOptions.map((option, index) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={(currentValue) => {
-                      onChange?.(currentValue === value ? "" : currentValue);
-                      setOpen(false);
-                      setSearchTerm("");
-                    }}
-                    onMouseEnter={() => setHighlightedIndex(index)}
+        {/* Dropdown Content */}
+        {open && (
+          <div
+            ref={contentRef}
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              zIndex: 50,
+              marginTop: "8px",
+              backgroundColor: "white",
+              border: "1px solid var(--color-border-light)",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Command shouldFilter={false}>
+              <CommandInput
+                placeholder={searchPlaceholder}
+                value={searchTerm}
+                onValueChange={setSearchTerm}
+                style={{
+                  borderBottom: "1px solid var(--color-border-light)",
+                  padding: "8px 12px",
+                }}
+              />
+              {filteredOptions.length === 0 ? (
+                <CommandEmpty style={{ padding: "16px 8px", textAlign: "center" }}>
+                  {emptyMessage}
+                </CommandEmpty>
+              ) : (
+                <CommandGroup>
+                  <CommandList
                     style={{
-                      backgroundColor:
-                        highlightedIndex === index
-                          ? "rgba(36, 99, 235, 0.1)"
-                          : "transparent",
+                      maxHeight: "280px",
+                      minHeight: "150px",
+                      overflow: "auto",
+                      padding: "4px 0",
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                ))}
+                    {filteredOptions.map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        onSelect={() => handleSelect(option.value)}
+                        style={{
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          backgroundColor:
+                            value === option.value
+                              ? "rgba(36, 99, 235, 0.15)"
+                              : "transparent",
+                        }}
+                        className="transition-colors"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            value === option.value
+                              ? "opacity-100"
+                              : "opacity-0",
+                          )}
+                        />
+                        <span style={{ color: "var(--color-text-primary)" }}>
+                          {option.label}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                </CommandGroup>
+              )}
+            </Command>
+          </div>
+        )}
 
-                {filteredOptions.length === 0 && (
-                  <div
-                    style={{
-                      padding: "16px 8px",
-                      textAlign: "center",
-                      color: "var(--color-text-muted)",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {emptyMessage}
-                  </div>
-                )}
-              </CommandList>
-            </CommandGroup>
-          </Command>
-        </Dropdown.Content>
-      </Dropdown>
+        {/* Overlay to close on outside click */}
+        {open && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 40,
+            }}
+            onClick={() => setOpen(false)}
+          />
+        )}
+      </div>
     </FieldShell>
   );
 };
