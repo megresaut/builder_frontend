@@ -36,13 +36,14 @@ const PopoverContent = React.forwardRef<
           sticky="partial"
           hideWhenDetached={false}
           style={{
-            maxHeight: "calc(100vh - 40px)",
+            maxHeight: "340px",
             maxWidth: "calc(100vw - 32px)",
             ...style,
             overflowY: "auto",
             overflowX: "hidden",
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
+            height: "auto",
           }}
           {...props}
         />
