@@ -159,7 +159,7 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
               borderWidth: error ? "2px" : "1px",
               padding: "8px 12px",
               paddingRight: "80px",
-              fontSize: "14px",
+              fontSize: "18px",
               fontWeight: 400,
               letterSpacing: "0.5px",
               lineHeight: 1.43,
