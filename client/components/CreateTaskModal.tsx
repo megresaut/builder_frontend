@@ -72,6 +72,12 @@ export default function CreateTaskModal({
     dueDate?: boolean;
     selectedAssignees?: boolean;
   }>({});
+  const [errorMessages, setErrorMessages] = useState<{
+    property?: string;
+    title?: string;
+    dueDate?: string;
+    selectedAssignees?: string;
+  }>({});
 
   const validateForm = (): boolean => {
     const newErrors: {
