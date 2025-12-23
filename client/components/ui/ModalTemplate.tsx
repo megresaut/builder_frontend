@@ -230,10 +230,20 @@ ModalText.displayName = "ModalText";
  *
  * This ensures all inputs (text, email, tel, textarea, button-like inputs) have:
  * - Font family: Geist system fonts
- * - Font size: 16px
+ * - Font size: 16px (1rem)
  * - Letter spacing: -0.32px (tracking)
  * - Line height: 1.4
  * - Font weight: 400 (normal)
+ *
+ * For placeholder-like text (non-input elements that display placeholder values),
+ * use the `.ra-input-placeholder` CSS class along with the color style:
+ * ```
+ * <span className="ra-input-placeholder" style={{ color: "rgba(209, 213, 219, 1)" }}>
+ *   Placeholder text
+ * </span>
+ * ```
+ *
+ * This ensures visual consistency between actual inputs and input-like elements.
  */
 
 /**
