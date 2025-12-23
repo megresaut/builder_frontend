@@ -89,6 +89,7 @@ export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(
         placement: floatingLayer.placement,
         align: floatingLayer.align,
         contentWidth: floatingLayer.widthValue,
+        isVisible: floatingLayer.isVisible,
         getPositionStyle: floatingLayer.getPositionStyle,
       }),
       [
@@ -100,6 +101,7 @@ export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(
         floatingLayer.placement,
         floatingLayer.align,
         floatingLayer.widthValue,
+        floatingLayer.isVisible,
         floatingLayer.getPositionStyle,
       ],
     );
