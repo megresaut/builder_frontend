@@ -476,6 +476,19 @@
   }
 
   /**
+   * STANDARD INPUT PLACEHOLDER TEXT STYLE
+   * Used for input placeholders and placeholder-like text across modals.
+   * Ensures consistent font rendering with actual input fields.
+   */
+  .ra-input-placeholder {
+    font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: -0.32px;
+    line-height: 1.4;
+  }
+
+  /**
    * FIELD ROW - Multi-column field layout
    * Container for laying out multiple form fields horizontally on desktop,
    * stacking vertically on mobile for responsive design.
