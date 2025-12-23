@@ -66,6 +66,10 @@ export function useFloatingLayer({
   const triggerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLElement>(null);
 
+  // Once we flip away from the initial placement while open, we lock it
+  // to prevent jitter (top↔bottom) during scroll/resize.
+  const lockedPlacementRef = useRef<Placement | null>(null);
+
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
@@ -163,11 +167,14 @@ export function useFloatingLayer({
       newPlacement = initialPlacement;
     }
 
-    setPlacement((prev) => {
-      // Freeze once we flip away from the initial placement (prevents jitter).
-      if (prev !== initialPlacement) return prev;
-      return newPlacement;
-    });
+    // If we ever flip away from the initial placement while open, lock it.
+    if (lockedPlacementRef.current) {
+      newPlacement = lockedPlacementRef.current;
+    } else if (newPlacement !== initialPlacement) {
+      lockedPlacementRef.current = newPlacement;
+    }
+
+    setPlacement((prev) => (prev === newPlacement ? prev : newPlacement));
 
     let newAlign: Align = initialAlign;
     if (initialAlign === "start") {
@@ -208,6 +215,7 @@ export function useFloatingLayer({
 
   useEffect(() => {
     if (!open) {
+      lockedPlacementRef.current = null;
       setPlacement((prev) => (prev === initialPlacement ? prev : initialPlacement));
       setAlign((prev) => (prev === initialAlign ? prev : initialAlign));
       setWidthValue((prev) => (prev === undefined ? prev : undefined));
