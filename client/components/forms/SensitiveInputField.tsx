@@ -86,7 +86,7 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
       return maskChar.repeat(hiddenCount) + val.slice(-visibleDigits);
     };
 
-    const displayValue = isRevealed || readOnly === false ? value : getMaskedValue(value);
+    const displayValue = isRevealed ? value : getMaskedValue(value);
 
     const handleCopy = async (e: React.MouseEvent) => {
       e.preventDefault();
