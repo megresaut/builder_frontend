@@ -92,7 +92,7 @@ export function FormShowcaseModal({
 
   // Identity select fields
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState("");
+  const [primaryProperty, setPrimaryProperty] = useState("");
 
   // File uploads
   const [attachments, setAttachments] = useState<UploadedFile[]>([]);
@@ -161,7 +161,7 @@ export function FormShowcaseModal({
 
       // Identity select fields
       setSelectedVendors([]);
-      setSelectedProperty("");
+      setPrimaryProperty("");
 
       // File uploads
       setAttachments([]);
@@ -237,7 +237,7 @@ export function FormShowcaseModal({
       selectedDepartments,
       propertyAddress,
       selectedVendors,
-      selectedProperty,
+      primaryProperty,
       attachments,
     });
 
@@ -637,8 +637,8 @@ export function FormShowcaseModal({
 
           <IdentitySelectField
             label="Primary Property"
-            value={selectedProperty}
-            onChange={setSelectedProperty}
+            value={primaryProperty}
+            onChange={setPrimaryProperty}
             placeholder="Search for property..."
             options={[
               {
