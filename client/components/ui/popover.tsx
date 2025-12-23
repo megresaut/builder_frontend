@@ -27,21 +27,35 @@ const PopoverContent = React.forwardRef<
   ) => {
     const localRef = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content> | null>(null);
     const [isPositioned, setIsPositioned] = React.useState(false);
+    const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(null);
 
     const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
       localRef.current = node;
       if (typeof ref === "function") ref(node);
-      else if (ref) (ref as React.MutableRefObject<typeof node>).current = node;
+      else if (ref) (ref as React.MutableRefObject<React.ElementRef<typeof PopoverPrimitive.Content> | null>).current =
+          node;
     };
 
     React.useLayoutEffect(() => {
-      // Mount hidden, then reveal on the same layout pass so we never flash at (0,0)
+      // Mount hidden, compute constraints, then reveal (prevents flash at 0,0)
+      const dialogContents = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-ra-dialog-content]"),
+      );
+      setPortalContainer(dialogContents.length ? dialogContents[dialogContents.length - 1] : null);
       setIsPositioned(true);
-      return () => setIsPositioned(false);
+      return () => {
+        setIsPositioned(false);
+        setPortalContainer(null);
+      };
     }, []);
 
+    const collisionBoundary =
+      (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).collisionBoundary ??
+      portalContainer ??
+      undefined;
+
     return (
-      <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Portal container={portalContainer ?? undefined}>
         <PopoverPrimitive.Content
           ref={setRefs}
           align={align}
@@ -50,6 +64,22 @@ const PopoverContent = React.forwardRef<
             "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
             className,
           )}
+          collisionBoundary={collisionBoundary}
+          collisionPadding={
+            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).collisionPadding ??
+            8
+          }
+          avoidCollisions={
+            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).avoidCollisions ??
+            true
+          }
+          sticky={
+            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).sticky ?? "always"
+          }
+          hideWhenDetached={
+            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).hideWhenDetached ??
+            true
+          }
           style={{
             maxHeight: "calc(100vh - 40px)",
             maxWidth: "calc(100vw - 32px)",
