@@ -79,6 +79,13 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
     const [isRevealed, setIsRevealed] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
 
+    const getMaskedValue = (val: string): string => {
+      if (!val) return "";
+      return maskChar.repeat(val.length);
+    };
+
+    const displayValue = isRevealed ? value : getMaskedValue(value);
+
     const handleCopy = async (e: React.MouseEvent) => {
       e.preventDefault();
       if (!isRevealed || !value) return;
