@@ -878,6 +878,15 @@ export function FormShowcaseModal({
             </FieldRowItem>
           </FieldRow>
         </FormSection>
+
+        {/* READ-ONLY FIELD SECTION */}
+        <FormSection title="Summary" description="Auto-calculated or reference information">
+          <ReadOnlyTextField
+            label="Transaction ID"
+            value="TXN-2024-001847"
+            description="Auto-generated identifier for this record"
+          />
+        </FormSection>
       </div>
     </ModalTemplate>
   );
