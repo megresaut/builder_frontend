@@ -11,6 +11,7 @@ interface FileUploadFieldProps {
   files?: UploadedFile[];
   onFilesAdded?: (files: UploadedFile[]) => void;
   onFileRemoved?: (fileId: string) => void;
+  onViewFile?: (file: UploadedFile) => void;
   disabled?: boolean;
   accept?: string;
   maxFiles?: number;
@@ -42,6 +43,7 @@ interface FileUploadFieldProps {
  * @param files - Current list of uploaded files
  * @param onFilesAdded - Callback when files are added
  * @param onFileRemoved - Callback when file is removed
+ * @param onViewFile - Callback when View button is clicked
  * @param disabled - Disable upload
  * @param accept - Accepted file types (e.g., "image/*,.pdf")
  * @param maxFiles - Maximum number of files (default: 10)
@@ -71,6 +73,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   files = [],
   onFilesAdded,
   onFileRemoved,
+  onViewFile,
   disabled = false,
   accept = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif",
   maxFiles = 10,
@@ -90,6 +93,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         files={files}
         onFilesAdded={onFilesAdded}
         onFileRemoved={onFileRemoved}
+        onViewFile={onViewFile}
         accept={accept}
         maxFiles={maxFiles}
         maxSize={maxSize}
