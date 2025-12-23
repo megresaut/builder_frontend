@@ -126,12 +126,6 @@ export function FormShowcaseModal({
     onOpenChange(false);
   };
 
-  const handleCreateVendor = (vendorName: string) => {
-    console.log("Creating new vendor:", vendorName);
-    alert(`New vendor created: "${vendorName}"`);
-    setSelectedVendor(vendorName.toLowerCase());
-  };
-
   return (
     <ModalTemplate
       open={open}
