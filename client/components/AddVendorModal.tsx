@@ -4,6 +4,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ModalTemplate,
   ModalButtons,
+  ModalField,
+  FieldRow,
+  FieldRowItem,
 } from "@/components/ui/ModalTemplate";
 
 interface AddVendorModalProps {
@@ -138,99 +141,64 @@ export default function AddVendorModal({
         />
       }
     >
-      <div style={{ display: "flex", width: "100%", gap: "12px", marginBottom: "12px" }}>
-        <div style={{ flex: 1, minWidth: "240px" }}>
-          <label
-            style={{
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              fontSize: "14px",
-              color: "rgba(48, 48, 48, 1)",
-              fontWeight: 500,
-              lineHeight: 1.43,
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
-            Vendor Name
-          </label>
-          <Input
-            value={vendorName}
-            onChange={handleVendorNameChange}
-            placeholder="Input Vendor Name"
-            style={{
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 1)",
-              borderColor: errors.vendorName ? "rgba(220, 38, 38, 1)" : "rgba(229, 229, 229, 1)",
-              borderStyle: "solid",
-              borderWidth: errors.vendorName ? "2px" : "1px",
-              padding: "8px 12px",
-              fontSize: "16px",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
-          />
-          {errors.vendorName && (
-            <div style={{ color: "rgba(220, 38, 38, 1)", fontSize: "12px", marginTop: "4px" }}>
-              Vendor Name is required
-            </div>
-          )}
-        </div>
-        <div style={{ flex: 1, minWidth: "240px" }}>
-          <label
-            style={{
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              fontSize: "14px",
-              color: "rgba(48, 48, 48, 1)",
-              fontWeight: 500,
-              lineHeight: 1.43,
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
-            Primary Email
-          </label>
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Input Vendor Email"
-            style={{
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 1)",
-              borderColor: "rgba(229, 229, 229, 1)",
-              borderStyle: "solid",
-              borderWidth: "1px",
-              padding: "8px 12px",
-              fontSize: "16px",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
-      </div>
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Vendor Name" spacing="tight">
+            <Input
+              value={vendorName}
+              onChange={handleVendorNameChange}
+              placeholder="Input Vendor Name"
+              style={{
+                borderRadius: "8px",
+                backgroundColor: "rgba(255, 255, 255, 1)",
+                borderColor: errors.vendorName ? "rgba(220, 38, 38, 1)" : "rgba(229, 229, 229, 1)",
+                borderStyle: "solid",
+                borderWidth: errors.vendorName ? "2px" : "1px",
+                padding: "8px 12px",
+                fontSize: "16px",
+                fontWeight: 400,
+                letterSpacing: "-0.32px",
+                lineHeight: 1.4,
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.vendorName && (
+              <div style={{ color: "rgba(220, 38, 38, 1)", fontSize: "12px", marginTop: "4px" }}>
+                Vendor Name is required
+              </div>
+            )}
+          </ModalField>
+        </FieldRowItem>
+        <FieldRowItem>
+          <ModalField label="Primary Email" spacing="tight">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Input Vendor Email"
+              style={{
+                borderRadius: "8px",
+                backgroundColor: "rgba(255, 255, 255, 1)",
+                borderColor: "rgba(229, 229, 229, 1)",
+                borderStyle: "solid",
+                borderWidth: "1px",
+                padding: "8px 12px",
+                fontSize: "16px",
+                fontWeight: 400,
+                letterSpacing: "-0.32px",
+                lineHeight: 1.4,
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+          </ModalField>
+        </FieldRowItem>
+      </FieldRow>
 
-      <div style={{ marginBottom: "12px" }}>
-        <label
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "14px",
-            color: "rgba(48, 48, 48, 1)",
-            fontWeight: 500,
-            lineHeight: 1.43,
-            marginBottom: "8px",
-            display: "block",
-          }}
-        >
-          Vendor Phone Number
-        </label>
+      <ModalField label="Vendor Phone Number" spacing="tight">
         <Input
           type="tel"
           value={phone}
@@ -252,7 +220,7 @@ export default function AddVendorModal({
             boxSizing: "border-box",
           }}
         />
-      </div>
+      </ModalField>
 
       <div style={{ marginBottom: "12px" }}>
         <label
@@ -398,20 +366,7 @@ export default function AddVendorModal({
         </div>
       </div>
 
-      <div>
-        <label
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "14px",
-            color: "rgba(48, 48, 48, 1)",
-            fontWeight: 500,
-            lineHeight: 1.43,
-            marginBottom: "8px",
-            display: "block",
-          }}
-        >
-          Notes
-        </label>
+      <ModalField label="Notes">
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -434,7 +389,7 @@ export default function AddVendorModal({
             boxSizing: "border-box",
           }}
         />
-      </div>
+      </ModalField>
     </ModalTemplate>
   );
 }
