@@ -15,6 +15,7 @@ interface CurrencyFieldProps
   currencySymbol?: string;
   decimalPlaces?: number;
   allowNegative?: boolean;
+  readOnly?: boolean;
 }
 
 /**
