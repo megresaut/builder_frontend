@@ -110,15 +110,16 @@ const PopoverContent = React.forwardRef<
         <PopoverPrimitive.Content
           ref={setRefs}
           align={align}
+          side="bottom"
           sideOffset={sideOffset}
           className={cn(
             "z-[999] rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
             className,
           )}
-          collisionPadding={8}
-          avoidCollisions={false}
-          sticky="partial"
-          hideWhenDetached={false}
+          collisionPadding={16}
+          avoidCollisions={true}
+          sticky="never"
+          hideWhenDetached={true}
           style={{
             maxHeight: "340px",
             maxWidth: "calc(100vw - 32px)",
