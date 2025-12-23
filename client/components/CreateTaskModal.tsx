@@ -145,11 +145,30 @@ export default function CreateTaskModal({
   };
 
   useEffect(() => {
-    if (editData) {
-      setTitle(editData.title);
-      setPriority(editData.priority.toLowerCase());
+    if (open) {
+      // When modal opens with editData, populate it
+      if (editData) {
+        setTitle(editData.title);
+        setPriority(editData.priority.toLowerCase());
+      }
+    } else {
+      // When modal closes, clear all form state and errors
+      setProperty("");
+      setUnit("");
+      setTitle("");
+      setPriority("normal");
+      setSelectedDate(null);
+      setDueDate("");
+      setSelectedAssignees([]);
+      setCategory("");
+      setDescription("");
+      setShowAssigneeDropdown(false);
+      setErrors({});
+      setErrorMessages({});
+      setShowCalendar(false);
+      setCalendarMonth(new Date());
     }
-  }, [editData]);
+  }, [open, editData]);
 
   useEffect(() => {
     let animationFrameId: number;
