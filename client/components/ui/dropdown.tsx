@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useId,
+  useMemo,
+  useState,
+  ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { useFloatingLayer } from "@/hooks/useFloatingLayer";
 
 interface DropdownContextType {
@@ -34,27 +42,7 @@ interface DropdownProps {
   offset?: number;
 }
 
-/**
- * Dropdown - Shared primitive for dropdown/popover/select behavior
- * 
- * Provides:
- * - Open/close state management
- * - Floating layer positioning and collision detection
- * - A11y wiring (aria-controls, aria-expanded, roles)
- * - Child context for Trigger and Content
- * 
- * Usage:
- * ```tsx
- * <Dropdown>
- *   <Dropdown.Trigger>Open</Dropdown.Trigger>
- *   <Dropdown.Content>Menu content</Dropdown.Content>
- * </Dropdown>
- * ```
- */
-export const Dropdown = React.forwardRef<
-  HTMLDivElement,
-  DropdownProps
->(
+export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(
   (
     {
       children,
@@ -69,7 +57,7 @@ export const Dropdown = React.forwardRef<
   ) => {
     const [internalOpen, setInternalOpen] = useState(false);
     const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
-    
+
     const handleOpenChange = (newOpen: boolean) => {
       if (controlledOpen === undefined) {
         setInternalOpen(newOpen);
@@ -77,8 +65,9 @@ export const Dropdown = React.forwardRef<
       onOpenChange?.(newOpen);
     };
 
-    const triggerId = `dropdown-trigger-${Math.random().toString(36).slice(2)}`;
-    const contentId = `dropdown-content-${Math.random().toString(36).slice(2)}`;
+    const id = useId();
+    const triggerId = `dropdown-trigger-${id}`;
+    const contentId = `dropdown-content-${id}`;
 
     const floatingLayer = useFloatingLayer({
       open: isOpen,
@@ -88,22 +77,35 @@ export const Dropdown = React.forwardRef<
       offset,
     });
 
-    const value: DropdownContextType = {
-      open: isOpen,
-      setOpen: handleOpenChange,
-      triggerId,
-      contentId,
-      triggerRef: floatingLayer.triggerRef,
-      contentRef: floatingLayer.contentRef,
-      placement: floatingLayer.placement,
-      align: floatingLayer.align,
-      contentWidth: floatingLayer.widthValue,
-      getPositionStyle: floatingLayer.getPositionStyle,
-    };
+    const value: DropdownContextType = useMemo(
+      () => ({
+        open: isOpen,
+        setOpen: handleOpenChange,
+        triggerId,
+        contentId,
+        triggerRef: floatingLayer.triggerRef,
+        contentRef: floatingLayer.contentRef,
+        placement: floatingLayer.placement,
+        align: floatingLayer.align,
+        contentWidth: floatingLayer.widthValue,
+        getPositionStyle: floatingLayer.getPositionStyle,
+      }),
+      [
+        isOpen,
+        triggerId,
+        contentId,
+        floatingLayer.triggerRef,
+        floatingLayer.contentRef,
+        floatingLayer.placement,
+        floatingLayer.align,
+        floatingLayer.widthValue,
+        floatingLayer.getPositionStyle,
+      ],
+    );
 
     return (
       <DropdownContext.Provider value={value}>
-        <div ref={ref} style={{ position: "relative", display: "flex", flexDirection: "column", width: "100%" }}>
+        <div ref={ref} style={{ width: "100%" }}>
           {children}
         </div>
       </DropdownContext.Provider>
@@ -113,92 +115,61 @@ export const Dropdown = React.forwardRef<
 
 Dropdown.displayName = "Dropdown";
 
-interface DropdownTriggerProps
-  extends React.HTMLAttributes<HTMLElement> {
+interface DropdownTriggerProps extends React.HTMLAttributes<HTMLElement> {
   asChild?: boolean;
   type?: string;
 }
 
-/**
- * Dropdown.Trigger - The button/input that opens the dropdown
- *
- * Can be used as button, input, or any interactive element.
- * Automatically wired with:
- * - aria-expanded
- * - aria-controls
- * - onClick/onFocus handler for opening
- */
-const DropdownTrigger = React.forwardRef<
-  HTMLElement,
-  DropdownTriggerProps
->(({ asChild = false, onClick, onFocus, type, ...props }, ref) => {
-  const { open, setOpen, triggerId, contentId, triggerRef } =
-    useDropdownContext();
+const DropdownTrigger = React.forwardRef<HTMLElement, DropdownTriggerProps>(
+  ({ asChild = false, onClick, onFocus, type, ...props }, ref) => {
+    const { open, setOpen, triggerId, contentId, triggerRef } =
+      useDropdownContext();
 
-  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
-    setOpen(!open);
-    onClick?.(e as any);
-  };
+    const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+      setOpen(!open);
+      onClick?.(e as any);
+    };
 
-  const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
-    setOpen(true);
-    onFocus?.(e as any);
-  };
+    const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
+      setOpen(true);
+      onFocus?.(e as any);
+    };
 
-  const isInput = type && ["text", "email", "number", "password"].includes(type);
-  const Element = isInput ? "input" : "button";
+    const isInput = type &&
+      ["text", "email", "number", "password"].includes(type);
+    const Element = isInput ? "input" : "button";
 
-  const element = React.createElement(Element, {
-    ref: (el: HTMLElement) => {
-      // @ts-ignore - ref forwarding complexity
-      triggerRef.current = el;
-      if (typeof ref === "function") {
-        ref(el);
-      } else if (ref) {
-        ref.current = el;
-      }
-    },
-    id: triggerId,
-    "aria-expanded": open,
-    "aria-controls": contentId,
-    onClick: handleClick,
-    onFocus: isInput ? handleFocus : undefined,
-    type: type || "button",
-    ...props,
-  });
+    const element = React.createElement(Element, {
+      ref: (el: HTMLElement) => {
+        // @ts-ignore - ref forwarding complexity
+        triggerRef.current = el;
+        if (typeof ref === "function") {
+          ref(el);
+        } else if (ref) {
+          ref.current = el;
+        }
+      },
+      id: triggerId,
+      "aria-expanded": open,
+      "aria-controls": contentId,
+      onClick: handleClick,
+      onFocus: isInput ? handleFocus : undefined,
+      type: type || "button",
+      ...props,
+    });
 
-  return element;
-});
+    return element;
+  },
+);
 
 DropdownTrigger.displayName = "DropdownTrigger";
 
-interface DropdownContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /**
-   * Close dropdown when clicking outside
-   * @default true
-   */
+interface DropdownContentProps extends React.HTMLAttributes<HTMLDivElement> {
   closeOnOutsideClick?: boolean;
-  /**
-   * Close dropdown when pressing Escape
-   * @default true
-   */
   closeOnEscape?: boolean;
 }
 
-/**
- * Dropdown.Content - The floating menu/content container
- * 
- * Automatically handles:
- * - Positioning based on available space
- * - Click outside detection
- * - Escape key handling
- * - Accessibility attributes (role, aria-labelledby)
- */
-const DropdownContent = React.forwardRef<
-  HTMLDivElement,
-  DropdownContentProps
->(
+const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
   (
     {
       children,
@@ -214,30 +185,40 @@ const DropdownContent = React.forwardRef<
       setOpen,
       contentId,
       triggerId,
+      triggerRef,
       contentRef,
       getPositionStyle,
       contentWidth,
     } = useDropdownContext();
 
+    const [, forceReposition] = React.useReducer((x) => x + 1, 0);
+
+    React.useEffect(() => {
+      if (!open) return;
+      const id = window.requestAnimationFrame(() => forceReposition());
+      return () => window.cancelAnimationFrame(id);
+    }, [open]);
+
     React.useEffect(() => {
       if (!open || !closeOnOutsideClick) return;
 
-      const handleClickOutside = (e: MouseEvent) => {
-        if (
-          contentRef.current &&
-          !contentRef.current.contains(e.target as Node) &&
-          contentRef.current?.parentElement &&
-          !contentRef.current.parentElement.contains(e.target as Node)
-        ) {
+      const handlePointerDownOutside = (e: MouseEvent | PointerEvent) => {
+        const target = e.target as Node | null;
+        if (!target) return;
+
+        const inContent = !!contentRef.current?.contains(target);
+        const inTrigger = !!triggerRef.current?.contains(target);
+
+        if (!inContent && !inTrigger) {
           setOpen(false);
         }
       };
 
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("pointerdown", handlePointerDownOutside);
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("pointerdown", handlePointerDownOutside);
       };
-    }, [open, closeOnOutsideClick, contentRef, setOpen]);
+    }, [open, closeOnOutsideClick, contentRef, triggerRef, setOpen]);
 
     React.useEffect(() => {
       if (!open || !closeOnEscape) return;
@@ -260,7 +241,7 @@ const DropdownContent = React.forwardRef<
 
     const positionStyle = getPositionStyle();
 
-    return (
+    const node = (
       <div
         ref={(el) => {
           // @ts-ignore - ref forwarding complexity
@@ -288,6 +269,9 @@ const DropdownContent = React.forwardRef<
         {children}
       </div>
     );
+
+    if (typeof document === "undefined") return node;
+    return createPortal(node, document.body);
   },
 );
 
