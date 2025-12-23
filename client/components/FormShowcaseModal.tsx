@@ -88,6 +88,7 @@ export function FormShowcaseModal({
   // Address field
   const [propertyAddress, setPropertyAddress] = useState<AddressValue>({
     street: "",
+    street2: "",
     city: "",
     state: "CT",
     zipCode: "",
