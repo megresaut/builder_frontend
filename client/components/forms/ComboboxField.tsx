@@ -136,6 +136,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
           side="bottom"
           align="start"
           avoidCollisions={true}
+          forceMount
         >
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
