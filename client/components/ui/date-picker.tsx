@@ -130,14 +130,15 @@ export const DatePicker = ({
     >
       <div className="relative">
         <Dropdown.Trigger
-          ref={inputRef}
-          type="text"
-          placeholder={placeholder}
-          value={inputValue}
-          onChange={(e: any) => handleInputChange(e.target.value)}
-          disabled={disabled}
-          className={`${styles.input} ${error ? styles.inputError : ""} ${className}`}
-        />
+        ref={inputRef}
+        type="text"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={(e: any) => handleInputChange(e.target.value)}
+        disabled={disabled}
+        className={`${styles.input} ${error ? styles.inputError : ""} ${showCalendar ? "border-black" : ""} ${className}`}
+        style={showCalendar ? { borderColor: "#000000" } : undefined}
+      />
         <Calendar
           className={styles.icon}
           aria-hidden="true"
