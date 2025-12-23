@@ -325,6 +325,15 @@ export function FormShowcaseModal({
             onValidationChange={setIsPhoneValid}
             description="Optional. Accepts country codes or standard formats"
           />
+
+          <SensitiveInputField
+            label="Bank Account Number"
+            placeholder="Enter account number"
+            value={bankAccount}
+            onChange={setBankAccount}
+            description="Masked by default. Click eye icon to reveal. Copy only available when revealed."
+            visibleDigits={4}
+          />
         </FormSection>
 
         {/* SELECT & COMBOBOX SECTION */}
