@@ -72,9 +72,9 @@ export default function AddVendorModal({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: { vendorName?: boolean } = {};
+    const newErrors: { vendorName?: string } = {};
     if (!vendorName.trim()) {
-      newErrors.vendorName = true;
+      newErrors.vendorName = "Vendor Name is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
