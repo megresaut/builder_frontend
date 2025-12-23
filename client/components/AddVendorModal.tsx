@@ -5,7 +5,7 @@ import {
   ModalField,
 } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
-import { MultiSelectField, type MultiSelectOption } from "@/components/forms/MultiSelectField";
+import { SelectField } from "@/components/forms/SelectField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
