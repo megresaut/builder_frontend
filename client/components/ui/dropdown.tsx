@@ -210,6 +210,7 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
       contentRef,
       getPositionStyle,
       contentWidth,
+      isVisible,
     } = useDropdownContext();
 
     const [, forceReposition] = React.useReducer((x) => x + 1, 0);
