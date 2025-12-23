@@ -92,39 +92,6 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   </Popover>
   ```
 
-#### DatePicker
-- **File**: `components/ui/date-picker.tsx`
-- **Export**: `DatePicker`
-- **Key Features**: 
-  - Inline calendar (not portal-based)
-  - Respects parent overflow boundaries
-  - Uses `.ra-floating-panel` styles
-  - ESC key support
-- **Props**: `value`, `onChange`, `disabled`, `error`
-- **Used In**: RecordBill page, date selection
-- **Reference**: See `components/ui/date-picker.example.tsx` for working example
-- **Example**:
-  ```tsx
-  <DatePicker value={date} onChange={setDate} />
-  ```
-
-#### Select
-- **File**: `components/ui/select.tsx`
-- **Exports**: `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`, `SelectLabel`
-- **Based On**: Radix Select primitive
-- **Key Features**: Uses `.ra-floating-panel` for dropdown styling
-- **Used In**: Vendor selection, dropdown lists
-- **Example**:
-  ```tsx
-  <Select value={selected} onValueChange={setSelected}>
-    <SelectTrigger>
-      <SelectValue placeholder="Choose..." />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="option1">Option 1</SelectItem>
-    </SelectContent>
-  </Select>
-  ```
 
 #### DropdownMenu
 - **File**: `components/ui/dropdown-menu.tsx`
