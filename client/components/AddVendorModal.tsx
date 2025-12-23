@@ -352,11 +352,28 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField label="Notes">
-        <TextAreaField
+        <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Insert Vendor Notes"
-          autoGrow
+          style={{
+            borderRadius: "8px",
+            backgroundColor: "rgba(255, 255, 255, 1)",
+            borderColor: "var(--color-border-light)",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            padding: "8px 12px",
+            fontSize: "16px",
+            fontWeight: 400,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            color: "var(--color-text-primary)",
+            minHeight: "100px",
+            resize: "vertical",
+            width: "100%",
+            boxSizing: "border-box",
+          }}
         />
       </ModalField>
     </ModalTemplate>
