@@ -86,19 +86,32 @@ export default function CreateTaskModal({
       dueDate?: boolean;
       selectedAssignees?: boolean;
     } = {};
+    const newErrorMessages: {
+      property?: string;
+      title?: string;
+      dueDate?: string;
+      selectedAssignees?: string;
+    } = {};
+
     if (!property.trim()) {
       newErrors.property = true;
+      newErrorMessages.property = "Property is required";
     }
     if (!title.trim()) {
       newErrors.title = true;
+      newErrorMessages.title = "Task name is required";
     }
     if (!selectedDate) {
       newErrors.dueDate = true;
+      newErrorMessages.dueDate = "Due date is required";
     }
     if (selectedAssignees.length === 0) {
       newErrors.selectedAssignees = true;
+      newErrorMessages.selectedAssignees = "At least one assignee is required";
     }
+
     setErrors(newErrors);
+    setErrorMessages(newErrorMessages);
     return Object.keys(newErrors).length === 0;
   };
 
