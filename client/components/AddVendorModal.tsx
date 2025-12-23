@@ -141,27 +141,11 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField label="Vendor Phone Number" spacing="tight">
-        <input
+        <Input
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="(123) 456-7890"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            borderColor: "var(--color-border-light)",
-            borderStyle: "solid",
-            borderWidth: "1px",
-            padding: "8px 12px",
-            fontSize: "16px",
-            fontWeight: 400,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            color: "var(--color-text-primary)",
-            width: "100%",
-            boxSizing: "border-box",
-          }}
         />
       </ModalField>
 
