@@ -1,6 +1,7 @@
 import * as React from "react";
 import { DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import styles from "./Modal.module.css";
 
 type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
 
@@ -58,15 +59,15 @@ export const Modal = React.forwardRef<
     },
     ref,
   ) => {
-    const sizeClass = `ra-modal--${size}`;
+    const sizeClassName = `size${size.charAt(0).toUpperCase()}${size.slice(1)}`;
     const widthValue = MODAL_WIDTHS[size];
 
     return (
       <DialogContent
         ref={ref}
         className={cn(
-          "ra-modal",
-          sizeClass,
+          styles.raModal,
+          styles[sizeClassName],
           "gap-0 border-none",
           className,
           {
