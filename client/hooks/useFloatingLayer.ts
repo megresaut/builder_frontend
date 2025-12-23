@@ -301,12 +301,12 @@ export function useFloatingLayer({
 
     // Cleanup
     return () => {
-      isMountedRef.current = false;
       resizeObserver.disconnect();
       scrollables.forEach((scrollable) => {
         scrollable.removeEventListener("scroll", handleUpdate, { capture: true });
       });
       window.removeEventListener("resize", handleUpdate);
+      isMountedRef.current = false;
     };
   }, [open, initialPlacement, initialAlign, offset, minSpaceBelow, triggerWidth]);
 
