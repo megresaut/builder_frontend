@@ -128,7 +128,7 @@ export default function AddVendorModal({
           <EmailField
             label="Primary Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={setEmail}
             placeholder="vendor@example.com"
           />
         </FieldRowItem>
