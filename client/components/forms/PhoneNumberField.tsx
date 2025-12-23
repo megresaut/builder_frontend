@@ -198,16 +198,79 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
         disabled={disabled}
         htmlFor={fieldId}
       >
-        <div style={{ display: "flex", gap: "8px" }}>
-          <SelectFieldV2
-            label="Country"
-            value={countryCode}
-            onChange={handleCountryCodeChange}
-            disabled={disabled}
-            options={COUNTRY_CODES}
-            placeholder="Select country"
-            style={{ flex: "0 0 200px" }}
-          />
+        <div style={{ display: "flex", gap: "8px", alignItems: "stretch" }}>
+          <Dropdown
+            open={false}
+            onOpenChange={() => {}}
+            initialPlacement="bottom"
+            minSpaceBelow={300}
+            syncTriggerWidth={false}
+          >
+            <Dropdown.Trigger
+              disabled={disabled}
+              className={cn(
+                "h-11 rounded-lg border px-3 py-2",
+                "bg-white text-sm font-normal",
+                "flex items-center justify-between",
+                "cursor-pointer transition-colors",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+                "border-[var(--color-border-light)]"
+              )}
+              style={{
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                lineHeight: 1.43,
+                flex: "0 0 auto",
+                whiteSpace: "nowrap",
+                color: "#303030",
+              }}
+            >
+              <span>{countryCode}</span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" style={{ color: "#303030" }} />
+            </Dropdown.Trigger>
+
+            <Dropdown.Content
+              closeOnOutsideClick={true}
+              closeOnEscape={true}
+              className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
+            >
+              <div style={{ maxHeight: "300px", overflowY: "auto", padding: "4px 0" }}>
+                {COUNTRY_CODES.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      handleCountryCodeChange(option.value);
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      textAlign: "left",
+                      backgroundColor:
+                        countryCode === option.value ? "rgba(36, 99, 235, 0.1)" : "transparent",
+                      color: "var(--color-text-primary)",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      transition: "background-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                        "rgba(36, 99, 235, 0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                        countryCode === option.value
+                          ? "rgba(36, 99, 235, 0.1)"
+                          : "transparent";
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </Dropdown.Content>
+          </Dropdown>
+
           <Input
             ref={ref}
             id={fieldId}
