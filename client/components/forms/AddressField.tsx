@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { Dropdown } from "@/components/ui/dropdown";
 import { FieldShell } from "./FieldShell";
 
 export interface AddressValue {
@@ -23,41 +25,58 @@ interface AddressFieldProps {
 }
 
 const US_STATES = [
-  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
 ];
 
-/**
- * AddressField - Multi-line address input with state/zip normalization
- *
- * Provides structured fields for street, city, state, and zip code.
- * Automatically normalizes ZIP codes to numeric format.
- * Includes state selector with validation.
- *
- * @param label - Field label (if showLabel is true)
- * @param required - Show required asterisk
- * @param description - Helper text
- * @param error - Error message
- * @param value - Address object with street, city, state, zipCode
- * @param onChange - Change handler
- * @param disabled - Disable all fields
- * @param includeCountry - Show country field (default: false)
- * @param showLabel - Show main label above fields (default: true)
- *
- * Example:
- * ```tsx
- * <AddressField
- *   label="Property Address"
- *   required
- *   value={address}
- *   onChange={setAddress}
- *   error={errors.address}
- * />
- * ```
- */
 export const AddressField: React.FC<AddressFieldProps> = ({
   label = "Address",
   required = false,
@@ -69,32 +88,34 @@ export const AddressField: React.FC<AddressFieldProps> = ({
   includeCountry = false,
   showLabel = true,
 }) => {
-  const inputBaseStyle = {
+  const [stateOpen, setStateOpen] = useState(false);
+
+  const inputBaseStyle: React.CSSProperties = {
     borderRadius: "8px",
     backgroundColor: "white",
     borderColor: error ? "#ef4444" : "var(--color-border-light)",
     borderStyle: "solid",
     borderWidth: error ? "2px" : "1px",
     padding: "8px 12px",
-    fontSize: "16px",
+    fontSize: "14px",
     fontWeight: 400,
-    lineHeight: 1.4,
+    lineHeight: 1.43,
     fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
     color: "#303030",
     width: "100%",
-    boxSizing: "border-box" as const,
+    boxSizing: "border-box",
     opacity: disabled ? 0.6 : 1,
     cursor: disabled ? "not-allowed" : "auto",
+    minHeight: "44px",
+    outline: "none",
   };
 
-  const selectStyle = {
+  const stateTriggerStyle: React.CSSProperties = {
     ...inputBaseStyle,
-    appearance: "none" as const,
-    paddingRight: "32px",
-    backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e\")",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 8px center",
-    backgroundSize: "20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "8px",
   };
 
   const handleStreetChange = (newStreet: string) => {
@@ -114,7 +135,6 @@ export const AddressField: React.FC<AddressFieldProps> = ({
   };
 
   const handleZipChange = (newZip: string) => {
-    // Normalize to numeric only
     const normalized = newZip.replace(/\D/g, "");
     onChange({ ...value, zipCode: normalized });
   };
@@ -123,70 +143,145 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     onChange({ ...value, country: newCountry });
   };
 
-  if (!showLabel) {
-    return (
-      <div className="flex flex-col gap-3">
-        {includeCountry && (
-          <input
-            type="text"
-            value={value.country || ""}
-            onChange={(e) => handleCountryChange(e.target.value)}
-            placeholder="Country"
-            disabled={disabled}
-            style={inputBaseStyle}
-          />
-        )}
-        <input
-          type="text"
-          value={value.street}
-          onChange={(e) => handleStreetChange(e.target.value)}
-          placeholder="Street Address"
+  const StateDropdown = useMemo(
+    () => (
+      <Dropdown
+        open={stateOpen}
+        onOpenChange={setStateOpen}
+        initialPlacement="bottom"
+        minSpaceBelow={280}
+        syncTriggerWidth={true}
+        offset={8}
+      >
+        <Dropdown.Trigger
           disabled={disabled}
-          style={inputBaseStyle}
-        />
-        <input
-          type="text"
-          value={value.street2 || ""}
-          onChange={(e) => handleStreet2Change(e.target.value)}
-          placeholder="Street Address 2 (Apt, Suite, etc.)"
-          disabled={disabled}
-          style={inputBaseStyle}
-        />
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={value.city}
-            onChange={(e) => handleCityChange(e.target.value)}
-            placeholder="City"
-            disabled={disabled}
-            style={{ ...inputBaseStyle, flex: 1 }}
-          />
-          <select
-            value={value.state}
-            onChange={(e) => handleStateChange(e.target.value)}
-            disabled={disabled}
-            style={{ ...selectStyle, flex: 0.5 }}
+          style={{
+            ...stateTriggerStyle,
+            flex: 0.5,
+          }}
+        >
+          <span
+            style={{
+              color: value.state ? "#303030" : "#303030",
+              fontSize: "14px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
           >
-            <option value="">State</option>
-            {US_STATES.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={value.zipCode}
-            onChange={(e) => handleZipChange(e.target.value)}
-            placeholder="ZIP"
-            disabled={disabled}
-            style={{ ...inputBaseStyle, flex: 0.5, maxWidth: "100px" }}
-            maxLength={5}
-          />
-        </div>
+            {value.state || "State"}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "#303030" }} />
+        </Dropdown.Trigger>
+
+        <Dropdown.Content
+          closeOnOutsideClick={true}
+          closeOnEscape={true}
+          style={{
+            backgroundColor: "white",
+            border: "1px solid var(--color-border-light)",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            zIndex: 50,
+          }}
+        >
+          <div
+            style={{
+              maxHeight: "280px",
+              overflowY: "auto",
+              padding: "4px 0",
+            }}
+          >
+            {US_STATES.map((state) => {
+              const isSelected = state === value.state;
+              return (
+                <button
+                  key={state}
+                  type="button"
+                  onClick={() => {
+                    handleStateChange(state);
+                    setStateOpen(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    textAlign: "left",
+                    backgroundColor: isSelected ? "rgba(36, 99, 235, 0.15)" : "transparent",
+                    color: "#303030",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  {state}
+                </button>
+              );
+            })}
+          </div>
+        </Dropdown.Content>
+      </Dropdown>
+    ),
+    [disabled, handleStateChange, stateOpen, stateTriggerStyle, value.state],
+  );
+
+  const content = (
+    <div className="flex flex-col gap-3">
+      {includeCountry && (
+        <input
+          type="text"
+          value={value.country || ""}
+          onChange={(e) => handleCountryChange(e.target.value)}
+          placeholder="Country"
+          disabled={disabled}
+          style={inputBaseStyle}
+        />
+      )}
+
+      <input
+        type="text"
+        value={value.street}
+        onChange={(e) => handleStreetChange(e.target.value)}
+        placeholder="Street Address"
+        disabled={disabled}
+        style={inputBaseStyle}
+      />
+
+      <input
+        type="text"
+        value={value.street2 || ""}
+        onChange={(e) => handleStreet2Change(e.target.value)}
+        placeholder="Street Address 2 (Apt, Suite, etc.)"
+        disabled={disabled}
+        style={inputBaseStyle}
+      />
+
+      <div className="flex gap-3">
+        <input
+          type="text"
+          value={value.city}
+          onChange={(e) => handleCityChange(e.target.value)}
+          placeholder="City"
+          disabled={disabled}
+          style={{ ...inputBaseStyle, flex: 1 }}
+        />
+
+        <div style={{ flex: 0.5 }}>{StateDropdown}</div>
+
+        <input
+          type="text"
+          value={value.zipCode}
+          onChange={(e) => handleZipChange(e.target.value)}
+          placeholder="ZIP"
+          disabled={disabled}
+          style={{ ...inputBaseStyle, flex: 0.5, maxWidth: "120px" }}
+          maxLength={5}
+        />
       </div>
-    );
-  }
+    </div>
+  );
+
+  if (!showLabel) return content;
 
   return (
     <FieldShell
@@ -196,66 +291,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
       error={error}
       disabled={disabled}
     >
-      <div className="flex flex-col gap-3">
-        {includeCountry && (
-          <input
-            type="text"
-            value={value.country || ""}
-            onChange={(e) => handleCountryChange(e.target.value)}
-            placeholder="Country"
-            disabled={disabled}
-            style={inputBaseStyle}
-          />
-        )}
-        <input
-          type="text"
-          value={value.street}
-          onChange={(e) => handleStreetChange(e.target.value)}
-          placeholder="Street Address"
-          disabled={disabled}
-          style={inputBaseStyle}
-        />
-        <input
-          type="text"
-          value={value.street2 || ""}
-          onChange={(e) => handleStreet2Change(e.target.value)}
-          placeholder="Street Address 2 (Apt, Suite, etc.)"
-          disabled={disabled}
-          style={inputBaseStyle}
-        />
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={value.city}
-            onChange={(e) => handleCityChange(e.target.value)}
-            placeholder="City"
-            disabled={disabled}
-            style={{ ...inputBaseStyle, flex: 1 }}
-          />
-          <select
-            value={value.state}
-            onChange={(e) => handleStateChange(e.target.value)}
-            disabled={disabled}
-            style={{ ...selectStyle, flex: 0.5 }}
-          >
-            <option value="">State</option>
-            {US_STATES.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={value.zipCode}
-            onChange={(e) => handleZipChange(e.target.value)}
-            placeholder="ZIP"
-            disabled={disabled}
-            style={{ ...inputBaseStyle, flex: 0.5, maxWidth: "100px" }}
-            maxLength={5}
-          />
-        </div>
-      </div>
+      {content}
     </FieldShell>
   );
 };
