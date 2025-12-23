@@ -289,7 +289,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
           style={{ ...inputBaseStyle, flex: 1 }}
         />
 
-        <div style={{ flex: 0.5 }}>{StateDropdown}</div>
+        <div style={{ flex: 0.5 }}>{StatePopover}</div>
 
         <input
           type="text"
