@@ -220,39 +220,29 @@ export function useFloatingLayer({
         y = Math.min(maxY, maxAllowedY);
       }
 
-      // Additional container bounds clamping: prevent overflow outside modal/container
-      // If boundsRect is not the full viewport, clamp to container edges
+      // Determine visibility: is the trigger visible within its container?
       let finalX = x;
       let finalY = y;
+      let nextIsVisible = true;
 
       if (boundsRect && (boundsRect.top !== 0 || boundsRect.left !== 0 || boundsRect.bottom !== window.innerHeight || boundsRect.right !== window.innerWidth)) {
         // This is a constrained container (modal, scrollable box, etc), not full viewport
-        const containerMargin = 8;
+        // Check if the trigger is actually visible within the container bounds
+        const triggerIsVisibleVertically =
+          triggerRect.bottom > boundsRect.top && triggerRect.top < boundsRect.bottom;
+        const triggerIsVisibleHorizontally =
+          triggerRect.right > boundsRect.left && triggerRect.left < boundsRect.right;
 
-        // Clamp X to container bounds
-        const minContainerX = boundsRect.left + containerMargin;
-        const maxContainerX = boundsRect.right - floatingWidth - containerMargin;
-        if (maxContainerX >= minContainerX) {
-          finalX = clamp(finalX, minContainerX, maxContainerX);
-        } else if (floatingWidth < boundsRect.right - boundsRect.left) {
-          // Container is too narrow, center it
-          finalX = boundsRect.left + (boundsRect.right - boundsRect.left) / 2 - floatingWidth / 2;
-        }
-
-        // Clamp Y to container bounds
-        const minContainerY = boundsRect.top + containerMargin;
-        const maxContainerY = boundsRect.bottom - floatingHeight - containerMargin;
-        if (maxContainerY >= minContainerY) {
-          finalY = clamp(finalY, minContainerY, maxContainerY);
-        } else if (floatingHeight < boundsRect.bottom - boundsRect.top) {
-          // Container is too short, center it
-          finalY = boundsRect.top + (boundsRect.bottom - boundsRect.top) / 2 - floatingHeight / 2;
+        if (!triggerIsVisibleVertically || !triggerIsVisibleHorizontally) {
+          // Trigger is outside container bounds, hide the popover
+          nextIsVisible = false;
         }
       }
 
       if (isMountedRef.current) {
         setTranslateX(Math.round(finalX));
         setTranslateY(Math.round(finalY));
+        setIsVisible(nextIsVisible);
       }
 
       // Sync width if requested
