@@ -207,8 +207,10 @@ export const DatePicker = ({
           ref={calendarRef}
           className={styles.calendar}
           style={{
-            top: "calc(100% + 8px)",
+            [positionAbove ? "bottom" : "top"]: positionAbove ? "calc(100% + 8px)" : "calc(100% + 8px)",
             left: "0",
+            position: "absolute",
+            zIndex: 50,
           }}
           onClick={(e) => e.stopPropagation()}
         >
