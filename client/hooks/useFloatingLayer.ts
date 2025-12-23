@@ -208,11 +208,11 @@ export function useFloatingLayer({
 
   useEffect(() => {
     if (!open) {
-      setPlacement(initialPlacement);
-      setAlign(initialAlign);
-      setWidthValue(undefined);
-      setScrollParents([]);
-      setComputedZIndex(50);
+      setPlacement((prev) => (prev === initialPlacement ? prev : initialPlacement));
+      setAlign((prev) => (prev === initialAlign ? prev : initialAlign));
+      setWidthValue((prev) => (prev === undefined ? prev : undefined));
+      setScrollParents((prev) => (prev.length === 0 ? prev : []));
+      setComputedZIndex((prev) => (prev === 50 ? prev : 50));
       return;
     }
 
