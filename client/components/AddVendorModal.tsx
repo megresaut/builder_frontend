@@ -29,23 +29,23 @@ export default function AddVendorModal({
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [servicesProvided, setServicesProvided] = useState<MultiSelectOption[]>([]);
+  const [servicesProvided, setServicesProvided] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: string }>({});
 
-  const availableServices: MultiSelectOption[] = [
-    { id: "hvac", label: "HVAC" },
-    { id: "plumbing", label: "Plumbing" },
-    { id: "electrical", label: "Electrical" },
-    { id: "carpentry", label: "Carpentry" },
-    { id: "roofing", label: "Roofing" },
-    { id: "painting", label: "Painting" },
-    { id: "flooring", label: "Flooring" },
-    { id: "landscaping", label: "Landscaping" },
-    { id: "pest-control", label: "Pest Control" },
-    { id: "security-systems", label: "Security Systems" },
-    { id: "appliance-repair", label: "Appliance Repair" },
-    { id: "general-maintenance", label: "General Maintenance" },
+  const availableServices = [
+    { value: "hvac", label: "HVAC" },
+    { value: "plumbing", label: "Plumbing" },
+    { value: "electrical", label: "Electrical" },
+    { value: "carpentry", label: "Carpentry" },
+    { value: "roofing", label: "Roofing" },
+    { value: "painting", label: "Painting" },
+    { value: "flooring", label: "Flooring" },
+    { value: "landscaping", label: "Landscaping" },
+    { value: "pest-control", label: "Pest Control" },
+    { value: "security-systems", label: "Security Systems" },
+    { value: "appliance-repair", label: "Appliance Repair" },
+    { value: "general-maintenance", label: "General Maintenance" },
   ];
 
   useEffect(() => {
