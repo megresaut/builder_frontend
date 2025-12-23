@@ -268,7 +268,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                 </div>
               ))
             ) : (
-              <span style={{ color: "var(--color-text-placeholder)", fontSize: "14px" }}>
+              <span style={{ color: "#303030", fontSize: "14px" }}>
                 {displayLabel}
               </span>
             )}
