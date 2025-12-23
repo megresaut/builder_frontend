@@ -97,7 +97,6 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
         onOpenChange={setOpen}
         initialPlacement="bottom"
         minSpaceBelow={320}
-        offset={8}
         syncTriggerWidth={true}
       >
         <Dropdown.Trigger
@@ -137,7 +136,6 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             border: "1px solid var(--color-border-light)",
             borderRadius: "8px",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            zIndex: 50,
           }}
         >
           <Command>

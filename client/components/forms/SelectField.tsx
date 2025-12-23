@@ -91,7 +91,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         onOpenChange={setOpen}
         initialPlacement="bottom"
         minSpaceBelow={280}
-        offset={8}
         syncTriggerWidth={true}
       >
         <Dropdown.Trigger
@@ -131,7 +130,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             border: "1px solid var(--color-border-light)",
             borderRadius: "8px",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            zIndex: 50,
           }}
         >
           <div
