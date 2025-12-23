@@ -27,12 +27,19 @@ interface SelectFieldProps {
  *
  * Composed of FieldShell + Dropdown primitive for consistent select field styling.
  * Handles option lists for status, priority, and other enums.
- * 
+ *
  * Uses Dropdown primitive which includes:
  * - Automatic collision detection and side flipping
  * - Real-time repositioning on scroll/resize
  * - Modal-aware z-index stacking
  * - Consistent A11y attributes
+ *
+ * Keyboard Interactions:
+ * - Enter/Space: Open dropdown (when closed) or select highlighted option
+ * - ArrowDown: Navigate to next option (opens dropdown if closed)
+ * - ArrowUp: Navigate to previous option
+ * - Escape: Close dropdown and clear search
+ * - Type character(s): Search options by label (clears after 500ms of inactivity)
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
