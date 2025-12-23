@@ -37,10 +37,8 @@ const PopoverContent = React.forwardRef<
           node;
     };
 
-    const rafRef = React.useRef<number[]>([]);
-
     React.useLayoutEffect(() => {
-      // Mount hidden and only reveal after Popper has had a chance to compute coordinates.
+      // Mount hidden and only reveal after Popper has positioned it.
       setIsPositioned(false);
 
       const dialogContents = Array.from(
@@ -48,17 +46,7 @@ const PopoverContent = React.forwardRef<
       );
       setPortalContainer(dialogContents.length ? dialogContents[dialogContents.length - 1] : null);
 
-      const raf1 = window.requestAnimationFrame(() => {
-        const raf2 = window.requestAnimationFrame(() => {
-          setIsPositioned(true);
-        });
-        rafRef.current.push(raf2);
-      });
-      rafRef.current.push(raf1);
-
       return () => {
-        rafRef.current.forEach((id) => window.cancelAnimationFrame(id));
-        rafRef.current = [];
         setIsPositioned(false);
         setPortalContainer(null);
       };
