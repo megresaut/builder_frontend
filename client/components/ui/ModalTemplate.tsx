@@ -12,6 +12,7 @@ interface ModalTemplateProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   showDivider?: boolean;
+  contentRef?: React.RefObject<HTMLDivElement>;
 }
 
 interface ModalSubheaderProps {
