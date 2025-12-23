@@ -67,6 +67,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       value ? formatCurrency(value) : ""
     );
 
+    // Update input value when prop changes
+    React.useEffect(() => {
+      setInputValue(value ? formatCurrency(value) : "");
+    }, [value]);
+
     function formatCurrency(val: number | string): string {
       if (!val && val !== 0) return "";
 
