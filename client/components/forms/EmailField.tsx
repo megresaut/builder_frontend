@@ -66,6 +66,7 @@ export const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(
       onChange,
       onValidationChange,
       placeholder = "you@example.com",
+      readOnly = false,
       ...inputProps
     },
     ref,
@@ -101,8 +102,8 @@ export const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(
         label={label}
         required={required}
         description={description}
-        error={displayError}
-        disabled={disabled}
+        error={readOnly ? undefined : displayError}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <Input
@@ -110,6 +111,7 @@ export const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(
           id={fieldId}
           type="email"
           disabled={disabled}
+          readOnly={readOnly}
           value={value}
           onChange={(e) => {
             onChange?.(e.target.value);
