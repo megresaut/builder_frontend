@@ -4,11 +4,12 @@ import {
   TextField,
   SelectField,
   CurrencyField,
+  MultiSelectField,
   FieldRow,
   FieldRowItem,
+  type MultiSelectOption,
 } from "@/components/forms";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
 
 interface Manager {
   id: string | number;
