@@ -91,9 +91,26 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
       if (!isRevealed || !value) return;
 
       try {
-        await navigator.clipboard.writeText(value);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2000);
+        } else {
+          // Fallback: use deprecated but more compatible method
+          const textArea = document.createElement("textarea");
+          textArea.value = value;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand("copy");
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+          } finally {
+            document.body.removeChild(textArea);
+          }
+        }
       } catch (err) {
         console.error("Failed to copy:", err);
       }
