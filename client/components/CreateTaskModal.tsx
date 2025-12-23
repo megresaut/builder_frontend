@@ -147,11 +147,8 @@ export default function CreateTaskModal({
       setSelectedAssignees([]);
       setCategory("");
       setDescription("");
-      setShowAssigneeDropdown(false);
       setErrors({});
       setErrorMessages({});
-      setShowCalendar(false);
-      setCalendarMonth(new Date());
     }
   }, [open, editData]);
 
@@ -205,29 +202,6 @@ export default function CreateTaskModal({
       high: "#d97706",
     };
     return colors[priority] || colors.normal;
-  };
-
-  const toggleAssignee = (assignee: Assignee) => {
-    setSelectedAssignees((prev) => {
-      const isSelected = prev.some((a) => a.id === assignee.id);
-      let newAssignees;
-      if (isSelected) {
-        newAssignees = prev.filter((a) => a.id !== assignee.id);
-      } else {
-        newAssignees = [...prev, assignee];
-      }
-      if (errors.selectedAssignees && newAssignees.length > 0) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          selectedAssignees: false,
-        }));
-      }
-      return newAssignees;
-    });
-  };
-
-  const removeAssignee = (assigneeId: string) => {
-    setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
   };
 
   const handleDateSelect = (day: number) => {
