@@ -1,0 +1,241 @@
+import React, { useState } from "react";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import {
+  TextField,
+  TextAreaField,
+  NumberField,
+  CurrencyField,
+  DateField,
+  SelectField,
+  ComboboxField,
+  FieldRow,
+  FieldRowItem,
+  FormSection,
+} from "@/components/forms";
+
+interface FormShowcaseModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function FormShowcaseModal({
+  open,
+  onOpenChange,
+}: FormShowcaseModalProps) {
+  // Text fields
+  const [vendorName, setVendorName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  // Select fields
+  const [status, setStatus] = useState("");
+  const [category, setCategory] = useState("");
+
+  // Number and currency
+  const [quantity, setQuantity] = useState(0);
+  const [amount, setAmount] = useState(0);
+
+  // Date field
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+
+  // Textarea
+  const [notes, setNotes] = useState("");
+
+  // Combobox
+  const [selectedVendor, setSelectedVendor] = useState("");
+
+  // Validation errors
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleSubmit = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!vendorName) newErrors.vendorName = "Vendor name is required";
+    if (!email) newErrors.email = "Email is required";
+    if (!status) newErrors.status = "Status is required";
+    if (!dueDate) newErrors.dueDate = "Due date is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    console.log({
+      vendorName,
+      email,
+      phone,
+      status,
+      category,
+      quantity,
+      amount,
+      dueDate,
+      notes,
+      selectedVendor,
+    });
+
+    // Close modal on success
+    onOpenChange(false);
+  };
+
+  const handleClose = () => {
+    setErrors({});
+    onOpenChange(false);
+  };
+
+  return (
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Field Components Showcase"
+      size="lg"
+      onClose={handleClose}
+      footer={
+        <ModalButtons
+          onCancel={handleClose}
+          onConfirm={handleSubmit}
+          cancelLabel="Close"
+          confirmLabel="Submit"
+        />
+      }
+    >
+      <div className="space-y-6">
+        {/* TEXT FIELDS SECTION */}
+        <FormSection title="Text Fields" description="Basic text input examples">
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <TextField
+                label="Vendor Name"
+                required
+                placeholder="Enter vendor name"
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+                error={errors.vendorName}
+                description="The official name of the vendor"
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <TextField
+                label="Email"
+                required
+                type="email"
+                placeholder="vendor@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={errors.email}
+              />
+            </FieldRowItem>
+          </FieldRow>
+
+          <TextField
+            label="Phone"
+            placeholder="(123) 456-7890"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            description="Optional contact number"
+          />
+        </FormSection>
+
+        {/* SELECT & COMBOBOX SECTION */}
+        <FormSection title="Selects & Dropdowns" description="Single and searchable selects">
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <SelectField
+                label="Status"
+                required
+                value={status}
+                onChange={setStatus}
+                error={errors.status}
+                placeholder="Select a status"
+                options={[
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                  { value: "pending", label: "Pending" },
+                ]}
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <SelectField
+                label="Category"
+                value={category}
+                onChange={setCategory}
+                placeholder="Select a category"
+                options={[
+                  { value: "hvac", label: "HVAC" },
+                  { value: "plumbing", label: "Plumbing" },
+                  { value: "electrical", label: "Electrical" },
+                  { value: "roofing", label: "Roofing" },
+                ]}
+              />
+            </FieldRowItem>
+          </FieldRow>
+
+          <ComboboxField
+            label="Link to Vendor"
+            value={selectedVendor}
+            onChange={setSelectedVendor}
+            placeholder="Search for a vendor..."
+            searchPlaceholder="Type to search..."
+            options={[
+              { value: "v1", label: "Dolce Heating & Plumbing" },
+              { value: "v2", label: "ABC Electric Services" },
+              { value: "v3", label: "Premier Roofing Co" },
+              { value: "v4", label: "SmartHome HVAC" },
+            ]}
+            description="Search and select from existing vendors"
+          />
+        </FormSection>
+
+        {/* NUMERIC FIELDS SECTION */}
+        <FormSection title="Numeric Fields" description="Number and currency inputs">
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <NumberField
+                label="Quantity"
+                placeholder="0"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                min="0"
+                step="1"
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <CurrencyField
+                label="Amount"
+                value={amount}
+                onChange={setAmount}
+                placeholder="0.00"
+                description="Currency field with automatic formatting"
+              />
+            </FieldRowItem>
+          </FieldRow>
+        </FormSection>
+
+        {/* DATE FIELD SECTION */}
+        <FormSection title="Date & Time" description="Date picker component">
+          <DateField
+            label="Due Date"
+            required
+            value={dueDate}
+            onChange={setDueDate}
+            error={errors.dueDate}
+            description="Select when this task should be completed"
+          />
+        </FormSection>
+
+        {/* TEXTAREA SECTION */}
+        <FormSection title="Long-Form Text" description="Textarea with auto-grow">
+          <TextAreaField
+            label="Notes"
+            placeholder="Enter any additional notes or comments..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            autoGrow
+            description="This textarea automatically expands as you type"
+          />
+        </FormSection>
+      </div>
+    </ModalTemplate>
+  );
+}
+
+FormShowcaseModal.displayName = "FormShowcaseModal";
