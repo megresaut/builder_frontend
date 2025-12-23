@@ -121,34 +121,14 @@ export default function AddVendorModal({
         />
       }
     >
-      <ModalField label="Vendor Name" spacing="tight">
-        <input
+      <ModalField label="Vendor Name" spacing="tight" error={errors.vendorName ? "Vendor Name is required" : undefined}>
+        <Input
           type="text"
           value={vendorName}
           onChange={handleVendorNameChange}
           placeholder="Vendor Name"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            borderColor: errors.vendorName ? "var(--color-status-error)" : "var(--color-border-light)",
-            borderStyle: "solid",
-            borderWidth: errors.vendorName ? "2px" : "1px",
-            padding: "8px 12px",
-            fontSize: "16px",
-            fontWeight: 400,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            color: "var(--color-text-primary)",
-            width: "100%",
-            boxSizing: "border-box",
-          }}
+          aria-invalid={errors.vendorName}
         />
-        {errors.vendorName && (
-          <div style={{ color: "var(--color-status-error)", fontSize: "12px", marginTop: "4px" }}>
-            Vendor Name is required
-          </div>
-        )}
       </ModalField>
 
       <ModalField label="Primary Email" spacing="tight">
