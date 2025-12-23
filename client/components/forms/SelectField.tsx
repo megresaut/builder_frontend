@@ -272,14 +272,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Dropdown
-        open={open}
-        onOpenChange={setOpen}
-        initialPlacement="bottom"
-        minSpaceBelow={isMultiple ? 320 : 280}
-        syncTriggerWidth={true}
-      >
-        <Dropdown.Trigger
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
           id={fieldId}
           disabled={disabled}
           className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
@@ -333,13 +327,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             )}
           </div>
           <ChevronDown className="h-4 w-4 shrink-0 flex-none" style={{ color: "#303030" }} />
-        </Dropdown.Trigger>
+        </PopoverTrigger>
 
-        <Dropdown.Content
-          closeOnOutsideClick={true}
-          closeOnEscape={true}
-          className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
-        >
+        <PopoverContent className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md" align="start">
           {isMultiple && (
             <div
               style={{
@@ -441,8 +431,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
               })
             )}
           </div>
-        </Dropdown.Content>
-      </Dropdown>
+        </PopoverContent>
+      </Popover>
     </FieldShell>
   );
 };
