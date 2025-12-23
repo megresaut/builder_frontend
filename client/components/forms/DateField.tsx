@@ -42,7 +42,7 @@ interface DateFieldProps {
  * />
  * ```
  */
-export const DateField: React.FC<DateFieldProps> = ({
+const DateField: React.FC<DateFieldProps> = ({
   label,
   required = false,
   description,
@@ -51,16 +51,25 @@ export const DateField: React.FC<DateFieldProps> = ({
   disabled = false,
   value,
   onChange,
-  placeholder = "MM/DD/YYYY",
+  placeholder = "mm/dd/yyyy",
 }) => {
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  // Validate date range (1900-2040)
+  const validateDateRange = (date: Date | null): boolean => {
+    if (!date) return true;
+    const year = date.getFullYear();
+    return year >= 1900 && year <= 2040;
+  };
+
+  const dateError = error || (value && !validateDateRange(value) ? "Date must be between 1900 and 2040" : undefined);
 
   return (
     <FieldShell
       label={label}
       required={required}
       description={description}
-      error={error}
+      error={dateError}
       disabled={disabled}
       htmlFor={fieldId}
     >
@@ -69,10 +78,12 @@ export const DateField: React.FC<DateFieldProps> = ({
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
-        error={!!error}
+        error={!!dateError}
       />
     </FieldShell>
   );
 };
 
 DateField.displayName = "DateField";
+
+export { DateField };
