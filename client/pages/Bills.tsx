@@ -680,12 +680,12 @@ export default function Bills() {
         <div className="flex flex-col gap-6">
           {/* Title and Description */}
           <div className="flex flex-col gap-1">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+            <h1 className="font-semibold text-2xl leading-[30px]" style={{ color: "var(--color-text-primary)" }}>
               All Bills
             </h1>
             <p
-              className="text-[#717179] font-medium text-base leading-4"
-              style={{ marginTop: "-3px" }}
+              className="font-medium text-base leading-4"
+              style={{ marginTop: "-3px", color: "var(--color-text-muted)" }}
             >
               All your bills, in one place
             </p>
