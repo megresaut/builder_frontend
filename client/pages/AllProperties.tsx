@@ -541,9 +541,9 @@ export default function AllProperties() {
 
           {/* Add Property Button */}
           <div className="flex items-center gap-4">
-            <button
+            <Button
               onClick={() => setIsAddPropertyModalOpen(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+              className="flex items-center gap-2"
             >
               <svg
                 width="20"
@@ -560,10 +560,8 @@ export default function AllProperties() {
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-white font-medium text-base leading-normal">
-                Add Property
-              </span>
-            </button>
+              <span>Add Property</span>
+            </Button>
           </div>
         </div>
 
