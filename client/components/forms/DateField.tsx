@@ -13,6 +13,7 @@ interface DateFieldProps {
   disabled?: boolean;
   placeholder?: string;
   returnFormat?: "Date" | "ISO";
+  readOnly?: boolean;
 }
 
 /**
@@ -44,6 +45,7 @@ interface DateFieldProps {
  * @param disabled - Disable field
  * @param placeholder - Placeholder text (default: "mm/dd/yyyy")
  * @param returnFormat - Return format: "Date" (default) or "ISO" string (YYYY-MM-DD)
+ * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  *
  * Example:
  * ```tsx
@@ -77,6 +79,7 @@ const DateField: React.FC<DateFieldProps> = ({
   onChange,
   placeholder = "mm/dd/yyyy",
   returnFormat = "Date",
+  readOnly = false,
 }) => {
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
@@ -104,6 +107,7 @@ const DateField: React.FC<DateFieldProps> = ({
   const dateError = error || (dateValue && !validateDateRange(dateValue) ? "Date must be between 1900 and 2040" : undefined);
 
   const handleDateChange = (newDate: Date | null) => {
+    if (readOnly) return;
     if (returnFormat === "ISO" && newDate) {
       // Convert Date to ISO string (YYYY-MM-DD)
       const isoString = newDate.toISOString().split("T")[0];
@@ -119,8 +123,8 @@ const DateField: React.FC<DateFieldProps> = ({
       label={label}
       required={required}
       description={description}
-      error={dateError}
-      disabled={disabled}
+      error={readOnly ? undefined : dateError}
+      disabled={disabled || readOnly}
       htmlFor={fieldId}
     >
       <DatePicker
