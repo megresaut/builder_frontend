@@ -166,6 +166,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
           style={{
             ...stateTriggerStyle,
             flex: 0.5,
+            borderColor: error ? "#ef4444" : stateOpen ? "#000000" : "var(--color-border-light)",
           }}
         >
           <span
