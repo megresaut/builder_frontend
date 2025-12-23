@@ -226,6 +226,14 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
     }
   };
 
+  const removeItem = (itemValue: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isMultiple) {
+      const newValues = selectedValues.filter((v) => v !== itemValue);
+      onChange?.(newValues);
+    }
+  };
+
   return (
     <FieldShell
       label={label}
@@ -239,7 +247,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
         open={open}
         onOpenChange={setOpen}
         initialPlacement="bottom"
-        minSpaceBelow={280}
+        minSpaceBelow={isMultiple ? 320 : 280}
         syncTriggerWidth={true}
       >
         <Dropdown.Trigger
@@ -247,7 +255,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
           disabled={disabled}
           className={cn(
             "ra-select-field-v2-trigger",
-            "h-11 w-full rounded-lg border px-3 py-2",
+            "w-full rounded-lg border px-3 py-2",
             "bg-white text-sm font-normal",
             "flex items-center justify-between",
             "cursor-pointer transition-colors",
@@ -259,18 +267,52 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             lineHeight: 1.43,
+            minHeight: "44px",
+            height: "auto",
+            display: "flex",
+            alignItems: "center",
+            flexWrap: isMultiple ? "wrap" : "nowrap",
+            gap: isMultiple ? "6px" : "8px",
+            padding: isMultiple && selectedValues.length > 0 ? "8px 12px" : "12px",
           }}
           onKeyDown={handleTriggerKeyDownWhenOpen}
         >
-          <span
-            className="overflow-hidden text-ellipsis whitespace-nowrap"
-            style={{
-              color: "var(--color-text-primary)",
-            }}
-          >
-            {displayLabel}
-          </span>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0" style={{ color: "#303030" }} />
+          <div className="flex items-center gap-2 flex-wrap flex-1">
+            {isMultiple && selectedValues.length > 0 ? (
+              selectedOptions.map((opt) => (
+                <div
+                  key={opt.value}
+                  className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
+                  style={{
+                    fontSize: "12px",
+                  }}
+                >
+                  <span style={{ color: "var(--color-text-primary)" }}>
+                    {opt.label}
+                  </span>
+                  <button
+                    onClick={(e) => removeItem(opt.value, e)}
+                    className="hover:opacity-70 transition-opacity"
+                    tabIndex={-1}
+                  >
+                    <X className="w-3 h-3 text-[#2463EB]" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <span
+                style={{
+                  color: isShowingPlaceholder
+                    ? "var(--color-text-placeholder)"
+                    : "var(--color-text-primary)",
+                  fontSize: "14px",
+                }}
+              >
+                {displayLabel}
+              </span>
+            )}
+          </div>
+          <ChevronDown className="h-4 w-4 shrink-0 flex-none" style={{ color: "#303030" }} />
         </Dropdown.Trigger>
 
         <Dropdown.Content
