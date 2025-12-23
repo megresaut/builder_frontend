@@ -61,7 +61,7 @@ const COUNTRY_CODES = [
   { value: "+65", label: "Singapore (+65)" },
   { value: "+60", label: "Malaysia (+60)" },
   { value: "+66", label: "Thailand (+66)" },
-  { value: "+62", limit: "Indonesia (+62)" },
+  { value: "+62", label: "Indonesia (+62)" },
   { value: "+63", label: "Philippines (+63)" },
 ];
 
