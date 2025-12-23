@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogTitle } from "@/components/ui/dialog";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { format } from "date-fns";
+import { format, getDaysInMonth, getDay, startOfMonth } from "date-fns";
+import { ChevronDown } from "lucide-react";
 import { MultiSelectField, type MultiSelectOption } from "@/components/forms";
 
 interface CreateRecurringTaskModalProps {
