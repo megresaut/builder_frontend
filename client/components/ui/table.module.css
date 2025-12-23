@@ -1,0 +1,232 @@
+/**
+ * Table Component Styles
+ * 
+ * Extracted from global.css to keep component styles with component code.
+ * Uses CSS variables defined in global.css for colors and theming.
+ * 
+ * Classes:
+ * - .table: Main table wrapper
+ * - .headerCell: Header cells with sorting support
+ * - .row: Table rows with hover effects
+ * - .cell: Data cells
+ * - .pagination: Pagination controls
+ */
+
+/* Main table wrapper */
+.table {
+  width: 100%;
+  border: 1px solid var(--color-border-light);
+  background-color: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Header cell styling */
+.headerCell {
+  padding: 0.75rem;
+  text-align: left;
+  border-right: 1px solid var(--color-border-light);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.headerCell:hover {
+  background-color: #f9f9f9;
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.headerLabel {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.sortIndicator {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+  color: var(--color-text-primary);
+}
+
+/* Actions column header */
+.actionsHeader {
+  position: sticky;
+  right: 0;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  width: 5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.actionsLabel {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+/* Table row */
+.row {
+  height: 3rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.2s;
+}
+
+.row:hover {
+  background-color: #f9f9f9;
+}
+
+/* Data cell */
+.cell {
+  padding: 0.75rem;
+  border-right: 1px solid var(--color-border-light);
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* Actions cell */
+.actionsCell {
+  position: sticky;
+  right: 0;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionsButton {
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-subtle);
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.actionsButton:hover {
+  background-color: #f3f3f3;
+}
+
+/* Pagination controls */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: white;
+  gap: 1rem;
+  position: relative;
+}
+
+.paginationLabel {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.paginationTotal {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border-default);
+  background-color: white;
+  overflow: hidden;
+}
+
+.pageSizeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.5rem;
+  background-color: white;
+  transition: background-color 0.2s;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.pageSizeButton:hover {
+  background-color: #f9f9f9;
+}
+
+.pageSizeMenu {
+  background-color: white;
+  overflow: hidden;
+}
+
+.pageSizeOption {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pageSizeOption:hover {
+  background-color: #f9f9f9;
+}
+
+.prevButton,
+.nextButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background-color: #f9f9f9;
+}
+
+.paginationPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  transition: background-color 0.2s;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.paginationPage:hover {
+  background-color: #f9f9f9;
+}
