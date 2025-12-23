@@ -18,6 +18,7 @@ interface DateTimeFieldProps {
   maxDate?: string;
   minTime?: string;
   maxTime?: string;
+  readOnly?: boolean;
 }
 
 /**
