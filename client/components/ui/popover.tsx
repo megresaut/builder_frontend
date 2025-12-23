@@ -7,9 +7,13 @@ const Popover = PopoverPrimitive.Root;
 
 const PopoverTrigger = PopoverPrimitive.Trigger;
 
+interface PopoverContentProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {
+  syncTriggerWidth?: boolean;
+}
+
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+  PopoverContentProps
 >(
   (
     {
@@ -17,14 +21,36 @@ const PopoverContent = React.forwardRef<
       align = "start",
       sideOffset = 8,
       style,
+      syncTriggerWidth = true,
       ...props
     },
     ref,
   ) => {
+    const localRef = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content> | null>(null);
+    const [triggerWidth, setTriggerWidth] = React.useState<number | undefined>();
+
+    React.useEffect(() => {
+      if (!syncTriggerWidth || !localRef.current) return;
+
+      // Find the trigger element (PopoverPrimitive tracks this)
+      const trigger = document.querySelector('[data-state="open"][role="button"]') ||
+                      document.querySelector('[data-state="open"]');
+
+      if (trigger instanceof HTMLElement) {
+        setTriggerWidth(trigger.offsetWidth);
+      }
+    }, [syncTriggerWidth]);
+
+    const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
+      localRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<React.ElementRef<typeof PopoverPrimitive.Content> | null>).current = node;
+    };
+
     return (
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
-          ref={ref}
+          ref={setRefs}
           align={align}
           sideOffset={sideOffset}
           className={cn(
@@ -38,6 +64,7 @@ const PopoverContent = React.forwardRef<
           style={{
             maxHeight: "340px",
             maxWidth: "calc(100vw - 32px)",
+            width: triggerWidth ? `${triggerWidth}px` : undefined,
             ...style,
             overflowY: "auto",
             overflowX: "hidden",
