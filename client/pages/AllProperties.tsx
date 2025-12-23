@@ -3,10 +3,8 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities_wrong";
-import { fetchJSON } from "@/api/fetchJSON";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import { usePageState } from "@/hooks/usePageState";
-import { EnumToPropertyType } from "@/utils/propertyTypeMap";
 
 interface Manager {
   id: number;
@@ -19,47 +17,141 @@ interface Property {
   id: number;
   address: string;
   location: string;
-  manager: string;  
+  managers: Manager[];
   type: string;
   buildingId: string;
   status: "active" | "inactive";
 }
 
-type EditPropertyDTO = {
-  id: number;
-  name: string;
-  address_line1: string;
-  address_line2: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  property_type: string;
-  buildium_property_id: string;
-  active: boolean;
-
-  management_fee_cents: number | null;
-  hourly_rate_cents: number | null;
-  emergency_hourly_rate_cents: number | null;
-
-  manager_ids: number[];
-  manager_names: string[];
-};
-
-
-
+const properties: Property[] = [
+  {
+    id: 1,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
+    type: "Concierge",
+    buildingId: "624090",
+    status: "inactive",
+  },
+  {
+    id: 2,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
+    type: "Rental",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 3,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
+    type: "Commercial",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 4,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
+    type: "OR",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 5,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
+    type: "HOA",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 6,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
+    type: "Concierge",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 7,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
+    type: "Concierge",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 8,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
+    type: "Concierge",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 9,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+    ],
+    type: "Concierge",
+    buildingId: "624090",
+    status: "active",
+  },
+  {
+    id: 10,
+    address: "22 Indian Chase Dr",
+    location: "Greenwich, CT",
+    managers: [
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
+    type: "Concierge",
+    buildingId: "624090",
+    status: "active",
+  },
+];
 
 const ActionButton = ({
   property,
   openMenuId,
   setOpenMenuId,
   onEditClick,
-  onDeleteClick,
 }: {
   property: Property;
   openMenuId: number | null;
   setOpenMenuId: (id: number | null) => void;
   onEditClick: (data: Property) => void;
-  onDeleteClick: (id: number) => void
 }) => {
   const propertyId = property.id;
   const showMenu = openMenuId === propertyId;
@@ -99,10 +191,7 @@ const ActionButton = ({
     <>
       <button
         ref={buttonRef}
-        onClick={(e) => {
-          e.stopPropagation();              // <-- CRITICAL FIX
-          setOpenMenuId(showMenu ? null : propertyId);
-        }}
+        onClick={() => setOpenMenuId(showMenu ? null : propertyId)}
         className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <svg
@@ -124,7 +213,7 @@ const ActionButton = ({
       {showMenu &&
         createPortal(
           <div
-            className="action-menu bg-white flex flex-col justify-center items-start gap-4 p-4"
+            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
               width: "145px",
               border: "0.5px solid #DADADA",
@@ -174,9 +263,8 @@ const ActionButton = ({
             </button>
             <button
               onClick={(e) => {
-                console.log("Delete clicked for property", propertyId);
                 e.stopPropagation();
-                onDeleteClick(propertyId);
+                console.log("Delete clicked for property", propertyId);
                 setOpenMenuId(null);
               }}
               className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
@@ -225,110 +313,19 @@ export default function AllProperties() {
     "openMenuId",
     null,
   );
-  const [editingProperty, setEditingProperty] = useState<EditPropertyDTO | null>(null);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const handlePropertyDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this property?")) return;
-  
-    try {
-      await fetchJSON(`/properties/${id}`, { method: "DELETE" });
-  
-      // Remove it from the UI
-      const updated = properties.filter((p) => p.id !== id);
-  
-      setProperties(updated);
-      setFilteredProperties(updated);
-    } catch (err: any) {
-      alert("Failed to delete: " + err.message);
-    }
-  };
-  
-  // Load properties from backend
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const data = await fetchJSON("/properties");
-
-        const mapped = data.map((p: any) => ({
-          id: p.id,
-          address: p.address_line1,
-          location: `${p.city}, ${p.state}`,
-          manager: p.manager_names?.join(", ") ?? "",
-          type: EnumToPropertyType[p.property_type] ?? p.property_type,
-          buildingId: p.buildium_property_id,
-          status: p.active ? "active" : "inactive",
-        }));
-        
-
-        setProperties(mapped);
-        setFilteredProperties(mapped);   // NEW
-        setLoading(false);
-      } catch (err: any) {
-        setError(err.message);
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, []);
-
-  useEffect(() => {
-    const term = searchTerm.toLowerCase();
-  
-    const filtered = properties.filter((p) =>
-      p.address.toLowerCase().includes(term) ||
-      p.location.toLowerCase().includes(term) ||
-      p.type.toLowerCase().includes(term) ||
-      p.buildingId.toLowerCase().includes(term)
-    );
-  
-    setFilteredProperties(filtered);
-    setCurrentPage(1); // reset pagination to page 1
-  }, [searchTerm, properties]);
-  
   const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = usePageState(
     "isAddPropertyModalOpen",
     false,
   );
 
-  const handlePropertyEdit = async (property: Property) => {
-    try {
-      const full = await fetchJSON(`/properties/${property.id}`);
-  
-      setEditingProperty({
-        id: full.id,
-        name: full.name,
-        address_line1: full.address_line1,
-        address_line2: full.address_line2 ?? "",
-        city: full.city,
-        state: full.state,
-        postal_code: full.postal_code,
-        property_type: full.property_type,   
-        buildium_property_id: full.buildium_property_id,
-        active: full.active,
-        manager_ids: full.manager_ids,
-        manager_names: full.manager_names,
-        hourly_rate_cents: full.hourly_rate_cents,
-        emergency_hourly_rate_cents: full.emergency_hourly_rate_cents,
-        management_fee_cents: full.management_fee_cents,
-      });
-  
-      setIsAddPropertyModalOpen(true);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load property.");
-    }
+  const handlePropertyEdit = (property: Property) => {
+    setEditingProperty(property);
+    setIsAddPropertyModalOpen(true);
   };
-  
 
   useEffect(() => {
     let animationFrameId: number;
@@ -358,7 +355,33 @@ export default function AllProperties() {
     };
   }, [showPageSizeDropdown]);
 
-  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showPageSizeDropdown &&
+        dropdownMenuRef.current &&
+        dropdownButtonRef.current
+      ) {
+        const isClickOutside =
+          !dropdownMenuRef.current.contains(event.target as Node) &&
+          !dropdownButtonRef.current.contains(event.target as Node);
+
+        if (isClickOutside) {
+          setShowPageSizeDropdown(false);
+        }
+      }
+    };
+
+    if (showPageSizeDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showPageSizeDropdown]);
+
+  const totalProperties = properties.length;
+  const totalPages = Math.ceil(totalProperties / itemsPerPage);
 
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
@@ -391,12 +414,7 @@ export default function AllProperties() {
 
     return pages;
   };
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedProperties = filteredProperties.slice(startIndex, endIndex);
-  const start = (currentPage - 1) * itemsPerPage + 1;
-  const end = Math.min(start + paginatedProperties.length - 1, filteredProperties.length);
-  
+
   return (
     <div
       className="bg-white"
@@ -428,7 +446,7 @@ export default function AllProperties() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsAddPropertyModalOpen(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <svg
                 width="20"
@@ -482,8 +500,6 @@ export default function AllProperties() {
                   <input
                     type="text"
                     placeholder="Search..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
                   />
                 </div>
@@ -653,72 +669,102 @@ export default function AllProperties() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedProperties.map((property) => (
-                    <tr
-                      key={property.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                      onClick={(e) => {
-                        // If the click came from the menu or the button, do nothing
-                        if ((e.target as HTMLElement).closest(".action-menu")) return;
-                        navigate(`/property/${property.id}`, {
-                          state: { address: property.address, location: property.location },
-                        });
-                      }}
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.address}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.location}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.manager}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.type}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.buildingId}
-                        </span>
-                      </td>
-                      <td
-                        className="px-3 py-3"
-                        style={{ borderRightWidth: "1px", border: "1px solid #e7e8ec" }}
-                      >
-                        <StatusBadge status={property.status} />
-                      </td>
-                      <td
-                        className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "2px",
-                          width: "80px",
-                          border:
-                            "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                          borderLeftColor: "transparent",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton
-                          property={property}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          onEditClick={handlePropertyEdit}
-                          onDeleteClick={handlePropertyDelete}
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                  {properties
+                    .slice(
+                      (currentPage - 1) * itemsPerPage,
+                      currentPage * itemsPerPage,
+                    )
+                    .map((property) => {
+                      const handleRowClick = (e: React.MouseEvent) => {
+                        if (
+                          (e.target as HTMLElement).closest("td:last-child")
+                        ) {
+                          return;
+                        }
+                        navigate(`/property/${property.id}`);
+                      };
+                      return (
+                        <tr
+                          key={property.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                          onClick={handleRowClick}
+                        >
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.address}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.location}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {property.managers.map((manager) => (
+                                <div
+                                  key={manager.id}
+                                  className="relative group"
+                                >
+                                  <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                    style={{
+                                      backgroundColor: "rgb(59, 130, 246)",
+                                      borderColor: "rgb(209, 213, 219)",
+                                      borderWidth: "1px",
+                                    }}
+                                    title={manager.name}
+                                  >
+                                    {manager.initials}
+                                  </div>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {manager.name}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.type}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <span className="text-gray-900 font-normal text-base">
+                              {property.buildingId}
+                            </span>
+                          </td>
+                          <td
+                            className="px-3 py-3 whitespace-nowrap"
+                            style={{
+                              borderRightWidth: "1px",
+                              border: "1px solid #e7e8ec",
+                            }}
+                          >
+                            <StatusBadge status={property.status} />
+                          </td>
+                          <td
+                            className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                            style={{
+                              borderLeftWidth: "2px",
+                              width: "80px",
+                              border:
+                                "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                              borderLeftColor: "transparent",
+                              backgroundColor: "white",
+                            }}
+                          >
+                            <ActionButton
+                              property={property}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                              onEditClick={handlePropertyEdit}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
-
               </table>
             </div>
 
@@ -749,7 +795,7 @@ export default function AllProperties() {
                     }}
                   >
                     <div className="text-gray-900 font-medium text-sm">
-                      {start}-{end}
+                      {itemsPerPage}
                     </div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -767,7 +813,7 @@ export default function AllProperties() {
                   </button>
                 </div>
                 <span className="text-gray-700 text-sm font-medium">
-                  of {filteredProperties.length}
+                  of {totalProperties}
                 </span>
               </div>
               <div
@@ -976,7 +1022,7 @@ export default function AllProperties() {
             setEditingProperty(null);
           }
         }}
-        editData={editingProperty || undefined}
+        editData={editingProperty as any}
       />
     </div>
   );
