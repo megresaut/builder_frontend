@@ -115,50 +115,6 @@ const PopoverContent = React.forwardRef<
       return null;
     }, [triggerRef]);
 
-    // Monitor if popover is being clipped and close if it can't fit
-    React.useEffect(() => {
-      if (!localRef.current) return;
-
-      const checkAndHandleOverflow = () => {
-        const popoverRect = localRef.current?.getBoundingClientRect();
-        const triggerRect = triggerRef.current?.getBoundingClientRect();
-
-        if (!popoverRect || !triggerRect) return;
-
-        // Determine the scroll container (modal or viewport)
-        let scrollContainer = containerRef?.current || document.documentElement;
-        const containerRect = scrollContainer.getBoundingClientRect?.() || {
-          top: 0,
-          bottom: window.innerHeight,
-          left: 0,
-          right: window.innerWidth,
-        };
-
-        // Check if popover extends beyond container bounds
-        const isOverflowingBottom = popoverRect.bottom > containerRect.bottom - 8;
-        const isOverflowingTop = popoverRect.top < containerRect.top + 8;
-
-        // If overflowing in both directions, close the popover
-        if (isOverflowingBottom && isOverflowingTop) {
-          props.onOpenChange?.(false);
-        }
-      };
-
-      // Check immediately and on scroll
-      const timer = requestAnimationFrame(checkAndHandleOverflow);
-      const handleScroll = () => {
-        requestAnimationFrame(checkAndHandleOverflow);
-      };
-
-      window.addEventListener('scroll', handleScroll, true);
-      document.addEventListener('scroll', handleScroll, true);
-
-      return () => {
-        cancelAnimationFrame(timer);
-        window.removeEventListener('scroll', handleScroll, true);
-        document.removeEventListener('scroll', handleScroll, true);
-      };
-    }, [containerRef, triggerRef, props]);
 
 
     const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
