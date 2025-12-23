@@ -65,6 +65,20 @@ interface ModalButtonsProps {
  * - Highlight invalid fields in red (border)
  * - Display error messages below each invalid field
  *
+ * State Reset Pattern (REQUIRED):
+ * - Every modal component must clear ALL state (form values + validation errors)
+ *   when the modal closes and reopens
+ * - Use useEffect with `open` dependency to reset state when modal closes
+ * - Example:
+ *   useEffect(() => {
+ *     if (!open) {
+ *       setFormField("");
+ *       setErrors({});
+ *       setErrorMessages({});
+ *     }
+ *   }, [open]);
+ * - This ensures a "fresh" form each time the modal opens, no cached values or errors
+ *
  * This ensures consistency across all modals in the app.
  */
 export const ModalTemplate = React.forwardRef<
