@@ -628,7 +628,18 @@ START: Need to build something?
 
 ## Form Pattern
 
-**All forms MUST use react-hook-form.** This ensures consistent behavior, error handling, and accessibility across the app.
+### Two Approaches: react-hook-form vs Standardized Fields
+
+**Approach 1: react-hook-form (Complex Forms)**
+- Use when you need advanced validation, complex field interdependencies, or integration with existing form systems
+- Better for large enterprise forms with many validation rules
+
+**Approach 2: Standardized Field Components (Recommended for Most Cases)**
+- Use the pre-built field components (`TextField`, `SelectField`, `CurrencyField`, etc.)
+- Faster to build, consistent styling, less boilerplate
+- Recommended for ~80% of forms in this app
+
+**All forms MUST maintain consistent styling and error handling** via either approach.
 
 ### Form Components
 
