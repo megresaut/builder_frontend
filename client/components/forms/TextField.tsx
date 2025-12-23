@@ -50,6 +50,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       error,
       id,
       disabled = false,
+      readOnly = false,
       ...inputProps
     },
     ref,
@@ -61,14 +62,15 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         label={label}
         required={required}
         description={description}
-        error={error}
-        disabled={disabled}
+        error={readOnly ? undefined : error}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <Input
           ref={ref}
           id={fieldId}
           disabled={disabled}
+          readOnly={readOnly}
           {...inputProps}
         />
       </FieldShell>
