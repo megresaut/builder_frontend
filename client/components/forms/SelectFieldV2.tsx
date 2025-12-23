@@ -202,6 +202,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             lineHeight: 1.43,
           }}
+          onKeyDown={handleTriggerKeyDown}
         >
           <span
             className="overflow-hidden text-ellipsis whitespace-nowrap"
