@@ -127,6 +127,7 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
       onChange,
       onValidationChange,
       placeholder = "+1 (123) 456-7890",
+      readOnly = false,
       ...inputProps
     },
     ref,
@@ -181,8 +182,8 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
         label={label}
         required={required}
         description={description}
-        error={displayError}
-        disabled={disabled}
+        error={readOnly ? undefined : displayError}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <Input
@@ -190,6 +191,7 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
           id={fieldId}
           type="tel"
           disabled={disabled}
+          readOnly={readOnly}
           value={displayValue}
           onChange={handleChange}
           onFocus={handleFocus}
