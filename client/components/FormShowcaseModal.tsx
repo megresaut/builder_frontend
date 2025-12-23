@@ -151,7 +151,7 @@ export function FormShowcaseModal({
         <FormSection title="Selects & Dropdowns" description="Single and searchable selects">
           <FieldRow columns={2}>
             <FieldRowItem>
-              <SelectField
+              <SelectFieldV2
                 label="Status"
                 required
                 value={status}
@@ -166,7 +166,7 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <SelectField
+              <SelectFieldV2
                 label="Category"
                 value={category}
                 onChange={setCategory}
@@ -183,7 +183,7 @@ export function FormShowcaseModal({
 
           <FieldRow columns={2}>
             <FieldRowItem>
-              <SelectField
+              <SelectFieldV2
                 label="Priority"
                 value={priority}
                 onChange={setPriority}
@@ -197,7 +197,7 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <SelectField
+              <SelectFieldV2
                 label="Department"
                 value={department}
                 onChange={setDepartment}
