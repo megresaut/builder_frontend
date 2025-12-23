@@ -128,14 +128,21 @@ export default function AddVendorModal({
         />
       }
     >
-      <ModalField label="Vendor Name" required spacing="tight" error={errors.vendorName}>
-        <Input
-          type="text"
-          value={vendorName}
-          onChange={handleVendorNameChange}
-          placeholder="Vendor Name"
-          aria-invalid={errors.vendorName}
-        />
+      <ModalField spacing="tight">
+        <FieldShell
+          label="Vendor Name"
+          required
+          error={errors.vendorName}
+          htmlFor="vendor-name"
+        >
+          <Input
+            id="vendor-name"
+            type="text"
+            value={vendorName}
+            onChange={handleVendorNameChange}
+            placeholder="Vendor Name"
+          />
+        </FieldShell>
       </ModalField>
 
       <ModalField label="Primary Email" spacing="tight">
