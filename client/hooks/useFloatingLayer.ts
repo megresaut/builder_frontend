@@ -17,32 +17,43 @@ interface FloatingPosition {
   align: Align;
   style: {
     top?: string;
-    bottom?: string;
     left?: string;
-    right?: string;
-    position: "absolute" | "fixed";
+    position: "fixed";
     zIndex: number;
   };
 }
 
+function getMaxAncestorZIndex(el: HTMLElement | null): number {
+  let max = 0;
+  let node: HTMLElement | null = el;
+
+  while (node) {
+    const zIndex = window.getComputedStyle(node).zIndex;
+    if (zIndex && zIndex !== "auto") {
+      const asNumber = Number.parseInt(zIndex, 10);
+      if (Number.isFinite(asNumber)) {
+        max = Math.max(max, asNumber);
+      }
+    }
+    node = node.parentElement;
+  }
+
+  return max;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
 /**
  * useFloatingLayer - Manages placement, collision detection, and positioning of floating elements
- * 
+ *
  * Handles:
  * - Automatic placement flipping (bottom ↔ top) based on available space
  * - Scroll parent detection and monitoring
  * - Real-time repositioning on resize/scroll
  * - Optional width syncing to trigger element
- * - Z-index management for modals
- * 
- * @param open - Whether the floating layer is open/visible
- * @param initialPlacement - Initial placement direction (default: "bottom")
- * @param initialAlign - Initial alignment (default: "start")
- * @param offset - Space between trigger and content (default: 8)
- * @param minSpaceBelow - Minimum space required below before flipping (default: 300)
- * @param triggerWidth - Whether content should match trigger width (default: false)
- * 
- * @returns Object with triggerRef, contentRef, position state, and width syncing
+ * - Modal-aware z-index stacking
  */
 export function useFloatingLayer({
   open,
@@ -54,17 +65,17 @@ export function useFloatingLayer({
 }: UseFloatingLayerProps) {
   const triggerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLElement>(null);
-  
+
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
   const [scrollParents, setScrollParents] = useState<Element[]>([]);
+  const [computedZIndex, setComputedZIndex] = useState(50);
 
-  // Find all scrollable parent elements
   const findScrollParents = useCallback(() => {
     const parents: Element[] = [];
     let element = triggerRef.current?.parentElement;
-    
+
     while (element) {
       const style = window.getComputedStyle(element);
       const isScrollable =
@@ -76,18 +87,17 @@ export function useFloatingLayer({
           style.overflowY === "scroll" ||
           style.overflowX === "auto" ||
           style.overflowX === "scroll");
-      
+
       if (isScrollable || element === document.documentElement) {
         parents.push(element);
       }
-      
+
       element = element.parentElement;
     }
-    
+
     return parents;
   }, []);
 
-  // Calculate position and detect if flip is needed
   const calculatePosition = useCallback(() => {
     if (!open || !triggerRef.current) return;
 
@@ -98,7 +108,6 @@ export function useFloatingLayer({
     const spaceAbove = triggerRect.top;
     const bufferSpace = 20;
 
-    // Find the nearest scrollable container/modal ancestor
     let containerRect: DOMRect | null = null;
     let element = triggerRef.current.parentElement;
     while (element) {
@@ -113,7 +122,6 @@ export function useFloatingLayer({
           style.overflowX === "auto" ||
           style.overflowX === "scroll");
 
-      // Check if this is a modal or dialog (common container patterns)
       const isModal =
         element.getAttribute("role") === "dialog" ||
         element.getAttribute("role") === "alertdialog" ||
@@ -129,24 +137,23 @@ export function useFloatingLayer({
       element = element.parentElement;
     }
 
-    // Check container boundaries if a container was found
     let wouldExceedBottom = false;
     let wouldExceedTop = false;
 
     if (containerRect) {
-      // Check if content would exceed container bottom
-      const contentBottomPosition = triggerRect.bottom + bufferSpace + contentHeight;
+      const contentBottomPosition =
+        triggerRect.bottom + offset + contentHeight + bufferSpace;
       wouldExceedBottom = contentBottomPosition > containerRect.bottom;
 
-      // Check if content would exceed container top
-      const contentTopPosition = triggerRect.top - bufferSpace - contentHeight;
+      const contentTopPosition =
+        triggerRect.top - offset - contentHeight - bufferSpace;
       wouldExceedTop = contentTopPosition < containerRect.top;
     }
 
-    // Determine placement: flip to top if not enough space below or would exceed container
     let newPlacement: Placement = initialPlacement;
     if (
-      (spaceBelow < contentHeight + bufferSpace && spaceAbove > contentHeight + bufferSpace) ||
+      (spaceBelow < contentHeight + offset + bufferSpace &&
+        spaceAbove > contentHeight + offset + bufferSpace) ||
       wouldExceedBottom
     ) {
       newPlacement = "top";
@@ -158,37 +165,49 @@ export function useFloatingLayer({
 
     setPlacement(newPlacement);
 
-    // Determine alignment based on viewport
     let newAlign: Align = initialAlign;
     if (initialAlign === "start") {
       const spaceRight = window.innerWidth - triggerRect.left;
-      const contentWidth = contentRef.current?.offsetWidth || triggerRect.width;
-      
+      const contentWidth =
+        contentRef.current?.offsetWidth || widthValue || triggerRect.width;
+
       if (spaceRight < contentWidth && triggerRect.right < window.innerWidth) {
         newAlign = "end";
       }
     }
     setAlign(newAlign);
 
-    // Sync width to trigger if enabled
-    if (triggerWidth && !widthValue) {
-      setWidthValue(triggerRef.current.offsetWidth);
+    if (triggerWidth) {
+      const nextWidth = Math.round(triggerRect.width);
+      setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
+    } else {
+      setWidthValue(undefined);
     }
 
-    // Find scroll parents on first open
+    const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
+    setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
+
     if (scrollParents.length === 0) {
       setScrollParents(findScrollParents());
     }
-  }, [open, initialPlacement, initialAlign, minSpaceBelow, triggerWidth, widthValue, scrollParents.length, findScrollParents]);
+  }, [
+    open,
+    initialPlacement,
+    initialAlign,
+    minSpaceBelow,
+    triggerWidth,
+    widthValue,
+    scrollParents.length,
+    findScrollParents,
+    offset,
+  ]);
 
-  // Monitor for changes and recalculate position
   useEffect(() => {
     if (!open) return;
 
     const resizeObserver = new ResizeObserver(calculatePosition);
     const scrollHandler = () => calculatePosition();
 
-    // Observe trigger and content for size changes
     if (triggerRef.current) {
       resizeObserver.observe(triggerRef.current);
     }
@@ -196,7 +215,6 @@ export function useFloatingLayer({
       resizeObserver.observe(contentRef.current);
     }
 
-    // Observe parent containers
     let parent = triggerRef.current?.parentElement;
     let depth = 0;
     while (parent && depth < 5) {
@@ -205,57 +223,63 @@ export function useFloatingLayer({
       depth++;
     }
 
-    // Listen to all scroll parents and global events
-    scrollParents.forEach(parent => {
-      parent.addEventListener("scroll", scrollHandler, true);
+    scrollParents.forEach((parentEl) => {
+      parentEl.addEventListener("scroll", scrollHandler, true);
     });
     document.addEventListener("scroll", scrollHandler, true);
     window.addEventListener("resize", calculatePosition);
 
-    // Initial calculation
     calculatePosition();
 
     return () => {
       resizeObserver.disconnect();
-      scrollParents.forEach(parent => {
-        parent.removeEventListener("scroll", scrollHandler, true);
+      scrollParents.forEach((parentEl) => {
+        parentEl.removeEventListener("scroll", scrollHandler, true);
       });
       document.removeEventListener("scroll", scrollHandler, true);
       window.removeEventListener("resize", calculatePosition);
     };
   }, [open, calculatePosition, scrollParents]);
 
-  // Calculate final position style
   const getPositionStyle = (): FloatingPosition["style"] => {
     if (!triggerRef.current) {
-      return { position: "absolute", zIndex: 50 };
+      return { position: "fixed", zIndex: computedZIndex };
     }
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
-    const triggerHeight = triggerRef.current.offsetHeight;
+    const contentEl = contentRef.current;
 
-    const style: FloatingPosition["style"] = {
-      position: "absolute",
-      zIndex: 50,
+    const contentWidth =
+      widthValue ?? contentEl?.offsetWidth ?? Math.round(triggerRect.width);
+    const contentHeight = contentEl?.offsetHeight ?? 0;
+
+    const margin = 8;
+
+    let top =
+      placement === "bottom"
+        ? triggerRect.bottom + offset
+        : triggerRect.top - contentHeight - offset;
+
+    let left = triggerRect.left;
+    if (align === "end") {
+      left = triggerRect.right - contentWidth;
+    } else if (align === "center") {
+      left = triggerRect.left + triggerRect.width / 2 - contentWidth / 2;
+    }
+
+    left = clamp(left, margin, window.innerWidth - contentWidth - margin);
+    if (contentHeight > 0) {
+      top = clamp(top, margin, window.innerHeight - contentHeight - margin);
+    } else {
+      top = clamp(top, margin, window.innerHeight - margin);
+    }
+
+    return {
+      position: "fixed",
+      zIndex: computedZIndex,
+      top: `${Math.round(top)}px`,
+      left: `${Math.round(left)}px`,
     };
-
-    if (placement === "bottom") {
-      // Position below trigger: trigger's full height + offset
-      style.top = `calc(100% + ${offset}px)`;
-    } else {
-      // Position above trigger with offset
-      style.bottom = `calc(100% + ${offset}px)`;
-    }
-
-    if (align === "start") {
-      style.left = "0";
-    } else if (align === "end") {
-      style.right = "0";
-    } else {
-      style.left = "50%";
-    }
-
-    return style;
   };
 
   return {
