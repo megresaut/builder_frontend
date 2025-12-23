@@ -189,28 +189,28 @@ export const DatePicker = ({
       {showCalendar && (
         <div
           ref={calendarRef}
-          className="ra-date-picker-calendar"
+          className={styles.calendar}
           style={{
             top: "calc(100% + 8px)",
             left: "0",
           }}
           onClick={(e) => e.stopPropagation()}
         >
-            <div className="ra-date-picker-header">
+            <div className={styles.header}>
               <button
                 onClick={previousMonth}
-                className="ra-date-picker-nav-btn"
+                className={styles.navBtn}
                 type="button"
                 aria-label="Previous month"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="ra-date-picker-month-label">
+              <span className={styles.monthLabel}>
                 {format(calendarMonth, "MMMM yyyy")}
               </span>
               <button
                 onClick={nextMonth}
-                className="ra-date-picker-nav-btn"
+                className={styles.navBtn}
                 type="button"
                 aria-label="Next month"
               >
@@ -218,15 +218,15 @@ export const DatePicker = ({
               </button>
             </div>
 
-            <div className="ra-date-picker-weekdays">
+            <div className={styles.weekdays}>
               {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                <div key={day} className="ra-date-picker-weekday">
+                <div key={day} className={styles.weekday}>
                   {day}
                 </div>
               ))}
             </div>
 
-            <div className="ra-date-picker-days">
+            <div className={styles.days}>
               {getDaysInCurrentMonth().map((day, idx) => (
                 <button
                   key={idx}
@@ -241,14 +241,14 @@ export const DatePicker = ({
                     }
                   }}
                   disabled={day === null}
-                  className={`ra-date-picker-day ${
+                  className={`${styles.day} ${
                     value &&
                     value.getDate() === day &&
                     value.getMonth() === calendarMonth.getMonth() &&
                     value.getFullYear() === calendarMonth.getFullYear()
-                      ? "ra-date-picker-day--selected"
+                      ? styles.daySelected
                       : ""
-                  } ${day === null ? "ra-date-picker-day--empty" : ""}`}
+                  } ${day === null ? styles.dayEmpty : ""}`}
                   type="button"
                 >
                   {day}
