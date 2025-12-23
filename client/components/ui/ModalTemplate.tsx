@@ -151,7 +151,7 @@ export const ModalTemplate = React.forwardRef<
           </div>
 
           {/* Content */}
-          <div style={{ marginTop: showDivider ? "16px" : "0" }} ref={ref}>
+          <div style={{ marginTop: showDivider ? "16px" : "0" }} ref={contentRef || ref}>
             {children}
           </div>
 
