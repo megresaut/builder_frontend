@@ -848,7 +848,7 @@ export function FormShowcaseModal({
         <FormSection title="Additional Options" description="Payment and approval settings">
           <FieldRow columns={2}>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Payment Method"
                 value={paymentMethod}
                 onChange={setPaymentMethod}
@@ -862,7 +862,7 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Approval Status"
                 value={approvalStatus}
                 onChange={setApprovalStatus}
