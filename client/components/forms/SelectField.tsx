@@ -108,17 +108,18 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
   const selectedValue = !isMultiple ? (typeof value === "string" ? value : "") : "";
 
-  // Get labels for display
-  let displayLabel = placeholder;
-  if (isMultiple) {
-    const selectedOptions = options.filter((opt) => selectedValues.includes(opt.value));
-    if (selectedOptions.length > 0) {
-      displayLabel = `${selectedOptions.length} selected`;
-    }
-  } else {
-    const selectedOption = options.find((opt) => opt.value === selectedValue);
-    displayLabel = selectedOption?.label ?? placeholder;
-  }
+  // Get selected option objects
+  const selectedOptions = isMultiple
+    ? options.filter((opt) => selectedValues.includes(opt.value))
+    : selectedValue
+      ? [options.find((opt) => opt.value === selectedValue)].filter(Boolean)
+      : [];
+
+  const displayLabel = isMultiple
+    ? selectedValues.length === 0
+      ? placeholder
+      : undefined
+    : selectedOptions[0]?.label ?? placeholder;
 
   const isShowingPlaceholder = isMultiple ? selectedValues.length === 0 : !selectedValue;
 
