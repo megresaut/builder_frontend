@@ -99,6 +99,9 @@ export function FormShowcaseModal({
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [primaryProperty, setPrimaryProperty] = useState("");
 
+  // Sensitive fields
+  const [bankAccount, setBankAccount] = useState("");
+
   // File uploads
   const [attachments, setAttachments] = useState<UploadedFile[]>([]);
 
