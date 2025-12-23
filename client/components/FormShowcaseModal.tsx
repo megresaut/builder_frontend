@@ -73,11 +73,16 @@ export function FormShowcaseModal({
       phone,
       status,
       category,
+      priority,
+      department,
       quantity,
       amount,
       dueDate,
       notes,
       selectedVendor,
+      selectedProperty,
+      paymentMethod,
+      approvalStatus,
     });
 
     // Close modal on success
