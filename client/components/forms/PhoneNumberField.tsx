@@ -33,6 +33,48 @@ function validatePhoneNumber(phoneNumber: string): boolean {
 }
 
 /**
+ * Formats a phone number with parentheses and dashes
+ * Preserves country code if present
+ * Examples:
+ * - "1234567890" -> "(123) 456-7890"
+ * - "+11234567890" -> "+1 (123) 456-7890"
+ * - "+441234567890" -> "+44 (123) 456-7890"
+ */
+function formatPhoneNumber(phoneNumber: string): string {
+  if (!phoneNumber) return "";
+
+  // Extract country code if present
+  let countryCode = "";
+  let digits = phoneNumber;
+
+  const countryCodeMatch = phoneNumber.match(/^(\+\d{1,3})\s*/);
+  if (countryCodeMatch) {
+    countryCode = countryCodeMatch[1];
+    digits = phoneNumber.slice(countryCodeMatch[0].length);
+  }
+
+  // Remove all non-digits from the phone number part
+  const cleaned = digits.replace(/\D/g, "");
+
+  // Format based on length
+  if (cleaned.length === 10) {
+    // Standard format: (123) 456-7890
+    return `${countryCode}${countryCode ? " " : ""}(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  } else if (cleaned.length === 11 && cleaned.startsWith("1")) {
+    // US format with leading 1: (123) 456-7890
+    return `${countryCode}${countryCode ? " " : ""}(${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+  } else if (cleaned.length > 10) {
+    // For longer numbers, try to format the last 10 digits with parentheses
+    const lastTen = cleaned.slice(-10);
+    const prefix = cleaned.slice(0, -10);
+    return `${countryCode}${countryCode ? " " : ""}${prefix} (${lastTen.slice(0, 3)}) ${lastTen.slice(3, 6)}-${lastTen.slice(6)}`;
+  }
+
+  // Return as-is if we can't format it properly
+  return phoneNumber;
+}
+
+/**
  * PhoneNumberField - Phone number input with flexible validation
  *
  * Features:
