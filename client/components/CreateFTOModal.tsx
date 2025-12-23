@@ -48,14 +48,7 @@ export default function CreateFTOModal({
   const dueDateInputRef = useRef<HTMLInputElement>(null);
   const calendarDropdownRef = useRef<HTMLDivElement>(null);
   const [calendarPos, setCalendarPos] = useState({ top: 0, left: 0 });
-  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
-  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
-  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
-  const assigneeDropdownRef = useRef<HTMLDivElement>(null);
-  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
+  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
   const [errors, setErrors] = useState<{
     property?: boolean;
     ftoName?: boolean;
