@@ -241,7 +241,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             border: "solid",
             opacity: disabled ? 0.6 : 1,
             justifyContent: "space-between",
-            pointerEvents: disabled ? "none" : "auto",
           }}
         >
           <div className="flex items-center gap-2 flex-wrap flex-1">
