@@ -659,7 +659,7 @@ export function FormShowcaseModal({
                 label: "Downtown Office - 123 Main St",
                 subtitle: "New York, NY 10001",
                 initials: "DO",
-                badgeColor: "bg-blue-600",
+                avatarColor: "bg-blue-600",
                 tags: ["Commercial", "Office"],
               },
               {
@@ -667,7 +667,7 @@ export function FormShowcaseModal({
                 label: "Warehouse - 456 Industrial Ave",
                 subtitle: "New Jersey, NJ 07001",
                 initials: "WH",
-                badgeColor: "bg-gray-600",
+                avatarColor: "bg-gray-600",
                 tags: ["Industrial", "Warehouse"],
               },
               {
@@ -675,7 +675,7 @@ export function FormShowcaseModal({
                 label: "Retail Store - 789 Shopping Center",
                 subtitle: "Connecticut, CT 06001",
                 initials: "RS",
-                badgeColor: "bg-red-600",
+                avatarColor: "bg-red-600",
                 tags: ["Retail", "Commercial"],
               },
             ]}
