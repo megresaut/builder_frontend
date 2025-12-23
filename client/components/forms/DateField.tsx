@@ -76,8 +76,23 @@ const DateField: React.FC<DateFieldProps> = ({
   value,
   onChange,
   placeholder = "mm/dd/yyyy",
+  returnFormat = "Date",
 }) => {
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  // Convert value to Date object for DatePicker
+  const dateValue = React.useMemo(() => {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === "string") {
+      // Parse ISO string (YYYY-MM-DD) to Date
+      const [year, month, day] = value.split("-").map(Number);
+      if (year && month && day) {
+        return new Date(year, month - 1, day);
+      }
+    }
+    return null;
+  }, [value]);
 
   // Validate date range (1900-2040)
   const validateDateRange = (date: Date | null): boolean => {
@@ -86,7 +101,18 @@ const DateField: React.FC<DateFieldProps> = ({
     return year >= 1900 && year <= 2040;
   };
 
-  const dateError = error || (value && !validateDateRange(value) ? "Date must be between 1900 and 2040" : undefined);
+  const dateError = error || (dateValue && !validateDateRange(dateValue) ? "Date must be between 1900 and 2040" : undefined);
+
+  const handleDateChange = (newDate: Date | null) => {
+    if (returnFormat === "ISO" && newDate) {
+      // Convert Date to ISO string (YYYY-MM-DD)
+      const isoString = newDate.toISOString().split("T")[0];
+      onChange?.(isoString);
+    } else {
+      // Return Date object
+      onChange?.(newDate);
+    }
+  };
 
   return (
     <FieldShell
@@ -98,8 +124,8 @@ const DateField: React.FC<DateFieldProps> = ({
       htmlFor={fieldId}
     >
       <DatePicker
-        value={value || null}
-        onChange={onChange}
+        value={dateValue}
+        onChange={handleDateChange}
         disabled={disabled}
         placeholder={placeholder}
         error={!!dateError}
