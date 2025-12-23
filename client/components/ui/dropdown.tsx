@@ -19,6 +19,7 @@ interface DropdownContextType {
   placement: "bottom" | "top";
   align: "start" | "center" | "end";
   contentWidth?: number;
+  isVisible: boolean;
   getPositionStyle: () => any;
 }
 
