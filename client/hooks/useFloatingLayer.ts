@@ -228,13 +228,13 @@ export function useFloatingLayer({
   // Calculate final position style
   const getPositionStyle = (): FloatingPosition["style"] => {
     if (!triggerRef.current) {
-      return { position: "absolute", zIndex: 9999 };
+      return { position: "absolute", zIndex: 50 };
     }
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const style: FloatingPosition["style"] = {
       position: "absolute",
-      zIndex: 9999,
+      zIndex: 50,
     };
 
     if (placement === "bottom") {
