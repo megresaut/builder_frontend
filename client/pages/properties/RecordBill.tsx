@@ -1072,180 +1072,93 @@ export const RecordBill = () => {
 
                 {/* Form Fields */}
                 <div
-                  className="flex mt-3 flex-col"
-                  style={{ width: "auto", alignSelf: "start" }}
+                  className="flex mt-3 flex-col gap-5"
+                  style={{ width: "600px", alignSelf: "start" }}
                 >
-                  <div
-                    className="flex flex-col"
-                    style={{
-                      marginRight: "-2px",
-                      width: "auto",
-                      alignSelf: "start",
-                    }}
-                  >
-                    {/* Vendor and Reference Number Row */}
-                    <div
-                      className="flex items-start flex-wrap"
-                      style={{
-                        width: "600px",
-                        marginBottom: "-10px",
-                        gap: "20px",
-                      }}
-                    >
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Vendor{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>&nbsp;*</span>
-                        </label>
-                        <Select
-                          value={selectedVendor?.id.toString() || ""}
-                          onValueChange={(vendorId) => {
-                            if (!isReadOnly) {
-                              const vendor = mockVendors.find(
-                                (v) => v.id.toString() === vendorId,
-                              );
-                              setSelectedVendor(vendor || null);
-                              setFormErrors((prev) => {
-                                const newErrors = new Set(prev);
-                                newErrors.delete("vendor");
-                                return newErrors;
-                              });
-                            }
-                          }}
-                          disabled={isReadOnly}
-                        >
-                          <SelectTrigger
-                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base font-normal tracking-[-0.32px] leading-[1.4] ${
-                              !selectedVendor ? "text-[#A1A1A9]" : "text-[#303030]"
-                            } ${
-                              formErrors.has("vendor")
-                                ? "border-red-500 border-2"
-                                : "border-[#E5E5E5]"
-                            }`}
-                          >
-                            <SelectValue placeholder="Select vendor..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {mockVendors.map((vendor) => (
-                              <SelectItem
-                                key={vendor.id}
-                                value={vendor.id.toString()}
-                              >
-                                {vendor.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Reference Number
-                        </label>
-                        <input
-                          type="text"
-                          value={referenceNumber}
-                          onChange={(e) =>
-                            !isReadOnly && setReferenceNumber(e.target.value)
+                  <div className="flex gap-5">
+                    <div className="flex-1">
+                      <SelectField
+                        label="Vendor"
+                        required
+                        value={selectedVendor?.id.toString() || ""}
+                        onChange={(vendorId) => {
+                          if (!isReadOnly) {
+                            const vendor = mockVendors.find(
+                              (v) => v.id.toString() === vendorId,
+                            );
+                            setSelectedVendor(vendor || null);
+                            setFormErrors((prev) => {
+                              const newErrors = new Set(prev);
+                              newErrors.delete("vendor");
+                              return newErrors;
+                            });
                           }
-                          placeholder="INV-2024-001"
-                          disabled={isReadOnly}
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
-                          style={
-                            {
-                              "--tw-placeholder-opacity": "1",
-                              "--tw-placeholder-color": "rgb(161, 161, 169)",
-                            } as React.CSSProperties
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Add Vendor Link Row */}
-                    <div
-                      className="flex mt-5 items-start gap-5 flex-wrap"
-                      style={{ width: "600px" }}
-                    >
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          <button
-                            type="button"
-                            onClick={() => setShowAddVendorModal(true)}
-                            className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline"
-                            style={{
-                              backgroundColor: "rgba(0, 0, 0, 0)",
-                              border: "none",
-                              margin: "-5px auto 0 0",
-                            }}
-                          >
-                            + Add Vendor
-                          </button>
-                        </label>
-                      </div>
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]" />
-                      </div>
-                    </div>
-
-                    {/* Invoice Date and Due Date Row */}
-                    <div
-                      className="flex mt-2.5 items-start gap-5 flex-wrap"
-                      style={{ width: "600px" }}
-                    >
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Invoice Date{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>&nbsp;*</span>
-                        </label>
-                        <DatePicker
-                          value={invoiceDate}
-                          onChange={handleInvoiceDateChange}
-                          disabled={isReadOnly}
-                          error={formErrors.has("invoiceDate")}
-                          placeholder="mm/dd/yyyy"
-                        />
-                        {invoiceDateError && (
-                          <div className="text-red-500 text-xs mt-1">
-                            {invoiceDateError}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Due Date{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>&nbsp;*</span>
-                        </label>
-                        <DatePicker
-                          value={dueDate}
-                          onChange={handleDueDateChange}
-                          disabled={isReadOnly}
-                          error={formErrors.has("dueDate")}
-                          placeholder="mm/dd/yyyy"
-                        />
-                        {dueDateError && (
-                          <div className="text-red-500 text-xs mt-1">
-                            {dueDateError}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Memo/Notes */}
-                    <div
-                      className="flex mt-5 w-full flex-col"
-                      style={{ width: "600px" }}
-                    >
-                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Memo/Notes
-                      </label>
-                      <textarea
-                        value={memo}
-                        onChange={(e) => !isReadOnly && setMemo(e.target.value)}
-                        placeholder="Additional notes..."
+                        }}
+                        placeholder="Select vendor..."
                         disabled={isReadOnly}
-                        className="rounded-lg bg-white border border-[#E5E7EB] mt-2 min-h-[81px] w-full px-3 py-2 overflow-hidden text-base text-[#303030] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9]"
+                        error={formErrors.has("vendor") ? "Vendor is required" : undefined}
+                        options={mockVendors.map((vendor) => ({
+                          value: vendor.id.toString(),
+                          label: vendor.name,
+                        }))}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <TextField
+                        label="Reference Number"
+                        value={referenceNumber}
+                        onChange={(e) =>
+                          !isReadOnly && setReferenceNumber(e.target.value)
+                        }
+                        placeholder="INV-2024-001"
+                        disabled={isReadOnly}
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddVendorModal(true)}
+                      className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline bg-transparent border-none p-0"
+                    >
+                      + Add Vendor
+                    </button>
+                  </div>
+
+                  <div className="flex gap-5">
+                    <div className="flex-1">
+                      <DateField
+                        label="Invoice Date"
+                        required
+                        value={invoiceDate}
+                        onChange={handleInvoiceDateChange}
+                        disabled={isReadOnly}
+                        error={invoiceDateError || (formErrors.has("invoiceDate") ? "Invoice Date is required" : undefined)}
+                        placeholder="mm/dd/yyyy"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <DateField
+                        label="Due Date"
+                        required
+                        value={dueDate}
+                        onChange={handleDueDateChange}
+                        disabled={isReadOnly}
+                        error={dueDateError || (formErrors.has("dueDate") ? "Due Date is required" : undefined)}
+                        placeholder="mm/dd/yyyy"
+                      />
+                    </div>
+                  </div>
+
+                  <TextAreaField
+                    label="Memo/Notes"
+                    value={memo}
+                    onChange={(e) => !isReadOnly && setMemo(e.target.value)}
+                    placeholder="Additional notes..."
+                    disabled={isReadOnly}
+                    autoGrow
+                  />
                 </div>
 
                 {/* Line Items Section */}
