@@ -165,7 +165,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
               ))
             )}
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-600 flex-shrink-0" />
+          <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "#303030" }} />
         </Dropdown.Trigger>
 
         <Dropdown.Content

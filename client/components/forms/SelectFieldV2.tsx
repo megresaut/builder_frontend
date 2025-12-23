@@ -106,7 +106,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
           >
             {selectedLabel}
           </span>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0" style={{ color: "#303030" }} />
         </Dropdown.Trigger>
 
         <Dropdown.Content
