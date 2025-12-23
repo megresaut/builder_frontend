@@ -126,14 +126,16 @@ const PopoverContent = React.forwardRef<
         sticky="never"
         hideWhenDetached={true}
         style={{
-          maxHeight: "280px",
+          maxHeight: typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight,
           maxWidth: "calc(100vw - 32px)",
           width: triggerWidth ? `${triggerWidth}px` : undefined,
           ...style,
-          overflowY: "auto",
-          overflowX: "hidden",
-          overscrollBehavior: "contain",
-          WebkitOverflowScrolling: "touch",
+          ...(scrollable && {
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+          }),
           height: "auto",
         }}
         {...props}
