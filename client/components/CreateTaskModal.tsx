@@ -409,7 +409,13 @@ export default function CreateTaskModal({
               <div className="relative">
                 <button
                   ref={assigneeButtonRef}
-                  onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                  onClick={() => {
+                    setShowAssigneeDropdown(!showAssigneeDropdown);
+                    if (errors.selectedAssignees) {
+                      setErrors((prev) => ({ ...prev, selectedAssignees: false }));
+                      setErrorMessages((prev) => ({ ...prev, selectedAssignees: undefined }));
+                    }
+                  }}
                   style={{
                     height: "44px",
                     borderRadius: "8px",
