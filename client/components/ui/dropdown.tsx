@@ -121,7 +121,7 @@ interface DropdownTriggerProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 const DropdownTrigger = React.forwardRef<HTMLElement, DropdownTriggerProps>(
-  ({ asChild = false, onClick, onFocus, type, ...props }, ref) => {
+  ({ asChild = false, onClick, onFocus, type, children, ...props }, ref) => {
     const { open, setOpen, triggerId, contentId, triggerRef } =
       useDropdownContext();
 
@@ -146,31 +146,35 @@ const DropdownTrigger = React.forwardRef<HTMLElement, DropdownTriggerProps>(
 
     const Element = isInput ? "input" : "button";
 
-    const element = React.createElement(Element, {
-      ref: (el: HTMLElement) => {
-        // @ts-ignore - ref forwarding complexity
-        triggerRef.current = el;
-        if (typeof ref === "function") {
-          ref(el);
-        } else if (ref) {
-          ref.current = el;
-        }
-      },
-      id: triggerId,
-      "aria-expanded": open,
-      "aria-controls": contentId,
-      onClick: handleClick,
-      onFocus: isInput ? handleFocus : undefined,
-      onMouseDown: isInput
-        ? (e: React.MouseEvent<HTMLElement>) => {
-            if (e.button === 0) {
-              setOpen(true);
-            }
+    const element = React.createElement(
+      Element as any,
+      {
+        ref: (el: HTMLElement) => {
+          // @ts-ignore - ref forwarding complexity
+          triggerRef.current = el;
+          if (typeof ref === "function") {
+            ref(el);
+          } else if (ref) {
+            ref.current = el;
           }
-        : undefined,
-      type: type || "button",
-      ...props,
-    });
+        },
+        id: triggerId,
+        "aria-expanded": open,
+        "aria-controls": contentId,
+        onClick: handleClick,
+        onFocus: isInput ? handleFocus : undefined,
+        onMouseDown: isInput
+          ? (e: React.MouseEvent<HTMLElement>) => {
+              if (e.button === 0) {
+                setOpen(true);
+              }
+            }
+          : undefined,
+        type: type || "button",
+        ...props,
+      },
+      children,
+    );
 
     return element;
   },
