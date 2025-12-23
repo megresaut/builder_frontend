@@ -98,12 +98,22 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   searchPlaceholder = "Search...",
   options,
   emptyMessage = "No results found",
+  creatable = false,
+  onCreateNew,
 }) => {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = React.useState("");
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
   const selectedLabel = selectedOption?.label ?? placeholder;
   const isShowingPlaceholder = !selectedOption;
+
+  // Filter options based on search term
+  const filteredOptions = searchTerm
+    ? options.filter((opt) =>
+        opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : options;
 
   return (
     <FieldShell
