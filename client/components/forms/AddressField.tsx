@@ -251,7 +251,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
         </PopoverContent>
       </Popover>
     ),
-    [disabled, handleStateChange, stateOpen, stateTriggerStyle, value.state, error],
+    [disabled, handleStateChange, stateOpen, stateTriggerStyle, value.state, error, stateButtonWidth],
   );
 
   const content = (
