@@ -139,20 +139,55 @@ export const DatePicker = ({
     };
   }, [showCalendar]);
 
-  // Calculate whether to show calendar above or below
-  useEffect(() => {
-    if (showCalendar && inputRef.current) {
-      const rect = inputRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const calendarHeight = 280; // Approximate height of calendar
+  // Calculate whether to show calendar above or below (with live updates)
+  const checkPosition = useCallback(() => {
+    if (showCalendar && inputRef.current && calendarRef.current) {
+      const inputRect = inputRef.current.getBoundingClientRect();
+      const calendarHeight = calendarRef.current.offsetHeight || 340;
+      const spaceBelow = window.innerHeight - inputRect.bottom;
+      const spaceAbove = inputRect.top;
 
-      if (spaceBelow < calendarHeight + 20) {
+      // Flip above if not enough space below (with 20px buffer)
+      if (spaceBelow < calendarHeight + 20 && spaceAbove > calendarHeight + 20) {
         setPositionAbove(true);
       } else {
         setPositionAbove(false);
       }
     }
   }, [showCalendar]);
+
+  // Listen for resize and scroll to detect when container shrinks
+  useEffect(() => {
+    if (!showCalendar) return;
+
+    const resizeObserver = new ResizeObserver(checkPosition);
+    const scrollHandler = () => checkPosition();
+
+    // Watch the input and its parent containers for size changes
+    if (inputRef.current) {
+      resizeObserver.observe(inputRef.current);
+      let parent = inputRef.current.parentElement;
+      let depth = 0;
+      while (parent && depth < 5) {
+        resizeObserver.observe(parent);
+        parent = parent.parentElement;
+        depth++;
+      }
+    }
+
+    // Listen for scroll on any parent that might be scrolling
+    document.addEventListener("scroll", scrollHandler, true);
+    window.addEventListener("resize", checkPosition);
+
+    // Initial check
+    checkPosition();
+
+    return () => {
+      resizeObserver.disconnect();
+      document.removeEventListener("scroll", scrollHandler, true);
+      window.removeEventListener("resize", checkPosition);
+    };
+  }, [showCalendar, checkPosition]);
 
   // Handle ESC key
   useEffect(() => {
