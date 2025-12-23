@@ -28,12 +28,6 @@ const ErrorMessage: React.FC<{ message?: string }> = ({ message }) => {
   );
 };
 
-interface Assignee {
-  id: string;
-  name: string;
-  initials: string;
-}
-
 interface CreateTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -44,12 +38,12 @@ interface CreateTaskModalProps {
   };
 }
 
-const AVAILABLE_ASSIGNEES: Assignee[] = [
-  { id: "1", name: "David Harris", initials: "DH" },
-  { id: "2", name: "Sarah Johnson", initials: "SJ" },
-  { id: "3", name: "Michael Chen", initials: "MC" },
-  { id: "4", name: "Emily Rodriguez", initials: "ER" },
-  { id: "5", name: "James Wilson", initials: "JW" },
+const AVAILABLE_ASSIGNEES: MultiSelectOption[] = [
+  { id: "1", label: "David Harris", initials: "DH" },
+  { id: "2", label: "Sarah Johnson", initials: "SJ" },
+  { id: "3", label: "Michael Chen", initials: "MC" },
+  { id: "4", label: "Emily Rodriguez", initials: "ER" },
+  { id: "5", label: "James Wilson", initials: "JW" },
 ];
 
 export default function CreateTaskModal({
