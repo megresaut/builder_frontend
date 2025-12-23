@@ -57,6 +57,8 @@ PopoverTrigger.displayName = "PopoverTrigger";
 
 interface PopoverContentProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {
   syncTriggerWidth?: boolean;
+  scrollable?: boolean;        // Enable internal scrolling (default: true)
+  maxHeight?: string | number; // Custom max height (default: 280px)
 }
 
 const PopoverContent = React.forwardRef<
