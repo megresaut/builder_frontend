@@ -768,7 +768,7 @@ export default function Bills() {
                   <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
                   <path d="M8 16H3v5" />
                 </svg>
-                <span className="text-[#303030] font-normal text-sm leading-[22.4px]">
+                <span className="font-normal text-sm leading-[22.4px]" style={{ color: "var(--color-text-primary)" }}>
                   {syncState === "idle" && "Sync"}
                   {syncState === "syncing" && "Syncing..."}
                   {syncState === "synced" && "Synced"}
