@@ -210,6 +210,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             lineHeight: 1.43,
             cursor: disabled ? "not-allowed" : "pointer",
           }}
+          onClick={handleTriggerClick}
           onKeyDown={handleTriggerKeyDown}
           type="button"
         >
