@@ -340,7 +340,7 @@ export function FormShowcaseModal({
         <FormSection title="Selects & Dropdowns" description="Single select with keyboard navigation and searchable comboboxes">
           <FieldRow columns={2}>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Status"
                 required
                 value={status}
@@ -356,7 +356,7 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Category"
                 value={category}
                 onChange={setCategory}
@@ -388,7 +388,7 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Department"
                 value={department}
                 onChange={setDepartment}
@@ -601,7 +601,7 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Departments"
                 value={selectedDepartments}
                 onChange={setSelectedDepartments}
