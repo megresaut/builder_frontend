@@ -143,11 +143,14 @@ export default function AddVendorModal({
 
       <MultiSelectField
         label="Services Provided"
-        value={servicesProvided}
-        onChange={setServicesProvided}
+        value={servicesProvided.map((service) => ({
+          id: service,
+          label: service,
+        }))}
+        onChange={(items) => setServicesProvided(items.map((item) => item.label))}
         placeholder="Select services provided..."
         options={availableServices.map((service) => ({
-          value: service,
+          id: service,
           label: service,
         }))}
       />
