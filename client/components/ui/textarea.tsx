@@ -20,6 +20,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       style,
       value,
       defaultValue,
+      "aria-invalid": ariaInvalid,
       ...props
     },
     forwardedRef,
@@ -57,12 +58,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={setRef}
         value={value}
         defaultValue={defaultValue}
+        aria-invalid={ariaInvalid}
         onChange={(e) => {
           onChange?.(e);
           resizeToFit();
         }}
         className={cn(
           "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-[var(--color-text-placeholder)] focus-visible:outline-none focus-visible:border-black disabled:cursor-not-allowed disabled:opacity-50",
+          ariaInvalid === true && "border-red-500 border-2",
           autoGrow ? "overflow-hidden" : "",
           className,
         )}
