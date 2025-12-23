@@ -19,6 +19,7 @@ import {
   AddressField,
   IdentitySelectField,
   SensitiveInputField,
+  ReadOnlyTextField,
   FileUploadField,
   FieldRow,
   FieldRowItem,
