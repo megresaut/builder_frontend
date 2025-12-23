@@ -355,7 +355,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={handleTriggerKeyDown}
-                autoFocus
                 style={{
                   flex: 1,
                   border: "none",
