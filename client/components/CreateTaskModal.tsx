@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { X } from "lucide-react";
 import { format } from "date-fns";
 import {
   ModalTemplate,
@@ -18,7 +17,7 @@ import {
   FieldRow,
   FieldRowItem,
 } from "@/components/ui/ModalTemplate";
-import { createPortal } from "react-dom";
+import { MultiSelectField, type MultiSelectOption } from "@/components/forms";
 
 const ErrorMessage: React.FC<{ message?: string }> = ({ message }) => {
   if (!message) return null;
