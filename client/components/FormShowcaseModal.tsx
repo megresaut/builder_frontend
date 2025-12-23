@@ -62,7 +62,11 @@ export function FormShowcaseModal({
     const newErrors: Record<string, string> = {};
 
     if (!vendorName) newErrors.vendorName = "Vendor name is required";
-    if (!email) newErrors.email = "Email is required";
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!isEmailValid) {
+      newErrors.email = "Please enter a valid email address";
+    }
     if (!status) newErrors.status = "Status is required";
     if (!dueDate) newErrors.dueDate = "Due date is required";
 
