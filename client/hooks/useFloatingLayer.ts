@@ -326,6 +326,7 @@ export function useFloatingLayer({
     placement,
     align,
     widthValue,
+    isVisible,
     getPositionStyle,
   };
 }
