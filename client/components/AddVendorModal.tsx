@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ModalTemplate,
   ModalButtons,
@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/ModalTemplate";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dropdown } from "@/components/ui/dropdown";
+import { Check, ChevronDown, X, Search } from "lucide-react";
 
 interface AddVendorModalProps {
   open: boolean;
