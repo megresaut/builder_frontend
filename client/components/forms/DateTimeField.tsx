@@ -83,6 +83,7 @@ export const DateTimeField = forwardRef<HTMLDivElement, DateTimeFieldProps>(
       maxDate,
       minTime,
       maxTime,
+      readOnly = false,
     },
     ref,
   ) => {
