@@ -102,28 +102,16 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
         <Dropdown.Trigger
           id={fieldId}
           disabled={disabled}
+          className={`h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+            error ? "border-red-600" : "border-[var(--color-border-light)]"
+          }`}
           style={{
-            borderColor: error ? "#ef4444" : "var(--color-border-light)",
-            borderWidth: error ? "2px" : "1px",
-            height: "44px",
-            borderRadius: "8px",
-            justifyContent: "space-between",
-            backgroundColor: "white",
             color: value ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
-            fontWeight: 400,
-            opacity: disabled ? 0.6 : 1,
-            width: "100%",
-            padding: "0 12px",
-            display: "flex",
-            alignItems: "center",
-            cursor: disabled ? "not-allowed" : "pointer",
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "14px",
             lineHeight: 1.43,
-            border: "solid",
           }}
         >
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
             {selectedLabel}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -132,12 +120,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
         <Dropdown.Content
           closeOnOutsideClick={true}
           closeOnEscape={true}
-          style={{
-            backgroundColor: "white",
-            border: "1px solid var(--color-border-light)",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          }}
+          className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
         >
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
