@@ -232,14 +232,18 @@ export function useFloatingLayer({
     }
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
+    const triggerHeight = triggerRef.current.offsetHeight;
+
     const style: FloatingPosition["style"] = {
       position: "absolute",
       zIndex: 50,
     };
 
     if (placement === "bottom") {
+      // Position below trigger: trigger's full height + offset
       style.top = `calc(100% + ${offset}px)`;
     } else {
+      // Position above trigger with offset
       style.bottom = `calc(100% + ${offset}px)`;
     }
 
