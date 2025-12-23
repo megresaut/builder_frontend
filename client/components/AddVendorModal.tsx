@@ -151,7 +151,7 @@ export default function AddVendorModal({
               style={{
                 borderRadius: "8px",
                 backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: errors.vendorName ? "rgba(220, 38, 38, 1)" : "rgba(229, 229, 229, 1)",
+                borderColor: errors.vendorName ? "var(--color-status-error)" : "var(--color-border-light)",
                 borderStyle: "solid",
                 borderWidth: errors.vendorName ? "2px" : "1px",
                 padding: "8px 12px",
@@ -160,13 +160,13 @@ export default function AddVendorModal({
                 letterSpacing: "-0.32px",
                 lineHeight: 1.4,
                 fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "#303030",
+                color: "var(--color-text-primary)",
                 width: "100%",
                 boxSizing: "border-box",
               }}
             />
             {errors.vendorName && (
-              <div style={{ color: "rgba(220, 38, 38, 1)", fontSize: "12px", marginTop: "4px" }}>
+              <div style={{ color: "var(--color-status-error)", fontSize: "12px", marginTop: "4px" }}>
                 Vendor Name is required
               </div>
             )}
@@ -182,7 +182,7 @@ export default function AddVendorModal({
               style={{
                 borderRadius: "8px",
                 backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: "rgba(229, 229, 229, 1)",
+                borderColor: "var(--color-border-light)",
                 borderStyle: "solid",
                 borderWidth: "1px",
                 padding: "8px 12px",
@@ -191,7 +191,7 @@ export default function AddVendorModal({
                 letterSpacing: "-0.32px",
                 lineHeight: 1.4,
                 fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "#303030",
+                color: "var(--color-text-primary)",
                 width: "100%",
                 boxSizing: "border-box",
               }}
@@ -209,7 +209,7 @@ export default function AddVendorModal({
           style={{
             borderRadius: "8px",
             backgroundColor: "rgba(255, 255, 255, 1)",
-            borderColor: "rgba(229, 229, 229, 1)",
+            borderColor: "var(--color-border-light)",
             borderStyle: "solid",
             borderWidth: "1px",
             padding: "8px 12px",
@@ -218,7 +218,7 @@ export default function AddVendorModal({
             letterSpacing: "-0.32px",
             lineHeight: 1.4,
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            color: "#303030",
+            color: "var(--color-text-primary)",
             width: "100%",
             boxSizing: "border-box",
           }}
@@ -234,7 +234,7 @@ export default function AddVendorModal({
               width: "100%",
               borderRadius: "8px",
               backgroundColor: "rgba(255, 255, 255, 1)",
-              borderColor: "rgba(229, 229, 229, 1)",
+              borderColor: "var(--color-border-light)",
               borderStyle: "solid",
               borderWidth: "1px",
               padding: "8px 12px",
@@ -248,6 +248,7 @@ export default function AddVendorModal({
               alignItems: "center",
               justifyContent: "space-between",
               cursor: "pointer",
+              color: "var(--color-text-primary)",
               boxSizing: "border-box",
             }}
           >
@@ -275,7 +276,7 @@ export default function AddVendorModal({
                 ))
               ) : (
                 <span style={{
-                  color: "#303030",
+                  color: "var(--color-text-primary)",
                   fontSize: "16px",
                   fontWeight: 400,
                   letterSpacing: "-0.32px",
@@ -287,7 +288,7 @@ export default function AddVendorModal({
               )}
             </div>
             <svg
-              style={{ width: "16px", height: "16px", color: "rgba(156, 163, 175, 1)", flexShrink: 0 }}
+              style={{ width: "16px", height: "16px", color: "var(--color-text-muted)", flexShrink: 0 }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -310,7 +311,7 @@ export default function AddVendorModal({
                 right: 0,
                 marginTop: "8px",
                 backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: "rgba(229, 229, 229, 1)",
+                borderColor: "var(--color-border-light)",
                 borderStyle: "solid",
                 borderWidth: "1px",
                 borderRadius: "8px",
@@ -343,13 +344,13 @@ export default function AddVendorModal({
                       border: "1px solid",
                       borderColor: servicesProvided.includes(service)
                         ? "rgba(37, 99, 235, 1)"
-                        : "rgba(229, 229, 229, 1)",
+                        : "var(--color-border-light)",
                       backgroundColor: servicesProvided.includes(service)
                         ? "rgba(219, 234, 254, 1)"
                         : "rgba(255, 255, 255, 1)",
                       color: servicesProvided.includes(service)
                         ? "rgba(30, 58, 138, 1)"
-                        : "rgba(48, 48, 48, 1)",
+                        : "var(--color-text-primary)",
                       cursor: "pointer",
                       fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                     }}
@@ -371,7 +372,7 @@ export default function AddVendorModal({
           style={{
             borderRadius: "8px",
             backgroundColor: "rgba(255, 255, 255, 1)",
-            borderColor: "rgba(229, 229, 229, 1)",
+            borderColor: "var(--color-border-light)",
             borderStyle: "solid",
             borderWidth: "1px",
             padding: "8px 12px",
@@ -380,7 +381,7 @@ export default function AddVendorModal({
             letterSpacing: "-0.32px",
             lineHeight: 1.4,
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            color: "#303030",
+            color: "var(--color-text-primary)",
             minHeight: "169px",
             resize: "none",
             width: "100%",
