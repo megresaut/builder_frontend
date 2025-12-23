@@ -20,7 +20,6 @@
   outline: none;
   border: 1px solid var(--color-border-light);
   color: var(--color-text-primary);
-  disabled: opacity 0.5, cursor: not-allowed;
 }
 
 .input::placeholder {
@@ -29,6 +28,11 @@
 
 .input:focus {
   border-color: #3b82f6;
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .inputError {
@@ -81,6 +85,8 @@
   cursor: pointer;
   border-radius: 0.25rem;
   transition: background-color 0.2s;
+  background: transparent;
+  border: none;
 }
 
 .navBtn:hover {
