@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { Dialog, DialogTitle } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -13,6 +11,14 @@ import {
 import { DatePicker } from "@/components/ui/date-picker";
 import { X } from "lucide-react";
 import { format } from "date-fns";
+import {
+  ModalTemplate,
+  ModalButtons,
+  ModalField,
+  FieldRow,
+  FieldRowItem,
+} from "@/components/ui/ModalTemplate";
+import { createPortal } from "react-dom";
 
 interface Assignee {
   id: string;
@@ -44,11 +50,17 @@ export default function CreateTaskModal({
   editData,
 }: CreateTaskModalProps) {
   const [property, setProperty] = useState("");
+  const [unit, setUnit] = useState("");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState("");
   const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
   const assigneeButtonRef = useRef<HTMLButtonElement>(null);
   const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
     top: 0,
@@ -88,13 +100,20 @@ export default function CreateTaskModal({
     if (validateForm()) {
       console.log("Form submitted", {
         property,
+        unit,
         title,
         priority,
         dueDate: selectedDate ? format(selectedDate, "MM/dd/yyyy") : "",
         selectedAssignees,
+        category,
+        description,
       });
       onOpenChange(false);
     }
+  };
+
+  const handleCancel = () => {
+    onOpenChange(false);
   };
 
   useEffect(() => {
@@ -222,22 +241,33 @@ export default function CreateTaskModal({
     setShowCalendar(false);
   };
 
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="lg">
-        <div className="flex flex-col gap-4 p-6">
-          {/* Title */}
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            {editData ? "Edit Task" : "Create Task"}
-          </DialogTitle>
-
-          {/* Property and Unit Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Property <span className="text-red-600">*</span>
-              </label>
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      onClose={handleCancel}
+      title={editData ? "Edit Task" : "Create Task"}
+      size="lg"
+      footer={
+        <ModalButtons
+          onCancel={handleCancel}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={editData ? "Update Task" : "Create Task"}
+          confirmDisabled={
+            !property.trim() ||
+            !title.trim() ||
+            !dueDate.trim() ||
+            selectedAssignees.length === 0
+          }
+        />
+      }
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Property and Unit Row */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <ModalField label="Property *">
               <Select
                 value={property}
                 onValueChange={(value) => {
@@ -248,15 +278,15 @@ export default function CreateTaskModal({
                 }}
               >
                 <SelectTrigger
-                  className={`h-11 rounded-lg ${
-                    errors.property
-                      ? "border-red-500 border-2"
-                      : "border-[#E5E5E5]"
-                  }`}
+                  style={{
+                    borderColor: errors.property ? "#ef4444" : "var(--color-border-light)",
+                    borderWidth: errors.property ? "2px" : "1px",
+                  }}
+                  className="h-11 rounded-lg"
                 >
                   <SelectValue
                     placeholder="Select Property"
-                    className="text-[#A1A1A9] capitalize"
+                    className="capitalize"
                   />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,32 +294,27 @@ export default function CreateTaskModal({
                   <SelectItem value="property2">Property 2</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Unit
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Unit If Applicable"
-                    className="text-[#A1A1A9] capitalize"
-                  />
+            </ModalField>
+          </FieldRowItem>
+          <FieldRowItem>
+            <ModalField label="Unit">
+              <Select value={unit} onValueChange={setUnit}>
+                <SelectTrigger className="h-11 rounded-lg">
+                  <SelectValue placeholder="Select Unit If Applicable" className="capitalize" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unit1">Unit 1</SelectItem>
                   <SelectItem value="unit2">Unit 2</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
+            </ModalField>
+          </FieldRowItem>
+        </FieldRow>
 
-          {/* Task Name and Priority Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Task Name <span className="text-red-600">*</span>
-              </label>
+        {/* Task Name and Priority Row */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <ModalField label="Task Name *">
               <Input
                 value={title}
                 onChange={(e) => {
@@ -299,17 +324,18 @@ export default function CreateTaskModal({
                   }
                 }}
                 placeholder="Type Task Name"
-                className={`h-11 rounded-lg placeholder:text-[#A1A1A9] placeholder:capitalize ${
-                  errors.title ? "border-red-500 border-2" : "border-[#E5E5E5]"
-                }`}
+                style={{
+                  borderColor: errors.title ? "#ef4444" : "var(--color-border-light)",
+                  borderWidth: errors.title ? "2px" : "1px",
+                }}
+                className="h-11 rounded-lg"
               />
-            </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Priority <span className="text-red-600">*</span>
-              </label>
+            </ModalField>
+          </FieldRowItem>
+          <FieldRowItem>
+            <ModalField label="Priority *">
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
+                <SelectTrigger className="h-11 rounded-lg">
                   <div
                     className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
                     style={{ backgroundColor: getPriorityBgColor() }}
@@ -329,15 +355,14 @@ export default function CreateTaskModal({
                   <SelectItem value="high">High</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
+            </ModalField>
+          </FieldRowItem>
+        </FieldRow>
 
-          {/* Due Date and Assignees Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Due Date <span className="text-red-600">*</span>
-              </label>
+        {/* Due Date and Assignees Row */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <ModalField label="Due Date *">
               <DatePicker
                 value={selectedDate}
                 onChange={(date) => {
@@ -349,20 +374,31 @@ export default function CreateTaskModal({
                 error={errors.dueDate}
                 placeholder="MM/DD/YYYY"
               />
-            </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Assignees <span className="text-red-600">*</span>
-              </label>
+            </ModalField>
+          </FieldRowItem>
+          <FieldRowItem>
+            <ModalField label="Assignees *">
               <div className="relative">
-                <div
+                <button
                   ref={assigneeButtonRef}
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className={`h-11 rounded-lg w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white cursor-pointer ${
-                    errors.selectedAssignees
-                      ? "border-red-500 border-2"
-                      : "border border-[#E5E5E5]"
-                  }`}
+                  style={{
+                    height: "44px",
+                    borderRadius: "8px",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                    paddingTop: "8px",
+                    paddingBottom: "8px",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    border: errors.selectedAssignees ? "2px solid #ef4444" : "1px solid var(--color-border-light)",
+                    transition: "background-color 0.2s",
+                  }}
+                  className="hover:bg-gray-50"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -373,7 +409,7 @@ export default function CreateTaskModal({
                 >
                   <div className="flex items-center gap-1.5 flex-wrap flex-1">
                     {selectedAssignees.length === 0 ? (
-                      <span className="text-[#A1A1A9] text-sm">
+                      <span style={{ color: "var(--color-text-placeholder)", fontSize: "14px" }}>
                         Select assignees
                       </span>
                     ) : (
@@ -413,7 +449,7 @@ export default function CreateTaskModal({
                       d="M19 14l-7 7m0 0l-7-7m7 7V3"
                     />
                   </svg>
-                </div>
+                </button>
 
                 {showAssigneeDropdown &&
                   createPortal(
@@ -421,7 +457,9 @@ export default function CreateTaskModal({
                       className="bg-white flex flex-col justify-start items-start p-2 gap-1"
                       style={{
                         width: "280px",
-                        border: "0.5px solid #DADADA",
+                        borderColor: "var(--color-border-default)",
+                        borderWidth: "0.5px",
+                        borderStyle: "solid",
                         borderRadius: "8px",
                         boxShadow:
                           "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
@@ -449,7 +487,7 @@ export default function CreateTaskModal({
                                   {assignee.initials}
                                 </span>
                               </div>
-                              <span className="text-[#303030] font-normal text-sm">
+                              <span style={{ color: "var(--color-text-primary)", fontWeight: 400, fontSize: "14px" }}>
                                 {assignee.name}
                               </span>
                             </div>
@@ -477,57 +515,34 @@ export default function CreateTaskModal({
                     document.body,
                   )}
               </div>
-            </div>
-          </div>
+            </ModalField>
+          </FieldRowItem>
+        </FieldRow>
 
-          {/* Category */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Category
-            </label>
-            <Select>
-              <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                <SelectValue
-                  placeholder="Select Category"
-                  className="text-[#A1A1A9] capitalize"
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="category1">Maintenance</SelectItem>
-                <SelectItem value="category2">Repair</SelectItem>
-                <SelectItem value="category3">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Category */}
+        <ModalField label="Category">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="h-11 rounded-lg">
+              <SelectValue placeholder="Select Category" className="capitalize" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+              <SelectItem value="repair">Repair</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </ModalField>
 
-          {/* Description */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Description
-            </label>
-            <Textarea
-              placeholder="Insert Description Here"
-              className="min-h-[169px] rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:capitalize resize-none"
-            />
-          </div>
-
-          {/* Create/Update Task Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={
-              !property.trim() ||
-              !title.trim() ||
-              !dueDate.trim() ||
-              selectedAssignees.length === 0
-            }
-            className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="text-white font-medium text-base">
-              {editData ? "Update Task" : "Create Task"}
-            </span>
-          </button>
-        </div>
-      </Modal>
-    </Dialog>
+        {/* Description */}
+        <ModalField label="Description">
+          <Textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Insert Description Here"
+            className="min-h-[169px] rounded-lg resize-none"
+          />
+        </ModalField>
+      </div>
+    </ModalTemplate>
   );
 }
