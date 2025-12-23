@@ -16,9 +16,8 @@ interface FloatingPosition {
   placement: Placement;
   align: Align;
   style: {
-    top?: string;
-    left?: string;
     position: "fixed";
+    transform: string;
     zIndex: number;
   };
 }
@@ -46,7 +45,8 @@ function clamp(value: number, min: number, max: number) {
 }
 
 /**
- * findScrollableAncestors - Find all scrollable ancestor elements
+ * findScrollableAncestors - Find ALL scrollable ancestor elements
+ * Includes document.documentElement (for document scrolling)
  */
 function findScrollableAncestors(el: HTMLElement | null): Element[] {
   const scrollables: Element[] = [];
@@ -73,22 +73,20 @@ function findScrollableAncestors(el: HTMLElement | null): Element[] {
     current = current.parentElement;
   }
 
-  // Always include document and window
+  // Always include document.documentElement (for page scrolling)
   scrollables.push(document.documentElement);
 
   return scrollables;
 }
 
 /**
- * useFloatingLayer - Manages placement, collision detection, and positioning of floating elements
+ * useFloatingLayer - Manages placement, collision detection, and positioning
  *
- * Handles:
- * - Automatic placement flipping (bottom ↔ top) based on available space
- * - All scrollable ancestor detection and monitoring
- * - Real-time repositioning on scroll/resize
- * - Optional width syncing to trigger element
- * - Modal-aware z-index stacking
- * - Consistent viewport-based coordinate system
+ * MODE A: Portaled to document.body
+ * - Uses position: fixed
+ * - Positions via transform: translate3d(x, y, 0) in viewport coordinates
+ * - Listens to all scrollable ancestors for repositioning
+ * - Flips placement dynamically as space changes
  */
 export function useFloatingLayer({
   open,
@@ -100,82 +98,137 @@ export function useFloatingLayer({
 }: UseFloatingLayerProps) {
   const triggerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLElement>(null);
+  const scrollablesRef = useRef<Element[]>([]);
 
   const [placement, setPlacement] = useState<Placement>(initialPlacement);
   const [align, setAlign] = useState<Align>(initialAlign);
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
   const [computedZIndex, setComputedZIndex] = useState(50);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
 
-  // Callback to get position style - defined early to maintain hook order
-  const getPositionStyle = useCallback((): FloatingPosition["style"] => {
-    if (!triggerRef.current) {
-      return { position: "fixed", zIndex: computedZIndex };
-    }
+  /**
+   * calculatePosition - Compute placement and coordinates
+   * Uses viewport-based coordinates (getBoundingClientRect)
+   * Generates transform translate3d for fixed positioning
+   */
+  const calculatePosition = useCallback(() => {
+    if (!open || !triggerRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
-    const contentEl = contentRef.current;
+    const floatingEl = contentRef.current;
+    const floatingHeight = floatingEl?.offsetHeight ?? 0;
+    const floatingWidth = floatingEl?.offsetWidth ?? triggerRect.width;
 
-    // Determine content dimensions
-    const contentWidth =
-      widthValue ?? contentEl?.offsetWidth ?? Math.round(triggerRect.width);
-    const contentHeight = contentEl?.offsetHeight ?? 0;
+    // Find the scroll container (modal, container with overflow)
+    let boundsRect: DOMRect | { top: number; bottom: number; left: number; right: number };
+    let scrollContainer: Element | null = null;
 
-    const gap = offset;
-    const viewportMargin = 8;
+    let ancestor = triggerRef.current.parentElement;
+    while (ancestor) {
+      const style = window.getComputedStyle(ancestor);
+      if (
+        ancestor.scrollHeight > ancestor.clientHeight ||
+        ancestor.scrollWidth > ancestor.clientWidth
+      ) {
+        const isScrollable =
+          style.overflow === "auto" ||
+          style.overflow === "scroll" ||
+          style.overflowY === "auto" ||
+          style.overflowY === "scroll";
 
-    // Calculate Y position based on placement
-    let top: number;
-    if (placement === "bottom") {
-      top = triggerRect.bottom + gap;
-    } else {
-      top = triggerRect.top - contentHeight - gap;
-    }
-
-    // Calculate X position based on alignment
-    let left: number;
-    if (align === "end") {
-      left = triggerRect.right - contentWidth;
-    } else if (align === "center") {
-      left = triggerRect.left + triggerRect.width / 2 - contentWidth / 2;
-    } else {
-      left = triggerRect.left;
-    }
-
-    // Clamp X to keep within viewport
-    left = clamp(left, viewportMargin, window.innerWidth - contentWidth - viewportMargin);
-
-    // Clamp Y but preserve the gap from the trigger
-    if (contentHeight > 0) {
-      const viewportMinY = viewportMargin;
-      const viewportMaxY = window.innerHeight - contentHeight - viewportMargin;
-
-      if (placement === "bottom") {
-        const minTop = triggerRect.bottom + gap;
-        top = Math.max(viewportMinY, minTop);
-        if (top + contentHeight > window.innerHeight - viewportMargin) {
-          top = Math.max(viewportMinY, window.innerHeight - contentHeight - viewportMargin);
-        }
-      } else {
-        const maxTop = triggerRect.top - contentHeight - gap;
-        top = Math.min(viewportMaxY, maxTop);
-        if (top < viewportMinY) {
-          top = Math.min(viewportMaxY, viewportMinY);
+        if (isScrollable) {
+          scrollContainer = ancestor;
+          break;
         }
       }
+      ancestor = ancestor.parentElement;
     }
 
-    return {
-      position: "fixed",
-      zIndex: computedZIndex,
-      top: `${Math.round(top)}px`,
-      left: `${Math.round(left)}px`,
-    };
-  }, [align, computedZIndex, offset, placement, widthValue]);
+    if (scrollContainer) {
+      boundsRect = scrollContainer.getBoundingClientRect();
+    } else {
+      // Use viewport bounds
+      boundsRect = {
+        top: 0,
+        bottom: window.innerHeight,
+        left: 0,
+        right: window.innerWidth,
+      };
+    }
 
-  // Main effect for setting up all listeners and observers
+    // Calculate available space
+    const availableBelow = boundsRect.bottom - triggerRect.bottom;
+    const availableAbove = triggerRect.top - boundsRect.top;
+    const gap = offset;
+
+    // Determine placement based on available space
+    let newPlacement: Placement = initialPlacement;
+    if (initialPlacement === "bottom") {
+      if (availableBelow < floatingHeight + gap && availableAbove >= floatingHeight + gap) {
+        newPlacement = "top";
+      } else {
+        newPlacement = "bottom";
+      }
+    } else {
+      // initialPlacement === "top"
+      if (availableAbove < floatingHeight + gap && availableBelow >= floatingHeight + gap) {
+        newPlacement = "bottom";
+      } else {
+        newPlacement = "top";
+      }
+    }
+    setPlacement(newPlacement);
+
+    // Calculate X position (viewport coords, will be transformed)
+    let x = triggerRect.left;
+    if (align === "end") {
+      x = triggerRect.right - floatingWidth;
+    } else if (align === "center") {
+      x = triggerRect.left + triggerRect.width / 2 - floatingWidth / 2;
+    }
+
+    // Clamp X to viewport with margin
+    const margin = 8;
+    x = clamp(x, margin, window.innerWidth - floatingWidth - margin);
+
+    // Calculate Y position (viewport coords, will be transformed)
+    let y: number;
+    if (newPlacement === "bottom") {
+      y = triggerRect.bottom + gap;
+    } else {
+      y = triggerRect.top - floatingHeight - gap;
+    }
+
+    // Clamp Y but preserve gap from trigger
+    const minY = margin;
+    const maxY = window.innerHeight - floatingHeight - margin;
+
+    if (newPlacement === "bottom") {
+      const minAllowedY = triggerRect.bottom + gap;
+      y = Math.max(minY, minAllowedY);
+    } else {
+      const maxAllowedY = triggerRect.top - floatingHeight - gap;
+      y = Math.min(maxY, maxAllowedY);
+    }
+
+    setTranslateX(Math.round(x));
+    setTranslateY(Math.round(y));
+
+    // Sync width if requested
+    if (triggerWidth) {
+      const nextWidth = Math.round(triggerRect.width);
+      setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
+    }
+
+    // Calculate z-index
+    const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
+    setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
+  }, [open, initialPlacement, initialAlign, offset, triggerWidth]);
+
+  // Setup listeners and observers
   useEffect(() => {
     if (!open || !triggerRef.current) {
-      // Reset state when closed
       setPlacement(initialPlacement);
       setAlign(initialAlign);
       setWidthValue(undefined);
@@ -183,64 +236,14 @@ export function useFloatingLayer({
       return;
     }
 
-    // Function to recalculate position based on available space
-    const updatePosition = () => {
-      if (!triggerRef.current) return;
+    // Find all scrollable ancestors once
+    const scrollables = findScrollableAncestors(triggerRef.current);
+    scrollablesRef.current = scrollables;
 
-      const triggerRect = triggerRef.current.getBoundingClientRect();
-      const contentHeight = contentRef.current?.offsetHeight || minSpaceBelow;
-
-      // Calculate available space
-      const spaceBelow = window.innerHeight - triggerRect.bottom;
-      const spaceAbove = triggerRect.top;
-
-      // Determine placement
-      let newPlacement: Placement = initialPlacement;
-      if (initialPlacement === "bottom") {
-        const neededSpaceBelow = contentHeight + offset;
-        if (spaceBelow < neededSpaceBelow && spaceAbove > contentHeight + offset) {
-          newPlacement = "top";
-        } else {
-          newPlacement = "bottom";
-        }
-      } else {
-        const neededSpaceAbove = contentHeight + offset;
-        if (spaceAbove < neededSpaceAbove && spaceBelow > contentHeight + offset) {
-          newPlacement = "bottom";
-        } else {
-          newPlacement = "top";
-        }
-      }
-      setPlacement(newPlacement);
-
-      // Determine horizontal alignment
-      let newAlign: Align = initialAlign;
-      if (initialAlign === "start") {
-        const contentWidth =
-          contentRef.current?.offsetWidth ?? widthValue ?? triggerRect.width;
-        const spaceRight = window.innerWidth - triggerRect.left;
-
-        if (spaceRight < contentWidth && triggerRect.right < window.innerWidth) {
-          newAlign = "end";
-        }
-      }
-      setAlign(newAlign);
-
-      // Sync width if requested
-      if (triggerWidth) {
-        const nextWidth = Math.round(triggerRect.width);
-        setWidthValue((prev) => (prev === nextWidth ? prev : nextWidth));
-      } else {
-        setWidthValue(undefined);
-      }
-
-      // Calculate z-index
-      const nextZIndex = Math.max(50, getMaxAncestorZIndex(triggerRef.current) + 1);
-      setComputedZIndex((prev) => (prev === nextZIndex ? prev : nextZIndex));
-    };
-
-    // Setup ResizeObserver
-    const resizeObserver = new ResizeObserver(updatePosition);
+    // Setup ResizeObserver to detect content size changes
+    const resizeObserver = new ResizeObserver(() => {
+      calculatePosition();
+    });
 
     if (triggerRef.current) {
       resizeObserver.observe(triggerRef.current);
@@ -249,7 +252,7 @@ export function useFloatingLayer({
       resizeObserver.observe(contentRef.current);
     }
 
-    // Observe ancestor levels
+    // Observe a few ancestor levels for size changes
     let ancestor = triggerRef.current?.parentElement;
     let depth = 0;
     while (ancestor && depth < 6) {
@@ -258,27 +261,46 @@ export function useFloatingLayer({
       depth++;
     }
 
-    // Find and listen to scrollable ancestors
-    const scrollables = findScrollableAncestors(triggerRef.current);
+    // Scroll handler - recalculate position on ANY ancestor scroll
+    const handleScroll = () => {
+      calculatePosition();
+    };
+
+    // Add scroll listeners to all scrollable ancestors (capture phase)
     scrollables.forEach((scrollable) => {
-      scrollable.addEventListener("scroll", updatePosition, { capture: true });
+      scrollable.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     });
 
-    // Listen to window resize
-    window.addEventListener("resize", updatePosition);
+    // Window resize listener
+    const handleResize = () => {
+      calculatePosition();
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
 
-    // Initial calculation
-    updatePosition();
+    // Initial position calculation
+    calculatePosition();
 
     // Cleanup
     return () => {
       resizeObserver.disconnect();
       scrollables.forEach((scrollable) => {
-        scrollable.removeEventListener("scroll", updatePosition, { capture: true });
+        scrollable.removeEventListener("scroll", handleScroll, { capture: true });
       });
-      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [open, initialPlacement, initialAlign, offset, minSpaceBelow, triggerWidth, widthValue]);
+  }, [open, initialPlacement, initialAlign, calculatePosition]);
+
+  /**
+   * getPositionStyle - Returns fixed positioning with transform
+   * This is MODE A: position: fixed + transform translate3d
+   */
+  const getPositionStyle = useCallback((): FloatingPosition["style"] => {
+    return {
+      position: "fixed",
+      transform: `translate3d(${translateX}px, ${translateY}px, 0)`,
+      zIndex: computedZIndex,
+    };
+  }, [translateX, translateY, computedZIndex]);
 
   return {
     triggerRef,
