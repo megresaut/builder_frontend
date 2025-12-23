@@ -144,8 +144,8 @@ export const DateTimeField = forwardRef<HTMLDivElement, DateTimeFieldProps>(
         label={label}
         required={required}
         description={description}
-        error={displayError}
-        disabled={disabled}
+        error={readOnly ? undefined : displayError}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <div ref={ref} style={{ display: "flex", gap: "8px" }}>
@@ -155,6 +155,7 @@ export const DateTimeField = forwardRef<HTMLDivElement, DateTimeFieldProps>(
               value={currentDate ? new Date(currentDate) : null}
               onChange={handleDateChange}
               disabled={disabled}
+              readOnly={readOnly}
               placeholder={datePlaceholder}
             />
           </div>
@@ -164,6 +165,7 @@ export const DateTimeField = forwardRef<HTMLDivElement, DateTimeFieldProps>(
               value={currentTime}
               onChange={handleTimeChange}
               disabled={disabled}
+              readOnly={readOnly}
               placeholder={timePlaceholder}
               min={minTime}
               max={maxTime}
