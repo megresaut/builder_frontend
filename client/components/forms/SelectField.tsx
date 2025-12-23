@@ -191,6 +191,28 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     }
   };
 
+  // When dropdown is open, also handle Enter on trigger to select highlighted option
+  const handleTriggerKeyDownWhenOpen = (
+    e: React.KeyboardEvent<HTMLElement>,
+  ) => {
+    if (!open) {
+      handleTriggerKeyDown(e);
+      return;
+    }
+
+    switch (e.key) {
+      case "Enter":
+        e.preventDefault();
+        if (filteredOptions.length > 0) {
+          handleOptionSelect(filteredOptions[highlightedIndex].value);
+        }
+        break;
+      default:
+        handleTriggerKeyDown(e);
+        break;
+    }
+  };
+
   return (
     <FieldShell
       label={label}
