@@ -43,16 +43,10 @@ export default function CreateRecurringTaskModal({
   const [category, setCategory] = useState("");
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([
+  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([
     AVAILABLE_ASSIGNEES[0],
     AVAILABLE_ASSIGNEES[0],
   ]);
-  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
-  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
-  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
   const [errors, setErrors] = useState<{
     taskName?: boolean;
     startDate?: boolean;
