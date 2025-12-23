@@ -1331,6 +1331,11 @@ export default function VendorDetail() {
         </p>
       </ModalTemplate>
 
+      <FormShowcaseModal
+        open={isFormShowcaseOpen}
+        onOpenChange={setIsFormShowcaseOpen}
+      />
+
       <VendorActionsModal
         open={isVendorActionsOpen}
         onOpenChange={setIsVendorActionsOpen}
