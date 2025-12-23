@@ -147,6 +147,25 @@ export function FormShowcaseModal({
       setPaymentMethod("");
       setApprovalStatus("");
 
+      // Multi-select fields
+      setSelectedCategories([]);
+      setSelectedDepartments([]);
+
+      // Address field
+      setPropertyAddress({
+        street: "",
+        city: "",
+        state: "CT",
+        zipCode: "",
+      });
+
+      // Identity select fields
+      setSelectedVendors([]);
+      setSelectedProperty("");
+
+      // File uploads
+      setAttachments([]);
+
       // Validation states
       setErrors({});
       setIsEmailValid(false);
