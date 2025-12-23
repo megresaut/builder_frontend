@@ -29,7 +29,6 @@ export { TimeField } from "./TimeField";
 export { DateTimeField } from "./DateTimeField";
 export { PercentField } from "./PercentField";
 export { SelectField } from "./SelectField";
-export { SelectFieldV2 } from "./SelectFieldV2";
 export { ComboboxField } from "./ComboboxField";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
 export { EmailField } from "./EmailField";
