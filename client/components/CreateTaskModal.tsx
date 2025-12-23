@@ -304,11 +304,10 @@ export default function CreateTaskModal({
         />
       }
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {/* Property and Unit Row */}
-        <FieldRow columns={2}>
-          <FieldRowItem>
-            <ModalField label="Property *">
+      {/* Property and Unit Row */}
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Property *" spacing="tight">
               <Select
                 value={property}
                 onValueChange={(value) => {
@@ -340,7 +339,7 @@ export default function CreateTaskModal({
             </ModalField>
           </FieldRowItem>
           <FieldRowItem>
-            <ModalField label="Unit">
+            <ModalField label="Unit" spacing="tight">
               <Select value={unit} onValueChange={setUnit}>
                 <SelectTrigger className="h-11 rounded-lg">
                   <SelectValue placeholder="Select Unit If Applicable" className="capitalize" />
@@ -354,10 +353,10 @@ export default function CreateTaskModal({
           </FieldRowItem>
         </FieldRow>
 
-        {/* Task Name and Priority Row */}
-        <FieldRow columns={2}>
-          <FieldRowItem>
-            <ModalField label="Task Name *">
+      {/* Task Name and Priority Row */}
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Task Name *" spacing="tight">
               <Input
                 value={title}
                 onChange={(e) => {
@@ -378,7 +377,7 @@ export default function CreateTaskModal({
             </ModalField>
           </FieldRowItem>
           <FieldRowItem>
-            <ModalField label="Priority *">
+            <ModalField label="Priority *" spacing="tight">
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="h-11 rounded-lg">
                   <div
@@ -404,10 +403,10 @@ export default function CreateTaskModal({
           </FieldRowItem>
         </FieldRow>
 
-        {/* Due Date and Assignees Row */}
-        <FieldRow columns={2}>
-          <FieldRowItem>
-            <ModalField label="Due Date *">
+      {/* Due Date and Assignees Row */}
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Due Date *" spacing="tight">
               <DatePicker
                 value={selectedDate}
                 onChange={(date) => {
@@ -424,7 +423,7 @@ export default function CreateTaskModal({
             </ModalField>
           </FieldRowItem>
           <FieldRowItem>
-            <ModalField label="Assignees *">
+            <ModalField label="Assignees *" spacing="tight">
               <div className="relative">
                 <button
                   ref={assigneeButtonRef}
@@ -573,8 +572,8 @@ export default function CreateTaskModal({
           </FieldRowItem>
         </FieldRow>
 
-        {/* Category */}
-        <ModalField label="Category">
+      {/* Category */}
+      <ModalField label="Category" spacing="tight">
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger className="h-11 rounded-lg">
               <SelectValue placeholder="Select Category" className="capitalize" />
@@ -585,18 +584,17 @@ export default function CreateTaskModal({
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
-        </ModalField>
+      </ModalField>
 
-        {/* Description */}
-        <ModalField label="Description">
+      {/* Description */}
+      <ModalField label="Description" spacing="tight">
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Insert Description Here"
             className="min-h-[169px] rounded-lg resize-none"
           />
-        </ModalField>
-      </div>
+      </ModalField>
     </ModalTemplate>
   );
 }
