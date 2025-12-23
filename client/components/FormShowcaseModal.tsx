@@ -8,6 +8,8 @@ import {
   DateField,
   SelectFieldV2,
   ComboboxField,
+  EmailField,
+  PhoneNumberField,
   FieldRow,
   FieldRowItem,
   FormSection,
