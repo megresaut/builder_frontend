@@ -6,7 +6,11 @@ import {
   NumberField,
   CurrencyField,
   DateField,
+  TimeField,
+  DateTimeField,
+  PercentField,
   SelectFieldV2,
+  SelectField,
   ComboboxField,
   EmailField,
   PhoneNumberField,
@@ -39,11 +43,24 @@ export function FormShowcaseModal({
   const [quantity, setQuantity] = useState(0);
   const [amount, setAmount] = useState(0);
 
-  // Date field
+  // Percent/Rate
+  const [taxRate, setTaxRate] = useState("");
+  const [markupPercent, setMarkupPercent] = useState("");
+
+  // Date fields
   const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [billingDate, setBillingDate] = useState("");
+
+  // Time fields
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [maintenanceTime, setMaintenanceTime] = useState("");
+
+  // DateTime field
+  const [scheduledMaintenance, setScheduledMaintenance] = useState("");
 
   // Textarea
   const [notes, setNotes] = useState("");
+  const [issueDescription, setIssueDescription] = useState("");
 
   // Combobox
   const [selectedVendor, setSelectedVendor] = useState("");
@@ -53,7 +70,7 @@ export function FormShowcaseModal({
   const [paymentMethod, setPaymentMethod] = useState("");
   const [approvalStatus, setApprovalStatus] = useState("");
 
-  // Validation errors
+  // Validation states
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isPhoneValid, setIsPhoneValid] = useState(true); // Phone is optional
@@ -85,8 +102,15 @@ export function FormShowcaseModal({
       department,
       quantity,
       amount,
+      taxRate,
+      markupPercent,
       dueDate,
+      billingDate,
+      appointmentTime,
+      maintenanceTime,
+      scheduledMaintenance,
       notes,
+      issueDescription,
       selectedVendor,
       selectedProperty,
       paymentMethod,
@@ -100,6 +124,12 @@ export function FormShowcaseModal({
   const handleClose = () => {
     setErrors({});
     onOpenChange(false);
+  };
+
+  const handleCreateVendor = (vendorName: string) => {
+    console.log("Creating new vendor:", vendorName);
+    alert(`New vendor created: "${vendorName}"`);
+    setSelectedVendor(vendorName.toLowerCase());
   };
 
   return (
@@ -120,7 +150,7 @@ export function FormShowcaseModal({
     >
       <div className="space-y-6">
         {/* TEXT FIELDS SECTION */}
-        <FormSection title="Text Fields" description="Basic text input examples">
+        <FormSection title="Text & Contact Fields" description="Basic text, email, and phone inputs">
           <FieldRow columns={2}>
             <FieldRowItem>
               <TextField
@@ -142,22 +172,23 @@ export function FormShowcaseModal({
                 onChange={setEmail}
                 onValidationChange={setIsEmailValid}
                 error={errors.email}
+                description="Valid email format required"
               />
             </FieldRowItem>
           </FieldRow>
 
           <PhoneNumberField
             label="Phone"
-            placeholder="(123) 456-7890"
+            placeholder="+1 (123) 456-7890"
             value={phone}
             onChange={setPhone}
             onValidationChange={setIsPhoneValid}
-            description="Optional contact number"
+            description="Optional. Accepts country codes or standard formats"
           />
         </FormSection>
 
         {/* SELECT & COMBOBOX SECTION */}
-        <FormSection title="Selects & Dropdowns" description="Single and searchable selects">
+        <FormSection title="Selects & Dropdowns" description="Single select with keyboard navigation and searchable comboboxes">
           <FieldRow columns={2}>
             <FieldRowItem>
               <SelectFieldV2
@@ -172,6 +203,7 @@ export function FormShowcaseModal({
                   { value: "inactive", label: "Inactive" },
                   { value: "pending", label: "Pending" },
                 ]}
+                description="Use arrows/Enter to select, type to search"
               />
             </FieldRowItem>
             <FieldRowItem>
@@ -192,7 +224,7 @@ export function FormShowcaseModal({
 
           <FieldRow columns={2}>
             <FieldRowItem>
-              <SelectFieldV2
+              <SelectField
                 label="Priority"
                 value={priority}
                 onChange={setPriority}
@@ -203,6 +235,7 @@ export function FormShowcaseModal({
                   { value: "high", label: "High" },
                   { value: "critical", label: "Critical" },
                 ]}
+                description="SelectField with keyboard navigation"
               />
             </FieldRowItem>
             <FieldRowItem>
@@ -227,13 +260,15 @@ export function FormShowcaseModal({
             onChange={setSelectedVendor}
             placeholder="Search for a vendor..."
             searchPlaceholder="Type to search..."
+            creatable
+            onCreateNew={handleCreateVendor}
             options={[
               { value: "v1", label: "Dolce Heating & Plumbing" },
               { value: "v2", label: "ABC Electric Services" },
               { value: "v3", label: "Premier Roofing Co" },
               { value: "v4", label: "SmartHome HVAC" },
             ]}
-            description="Search and select from existing vendors"
+            description="Search vendors or create new by typing and pressing Enter"
           />
 
           <ComboboxField
@@ -252,9 +287,9 @@ export function FormShowcaseModal({
           />
         </FormSection>
 
-        {/* NUMERIC FIELDS SECTION */}
-        <FormSection title="Numeric Fields" description="Number and currency inputs">
-          <FieldRow columns={2}>
+        {/* NUMERIC & PERCENT FIELDS SECTION */}
+        <FormSection title="Numeric Fields" description="Number, currency, and percent inputs">
+          <FieldRow columns={3}>
             <FieldRowItem>
               <NumberField
                 label="Quantity"
@@ -263,6 +298,7 @@ export function FormShowcaseModal({
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 min="0"
                 step="1"
+                description="Number field with step increment"
               />
             </FieldRowItem>
             <FieldRowItem>
@@ -271,67 +307,166 @@ export function FormShowcaseModal({
                 value={amount}
                 onChange={setAmount}
                 placeholder="0.00"
-                description="Currency field with automatic formatting"
+                description="Auto-formats on blur"
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <PercentField
+                label="Tax Rate"
+                value={taxRate}
+                onChange={setTaxRate}
+                placeholder="5.25"
+                min={0}
+                max={100}
+                step={0.01}
+                description="Type 5 for 5%"
+              />
+            </FieldRowItem>
+          </FieldRow>
+
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <PercentField
+                label="Markup %"
+                value={markupPercent}
+                onChange={setMarkupPercent}
+                placeholder="25"
+                min={-50}
+                max={200}
+                allowNegative
+                description="Supports negative values"
               />
             </FieldRowItem>
           </FieldRow>
         </FormSection>
 
-        {/* DATE FIELD SECTION */}
-        <FormSection title="Date & Time" description="Date picker component">
-          <DateField
-            label="Due Date"
-            required
-            value={dueDate}
-            onChange={setDueDate}
-            error={errors.dueDate}
-            description="Select when this task should be completed"
+        {/* DATE & TIME FIELDS SECTION */}
+        <FormSection title="Date & Time Fields" description="Date picker, time input, and combined datetime">
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <DateField
+                label="Due Date"
+                required
+                value={dueDate}
+                onChange={setDueDate}
+                error={errors.dueDate}
+                returnFormat="Date"
+                description="Returns JavaScript Date object"
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <DateField
+                label="Billing Date"
+                value={billingDate}
+                onChange={setBillingDate}
+                returnFormat="ISO"
+                description="Returns ISO string (YYYY-MM-DD)"
+              />
+            </FieldRowItem>
+          </FieldRow>
+
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <TimeField
+                label="Appointment Time"
+                value={appointmentTime}
+                onChange={setAppointmentTime}
+                placeholder="14:30"
+                min="09:00"
+                max="17:30"
+                description="Operating hours: 9 AM - 5:30 PM"
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <TimeField
+                label="Maintenance Time"
+                value={maintenanceTime}
+                onChange={setMaintenanceTime}
+                placeholder="HH:MM"
+                description="Any time (24-hour format)"
+              />
+            </FieldRowItem>
+          </FieldRow>
+
+          <DateTimeField
+            label="Scheduled Maintenance"
+            value={scheduledMaintenance}
+            onChange={setScheduledMaintenance}
+            minDate="2024-01-01"
+            maxDate="2024-12-31"
+            minTime="08:00"
+            maxTime="18:00"
+            description="Stored as ISO 8601 (YYYY-MM-DDTHH:MM)"
           />
         </FormSection>
 
-        {/* TEXTAREA SECTION */}
-        <FormSection title="Long-Form Text" description="Textarea with auto-grow">
+        {/* TEXTAREA SECTION WITH CHARACTER COUNT */}
+        <FormSection title="Long-Form Text" description="Textarea with auto-grow and optional character count">
           <TextAreaField
             label="Notes"
             placeholder="Enter any additional notes or comments..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             autoGrow
-            description="This textarea automatically expands as you type"
+            showCharCount
+            maxLength={500}
+            description="Auto-expands as you type. Character count shown."
+          />
+
+          <TextAreaField
+            label="Issue Description"
+            placeholder="Describe the issue in detail..."
+            value={issueDescription}
+            onChange={(e) => setIssueDescription(e.target.value)}
+            autoGrow
+            showCharCount
+            maxLength={1000}
+            description="Maximum 1000 characters. Count turns red at 90%."
+          />
+
+          <TextAreaField
+            label="Internal Comments"
+            placeholder="Only visible to staff..."
+            value=""
+            onChange={() => {}}
+            autoGrow
+            description="Textarea without character count"
           />
         </FormSection>
 
         {/* FOOTER SECTION - 2 COLUMN FIELDROW */}
-        <FieldRow columns={2}>
-          <FieldRowItem>
-            <SelectFieldV2
-              label="Payment Method"
-              value={paymentMethod}
-              onChange={setPaymentMethod}
-              placeholder="Select payment method"
-              options={[
-                { value: "check", label: "Check" },
-                { value: "ach", label: "ACH Transfer" },
-                { value: "credit_card", label: "Credit Card" },
-                { value: "wire", label: "Wire Transfer" },
-              ]}
-            />
-          </FieldRowItem>
-          <FieldRowItem>
-            <SelectFieldV2
-              label="Approval Status"
-              value={approvalStatus}
-              onChange={setApprovalStatus}
-              placeholder="Select approval status"
-              options={[
-                { value: "pending", label: "Pending" },
-                { value: "approved", label: "Approved" },
-                { value: "rejected", label: "Rejected" },
-                { value: "on_hold", label: "On Hold" },
-              ]}
-            />
-          </FieldRowItem>
-        </FieldRow>
+        <FormSection title="Additional Options" description="Payment and approval settings">
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <SelectFieldV2
+                label="Payment Method"
+                value={paymentMethod}
+                onChange={setPaymentMethod}
+                placeholder="Select payment method"
+                options={[
+                  { value: "check", label: "Check" },
+                  { value: "ach", label: "ACH Transfer" },
+                  { value: "credit_card", label: "Credit Card" },
+                  { value: "wire", label: "Wire Transfer" },
+                ]}
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <SelectFieldV2
+                label="Approval Status"
+                value={approvalStatus}
+                onChange={setApprovalStatus}
+                placeholder="Select approval status"
+                options={[
+                  { value: "pending", label: "Pending" },
+                  { value: "approved", label: "Approved" },
+                  { value: "rejected", label: "Rejected" },
+                  { value: "on_hold", label: "On Hold" },
+                ]}
+              />
+            </FieldRowItem>
+          </FieldRow>
+        </FormSection>
       </div>
     </ModalTemplate>
   );
