@@ -71,14 +71,13 @@ export const AddressField: React.FC<AddressFieldProps> = ({
 }) => {
   const inputBaseStyle = {
     borderRadius: "8px",
-    backgroundColor: "rgba(255, 255, 255, 1)",
-    borderColor: error ? "#ef4444" : "rgba(229, 229, 229, 1)",
+    backgroundColor: "white",
+    borderColor: error ? "#ef4444" : "var(--color-border-light)",
     borderStyle: "solid",
     borderWidth: error ? "2px" : "1px",
     padding: "8px 12px",
     fontSize: "16px",
     fontWeight: 400,
-    letterSpacing: "-0.32px",
     lineHeight: 1.4,
     fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
     color: "#303030",
@@ -88,8 +87,22 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     cursor: disabled ? "not-allowed" : "auto",
   };
 
+  const selectStyle = {
+    ...inputBaseStyle,
+    appearance: "none" as const,
+    paddingRight: "32px",
+    backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e\")",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 8px center",
+    backgroundSize: "20px",
+  };
+
   const handleStreetChange = (newStreet: string) => {
     onChange({ ...value, street: newStreet });
+  };
+
+  const handleStreet2Change = (newStreet2: string) => {
+    onChange({ ...value, street2: newStreet2 });
   };
 
   const handleCityChange = (newCity: string) => {
