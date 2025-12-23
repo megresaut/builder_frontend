@@ -1080,14 +1080,33 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
 
 ## Quick Reference
 
+### Field Components (Recommended for Forms)
+
 | Need | Use | Location |
 |------|-----|----------|
-| **Text input** | `Input` component | components/ui/input.tsx |
-| **Select dropdown** | `Select` component | components/ui/select.tsx |
+| **Base field wrapper** | `FieldShell` | components/forms/FieldShell.tsx |
+| **Text field (name, email, address)** | `TextField` | components/forms/TextField.tsx |
+| **Textarea (notes, descriptions)** | `TextAreaField` | components/forms/TextAreaField.tsx |
+| **Number field (quantity, count)** | `NumberField` | components/forms/NumberField.tsx |
+| **Currency field ⭐** | `CurrencyField` | components/forms/CurrencyField.tsx |
+| **Date field (due date, posted date)** | `DateField` | components/forms/DateField.tsx |
+| **Select field (status, enum)** | `SelectField` | components/forms/SelectField.tsx |
+| **Combobox field (vendor, property)** | `ComboboxField` | components/forms/ComboboxField.tsx |
+| **Multi-column field layout** | `FieldRow` + `FieldRowItem` | components/ui/field-row.tsx |
+| **Field section grouping** | `FormSection` | components/ui/form-section.tsx |
+
+**Import**: `import { TextField, SelectField, ... } from "@/components/forms";`
+
+### Base UI Components (For Advanced Use)
+
+| Need | Use | Location |
+|------|-----|----------|
+| **Raw text input** | `Input` component | components/ui/input.tsx |
+| **Raw select dropdown** | `Select` component | components/ui/select.tsx |
 | **Modal dialog** | `Dialog` component | components/ui/dialog.tsx |
-| **Form validation** | `Form` + `FormField` | components/ui/form.tsx |
+| **Form validation (complex)** | `Form` + `FormField` | components/ui/form.tsx |
 | **Button** | `Button` component | components/ui/button.tsx |
-| **Date picker** | `DatePicker` component | components/ui/date-picker.tsx |
+| **Raw date picker** | `DatePicker` component | components/ui/date-picker.tsx |
 | **Table** | `Table` component | components/ui/table.tsx |
 | **Menu dropdown** | `DropdownMenu` component | components/ui/dropdown-menu.tsx |
 | **Reusable CSS pattern** | Add `ra-*` class | code/client/global.css |
