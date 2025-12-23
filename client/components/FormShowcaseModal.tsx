@@ -254,15 +254,13 @@ export function FormShowcaseModal({
             onChange={setSelectedVendor}
             placeholder="Search for a vendor..."
             searchPlaceholder="Type to search..."
-            creatable
-            onCreateNew={handleCreateVendor}
             options={[
               { value: "v1", label: "Dolce Heating & Plumbing" },
               { value: "v2", label: "ABC Electric Services" },
               { value: "v3", label: "Premier Roofing Co" },
               { value: "v4", label: "SmartHome HVAC" },
             ]}
-            description="Search vendors or create new by typing and pressing Enter"
+            description="Search and select from existing vendors"
           />
 
           <ComboboxField
