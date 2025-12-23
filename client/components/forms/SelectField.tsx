@@ -235,7 +235,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
               padding: "4px 0",
             }}
           >
-            {options.length === 0 ? (
+            {filteredOptions.length === 0 ? (
               <div
                 style={{
                   padding: "8px 12px",
@@ -243,22 +243,24 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                   fontSize: "14px",
                 }}
               >
-                No options
+                {searchText ? "No matching options" : "No options"}
               </div>
             ) : (
-              options.map((option) => (
+              filteredOptions.map((option, index) => (
                 <button
                   key={option.value}
-                  onClick={() => {
-                    onChange?.(option.value);
-                    setOpen(false);
-                  }}
+                  onClick={() => handleOptionSelect(option.value)}
+                  onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
                     textAlign: "left",
                     backgroundColor:
-                      value === option.value ? "rgba(36, 99, 235, 0.1)" : "transparent",
+                      value === option.value
+                        ? "rgba(36, 99, 235, 0.15)"
+                        : highlightedIndex === index
+                          ? "rgba(36, 99, 235, 0.08)"
+                          : "transparent",
                     color: "var(--color-text-primary)",
                     border: "none",
                     cursor: "pointer",
@@ -270,11 +272,17 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                     transition: "background-color 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(36, 99, 235, 0.08)";
+                    setHighlightedIndex(index);
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                      value === option.value
+                        ? "rgba(36, 99, 235, 0.15)"
+                        : "rgba(36, 99, 235, 0.08)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      value === option.value ? "rgba(36, 99, 235, 0.1)" : "transparent";
+                      value === option.value
+                        ? "rgba(36, 99, 235, 0.15)"
+                        : "transparent";
                   }}
                 >
                   {value === option.value && (
