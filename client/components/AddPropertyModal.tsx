@@ -324,7 +324,7 @@ export default function AddPropertyModal({
 
         {/* Rates Section */}
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-[#71717A]">Rates</h3>
+          <ModalSubheader>Rates</ModalSubheader>
 
           <FieldRow columns={2}>
             <FieldRowItem>
