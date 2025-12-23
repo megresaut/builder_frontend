@@ -1103,6 +1103,19 @@ export const RecordBill = () => {
                         }))}
                       />
                     </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddVendorModal(true)}
+                        className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline bg-transparent border-none p-0"
+                        style={{ marginTop: "32px" }}
+                      >
+                        + Add Vendor
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-5">
                     <div className="flex-1">
                       <TextField
                         label="Reference Number"
@@ -1114,16 +1127,6 @@ export const RecordBill = () => {
                         disabled={isReadOnly}
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddVendorModal(true)}
-                      className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline bg-transparent border-none p-0"
-                    >
-                      + Add Vendor
-                    </button>
                   </div>
 
                   <div className="flex gap-5">
