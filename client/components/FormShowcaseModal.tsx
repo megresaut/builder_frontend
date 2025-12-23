@@ -295,7 +295,7 @@ export function FormShowcaseModal({
         {/* FOOTER SECTION - 2 COLUMN FIELDROW */}
         <FieldRow columns={2}>
           <FieldRowItem>
-            <SelectField
+            <SelectFieldV2
               label="Payment Method"
               value={paymentMethod}
               onChange={setPaymentMethod}
@@ -309,7 +309,7 @@ export function FormShowcaseModal({
             />
           </FieldRowItem>
           <FieldRowItem>
-            <SelectField
+            <SelectFieldV2
               label="Approval Status"
               value={approvalStatus}
               onChange={setApprovalStatus}
