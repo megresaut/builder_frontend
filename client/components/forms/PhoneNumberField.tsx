@@ -1,9 +1,6 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { FieldShell } from "./FieldShell";
-import { Dropdown } from "@/components/ui/dropdown";
-import { ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface PhoneNumberFieldProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
@@ -15,84 +12,24 @@ interface PhoneNumberFieldProps
   value?: string;
   onChange?: (value: string) => void;
   onValidationChange?: (isValid: boolean) => void;
-  defaultCountryCode?: string;
 }
 
-// Common country codes for phone numbers
-const COUNTRY_CODES = [
-  { value: "+1", label: "United States/Canada (+1)" },
-  { value: "+44", label: "United Kingdom (+44)" },
-  { value: "+33", label: "France (+33)" },
-  { value: "+49", label: "Germany (+49)" },
-  { value: "+39", label: "Italy (+39)" },
-  { value: "+34", label: "Spain (+34)" },
-  { value: "+31", label: "Netherlands (+31)" },
-  { value: "+32", label: "Belgium (+32)" },
-  { value: "+41", label: "Switzerland (+41)" },
-  { value: "+43", label: "Austria (+43)" },
-  { value: "+45", label: "Denmark (+45)" },
-  { value: "+46", label: "Sweden (+46)" },
-  { value: "+47", label: "Norway (+47)" },
-  { value: "+48", label: "Poland (+48)" },
-  { value: "+86", label: "China (+86)" },
-  { value: "+81", label: "Japan (+81)" },
-  { value: "+82", label: "South Korea (+82)" },
-  { value: "+91", label: "India (+91)" },
-  { value: "+61", label: "Australia (+61)" },
-  { value: "+64", label: "New Zealand (+64)" },
-  { value: "+55", label: "Brazil (+55)" },
-  { value: "+52", label: "Mexico (+52)" },
-  { value: "+1-242", label: "Bahamas (+1-242)" },
-  { value: "+1-246", label: "Barbados (+1-246)" },
-  { value: "+1-284", label: "British Virgin Islands (+1-284)" },
-  { value: "+1-345", label: "Cayman Islands (+1-345)" },
-  { value: "+1-441", label: "Bermuda (+1-441)" },
-  { value: "+1-473", label: "Grenada (+1-473)" },
-  { value: "+1-649", label: "Turks and Caicos (+1-649)" },
-  { value: "+1-664", label: "Montserrat (+1-664)" },
-  { value: "+1-758", label: "Saint Lucia (+1-758)" },
-  { value: "+1-787", label: "Puerto Rico (+1-787)" },
-  { value: "+1-868", label: "Trinidad and Tobago (+1-868)" },
-  { value: "+1-876", label: "Jamaica (+1-876)" },
-  { value: "+27", label: "South Africa (+27)" },
-  { value: "+234", label: "Nigeria (+234)" },
-  { value: "+256", label: "Uganda (+256)" },
-  { value: "+966", label: "Saudi Arabia (+966)" },
-  { value: "+971", label: "United Arab Emirates (+971)" },
-  { value: "+972", label: "Israel (+972)" },
-  { value: "+65", label: "Singapore (+65)" },
-  { value: "+60", label: "Malaysia (+60)" },
-  { value: "+66", label: "Thailand (+66)" },
-  { value: "+62", label: "Indonesia (+62)" },
-  { value: "+63", label: "Philippines (+63)" },
-];
-
 /**
- * Validates phone number format based on country code
- * Accepts various formats: 1234567890, (123) 456-7890, 123-456-7890, etc.
+ * Validates phone number format
+ * Accepts various formats:
+ * - 1234567890 (10 digits)
+ * - (123) 456-7890
+ * - 123-456-7890
+ * - +1 234 567 8900 (with optional country code)
+ * - +441234567890
  */
-function validatePhoneNumber(countryCode: string, phoneNumber: string): boolean {
-  const cleaned = phoneNumber.replace(/\D/g, "");
+function validatePhoneNumber(phoneNumber: string): boolean {
+  // Extract only digits and + sign
+  const cleaned = phoneNumber.replace(/[^\d+]/g, "");
 
-  // Determine expected length based on country code
-  let expectedLength = 10; // Default for most countries
-  if (countryCode === "+1") {
-    expectedLength = 10; // US/Canada
-  } else if (countryCode === "+44") {
-    expectedLength = 10; // UK (excluding country code)
-  } else if (countryCode === "+86") {
-    expectedLength = 11; // China
-  } else if (countryCode === "+91") {
-    expectedLength = 10; // India
-  } else if (countryCode === "+81") {
-    expectedLength = 10; // Japan
-  } else if (countryCode.startsWith("+1-")) {
-    // Caribbean numbers are 10 digits
-    expectedLength = 10;
-  }
-
-  // Allow 1-3 digit variance for flexibility
-  return cleaned.length >= expectedLength - 2 && cleaned.length <= expectedLength + 3;
+  // Must have at least 10 digits (minimum valid phone number)
+  const digitCount = cleaned.replace(/\D/g, "").length;
+  return digitCount >= 10 && digitCount <= 15;
 }
 
 /**
