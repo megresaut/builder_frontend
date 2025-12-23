@@ -323,7 +323,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                 placeholder="Search..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                autoFocus
                 style={{
                   flex: 1,
                   border: "none",
