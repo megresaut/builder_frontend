@@ -301,7 +301,9 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             maxWidth: triggerWidth > 0 ? `${triggerWidth}px` : "auto",
             padding: "0",
             maxHeight: "320px",
-            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
         >
           {multiple && (
@@ -312,6 +314,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                 gap: "8px",
                 padding: "8px 12px",
                 borderBottom: "1px solid var(--color-border-light)",
+                flexShrink: 0,
               }}
             >
               <Search className="h-4 w-4" style={{ color: "#717179" }} />
@@ -337,7 +340,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
           )}
           <div
             style={{
-              maxHeight: "320px",
+              flex: 1,
               overflowY: "auto",
               overflowX: "hidden",
               padding: "4px 0",
