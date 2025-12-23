@@ -146,6 +146,9 @@ export function FormShowcaseModal({
       // DateTime field
       setScheduledMaintenance("");
 
+      // Sensitive fields
+      setBankAccount("");
+
       // Textarea
       setNotes("");
       setIssueDescription("");
