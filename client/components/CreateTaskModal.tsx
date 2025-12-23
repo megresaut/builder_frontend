@@ -403,27 +403,10 @@ export default function CreateTaskModal({
           </FieldRowItem>
         </FieldRow>
 
-      {/* Due Date and Assignees Row */}
+      {/* Assignees and Due Date Row */}
       <FieldRow columns={2}>
         <FieldRowItem>
-          <ModalField label="Due Date *" spacing="tight">
-              <DatePicker
-                value={selectedDate}
-                onChange={(date) => {
-                  setSelectedDate(date);
-                  if (errors.dueDate && date) {
-                    setErrors((prev) => ({ ...prev, dueDate: false }));
-                    setErrorMessages((prev) => ({ ...prev, dueDate: undefined }));
-                  }
-                }}
-                error={errors.dueDate}
-                placeholder="MM/DD/YYYY"
-              />
-              <ErrorMessage message={errorMessages.dueDate} />
-            </ModalField>
-          </FieldRowItem>
-          <FieldRowItem>
-            <ModalField label="Assignees *" spacing="tight">
+          <ModalField label="Assignees *" spacing="tight">
               <div className="relative">
                 <button
                   ref={assigneeButtonRef}
