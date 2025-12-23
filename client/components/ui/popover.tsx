@@ -23,6 +23,7 @@ const PopoverContent = React.forwardRef<
       style={{
         maxHeight: "calc(100vh - 40px)",
         maxWidth: "calc(100vw - 32px)",
+        overflow: "auto",
       }}
       {...props}
     />
