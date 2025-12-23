@@ -674,140 +674,65 @@ export default function Bills() {
     []
   );
 
+  const headerTabs: BillsPageHeaderTab[] = [
+    { id: "approved", label: "Approved" },
+    { id: "drafts", label: "Drafts" },
+  ];
+
+  const headerActions: BillsPageHeaderAction[] = [
+    {
+      id: "add-vendor",
+      label: "Add Vendor",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: "-2px" }}>
+          <path d="M5 12h14M12 5v14" style={{ marginTop: "-2px" }} />
+        </svg>
+      ),
+      onClick: () => setIsAddVendorModalOpen(true),
+    },
+    {
+      id: "sync",
+      label: "Sync",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: "-1px" }}>
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+          <path d="M21 3v5h-5" />
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+          <path d="M8 16H3v5" />
+        </svg>
+      ),
+      onClick: handleSync,
+      disabled: syncState !== "idle",
+      loading: syncState === "syncing",
+      loadingLabel: syncState === "syncing" ? "Syncing..." : syncState === "synced" ? "Synced" : "Sync",
+    },
+    {
+      id: "record-bill",
+      label: "Record Bill",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="20" height="14" x="2" y="5" rx="2" />
+          <line x1="2" x2="22" y1="10" y2="10" />
+        </svg>
+      ),
+      onClick: () => navigate(`/bills/record?billId=${Date.now()}`),
+      variant: "primary",
+    },
+  ];
+
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1">
-            <h1 className="font-semibold text-2xl leading-[30px]" style={{ color: "var(--color-text-primary)" }}>
-              All Bills
-            </h1>
-            <p
-              className="font-medium text-base leading-4"
-              style={{ marginTop: "-3px", color: "var(--color-text-muted)" }}
-            >
-              All your bills, in one place
-            </p>
-          </div>
-
-          {/* Segmented Tabs and Action Buttons */}
-          <div className="flex items-center justify-between w-full bg-white gap-6">
-            <div className="flex bg-gray-50 rounded-lg p-0.5" style={{ boxShadow: "0 0 0 0.5px var(--color-border-default)" }}>
-              <button
-                onClick={() => setSelectedTab("approved")}
-                className={cn(
-                  "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
-                  selectedTab === "approved"
-                    ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
-                    : "bg-gray-50 hover:bg-gray-100",
-                )}
-              >
-                <span className="text-center font-normal text-sm leading-5" style={{ color: "var(--color-text-primary)" }}>
-                  Approved
-                </span>
-              </button>
-              <button
-                onClick={() => setSelectedTab("drafts")}
-                className={cn(
-                  "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
-                  selectedTab === "drafts"
-                    ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
-                    : "bg-gray-50 hover:bg-gray-100",
-                )}
-              >
-                <span className="text-center font-medium text-sm leading-5" style={{ color: "var(--color-text-primary)" }}>
-                  Drafts
-                </span>
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-3 items-center">
-              <button
-                onClick={() => setIsAddVendorModalOpen(true)}
-                className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ marginTop: "-2px" }}
-                >
-                  <path d="M5 12h14M12 5v14" style={{ marginTop: "-2px" }} />
-                </svg>
-                <span className="font-normal text-sm leading-[22.4px]" style={{ color: "var(--color-text-primary)" }}>
-                  Add Vendor
-                </span>
-              </button>
-
-              <button
-                onClick={handleSync}
-                disabled={syncState !== "idle"}
-                className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] disabled:opacity-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ marginTop: "-1px" }}
-                >
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                  <path d="M8 16H3v5" />
-                </svg>
-                <span className="font-normal text-sm leading-[22.4px]" style={{ color: "var(--color-text-primary)" }}>
-                  {syncState === "idle" && "Sync"}
-                  {syncState === "syncing" && "Syncing..."}
-                  {syncState === "synced" && "Synced"}
-                </span>
-              </button>
-
-              <button
-                onClick={() =>
-                  navigate(`/bills/record?billId=${Date.now()}`)
-                }
-                className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg transition-colors"
-                style={{
-                  backgroundColor: "var(--color-button-primary)",
-                  boxShadow: "0 0 0 1px var(--color-button-primary-shadow), 0 0 10px -5px rgba(0,0,0,0.2)",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="20" height="14" x="2" y="5" rx="2" />
-                  <line x1="2" x2="22" y1="10" y2="10" />
-                </svg>
-                <span className="text-white font-medium text-sm">
-                  Record Bill
-                </span>
-              </button>
-            </div>
-          </div>
+          <BillsPageHeader
+            title="All Bills"
+            description="All your bills, in one place"
+            tabs={headerTabs}
+            selectedTab={selectedTab}
+            onTabChange={setSelectedTab}
+            actions={headerActions}
+          />
 
           {/* Bills Table - Using GlobalTable Component */}
           <GlobalTable
