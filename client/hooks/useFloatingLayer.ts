@@ -113,7 +113,6 @@ export function useFloatingLayer({
       setAlign(initialAlign);
       setWidthValue(undefined);
       setComputedZIndex(50);
-      isMountedRef.current = false;
       return;
     }
 
