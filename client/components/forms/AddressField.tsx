@@ -288,6 +288,8 @@ export const AddressField: React.FC<AddressFieldProps> = ({
           type="text"
           value={value.zipCode}
           onChange={(e) => handleZipChange(e.target.value)}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           placeholder="ZIP"
           disabled={disabled}
           style={{ ...inputBaseStyle, flex: 0.5, maxWidth: "120px" }}
