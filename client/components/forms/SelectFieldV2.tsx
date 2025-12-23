@@ -320,6 +320,37 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
           closeOnEscape={true}
           className="ra-select-field-v2-content rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
         >
+          {isMultiple && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 12px",
+                borderBottom: "1px solid var(--color-border-light)",
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={handleTriggerKeyDown}
+                autoFocus
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  padding: 0,
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "14px",
+                  color: "var(--color-text-primary)",
+                  backgroundColor: "transparent",
+                }}
+              />
+            </div>
+          )}
           <div
             className="overflow-y-auto"
             style={{
