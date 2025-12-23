@@ -779,7 +779,13 @@ export default function Bills() {
                 onClick={() =>
                   navigate(`/bills/record?billId=${Date.now()}`)
                 }
-                className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
+                className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg transition-colors"
+                style={{
+                  backgroundColor: "var(--color-button-primary)",
+                  boxShadow: "0 0 0 1px var(--color-button-primary-shadow), 0 0 10px -5px rgba(0,0,0,0.2)",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
