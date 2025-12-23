@@ -128,13 +128,12 @@ export function FormShowcaseModal({
               />
             </FieldRowItem>
             <FieldRowItem>
-              <TextField
+              <EmailField
                 label="Email"
                 required
-                type="email"
                 placeholder="vendor@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={setEmail}
                 error={errors.email}
               />
             </FieldRowItem>
