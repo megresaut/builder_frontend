@@ -100,6 +100,7 @@ function formatPhoneNumber(phoneNumber: string): string {
  * @param onChange - Change handler
  * @param onValidationChange - Callback when validation state changes
  * @param disabled - Disable field
+ * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  *
  * Example:
  * ```tsx
