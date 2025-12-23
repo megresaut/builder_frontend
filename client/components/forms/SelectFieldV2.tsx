@@ -101,9 +101,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
           <span
             className="overflow-hidden text-ellipsis whitespace-nowrap"
             style={{
-              color: isShowingPlaceholder
-                ? "var(--color-text-placeholder)"
-                : "var(--color-text-primary)",
+              color: "var(--color-text-primary)",
             }}
           >
             {selectedLabel}
