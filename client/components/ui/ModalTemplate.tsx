@@ -290,9 +290,14 @@ ModalField.displayName = "ModalField";
 
 /**
  * ModalButtons - Standard Cancel/Confirm button pair
- * 
+ *
  * Provides consistent button styling matching the design system.
- * Cancel button (outline) on left, Confirm button (primary) on right.
+ * Cancel button (outline) on left, Confirm button (primary/blue) on right.
+ *
+ * IMPORTANT: The primary button is ALWAYS blue and clickable.
+ * Form validation should happen INSIDE the onConfirm handler.
+ * If validation fails, show error messages and highlight invalid fields in red.
+ * Do NOT use confirmDisabled to grey out the button.
  */
 export const ModalButtons: React.FC<ModalButtonsProps> = ({
   onCancel,
@@ -338,10 +343,9 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
       </button>
       <button
         onClick={onConfirm}
-        disabled={confirmDisabled}
         style={{
           borderRadius: "8px",
-          backgroundColor: "rgba(1, 55, 100, 1)",
+          backgroundColor: "var(--color-button-primary)",
           border: "1px solid rgba(255, 255, 255, 1)",
           display: "flex",
           alignItems: "center",
@@ -356,13 +360,15 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
           letterSpacing: "-0.32px",
           lineHeight: 1.4,
           justifyContent: "center",
-          cursor: confirmDisabled ? "not-allowed" : "pointer",
-          opacity: confirmDisabled ? 0.5 : 1,
+          cursor: "pointer",
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
           fontSize: "16px",
           whiteSpace: "nowrap",
-          boxShadow: "0px 0px 0px 1px rgba(0, 45, 90, 1)",
+          boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+          transition: "background-color 0.2s",
         }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
       >
         {confirmLabel}
       </button>
