@@ -383,6 +383,22 @@ export const RecordBill = () => {
     navigate(-1);
   };
 
+  const validateDateFormat = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const [month, day, year] = dateString.split("/");
+    const monthNum = parseInt(month, 10);
+    const dayNum = parseInt(day, 10);
+    const yearNum = parseInt(year, 10);
+
+    if (!month || !day || !year) return null;
+    if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31 || yearNum < 1900) return null;
+
+    const date = new Date(yearNum, monthNum - 1, dayNum);
+    if (date.getMonth() !== monthNum - 1) return null;
+
+    return date;
+  };
+
   const handleRecordBill = () => {
     const formFieldErrors = new Set<string>();
     let hasErrors = false;
