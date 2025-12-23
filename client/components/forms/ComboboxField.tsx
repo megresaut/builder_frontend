@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,11 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Dropdown } from "@/components/ui/dropdown";
 import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
 
@@ -40,7 +36,7 @@ interface ComboboxFieldProps {
 /**
  * ComboboxField - Searchable combobox field with FieldShell wrapper
  *
- * Composed of FieldShell + Combobox (Command + Popover) for consistent combobox styling.
+ * Composed of FieldShell + Dropdown primitive + Command for search + consistent styling.
  * Supports searching within large option lists (vendor, property, GL account).
  *
  * @param label - Field label (required)
@@ -84,62 +80,8 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   emptyMessage = "No results found",
 }) => {
   const [open, setOpen] = useState(false);
-  const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
-  const [popoverSide, setPopoverSide] = useState<"bottom" | "top">("bottom");
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
-
   const selectedLabel = options.find((opt) => opt.value === value)?.label || placeholder;
-
-  // Check if popover should flip to top based on available space
-  const checkPopoverPosition = useCallback(() => {
-    if (!open || !triggerRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const spaceAbove = triggerRect.top;
-    const contentHeight = 320; // Approximate height for dropdown list
-
-    if (spaceBelow < contentHeight + 20 && spaceAbove > contentHeight + 20) {
-      setPopoverSide("top");
-    } else {
-      setPopoverSide("bottom");
-    }
-  }, [open]);
-
-  // Monitor for size changes while popover is open
-  useEffect(() => {
-    if (!open) return;
-
-    const resizeObserver = new ResizeObserver(checkPopoverPosition);
-    const scrollHandler = () => checkPopoverPosition();
-
-    // Observe the trigger button and parent containers
-    if (triggerRef.current) {
-      resizeObserver.observe(triggerRef.current);
-      let parent = triggerRef.current.parentElement;
-      let depth = 0;
-      while (parent && depth < 5) {
-        resizeObserver.observe(parent);
-        parent = parent.parentElement;
-        depth++;
-      }
-    }
-
-    // Listen for scroll and resize events
-    document.addEventListener("scroll", scrollHandler, true);
-    window.addEventListener("resize", checkPopoverPosition);
-
-    // Initial check
-    checkPopoverPosition();
-
-    return () => {
-      resizeObserver.disconnect();
-      document.removeEventListener("scroll", scrollHandler, true);
-      window.removeEventListener("resize", checkPopoverPosition);
-    };
-  }, [open, checkPopoverPosition]);
 
   return (
     <FieldShell
@@ -150,47 +92,53 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            id={fieldId}
-            ref={(el) => {
-              triggerRef.current = el;
-              if (el && !triggerWidth) {
-                setTriggerWidth(el.offsetWidth);
-              }
-            }}
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            disabled={disabled}
-            style={{
-              borderColor: error ? "#ef4444" : "var(--color-border-light)",
-              borderWidth: error ? "2px" : "1px",
-              height: "44px",
-              borderRadius: "8px",
-              justifyContent: "space-between",
-              backgroundColor: "white",
-              color: value ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
-              fontWeight: 400,
-              opacity: disabled ? 0.6 : 1,
-              width: "100%",
-            }}
-          >
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {selectedLabel}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          ref={contentRef}
-          className="p-0"
-          style={{ width: triggerWidth ? `${triggerWidth}px` : "auto", maxHeight: "300px", overflow: "auto" }}
-          side={popoverSide}
-          align="start"
-          avoidCollisions={true}
-          sideOffset={8}
+      <Dropdown
+        open={open}
+        onOpenChange={setOpen}
+        initialPlacement="bottom"
+        minSpaceBelow={320}
+        offset={8}
+        syncTriggerWidth={true}
+      >
+        <Dropdown.Trigger
+          id={fieldId}
+          disabled={disabled}
+          style={{
+            borderColor: error ? "#ef4444" : "var(--color-border-light)",
+            borderWidth: error ? "2px" : "1px",
+            height: "44px",
+            borderRadius: "8px",
+            justifyContent: "space-between",
+            backgroundColor: "white",
+            color: value ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
+            fontWeight: 400,
+            opacity: disabled ? 0.6 : 1,
+            width: "100%",
+            padding: "0 12px",
+            display: "flex",
+            alignItems: "center",
+            cursor: disabled ? "not-allowed" : "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            border: "solid",
+          }}
+        >
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {selectedLabel}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Dropdown.Trigger>
+
+        <Dropdown.Content
+          closeOnOutsideClick={true}
+          closeOnEscape={true}
+          style={{
+            backgroundColor: "white",
+            border: "1px solid var(--color-border-light)",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            zIndex: 50,
+          }}
         >
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
@@ -218,8 +166,8 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
               </CommandList>
             </CommandGroup>
           </Command>
-        </PopoverContent>
-      </Popover>
+        </Dropdown.Content>
+      </Dropdown>
     </FieldShell>
   );
 };
