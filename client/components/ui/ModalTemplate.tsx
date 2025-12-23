@@ -59,6 +59,11 @@ interface ModalButtonsProps {
  * Behavior:
  * - The underlying <Modal> container is capped to 85vh and scrolls vertically
  *   (rather than expanding beyond the viewport).
+ * - The primary/confirm button is ALWAYS blue and clickable
+ * - Form validation should happen INSIDE the onConfirm handler
+ * - If validation fails, set field errors and show error messages
+ * - Highlight invalid fields in red (border)
+ * - Display error messages below each invalid field
  *
  * This ensures consistency across all modals in the app.
  */
