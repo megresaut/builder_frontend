@@ -187,7 +187,7 @@ export const DatePicker = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" style={{ overflow: "visible" }}>
       <input
         ref={inputRef}
         type="text"
