@@ -109,12 +109,15 @@ export function useFloatingLayer({
   // Setup listeners and observers
   useEffect(() => {
     if (!open || !triggerRef.current) {
+      isMountedRef.current = false;
       setPlacement(initialPlacement);
       setAlign(initialAlign);
       setWidthValue(undefined);
       setComputedZIndex(50);
       return;
     }
+
+    isMountedRef.current = true;
 
     // Define calculatePosition INSIDE the effect so it has proper closure
     const calculatePosition = () => {
