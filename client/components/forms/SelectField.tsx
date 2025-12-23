@@ -1,11 +1,7 @@
-import React from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React, { useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import { Dropdown } from "@/components/ui/dropdown";
+import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
 
 interface SelectOption {
@@ -29,11 +25,14 @@ interface SelectFieldProps {
 /**
  * SelectField - Select dropdown field with FieldShell wrapper
  *
- * Composed of FieldShell + Select for consistent select field styling.
+ * Composed of FieldShell + Dropdown primitive for consistent select field styling.
  * Handles option lists for status, priority, and other enums.
- *
- * Uses Radix UI's Select which includes built-in collision detection and
- * automatic side flipping when near viewport edges.
+ * 
+ * Uses Dropdown primitive which includes:
+ * - Automatic collision detection and side flipping
+ * - Real-time repositioning on scroll/resize
+ * - Modal-aware z-index stacking
+ * - Consistent A11y attributes
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
@@ -74,7 +73,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   placeholder = "Select an option",
   options,
 }) => {
+  const [open, setOpen] = useState(false);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+  const selectedLabel = options.find((opt) => opt.value === value)?.label || placeholder;
 
   return (
     <FieldShell
@@ -85,26 +86,114 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger
+      <Dropdown
+        open={open}
+        onOpenChange={setOpen}
+        initialPlacement="bottom"
+        minSpaceBelow={280}
+        offset={8}
+        syncTriggerWidth={true}
+      >
+        <Dropdown.Trigger
           id={fieldId}
+          disabled={disabled}
           style={{
             borderColor: error ? "#ef4444" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
+            height: "44px",
+            borderRadius: "8px",
+            justifyContent: "space-between",
+            backgroundColor: "white",
+            color: value ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
+            fontWeight: 400,
+            opacity: disabled ? 0.6 : 1,
             width: "100%",
+            padding: "0 12px",
+            display: "flex",
+            alignItems: "center",
+            cursor: disabled ? "not-allowed" : "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            border: "solid",
           }}
-          className="h-11 rounded-lg"
         >
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent side="bottom" align="start" avoidCollisions={true}>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {selectedLabel}
+          </span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Dropdown.Trigger>
+
+        <Dropdown.Content
+          closeOnOutsideClick={true}
+          closeOnEscape={true}
+          style={{
+            backgroundColor: "white",
+            border: "1px solid var(--color-border-light)",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            zIndex: 50,
+          }}
+        >
+          <div
+            style={{
+              maxHeight: "280px",
+              overflowY: "auto",
+              padding: "4px 0",
+            }}
+          >
+            {options.length === 0 ? (
+              <div
+                style={{
+                  padding: "8px 12px",
+                  color: "var(--color-text-muted)",
+                  fontSize: "14px",
+                }}
+              >
+                No options
+              </div>
+            ) : (
+              options.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onChange?.(option.value);
+                    setOpen(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    textAlign: "left",
+                    backgroundColor:
+                      value === option.value ? "rgba(36, 99, 235, 0.1)" : "transparent",
+                    color: "var(--color-text-primary)",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "background-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(36, 99, 235, 0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                      value === option.value ? "rgba(36, 99, 235, 0.1)" : "transparent";
+                  }}
+                >
+                  {value === option.value && (
+                    <Check className="h-4 w-4 text-blue-600" />
+                  )}
+                  {value !== option.value && <div className="h-4 w-4" />}
+                  {option.label}
+                </button>
+              ))
+            )}
+          </div>
+        </Dropdown.Content>
+      </Dropdown>
     </FieldShell>
   );
 };
