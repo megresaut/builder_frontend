@@ -271,7 +271,14 @@ export default function AddVendorModal({
                   </span>
                 ))
               ) : (
-                <span className="ra-input-placeholder" style={{ color: "rgba(209, 213, 219, 1)" }}>
+                <span style={{
+                  color: "rgba(209, 213, 219, 1)",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  letterSpacing: "-0.32px",
+                  lineHeight: 1.4,
+                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}>
                   Select Services Provided
                 </span>
               )}
