@@ -363,6 +363,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           <div
             style={{
               padding: "4px 0",
+              maxHeight: "300px",
+              overflowY: "auto",
+              overflowX: "hidden",
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             {filteredOptions.length === 0 ? (
