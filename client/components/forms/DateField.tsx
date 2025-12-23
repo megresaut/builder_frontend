@@ -19,27 +19,50 @@ interface DateFieldProps {
  * DateField - Date picker field with FieldShell wrapper
  *
  * Composed of FieldShell + DatePicker for consistent date field styling.
- * Handles date selection with calendar popup.
+ * Handles date selection with calendar popup and flexible storage formats.
+ *
+ * Timezone Handling:
+ * - Use ISO string format (YYYY-MM-DD) for "date-only" values (billing date, statement date, due date)
+ * - Use Date objects for exact moment-in-time values (schedule, historical records)
+ * - Always store as UTC ISO string in backend/database
+ * - DatePicker operates in local browser timezone for UX, converts to ISO on change
+ *
+ * Features:
+ * - Native calendar picker on supported browsers
+ * - Flexible input format (numbers, slashes, auto-formatting)
+ * - Returns either Date object or ISO string based on returnFormat
+ * - Date range validation (1900-2040)
+ * - Clear error messaging
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
  * @param description - Helper text
  * @param error - Error message
  * @param id - HTML id attribute (used in label's "for")
- * @param value - Selected date
- * @param onChange - Change handler (receives Date or null)
+ * @param value - Selected date (Date object or ISO string "YYYY-MM-DD")
+ * @param onChange - Change handler (receives Date or ISO string based on returnFormat)
  * @param disabled - Disable field
- * @param placeholder - Placeholder text (default: "MM/DD/YYYY")
+ * @param placeholder - Placeholder text (default: "mm/dd/yyyy")
+ * @param returnFormat - Return format: "Date" (default) or "ISO" string (YYYY-MM-DD)
  *
  * Example:
  * ```tsx
+ * // Using Date objects (backward compatible)
  * <DateField
  *   label="Due Date"
  *   required
  *   value={dueDate}
  *   onChange={setDueDate}
- *   error={errors.dueDate}
- *   placeholder="MM/DD/YYYY"
+ *   returnFormat="Date"
+ * />
+ *
+ * // Using ISO strings (recommended for date-only fields)
+ * <DateField
+ *   label="Billing Date"
+ *   required
+ *   value={billingDate}
+ *   onChange={setBillingDate}
+ *   returnFormat="ISO"
  * />
  * ```
  */
