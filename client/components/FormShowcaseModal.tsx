@@ -14,10 +14,16 @@ import {
   ComboboxField,
   EmailField,
   PhoneNumberField,
+  AddressField,
+  IdentitySelectField,
+  FileUploadField,
   FieldRow,
   FieldRowItem,
   FormSection,
+  type AddressValue,
+  type IdentityOption,
 } from "@/components/forms";
+import { UploadedFile } from "@/components/ui/attachment-uploader";
 
 interface FormShowcaseModalProps {
   open: boolean;
