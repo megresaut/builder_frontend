@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import PdfViewerModal from "@/components/PdfViewerModal";
+import { usePdfViewer } from "@/hooks/usePdfViewer";
 import {
   TextField,
   TextAreaField,
@@ -35,6 +37,7 @@ export function FormShowcaseModal({
   onOpenChange,
 }: FormShowcaseModalProps) {
   const modalContentRef = useRef<HTMLDivElement>(null);
+  const pdfViewer = usePdfViewer();
 
   // Text fields
   const [vendorName, setVendorName] = useState("");
@@ -247,6 +250,13 @@ export function FormShowcaseModal({
 
   const handleClose = () => {
     onOpenChange(false);
+  };
+
+  const handleViewFile = (file: UploadedFile) => {
+    if (file.file) {
+      const url = URL.createObjectURL(file.file);
+      pdfViewer.openPdf(url, file.name);
+    }
   };
 
   return (
@@ -678,11 +688,20 @@ export function FormShowcaseModal({
             files={attachments}
             onFilesAdded={(newFiles) => setAttachments([...attachments, ...newFiles])}
             onFileRemoved={(fileId) => setAttachments(attachments.filter((f) => f.id !== fileId))}
+            onViewFile={handleViewFile}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
             maxFiles={10}
             maxSize={10 * 1024 * 1024}
           />
         </FormSection>
+
+        {/* PDF Viewer Modal */}
+        <PdfViewerModal
+          open={pdfViewer.isOpen}
+          onOpenChange={pdfViewer.closePdf}
+          url={pdfViewer.url}
+          title={pdfViewer.title || "Document"}
+        />
 
         {/* FOOTER SECTION - 2 COLUMN FIELDROW */}
         <FormSection title="Additional Options" description="Payment and approval settings">
