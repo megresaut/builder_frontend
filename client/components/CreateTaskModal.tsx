@@ -57,17 +57,9 @@ export default function CreateTaskModal({
   const [priority, setPriority] = useState("normal");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState("");
-  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
-  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
-  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
   const [errors, setErrors] = useState<{
     property?: boolean;
     title?: boolean;
