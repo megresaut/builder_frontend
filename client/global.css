@@ -97,6 +97,18 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Semantic color tokens (dark mode) */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #d0d0d0;
+    --color-text-muted: #8b8d8d;
+    --color-text-placeholder: #6b7280;
+    --color-border-default: #404040;
+    --color-border-light: #555555;
+    --color-bg-subtle: #1a1a1a;
+    --color-status-error: #ef4444;
+    --color-button-primary: #2563eb;
+    --color-button-primary-hover: #1d4ed8;
   }
 }
 
