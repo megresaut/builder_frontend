@@ -115,9 +115,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
           <span
             className="overflow-hidden text-ellipsis whitespace-nowrap"
             style={{
-              color: isShowingPlaceholder
-                ? "var(--color-text-placeholder)"
-                : "var(--color-text-primary)",
+              color: "var(--color-text-primary)",
             }}
           >
             {selectedLabel}
