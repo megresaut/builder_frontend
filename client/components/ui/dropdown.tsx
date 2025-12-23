@@ -280,6 +280,8 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
         style={{
           ...positionStyle,
           width: contentWidth ? `${contentWidth}px` : undefined,
+          top: 0,
+          left: 0,
           ...props.style,
         }}
         {...props}
