@@ -78,6 +78,25 @@ export function FormShowcaseModal({
   const [paymentMethod, setPaymentMethod] = useState("");
   const [approvalStatus, setApprovalStatus] = useState("");
 
+  // Multi-select fields
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+
+  // Address field
+  const [propertyAddress, setPropertyAddress] = useState<AddressValue>({
+    street: "",
+    city: "",
+    state: "CT",
+    zipCode: "",
+  });
+
+  // Identity select fields
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState("");
+
+  // File uploads
+  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
+
   // Validation states
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isEmailValid, setIsEmailValid] = useState(false);
