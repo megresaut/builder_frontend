@@ -103,7 +103,7 @@ export const Dropdown = React.forwardRef<
 
     return (
       <DropdownContext.Provider value={value}>
-        <div ref={ref} style={{ position: "relative", display: "inline-block", width: "100%" }}>
+        <div ref={ref} style={{ position: "relative" }}>
           {children}
         </div>
       </DropdownContext.Provider>
