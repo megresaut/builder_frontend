@@ -106,6 +106,72 @@ export function useFloatingLayer({
   const [widthValue, setWidthValue] = useState<number | undefined>(undefined);
   const [computedZIndex, setComputedZIndex] = useState(50);
 
+  // Callback to get position style - must be called before effect to maintain hook order
+  const getPositionStyle = useCallback((): FloatingPosition["style"] => {
+    if (!triggerRef.current) {
+      return { position: "fixed", zIndex: computedZIndex };
+    }
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const contentEl = contentRef.current;
+
+    // Determine content dimensions
+    const contentWidth =
+      widthValue ?? contentEl?.offsetWidth ?? Math.round(triggerRect.width);
+    const contentHeight = contentEl?.offsetHeight ?? 0;
+
+    const gap = offset;
+    const viewportMargin = 8;
+
+    // Calculate Y position based on placement
+    let top: number;
+    if (placement === "bottom") {
+      top = triggerRect.bottom + gap;
+    } else {
+      top = triggerRect.top - contentHeight - gap;
+    }
+
+    // Calculate X position based on alignment
+    let left: number;
+    if (align === "end") {
+      left = triggerRect.right - contentWidth;
+    } else if (align === "center") {
+      left = triggerRect.left + triggerRect.width / 2 - contentWidth / 2;
+    } else {
+      left = triggerRect.left;
+    }
+
+    // Clamp X to keep within viewport
+    left = clamp(left, viewportMargin, window.innerWidth - contentWidth - viewportMargin);
+
+    // Clamp Y but preserve the gap from the trigger
+    if (contentHeight > 0) {
+      const viewportMinY = viewportMargin;
+      const viewportMaxY = window.innerHeight - contentHeight - viewportMargin;
+
+      if (placement === "bottom") {
+        const minTop = triggerRect.bottom + gap;
+        top = Math.max(viewportMinY, minTop);
+        if (top + contentHeight > window.innerHeight - viewportMargin) {
+          top = Math.max(viewportMinY, window.innerHeight - contentHeight - viewportMargin);
+        }
+      } else {
+        const maxTop = triggerRect.top - contentHeight - gap;
+        top = Math.min(viewportMaxY, maxTop);
+        if (top < viewportMinY) {
+          top = Math.min(viewportMaxY, viewportMinY);
+        }
+      }
+    }
+
+    return {
+      position: "fixed",
+      zIndex: computedZIndex,
+      top: `${Math.round(top)}px`,
+      left: `${Math.round(left)}px`,
+    };
+  }, [align, computedZIndex, offset, placement, widthValue]);
+
   // Main effect for setting up all listeners and observers
   useEffect(() => {
     if (!open || !triggerRef.current) {
