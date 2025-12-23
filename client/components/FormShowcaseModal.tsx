@@ -36,8 +36,8 @@ export function FormShowcaseModal({
   open,
   onOpenChange,
 }: FormShowcaseModalProps) {
+  // All refs first
   const modalContentRef = useRef<HTMLDivElement>(null);
-  const pdfViewer = usePdfViewer();
 
   // Text fields
   const [vendorName, setVendorName] = useState("");
@@ -104,6 +104,9 @@ export function FormShowcaseModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isPhoneValid, setIsPhoneValid] = useState(true); // Phone is optional
+
+  // Custom hooks after all state
+  const pdfViewer = usePdfViewer();
 
   // Reset all state when modal closes
   useEffect(() => {
