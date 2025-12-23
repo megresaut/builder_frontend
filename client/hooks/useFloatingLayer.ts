@@ -207,7 +207,14 @@ export function useFloatingLayer({
   ]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setPlacement(initialPlacement);
+      setAlign(initialAlign);
+      setWidthValue(undefined);
+      setScrollParents([]);
+      setComputedZIndex(50);
+      return;
+    }
 
     const resizeObserver = new ResizeObserver(calculatePosition);
     const scrollHandler = () => calculatePosition();
@@ -242,16 +249,10 @@ export function useFloatingLayer({
       });
       document.removeEventListener("scroll", scrollHandler, true);
       window.removeEventListener("resize", calculatePosition);
-
-      // Reset between openings so the next open can re-evaluate placement.
-      setPlacement(initialPlacement);
-      setAlign(initialAlign);
-      setWidthValue(undefined);
-      setScrollParents([]);
     };
   }, [open, calculatePosition, scrollParents]);
 
-  const getPositionStyle = (): FloatingPosition["style"] => {
+  const getPositionStyle = useCallback((): FloatingPosition["style"] => {
     if (!triggerRef.current) {
       return { position: "fixed", zIndex: computedZIndex };
     }
@@ -290,7 +291,7 @@ export function useFloatingLayer({
       top: `${Math.round(top)}px`,
       left: `${Math.round(left)}px`,
     };
-  };
+  }, [align, computedZIndex, offset, placement, widthValue]);
 
   return {
     triggerRef,
