@@ -152,151 +152,168 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField label="Services Provided" spacing="tight">
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowServicesList(!showServicesList)}
+        <Dropdown
+          open={showServicesList}
+          onOpenChange={setShowServicesList}
+          initialPlacement="bottom"
+          minSpaceBelow={340}
+          offset={8}
+          syncTriggerWidth={true}
+        >
+          <Dropdown.Trigger
+            id="services-provided"
             style={{
-              width: "100%",
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 1)",
               borderColor: "var(--color-border-light)",
-              borderStyle: "solid",
               borderWidth: "1px",
+              minHeight: "44px",
+              height: "auto",
+              borderRadius: "8px",
+              backgroundColor: "white",
               padding: "8px 12px",
-              fontSize: "16px",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              textAlign: "left",
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
+              gap: "8px",
+              flexWrap: "wrap",
+              width: "100%",
               cursor: "pointer",
-              color: servicesProvided.length > 0 ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              border: "solid",
+              justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", flex: 1 }}>
-              {servicesProvided.length > 0 ? (
-                servicesProvided.map((service) => (
-                  <span
-                    key={service}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      paddingLeft: "10px",
-                      paddingRight: "10px",
-                      paddingTop: "4px",
-                      paddingBottom: "4px",
-                      borderRadius: "16px",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      backgroundColor: "rgba(219, 234, 254, 1)",
-                      color: "rgba(30, 58, 138, 1)",
-                    }}
-                  >
-                    {service}
-                  </span>
-                ))
-              ) : (
-                <span style={{ color: "var(--color-text-placeholder)", fontSize: "16px" }}>
-                  Select services provided...
+            <div className="flex items-center gap-1.5 flex-wrap flex-1">
+              {servicesProvided.length === 0 ? (
+                <span style={{ color: "var(--color-text-placeholder)", fontSize: "14px" }}>
+                  Select services...
                 </span>
+              ) : (
+                servicesProvided.map((service) => (
+                  <div
+                    key={service}
+                    className="flex items-center gap-1 bg-white rounded-full border border-blue-600 px-2 py-0.5 whitespace-nowrap"
+                  >
+                    <span style={{ fontSize: "12px", color: "var(--color-text-primary)" }}>
+                      {service}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleService(service);
+                      }}
+                      className="hover:opacity-70 transition-opacity"
+                      tabIndex={-1}
+                    >
+                      <X className="w-3 h-3 text-blue-600" />
+                    </button>
+                  </div>
+                ))
               )}
             </div>
-            <svg
-              style={{ width: "16px", height: "16px", color: "var(--color-text-muted)", flexShrink: 0 }}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </button>
+            <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "#303030" }} />
+          </Dropdown.Trigger>
 
-          {showServicesList && (
-            <div
-              style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
-                marginTop: "8px",
-                backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: "var(--color-border-light)",
-                borderStyle: "solid",
-                borderWidth: "1px",
-                borderRadius: "8px",
-                boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.08)",
-                zIndex: 50,
-                padding: "8px",
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Search services..."
-                onChange={(e) => {
-                  const filtered = availableServices.filter((service) =>
-                    service.toLowerCase().includes(e.target.value.toLowerCase())
-                  );
-                  setFilteredServices(filtered);
-                }}
-                onFocus={() => setFilteredServices(availableServices)}
-                style={{
-                  width: "100%",
-                  borderRadius: "8px",
-                  borderColor: "var(--color-border-light)",
-                  borderStyle: "solid",
-                  borderWidth: "1px",
-                  padding: "8px 12px",
-                  fontSize: "14px",
-                  marginBottom: "8px",
-                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              />
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                  maxHeight: "256px",
-                  overflowY: "auto",
-                }}
-              >
-                {filteredServices.map((service) => (
-                  <button
-                    key={service}
-                    type="button"
-                    onClick={() => toggleService(service)}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      transition: "background-color 0.2s",
-                      textAlign: "left",
-                      border: "1px solid",
-                      borderColor: servicesProvided.includes(service)
-                        ? "rgba(37, 99, 235, 1)"
-                        : "var(--color-border-light)",
-                      backgroundColor: servicesProvided.includes(service)
-                        ? "rgba(219, 234, 254, 1)"
-                        : "rgba(255, 255, 255, 1)",
-                      color: servicesProvided.includes(service)
-                        ? "rgba(30, 58, 138, 1)"
-                        : "var(--color-text-primary)",
-                      cursor: "pointer",
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    }}
-                  >
-                    {service}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+          <Dropdown.Content
+            closeOnOutsideClick={true}
+            closeOnEscape={true}
+            style={{
+              backgroundColor: "white",
+              border: "1px solid var(--color-border-light)",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              zIndex: 50,
+              padding: "8px 0",
+            }}
+          >
+            {useMemo(() => {
+              const filtered = availableServices.filter((service) =>
+                service.toLowerCase().includes(serviceSearchQuery.toLowerCase())
+              );
+
+              return (
+                <div style={{ maxHeight: "340px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+                  <div style={{ padding: "8px 8px", flexShrink: 0 }}>
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                      <Search className="w-4 h-4" style={{ position: "absolute", left: "8px", color: "#A1A1A9" }} />
+                      <input
+                        type="text"
+                        placeholder="Search services..."
+                        value={serviceSearchQuery}
+                        onChange={(e) => setServiceSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                        style={{
+                          width: "100%",
+                          borderRadius: "6px",
+                          border: "1px solid var(--color-border-light)",
+                          padding: "6px 8px 6px 28px",
+                          fontSize: "13px",
+                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          outline: "none",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ overflowY: "auto", flex: 1 }}>
+                    {filtered.length === 0 ? (
+                      <div
+                        style={{
+                          padding: "12px",
+                          color: "var(--color-text-muted)",
+                          fontSize: "13px",
+                          textAlign: "center",
+                        }}
+                      >
+                        No services found
+                      </div>
+                    ) : (
+                      filtered.map((service) => {
+                        const isSelected = servicesProvided.includes(service);
+                        return (
+                          <button
+                            key={service}
+                            onClick={() => toggleService(service)}
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              textAlign: "left",
+                              backgroundColor: isSelected ? "rgba(36, 99, 235, 0.1)" : "transparent",
+                              color: "var(--color-text-primary)",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "13px",
+                              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              transition: "background-color 0.15s",
+                            }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(36, 99, 235, 0.08)";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = isSelected
+                                ? "rgba(36, 99, 235, 0.1)"
+                                : "transparent";
+                            }}
+                          >
+                            {isSelected ? (
+                              <Check className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <div className="h-4 w-4" />
+                            )}
+                            <span>{service}</span>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            }, [serviceSearchQuery, servicesProvided])}
+          </Dropdown.Content>
+        </Dropdown>
       </ModalField>
 
       <ModalField label="Notes">
