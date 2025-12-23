@@ -20,6 +20,15 @@ import {
 } from "@/components/ui/ModalTemplate";
 import { createPortal } from "react-dom";
 
+const ErrorMessage: React.FC<{ message?: string }> = ({ message }) => {
+  if (!message) return null;
+  return (
+    <div style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", fontWeight: 400 }}>
+      {message}
+    </div>
+  );
+};
+
 interface Assignee {
   id: string;
   name: string;
