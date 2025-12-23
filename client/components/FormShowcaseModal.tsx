@@ -161,6 +161,7 @@ export function FormShowcaseModal({
       // Address field
       setPropertyAddress({
         street: "",
+        street2: "",
         city: "",
         state: "CT",
         zipCode: "",
