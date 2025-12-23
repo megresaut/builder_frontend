@@ -765,7 +765,16 @@ task: {
 
 ### Pattern 5: Date Selection
 ```tsx
-// Use: DatePicker component
+// Preferred: Use DateField (handles label, validation, error display)
+<DateField
+  label="Due Date"
+  required
+  value={date}
+  onChange={setDate}
+  error={errors.date}
+/>
+
+// For raw date picker without field wrapper
 <DatePicker value={date} onChange={setDate} />
 
 // Or use calendar in a dialog/popover
@@ -776,6 +785,27 @@ task: {
   </PopoverContent>
 </Popover>
 ```
+
+### Pattern 6: Popover Width Syncing
+```tsx
+// Popover automatically matches trigger width when syncTriggerWidth={true} (default)
+<Popover>
+  <PopoverTrigger>Dropdown</PopoverTrigger>
+  <PopoverContent syncTriggerWidth={true}>
+    {/* Content width = Trigger width */}
+  </PopoverContent>
+</Popover>
+
+// Disable width syncing for fixed-width content
+<Popover>
+  <PopoverTrigger>Menu</PopoverTrigger>
+  <PopoverContent syncTriggerWidth={false}>
+    {/* Content has its own width */}
+  </PopoverContent>
+</Popover>
+```
+
+**Note**: DatePicker (Dropdown-based) explicitly sets `syncTriggerWidth={false}` to maintain calendar dimensions. Most SelectField and ComboboxField instances use `syncTriggerWidth={true}` for consistent dropdown width.
 
 ---
 
