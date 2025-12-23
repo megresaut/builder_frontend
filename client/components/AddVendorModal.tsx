@@ -4,6 +4,8 @@ import {
   ModalButtons,
   ModalField,
 } from "@/components/ui/ModalTemplate";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AddVendorModalProps {
   open: boolean;
