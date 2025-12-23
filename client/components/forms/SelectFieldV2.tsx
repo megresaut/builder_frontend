@@ -262,7 +262,7 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
             "disabled:cursor-not-allowed disabled:opacity-60",
             error
               ? "border-red-600"
-              : "border-[var(--color-border-light)]"
+              : open ? "border-black" : "border-[var(--color-border-light)]"
           )}
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
