@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { Dropdown } from "@/components/ui/dropdown";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { FieldShell } from "./FieldShell";
 
 export interface AddressValue {
