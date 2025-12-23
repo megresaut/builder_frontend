@@ -137,7 +137,7 @@ export default function AddVendorModal({
       <PhoneNumberField
         label="Vendor Phone Number"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={setPhone}
         placeholder="(123) 456-7890"
       />
 
