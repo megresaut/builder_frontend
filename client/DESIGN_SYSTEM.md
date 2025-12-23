@@ -22,6 +22,41 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 
 ### Core Components
 
+#### PageHeader
+- **File**: `components/PageHeader.tsx`
+- **Exports**: `PageHeader`, `PageHeaderAction`, `PageHeaderTab`
+- **Props**:
+  - `title`: (string) Main page title
+  - `description`: (string) Subtitle/description text
+  - `tabs?`: (PageHeaderTab[]) Array of tab definitions: `{ id, label, count? }`
+  - `selectedTab?`: (string) Currently selected tab ID
+  - `onTabChange?`: (tabId: string) => void Callback when tab changes
+  - `actions?`: (PageHeaderAction[]) Array of action button definitions
+- **Action Props**: `{ id, label, icon, onClick, disabled?, variant, loading?, loadingLabel? }`
+- **Key Features**:
+  - Title + description area
+  - Optional segmented tabs (mobile responsive)
+  - Optional action buttons (primary and secondary variants)
+  - Flex layout that stacks responsively
+- **Used In**: Bills page header, property detail headers, vendor detail headers
+- **Example**:
+  ```tsx
+  <PageHeader
+    title="All Bills"
+    description="Manage your bills and payments"
+    tabs={[
+      { id: "approved", label: "Approved", count: 12 },
+      { id: "drafts", label: "Drafts", count: 3 }
+    ]}
+    selectedTab={selectedTab}
+    onTabChange={setSelectedTab}
+    actions={[
+      { id: "add", label: "Add Bill", icon: <Plus />, onClick: handleAdd },
+      { id: "sync", label: "Sync", icon: <Sync />, onClick: handleSync }
+    ]}
+  />
+  ```
+
 #### Button
 - **File**: `components/ui/button.tsx`
 - **Export**: `Button`, `buttonVariants`
