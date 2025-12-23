@@ -1,9 +1,9 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 
 interface CurrencyInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
   value?: number | string;
-  onChange?: (value: number | string) => void;
+  onChange?: (value: number) => void;
   placeholder?: string;
   error?: boolean;
   showCurrencySymbol?: boolean;
@@ -13,18 +13,17 @@ interface CurrencyInputProps
 }
 
 /**
- * CurrencyInput - Formatted currency input field
- *
- * Provides automatic formatting, right-alignment, and currency symbol support.
- * Internally stores raw numeric value, displays formatted with commas and decimals.
+ * CurrencyInput - Formatted currency input field with natural typing behavior
  *
  * Features:
- * - Automatic thousand separators
- * - 2 decimal places by default
- * - Optional currency symbol prefix
- * - Right-aligned for better scannability
- * - Validation-friendly (returns raw number)
- * - Works with form libraries (react-hook-form, etc.)
+ * - User can type naturally: "1", "12", "12.", "12.3", "12.34"
+ * - Only allows numbers + one decimal point
+ * - Limits to 2 decimal places
+ * - Supports backspace/delete naturally
+ * - Accepts pasted values like "$1,234.56" or "1,234.56" and normalizes
+ * - Shows thousands separators while editing (removed on focus, restored on blur)
+ * - Always stores and emits numeric value consistently
+ * - Displays currency formatted "$1,234.56" when not focused
  *
  * @param value - Numeric value (e.g., 1234.56)
  * @param onChange - Callback with raw numeric value
@@ -43,7 +42,6 @@ interface CurrencyInputProps
  *   value={amount}
  *   onChange={setAmount}
  *   placeholder="0.00"
- *   error={errors.amount}
  * />
  * ```
  */
@@ -63,112 +61,163 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     },
     ref,
   ) => {
-    const [inputValue, setInputValue] = useState<string>(
-      value ? formatCurrency(value) : ""
-    );
+    const [displayValue, setDisplayValue] = useState<string>("");
+    const [isFocused, setIsFocused] = useState(false);
 
-    function formatCurrency(val: number | string): string {
-      if (!val && val !== 0) return "";
+    // Initialize display value when external value changes
+    useEffect(() => {
+      if (value !== undefined && value !== null && value !== "") {
+        const numValue = typeof value === "string" ? parseFloat(value) : value;
+        if (!isNaN(numValue)) {
+          setDisplayValue(formatForDisplay(numValue, !isFocused));
+        }
+      } else {
+        setDisplayValue("");
+      }
+    }, [value, isFocused]);
 
-      const num = typeof val === "string" ? parseFloat(val.replace(/[$,]/g, "")) : val;
-      if (isNaN(num)) return "";
+    /**
+     * Format a numeric value for display
+     * @param num - Numeric value
+     * @param includeFormatting - Whether to include thousands separators and currency symbol
+     */
+    function formatForDisplay(num: number, includeFormatting: boolean): string {
+      if (!includeFormatting) {
+        // Show plain number without thousands separators (for editing)
+        return num.toFixed(decimalPlaces);
+      }
 
-      const formatted = num.toFixed(decimalPlaces).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      const prefix = showCurrencySymbol ? currencySymbol : "";
-      return `${prefix}${formatted}`;
+      // Show formatted with thousands separators and currency symbol
+      const formatted = num
+        .toFixed(decimalPlaces)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return showCurrencySymbol ? `${currencySymbol}${formatted}` : formatted;
     }
 
-    function validateAmount(val: string): boolean {
-      if (!val) return false;
-      const num = parseFloat(val.replace(/[$,]/g, ""));
-      return !isNaN(num) && num >= 0;
-    }
+    /**
+     * Parse input string to numeric value
+     * Accepts: "1", "12.34", "1,234.56", "$1,234.56"
+     */
+    function parseInputValue(input: string): number {
+      // Remove currency symbol and thousand separators
+      const cleaned = input
+        .replace(currencySymbol, "")
+        .replace(/,/g, "")
+        .trim();
 
-    function parseAmount(val: string): number {
-      const num = parseFloat(val.replace(/[$,]/g, ""));
+      // Handle empty input
+      if (cleaned === "" || cleaned === "-") {
+        return 0;
+      }
+
+      const num = parseFloat(cleaned);
       return isNaN(num) ? 0 : num;
     }
 
+    /**
+     * Validate and constrain input
+     * - Only allows digits, decimal point, and minus sign (if allowed)
+     * - Limits to 2 decimal places
+     */
+    function sanitizeInput(input: string): string {
+      // Remove any non-digit, non-decimal characters (except minus for negative)
+      let sanitized = input.replace(/[^\d.-]/g, "");
+
+      // Handle multiple minus signs
+      const minusCount = (sanitized.match(/-/g) || []).length;
+      if (minusCount > 1) {
+        sanitized = sanitized.replace(/-/g, "");
+        sanitized = "-" + sanitized;
+      }
+
+      // Prevent leading minus if not allowed
+      if (!allowNegative && sanitized.startsWith("-")) {
+        sanitized = sanitized.slice(1);
+      }
+
+      // Handle multiple decimal points
+      const parts = sanitized.split(".");
+      if (parts.length > 2) {
+        sanitized = parts[0] + "." + parts.slice(1).join("");
+      }
+
+      // Limit decimal places
+      if (parts.length === 2 && parts[1].length > decimalPlaces) {
+        sanitized = parts[0] + "." + parts[1].slice(0, decimalPlaces);
+      }
+
+      return sanitized;
+    }
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
-      setInputValue(val);
-    };
+      const input = e.target.value;
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      const val = e.target.value;
-      
-      if (val && validateAmount(val)) {
-        const numValue = parseAmount(val);
-        setInputValue(formatCurrency(numValue));
-        if (onChange) {
-          onChange(numValue);
-        }
-      } else if (val === "") {
-        setInputValue("");
-        if (onChange) {
-          onChange(0);
-        }
-      } else {
-        // Invalid input, revert to previous value
-        setInputValue(value ? formatCurrency(value) : "");
-      }
+      // Sanitize input
+      const sanitized = sanitizeInput(input);
 
-      if (rest.onBlur) {
-        rest.onBlur(e);
-      }
-    };
+      // Update display value (without formatting while editing)
+      setDisplayValue(sanitized);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      const input = e.currentTarget;
-
-      // Prevent deleting the currency symbol
-      if (showCurrencySymbol) {
-        const currencyLength = currencySymbol.length;
-        if (input.selectionStart !== null && input.selectionStart <= currencyLength) {
-          if (e.key === "Backspace" || e.key === "Delete") {
-            e.preventDefault();
-            return;
-          }
-          // If cursor is in the currency symbol area, move it to the right
-          if (input.selectionStart < currencyLength) {
-            e.preventDefault();
-            input.setSelectionRange(currencyLength, currencyLength);
-            return;
-          }
-        }
-      }
-
-      if (e.key === "Enter") {
-        const val = input.value;
-
-        if (val && validateAmount(val)) {
-          const numValue = parseAmount(val);
-          setInputValue(formatCurrency(numValue));
-          if (onChange) {
-            onChange(numValue);
-          }
-        } else if (val === "") {
-          setInputValue("");
-          if (onChange) {
-            onChange(0);
-          }
-        }
-      }
+      // Parse and emit numeric value
+      const numValue = parseInputValue(sanitized);
+      onChange?.(numValue);
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-      const input = e.currentTarget;
-      // Position cursor after the currency symbol
-      if (showCurrencySymbol) {
-        const currencyLength = currencySymbol.length;
-        setTimeout(() => {
-          input.setSelectionRange(currencyLength, currencyLength);
-        }, 0);
+      setIsFocused(true);
+
+      // Show unformatted value when focused
+      const numValue = parseInputValue(displayValue);
+      if (numValue === 0 && displayValue === "") {
+        setDisplayValue("");
+      } else {
+        setDisplayValue(numValue.toFixed(decimalPlaces));
       }
 
-      if (rest.onFocus) {
-        rest.onFocus(e);
+      rest.onFocus?.(e);
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+
+      // Format value on blur
+      const numValue = parseInputValue(displayValue);
+      setDisplayValue(formatForDisplay(numValue, true));
+
+      rest.onBlur?.(e);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Allow standard keys
+      if (
+        e.key === "Backspace" ||
+        e.key === "Delete" ||
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowRight" ||
+        e.key === "Home" ||
+        e.key === "End" ||
+        e.key === "Tab" ||
+        e.ctrlKey ||
+        e.metaKey
+      ) {
+        rest.onKeyDown?.(e);
+        return;
       }
+
+      // Allow digits and decimal point
+      if (/[\d.]/.test(e.key)) {
+        rest.onKeyDown?.(e);
+        return;
+      }
+
+      // Allow minus if negative is allowed
+      if (allowNegative && e.key === "-") {
+        rest.onKeyDown?.(e);
+        return;
+      }
+
+      // Prevent all other keys
+      e.preventDefault();
     };
 
     return (
@@ -176,11 +225,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         ref={ref}
         type="text"
         inputMode="decimal"
-        value={inputValue}
+        value={displayValue}
         onChange={handleChange}
+        onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
         placeholder={placeholder}
         disabled={disabled}
         style={{
