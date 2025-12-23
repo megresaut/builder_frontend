@@ -29,6 +29,7 @@ export const DatePicker = ({
   );
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(value || new Date());
+  const [positionAbove, setPositionAbove] = useState(false);
 
   // Format input as user types (mm/dd/yyyy)
   const formatDateInput = (input: string): string => {
