@@ -82,13 +82,31 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 - **File**: `components/ui/popover.tsx`
 - **Exports**: `Popover`, `PopoverTrigger`, `PopoverContent`
 - **Based On**: Radix Popover primitive
-- **Key Features**: Floating panel with positional awareness
-- **Used In**: Dropdowns, tooltips, floating menus
+- **Key Features**:
+  - Floating panel with automatic collision detection (flips above trigger if no space below)
+  - Automatic width syncing to trigger element (via `syncTriggerWidth` prop)
+  - Smart boundary detection: closes automatically if can't fit in viewport
+  - Prevents "bleeding" onto other pages via `hideWhenDetached={true}`
+  - ResizeObserver tracks trigger width changes in real-time
+  - Optional `containerRef` prop to render inside modal containers instead of document.body
+- **Props**:
+  - `syncTriggerWidth`: (default: true) Popover content width matches trigger width
+  - `containerRef`: (optional) Ref to container element (for modal popovers)
+  - Standard Radix props: `open`, `onOpenChange`, `align` (start|center|end), `side` (bottom|top|left|right)
+- **Behavior**:
+  - Bottom placement by default, auto-flips to top if space is limited
+  - Max-height: 280px with internal scrolling
+  - Collision padding: 32px (triggers flip earlier)
+  - Sticky: never (won't stick to edges)
+  - Hides when detached from viewport
+- **Used In**: SelectField, ComboboxField, IdentitySelectField, AddressField (state picker), custom dropdowns
 - **Example**:
   ```tsx
   <Popover>
     <PopoverTrigger>Open</PopoverTrigger>
-    <PopoverContent>Floating content</PopoverContent>
+    <PopoverContent syncTriggerWidth={true}>
+      Floating content (matches trigger width)
+    </PopoverContent>
   </Popover>
   ```
 
