@@ -4,7 +4,7 @@ import { FieldShell } from "./FieldShell";
 
 interface TextFieldProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
-  label: string;
+  label?: string;
   required?: boolean;
   description?: string;
   error?: string;
