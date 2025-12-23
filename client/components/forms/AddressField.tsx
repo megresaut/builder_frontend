@@ -3,6 +3,7 @@ import { FieldShell } from "./FieldShell";
 
 export interface AddressValue {
   street: string;
+  street2?: string;
   city: string;
   state: string;
   zipCode: string;
