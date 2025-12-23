@@ -351,10 +351,16 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
 ##### SelectField
 - **File**: `components/forms/SelectField.tsx`
 - **Export**: `SelectField`
-- **Composition**: `FieldShell` + `Select`
-- **Props**: All FieldShell props + `value`, `onChange`, `options` (array of {value, label})
-- **Covers**: Status, priority, yes/no, enums
-- **Example**:
+- **Composition**: `FieldShell` + `Popover`-based dropdown with keyboard navigation
+- **Props**: All FieldShell props + `value` (string | string[]), `onChange`, `options` (array of {value, label}), `multiple?` (boolean)
+- **Key Features**:
+  - Single and multi-select support
+  - Keyboard navigation: Arrow keys to navigate, Enter to select, Escape to close
+  - Typeahead search (press any key to filter options)
+  - Multi-select shows selected items as pills with remove buttons
+  - Popover uses trigger-width syncing (expands to match dropdown width)
+- **Covers**: Status, priority, yes/no, enums, categories (when multiple)
+- **Example (Single-select)**:
   ```tsx
   <SelectField
     label="Status"
@@ -367,6 +373,17 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
       { value: "pending", label: "Pending" },
       { value: "completed", label: "Completed" },
     ]}
+  />
+  ```
+- **Example (Multi-select)**:
+  ```tsx
+  <SelectField
+    label="Services"
+    value={services}
+    onChange={setServices}
+    placeholder="Select services"
+    options={serviceOptions}
+    multiple
   />
   ```
 
