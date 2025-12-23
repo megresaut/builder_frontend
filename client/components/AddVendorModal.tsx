@@ -158,7 +158,7 @@ export default function AddVendorModal({
       <TextAreaField
         label="Notes"
         value={notes}
-        onChange={(e) => setNotes(e.target.value)}
+        onChange={(e) => setNotes(typeof e === 'string' ? e : e.target.value)}
         placeholder="Insert Vendor Notes"
         autoGrow
       />
