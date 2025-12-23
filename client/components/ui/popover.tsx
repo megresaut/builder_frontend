@@ -102,53 +102,6 @@ const PopoverContent = React.forwardRef<
       };
     }, [syncTriggerWidth, triggerRef]);
 
-    // Monitor if popover is being clipped by the viewport
-    React.useEffect(() => {
-      if (!localRef.current) return;
-
-      const checkOverflow = () => {
-        const popoverRect = localRef.current?.getBoundingClientRect();
-        if (!popoverRect) return;
-
-        // Get the scrollable parent (modal or viewport)
-        let parent = localRef.current?.parentElement;
-        let isClipped = false;
-
-        while (parent) {
-          const parentRect = parent.getBoundingClientRect();
-          const style = window.getComputedStyle(parent);
-
-          // Check if this is a scrollable container (has overflow)
-          if (style.overflow === 'auto' || style.overflow === 'hidden' || style.overflowY === 'auto' || style.overflowY === 'hidden') {
-            // Check if popover extends beyond parent bounds
-            if (popoverRect.bottom > parentRect.bottom || popoverRect.top < parentRect.top) {
-              isClipped = true;
-              break;
-            }
-          }
-          parent = parent.parentElement;
-        }
-
-        // Also check viewport
-        if (popoverRect.bottom > window.innerHeight) {
-          isClipped = true;
-        }
-
-        // If clipped, close the popover
-        if (isClipped && rootContext?.open) {
-          rootContext?.onOpenChange?.(false);
-        }
-      };
-
-      const timer = setTimeout(checkOverflow, 50);
-      const scrollListener = () => checkOverflow();
-
-      window.addEventListener('scroll', scrollListener, true);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('scroll', scrollListener, true);
-      };
-    }, [rootContext]);
 
     const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
       localRef.current = node;
