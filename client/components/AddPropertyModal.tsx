@@ -32,11 +32,17 @@ interface AddPropertyModalProps {
 }
 
 const AVAILABLE_MANAGERS: Manager[] = [
-  { id: "1", label: "David Harris", initials: "DH" },
-  { id: "2", label: "Sarah Johnson", initials: "SJ" },
-  { id: "3", label: "Michael Chen", initials: "MC" },
-  { id: "4", label: "Emily Rodriguez", initials: "ER" },
+  { id: "1", name: "David Harris", initials: "DH" },
+  { id: "2", name: "Sarah Johnson", initials: "SJ" },
+  { id: "3", name: "Michael Chen", initials: "MC" },
+  { id: "4", name: "Emily Rodriguez", initials: "ER" },
 ];
+
+const MANAGER_OPTIONS: MultiSelectOption[] = AVAILABLE_MANAGERS.map((m) => ({
+  id: String(m.id),
+  label: m.name,
+  initials: m.initials,
+}));
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
