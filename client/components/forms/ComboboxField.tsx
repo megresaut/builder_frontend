@@ -31,8 +31,6 @@ interface ComboboxFieldProps {
   searchPlaceholder?: string;
   options: ComboboxOption[];
   emptyMessage?: string;
-  creatable?: boolean;
-  onCreateNew?: (searchTerm: string) => void;
 }
 
 /**
