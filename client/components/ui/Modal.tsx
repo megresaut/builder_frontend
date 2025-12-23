@@ -76,6 +76,7 @@ export const Modal = React.forwardRef<
         style={{
           width: `${widthValue}px`,
           maxWidth: "calc(100vw - 32px)",
+          maxHeight: "85vh",
           ...style,
         }}
         {...props}
