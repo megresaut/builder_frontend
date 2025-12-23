@@ -126,7 +126,7 @@ export const DatePicker = ({
       initialPlacement="bottom"
       minSpaceBelow={340}
       offset={8}
-      syncTriggerWidth={true}
+      syncTriggerWidth={false}
     >
       <div className="relative">
         <Dropdown.Trigger
