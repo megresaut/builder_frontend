@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface PopoverContextType {
   triggerRef: React.RefObject<HTMLButtonElement | HTMLInputElement>;
+  containerRef?: React.RefObject<HTMLDivElement>;
 }
 
 const PopoverContext = React.createContext<PopoverContextType | undefined>(undefined);
@@ -19,14 +20,15 @@ const usePopoverContext = () => {
 
 interface PopoverProps extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Root> {
   children?: React.ReactNode;
+  containerRef?: React.RefObject<HTMLDivElement>;
 }
 
 const Popover = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Root>, PopoverProps>(
-  ({ children, ...props }, ref) => {
+  ({ children, containerRef, ...props }, ref) => {
     const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
 
     return (
-      <PopoverContext.Provider value={{ triggerRef }}>
+      <PopoverContext.Provider value={{ triggerRef, containerRef }}>
         <PopoverPrimitive.Root {...props} ref={ref}>
           {children}
         </PopoverPrimitive.Root>
