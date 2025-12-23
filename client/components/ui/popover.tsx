@@ -101,22 +101,6 @@ const PopoverContent = React.forwardRef<
       };
     }, [syncTriggerWidth, triggerRef]);
 
-    // Get the root Popover context to close it if needed
-    const getPopoverRoot = React.useCallback(() => {
-      let element = localRef.current?.parentElement;
-      while (element) {
-        // Find the popover root by looking for the trigger
-        if (element.contains(triggerRef.current)) {
-          // Search up for the root which should have onOpenChange
-          return element;
-        }
-        element = element.parentElement;
-      }
-      return null;
-    }, [triggerRef]);
-
-
-
     const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
       localRef.current = node;
       if (typeof ref === "function") ref(node);
