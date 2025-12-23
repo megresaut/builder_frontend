@@ -86,8 +86,6 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
       return maskChar.repeat(hiddenCount) + val.slice(-visibleDigits);
     };
 
-    const displayValue = isRevealed ? value : getMaskedValue(value);
-    const inputType = isRevealed ? "text" : "password";
 
     const handleCopy = async (e: React.MouseEvent) => {
       e.preventDefault();
