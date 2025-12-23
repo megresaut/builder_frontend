@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Check, ChevronDown, X, Search } from "lucide-react";
 import { Dropdown } from "@/components/ui/dropdown";
 import { FieldShell } from "./FieldShell";
 
