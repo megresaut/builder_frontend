@@ -388,102 +388,20 @@ export default function CreateRecurringTaskModal({
 
           {/* Assignees */}
           <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Assignees <span className="text-red-600">*</span>
-            </label>
-            <div className="relative">
-              <button
-                ref={assigneeButtonRef}
-                onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                className={`h-11 rounded-lg bg-[#F7F7F7] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors ${
-                  errors.selectedAssignees
-                    ? "border-red-500 border-2"
-                    : "border border-[#E5E5E5]"
-                }`}
-              >
-                <div className="flex items-center gap-2 flex-wrap flex-1">
-                  {selectedAssignees.length === 0 ? (
-                    <span className="text-[#A1A1A9] text-sm">
-                      Select assignees
-                    </span>
-                  ) : (
-                    selectedAssignees.map((assignee, index) => (
-                      <div
-                        key={`${assignee.id}-${index}`}
-                        className="flex w-[22px] h-[22px] justify-center items-center rounded-full bg-white border border-[#2463EB]"
-                      >
-                        <span className="text-[#2463EB] font-semibold text-[9px] leading-4">
-                          {assignee.initials}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-600 flex-shrink-0" />
-              </button>
-
-              {showAssigneeDropdown &&
-                createPortal(
-                  <div
-                    className="bg-white flex flex-col justify-start items-start p-2 gap-1"
-                    style={{
-                      width: "280px",
-                      border: "0.5px solid #DADADA",
-                      borderRadius: "8px",
-                      boxShadow:
-                        "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                      zIndex: 99999,
-                      position: "fixed",
-                      top: assigneeDropdownPos.top + "px",
-                      left: assigneeDropdownPos.left + "px",
-                      pointerEvents: "auto",
-                    }}
-                    onMouseLeave={() => setShowAssigneeDropdown(false)}
-                  >
-                    {AVAILABLE_ASSIGNEES.map((assignee) => {
-                      const isSelected = selectedAssignees.some(
-                        (a) => a.id === assignee.id,
-                      );
-                      return (
-                        <button
-                          key={assignee.id}
-                          onClick={() => toggleAssignee(assignee)}
-                          className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50 rounded transition-colors"
-                        >
-                          <div className="flex items-center gap-2 flex-1">
-                            <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463EB]">
-                              <span className="text-white font-semibold text-[10px]">
-                                {assignee.initials}
-                              </span>
-                            </div>
-                            <span className="text-[#303030] font-normal text-sm">
-                              {assignee.name}
-                            </span>
-                          </div>
-                          {isSelected && (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M13.5 3L6 10.5L2.5 7"
-                                stroke="#2463EB"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>,
-                  document.body,
-                )}
-            </div>
+            <MultiSelectField
+              label="Assignees"
+              required
+              value={selectedAssignees}
+              onChange={(newAssignees) => {
+                setSelectedAssignees(newAssignees);
+                if (errors.selectedAssignees && newAssignees.length > 0) {
+                  setErrors((prev) => ({ ...prev, selectedAssignees: false }));
+                }
+              }}
+              error={errors.selectedAssignees ? "At least one assignee is required" : undefined}
+              placeholder="Select assignees"
+              options={AVAILABLE_ASSIGNEES}
+            />
           </div>
 
           {/* Priority and Category Row */}
