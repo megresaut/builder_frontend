@@ -41,10 +41,12 @@ export interface PdfViewerState {
  * ```
  */
 export function usePdfViewer() {
+  // All refs before state/callbacks to avoid hook order issues
+  const blobUrlRef = useRef<string | null>(null);
+
   const [state, setState] = useState<PdfViewerState>({
     isOpen: false,
   });
-  const blobUrlRef = useRef<string | null>(null);
 
   const openPdf = useCallback((url: string, title?: string) => {
     // Revoke previous blob URL if it exists
