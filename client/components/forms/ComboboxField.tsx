@@ -132,10 +132,11 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
         </PopoverTrigger>
         <PopoverContent
           className="p-0"
-          style={{ width: triggerWidth ? `${triggerWidth}px` : "auto", maxHeight: "300px", overflow: "hidden" }}
+          style={{ width: triggerWidth ? `${triggerWidth}px` : "auto", maxHeight: "300px", overflow: "auto" }}
           side="bottom"
           align="start"
           avoidCollisions={true}
+          sideOffset={8}
         >
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
