@@ -14,108 +14,27 @@ const PopoverContent = React.forwardRef<
   (
     {
       className,
-      align = "center",
-      sideOffset = 4,
+      align = "start",
+      sideOffset = 8,
       style,
-      onWheel,
-      onWheelCapture,
-      onTouchMove,
-      onTouchMoveCapture,
-      onOpenAutoFocus,
       ...props
     },
     ref,
   ) => {
-    const localRef = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content> | null>(null);
-    const [isPositioned, setIsPositioned] = React.useState(false);
-    const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(null);
-
-    const setRefs = (node: React.ElementRef<typeof PopoverPrimitive.Content> | null) => {
-      localRef.current = node;
-      if (typeof ref === "function") ref(node);
-      else if (ref) (ref as React.MutableRefObject<React.ElementRef<typeof PopoverPrimitive.Content> | null>).current =
-          node;
-    };
-
-    React.useLayoutEffect(() => {
-      // Mount hidden and only reveal after Popper has positioned it.
-      setIsPositioned(false);
-
-      const dialogContents = Array.from(
-        document.querySelectorAll<HTMLElement>("[data-ra-dialog-content]"),
-      );
-      setPortalContainer(dialogContents.length ? dialogContents[dialogContents.length - 1] : null);
-
-      return () => {
-        setIsPositioned(false);
-        setPortalContainer(null);
-      };
-    }, []);
-
-    const handleOpenAutoFocus = (e: Event) => {
-      // Prevent focus from triggering scroll-into-view behavior on parent containers.
-      // Instead, focus after positioning is confirmed.
-      if (!isPositioned) {
-        e.preventDefault();
-        return;
-      }
-      onOpenAutoFocus?.(e);
-    };
-
-    const typedProps =
-      props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
-        onPlaced?: () => void;
-      };
-
-    const collisionBoundary = typedProps.collisionBoundary ?? portalContainer ?? undefined;
-
-    const handlePlaced = () => {
-      setIsPositioned(true);
-      typedProps.onPlaced?.();
-
-      // After positioning is confirmed, focus the first interactive element if applicable.
-      // This ensures focus happens after layout is stable, preventing scroll jumps.
-      if (localRef.current) {
-        const firstFocusable = localRef.current.querySelector<HTMLElement>(
-          'input, button, [tabindex]:not([tabindex="-1"])'
-        );
-        if (firstFocusable && document.activeElement !== firstFocusable) {
-          // Use setTimeout to defer focus to next tick, ensuring no scroll event propagates.
-          setTimeout(() => {
-            firstFocusable.focus({ preventScroll: true });
-          }, 0);
-        }
-      }
-    };
-
     return (
-      <PopoverPrimitive.Portal container={portalContainer ?? undefined}>
+      <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
-          ref={setRefs}
+          ref={ref}
           align={align}
           sideOffset={sideOffset}
           className={cn(
-            "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+            "z-[999] rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
             className,
           )}
-          collisionBoundary={collisionBoundary}
-          collisionPadding={
-            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).collisionPadding ??
-            8
-          }
-          avoidCollisions={
-            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).avoidCollisions ??
-            true
-          }
-          sticky={
-            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).sticky ?? "always"
-          }
-          hideWhenDetached={
-            (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).hideWhenDetached ??
-            true
-          }
-          onOpenAutoFocus={handleOpenAutoFocus}
-          onPlaced={handlePlaced}
+          collisionPadding={8}
+          avoidCollisions={false}
+          sticky="partial"
+          hideWhenDetached={false}
           style={{
             maxHeight: "calc(100vh - 40px)",
             maxWidth: "calc(100vw - 32px)",
@@ -124,25 +43,6 @@ const PopoverContent = React.forwardRef<
             overflowX: "hidden",
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
-            visibility: isPositioned ? "visible" : "hidden",
-            opacity: isPositioned ? 1 : 0,
-            pointerEvents: isPositioned ? "auto" : "none",
-          }}
-          onWheel={(e) => {
-            onWheel?.(e);
-            e.stopPropagation();
-          }}
-          onWheelCapture={(e) => {
-            onWheelCapture?.(e);
-            e.stopPropagation();
-          }}
-          onTouchMove={(e) => {
-            onTouchMove?.(e);
-            e.stopPropagation();
-          }}
-          onTouchMoveCapture={(e) => {
-            onTouchMoveCapture?.(e);
-            e.stopPropagation();
           }}
           {...props}
         />
