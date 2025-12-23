@@ -115,6 +115,7 @@ export function useFloatingLayer({
       setAlign(initialAlign);
       setWidthValue(undefined);
       setComputedZIndex(50);
+      setIsVisible(true);
       return;
     }
 
