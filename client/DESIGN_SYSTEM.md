@@ -877,6 +877,9 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
 
 **Import**: `import { TextField, SelectField, ... } from "@/components/forms";`
 
+**Deprecated**:
+- `SelectFieldV2` - Removed. Use `SelectField` instead (now supports both single and multi-select modes)
+
 ### Base UI Components (For Advanced Use)
 
 | Need | Use | Location |
