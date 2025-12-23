@@ -28,6 +28,8 @@ interface ModalFieldProps {
   label: string;
   children: React.ReactNode;
   spacing?: "default" | "tight";
+  required?: boolean;
+  error?: string;
 }
 
 interface FieldRowProps {
