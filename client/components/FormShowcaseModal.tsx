@@ -233,6 +233,12 @@ export function FormShowcaseModal({
       selectedProperty,
       paymentMethod,
       approvalStatus,
+      selectedCategories,
+      selectedDepartments,
+      propertyAddress,
+      selectedVendors,
+      selectedProperty,
+      attachments,
     });
 
     // Close modal on success
