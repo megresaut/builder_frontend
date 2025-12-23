@@ -106,6 +106,7 @@ export function useFloatingLayer({
   const [computedZIndex, setComputedZIndex] = useState(50);
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
 
   // Setup listeners and observers
   useEffect(() => {
