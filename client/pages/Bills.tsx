@@ -716,7 +716,7 @@ export default function Bills() {
                     : "bg-gray-50 hover:bg-gray-100",
                 )}
               >
-                <span className="text-[#282828] text-center font-medium text-sm leading-5">
+                <span className="text-center font-medium text-sm leading-5" style={{ color: "var(--color-text-primary)" }}>
                   Drafts
                 </span>
               </button>
