@@ -825,64 +825,131 @@ task: {
 
 ## Examples
 
-### Example 1: Creating a New Modal Form
+### Example 1: Building a Page with Header, Tabs, and Actions
+
+**Question**: I need to build a page with a title, tabs, and action buttons (like Bills page).
+
+**Solution**:
+1. Use `PageHeader` component for title + tabs + actions
+2. Render page content below
+3. Use `SelectField`, `TextField`, etc. for form inputs
+
+```tsx
+import { PageHeader } from "@/components/PageHeader";
+import { TextField, SelectField, CurrencyField } from "@/components/forms";
+import { Button } from "@/components/ui/button";
+import { Plus, Sync } from "lucide-react";
+
+export function MyPage() {
+  const [tab, setTab] = useState("active");
+  const [formData, setFormData] = useState({...});
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="My Resources"
+        description="Manage and track all resources"
+        tabs={[
+          { id: "active", label: "Active", count: 24 },
+          { id: "archived", label: "Archived", count: 8 },
+        ]}
+        selectedTab={tab}
+        onTabChange={setTab}
+        actions={[
+          { id: "add", label: "Add", icon: <Plus />, onClick: handleAdd },
+          { id: "sync", label: "Sync", icon: <Sync />, onClick: handleSync },
+        ]}
+      />
+
+      {/* Content area with form fields */}
+      <div className="space-y-4">
+        <TextField
+          label="Name"
+          required
+          value={formData.name}
+          onChange={(e) => setFormData({...formData, name: e.target.value})}
+        />
+        <SelectField
+          label="Status"
+          value={formData.status}
+          onChange={(val) => setFormData({...formData, status: val})}
+          options={[...]}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+### Example 2: Creating a New Modal Form
 
 **Question**: I need to add a modal for creating a new resource with validation.
 
 **Solution**:
 1. Create file: `components/CreateMyResourceModal.tsx`
-2. Import: `useForm`, Form components, Input, Button
-3. Build with react-hook-form + Form wrapper
-4. Use Dialog to wrap
+2. Import: Field components from `@/components/forms`
+3. Build with field components for consistent styling
+4. Use Dialog + ModalTemplate to wrap
 
 ```tsx
-import { useForm } from "react-hook-form";
-import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { TextField, SelectField, CurrencyField } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 
 export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
-  const form = useForm({
-    defaultValues: { name: "", email: "" },
-  });
+  const [formData, setFormData] = useState({ name: "", status: "", amount: 0 });
+  const [errors, setErrors] = useState({});
 
-  const onSubmit = (data) => {
-    onSave(data);
+  const handleSave = () => {
+    // Validate
+    if (!formData.name) {
+      setErrors({...errors, name: "Name is required"});
+      return;
+    }
+    onSave(formData);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Create Resource</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              rules={{ required: "Name required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name *</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create</Button>
-            </div>
-          </form>
-        </Form>
+
+        <div className="space-y-4 py-4">
+          <TextField
+            label="Name"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            error={errors.name}
+          />
+          <SelectField
+            label="Status"
+            required
+            value={formData.status}
+            onChange={(val) => setFormData({...formData, status: val})}
+            error={errors.status}
+            options={[
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+          />
+          <CurrencyField
+            label="Amount"
+            value={formData.amount}
+            onChange={(val) => setFormData({...formData, amount: val})}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Create</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
