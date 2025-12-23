@@ -134,27 +134,9 @@ export const DatePicker = ({
           type="text"
           placeholder={placeholder}
           value={inputValue}
-          onChange={(e) => handleInputChange(e.currentTarget.value)}
+          onChange={(e: any) => handleInputChange(e.target.value)}
           disabled={disabled}
           className={`${styles.input} ${error ? styles.inputError : ""} ${className}`}
-          style={{
-            all: "unset",
-            borderRadius: "0.5rem",
-            backgroundColor: "white",
-            marginTop: "0.5rem",
-            width: "100%",
-            padding: "0.5rem 0.75rem 0.5rem 0.75rem",
-            paddingRight: "2.5rem",
-            fontSize: "1rem",
-            fontWeight: 400,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            outline: "none",
-            border: error
-              ? "2px solid var(--color-status-error)"
-              : "1px solid var(--color-border-light)",
-            color: "var(--color-text-primary)",
-          }}
         />
         <Calendar
           className={styles.icon}
