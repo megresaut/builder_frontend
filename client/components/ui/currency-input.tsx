@@ -180,6 +180,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         placeholder={placeholder}
         disabled={disabled}
         style={{
