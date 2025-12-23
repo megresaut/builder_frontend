@@ -118,14 +118,6 @@ export default function AddPropertyModal({
     setZipCode(digits.slice(0, 5));
   };
 
-  const toggleManager = (manager: Manager) => {
-    setSelectedManagers((prev) => {
-      const isSelected = prev.some((m) => String(m.id) === String(manager.id));
-      return isSelected
-        ? prev.filter((m) => String(m.id) !== String(manager.id))
-        : [...prev, manager];
-    });
-  };
 
   const handleSave = () => {
     const newErrors: Record<string, string> = {};
