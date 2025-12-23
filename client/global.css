@@ -1,3 +1,35 @@
+/**
+ * ============================================================================
+ * GLOBAL STYLES - global.css
+ * ============================================================================
+ *
+ * This file contains ONLY foundational styles for the entire application.
+ *
+ * WHAT BELONGS HERE:
+ * ✅ Tailwind directives (@tailwind base/components/utilities)
+ * ✅ CSS variable definitions (color tokens, spacing, etc.)
+ * ✅ Global base element styling (@layer base)
+ * ✅ Global animations (@keyframes)
+ * ✅ Utility layer classes that are used across 3+ components (.ra-field-row, .ra-input-placeholder)
+ *
+ * WHAT DOES NOT BELONG HERE:
+ * ❌ Component-specific styles (Modal, Table, DatePicker, etc.)
+ *    → Move to component.module.css in the component directory
+ * ❌ Hardcoded colors or values
+ *    → Use semantic CSS variables (--color-text-primary, etc.)
+ * ❌ Component-specific classes
+ *    → Extract to component modules when they're only used in one component
+ *
+ * COMPONENT STYLE FILES:
+ * - code/client/components/ui/Modal.module.css — Modal sizing and structure
+ * - code/client/components/ui/ModalTemplate.module.css — ModalTemplate layout
+ * - code/client/components/ui/table.module.css — Table styling
+ * - code/client/components/ui/date-picker.module.css — DatePicker calendar
+ * - code/client/components/ui/floating-panel.module.css — Floating panels
+ *
+ * See code/client/DESIGN_SYSTEM.md for complete design system documentation.
+ */
+
 /** @import must precede all other statements */
 /* ⚠️  GOOGLE FONTS IMPORT REMOVED - STATIC MODE */
 /* Using system fonts instead of external network calls */
