@@ -85,9 +85,61 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
+  const [popoverSide, setPopoverSide] = useState<"bottom" | "top">("bottom");
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
   const selectedLabel = options.find((opt) => opt.value === value)?.label || placeholder;
+
+  // Check if popover should flip to top based on available space
+  const checkPopoverPosition = useCallback(() => {
+    if (!open || !triggerRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+    const contentHeight = 320; // Approximate height for dropdown list
+
+    if (spaceBelow < contentHeight + 20 && spaceAbove > contentHeight + 20) {
+      setPopoverSide("top");
+    } else {
+      setPopoverSide("bottom");
+    }
+  }, [open]);
+
+  // Monitor for size changes while popover is open
+  useEffect(() => {
+    if (!open) return;
+
+    const resizeObserver = new ResizeObserver(checkPopoverPosition);
+    const scrollHandler = () => checkPopoverPosition();
+
+    // Observe the trigger button and parent containers
+    if (triggerRef.current) {
+      resizeObserver.observe(triggerRef.current);
+      let parent = triggerRef.current.parentElement;
+      let depth = 0;
+      while (parent && depth < 5) {
+        resizeObserver.observe(parent);
+        parent = parent.parentElement;
+        depth++;
+      }
+    }
+
+    // Listen for scroll and resize events
+    document.addEventListener("scroll", scrollHandler, true);
+    window.addEventListener("resize", checkPopoverPosition);
+
+    // Initial check
+    checkPopoverPosition();
+
+    return () => {
+      resizeObserver.disconnect();
+      document.removeEventListener("scroll", scrollHandler, true);
+      window.removeEventListener("resize", checkPopoverPosition);
+    };
+  }, [open, checkPopoverPosition]);
 
   return (
     <FieldShell
