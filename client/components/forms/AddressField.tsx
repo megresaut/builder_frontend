@@ -252,6 +252,8 @@ export const AddressField: React.FC<AddressFieldProps> = ({
         type="text"
         value={value.street}
         onChange={(e) => handleStreetChange(e.target.value)}
+        onFocus={handleInputFocus}
+        onBlur={handleInputBlur}
         placeholder="Street Address"
         disabled={disabled}
         style={inputBaseStyle}
