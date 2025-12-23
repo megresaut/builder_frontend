@@ -474,6 +474,40 @@
   .ra-dropdown-panel {
     @apply ra-floating-panel;
   }
+
+  /**
+   * FIELD ROW - Multi-column field layout
+   * Container for laying out multiple form fields horizontally on desktop,
+   * stacking vertically on mobile for responsive design.
+   *
+   * Usage: FieldRow(columns=2) contains FieldRowItem children
+   * Each FieldRowItem should wrap a ModalField
+   */
+  .ra-field-row {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    grid-template-columns: repeat(var(--field-row-columns, 2), 1fr);
+  }
+
+  /* Mobile/tablet: stack fields vertically */
+  @media (max-width: 640px) {
+    .ra-field-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Individual field container within a row */
+  .ra-field-row-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Ensure fields inside row items stretch to fill available space */
+  .ra-field-row-item > * {
+    width: 100%;
+  }
 }
 
 @layer base {
