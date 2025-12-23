@@ -725,7 +725,7 @@ export default function Bills() {
       <div className="flex flex-col gap-6 w-fit min-w-full">
         {/* Header Section */}
         <div className="flex flex-col gap-6">
-          <BillsPageHeader
+          <PageHeader
             title="All Bills"
             description="All your bills, in one place"
             tabs={headerTabs}
