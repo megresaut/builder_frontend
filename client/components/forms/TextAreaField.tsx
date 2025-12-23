@@ -4,7 +4,7 @@ import { FieldShell } from "./FieldShell";
 
 interface TextAreaFieldProps
   extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "type"> {
-  label: string;
+  label?: string;
   required?: boolean;
   description?: string;
   error?: string;
