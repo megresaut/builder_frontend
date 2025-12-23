@@ -38,6 +38,7 @@ interface TextAreaFieldProps
  * @param maxLength - Maximum number of characters (enables char count if showCharCount=true)
  * @param onChange - Change handler
  * @param value - Field value
+ * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  *
  * Example:
  * ```tsx
