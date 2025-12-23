@@ -10,7 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { Plus } from "lucide-react";
-import { BillsPageHeader, type BillsPageHeaderAction, type BillsPageHeaderTab } from "@/components/BillsPageHeader";
+import { PageHeader, type PageHeaderAction, type PageHeaderTab } from "@/components/PageHeader";
 
 interface Bill {
   id: number;
