@@ -282,8 +282,6 @@ export const ModalField: React.FC<ModalFieldProps> = ({
   label,
   children,
   spacing = "default",
-  required = false,
-  error,
 }) => {
   const marginBottom = spacing === "tight" ? "12px" : "20px";
 
@@ -292,39 +290,19 @@ export const ModalField: React.FC<ModalFieldProps> = ({
       className="flex w-full flex-col"
       style={{ marginBottom }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "2px", marginBottom: "8px" }}>
-        <label
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "14px",
-            color: "rgba(48, 48, 48, 1)",
-            fontWeight: 500,
-            lineHeight: 1.43,
-          }}
-        >
-          {label}
-        </label>
-        {required && (
-          <span style={{ color: "#ef4444", fontWeight: 600, lineHeight: 1 }}>
-            *
-          </span>
-        )}
-      </div>
+      <label
+        style={{
+          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          fontSize: "14px",
+          color: "rgba(48, 48, 48, 1)",
+          fontWeight: 500,
+          lineHeight: 1.43,
+          marginBottom: "8px",
+        }}
+      >
+        {label}
+      </label>
       {children}
-      {error && (
-        <p
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "13px",
-            fontWeight: 400,
-            color: "#ef4444",
-            lineHeight: 1.38,
-            margin: "4px 0 0 0",
-          }}
-        >
-          {error}
-        </p>
-      )}
     </div>
   );
 };
