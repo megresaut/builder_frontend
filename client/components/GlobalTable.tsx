@@ -253,30 +253,34 @@ export default function GlobalTable({
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             {title && (
-              <h2 className="text-[#303030] font-medium text-[22px] leading-6">
+              <h2 className="font-medium text-[22px] leading-6" style={{ color: "var(--color-text-primary)" }}>
                 {title}
               </h2>
             )}
           </div>
           <div className="flex items-center gap-2.5">
             {showSearchBar && (
-              <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
+              <div className="flex h-9 items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]" style={{ borderColor: "var(--color-border-default)", borderWidth: "1px" }}>
                 <Search className="w-5 h-5 text-gray-600" />
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchValue}
                   onChange={(e) => onSearchChange?.(e.target.value)}
-                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
+                  className="font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none w-32 sm:w-48"
+                  style={{
+                    color: "var(--color-text-primary)",
+                  }}
                 />
               </div>
             )}
             {showFilterButton && (
               <button
                 onClick={() => onFilterClick?.()}
-                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                style={{ borderColor: "var(--color-border-default)", borderWidth: "1px" }}
               >
-                <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
+                <span className="font-normal text-base leading-[140%] tracking-[-0.32px] capitalize" style={{ color: "var(--color-text-primary)" }}>
                   Filter
                 </span>
                 <ChevronDown className="w-4 h-4" />
@@ -291,7 +295,7 @@ export default function GlobalTable({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 h-12">
+            <tr className="h-12 bg-gray-50" style={{ borderBottomColor: "var(--color-border-light)", borderBottomWidth: "1px" }}>
               {displayedColumnKeys.map((colKey) => {
                   const colConfig = columnConfig[colKey];
                   const sortIndicator = getSortIndicator(colKey);
@@ -304,8 +308,10 @@ export default function GlobalTable({
                       onDragLeave={handleColumnDragLeave}
                       onDrop={(e) => handleColumnDrop(e, colKey)}
                       onClick={() => handleSortClick(colKey)}
-                      className="ra-table-header-cell px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                      className="ra-table-header-cell px-3 py-3 text-left whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
                       style={{
+                        borderRightColor: "var(--color-border-light)",
+                        borderRightWidth: "1px",
                         opacity: draggedColumn === colKey ? 0.5 : 1,
                         transition: "opacity 0.2s ease",
                       }}
@@ -329,11 +335,11 @@ export default function GlobalTable({
                             {colConfig.icon}
                           </div>
                         )}
-                        <span className="ra-table-header-label font-medium text-sm text-gray-700">
+                        <span className="ra-table-header-label font-medium text-sm" style={{ color: "var(--color-text-primary)" }}>
                           {colConfig?.label}
                         </span>
                         {sortIndicator && (
-                          <span className="ra-table-sort-indicator text-xs font-bold text-gray-700 ml-1">
+                          <span className="ra-table-sort-indicator text-xs font-bold ml-1" style={{ color: "var(--color-text-primary)" }}>
                             {sortIndicator}
                           </span>
                         )}
@@ -343,14 +349,14 @@ export default function GlobalTable({
                 })}
               {actions.length > 0 && (
                 <th
-                  className="ra-table-actions-header sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
+                  className="ra-table-actions-header sticky right-0 px-2 py-3 text-center w-20"
                   style={{
                     borderLeftWidth: "2px",
-                    borderLeftColor: "rgb(210,209,207)",
+                    borderLeftColor: "var(--color-border-default)",
                     backgroundColor: "white",
                   }}
                 >
-                  <span className="ra-table-actions-label font-medium text-sm text-gray-700">
+                  <span className="ra-table-actions-label font-medium text-sm" style={{ color: "var(--color-text-primary)" }}>
                     Actions
                   </span>
                 </th>
@@ -377,18 +383,20 @@ export default function GlobalTable({
                   key={row[rowKey]}
                   onClick={handleRowClick}
                   className={cn(
-                    "ra-table-row border-b border-gray-200 hover:bg-gray-50 transition-colors h-12",
+                    "ra-table-row hover:bg-gray-50 transition-colors h-12",
                     onRowClick ? "cursor-pointer" : "",
                     getRowClassName?.(row),
                   )}
+                  style={{ borderBottomColor: "var(--color-border-light)", borderBottomWidth: "1px" }}
                 >
                   {displayedColumnKeys.map((colKey) => (
                       <td
                         key={colKey}
                         className={cn(
-                          "ra-table-cell px-3 py-3 border-r border-gray-200 whitespace-nowrap overflow-visible",
+                          "ra-table-cell px-3 py-3 whitespace-nowrap overflow-visible",
                           getCellClassName?.(row, colKey),
                         )}
+                        style={{ borderRightColor: "var(--color-border-light)", borderRightWidth: "1px" }}
                       >
                         {renderCell(row, colKey)}
                       </td>
@@ -430,7 +438,7 @@ export default function GlobalTable({
           style={{ position: "relative", zIndex: 1, overflow: "visible" }}
         >
         <div className="flex items-center gap-2">
-          <span className="ra-table-pagination-label text-gray-700 text-sm font-medium">
+          <span className="ra-table-pagination-label text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
             Showing
           </span>
           <div className="relative" style={{ position: "relative", zIndex: 10 }}>
@@ -439,15 +447,16 @@ export default function GlobalTable({
               onClick={() =>
                 onShowPageSizeDropdownChange?.(!showPageSizeDropdown)
               }
-              className="ra-table-page-size-button flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
+              className="ra-table-page-size-button flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors font-medium text-sm relative"
               style={{
-                borderColor: "rgb(218, 218, 218)",
+                borderColor: "var(--color-border-default)",
                 borderWidth: "0.909091px",
+                color: "var(--color-text-primary)",
                 boxShadow:
                   "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
               }}
             >
-              <div className="text-gray-900 font-medium text-sm">
+              <div className="font-medium text-sm" style={{ color: "var(--color-text-primary)" }}>
                 {itemsPerPage}
               </div>
               <svg
@@ -465,14 +474,14 @@ export default function GlobalTable({
               </svg>
             </button>
           </div>
-          <span className="ra-table-pagination-total text-gray-700 text-sm font-medium">
+          <span className="ra-table-pagination-total text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
             of {totalRows}
           </span>
         </div>
         <div
           className="ra-table-pagination-controls flex items-center rounded-lg border bg-white overflow-hidden"
           style={{
-            borderColor: "rgb(218, 218, 218)",
+            borderColor: "var(--color-border-default)",
             borderWidth: "0.909091px",
             boxShadow:
               "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
@@ -487,7 +496,7 @@ export default function GlobalTable({
             )}
             style={{
               borderRightWidth: "0.909091px",
-              borderRightColor: "rgb(229, 229, 229)",
+              borderRightColor: "var(--color-border-light)",
             }}
           >
             <svg
@@ -496,7 +505,7 @@ export default function GlobalTable({
               height="20"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"}
+              stroke={currentPage === 1 ? "var(--color-text-muted)" : "currentColor"}
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -507,8 +516,11 @@ export default function GlobalTable({
             <div
               className={cn(
                 "font-medium text-sm",
-                currentPage === 1 ? "text-gray-400" : "text-gray-700"
+                currentPage === 1 ? "opacity-50" : ""
               )}
+              style={{
+                color: currentPage === 1 ? "var(--color-text-muted)" : "var(--color-text-primary)"
+              }}
             >
               Previous
             </div>
@@ -528,18 +540,17 @@ export default function GlobalTable({
               )}
               style={{
                 borderRightWidth: "0.909091px",
-                borderRightColor: "rgb(229, 229, 229)",
+                borderRightColor: "var(--color-border-light)",
                 backgroundColor:
                   currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
               }}
             >
               <div
-                className={cn(
-                  "font-medium text-sm",
-                  currentPage === page
-                    ? "text-gray-900 font-bold"
-                    : "text-gray-500"
-                )}
+                className="font-medium text-sm"
+                style={{
+                  color: currentPage === page ? "var(--color-text-primary)" : "var(--color-text-muted)",
+                  fontWeight: currentPage === page ? "700" : "500",
+                }}
               >
                 {page}
               </div>
@@ -559,10 +570,10 @@ export default function GlobalTable({
             }}
           >
             <div
-              className={cn(
-                "font-medium text-sm",
-                currentPage === totalPages ? "text-gray-400" : "text-gray-700"
-              )}
+              className="font-medium text-sm"
+              style={{
+                color: currentPage === totalPages ? "var(--color-text-muted)" : "var(--color-text-primary)"
+              }}
             >
               Next
             </div>
@@ -574,7 +585,7 @@ export default function GlobalTable({
               fill="none"
               stroke={
                 currentPage === totalPages
-                  ? "rgb(163, 163, 163)"
+                  ? "var(--color-text-muted)"
                   : "currentColor"
               }
               strokeWidth="1.5"
@@ -597,7 +608,9 @@ export default function GlobalTable({
             ref={dropdownMenuRef}
             className="ra-table-page-size-menu bg-white overflow-hidden"
             style={{
-              border: "0.5px solid #DADADA",
+              borderColor: "var(--color-border-default)",
+              borderWidth: "0.5px",
+              borderStyle: "solid",
               borderRadius: "8px",
               boxShadow:
                 "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
@@ -620,12 +633,13 @@ export default function GlobalTable({
                   onShowPageSizeDropdownChange?.(false);
                 }}
                 className={cn(
-                  "ra-table-page-size-option w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
+                  "ra-table-page-size-option w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap hover:bg-gray-50",
                   itemsPerPage === size
-                    ? "bg-gray-50 font-medium text-gray-900"
-                    : "text-[#303030] hover:bg-gray-50"
+                    ? "bg-gray-50 font-medium"
+                    : "font-normal"
                 )}
                 style={{
+                  color: "var(--color-text-primary)",
                   fontFamily:
                     "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   fontSize: "16px",
