@@ -58,10 +58,115 @@ export const SelectFieldV2: React.FC<SelectFieldV2Props> = ({
   options,
 }) => {
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [searchText, setSearchText] = useState("");
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout>();
+
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
   const selectedLabel = selectedOption?.label ?? placeholder;
   const isShowingPlaceholder = !selectedOption;
+
+  // Filter options based on search text
+  const filteredOptions = searchText
+    ? options.filter((opt) =>
+        opt.label.toLowerCase().includes(searchText.toLowerCase()),
+      )
+    : options;
+
+  const handleTriggerKeyDown = (
+    e: React.KeyboardEvent<HTMLElement>,
+  ) => {
+    if (disabled) return;
+
+    switch (e.key) {
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        setOpen(true);
+        setHighlightedIndex(0);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        if (!open) {
+          setOpen(true);
+          setHighlightedIndex(0);
+        } else {
+          setHighlightedIndex((prev) =>
+            prev < filteredOptions.length - 1 ? prev + 1 : prev,
+          );
+        }
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (open) {
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        setSearchText("");
+        break;
+      default:
+        // Typeahead search
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          if (!open) {
+            setOpen(true);
+          }
+
+          const newSearchText = searchText + e.key;
+          setSearchText(newSearchText);
+          setHighlightedIndex(0);
+
+          // Clear search after 500ms of inactivity
+          if (searchTimeout) clearTimeout(searchTimeout);
+          setSearchTimeout(
+            setTimeout(() => {
+              setSearchText("");
+            }, 500),
+          );
+        }
+        break;
+    }
+  };
+
+  const handleOptionSelect = (optionValue: string) => {
+    onChange?.(optionValue);
+    setOpen(false);
+    setSearchText("");
+  };
+
+  const handleOptionKeyDown = (
+    e: React.KeyboardEvent,
+    optionIndex: number,
+  ) => {
+    switch (e.key) {
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        handleOptionSelect(filteredOptions[optionIndex].value);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev < filteredOptions.length - 1 ? prev + 1 : prev,
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        setSearchText("");
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <FieldShell
