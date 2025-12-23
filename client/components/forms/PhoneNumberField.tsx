@@ -149,6 +149,7 @@ export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldPro
   ) => {
     const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
     const [countryCode, setCountryCode] = useState(defaultCountryCode);
+    const [countryCodeOpen, setCountryCodeOpen] = useState(false);
     const [validationError, setValidationError] = React.useState<string>("");
 
     // Extract phone number from value (remove country code)
