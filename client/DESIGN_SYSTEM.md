@@ -129,17 +129,20 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 
 #### Popover
 - **File**: `components/ui/popover.tsx`
-- **Exports**: `Popover`, `PopoverTrigger`, `PopoverContent`
+- **Exports**: `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverScroll`
 - **Based On**: Radix Popover primitive
 - **Key Features**:
   - Floating panel with automatic collision detection (flips above trigger if no space below)
   - Automatic width syncing to trigger element (via `syncTriggerWidth` prop)
+  - **Internal scrolling**: Content automatically scrolls when exceeding max-height (280px default)
   - Smart boundary detection: closes automatically if can't fit in viewport
   - Prevents "bleeding" onto other pages via `hideWhenDetached={true}`
   - ResizeObserver tracks trigger width changes in real-time
   - Optional `containerRef` prop to render inside modal containers instead of document.body
 - **Props**:
   - `syncTriggerWidth`: (default: true) Popover content width matches trigger width
+  - `scrollable`: (default: true) Enable internal scrolling when content exceeds maxHeight
+  - `maxHeight`: (default: "280px") Max height before content scrolls (accepts number or string)
   - `containerRef`: (optional) Ref to container element (for modal popovers)
   - Standard Radix props: `open`, `onOpenChange`, `align` (start|center|end), `side` (bottom|top|left|right)
 - **Behavior**:
@@ -149,12 +152,30 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   - Sticky: never (won't stick to edges)
   - Hides when detached from viewport
 - **Used In**: SelectField, ComboboxField, IdentitySelectField, AddressField (state picker), custom dropdowns
-- **Example**:
+- **Example (Basic)**:
   ```tsx
   <Popover>
     <PopoverTrigger>Open</PopoverTrigger>
     <PopoverContent syncTriggerWidth={true}>
-      Floating content (matches trigger width)
+      Floating content (matches trigger width, scrollable if long)
+    </PopoverContent>
+  </Popover>
+  ```
+- **Example (Custom Max Height)**:
+  ```tsx
+  <Popover>
+    <PopoverTrigger>Open</PopoverTrigger>
+    <PopoverContent maxHeight={400} scrollable={true}>
+      Long list of items (scrolls at 400px)
+    </PopoverContent>
+  </Popover>
+  ```
+- **Example (No Scrolling)**:
+  ```tsx
+  <Popover>
+    <PopoverTrigger>Open</PopoverTrigger>
+    <PopoverContent scrollable={false}>
+      Content expands vertically (no scrolling)
     </PopoverContent>
   </Popover>
   ```
