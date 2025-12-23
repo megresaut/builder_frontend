@@ -62,6 +62,15 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   htmlFor,
   className,
 }) => {
+  const childrenWithError = React.Children.map(children, (child) => {
+    if (React.isValidElement(child) && error) {
+      return React.cloneElement(child, {
+        "aria-invalid": true,
+      } as any);
+    }
+    return child;
+  });
+
   return (
     <div
       className={`ra-field-shell ${className || ""}`}
@@ -116,8 +125,8 @@ export const FieldShell: React.FC<FieldShellProps> = ({
         </p>
       )}
 
-      {/* Input / control */}
-      {children}
+      {/* Input / control - with error styling applied */}
+      {childrenWithError}
 
       {/* Error message */}
       {error && (
