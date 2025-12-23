@@ -95,7 +95,6 @@ export default function AddVendorModal({
       setPhone("");
       setServicesProvided([]);
       setNotes("");
-      setShowServicesList(false);
       onOpenChange(false);
     }
   };
