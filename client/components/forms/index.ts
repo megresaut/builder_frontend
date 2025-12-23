@@ -27,6 +27,7 @@ export { CurrencyField } from "./CurrencyField";
 export { DateField } from "./DateField";
 export { SelectField } from "./SelectField";
 export { ComboboxField } from "./ComboboxField";
+export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
 
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";
