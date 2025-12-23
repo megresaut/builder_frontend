@@ -222,20 +222,7 @@ export default function AddVendorModal({
         />
       </ModalField>
 
-      <div style={{ marginBottom: "12px" }}>
-        <label
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "14px",
-            color: "rgba(48, 48, 48, 1)",
-            fontWeight: 500,
-            lineHeight: 1.43,
-            marginBottom: "8px",
-            display: "block",
-          }}
-        >
-          Services Provided
-        </label>
+      <ModalField label="Services Provided" spacing="tight">
         <div className="relative" ref={servicesRef}>
           <button
             type="button"
@@ -364,7 +351,7 @@ export default function AddVendorModal({
             </div>
           )}
         </div>
-      </div>
+      </ModalField>
 
       <ModalField label="Notes">
         <Textarea
