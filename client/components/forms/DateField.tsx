@@ -8,10 +8,11 @@ interface DateFieldProps {
   description?: string;
   error?: string;
   id?: string;
-  value?: Date | null;
-  onChange?: (date: Date | null) => void;
+  value?: Date | string | null;
+  onChange?: (date: Date | string | null) => void;
   disabled?: boolean;
   placeholder?: string;
+  returnFormat?: "Date" | "ISO";
 }
 
 /**
