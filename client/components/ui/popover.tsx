@@ -21,6 +21,7 @@ const PopoverContent = React.forwardRef<
       onWheelCapture,
       onTouchMove,
       onTouchMoveCapture,
+      onOpenAutoFocus,
       ...props
     },
     ref,
@@ -63,6 +64,16 @@ const PopoverContent = React.forwardRef<
       };
     }, []);
 
+    const handleOpenAutoFocus = (e: Event) => {
+      // Prevent focus from triggering scroll-into-view behavior on parent containers.
+      // Instead, focus after positioning is confirmed.
+      if (!isPositioned) {
+        e.preventDefault();
+        return;
+      }
+      onOpenAutoFocus?.(e);
+    };
+
     const typedProps =
       props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
         onPlaced?: () => void;
@@ -73,6 +84,20 @@ const PopoverContent = React.forwardRef<
     const handlePlaced = () => {
       setIsPositioned(true);
       typedProps.onPlaced?.();
+
+      // After positioning is confirmed, focus the first interactive element if applicable.
+      // This ensures focus happens after layout is stable, preventing scroll jumps.
+      if (localRef.current) {
+        const firstFocusable = localRef.current.querySelector<HTMLElement>(
+          'input, button, [tabindex]:not([tabindex="-1"])'
+        );
+        if (firstFocusable && document.activeElement !== firstFocusable) {
+          // Use setTimeout to defer focus to next tick, ensuring no scroll event propagates.
+          setTimeout(() => {
+            firstFocusable.focus({ preventScroll: true });
+          }, 0);
+        }
+      }
     };
 
     return (
@@ -101,6 +126,7 @@ const PopoverContent = React.forwardRef<
             (props as React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>).hideWhenDetached ??
             true
           }
+          onOpenAutoFocus={handleOpenAutoFocus}
           onPlaced={handlePlaced}
           style={{
             maxHeight: "calc(100vh - 40px)",
