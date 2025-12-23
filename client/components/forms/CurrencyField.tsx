@@ -65,6 +65,7 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
       currencySymbol = "$",
       decimalPlaces = 2,
       allowNegative = false,
+      readOnly = false,
       ...inputProps
     },
     ref,
@@ -76,8 +77,8 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
         label={label}
         required={required}
         description={description}
-        error={error}
-        disabled={disabled}
+        error={readOnly ? undefined : error}
+        disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
         <CurrencyInput
