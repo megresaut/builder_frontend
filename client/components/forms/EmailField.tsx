@@ -13,6 +13,7 @@ interface EmailFieldProps
   value?: string;
   onChange?: (value: string) => void;
   onValidationChange?: (isValid: boolean) => void;
+  readOnly?: boolean;
 }
 
 const emailSchema = z.string().email("Please enter a valid email address");
