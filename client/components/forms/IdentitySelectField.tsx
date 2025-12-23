@@ -302,6 +302,8 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             padding: "0",
             maxHeight: "320px",
             overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           {multiple && (
@@ -312,6 +314,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                 gap: "8px",
                 padding: "8px 12px",
                 borderBottom: "1px solid var(--color-border-light)",
+                flexShrink: 0,
               }}
             >
               <Search className="h-4 w-4" style={{ color: "#717179" }} />
@@ -337,8 +340,10 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
           )}
           <div
             style={{
+              flex: 1,
               maxHeight: "320px",
               overflowY: "auto",
+              overflowX: "hidden",
               padding: "4px 0",
             }}
           >
