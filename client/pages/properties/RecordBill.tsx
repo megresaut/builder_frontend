@@ -12,6 +12,10 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 import AddVendorModal from "@/components/AddVendorModal";
 import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
+import { SelectField } from "@/components/forms/SelectField";
+import { TextField } from "@/components/forms/TextField";
+import { DateField } from "@/components/forms/DateField";
+import { TextAreaField } from "@/components/forms/TextAreaField";
 
 interface Vendor {
   id: number;
