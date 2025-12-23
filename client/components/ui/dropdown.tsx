@@ -286,6 +286,9 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
           width: contentWidth ? `${contentWidth}px` : undefined,
           top: 0,
           left: 0,
+          opacity: isVisible ? 1 : 0,
+          pointerEvents: isVisible ? "auto" : "none",
+          transition: "opacity 0.15s ease-out",
           ...props.style,
         }}
         {...props}
