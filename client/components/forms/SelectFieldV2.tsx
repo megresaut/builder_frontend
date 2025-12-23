@@ -29,10 +29,17 @@ interface SelectFieldV2Props {
  * - Better Tailwind class utilization
  * - Consistent design system token usage
  * - Cleaner styling approach (CSS variables + Tailwind)
- * - Improved accessibility
+ * - Improved accessibility & keyboard navigation
  * - Automatic collision detection and side flipping
  * - Real-time repositioning on scroll/resize
  * - Modal-aware z-index stacking
+ *
+ * Keyboard Interactions:
+ * - Enter/Space: Open dropdown (when closed) or select highlighted option
+ * - ArrowDown: Navigate to next option (opens dropdown if closed)
+ * - ArrowUp: Navigate to previous option
+ * - Escape: Close dropdown and clear search
+ * - Type character(s): Search options by label (clears after 500ms of inactivity)
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
