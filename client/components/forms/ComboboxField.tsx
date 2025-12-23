@@ -153,14 +153,17 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             <CommandInput
               placeholder={searchPlaceholder}
               value={searchTerm}
-              onValueChange={setSearchTerm}
+              onValueChange={(term) => {
+                setSearchTerm(term);
+                setHighlightedIndex(0);
+              }}
             />
-            {filteredOptions.length === 0 && !creatable && (
+            {filteredOptions.length === 0 && (
               <CommandEmpty>{emptyMessage}</CommandEmpty>
             )}
             <CommandGroup>
               <CommandList style={{ maxHeight: "280px", minHeight: "150px" }}>
-                {filteredOptions.map((option) => (
+                {filteredOptions.map((option, index) => (
                   <CommandItem
                     key={option.value}
                     value={option.value}
@@ -168,6 +171,13 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
                       onChange?.(currentValue === value ? "" : currentValue);
                       setOpen(false);
                       setSearchTerm("");
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    style={{
+                      backgroundColor:
+                        highlightedIndex === index
+                          ? "rgba(36, 99, 235, 0.1)"
+                          : "transparent",
                     }}
                   >
                     <Check
@@ -180,25 +190,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
                   </CommandItem>
                 ))}
 
-                {creatable && searchTerm && filteredOptions.length === 0 && (
-                  <CommandItem
-                    value={`create:${searchTerm}`}
-                    onSelect={() => {
-                      onCreateNew?.(searchTerm);
-                      setSearchTerm("");
-                      setOpen(false);
-                    }}
-                    style={{
-                      borderTop: "1px solid var(--color-border-light)",
-                      color: "#2463EB",
-                      fontWeight: 500,
-                    }}
-                  >
-                    <span>+ Create "{searchTerm}"</span>
-                  </CommandItem>
-                )}
-
-                {filteredOptions.length === 0 && !creatable && (
+                {filteredOptions.length === 0 && (
                   <div
                     style={{
                       padding: "16px 8px",
