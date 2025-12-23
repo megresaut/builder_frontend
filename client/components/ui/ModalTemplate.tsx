@@ -236,9 +236,16 @@ ModalText.displayName = "ModalText";
  * - Font weight: 400 (normal)
  *
  * For placeholder-like text (non-input elements that display placeholder values),
- * use the `.ra-input-placeholder` CSS class along with the color style:
+ * use inline styles matching the input styling:
  * ```
- * <span className="ra-input-placeholder" style={{ color: "rgba(209, 213, 219, 1)" }}>
+ * <span style={{
+ *   color: "rgba(209, 213, 219, 1)",
+ *   fontSize: "16px",
+ *   fontWeight: 400,
+ *   letterSpacing: "-0.32px",
+ *   lineHeight: 1.4,
+ *   fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+ * }}>
  *   Placeholder text
  * </span>
  * ```
