@@ -26,15 +26,16 @@ interface SelectFieldProps {
 /**
  * SelectField - Select dropdown field with FieldShell wrapper
  *
- * Composed of FieldShell + Dropdown primitive for consistent select field styling.
+ * Composed of FieldShell + Popover primitive for consistent select field styling.
  * Handles option lists for status, priority, and other enums.
  * Supports both single-select and multi-select modes.
  *
- * Uses Dropdown primitive which includes:
+ * Uses Popover primitive which includes:
  * - Automatic collision detection and side flipping
  * - Real-time repositioning on scroll/resize
  * - Modal-aware z-index stacking
  * - Consistent A11y attributes
+ * - Proper scroll support with overflowY: auto
  *
  * Keyboard Interactions:
  * - Enter/Space: Open dropdown (when closed) or select highlighted option
