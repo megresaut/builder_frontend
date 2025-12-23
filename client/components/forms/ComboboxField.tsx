@@ -42,15 +42,14 @@ interface ComboboxFieldProps {
  * Features:
  * - Search input inside dropdown for filtering options
  * - Selected state indicator with checkmark
- * - Optional "Create new" option for creating items not in list
  * - Min/max dropdown height with scrollable content
- * - Arrow key navigation, typeahead search, Enter/Escape support (via Command)
+ * - Arrow key navigation, typeahead search, Enter/Escape support
  * - Clear error messaging
  *
  * Keyboard Interactions:
- * - Type: Filter options in real-time
+ * - Type in search field: Filter options in real-time
  * - ArrowDown/ArrowUp: Navigate options
- * - Enter: Select highlighted option or create new
+ * - Enter: Select highlighted option
  * - Escape: Close dropdown
  *
  * @param label - Field label (required)
@@ -65,18 +64,14 @@ interface ComboboxFieldProps {
  * @param searchPlaceholder - Placeholder text in search input (default: "Search...")
  * @param options - Array of {value, label} options
  * @param emptyMessage - Message when no options match search (default: "No results found")
- * @param creatable - Enable "Create new" option (default: false)
- * @param onCreateNew - Callback when user creates a new item (receives search term)
  *
  * Example:
  * ```tsx
  * <ComboboxField
  *   label="Vendor"
  *   required
- *   creatable
  *   value={vendorId}
  *   onChange={setVendorId}
- *   onCreateNew={(name) => createVendor(name)}
  *   error={errors.vendor}
  *   placeholder="Select vendor"
  *   options={vendors.map(v => ({ value: v.id, label: v.name }))}
@@ -96,15 +91,13 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   searchPlaceholder = "Search...",
   options,
   emptyMessage = "No results found",
-  creatable = false,
-  onCreateNew,
 }) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [highlightedIndex, setHighlightedIndex] = React.useState(0);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
   const selectedLabel = selectedOption?.label ?? placeholder;
-  const isShowingPlaceholder = !selectedOption;
 
   // Filter options based on search term
   const filteredOptions = searchTerm
