@@ -88,6 +88,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           style={{
             borderColor: error ? "#ef4444" : "var(--color-border-light)",
             borderWidth: error ? "2px" : "1px",
+            width: "100%",
           }}
           className="h-11 rounded-lg"
         >
