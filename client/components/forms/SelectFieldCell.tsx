@@ -194,7 +194,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
       style={{
         fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
         lineHeight: 1.43,
-        minHeight: "44px",
+        minHeight: "auto",
         height: "auto",
         display: "flex",
         alignItems: "center",
@@ -206,6 +206,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
         outline: "none",
         boxShadow: error ? "inset 0 0 0 2px #ef4444" : "none",
         borderRadius: "4px",
+        width: "100%",
       }}
       onKeyDown={handleTriggerKeyDown}
     >
