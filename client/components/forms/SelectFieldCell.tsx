@@ -303,29 +303,13 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
     </PopoverContent>
   );
 
-  // If label is provided, wrap in FieldShell
-  if (label) {
-    return (
-      <FieldShell
-        label={label}
-        required={required}
-        disabled={disabled}
-        htmlFor={fieldId}
-      >
-        <Popover open={open} onOpenChange={handleOpen}>
-          {trigger}
-          {content}
-        </Popover>
-      </FieldShell>
-    );
-  }
-
-  // Otherwise, render just the popover (for table cells)
   return (
-    <Popover open={open} onOpenChange={handleOpen}>
-      {trigger}
-      {content}
-    </Popover>
+    <FieldCellShell error={error}>
+      <Popover open={open} onOpenChange={handleOpen}>
+        {trigger}
+        {content}
+      </Popover>
+    </FieldCellShell>
   );
 };
 
