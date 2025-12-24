@@ -208,85 +208,78 @@ export default function CreateWorkOrderModalV2({
 
       <FieldRow columns={2}>
         <FieldRowItem>
-          <ModalField label="Work Order Name">
-            <TextField
-              value={formData.workOrderName}
-              onChange={handleWorkOrderNameChange}
-              placeholder="Type Work Order Name"
-              error={errors.workOrderName}
-            />
-          </ModalField>
+          <TextField
+            label="Work Order Name"
+            value={formData.workOrderName}
+            onChange={handleWorkOrderNameChange}
+            placeholder="Type Work Order Name"
+            error={errors.workOrderName}
+          />
         </FieldRowItem>
         <FieldRowItem>
-          <ModalField label="Select Vendor">
-            <SelectField
-              value={formData.vendor}
-              onChange={handleVendorChange}
-              placeholder="Select a Vendor"
-              options={VENDORS.map((vendor) => ({
-                value: vendor,
-                label: vendor,
-              }))}
-              error={errors.vendor}
-            />
-          </ModalField>
+          <SelectField
+            label="Select Vendor"
+            value={formData.vendor}
+            onChange={handleVendorChange}
+            placeholder="Select a Vendor"
+            options={VENDORS.map((vendor) => ({
+              value: vendor,
+              label: vendor,
+            }))}
+            error={errors.vendor}
+          />
         </FieldRowItem>
       </FieldRow>
 
       <FieldRow columns={2}>
         <FieldRowItem>
-          <ModalField label="Status">
-            <SelectField
-              value={formData.status}
-              onChange={handleStatusChange}
-              placeholder="Select a Status"
-              options={STATUSES.map((status) => ({
-                value: status,
-                label: status,
-              }))}
-            />
-          </ModalField>
+          <SelectField
+            label="Status"
+            value={formData.status}
+            onChange={handleStatusChange}
+            placeholder="Select a Status"
+            options={STATUSES.map((status) => ({
+              value: status,
+              label: status,
+            }))}
+          />
         </FieldRowItem>
         <FieldRowItem>
-          <ModalField label="Priority">
-            <SelectField
-              value={formData.priority}
-              onChange={handlePriorityChange}
-              placeholder="Select a Priority"
-              options={PRIORITIES.map((priority) => ({
-                value: priority,
-                label: priority,
-              }))}
-            />
-          </ModalField>
+          <SelectField
+            label="Priority"
+            value={formData.priority}
+            onChange={handlePriorityChange}
+            placeholder="Select a Priority"
+            options={PRIORITIES.map((priority) => ({
+              value: priority,
+              label: priority,
+            }))}
+          />
         </FieldRowItem>
       </FieldRow>
 
-      <ModalField label="Due Date">
-        <DateField
-          value={formData.dueDate}
-          onChange={handleDueDateChange}
-          placeholder="mm/dd/yyyy"
-          error={errors.dueDate}
-        />
-      </ModalField>
+      <DateField
+        label="Due Date"
+        value={formData.dueDate}
+        onChange={handleDueDateChange}
+        placeholder="mm/dd/yyyy"
+        error={errors.dueDate}
+      />
 
-      <ModalField label="Notes">
-        <TextAreaField
-          value={formData.notes}
-          onChange={handleNotesChange}
-          placeholder="Notes for your work Order"
-          autoGrow
-        />
-      </ModalField>
+      <TextAreaField
+        label="Notes"
+        value={formData.notes}
+        onChange={handleNotesChange}
+        placeholder="Notes for your work Order"
+        autoGrow
+      />
 
-      <ModalField label="Upload File">
-        <FileUploadField
-          accept=".pdf,.jpg,.jpeg,.png"
-          maxSize={500}
-          onFilesSelected={() => {}}
-        />
-      </ModalField>
+      <FileUploadField
+        label="Upload File"
+        accept=".pdf,.jpg,.jpeg,.png"
+        maxSize={500}
+        onFilesSelected={() => {}}
+      />
     </ModalTemplate>
   );
 }
