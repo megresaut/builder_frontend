@@ -1067,7 +1067,7 @@ export const Bills: React.FC<BillsProps> = ({
         )}
 
         {selectedTab === "drafts" && (
-          <GlobalTable
+        <GlobalTable
             columns={billsColumnManagement.columnOrder
               .filter((key) => key !== "exportedAt")
               .map((key) => ({
