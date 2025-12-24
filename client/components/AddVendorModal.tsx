@@ -72,7 +72,8 @@ export default function AddVendorModal({
     if (validateForm()) {
       if (onAddVendor) {
         const serviceLabels = servicesProvided.map(
-          (value) => availableServices.find((s) => s.value === value)?.label || value
+          (value) =>
+            availableServices.find((s) => s.value === value)?.label || value,
         );
         onAddVendor({
           name: vendorName,
@@ -136,10 +137,7 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField spacing="tight">
-        <FieldShell
-          label="Primary Email"
-          htmlFor="primary-email"
-        >
+        <FieldShell label="Primary Email" htmlFor="primary-email">
           <Input
             id="primary-email"
             type="email"
@@ -151,10 +149,7 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField spacing="tight">
-        <FieldShell
-          label="Vendor Phone Number"
-          htmlFor="vendor-phone"
-        >
+        <FieldShell label="Vendor Phone Number" htmlFor="vendor-phone">
           <Input
             id="vendor-phone"
             type="tel"
@@ -170,7 +165,9 @@ export default function AddVendorModal({
           label="Services Provided"
           id="services-provided"
           value={servicesProvided}
-          onChange={(val) => setServicesProvided(Array.isArray(val) ? val : [val])}
+          onChange={(val) =>
+            setServicesProvided(Array.isArray(val) ? val : [val])
+          }
           options={availableServices}
           placeholder="Select services..."
           multiple

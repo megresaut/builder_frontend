@@ -44,10 +44,9 @@ export default function CreateRecurringTaskModal({
   const [category, setCategory] = useState("");
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([
-    AVAILABLE_ASSIGNEES[0],
-    AVAILABLE_ASSIGNEES[0],
-  ]);
+  const [selectedAssignees, setSelectedAssignees] = useState<
+    MultiSelectOption[]
+  >([AVAILABLE_ASSIGNEES[0], AVAILABLE_ASSIGNEES[0]]);
   const [errors, setErrors] = useState<{
     taskName?: boolean;
     startDate?: boolean;
@@ -408,7 +407,11 @@ export default function CreateRecurringTaskModal({
                   setErrors((prev) => ({ ...prev, selectedAssignees: false }));
                 }
               }}
-              error={errors.selectedAssignees ? "At least one assignee is required" : undefined}
+              error={
+                errors.selectedAssignees
+                  ? "At least one assignee is required"
+                  : undefined
+              }
               placeholder="Select assignees"
               options={AVAILABLE_ASSIGNEES}
             />

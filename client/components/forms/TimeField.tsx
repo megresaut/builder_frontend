@@ -3,7 +3,10 @@ import { Input } from "@/components/ui/input";
 import { FieldShell } from "./FieldShell";
 
 interface TimeFieldProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
   label: string;
   required?: boolean;
   description?: string;

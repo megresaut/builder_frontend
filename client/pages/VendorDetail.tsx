@@ -1317,14 +1317,14 @@ export default function VendorDetail() {
             <button
               onClick={handleConfirmInactivate}
               className="flex h-9 items-center gap-2 px-3 py-2 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors text-white font-medium text-base whitespace-nowrap"
-              style={{ boxShadow: '0px 0px 0px 1px rgba(0, 45, 90, 1)' }}
+              style={{ boxShadow: "0px 0px 0px 1px rgba(0, 45, 90, 1)" }}
             >
               Confirm
             </button>
           </div>
         }
       >
-        <p style={{ fontSize: '14px', color: 'rgba(48, 48, 48, 1)' }}>
+        <p style={{ fontSize: "14px", color: "rgba(48, 48, 48, 1)" }}>
           {isInactive
             ? "Activating will make this vendor available for new work orders and tasks."
             : "Inactivating will prevent this vendor from being used for new work orders and tasks."}

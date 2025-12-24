@@ -30,9 +30,9 @@ interface FieldCellShellProps {
  * </FieldCellShell>
  * ```
  */
-export const FieldCellShell: React.FC<FieldCellShellProps> = ({ 
-  children, 
-  error = false 
+export const FieldCellShell: React.FC<FieldCellShellProps> = ({
+  children,
+  error = false,
 }) => {
   return (
     <div

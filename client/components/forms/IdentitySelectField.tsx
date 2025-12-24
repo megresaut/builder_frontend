@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from "react";
 import { Check, ChevronDown, X, Search } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { FieldShell } from "./FieldShell";
 
 export interface IdentityOption {
@@ -105,7 +109,9 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   const selectedIds = multiple ? (Array.isArray(value) ? value : []) : [];
   const selectedId = !multiple ? (typeof value === "string" ? value : "") : "";
   const selectedOptions = options.filter(
-    multiple ? (opt) => selectedIds.includes(opt.id) : (opt) => opt.id === selectedId,
+    multiple
+      ? (opt) => selectedIds.includes(opt.id)
+      : (opt) => opt.id === selectedId,
   );
 
   // Filter options based on search text
@@ -169,9 +175,11 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   const renderOption = (option: IdentityOption, isSelected: boolean) => {
     return (
       <div key={option.id} className="flex items-center gap-3 w-full">
-        {isSelected && <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />}
+        {isSelected && (
+          <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+        )}
         {!isSelected && <div className="h-4 w-4 flex-shrink-0" />}
-        
+
         {renderAvatar(option)}
 
         <div className="flex-1 min-w-0">
@@ -225,62 +233,74 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
       >
         <PopoverTrigger asChild>
           <button
-          ref={triggerRef}
-          type="button"
-          id={fieldId}
-          disabled={disabled}
-          style={{
-            borderColor: error ? "#ef4444" : open ? "#000000" : "var(--color-border-light)",
-            borderWidth: error ? "2px" : "1px",
-            borderStyle: "solid",
-            minHeight: "44px",
-            height: "auto",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            padding: "8px 12px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexWrap: "wrap",
-            width: "100%",
-            cursor: disabled ? "not-allowed" : "pointer",
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
-            opacity: disabled ? 0.6 : 1,
-            justifyContent: "space-between",
-          }}
-        >
-          <div className="flex items-center gap-2 flex-wrap flex-1">
-            {multiple && selectedOptions.length > 0 ? (
-              selectedOptions.map((opt) => (
-                <div
-                  key={opt.id}
-                  className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
-                >
-                  {renderAvatar(opt)}
-                  <span style={{ fontSize: "12px", color: "var(--color-text-primary)" }}>
-                    {opt.label}
-                  </span>
+            ref={triggerRef}
+            type="button"
+            id={fieldId}
+            disabled={disabled}
+            style={{
+              borderColor: error
+                ? "#ef4444"
+                : open
+                  ? "#000000"
+                  : "var(--color-border-light)",
+              borderWidth: error ? "2px" : "1px",
+              borderStyle: "solid",
+              minHeight: "44px",
+              height: "auto",
+              borderRadius: "8px",
+              backgroundColor: "white",
+              padding: "8px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
+              width: "100%",
+              cursor: disabled ? "not-allowed" : "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              opacity: disabled ? 0.6 : 1,
+              justifyContent: "space-between",
+            }}
+          >
+            <div className="flex items-center gap-2 flex-wrap flex-1">
+              {multiple && selectedOptions.length > 0 ? (
+                selectedOptions.map((opt) => (
                   <div
-                    role="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeItem(opt.id);
-                    }}
-                    className="hover:opacity-70 transition-opacity cursor-pointer"
-                    tabIndex={-1}
+                    key={opt.id}
+                    className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
                   >
-                    <X className="w-3 h-3 text-[#2463EB]" />
+                    {renderAvatar(opt)}
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        color: "var(--color-text-primary)",
+                      }}
+                    >
+                      {opt.label}
+                    </span>
+                    <div
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeItem(opt.id);
+                      }}
+                      className="hover:opacity-70 transition-opacity cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      <X className="w-3 h-3 text-[#2463EB]" />
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <span style={{ color: "#303030", fontSize: "14px" }}>
-                {displayLabel}
-              </span>
-            )}
-          </div>
-          <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "#303030" }} />
+                ))
+              ) : (
+                <span style={{ color: "#303030", fontSize: "14px" }}>
+                  {displayLabel}
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className="h-4 w-4 flex-shrink-0"
+              style={{ color: "#303030" }}
+            />
           </button>
         </PopoverTrigger>
 
@@ -368,21 +388,28 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                       width: "100%",
                       padding: "10px 12px",
                       textAlign: "left",
-                      backgroundColor: isSelected ? "rgba(36, 99, 235, 0.1)" : "transparent",
+                      backgroundColor: isSelected
+                        ? "rgba(36, 99, 235, 0.1)"
+                        : "transparent",
                       color: "var(--color-text-primary)",
                       border: "none",
                       cursor: "pointer",
                       fontSize: "14px",
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                       transition: "background-color 0.15s",
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = isSelected
+                      (
+                        e.currentTarget as HTMLButtonElement
+                      ).style.backgroundColor = isSelected
                         ? "rgba(36, 99, 235, 0.15)"
                         : "rgba(36, 99, 235, 0.08)";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = isSelected
+                      (
+                        e.currentTarget as HTMLButtonElement
+                      ).style.backgroundColor = isSelected
                         ? "rgba(36, 99, 235, 0.1)"
                         : "transparent";
                     }}

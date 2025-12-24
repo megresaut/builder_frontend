@@ -54,7 +54,10 @@ interface TextAreaFieldProps
  * />
  * ```
  */
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
+export const TextAreaField = forwardRef<
+  HTMLTextAreaElement,
+  TextAreaFieldProps
+>(
   (
     {
       label,
@@ -73,7 +76,11 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     },
     ref,
   ) => {
-    const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : `textarea-${Math.random().toString(36).substr(2, 9)}`);
+    const fieldId =
+      id ||
+      (label
+        ? label.toLowerCase().replace(/\s+/g, "-")
+        : `textarea-${Math.random().toString(36).substr(2, 9)}`);
     const [charCount, setCharCount] = useState(String(value).length);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -82,7 +89,9 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
       onChange?.(e);
     };
 
-    const charCountText = maxLength ? `${charCount} / ${maxLength}` : `${charCount}`;
+    const charCountText = maxLength
+      ? `${charCount} / ${maxLength}`
+      : `${charCount}`;
     const isNearLimit = maxLength && charCount >= maxLength * 0.9;
 
     return (
@@ -113,7 +122,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
                 color: isNearLimit ? "#ef4444" : "var(--color-text-muted)",
                 marginTop: "4px",
                 textAlign: "right",
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
               }}
             >
               {charCountText}

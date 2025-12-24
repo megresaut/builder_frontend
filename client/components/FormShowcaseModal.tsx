@@ -217,7 +217,10 @@ export function FormShowcaseModal({
 
         if (errorElement) {
           setTimeout(() => {
-            errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            errorElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
           }, 0);
         }
       }
@@ -290,7 +293,10 @@ export function FormShowcaseModal({
     >
       <div className="space-y-6">
         {/* TEXT FIELDS SECTION */}
-        <FormSection title="Text & Contact Fields" description="Basic text, email, and phone inputs">
+        <FormSection
+          title="Text & Contact Fields"
+          description="Basic text, email, and phone inputs"
+        >
           <FieldRow columns={2}>
             <FieldRowItem>
               <TextField
@@ -337,7 +343,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* SELECT & COMBOBOX SECTION */}
-        <FormSection title="Selects & Dropdowns" description="Single select with keyboard navigation and searchable comboboxes">
+        <FormSection
+          title="Selects & Dropdowns"
+          description="Single select with keyboard navigation and searchable comboboxes"
+        >
           <FieldRow columns={2}>
             <FieldRowItem>
               <SelectField
@@ -435,7 +444,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* NUMERIC & PERCENT FIELDS SECTION */}
-        <FormSection title="Numeric Fields" description="Number, currency, and percent inputs">
+        <FormSection
+          title="Numeric Fields"
+          description="Number, currency, and percent inputs"
+        >
           <FieldRow columns={3}>
             <FieldRowItem>
               <NumberField
@@ -488,7 +500,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* DATE & TIME FIELDS SECTION */}
-        <FormSection title="Date & Time Fields" description="Date picker, time input, and combined datetime">
+        <FormSection
+          title="Date & Time Fields"
+          description="Date picker, time input, and combined datetime"
+        >
           <FieldRow columns={2}>
             <FieldRowItem>
               <DateField
@@ -548,7 +563,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* TEXTAREA SECTION WITH CHARACTER COUNT */}
-        <FormSection title="Long-Form Text" description="Textarea with auto-grow and optional character count">
+        <FormSection
+          title="Long-Form Text"
+          description="Textarea with auto-grow and optional character count"
+        >
           <TextAreaField
             label="Notes"
             placeholder="Enter any additional notes or comments..."
@@ -582,7 +600,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* MULTI-SELECT FIELDS SECTION */}
-        <FormSection title="Multi-Select Fields" description="Select multiple options from dropdown">
+        <FormSection
+          title="Multi-Select Fields"
+          description="Select multiple options from dropdown"
+        >
           <FieldRow columns={2}>
             <FieldRowItem>
               <SelectField
@@ -620,7 +641,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* ADDRESS FIELD SECTION */}
-        <FormSection title="Address Information" description="Property location with normalized state and ZIP">
+        <FormSection
+          title="Address Information"
+          description="Property location with normalized state and ZIP"
+        >
           <AddressField
             label="Property Address"
             value={propertyAddress}
@@ -630,7 +654,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* IDENTITY SELECT SECTION */}
-        <FormSection title="Entity Pickers" description="Select from vendors and properties with rich info">
+        <FormSection
+          title="Entity Pickers"
+          description="Select from vendors and properties with rich info"
+        >
           <IdentitySelectField
             label="Preferred Vendors"
             value={selectedVendors}
@@ -822,13 +849,20 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* FILE UPLOAD SECTION */}
-        <FormSection title="Attachments" description="Upload supporting documents and files">
+        <FormSection
+          title="Attachments"
+          description="Upload supporting documents and files"
+        >
           <FileUploadField
             label="Document Upload"
             description="PDF, Word, Excel, and image files supported (max 10MB each)"
             files={attachments}
-            onFilesAdded={(newFiles) => setAttachments([...attachments, ...newFiles])}
-            onFileRemoved={(fileId) => setAttachments(attachments.filter((f) => f.id !== fileId))}
+            onFilesAdded={(newFiles) =>
+              setAttachments([...attachments, ...newFiles])
+            }
+            onFileRemoved={(fileId) =>
+              setAttachments(attachments.filter((f) => f.id !== fileId))
+            }
             onViewFile={handleViewFile}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
             maxFiles={10}
@@ -845,7 +879,10 @@ export function FormShowcaseModal({
         />
 
         {/* FOOTER SECTION - 2 COLUMN FIELDROW */}
-        <FormSection title="Additional Options" description="Payment and approval settings">
+        <FormSection
+          title="Additional Options"
+          description="Payment and approval settings"
+        >
           <FieldRow columns={2}>
             <FieldRowItem>
               <SelectField
@@ -879,7 +916,10 @@ export function FormShowcaseModal({
         </FormSection>
 
         {/* READ-ONLY FIELD SECTION */}
-        <FormSection title="Summary" description="Auto-calculated or reference information">
+        <FormSection
+          title="Summary"
+          description="Auto-calculated or reference information"
+        >
           <ReadOnlyTextField
             label="Transaction ID"
             value="TXN-2024-001847"

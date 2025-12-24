@@ -23,7 +23,9 @@ interface DropdownContextType {
   getPositionStyle: () => any;
 }
 
-const DropdownContext = createContext<DropdownContextType | undefined>(undefined);
+const DropdownContext = createContext<DropdownContextType | undefined>(
+  undefined,
+);
 
 function useDropdownContext() {
   const context = useContext(DropdownContext);
@@ -128,8 +130,8 @@ const DropdownTrigger = React.forwardRef<HTMLElement, DropdownTriggerProps>(
     const { open, setOpen, triggerId, contentId, triggerRef } =
       useDropdownContext();
 
-    const isInput = type &&
-      ["text", "email", "number", "password"].includes(type);
+    const isInput =
+      type && ["text", "email", "number", "password"].includes(type);
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
       if (isInput) {
@@ -272,7 +274,9 @@ const DropdownContent = React.forwardRef<HTMLDivElement, DropdownContentProps>(
       }
     };
 
-    const handleTouchMoveCapture: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    const handleTouchMoveCapture: React.TouchEventHandler<HTMLDivElement> = (
+      e,
+    ) => {
       onTouchMoveCapture?.(e);
       if (!e.defaultPrevented) {
         e.stopPropagation();

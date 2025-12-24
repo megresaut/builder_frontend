@@ -104,7 +104,11 @@ const DateField: React.FC<DateFieldProps> = ({
     return year >= 1900 && year <= 2040;
   };
 
-  const dateError = error || (dateValue && !validateDateRange(dateValue) ? "Date must be between 1900 and 2040" : undefined);
+  const dateError =
+    error ||
+    (dateValue && !validateDateRange(dateValue)
+      ? "Date must be between 1900 and 2040"
+      : undefined);
 
   const handleDateChange = (newDate: Date | null) => {
     if (readOnly) return;

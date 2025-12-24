@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { FieldShell } from "./FieldShell";
 
 export interface AddressValue {
@@ -148,7 +152,9 @@ export const AddressField: React.FC<AddressFieldProps> = ({
   };
 
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
+    e.currentTarget.style.borderColor = error
+      ? "#ef4444"
+      : "var(--color-border-light)";
   };
 
   const stateButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -170,7 +176,11 @@ export const AddressField: React.FC<AddressFieldProps> = ({
             style={{
               ...stateTriggerStyle,
               flex: 0.5,
-              borderColor: error ? "#ef4444" : stateOpen ? "#000000" : "var(--color-border-light)",
+              borderColor: error
+                ? "#ef4444"
+                : stateOpen
+                  ? "#000000"
+                  : "var(--color-border-light)",
             }}
             type="button"
           >
@@ -185,7 +195,10 @@ export const AddressField: React.FC<AddressFieldProps> = ({
             >
               {value.state || "State"}
             </span>
-            <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "#303030" }} />
+            <ChevronDown
+              className="h-4 w-4 shrink-0"
+              style={{ color: "#303030" }}
+            />
           </button>
         </PopoverTrigger>
 
@@ -218,12 +231,15 @@ export const AddressField: React.FC<AddressFieldProps> = ({
                   width: "100%",
                   padding: "8px 12px",
                   textAlign: "left",
-                  backgroundColor: isSelected ? "rgba(36, 99, 235, 0.15)" : "transparent",
+                  backgroundColor: isSelected
+                    ? "rgba(36, 99, 235, 0.15)"
+                    : "transparent",
                   color: "#303030",
                   border: "none",
                   cursor: "pointer",
                   fontSize: "14px",
-                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   transition: "background-color 0.15s",
                 }}
                 onMouseEnter={(e) => {
@@ -244,7 +260,15 @@ export const AddressField: React.FC<AddressFieldProps> = ({
         </PopoverContent>
       </Popover>
     ),
-    [disabled, handleStateChange, stateOpen, stateTriggerStyle, value.state, error, stateButtonWidth],
+    [
+      disabled,
+      handleStateChange,
+      stateOpen,
+      stateTriggerStyle,
+      value.state,
+      error,
+      stateButtonWidth,
+    ],
   );
 
   const content = (

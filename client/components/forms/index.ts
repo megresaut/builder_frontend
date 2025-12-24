@@ -34,7 +34,10 @@ export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
 export { EmailField } from "./EmailField";
 export { PhoneNumberField } from "./PhoneNumberField";
 export { AddressField, type AddressValue } from "./AddressField";
-export { IdentitySelectField, type IdentityOption } from "./IdentitySelectField";
+export {
+  IdentitySelectField,
+  type IdentityOption,
+} from "./IdentitySelectField";
 export { SensitiveInputField } from "./SensitiveInputField";
 export { ReadOnlyTextField } from "./ReadOnlyTextField";
 export { FileUploadField } from "./FileUploadField";

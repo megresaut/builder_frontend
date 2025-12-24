@@ -112,9 +112,7 @@ export const DateTimeField = forwardRef<HTMLDivElement, DateTimeFieldProps>(
       }
 
       const dateStr = newDate.toISOString().split("T")[0];
-      const newValue = currentTime
-        ? `${dateStr}T${currentTime}`
-        : dateStr;
+      const newValue = currentTime ? `${dateStr}T${currentTime}` : dateStr;
 
       onChange?.(newValue);
       setValidationError("");

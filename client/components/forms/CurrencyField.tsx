@@ -23,7 +23,7 @@ interface CurrencyFieldProps
  *
  * Composed of FieldShell + CurrencyInput for consistent currency field styling.
  * Handles automatic formatting, thousand separators, and currency symbols.
- * 
+ *
  * This is the #1 most important PM-specific field.
  *
  * @param label - Field label (required)

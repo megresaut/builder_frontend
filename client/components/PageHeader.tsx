@@ -68,7 +68,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                   "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all whitespace-nowrap",
                   selectedTab === tab.id
                     ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
-                    : "bg-gray-50 hover:bg-gray-100"
+                    : "bg-gray-50 hover:bg-gray-100",
                 )}
               >
                 <span
@@ -102,7 +102,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                   "flex items-center gap-2 h-10 px-4 rounded-lg transition-colors disabled:opacity-50",
                   action.variant === "primary"
                     ? "border border-white text-white font-medium text-sm"
-                    : "border border-gray-200 bg-white hover:bg-gray-50 shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
+                    : "border border-gray-200 bg-white hover:bg-gray-50 shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]",
                 )}
                 style={
                   action.variant === "primary"
@@ -115,14 +115,17 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 }
                 onMouseEnter={(e) => {
                   if (action.variant === "primary") {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor =
                       "var(--color-button-primary-hover)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (action.variant === "primary") {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      "var(--color-button-primary)";
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = "var(--color-button-primary)";
                   }
                 }}
               >

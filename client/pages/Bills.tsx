@@ -10,7 +10,11 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { Plus } from "lucide-react";
-import { PageHeader, type PageHeaderAction, type PageHeaderTab } from "@/components/PageHeader";
+import {
+  PageHeader,
+  type PageHeaderAction,
+  type PageHeaderTab,
+} from "@/components/PageHeader";
 
 interface Bill {
   id: number;
@@ -234,7 +238,7 @@ export default function Bills() {
     bills.map((bill) => ({ ...bill, exportedAt: bill.importedAt })),
   );
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(
-    new Set(bills.filter((_, idx) => idx % 2 === 0).map((b) => b.id))
+    new Set(bills.filter((_, idx) => idx % 2 === 0).map((b) => b.id)),
   );
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const [approvedTimestamp, setApprovedTimestamp] = useState(
@@ -248,7 +252,7 @@ export default function Bills() {
     drafts: formatRelativeTime(Date.now() - 2 * 60 * 1000),
   }));
   const [newlyAddedBillIds, setNewlyAddedBillIds] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
 
   const markBillAsNew = (billId: number) => {
@@ -312,7 +316,14 @@ export default function Bills() {
       key: "statementDate",
       label: "Statement Date",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M8 2v4" />
           <path d="M16 2v4" />
           <rect width="18" height="18" x="3" y="4" rx="2" />
@@ -324,7 +335,14 @@ export default function Bills() {
       key: "dueDate",
       label: "Due Date",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M8 2v4" />
           <path d="M16 2v4" />
           <rect width="18" height="18" x="3" y="4" rx="2" />
@@ -336,7 +354,14 @@ export default function Bills() {
       key: "status",
       label: "Import Status",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
@@ -363,7 +388,14 @@ export default function Bills() {
       key: "memo",
       label: "Memo",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
           <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
         </svg>
@@ -373,7 +405,14 @@ export default function Bills() {
       key: "invoiceNumber",
       label: "Reference #",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <line x1="4" x2="20" y1="9" y2="9" />
           <line x1="4" x2="20" y1="15" y2="15" />
           <line x1="10" x2="8" y1="3" y2="21" />
@@ -385,7 +424,14 @@ export default function Bills() {
       key: "amount",
       label: "Amount",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <line x1="12" x2="12" y1="2" y2="22" />
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
@@ -465,7 +511,7 @@ export default function Bills() {
           amount:
             typeof billData.amount === "number"
               ? billData.amount
-              : existing?.amount ?? 0,
+              : (existing?.amount ?? 0),
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
           exportedAt: billData.timestamp,
@@ -558,10 +604,11 @@ export default function Bills() {
           amount:
             typeof billData.amount === "number"
               ? billData.amount
-              : existing?.amount ?? 0,
+              : (existing?.amount ?? 0),
           glAccount: existing?.glAccount ?? "6200 - HVAC Services",
           importedAt: existing?.importedAt ?? Date.now(),
-          exportedAt: billData.status === "draft" ? undefined : existing?.exportedAt,
+          exportedAt:
+            billData.status === "draft" ? undefined : existing?.exportedAt,
           importStatus: billData.importStatus ?? existing?.importStatus,
         };
 
@@ -595,7 +642,9 @@ export default function Bills() {
       }
 
       if (parsed?.type === "saved" && parsed.detail) {
-        window.dispatchEvent(new CustomEvent("billSaved", { detail: parsed.detail }));
+        window.dispatchEvent(
+          new CustomEvent("billSaved", { detail: parsed.detail }),
+        );
       }
     } finally {
       localStorage.removeItem("avm:lastBillEvent");
@@ -667,12 +716,9 @@ export default function Bills() {
     }, 1500);
   };
 
-  const handleDeleteBill = useCallback(
-    (bill: Bill) => {
-      setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
-    },
-    []
-  );
+  const handleDeleteBill = useCallback((bill: Bill) => {
+    setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
+  }, []);
 
   const headerTabs: PageHeaderTab[] = [
     { id: "approved", label: "Approved" },
@@ -684,7 +730,18 @@ export default function Bills() {
       id: "add-vendor",
       label: "Add Vendor",
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: "-2px" }}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ marginTop: "-2px" }}
+        >
           <path d="M5 12h14M12 5v14" style={{ marginTop: "-2px" }} />
         </svg>
       ),
@@ -694,7 +751,18 @@ export default function Bills() {
       id: "sync",
       label: "Sync",
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: "-1px" }}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ marginTop: "-1px" }}
+        >
           <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
           <path d="M21 3v5h-5" />
           <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
@@ -704,13 +772,28 @@ export default function Bills() {
       onClick: handleSync,
       disabled: syncState !== "idle",
       loading: syncState === "syncing",
-      loadingLabel: syncState === "syncing" ? "Syncing..." : syncState === "synced" ? "Synced" : "Sync",
+      loadingLabel:
+        syncState === "syncing"
+          ? "Syncing..."
+          : syncState === "synced"
+            ? "Synced"
+            : "Sync",
     },
     {
       id: "record-bill",
       label: "Record Bill",
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <rect width="20" height="14" x="2" y="5" rx="2" />
           <line x1="2" x2="22" y1="10" y2="10" />
         </svg>
@@ -751,10 +834,7 @@ export default function Bills() {
               if (columnKey === "vendor") {
                 return (
                   <div className="flex items-center gap-2">
-                    <VendorAvatar
-                      name={bill.vendor}
-                      color={bill.vendorColor}
-                    />
+                    <VendorAvatar name={bill.vendor} color={bill.vendorColor} />
                     <span className="text-gray-900 font-normal text-sm truncate">
                       {bill.vendor}
                     </span>
@@ -790,9 +870,7 @@ export default function Bills() {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500" />
                     <span className="text-gray-900 font-normal text-sm">
-                      {formatRelativeTime(
-                        bill.exportedAt ?? approvedTimestamp,
-                      )}
+                      {formatRelativeTime(bill.exportedAt ?? approvedTimestamp)}
                     </span>
                   </div>
                 );
@@ -855,7 +933,11 @@ export default function Bills() {
             onShowPageSizeDropdownChange={setShowPageSizeDropdown}
             openMenuId={openMenuId}
             onOpenMenuIdChange={setOpenMenuId}
-            title={selectedTab === "approved" ? "Approved & Exported Bills" : "Draft Bills"}
+            title={
+              selectedTab === "approved"
+                ? "Approved & Exported Bills"
+                : "Draft Bills"
+            }
             headerActions={
               <button
                 ref={columnButtonRef}
@@ -866,88 +948,116 @@ export default function Bills() {
                 }}
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="3" r="1.5" fill="var(--color-text-primary)"/>
-                  <circle cx="8" cy="8" r="1.5" fill="var(--color-text-primary)"/>
-                  <circle cx="8" cy="13" r="1.5" fill="var(--color-text-primary)"/>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="8"
+                    cy="3"
+                    r="1.5"
+                    fill="var(--color-text-primary)"
+                  />
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="1.5"
+                    fill="var(--color-text-primary)"
+                  />
+                  <circle
+                    cx="8"
+                    cy="13"
+                    r="1.5"
+                    fill="var(--color-text-primary)"
+                  />
                 </svg>
               </button>
             }
             showSearchBar={true}
-            actions={selectedTab === "drafts" ? [
-              {
-                label: "Edit Bill",
-                icon: (
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                      stroke="var(--color-text-secondary)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ),
-                onClick: (bill: Bill) => {
-                  navigate(`/bills/record?billId=${bill.id}`, {
-                    state: { bill: buildBillState(bill) },
-                  });
-                },
-              },
-              {
-                label: "Delete",
-                icon: (
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                      stroke="var(--color-status-error)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ),
-                onClick: handleDeleteBill,
-              },
-            ] : [
-              {
-                label: "View Bill",
-                icon: (
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                      stroke="var(--color-text-secondary)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ),
-                onClick: (bill: Bill) => {
-                  navigate(`/bills/record?readOnly=true&billId=${bill.id}`, {
-                    state: { bill: buildBillState(bill) },
-                  });
-                },
-              },
-            ]}
+            actions={
+              selectedTab === "drafts"
+                ? [
+                    {
+                      label: "Edit Bill",
+                      icon: (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                            stroke="var(--color-text-secondary)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ),
+                      onClick: (bill: Bill) => {
+                        navigate(`/bills/record?billId=${bill.id}`, {
+                          state: { bill: buildBillState(bill) },
+                        });
+                      },
+                    },
+                    {
+                      label: "Delete",
+                      icon: (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                            stroke="var(--color-status-error)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ),
+                      onClick: handleDeleteBill,
+                    },
+                  ]
+                : [
+                    {
+                      label: "View Bill",
+                      icon: (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
+                            stroke="var(--color-text-secondary)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ),
+                      onClick: (bill: Bill) => {
+                        navigate(
+                          `/bills/record?readOnly=true&billId=${bill.id}`,
+                          {
+                            state: { bill: buildBillState(bill) },
+                          },
+                        );
+                      },
+                    },
+                  ]
+            }
             onRowClick={(bill) => {
               const isApproved = selectedTab === "approved";
               const path = isApproved

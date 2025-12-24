@@ -132,7 +132,12 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
         >
           <div className="flex items-center gap-1.5 flex-wrap flex-1">
             {value.length === 0 ? (
-              <span style={{ color: "var(--color-text-placeholder)", fontSize: "14px" }}>
+              <span
+                style={{
+                  color: "var(--color-text-placeholder)",
+                  fontSize: "14px",
+                }}
+              >
                 {placeholder}
               </span>
             ) : (
@@ -148,7 +153,12 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
                       </span>
                     </div>
                   )}
-                  <span style={{ fontSize: "12px", color: "var(--color-text-primary)" }}>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "var(--color-text-primary)",
+                    }}
+                  >
                     {item.label}
                   </span>
                   <button
@@ -165,7 +175,10 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
               ))
             )}
           </div>
-          <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "#303030" }} />
+          <ChevronDown
+            className="h-4 w-4 flex-shrink-0"
+            style={{ color: "#303030" }}
+          />
         </Dropdown.Trigger>
 
         <Dropdown.Content
@@ -207,22 +220,29 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
                       width: "100%",
                       padding: "8px 12px",
                       textAlign: "left",
-                      backgroundColor: isSelected ? "rgba(36, 99, 235, 0.1)" : "transparent",
+                      backgroundColor: isSelected
+                        ? "rgba(36, 99, 235, 0.1)"
+                        : "transparent",
                       color: "var(--color-text-primary)",
                       border: "none",
                       cursor: "pointer",
                       fontSize: "14px",
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                       display: "flex",
                       alignItems: "center",
                       gap: "8px",
                       transition: "background-color 0.15s",
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(36, 99, 235, 0.08)";
+                      (
+                        e.currentTarget as HTMLButtonElement
+                      ).style.backgroundColor = "rgba(36, 99, 235, 0.08)";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = isSelected
+                      (
+                        e.currentTarget as HTMLButtonElement
+                      ).style.backgroundColor = isSelected
                         ? "rgba(36, 99, 235, 0.1)"
                         : "transparent";
                     }}

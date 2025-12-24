@@ -60,7 +60,6 @@ export default function TaskSummary() {
   };
   const [messageText, setMessageText] = useState("");
 
-
   return (
     <PageTemplate>
       {/* Header Section */}
@@ -68,16 +67,24 @@ export default function TaskSummary() {
         title="Edgerton - Quote"
         subtitle={
           <div className="flex items-center font-medium gap-3 overflow-wrap-anywhere word-wrap-anywhere">
-            <div className="block text-base font-medium">
-              Resident Request
-            </div>
-            <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className="block text-base font-medium">Resident Request</div>
+            <svg
+              width="4"
+              height="4"
+              viewBox="0 0 4 4"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>
-            <span className="block text-base font-medium">
-              10244381
-            </span>
-            <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg" />
+            <span className="block text-base font-medium">10244381</span>
+            <svg
+              width="4"
+              height="4"
+              viewBox="0 0 4 4"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            />
           </div>
         }
         actionButton={{

@@ -151,7 +151,10 @@ export const ModalTemplate = React.forwardRef<
           </div>
 
           {/* Content */}
-          <div style={{ marginTop: showDivider ? "16px" : "0" }} ref={contentRef || ref}>
+          <div
+            style={{ marginTop: showDivider ? "16px" : "0" }}
+            ref={contentRef || ref}
+          >
             {children}
           </div>
 
@@ -174,7 +177,7 @@ ModalTemplate.displayName = "ModalTemplate";
 
 /**
  * ModalSubheader - Optional subheader section with divider
- * 
+ *
  * Use this to add section headers within modal content.
  * Automatically adds proper spacing and divider.
  */
@@ -208,11 +211,14 @@ ModalSubheader.displayName = "ModalSubheader";
 
 /**
  * ModalText - Plain text content with proper spacing
- * 
+ *
  * Use this for text-only content without form fields.
  * Maintains consistent spacing from header/subheader.
  */
-export const ModalText: React.FC<ModalTextProps> = ({ children, className = "" }) => {
+export const ModalText: React.FC<ModalTextProps> = ({
+  children,
+  className = "",
+}) => {
   return (
     <div
       className={className}
@@ -286,10 +292,7 @@ export const ModalField: React.FC<ModalFieldProps> = ({
   const marginBottom = spacing === "tight" ? "12px" : "20px";
 
   return (
-    <div
-      className="flex w-full flex-col"
-      style={{ marginBottom }}
-    >
+    <div className="flex w-full flex-col" style={{ marginBottom }}>
       <label
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -388,8 +391,14 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
           boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
           transition: "background-color 0.2s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.backgroundColor =
+            "var(--color-button-primary-hover)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.backgroundColor =
+            "var(--color-button-primary)")
+        }
       >
         {confirmLabel}
       </button>
@@ -405,12 +414,10 @@ ModalButtons.displayName = "ModalButtons";
  * Use this to add spacing between major sections in the modal.
  * Default spacing matches the design system (28px top margin).
  */
-export const ModalSection: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <div style={{ marginTop: "28px" }}>
-      {children}
-    </div>
-  );
+export const ModalSection: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return <div style={{ marginTop: "28px" }}>{children}</div>;
 };
 
 ModalSection.displayName = "ModalSection";
@@ -423,9 +430,15 @@ ModalSection.displayName = "ModalSection";
  *
  * @param columns - Number of columns on desktop (default: 2)
  */
-export const FieldRow: React.FC<FieldRowProps> = ({ children, columns = 2 }) => {
+export const FieldRow: React.FC<FieldRowProps> = ({
+  children,
+  columns = 2,
+}) => {
   return (
-    <div className="ra-field-row" style={{ "--field-row-columns": columns } as React.CSSProperties}>
+    <div
+      className="ra-field-row"
+      style={{ "--field-row-columns": columns } as React.CSSProperties}
+    >
       {children}
     </div>
   );
@@ -439,11 +452,7 @@ FieldRow.displayName = "FieldRow";
  * Wraps a field to ensure consistent sizing and spacing within a row.
  */
 export const FieldRowItem: React.FC<FieldRowItemProps> = ({ children }) => {
-  return (
-    <div className="ra-field-row-item">
-      {children}
-    </div>
-  );
+  return <div className="ra-field-row-item">{children}</div>;
 };
 
 FieldRowItem.displayName = "FieldRowItem";

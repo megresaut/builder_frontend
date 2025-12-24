@@ -1,7 +1,10 @@
 import React, { forwardRef, useState, useCallback } from "react";
 
 interface CurrencyInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
   value?: number | string;
   onChange?: (value: number) => void;
   placeholder?: string;
@@ -68,31 +71,35 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
         return formatter.format(num);
       },
-      [decimalPlaces]
+      [decimalPlaces],
     );
 
     /**
      * Parse input string to numeric value
      * Accepts: "1", "12.34", "$1,234.56", "1,234.56"
      */
-    const parseInputValue = useCallback((input: string | number): number => {
-      // Ensure input is a string
-      const inputStr = typeof input === "number" ? input.toString() : (input || "");
+    const parseInputValue = useCallback(
+      (input: string | number): number => {
+        // Ensure input is a string
+        const inputStr =
+          typeof input === "number" ? input.toString() : input || "";
 
-      // Remove currency symbol and thousand separators
-      const cleaned = inputStr
-        .replace(currencySymbol, "")
-        .replace(/,/g, "")
-        .trim();
+        // Remove currency symbol and thousand separators
+        const cleaned = inputStr
+          .replace(currencySymbol, "")
+          .replace(/,/g, "")
+          .trim();
 
-      // Handle empty input
-      if (cleaned === "" || cleaned === "-") {
-        return 0;
-      }
+        // Handle empty input
+        if (cleaned === "" || cleaned === "-") {
+          return 0;
+        }
 
-      const num = parseFloat(cleaned);
-      return isNaN(num) ? 0 : num;
-    }, [currencySymbol]);
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+      },
+      [currencySymbol],
+    );
 
     /**
      * Convert numeric value to unformatted string for editing
@@ -138,7 +145,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
         return sanitized;
       },
-      [allowNegative, decimalPlaces]
+      [allowNegative, decimalPlaces],
     );
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,7 +166,8 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       setIsFocused(true);
 
       // Show unformatted, unpaded value (e.g., "1234.5" not "1234.50" and not "$1,234.50")
-      const numValue = typeof value === "string" ? parseFloat(value) : (value as number);
+      const numValue =
+        typeof value === "string" ? parseFloat(value) : (value as number);
       if (!isNaN(numValue) && numValue !== 0) {
         setDraftValue(numToEditString(numValue));
       } else {
@@ -218,7 +226,9 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     };
 
     // Determine what to display
-    const displayValue = isFocused ? draftValue : formatForDisplay(parseInputValue(draftValue || (value as string)));
+    const displayValue = isFocused
+      ? draftValue
+      : formatForDisplay(parseInputValue(draftValue || (value as string)));
 
     const handleFocusWithBorder = (e: React.FocusEvent<HTMLInputElement>) => {
       handleFocus(e);
@@ -227,7 +237,9 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleBlurWithBorder = (e: React.FocusEvent<HTMLInputElement>) => {
       handleBlur(e);
-      e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
+      e.currentTarget.style.borderColor = error
+        ? "#ef4444"
+        : "var(--color-border-light)";
     };
 
     return (
@@ -265,7 +277,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         {...rest}
       />
     );
-  }
+  },
 );
 
 CurrencyInput.displayName = "CurrencyInput";

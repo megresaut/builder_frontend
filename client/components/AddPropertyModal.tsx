@@ -45,11 +45,56 @@ const MANAGER_OPTIONS: MultiSelectOption[] = AVAILABLE_MANAGERS.map((m) => ({
 }));
 
 const US_STATES = [
-  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
-  "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS",
-  "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK",
-  "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
-  "WI", "WY",
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
 ];
 
 const PROPERTY_TYPES = [
@@ -123,7 +168,6 @@ export default function AddPropertyModal({
     setZipCode(digits.slice(0, 5));
   };
 
-
   const handleSave = () => {
     const newErrors: Record<string, string> = {};
 
@@ -170,10 +214,7 @@ export default function AddPropertyModal({
       showDivider={true}
       footer={
         <div className="flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleSave}>
@@ -259,7 +300,7 @@ export default function AddPropertyModal({
                 }))}
                 onChange={(newOptions) => {
                   const managers = AVAILABLE_MANAGERS.filter((m) =>
-                    newOptions.some((opt) => String(opt.id) === String(m.id))
+                    newOptions.some((opt) => String(opt.id) === String(m.id)),
                   );
                   setSelectedManagers(managers);
                 }}

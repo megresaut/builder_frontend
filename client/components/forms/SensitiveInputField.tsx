@@ -3,7 +3,10 @@ import { Eye, EyeOff, Copy, Check } from "lucide-react";
 import { FieldShell } from "./FieldShell";
 
 interface SensitiveInputFieldProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
   label: string;
   required?: boolean;
   description?: string;
@@ -56,7 +59,10 @@ interface SensitiveInputFieldProps
  * />
  * ```
  */
-export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFieldProps>(
+export const SensitiveInputField = forwardRef<
+  HTMLInputElement,
+  SensitiveInputFieldProps
+>(
   (
     {
       label,
@@ -141,7 +147,13 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
         disabled={disabled}
         htmlFor={fieldId}
       >
-        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           <input
             ref={ref}
             id={fieldId}
@@ -177,7 +189,9 @@ export const SensitiveInputField = forwardRef<HTMLInputElement, SensitiveInputFi
               }
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = error ? "#ef4444" : "var(--color-border-light)";
+              e.currentTarget.style.borderColor = error
+                ? "#ef4444"
+                : "var(--color-border-light)";
             }}
             {...inputProps}
           />

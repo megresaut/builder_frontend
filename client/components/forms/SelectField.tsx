@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
 
@@ -107,7 +111,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   // Determine if we're in multi-select mode
   const isMultiple = multiple;
   const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
-  const selectedValue = !isMultiple ? (typeof value === "string" ? value : "") : "";
+  const selectedValue = !isMultiple
+    ? typeof value === "string"
+      ? value
+      : ""
+    : "";
 
   // Get selected option objects
   const selectedOptions = isMultiple
@@ -120,9 +128,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     ? selectedValues.length === 0
       ? placeholder
       : undefined
-    : selectedOptions[0]?.label ?? placeholder;
+    : (selectedOptions[0]?.label ?? placeholder);
 
-  const isShowingPlaceholder = isMultiple ? selectedValues.length === 0 : !selectedValue;
+  const isShowingPlaceholder = isMultiple
+    ? selectedValues.length === 0
+    : !selectedValue;
 
   // Filter options based on search text
   const filteredOptions = searchText
@@ -131,9 +141,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       )
     : options;
 
-  const handleTriggerKeyDown = (
-    e: React.KeyboardEvent<HTMLElement>,
-  ) => {
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
 
     switch (e.key) {
@@ -203,10 +211,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     }
   };
 
-  const handleOptionKeyDown = (
-    e: React.KeyboardEvent,
-    optionIndex: number,
-  ) => {
+  const handleOptionKeyDown = (e: React.KeyboardEvent, optionIndex: number) => {
     switch (e.key) {
       case "Enter":
       case " ":
@@ -277,7 +282,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           id={fieldId}
           disabled={disabled}
           className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-            error ? "border-red-600" : open ? "border-black" : "border-[var(--color-border-light)]"
+            error
+              ? "border-red-600"
+              : open
+                ? "border-black"
+                : "border-[var(--color-border-light)]"
           }`}
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -288,7 +297,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             alignItems: "center",
             flexWrap: isMultiple ? "wrap" : "nowrap",
             gap: isMultiple ? "6px" : "8px",
-            padding: isMultiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
+            padding:
+              isMultiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
           }}
           onKeyDown={handleTriggerKeyDownWhenOpen}
         >
@@ -318,7 +328,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             ) : (
               <span
                 style={{
-                  color: isShowingPlaceholder ? "#303030" : "var(--color-text-primary)",
+                  color: isShowingPlaceholder
+                    ? "#303030"
+                    : "var(--color-text-primary)",
                   fontSize: "14px",
                 }}
               >
@@ -326,7 +338,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
               </span>
             )}
           </div>
-          <ChevronDown className="h-4 w-4 shrink-0 flex-none" style={{ color: "#303030" }} />
+          <ChevronDown
+            className="h-4 w-4 shrink-0 flex-none"
+            style={{ color: "#303030" }}
+          />
         </PopoverTrigger>
 
         <PopoverContent
@@ -398,17 +413,17 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                       width: "100%",
                       padding: "8px 12px",
                       textAlign: "left",
-                      backgroundColor:
-                        isSelected
-                          ? "rgba(36, 99, 235, 0.15)"
-                          : highlightedIndex === index
-                            ? "rgba(36, 99, 235, 0.08)"
-                            : "transparent",
+                      backgroundColor: isSelected
+                        ? "rgba(36, 99, 235, 0.15)"
+                        : highlightedIndex === index
+                          ? "rgba(36, 99, 235, 0.08)"
+                          : "transparent",
                       color: "var(--color-text-primary)",
                       border: "none",
                       cursor: "pointer",
                       fontSize: "14px",
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                       display: "flex",
                       alignItems: "center",
                       gap: "8px",
@@ -416,21 +431,21 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                     }}
                     onMouseEnter={(e) => {
                       setHighlightedIndex(index);
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                        isSelected
-                          ? "rgba(36, 99, 235, 0.15)"
-                          : "rgba(36, 99, 235, 0.08)";
+                      (
+                        e.currentTarget as HTMLButtonElement
+                      ).style.backgroundColor = isSelected
+                        ? "rgba(36, 99, 235, 0.15)"
+                        : "rgba(36, 99, 235, 0.08)";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                        isSelected
-                          ? "rgba(36, 99, 235, 0.15)"
-                          : "transparent";
+                      (
+                        e.currentTarget as HTMLButtonElement
+                      ).style.backgroundColor = isSelected
+                        ? "rgba(36, 99, 235, 0.15)"
+                        : "transparent";
                     }}
                   >
-                    {isSelected && (
-                      <Check className="h-4 w-4 text-blue-600" />
-                    )}
+                    {isSelected && <Check className="h-4 w-4 text-blue-600" />}
                     {!isSelected && <div className="h-4 w-4" />}
                     {option.label}
                   </button>

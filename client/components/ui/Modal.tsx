@@ -13,7 +13,8 @@ const MODAL_WIDTHS: Record<ModalSize, number> = {
   xl: 1000,
 };
 
-interface ModalProps extends React.ComponentPropsWithoutRef<typeof DialogContent> {
+interface ModalProps
+  extends React.ComponentPropsWithoutRef<typeof DialogContent> {
   /** Modal size: xs (360px), sm (442px), md (600px), lg (800px), xl (1000px) */
   size?: ModalSize;
   /** Hide the default close button */
@@ -72,7 +73,7 @@ export const Modal = React.forwardRef<
           className,
           {
             "[&>button]:hidden": hideCloseButton,
-          }
+          },
         )}
         style={{
           width: `${widthValue}px`,

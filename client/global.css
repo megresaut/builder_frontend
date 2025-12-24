@@ -97,11 +97,11 @@
     --color-text-secondary: #525252;
     --color-text-muted: #717179;
     --color-text-placeholder: #303030;
-    --color-border-default: #DADADA;
-    --color-border-light: #E5E5E5;
+    --color-border-default: #dadada;
+    --color-border-light: #e5e5e5;
     --color-bg-subtle: #fbfbfb;
-    --color-bg-row: #F2F2F2;
-    --color-status-error: #DC2626;
+    --color-bg-row: #f2f2f2;
+    --color-status-error: #dc2626;
     --color-button-primary: #013764;
     --color-button-primary-hover: #014578;
     --color-button-primary-shadow: rgba(0, 45, 90, 1);
@@ -246,7 +246,12 @@
    * Matches the exact rendering of Input component placeholders.
    */
   .ra-input-placeholder {
-    font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
+    font-family:
+      Geist,
+      -apple-system,
+      Roboto,
+      Helvetica,
+      sans-serif;
     font-size: 16px;
     font-weight: 400;
     letter-spacing: -0.32px;

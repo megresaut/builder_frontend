@@ -34,8 +34,9 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         if (typeof forwardedRef === "function") {
           forwardedRef(node);
         } else if (forwardedRef) {
-          (forwardedRef as React.MutableRefObject<HTMLTextAreaElement | null>).current =
-            node;
+          (
+            forwardedRef as React.MutableRefObject<HTMLTextAreaElement | null>
+          ).current = node;
         }
       },
       [forwardedRef],

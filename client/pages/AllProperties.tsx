@@ -324,7 +324,8 @@ export default function AllProperties() {
     "isAddPropertyModalOpen",
     false,
   );
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(properties);
+  const { handleSortClick, getSortIndicator, getSortedData } =
+    useSortingTable(properties);
   const {
     columnOrder,
     visibleColumns,
@@ -349,67 +350,110 @@ export default function AllProperties() {
     "status",
   ]);
 
-  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
-    address: {
-      label: "Address",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-          <path d="M10 6h4" />
-          <path d="M10 10h4" />
-          <path d="M10 14h4" />
-          <path d="M10 18h4" />
-        </svg>
-      ),
-    },
-    location: {
-      label: "Location",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-          <circle cx="12" cy="10" r="3" />
-        </svg>
-      ),
-    },
-    managers: {
-      label: "Manager",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      ),
-    },
-    type: {
-      label: "Type",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="18" height="18" x="3" y="3" rx="2" />
-          <path d="M7 7h10M7 12h10M7 17h4" />
-        </svg>
-      ),
-    },
-    buildingId: {
-      label: "Buildium ID",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="18" height="18" x="3" y="3" rx="2" />
-          <path d="M8 7h8M8 12h8M8 17h4" />
-        </svg>
-      ),
-    },
-    status: {
-      label: "Status",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
-        </svg>
-      ),
-    },
-  };
+  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> =
+    {
+      address: {
+        label: "Address",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+            <path d="M10 6h4" />
+            <path d="M10 10h4" />
+            <path d="M10 14h4" />
+            <path d="M10 18h4" />
+          </svg>
+        ),
+      },
+      location: {
+        label: "Location",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        ),
+      },
+      managers: {
+        label: "Manager",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        ),
+      },
+      type: {
+        label: "Type",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="M7 7h10M7 12h10M7 17h4" />
+          </svg>
+        ),
+      },
+      buildingId: {
+        label: "Buildium ID",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="M8 7h8M8 12h8M8 17h4" />
+          </svg>
+        ),
+      },
+      status: {
+        label: "Status",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+        ),
+      },
+    };
 
   const getDisplayedPropertiesForPage = () => {
     const sorted = getSortedData();
@@ -516,7 +560,8 @@ export default function AllProperties() {
       className="bg-white"
       style={{
         borderLeftWidth: "1.33333px",
-        border: "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+        border:
+          "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
         padding: "32px 32px 150px",
       }}
     >
@@ -619,10 +664,16 @@ export default function AllProperties() {
                   }}
                   className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 >
-                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                    <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                    <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                    <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                    <circle cx="8" cy="13" r="1.5" fill="#303030" />
                   </svg>
                 </button>
               </div>
@@ -633,50 +684,54 @@ export default function AllProperties() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    {columnOrder.filter(colKey => visibleColumns.has(colKey)).map((colKey) => {
-                      const colConfig = columnConfig[colKey];
-                      return (
-                        <th
-                          key={colKey}
-                          draggable
-                          onDragStart={() => handleColumnDragStart(colKey)}
-                          onDragOver={(e) => handleColumnDragOver(e, colKey)}
-                          onDragLeave={handleColumnDragLeave}
-                          onDrop={(e) => handleColumnDrop(e, colKey)}
-                          onClick={() => handleSortClick(colKey)}
-                          className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
-                          style={{
-                            opacity: draggedColumn === colKey ? 0.5 : 1,
-                            transition: "opacity 0.2s ease",
-                          }}
-                        >
-                          {dropTargetColumn === colKey && draggedColumn && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                top: 0,
-                                bottom: 0,
-                                width: "2px",
-                                backgroundColor: "#3b82f6",
-                                left: dropPosition === "before" ? "0" : "auto",
-                                right: dropPosition === "after" ? "0" : "auto",
-                              }}
-                            />
-                          )}
-                          <div className="flex items-center gap-2">
-                            {colConfig?.icon}
-                            <span className="font-medium text-sm text-gray-700">
-                              {colConfig?.label}
-                            </span>
-                            {getSortIndicator(colKey) && (
-                              <span className="text-xs font-bold text-gray-700 ml-1">
-                                {getSortIndicator(colKey)}
-                              </span>
+                    {columnOrder
+                      .filter((colKey) => visibleColumns.has(colKey))
+                      .map((colKey) => {
+                        const colConfig = columnConfig[colKey];
+                        return (
+                          <th
+                            key={colKey}
+                            draggable
+                            onDragStart={() => handleColumnDragStart(colKey)}
+                            onDragOver={(e) => handleColumnDragOver(e, colKey)}
+                            onDragLeave={handleColumnDragLeave}
+                            onDrop={(e) => handleColumnDrop(e, colKey)}
+                            onClick={() => handleSortClick(colKey)}
+                            className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                            style={{
+                              opacity: draggedColumn === colKey ? 0.5 : 1,
+                              transition: "opacity 0.2s ease",
+                            }}
+                          >
+                            {dropTargetColumn === colKey && draggedColumn && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: 0,
+                                  bottom: 0,
+                                  width: "2px",
+                                  backgroundColor: "#3b82f6",
+                                  left:
+                                    dropPosition === "before" ? "0" : "auto",
+                                  right:
+                                    dropPosition === "after" ? "0" : "auto",
+                                }}
+                              />
                             )}
-                          </div>
-                        </th>
-                      );
-                    })}
+                            <div className="flex items-center gap-2">
+                              {colConfig?.icon}
+                              <span className="font-medium text-sm text-gray-700">
+                                {colConfig?.label}
+                              </span>
+                              {getSortIndicator(colKey) && (
+                                <span className="text-xs font-bold text-gray-700 ml-1">
+                                  {getSortIndicator(colKey)}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                        );
+                      })}
                     <th
                       className="sticky right-0 px-2 py-3 text-center w-20"
                       style={{
@@ -693,111 +748,109 @@ export default function AllProperties() {
                 </thead>
                 <tbody>
                   {getDisplayedPropertiesForPage().map((property) => {
-                      const handleRowClick = (e: React.MouseEvent) => {
-                        if (
-                          (e.target as HTMLElement).closest("td:last-child")
-                        ) {
-                          return;
-                        }
-                        navigate(`/property/${property.id}`);
-                      };
+                    const handleRowClick = (e: React.MouseEvent) => {
+                      if ((e.target as HTMLElement).closest("td:last-child")) {
+                        return;
+                      }
+                      navigate(`/property/${property.id}`);
+                    };
 
-                      const renderCell = (colKey: string) => {
-                        switch (colKey) {
-                          case "address":
-                            return (
-                              <span className="text-gray-900 font-normal text-sm">
-                                {property.address}
-                              </span>
-                            );
-                          case "location":
-                            return (
-                              <span className="text-gray-900 font-normal text-sm">
-                                {property.location}
-                              </span>
-                            );
-                          case "managers":
-                            return (
-                              <div className="flex items-center gap-2">
-                                {property.managers.map((manager) => (
+                    const renderCell = (colKey: string) => {
+                      switch (colKey) {
+                        case "address":
+                          return (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {property.address}
+                            </span>
+                          );
+                        case "location":
+                          return (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {property.location}
+                            </span>
+                          );
+                        case "managers":
+                          return (
+                            <div className="flex items-center gap-2">
+                              {property.managers.map((manager) => (
+                                <div
+                                  key={manager.id}
+                                  className="relative group"
+                                >
                                   <div
-                                    key={manager.id}
-                                    className="relative group"
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                                    style={{
+                                      backgroundColor: "rgb(59, 130, 246)",
+                                      borderColor: "rgb(209, 213, 219)",
+                                      borderWidth: "1px",
+                                    }}
+                                    title={manager.name}
                                   >
-                                    <div
-                                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                                      style={{
-                                        backgroundColor: "rgb(59, 130, 246)",
-                                        borderColor: "rgb(209, 213, 219)",
-                                        borderWidth: "1px",
-                                      }}
-                                      title={manager.name}
-                                    >
-                                      {manager.initials}
-                                    </div>
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                                      {manager.name}
-                                    </div>
+                                    {manager.initials}
                                   </div>
-                                ))}
-                              </div>
-                            );
-                          case "type":
-                            return (
-                              <span className="text-gray-900 font-normal text-sm">
-                                {property.type}
-                              </span>
-                            );
-                          case "buildingId":
-                            return (
-                              <span className="text-gray-900 font-normal text-sm">
-                                {property.buildingId}
-                              </span>
-                            );
-                          case "status":
-                            return <StatusBadge status={property.status} />;
-                          default:
-                            return null;
-                        }
-                      };
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {manager.name}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        case "type":
+                          return (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {property.type}
+                            </span>
+                          );
+                        case "buildingId":
+                          return (
+                            <span className="text-gray-900 font-normal text-sm">
+                              {property.buildingId}
+                            </span>
+                          );
+                        case "status":
+                          return <StatusBadge status={property.status} />;
+                        default:
+                          return null;
+                      }
+                    };
 
-                      return (
-                        <tr
-                          key={property.id}
-                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
-                          onClick={handleRowClick}
+                    return (
+                      <tr
+                        key={property.id}
+                        className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12 cursor-pointer"
+                        onClick={handleRowClick}
+                      >
+                        {columnOrder
+                          .filter((colKey) => visibleColumns.has(colKey))
+                          .map((colKey) => (
+                            <td
+                              key={colKey}
+                              className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
+                            >
+                              {renderCell(colKey)}
+                            </td>
+                          ))}
+                        <td
+                          className="sticky right-0 px-2 py-3 flex items-center justify-center"
+                          style={{
+                            borderLeftWidth: "2px",
+                            width: "80px",
+                            border:
+                              "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
+                            borderLeftColor: "transparent",
+                            backgroundColor: "white",
+                          }}
                         >
-                          {columnOrder
-                            .filter((colKey) => visibleColumns.has(colKey))
-                            .map((colKey) => (
-                              <td
-                                key={colKey}
-                                className="px-3 py-3 border-r border-gray-200 whitespace-nowrap"
-                              >
-                                {renderCell(colKey)}
-                              </td>
-                            ))}
-                          <td
-                            className="sticky right-0 px-2 py-3 flex items-center justify-center"
-                            style={{
-                              borderLeftWidth: "2px",
-                              width: "80px",
-                              border:
-                                "1px none rgb(226, 232, 240) rgb(226, 232, 240) rgb(226, 232, 240) rgb(210, 209, 207)",
-                              borderLeftColor: "transparent",
-                              backgroundColor: "white",
-                            }}
-                          >
-                            <ActionButton
-                              property={property}
-                              openMenuId={openMenuId}
-                              setOpenMenuId={setOpenMenuId}
-                              onEditClick={handlePropertyEdit}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          <ActionButton
+                            property={property}
+                            openMenuId={openMenuId}
+                            setOpenMenuId={setOpenMenuId}
+                            onEditClick={handlePropertyEdit}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

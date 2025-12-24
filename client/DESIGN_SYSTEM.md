@@ -5,6 +5,7 @@ This document is the **single source of truth** for how to build UI in this appl
 ## Recent Updates (Latest)
 
 **Popover Enhancements** (Latest refactor):
+
 - Popover primitive now uses React Context for robust trigger tracking
 - Added ResizeObserver for real-time trigger width syncing
 - Improved collision detection: auto-flips above trigger when space is limited, closes if can't fit
@@ -13,6 +14,7 @@ This document is the **single source of truth** for how to build UI in this appl
 - All form dropdowns (SelectField, ComboboxField, IdentitySelectField) now use Popover primitive
 
 **Component Renames & Deprecations**:
+
 - ✅ `BillsPageHeader` → `PageHeader` (renamed for broader reusability)
 - ❌ `SelectFieldV2` → Removed (use `SelectField` instead, now supports multi-select via `multiple` prop)
 
@@ -21,7 +23,7 @@ This document is the **single source of truth** for how to build UI in this appl
 ## Table of Contents
 
 1. [Component Inventory](#component-inventory)
-2. [Global Styles (ra-* classes)](#global-styles-ra-classes)
+2. [Global Styles (ra-\* classes)](#global-styles-ra-classes)
 3. [Decision Framework](#decision-framework)
 4. [Form Pattern](#form-pattern)
 5. [Tailwind Token Reference](#tailwind-token-reference)
@@ -37,6 +39,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 ### Core Components
 
 #### PageHeader
+
 - **File**: `components/PageHeader.tsx`
 - **Exports**: `PageHeader`, `PageHeaderAction`, `PageHeaderTab`
 - **Props**:
@@ -60,18 +63,19 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
     description="Manage your bills and payments"
     tabs={[
       { id: "approved", label: "Approved", count: 12 },
-      { id: "drafts", label: "Drafts", count: 3 }
+      { id: "drafts", label: "Drafts", count: 3 },
     ]}
     selectedTab={selectedTab}
     onTabChange={setSelectedTab}
     actions={[
       { id: "add", label: "Add Bill", icon: <Plus />, onClick: handleAdd },
-      { id: "sync", label: "Sync", icon: <Sync />, onClick: handleSync }
+      { id: "sync", label: "Sync", icon: <Sync />, onClick: handleSync },
     ]}
   />
   ```
 
 #### Button
+
 - **File**: `components/ui/button.tsx`
 - **Export**: `Button`, `buttonVariants`
 - **Variants**: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`
@@ -85,8 +89,8 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   <Button asChild><a href="/path">Link as Button</a></Button>
   ```
 
-
 #### Dialog
+
 - **File**: `components/ui/dialog.tsx`
 - **Exports**: `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`, `DialogClose`
 - **Based On**: Radix Dialog primitive
@@ -104,8 +108,8 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   </Dialog>
   ```
 
-
 #### ModalTemplate
+
 - **File**: `components/ui/ModalTemplate.tsx`
 - **Export**: `ModalTemplate`
 - **Size Variants**: `xs` (360px), `sm` (442px), `md` (600px), `lg` (800px), `xl` (1000px)
@@ -128,6 +132,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   ```
 
 #### Popover
+
 - **File**: `components/ui/popover.tsx`
 - **Exports**: `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverScroll`
 - **Based On**: Radix Popover primitive
@@ -180,8 +185,8 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   </Popover>
   ```
 
-
 #### DropdownMenu
+
 - **File**: `components/ui/dropdown-menu.tsx`
 - **Exports**: `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`
 - **Based On**: Radix DropdownMenu primitive
@@ -199,6 +204,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   ```
 
 #### Dropdown (Specialized)
+
 - **File**: `components/ui/dropdown.tsx`
 - **Exports**: `Dropdown`, `Dropdown.Trigger`, `Dropdown.Content`
 - **Used For**: DatePicker calendar, custom dropdowns with specialized positioning
@@ -206,6 +212,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 - **Note**: For most form fields (Select, Combobox), use the Popover-based components instead. Use Dropdown only for date picker or specialized cases requiring custom positioning logic.
 
 #### Checkbox
+
 - **File**: `components/ui/checkbox.tsx`
 - **Exports**: `Checkbox`
 - **Based On**: Radix Checkbox primitive
@@ -216,6 +223,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   ```
 
 #### Switch
+
 - **File**: `components/ui/switch.tsx`
 - **Exports**: `Switch`
 - **Based On**: Radix Switch primitive
@@ -226,6 +234,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   ```
 
 #### Table
+
 - **File**: `components/ui/table.tsx`
 - **Exports**: `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableHead`, `TableRow`, `TableCell`
 - **Global Styles**: Uses `.ra-table-*` classes from CSS
@@ -233,12 +242,21 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
 - **Example**:
   ```tsx
   <Table>
-    <TableHeader><TableRow><TableHead>Name</TableHead></TableRow></TableHeader>
-    <TableBody><TableRow><TableCell>Data</TableCell></TableRow></TableBody>
+    <TableHeader>
+      <TableRow>
+        <TableHead>Name</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      <TableRow>
+        <TableCell>Data</TableCell>
+      </TableRow>
+    </TableBody>
   </Table>
   ```
 
 #### AlertDialog
+
 - **File**: `components/ui/alert-dialog.tsx`
 - **Exports**: `AlertDialog`, `AlertDialogTrigger`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogAction`, `AlertDialogCancel`
 - **Based On**: Radix AlertDialog primitive
@@ -255,6 +273,7 @@ All UI components live in `code/client/components/ui/` and follow consistent pat
   ```
 
 #### Toast / Notifications
+
 - **File**: `components/ui/toast.tsx`, `components/ui/sonner.tsx`
 - **Usage**: Via sonner library
 - **Example**:
@@ -272,6 +291,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
 **Exports**: `FieldShell`, `TextField`, `TextAreaField`, `NumberField`, `CurrencyField`, `DateField`, `SelectField`, `ComboboxField`, `FieldRow`, `FormSection`
 
 ##### FieldShell (Base Wrapper)
+
 - **File**: `components/forms/FieldShell.tsx`
 - **Export**: `FieldShell`
 - **Props**: `label`, `required`, `description`, `error`, `disabled`, `htmlFor`, `children` (the input control)
@@ -296,6 +316,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### TextField
+
 - **File**: `components/forms/TextField.tsx`
 - **Export**: `TextField`
 - **Composition**: `FieldShell` + `Input`
@@ -314,6 +335,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### TextAreaField
+
 - **File**: `components/forms/TextAreaField.tsx`
 - **Export**: `TextAreaField`
 - **Composition**: `FieldShell` + `Textarea`
@@ -332,6 +354,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### NumberField
+
 - **File**: `components/forms/NumberField.tsx`
 - **Export**: `NumberField`
 - **Composition**: `FieldShell` + `Input` (type="number")
@@ -351,6 +374,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### CurrencyField ⭐ (Most Important PM Field)
+
 - **File**: `components/forms/CurrencyField.tsx`
 - **Export**: `CurrencyField`
 - **Composition**: `FieldShell` + `CurrencyInput`
@@ -374,6 +398,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### DateField
+
 - **File**: `components/forms/DateField.tsx`
 - **Export**: `DateField`
 - **Composition**: `FieldShell` + `DatePicker`
@@ -391,6 +416,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### SelectField
+
 - **File**: `components/forms/SelectField.tsx`
 - **Export**: `SelectField`
 - **Composition**: `FieldShell` + `Popover`-based dropdown with keyboard navigation
@@ -430,6 +456,7 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### ComboboxField
+
 - **File**: `components/forms/ComboboxField.tsx`
 - **Export**: `ComboboxField`
 - **Composition**: `FieldShell` + `Combobox` (Command + Popover)
@@ -445,11 +472,12 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
     onChange={setVendorId}
     error={errors.vendor}
     placeholder="Select vendor"
-    options={vendors.map(v => ({ value: v.id, label: v.name }))}
+    options={vendors.map((v) => ({ value: v.id, label: v.name }))}
   />
   ```
 
 ##### FieldRow (Layout Component)
+
 - **File**: `components/ui/field-row.tsx`
 - **Export**: `FieldRow`, `FieldRowItem`
 - **Props**: `columns` (2 | 3, default: 2), `children` (should be FieldRowItem components)
@@ -470,13 +498,17 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 ##### FormSection (Layout Component)
+
 - **File**: `components/ui/form-section.tsx`
 - **Export**: `FormSection`
 - **Props**: `title`, `description` (optional), `showDivider` (default: true), `children`
 - **Key Features**: Section header with optional divider, groups related fields
 - **Example**:
   ```tsx
-  <FormSection title="Contact Information" description="Primary contact details">
+  <FormSection
+    title="Contact Information"
+    description="Primary contact details"
+  >
     <FieldRow columns={2}>
       <FieldRowItem>
         <TextField label="Email" type="email" />
@@ -489,23 +521,27 @@ All form fields use a consistent `FieldShell` wrapper for label, required indica
   ```
 
 #### Other Components
+
 Additional components available: `accordion.tsx`, `tabs.tsx`, `sheet.tsx`, `drawer.tsx`, `card.tsx`, `badge.tsx`, `avatar.tsx`, `slider.tsx`, `pagination.tsx`, `calendar.tsx`, `collapsible.tsx`, `command.tsx`, `context-menu.tsx`, `hover-card.tsx`, `input-otp.tsx`, `menubar.tsx`, `navigation-menu.tsx`, `progress.tsx`, `radio-group.tsx`, `resizable.tsx`, `scroll-area.tsx`, `separator.tsx`, `skeleton.tsx`, `toggle.tsx`, `tooltip.tsx`, etc.
 
 ---
 
-## Global Styles (ra-* classes)
+## Global Styles (ra-\* classes)
 
 Global component classes in `@layer components` (in `code/client/global.css`). These are **reusable CSS patterns** used across multiple components. Use when a style pattern repeats 3+ times.
 
 ### Floating Panels
+
 ```css
 .ra-floating-panel
 ```
+
 - **Used By**: DatePicker, Select dropdowns, DropdownMenu, Popover contents
 - **Includes**: White background, subtle border, elevation shadow, border-radius, max-height with scroll
 - **Example**: Applied to dropdown panels for consistent floating UI appearance
 
 ### Table Styles
+
 ```css
 .ra-table                    /* Main table wrapper */
 .ra-table-header-cell        /* Header cells */
@@ -520,17 +556,27 @@ Global component classes in `@layer components` (in `code/client/global.css`). T
 .ra-table-next-button
 .ra-table-pagination-page
 ```
+
 - **Used By**: Table component, data displays
 - **Includes**: Border styling, hover states, pagination controls
 - **Example**:
   ```html
   <table class="ra-table">
-    <thead><tr><th class="ra-table-header-cell">Header</th></tr></thead>
-    <tbody><tr class="ra-table-row"><td class="ra-table-cell">Data</td></tr></tbody>
+    <thead>
+      <tr>
+        <th class="ra-table-header-cell">Header</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="ra-table-row">
+        <td class="ra-table-cell">Data</td>
+      </tr>
+    </tbody>
   </table>
   ```
 
 ### Date Picker Styles
+
 ```css
 .ra-date-picker-input        /* Input field */
 .ra-date-picker-input--error /* Error state */
@@ -546,10 +592,12 @@ Global component classes in `@layer components` (in `code/client/global.css`). T
 .ra-date-picker-day--selected /* Selected day state */
 .ra-date-picker-day--empty   /* Empty day state */
 ```
+
 - **Used By**: DatePicker component
 - **Includes**: Input styling, calendar layout, selected day highlighting
 
 ### Dropdown Styles
+
 ```css
 .ra-dropdown              /* Dropdown wrapper */
 .ra-dropdown-trigger      /* Trigger button/element */
@@ -557,19 +605,23 @@ Global component classes in `@layer components` (in `code/client/global.css`). T
 .ra-actions-dropdown      /* Actions menu dropdown */
 .ra-action-item           /* Individual action item */
 ```
+
 - **Used By**: Custom dropdowns, action menus
 - **Includes**: Panel positioning, item styling
 
 ### Filter/Column Styles
+
 ```css
 .ra-column-filter-modal   /* Filter modal wrapper */
 .ra-column-filter-item    /* Filter item row */
 .ra-column-filter-icon    /* Icon in filter item */
 ```
+
 - **Used By**: Column filter modals
 - **Includes**: Layout, hover states
 
 ### Modal Styles
+
 ```css
 .small-modal               /* Small modal container */
 .small-modal-header-wrapper
@@ -580,13 +632,16 @@ Global component classes in `@layer components` (in `code/client/global.css`). T
 .small-modal-cancel-btn
 .small-modal-save-btn
 ```
+
 - **Used By**: AddVendorModal, CreateWorkOrderModal, etc.
 - **Includes**: Modal layout, button styles, typography
 
 ### Button Styles
+
 ```css
 .grey-button  /* Standard grey button (secondary style) */
 ```
+
 - **Used By**: Cancel buttons, secondary actions
 - **Includes**: Subtle background, hover effect
 
@@ -626,21 +681,25 @@ START: Need to build something?
 ### Decision Tree Examples
 
 **Example 1: Building a new form field**
+
 - Question: Is it a text input with validation?
 - Answer: Use react-hook-form + FormItem + Input component
 - Don't: Create custom input or validation
 
 **Example 2: Need special button styling**
+
 - Question: Is this button style used elsewhere?
 - If NO: Use Button component + className override with cn()
 - If YES (3+ times): Add new button variant to buttonVariants in button.tsx
 
 **Example 3: Building a new dropdown**
+
 - Question: Is it just styling or interactive behavior?
 - Answer: Use Select or DropdownMenu component (already wrapped with .ra-floating-panel)
 - Don't: Create custom dropdown
 
 **Example 4: Need to add section header styling**
+
 - Question: Is this header style repeated?
 - If NO: Use Tailwind utilities (font-semibold text-2xl)
 - If YES (3+ times): Add global class like `.ra-section-header` to global.css
@@ -662,6 +721,7 @@ Tokens are defined in `code/client/global.css` (CSS variables) and exposed via `
 ### Color Tokens
 
 **Semantic Colors** (from tailwind.config.ts):
+
 - `bg-primary` / `text-primary` / `text-primary-foreground`
 - `bg-secondary` / `text-secondary` / `text-secondary-foreground`
 - `bg-destructive` / `text-destructive` / `text-destructive-foreground`
@@ -671,6 +731,7 @@ Tokens are defined in `code/client/global.css` (CSS variables) and exposed via `
 - `bg-card` / `text-card` / `text-card-foreground`
 
 **Task-Specific Colors** (from tailwind.config.ts):
+
 ```javascript
 task: {
   text: {
@@ -714,12 +775,14 @@ task: {
 ## Common Patterns
 
 ### Pattern 1: Form with validation
+
 ```tsx
 // Use: react-hook-form + Form components
 // See: Form Pattern section above
 ```
 
 ### Pattern 2: Dropdown/Select
+
 ```tsx
 // Preferred: Use SelectField (Popover-based, handles all field styling)
 <SelectField
@@ -755,6 +818,7 @@ task: {
 ```
 
 **Popover Behavior in Modals**:
+
 - By default, Popovers render to `document.body` (outside modal hierarchy)
 - If popover "bleeds" onto other pages, pass `containerRef={modalContainerRef}` to `Popover`
 - Popover automatically:
@@ -763,6 +827,7 @@ task: {
   - Won't extend beyond viewport/modal boundaries
 
 ### Pattern 3: Modal Dialog
+
 ```tsx
 // Use: Dialog + Modal components with size variants
 <Dialog open={open} onOpenChange={setOpen}>
@@ -776,12 +841,14 @@ task: {
 ```
 
 **Size Reference**:
+
 - `size="sm"`: max-width 442px (small forms, add vendor, create task)
 - `size="md"`: max-width 600px (medium dialogs)
 - `size="lg"`: max-width 800px (large dialogs)
 - `size="xl"`: max-width 1000px (full-width forms, complex layouts)
 
 ### Pattern 4: Data Table
+
 ```tsx
 // Use: Table component + ra-table-* CSS classes
 <Table>
@@ -799,6 +866,7 @@ task: {
 ```
 
 ### Pattern 5: Date Selection
+
 ```tsx
 // Preferred: Use DateField (handles label, validation, error display)
 <DateField
@@ -822,6 +890,7 @@ task: {
 ```
 
 ### Pattern 6: Popover Width Syncing
+
 ```tsx
 // Popover automatically matches trigger width when syncTriggerWidth={true} (default)
 <Popover>
@@ -851,6 +920,7 @@ task: {
 **Question**: I need to build a page with a title, tabs, and action buttons (like Bills page).
 
 **Solution**:
+
 1. Use `PageHeader` component for title + tabs + actions
 2. Render page content below
 3. Use `SelectField`, `TextField`, etc. for form inputs
@@ -907,6 +977,7 @@ export function MyPage() {
 **Question**: I need to add a modal for creating a new resource with validation.
 
 **Solution**:
+
 1. Create file: `components/CreateMyResourceModal.tsx`
 2. Import: Field components from `@/components/forms`
 3. Build with field components for consistent styling
@@ -914,7 +985,13 @@ export function MyPage() {
 
 ```tsx
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { TextField, SelectField, CurrencyField } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 
@@ -925,7 +1002,7 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
   const handleSave = () => {
     // Validate
     if (!formData.name) {
-      setErrors({...errors, name: "Name is required"});
+      setErrors({ ...errors, name: "Name is required" });
       return;
     }
     onSave(formData);
@@ -944,14 +1021,14 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
             label="Name"
             required
             value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             error={errors.name}
           />
           <SelectField
             label="Status"
             required
             value={formData.status}
-            onChange={(val) => setFormData({...formData, status: val})}
+            onChange={(val) => setFormData({ ...formData, status: val })}
             error={errors.status}
             options={[
               { value: "active", label: "Active" },
@@ -961,7 +1038,7 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
           <CurrencyField
             label="Amount"
             value={formData.amount}
-            onChange={(val) => setFormData({...formData, amount: val})}
+            onChange={(val) => setFormData({ ...formData, amount: val })}
           />
         </div>
 
@@ -981,7 +1058,8 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
 
 **Question**: I'm building a section header that appears in 3 pages. Should I use Tailwind or create a global class?
 
-**Solution**: 
+**Solution**:
+
 - Since it appears 3+ times → Create a global class
 - Add to `global.css`:
   ```css
@@ -998,6 +1076,7 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
 **Question**: I need a custom dropdown with special styling.
 
 **Solution**:
+
 - Use `Select` or `DropdownMenu` (already have `.ra-floating-panel` styling)
 - If you need custom items, extend `SelectItem` or `DropdownMenuItem` styling
 - Don't create a custom dropdown from scratch
@@ -1023,38 +1102,39 @@ export function CreateMyResourceModal({ open, onOpenChange, onSave }) {
 
 ### Field Components (Recommended for Forms)
 
-| Need | Use | Location |
-|------|-----|----------|
-| **Base field wrapper** | `FieldShell` | components/forms/FieldShell.tsx |
-| **Text field (name, email, address)** | `TextField` | components/forms/TextField.tsx |
-| **Textarea (notes, descriptions)** | `TextAreaField` | components/forms/TextAreaField.tsx |
-| **Number field (quantity, count)** | `NumberField` | components/forms/NumberField.tsx |
-| **Currency field ⭐** | `CurrencyField` | components/forms/CurrencyField.tsx |
-| **Date field (due date, posted date)** | `DateField` | components/forms/DateField.tsx |
-| **Select field (status, enum)** | `SelectField` | components/forms/SelectField.tsx |
-| **Combobox field (vendor, property)** | `ComboboxField` | components/forms/ComboboxField.tsx |
-| **Multi-column field layout** | `FieldRow` + `FieldRowItem` | components/ui/field-row.tsx |
-| **Field section grouping** | `FormSection` | components/ui/form-section.tsx |
+| Need                                   | Use                         | Location                           |
+| -------------------------------------- | --------------------------- | ---------------------------------- |
+| **Base field wrapper**                 | `FieldShell`                | components/forms/FieldShell.tsx    |
+| **Text field (name, email, address)**  | `TextField`                 | components/forms/TextField.tsx     |
+| **Textarea (notes, descriptions)**     | `TextAreaField`             | components/forms/TextAreaField.tsx |
+| **Number field (quantity, count)**     | `NumberField`               | components/forms/NumberField.tsx   |
+| **Currency field ⭐**                  | `CurrencyField`             | components/forms/CurrencyField.tsx |
+| **Date field (due date, posted date)** | `DateField`                 | components/forms/DateField.tsx     |
+| **Select field (status, enum)**        | `SelectField`               | components/forms/SelectField.tsx   |
+| **Combobox field (vendor, property)**  | `ComboboxField`             | components/forms/ComboboxField.tsx |
+| **Multi-column field layout**          | `FieldRow` + `FieldRowItem` | components/ui/field-row.tsx        |
+| **Field section grouping**             | `FormSection`               | components/ui/form-section.tsx     |
 
 **Import**: `import { TextField, SelectField, ... } from "@/components/forms";`
 
 **Deprecated**:
+
 - `SelectFieldV2` - Removed. Use `SelectField` instead (now supports both single and multi-select modes)
 
 ### Base UI Components (For Advanced Use)
 
-| Need | Use | Location |
-|------|-----|----------|
-| **Raw text input** | `Input` component | components/ui/input.tsx |
-| **Raw select dropdown** | `Select` component | components/ui/select.tsx |
-| **Modal dialog** | `Dialog` component | components/ui/dialog.tsx |
-| **Form validation (complex)** | `Form` + `FormField` | components/ui/form.tsx |
-| **Button** | `Button` component | components/ui/button.tsx |
-| **Raw date picker** | `DatePicker` component | components/ui/date-picker.tsx |
-| **Table** | `Table` component | components/ui/table.tsx |
-| **Menu dropdown** | `DropdownMenu` component | components/ui/dropdown-menu.tsx |
-| **Reusable CSS pattern** | Add `ra-*` class | code/client/global.css |
-| **One-off styling** | Tailwind utilities | inline className |
+| Need                          | Use                      | Location                        |
+| ----------------------------- | ------------------------ | ------------------------------- |
+| **Raw text input**            | `Input` component        | components/ui/input.tsx         |
+| **Raw select dropdown**       | `Select` component       | components/ui/select.tsx        |
+| **Modal dialog**              | `Dialog` component       | components/ui/dialog.tsx        |
+| **Form validation (complex)** | `Form` + `FormField`     | components/ui/form.tsx          |
+| **Button**                    | `Button` component       | components/ui/button.tsx        |
+| **Raw date picker**           | `DatePicker` component   | components/ui/date-picker.tsx   |
+| **Table**                     | `Table` component        | components/ui/table.tsx         |
+| **Menu dropdown**             | `DropdownMenu` component | components/ui/dropdown-menu.tsx |
+| **Reusable CSS pattern**      | Add `ra-*` class         | code/client/global.css          |
+| **One-off styling**           | Tailwind utilities       | inline className                |
 
 ---
 

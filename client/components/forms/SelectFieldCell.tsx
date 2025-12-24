@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Check } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { FieldCellShell } from "./FieldCellShell";
 
 interface SelectOption {
@@ -90,9 +94,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
     }
   };
 
-  const handleTriggerKeyDown = (
-    e: React.KeyboardEvent<HTMLElement>,
-  ) => {
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
 
     switch (e.key) {
@@ -157,10 +159,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
     handleOpen(false);
   };
 
-  const handleOptionKeyDown = (
-    e: React.KeyboardEvent,
-    optionIndex: number,
-  ) => {
+  const handleOptionKeyDown = (e: React.KeyboardEvent, optionIndex: number) => {
     switch (e.key) {
       case "Enter":
       case " ":
@@ -265,17 +264,17 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
                   width: "100%",
                   padding: "8px 12px",
                   textAlign: "left",
-                  backgroundColor:
-                    isSelected
-                      ? "rgba(36, 99, 235, 0.15)"
-                      : highlightedIndex === index
-                        ? "rgba(36, 99, 235, 0.08)"
-                        : "transparent",
+                  backgroundColor: isSelected
+                    ? "rgba(36, 99, 235, 0.15)"
+                    : highlightedIndex === index
+                      ? "rgba(36, 99, 235, 0.08)"
+                      : "transparent",
                   color: "var(--color-text-primary)",
                   border: "none",
                   cursor: "pointer",
                   fontSize: "13px",
-                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",

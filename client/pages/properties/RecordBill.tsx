@@ -147,7 +147,7 @@ const buildEditableBillFromState = (stateBill?: ViewBillState) => {
   const vendorName = (stateBill?.vendorName ?? "").trim();
   const vendor =
     vendorName && vendorName !== "—"
-      ? mockVendors.find((v) => v.name === vendorName) ?? null
+      ? (mockVendors.find((v) => v.name === vendorName) ?? null)
       : null;
 
   const referenceNumber = stateBill?.referenceNumber ?? "";
@@ -216,11 +216,12 @@ export const RecordBill = () => {
 
   const stateBill = location.state?.bill;
 
-  const readOnlyBill = isReadOnly ? buildReadOnlyBillFromState(stateBill) : null;
-
-  const editableBill = !isReadOnly && stateBill
-    ? buildEditableBillFromState(stateBill)
+  const readOnlyBill = isReadOnly
+    ? buildReadOnlyBillFromState(stateBill)
     : null;
+
+  const editableBill =
+    !isReadOnly && stateBill ? buildEditableBillFromState(stateBill) : null;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
@@ -246,14 +247,14 @@ export const RecordBill = () => {
   const [invoiceDateInput, setInvoiceDateInput] = useState<string>(() => {
     const date =
       (isReadOnly
-        ? readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate
+        ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
         : editableBill?.invoiceDate) ?? null;
     return date ? format(date, "MM/dd/yyyy") : "";
   });
   const [dueDateInput, setDueDateInput] = useState<string>(() => {
     const date =
       (isReadOnly
-        ? readOnlyBill?.dueDate ?? placeholderBill.dueDate
+        ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate)
         : editableBill?.dueDate) ?? null;
     return date ? format(date, "MM/dd/yyyy") : "";
   });
@@ -382,7 +383,14 @@ export const RecordBill = () => {
     const yearNum = parseInt(year, 10);
 
     if (!month || !day || !year) return null;
-    if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31 || yearNum < 1900) return null;
+    if (
+      monthNum < 1 ||
+      monthNum > 12 ||
+      dayNum < 1 ||
+      dayNum > 31 ||
+      yearNum < 1900
+    )
+      return null;
 
     const date = new Date(yearNum, monthNum - 1, dayNum);
     if (date.getMonth() !== monthNum - 1) return null;
@@ -468,9 +476,7 @@ export const RecordBill = () => {
       return;
     }
 
-    const amount = Number.parseFloat(
-      calculateTotal().replace(/[^0-9.]/g, ""),
-    );
+    const amount = Number.parseFloat(calculateTotal().replace(/[^0-9.]/g, ""));
 
     const billData = {
       billId: resolvedBillId,
@@ -494,7 +500,6 @@ export const RecordBill = () => {
     window.dispatchEvent(new CustomEvent("billApproved", { detail: billData }));
     navigate(-1);
   };
-
 
   const handleInvoiceDateChange = (date: Date | null) => {
     setInvoiceDate(date);
@@ -1093,7 +1098,11 @@ export const RecordBill = () => {
                         }}
                         placeholder="Select vendor..."
                         disabled={isReadOnly}
-                        error={formErrors.has("vendor") ? "Vendor is required" : undefined}
+                        error={
+                          formErrors.has("vendor")
+                            ? "Vendor is required"
+                            : undefined
+                        }
                         options={mockVendors.map((vendor) => ({
                           value: vendor.id.toString(),
                           label: vendor.name,
@@ -1134,7 +1143,12 @@ export const RecordBill = () => {
                         value={invoiceDate}
                         onChange={handleInvoiceDateChange}
                         disabled={isReadOnly}
-                        error={invoiceDateError || (formErrors.has("invoiceDate") ? "Invoice Date is required" : undefined)}
+                        error={
+                          invoiceDateError ||
+                          (formErrors.has("invoiceDate")
+                            ? "Invoice Date is required"
+                            : undefined)
+                        }
                         placeholder="mm/dd/yyyy"
                       />
                     </div>
@@ -1145,7 +1159,12 @@ export const RecordBill = () => {
                         value={dueDate}
                         onChange={handleDueDateChange}
                         disabled={isReadOnly}
-                        error={dueDateError || (formErrors.has("dueDate") ? "Due Date is required" : undefined)}
+                        error={
+                          dueDateError ||
+                          (formErrors.has("dueDate")
+                            ? "Due Date is required"
+                            : undefined)
+                        }
                         placeholder="mm/dd/yyyy"
                       />
                     </div>
@@ -1190,7 +1209,8 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.property}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Property / Ledger <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                              Property / Ledger{" "}
+                              <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1198,7 +1218,8 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.unit}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Unit <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                              Unit{" "}
+                              <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1216,7 +1237,15 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.glAccount}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              GL Account&nbsp;<span style={{ color: "rgb(255, 0, 0)", letterSpacing: "-0.26px" }}>*</span>
+                              GL Account&nbsp;
+                              <span
+                                style={{
+                                  color: "rgb(255, 0, 0)",
+                                  letterSpacing: "-0.26px",
+                                }}
+                              >
+                                *
+                              </span>
                             </span>
                           </div>
                           <div
@@ -1224,7 +1253,15 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.total}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Total&nbsp;<span style={{ color: "rgb(255, 0, 0)", letterSpacing: "-0.26px" }}>*</span>
+                              Total&nbsp;
+                              <span
+                                style={{
+                                  color: "rgb(255, 0, 0)",
+                                  letterSpacing: "-0.26px",
+                                }}
+                              >
+                                *
+                              </span>
                             </span>
                           </div>
                           <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
@@ -1289,7 +1326,6 @@ export const RecordBill = () => {
                               />
                             </div>
 
-
                             {/* Description */}
                             <div
                               className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1"
@@ -1338,7 +1374,9 @@ export const RecordBill = () => {
                                   label: account,
                                 }))}
                                 disabled={isReadOnly}
-                                error={lineItemErrors[item.id]?.has("glAccount")}
+                                error={lineItemErrors[item.id]?.has(
+                                  "glAccount",
+                                )}
                               />
                             </div>
 
@@ -1507,7 +1545,9 @@ export const RecordBill = () => {
                       memo,
                       amount: Number.isFinite(amount) ? amount : 0,
                       status: "draft" as const,
-                      ...(isNewBill && { importStatus: "Manual Import" as const }),
+                      ...(isNewBill && {
+                        importStatus: "Manual Import" as const,
+                      }),
                     };
 
                     localStorage.setItem(
@@ -1576,7 +1616,9 @@ export const RecordBill = () => {
                   >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span className="text-white text-sm font-medium leading-5">Approve & Export</span>
+                  <span className="text-white text-sm font-medium leading-5">
+                    Approve & Export
+                  </span>
                 </button>
               </>
             )}

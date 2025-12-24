@@ -114,7 +114,10 @@ function formatPhoneNumber(phoneNumber: string): string {
  * />
  * ```
  */
-export const PhoneNumberField = forwardRef<HTMLInputElement, PhoneNumberFieldProps>(
+export const PhoneNumberField = forwardRef<
+  HTMLInputElement,
+  PhoneNumberFieldProps
+>(
   (
     {
       label,
