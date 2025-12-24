@@ -217,6 +217,7 @@ export default function CreateWorkOrderModalV2({
               <FieldRowItem>
                 <TextField
                   label="Work Order Name"
+                  required
                   value={formData.workOrderName}
                   onChange={handleWorkOrderNameChange}
                   placeholder="Type Work Order Name"
@@ -226,6 +227,7 @@ export default function CreateWorkOrderModalV2({
               <FieldRowItem>
                 <SelectField
                   label="Select Vendor"
+                  required
                   value={formData.vendor}
                   onChange={handleVendorChange}
                   placeholder="Select a Vendor"
