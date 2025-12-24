@@ -216,7 +216,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
               </div>
             ) : (
               options.map((option) => {
-                const isSelected = value.some((v) => v.id === option.id);
+                const isSelected = uniqueValue.some((v) => v.id === option.id);
                 return (
                   <button
                     key={option.id}
