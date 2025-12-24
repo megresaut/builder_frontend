@@ -1,6 +1,12 @@
-import { useState } from "react";
-import { Dialog, DialogTitle } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
+import { useState, useEffect } from "react";
+import {
+  ModalTemplate,
+  ModalButtons,
+  ModalField,
+  ModalSubheader,
+  FieldRow,
+  FieldRowItem,
+} from "@/components/ui/ModalTemplate";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
@@ -36,6 +42,23 @@ export default function CreateWorkOrderModalV2({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        property: "",
+        unit: "",
+        task: "",
+        workOrderName: "",
+        vendor: "",
+        status: "In progress",
+        priority: "Normal",
+        dueDate: null,
+        notes: "",
+      });
+      setErrors({});
+    }
+  }, [open]);
 
   const handlePropertyChange = (value: string) => {
     setFormData((prev) => ({ ...prev, property: value }));
@@ -115,194 +138,158 @@ export default function CreateWorkOrderModalV2({
     if (validateForm()) {
       console.log("Work Order Created:", formData);
       onOpenChange(false);
-      setFormData({
-        property: "",
-        unit: "",
-        task: "",
-        workOrderName: "",
-        vendor: "",
-        status: "In progress",
-        priority: "Normal",
-        dueDate: null,
-        notes: "",
-      });
-      setErrors({});
     }
   };
 
   const handleCancel = () => {
     onOpenChange(false);
-    setFormData({
-      property: "",
-      unit: "",
-      task: "",
-      workOrderName: "",
-      vendor: "",
-      status: "In progress",
-      priority: "Normal",
-      dueDate: null,
-      notes: "",
-    });
-    setErrors({});
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="md">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex flex-col gap-1">
-            <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              Create Work Order
-            </DialogTitle>
-          </div>
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Create Work Order"
+      size="md"
+      footer={
+        <ModalButtons
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+          cancelLabel="Cancel"
+          confirmLabel="Create Work Order"
+        />
+      }
+    >
+      {/* Task Section */}
+      <ModalSubheader>Task</ModalSubheader>
 
-          {/* Task Section */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-[#303030] font-semibold text-lg">Task</h3>
-
-            {/* Property and Unit Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <SelectField
-                label="Select Property"
-                required
-                value={formData.property}
-                onChange={handlePropertyChange}
-                placeholder="Select a Property"
-                options={PROPERTIES.map((prop) => ({
-                  value: prop,
-                  label: prop,
-                }))}
-                error={errors.property}
-              />
-
-              <SelectField
-                label="Select Unit"
-                value={formData.unit}
-                onChange={handleUnitChange}
-                placeholder="Select a Unit"
-                options={UNITS.map((unit) => ({
-                  value: unit,
-                  label: unit,
-                }))}
-              />
-            </div>
-
-            {/* Create Task */}
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Select Property">
             <SelectField
-              label="Create Task"
-              required
-              value={formData.task}
-              onChange={handleTaskChange}
-              placeholder="Select Task Or Create A New Task"
-              options={TASKS.map((task) => ({
-                value: task,
-                label: task,
+              value={formData.property}
+              onChange={handlePropertyChange}
+              placeholder="Select a Property"
+              options={PROPERTIES.map((prop) => ({
+                value: prop,
+                label: prop,
               }))}
-              error={errors.task}
+              error={errors.property}
             />
-          </div>
-
-          {/* Work Order Details Section */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-[#303030] font-semibold text-lg">Work Order Details</h3>
-
-            {/* Work Order Name and Vendor Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <TextField
-                label="Work Order Name"
-                required
-                value={formData.workOrderName}
-                onChange={handleWorkOrderNameChange}
-                placeholder="Type Work Order Name"
-                error={errors.workOrderName}
-              />
-
-              <SelectField
-                label="Select Vendor"
-                required
-                value={formData.vendor}
-                onChange={handleVendorChange}
-                placeholder="Select a Vendor"
-                options={VENDORS.map((vendor) => ({
-                  value: vendor,
-                  label: vendor,
-                }))}
-                error={errors.vendor}
-              />
-            </div>
-
-            {/* Status and Priority Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <SelectField
-                label="Status"
-                value={formData.status}
-                onChange={handleStatusChange}
-                placeholder="Select a Status"
-                options={STATUSES.map((status) => ({
-                  value: status,
-                  label: status,
-                }))}
-              />
-
-              <SelectField
-                label="Priority"
-                value={formData.priority}
-                onChange={handlePriorityChange}
-                placeholder="Select a Priority"
-                options={PRIORITIES.map((priority) => ({
-                  value: priority,
-                  label: priority,
-                }))}
-              />
-            </div>
-
-            {/* Due Date */}
-            <DateField
-              label="Due Date"
-              required
-              value={formData.dueDate}
-              onChange={handleDueDateChange}
-              placeholder="mm/dd/yyyy"
-              error={errors.dueDate}
+          </ModalField>
+        </FieldRowItem>
+        <FieldRowItem>
+          <ModalField label="Select Unit">
+            <SelectField
+              value={formData.unit}
+              onChange={handleUnitChange}
+              placeholder="Select a Unit"
+              options={UNITS.map((unit) => ({
+                value: unit,
+                label: unit,
+              }))}
             />
+          </ModalField>
+        </FieldRowItem>
+      </FieldRow>
 
-            {/* Notes */}
-            <TextAreaField
-              label="Notes"
-              value={formData.notes}
-              onChange={handleNotesChange}
-              placeholder="Notes for your work Order"
-              autoGrow
+      <ModalField label="Create Task">
+        <SelectField
+          value={formData.task}
+          onChange={handleTaskChange}
+          placeholder="Select Task Or Create A New Task"
+          options={TASKS.map((task) => ({
+            value: task,
+            label: task,
+          }))}
+          error={errors.task}
+        />
+      </ModalField>
+
+      {/* Work Order Details Section */}
+      <ModalSubheader>Work Order Details</ModalSubheader>
+
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Work Order Name">
+            <TextField
+              value={formData.workOrderName}
+              onChange={handleWorkOrderNameChange}
+              placeholder="Type Work Order Name"
+              error={errors.workOrderName}
             />
-
-            {/* File Upload */}
-            <FileUploadField
-              label="Upload File"
-              accept=".pdf,.jpg,.jpeg,.png"
-              maxSize={500}
-              onFilesSelected={() => {}}
+          </ModalField>
+        </FieldRowItem>
+        <FieldRowItem>
+          <ModalField label="Select Vendor">
+            <SelectField
+              value={formData.vendor}
+              onChange={handleVendorChange}
+              placeholder="Select a Vendor"
+              options={VENDORS.map((vendor) => ({
+                value: vendor,
+                label: vendor,
+              }))}
+              error={errors.vendor}
             />
-          </div>
+          </ModalField>
+        </FieldRowItem>
+      </FieldRow>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end mt-2">
-            <button
-              onClick={handleCancel}
-              className="px-4 py-2 rounded-lg border border-[#E5E7EB] bg-white text-[#303030] font-medium text-sm hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="px-4 py-2 rounded-lg bg-[#2463EB] text-white font-medium text-sm hover:bg-[#1d4cc8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!formData.property || !formData.task || !formData.workOrderName || !formData.vendor || !formData.dueDate}
-            >
-              Create Work Order
-            </button>
-          </div>
-        </div>
-      </Modal>
-    </Dialog>
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <ModalField label="Status">
+            <SelectField
+              value={formData.status}
+              onChange={handleStatusChange}
+              placeholder="Select a Status"
+              options={STATUSES.map((status) => ({
+                value: status,
+                label: status,
+              }))}
+            />
+          </ModalField>
+        </FieldRowItem>
+        <FieldRowItem>
+          <ModalField label="Priority">
+            <SelectField
+              value={formData.priority}
+              onChange={handlePriorityChange}
+              placeholder="Select a Priority"
+              options={PRIORITIES.map((priority) => ({
+                value: priority,
+                label: priority,
+              }))}
+            />
+          </ModalField>
+        </FieldRowItem>
+      </FieldRow>
+
+      <ModalField label="Due Date">
+        <DateField
+          value={formData.dueDate}
+          onChange={handleDueDateChange}
+          placeholder="mm/dd/yyyy"
+          error={errors.dueDate}
+        />
+      </ModalField>
+
+      <ModalField label="Notes">
+        <TextAreaField
+          value={formData.notes}
+          onChange={handleNotesChange}
+          placeholder="Notes for your work Order"
+          autoGrow
+        />
+      </ModalField>
+
+      <ModalField label="Upload File">
+        <FileUploadField
+          accept=".pdf,.jpg,.jpeg,.png"
+          maxSize={500}
+          onFilesSelected={() => {}}
+        />
+      </ModalField>
+    </ModalTemplate>
   );
 }
