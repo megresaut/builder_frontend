@@ -227,7 +227,7 @@ export default function CreateWorkOrderModalV2({
               <FieldRowItem>
                 <TextField
                   label="Work Order Name"
-                  required
+                  required={REQUIRED_FIELDS.has("workOrderName")}
                   value={formData.workOrderName}
                   onChange={handleWorkOrderNameChange}
                   placeholder="Type Work Order Name"
@@ -237,7 +237,7 @@ export default function CreateWorkOrderModalV2({
               <FieldRowItem>
                 <SelectField
                   label="Select Vendor"
-                  required
+                  required={REQUIRED_FIELDS.has("vendor")}
                   value={formData.vendor}
                   onChange={handleVendorChange}
                   placeholder="Select a Vendor"
@@ -256,6 +256,7 @@ export default function CreateWorkOrderModalV2({
               <FieldRowItem>
                 <SelectField
                   label="Status"
+                  required={REQUIRED_FIELDS.has("status")}
                   value={formData.status}
                   onChange={handleStatusChange}
                   placeholder="Select a Status"
@@ -268,6 +269,7 @@ export default function CreateWorkOrderModalV2({
               <FieldRowItem>
                 <SelectField
                   label="Priority"
+                  required={REQUIRED_FIELDS.has("priority")}
                   value={formData.priority}
                   onChange={handlePriorityChange}
                   placeholder="Select a Priority"
@@ -283,7 +285,7 @@ export default function CreateWorkOrderModalV2({
           <FormLayout.Field>
             <DateField
               label="Due Date"
-              required
+              required={REQUIRED_FIELDS.has("dueDate")}
               value={formData.dueDate}
               onChange={handleDueDateChange}
               placeholder="mm/dd/yyyy"
