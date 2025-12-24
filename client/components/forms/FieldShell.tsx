@@ -103,7 +103,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
         >
           {label}
         </label>
-        {required && (
+        {isRequired && (
           <span
             style={{
               color: "#ef4444",
