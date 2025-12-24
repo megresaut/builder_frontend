@@ -424,37 +424,15 @@ export default function AllTasks() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Tasks
-            </h1>
-          </div>
-
-          <button
-            onClick={() => setIsCreateTaskModalOpen(true)}
-            className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="text-white font-medium text-base leading-normal">
-              Add Task
-            </span>
-          </button>
-        </div>
+        {/* Header Section - Using PageHeader Template */}
+        <PageHeader
+          title="All Tasks"
+          action={{
+            label: "Add Task",
+            onClick: () => setIsCreateTaskModalOpen(true),
+            icon: <Plus className="w-5 h-5" />,
+          }}
+        />
 
         <GlobalTable
           columns={columns}
