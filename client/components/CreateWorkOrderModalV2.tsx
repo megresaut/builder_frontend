@@ -138,8 +138,11 @@ export default function CreateWorkOrderModalV2({
   };
 
   const handleViewFile = (file: UploadedFile) => {
-    if (file.url) {
-      window.open(file.url, "_blank");
+    if (file.file) {
+      const url = URL.createObjectURL(file.file);
+      window.open(url, "_blank");
+      // Clean up the URL object after a delay to allow the window to open
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
   };
 
