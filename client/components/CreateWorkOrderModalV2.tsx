@@ -123,6 +123,20 @@ export default function CreateWorkOrderModalV2({
     setFormData((prev) => ({ ...prev, notes: e.target.value }));
   };
 
+  const handleFilesAdded = (newFiles: UploadedFile[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      files: [...prev.files, ...newFiles],
+    }));
+  };
+
+  const handleFileRemoved = (fileId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      files: prev.files.filter((f) => f.id !== fileId),
+    }));
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
