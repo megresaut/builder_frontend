@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
+import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
