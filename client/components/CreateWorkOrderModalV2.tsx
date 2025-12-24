@@ -149,7 +149,7 @@ export default function CreateWorkOrderModalV2({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-8 gap-0 max-h-[90vh] overflow-y-auto">
+      <Modal size="md">
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="flex flex-col gap-1">
@@ -303,7 +303,7 @@ export default function CreateWorkOrderModalV2({
             </button>
           </div>
         </div>
-      </DialogContent>
+      </Modal>
     </Dialog>
   );
 }
