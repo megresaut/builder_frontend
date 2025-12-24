@@ -16,9 +16,6 @@ interface SelectFieldCellProps {
   disabled?: boolean;
   error?: boolean;
   id?: string;
-  label?: string;
-  required?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 /**
