@@ -66,6 +66,7 @@ export default function CreateWorkOrderModalV2({
         priority: "Normal",
         dueDate: null,
         notes: "",
+        files: [],
       });
       setErrors({});
     }
