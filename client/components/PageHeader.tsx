@@ -1,157 +1,79 @@
 import React from "react";
-import { cn } from "@/lib/utils";
-
-export interface PageHeaderAction {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  variant?: "primary" | "secondary";
-  loading?: boolean;
-  loadingLabel?: string;
-}
-
-export interface PageHeaderTab {
-  id: string;
-  label: string;
-  count?: number;
-}
 
 interface PageHeaderProps {
   title: string;
-  description: string;
-  tabs?: PageHeaderTab[];
-  selectedTab?: string;
-  onTabChange?: (tabId: string) => void;
-  actions?: PageHeaderAction[];
+  subtitle?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+    icon?: React.ReactNode;
+  };
 }
 
+/**
+ * PageHeader - Reusable header template for pages
+ *
+ * Standardizes the page header layout with:
+ * - Left side: Title and optional subtitle
+ * - Right side: Optional action button
+ *
+ * @param title - Main page title
+ * @param subtitle - Optional subtitle or description
+ * @param action - Optional action button config with label, onClick, and optional icon
+ *
+ * Example:
+ * ```tsx
+ * <PageHeader
+ *   title="Work Orders"
+ *   subtitle="All your work orders, in one place"
+ *   action={{
+ *     label: "Create Work Order",
+ *     onClick: () => setOpen(true),
+ *     icon: <Plus className="w-5 h-5" />
+ *   }}
+ * />
+ * ```
+ */
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
-  description,
-  tabs = [],
-  selectedTab,
-  onTabChange,
-  actions = [],
+  subtitle,
+  action,
 }) => {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex items-center gap-10 justify-between flex-wrap">
       {/* Title and Description */}
-      <div className="flex flex-col gap-1">
-        <h1
-          className="font-semibold text-2xl leading-[30px]"
-          style={{ color: "var(--color-text-primary)" }}
-        >
+      <div className="flex flex-col gap-1 min-w-[240px]">
+        <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
           {title}
         </h1>
-        <p
-          className="font-medium text-base leading-4"
-          style={{ marginTop: "-3px", color: "var(--color-text-muted)" }}
-        >
-          {description}
-        </p>
+        {subtitle && (
+          <div className="flex items-center gap-3 mt-1">
+            <p
+              className="text-[#717179] font-medium text-base leading-4"
+              style={{ marginTop: "-4px" }}
+            >
+              {subtitle}
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Segmented Tabs and Action Buttons */}
-      <div className="flex items-center justify-between w-full bg-white gap-6">
-        {tabs.length > 0 && (
-          <div
-            className="flex bg-gray-50 rounded-lg p-0.5"
-            style={{ boxShadow: "0 0 0 0.5px var(--color-border-default)" }}
+      {/* Action Button */}
+      {action && (
+        <div className="flex items-center gap-4">
+          <button
+            onClick={action.onClick}
+            className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
           >
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange?.(tab.id)}
-                className={cn(
-                  "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all whitespace-nowrap",
-                  selectedTab === tab.id
-                    ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
-                    : "bg-gray-50 hover:bg-gray-100",
-                )}
-              >
-                <span
-                  className="text-center font-normal text-sm leading-5"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
-                  {tab.label}
-                </span>
-                {tab.count !== undefined && (
-                  <span
-                    className="text-xs font-medium"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    ({tab.count})
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        {actions.length > 0 && (
-          <div className="flex flex-wrap gap-3 items-center">
-            {actions.map((action) => (
-              <button
-                key={action.id}
-                onClick={action.onClick}
-                disabled={action.disabled || action.loading}
-                className={cn(
-                  "flex items-center gap-2 h-10 px-4 rounded-lg transition-colors disabled:opacity-50",
-                  action.variant === "primary"
-                    ? "border border-white text-white font-medium text-sm"
-                    : "border border-gray-200 bg-white hover:bg-gray-50 shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]",
-                )}
-                style={
-                  action.variant === "primary"
-                    ? {
-                        backgroundColor: "var(--color-button-primary)",
-                        boxShadow:
-                          "0 0 0 1px var(--color-button-primary-shadow), 0 0 10px -5px rgba(0,0,0,0.2)",
-                      }
-                    : undefined
-                }
-                onMouseEnter={(e) => {
-                  if (action.variant === "primary") {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.backgroundColor =
-                      "var(--color-button-primary-hover)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (action.variant === "primary") {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.backgroundColor = "var(--color-button-primary)";
-                  }
-                }}
-              >
-                {action.icon}
-                <span
-                  className="font-normal text-sm leading-[22.4px]"
-                  style={{
-                    color:
-                      action.variant === "primary"
-                        ? "white"
-                        : "var(--color-text-primary)",
-                  }}
-                >
-                  {action.loading && action.loadingLabel
-                    ? action.loadingLabel
-                    : action.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+            {action.icon && <div className="text-white">{action.icon}</div>}
+            <span className="text-white font-medium text-base leading-normal">
+              {action.label}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
 PageHeader.displayName = "PageHeader";
-
-export default PageHeader;
