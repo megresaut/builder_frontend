@@ -232,7 +232,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
       align="start"
       syncTriggerWidth={false}
       maxHeight={280}
-      style={{ minWidth: "300px" }}
+      style={{ width: "max-content" }}
     >
       <div
         style={{
