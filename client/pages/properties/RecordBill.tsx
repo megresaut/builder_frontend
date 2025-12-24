@@ -12,6 +12,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 import AddVendorModal from "@/components/AddVendorModal";
 import { SelectField } from "@/components/forms/SelectField";
+import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
 import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
