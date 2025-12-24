@@ -21,8 +21,11 @@ interface SelectFieldCellProps {
 /**
  * SelectFieldCell - Select dropdown for table cells
  *
- * Optimized for use in table cells with compact styling.
- * Uses FieldShell for wrapper and Popover primitive for dropdown logic.
+ * Minimal select field optimized for use in table cells.
+ * Features a clean text display with no border or chevron - just clickable text
+ * with a dropdown popover below.
+ *
+ * Uses FieldCellShell for wrapper and Popover primitive for dropdown logic.
  * Includes keyboard navigation and search support.
  *
  * Keyboard Interactions:
@@ -37,11 +40,8 @@ interface SelectFieldCellProps {
  * @param options - Array of {value, label} options
  * @param placeholder - Placeholder text shown when no selection (default: "Select...")
  * @param disabled - Disable field (default: false)
- * @param error - Show error styling (default: false)
+ * @param error - Show error styling with red inset shadow (default: false)
  * @param id - HTML id attribute
- * @param label - Optional field label (shown above trigger, typically omitted for cells)
- * @param required - Show required asterisk
- * @param onOpenChange - Callback when popover open state changes
  *
  * Example (Table cell):
  * ```tsx
@@ -65,9 +65,6 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
   disabled = false,
   error = false,
   id,
-  label,
-  required = false,
-  onOpenChange,
 }) => {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
