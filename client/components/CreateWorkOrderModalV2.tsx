@@ -325,9 +325,11 @@ export default function CreateWorkOrderModalV2({
             <FileUploadField
               label="Upload File"
               required={REQUIRED_FIELDS.has("fileUpload")}
+              files={formData.files}
+              onFilesAdded={handleFilesAdded}
+              onFileRemoved={handleFileRemoved}
               accept=".pdf,.jpg,.jpeg,.png"
-              maxSize={10485760}
-              onFilesSelected={() => {}}
+              maxSize={10 * 1024 * 1024}
             />
           </FormLayout.Field>
         </FormLayout.Section>
