@@ -197,9 +197,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
     <PopoverTrigger
       id={fieldId}
       disabled={disabled}
-      className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-        error ? "border-red-600" : open ? "border-black" : "border-[#DADADA]/50"
-      }`}
+      className="w-full text-sm font-normal transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
       style={{
         fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
         lineHeight: 1.43,
@@ -207,8 +205,14 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
         height: "auto",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
-        gap: "8px",
+        justifyContent: "flex-start",
+        gap: "0",
+        background: "transparent",
+        border: "none",
+        padding: "0",
+        outline: "none",
+        boxShadow: error ? "inset 0 0 0 2px #ef4444" : "none",
+        borderRadius: "4px",
       }}
       onKeyDown={handleTriggerKeyDown}
     >
@@ -225,7 +229,6 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
       >
         {displayLabel}
       </span>
-      <ChevronDown className="h-4 w-4 shrink-0 flex-none" style={{ color: "#303030" }} />
     </PopoverTrigger>
   );
 
