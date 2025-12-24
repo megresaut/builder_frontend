@@ -324,13 +324,11 @@ export default function WorkOrderDetail() {
           >
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <div className="flex flex-col gap-1">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              {workOrder.workOrderName}
-            </h1>
-            <p className="text-[#717179] font-medium text-base leading-4">
-              Work Order #{workOrder.id}
-            </p>
+          <div className="flex-1">
+            <PageHeader
+              title={workOrder.workOrderName}
+              subtitle={`Work Order #${workOrder.id}`}
+            />
           </div>
         </div>
 
