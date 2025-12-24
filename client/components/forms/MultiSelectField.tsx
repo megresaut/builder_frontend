@@ -76,6 +76,11 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
   const [open, setOpen] = useState(false);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
+  // Deduplicate value array to prevent duplicate key warnings
+  const uniqueValue = Array.from(
+    new Map(value.map((item) => [item.id, item])).values()
+  );
+
   const toggleItem = (item: MultiSelectOption) => {
     const isSelected = value.some((v) => v.id === item.id);
     if (isSelected) {
