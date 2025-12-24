@@ -160,126 +160,142 @@ export default function CreateWorkOrderModalV2({
         />
       }
     >
-      {/* Task Section */}
-      <ModalSubheader>Task</ModalSubheader>
+      <FormLayout>
+        <ModalSubheader>Task</ModalSubheader>
 
-      <FieldRow columns={2}>
-        <FieldRowItem>
+        <FormLayout.Field>
+          <FieldRow columns={2}>
+            <FieldRowItem>
+              <SelectField
+                label="Select Property"
+                value={formData.property}
+                onChange={handlePropertyChange}
+                placeholder="Select a Property"
+                options={PROPERTIES.map((prop) => ({
+                  value: prop,
+                  label: prop,
+                }))}
+                error={errors.property}
+              />
+            </FieldRowItem>
+            <FieldRowItem>
+              <SelectField
+                label="Select Unit"
+                value={formData.unit}
+                onChange={handleUnitChange}
+                placeholder="Select a Unit"
+                options={UNITS.map((unit) => ({
+                  value: unit,
+                  label: unit,
+                }))}
+              />
+            </FieldRowItem>
+          </FieldRow>
+        </FormLayout.Field>
+
+        <FormLayout.Field>
           <SelectField
-            label="Select Property"
-            value={formData.property}
-            onChange={handlePropertyChange}
-            placeholder="Select a Property"
-            options={PROPERTIES.map((prop) => ({
-              value: prop,
-              label: prop,
+            label="Create Task"
+            value={formData.task}
+            onChange={handleTaskChange}
+            placeholder="Select Task Or Create A New Task"
+            options={TASKS.map((task) => ({
+              value: task,
+              label: task,
             }))}
-            error={errors.property}
+            error={errors.task}
           />
-        </FieldRowItem>
-        <FieldRowItem>
-          <SelectField
-            label="Select Unit"
-            value={formData.unit}
-            onChange={handleUnitChange}
-            placeholder="Select a Unit"
-            options={UNITS.map((unit) => ({
-              value: unit,
-              label: unit,
-            }))}
-          />
-        </FieldRowItem>
-      </FieldRow>
+        </FormLayout.Field>
 
-      <SelectField
-        label="Create Task"
-        value={formData.task}
-        onChange={handleTaskChange}
-        placeholder="Select Task Or Create A New Task"
-        options={TASKS.map((task) => ({
-          value: task,
-          label: task,
-        }))}
-        error={errors.task}
-      />
+        <FormLayout.Section>
+          <ModalSubheader>Work Order Details</ModalSubheader>
 
-      {/* Work Order Details Section */}
-      <ModalSubheader>Work Order Details</ModalSubheader>
+          <FormLayout.Field>
+            <FieldRow columns={2}>
+              <FieldRowItem>
+                <TextField
+                  label="Work Order Name"
+                  value={formData.workOrderName}
+                  onChange={handleWorkOrderNameChange}
+                  placeholder="Type Work Order Name"
+                  error={errors.workOrderName}
+                />
+              </FieldRowItem>
+              <FieldRowItem>
+                <SelectField
+                  label="Select Vendor"
+                  value={formData.vendor}
+                  onChange={handleVendorChange}
+                  placeholder="Select a Vendor"
+                  options={VENDORS.map((vendor) => ({
+                    value: vendor,
+                    label: vendor,
+                  }))}
+                  error={errors.vendor}
+                />
+              </FieldRowItem>
+            </FieldRow>
+          </FormLayout.Field>
 
-      <FieldRow columns={2}>
-        <FieldRowItem>
-          <TextField
-            label="Work Order Name"
-            value={formData.workOrderName}
-            onChange={handleWorkOrderNameChange}
-            placeholder="Type Work Order Name"
-            error={errors.workOrderName}
-          />
-        </FieldRowItem>
-        <FieldRowItem>
-          <SelectField
-            label="Select Vendor"
-            value={formData.vendor}
-            onChange={handleVendorChange}
-            placeholder="Select a Vendor"
-            options={VENDORS.map((vendor) => ({
-              value: vendor,
-              label: vendor,
-            }))}
-            error={errors.vendor}
-          />
-        </FieldRowItem>
-      </FieldRow>
+          <FormLayout.Field>
+            <FieldRow columns={2}>
+              <FieldRowItem>
+                <SelectField
+                  label="Status"
+                  value={formData.status}
+                  onChange={handleStatusChange}
+                  placeholder="Select a Status"
+                  options={STATUSES.map((status) => ({
+                    value: status,
+                    label: status,
+                  }))}
+                />
+              </FieldRowItem>
+              <FieldRowItem>
+                <SelectField
+                  label="Priority"
+                  value={formData.priority}
+                  onChange={handlePriorityChange}
+                  placeholder="Select a Priority"
+                  options={PRIORITIES.map((priority) => ({
+                    value: priority,
+                    label: priority,
+                  }))}
+                />
+              </FieldRowItem>
+            </FieldRow>
+          </FormLayout.Field>
 
-      <FieldRow columns={2}>
-        <FieldRowItem>
-          <SelectField
-            label="Status"
-            value={formData.status}
-            onChange={handleStatusChange}
-            placeholder="Select a Status"
-            options={STATUSES.map((status) => ({
-              value: status,
-              label: status,
-            }))}
-          />
-        </FieldRowItem>
-        <FieldRowItem>
-          <SelectField
-            label="Priority"
-            value={formData.priority}
-            onChange={handlePriorityChange}
-            placeholder="Select a Priority"
-            options={PRIORITIES.map((priority) => ({
-              value: priority,
-              label: priority,
-            }))}
-          />
-        </FieldRowItem>
-      </FieldRow>
+          <FormLayout.Field>
+            <DateField
+              label="Due Date"
+              value={formData.dueDate}
+              onChange={handleDueDateChange}
+              placeholder="mm/dd/yyyy"
+              error={errors.dueDate}
+            />
+          </FormLayout.Field>
 
-      <DateField
-        label="Due Date"
-        value={formData.dueDate}
-        onChange={handleDueDateChange}
-        placeholder="mm/dd/yyyy"
-        error={errors.dueDate}
-      />
+          <FormLayout.Field>
+            <TextAreaField
+              label="Notes"
+              value={formData.notes}
+              onChange={handleNotesChange}
+              placeholder="Notes for your work Order"
+              autoGrow
+            />
+          </FormLayout.Field>
 
-      <TextAreaField
-        label="Notes"
-        value={formData.notes}
-        onChange={handleNotesChange}
-        placeholder="Notes for your work Order"
-        autoGrow
-      />
-
-      <FileUploadField
-        label="Upload File"
-        accept=".pdf,.jpg,.jpeg,.png"
-        maxSize={500}
-        onFilesSelected={() => {}}
-      />
+          <FormLayout.Field>
+            <FileUploadField
+              label="Upload File"
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSize={500}
+              onFilesSelected={() => {}}
+            />
+          </FormLayout.Field>
+        </FormLayout.Section>
+      </FormLayout>
     </ModalTemplate>
   );
 }
