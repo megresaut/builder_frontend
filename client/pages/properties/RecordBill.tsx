@@ -1239,16 +1239,12 @@ export const RecordBill = () => {
                           <div key={item.id} className="flex items-center">
                             {/* Property */}
                             <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("property")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
+                              className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.property}px` }}
                             >
-                              <Select
+                              <SelectFieldCell
                                 value={item.property}
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                   if (!isReadOnly) {
                                     handleUpdateLineItem(
                                       item.id,
@@ -1257,22 +1253,14 @@ export const RecordBill = () => {
                                     );
                                   }
                                 }}
+                                placeholder="Select a Property"
+                                options={mockProperties.map((prop) => ({
+                                  value: prop,
+                                  label: prop,
+                                }))}
                                 disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="property"
-                                >
-                                  <SelectValue placeholder="Select a Property" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {mockProperties.map((prop) => (
-                                    <SelectItem key={prop} value={prop}>
-                                      {prop}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                error={lineItemErrors[item.id]?.has("property")}
+                              />
                             </div>
 
                             {/* Unit */}
