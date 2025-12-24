@@ -296,6 +296,7 @@ export default function CreateWorkOrderModalV2({
           <FormLayout.Field>
             <TextAreaField
               label="Notes"
+              required={REQUIRED_FIELDS.has("notes")}
               value={formData.notes}
               onChange={handleNotesChange}
               placeholder="Notes for your work Order"
@@ -306,6 +307,7 @@ export default function CreateWorkOrderModalV2({
           <FormLayout.Field>
             <FileUploadField
               label="Upload File"
+              required={REQUIRED_FIELDS.has("fileUpload")}
               accept=".pdf,.jpg,.jpeg,.png"
               maxSize={500}
               onFilesSelected={() => {}}
