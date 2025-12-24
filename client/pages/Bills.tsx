@@ -9,12 +9,9 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { Plus } from "lucide-react";
-import {
-  PageHeader,
-  type PageHeaderAction,
-  type PageHeaderTab,
-} from "@/components/PageHeader";
+import PageHeader from "@/components/PageHeader";
+import { SubPageHeader } from "@/components/SubPageHeader";
+import { Plus, RefreshCw } from "lucide-react";
 
 interface Bill {
   id: number;
