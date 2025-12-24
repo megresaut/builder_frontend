@@ -10,8 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
-import { SubPageHeader } from "@/components/SubPageHeader";
-import { Plus, RefreshCw } from "lucide-react";
+import { SubPageHeaderV2 } from "@/components/SubPageHeaderV2";
 
 interface Bill {
   id: number;
