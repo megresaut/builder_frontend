@@ -74,7 +74,8 @@ export default function CreateWorkOrderModalV2({
       setErrors({});
       pdfViewer.closePdf();
     }
-  }, [open, pdfViewer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handlePropertyChange = (value: string) => {
     setFormData((prev) => ({ ...prev, property: value }));
