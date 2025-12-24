@@ -177,7 +177,7 @@ export default function CreateWorkOrderModalV2({
             <FieldRowItem>
               <SelectField
                 label="Select Property"
-                required
+                required={REQUIRED_FIELDS.has("property")}
                 value={formData.property}
                 onChange={handlePropertyChange}
                 placeholder="Select a Property"
@@ -191,6 +191,7 @@ export default function CreateWorkOrderModalV2({
             <FieldRowItem>
               <SelectField
                 label="Select Unit"
+                required={REQUIRED_FIELDS.has("unit")}
                 value={formData.unit}
                 onChange={handleUnitChange}
                 placeholder="Select a Unit"
@@ -206,7 +207,7 @@ export default function CreateWorkOrderModalV2({
         <FormLayout.Field>
           <SelectField
             label="Create Task"
-            required
+            required={REQUIRED_FIELDS.has("task")}
             value={formData.task}
             onChange={handleTaskChange}
             placeholder="Select Task Or Create A New Task"
