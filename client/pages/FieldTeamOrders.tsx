@@ -420,36 +420,16 @@ export default function FieldTeamOrders() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Field Team Orders
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p
-                className="text-[#717179] font-medium text-base leading-4"
-                style={{ marginTop: "-4px" }}
-              >
-                All your field team orders, in one place
-              </p>
-            </div>
-          </div>
-
-          {/* Create FTO Button */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowFTOModal(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] hover:bg-[#003a73] transition-colors"
-            >
-              <Plus className="w-5 h-5 text-white" />
-              <span className="text-white font-medium text-base leading-normal">
-                Create FTO
-              </span>
-            </button>
-          </div>
-        </div>
+        {/* Header Section - Using PageHeader Template */}
+        <PageHeader
+          title="All Field Team Orders"
+          subtitle="All your field team orders, in one place"
+          action={{
+            label: "Create FTO",
+            onClick: () => setShowFTOModal(true),
+            icon: <Plus className="w-5 h-5" />,
+          }}
+        />
 
         <div className="flex flex-col gap-6">
           {/* Field Team Orders Table - Using GlobalTable Component */}
