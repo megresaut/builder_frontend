@@ -266,11 +266,12 @@
    * Spacing Rules:
    * - 12px: Between subheader/divider and first content element
    * - 12px: Between standard form fields
-   * - 28px: Between main header and form layout body / between major sections
+   * - 28px: Between main header and form layout body
+   * - 16px: Between major sections
    *
    * Components:
    * - .ra-form-layout: Main container (28px top margin from header)
-   * - .ra-form-section: Major section break (28px top margin)
+   * - .ra-form-section: Major section break (16px top margin)
    * - .ra-form-field: Standard field spacing (12px bottom margin)
    * - .ra-form-field-group: Tight field grouping (12px bottom margin)
    */
@@ -282,7 +283,7 @@
   }
 
   .ra-form-section {
-    margin-top: 28px;
+    margin-top: 16px;
   }
 
   .ra-form-section:first-child {
