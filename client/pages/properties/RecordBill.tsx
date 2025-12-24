@@ -1318,16 +1318,12 @@ export const RecordBill = () => {
 
                             {/* GL Account */}
                             <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("glAccount")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
+                              className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.glAccount}px` }}
                             >
-                              <Select
+                              <SelectFieldCell
                                 value={item.glAccount}
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                   if (!isReadOnly) {
                                     handleUpdateLineItem(
                                       item.id,
@@ -1336,22 +1332,14 @@ export const RecordBill = () => {
                                     );
                                   }
                                 }}
+                                placeholder="Select an Account"
+                                options={mockGLAccounts.map((account) => ({
+                                  value: account,
+                                  label: account,
+                                }))}
                                 disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="glAccount"
-                                >
-                                  <SelectValue placeholder="Select an Account" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {mockGLAccounts.map((account) => (
-                                    <SelectItem key={account} value={account}>
-                                      {account}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                error={lineItemErrors[item.id]?.has("glAccount")}
+                              />
                             </div>
 
                             {/* Total */}
