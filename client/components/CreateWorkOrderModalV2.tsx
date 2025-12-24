@@ -165,46 +165,43 @@ export default function CreateWorkOrderModalV2({
 
       <FieldRow columns={2}>
         <FieldRowItem>
-          <ModalField label="Select Property">
-            <SelectField
-              value={formData.property}
-              onChange={handlePropertyChange}
-              placeholder="Select a Property"
-              options={PROPERTIES.map((prop) => ({
-                value: prop,
-                label: prop,
-              }))}
-              error={errors.property}
-            />
-          </ModalField>
+          <SelectField
+            label="Select Property"
+            value={formData.property}
+            onChange={handlePropertyChange}
+            placeholder="Select a Property"
+            options={PROPERTIES.map((prop) => ({
+              value: prop,
+              label: prop,
+            }))}
+            error={errors.property}
+          />
         </FieldRowItem>
         <FieldRowItem>
-          <ModalField label="Select Unit">
-            <SelectField
-              value={formData.unit}
-              onChange={handleUnitChange}
-              placeholder="Select a Unit"
-              options={UNITS.map((unit) => ({
-                value: unit,
-                label: unit,
-              }))}
-            />
-          </ModalField>
+          <SelectField
+            label="Select Unit"
+            value={formData.unit}
+            onChange={handleUnitChange}
+            placeholder="Select a Unit"
+            options={UNITS.map((unit) => ({
+              value: unit,
+              label: unit,
+            }))}
+          />
         </FieldRowItem>
       </FieldRow>
 
-      <ModalField label="Create Task">
-        <SelectField
-          value={formData.task}
-          onChange={handleTaskChange}
-          placeholder="Select Task Or Create A New Task"
-          options={TASKS.map((task) => ({
-            value: task,
-            label: task,
-          }))}
-          error={errors.task}
-        />
-      </ModalField>
+      <SelectField
+        label="Create Task"
+        value={formData.task}
+        onChange={handleTaskChange}
+        placeholder="Select Task Or Create A New Task"
+        options={TASKS.map((task) => ({
+          value: task,
+          label: task,
+        }))}
+        error={errors.task}
+      />
 
       {/* Work Order Details Section */}
       <ModalSubheader>Work Order Details</ModalSubheader>
