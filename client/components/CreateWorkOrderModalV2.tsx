@@ -49,6 +49,7 @@ export default function CreateWorkOrderModalV2({
     priority: "Normal",
     dueDate: null as Date | null,
     notes: "",
+    files: [] as UploadedFile[],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
