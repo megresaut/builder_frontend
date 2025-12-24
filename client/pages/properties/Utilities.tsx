@@ -60,8 +60,8 @@ type MappedBill = {
   type: string | null | undefined;
 };
 
-// const API_BASE = "/api";     
-const API_BASE = "http://localhost:8080";   
+const API_BASE = "/api";     
+// const API_BASE = "http://localhost:8080";   
 
 // --- Utilities import types & helpers ---
 
