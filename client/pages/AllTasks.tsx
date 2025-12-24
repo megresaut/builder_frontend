@@ -427,6 +427,7 @@ export default function AllTasks() {
         {/* Header Section - Using PageHeader Template */}
         <PageHeader
           title="All Tasks"
+          subtitle="All your tasks, in one place"
           action={{
             label: "Add Task",
             onClick: () => setIsCreateTaskModalOpen(true),
