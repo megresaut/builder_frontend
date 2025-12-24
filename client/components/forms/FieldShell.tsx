@@ -19,18 +19,23 @@ interface FieldShellProps {
  *
  * Features:
  * - Semantic label with "for" attribute
- * - Required asterisk styling
+ * - Required asterisk styling (auto-inferred if error is present)
  * - Optional helper text (description)
  * - Error message display in red
  * - Disabled state styling
  * - Consistent vertical spacing (12px between label/input/error)
  * - Uses CSS variables for themeable styling
  *
+ * Behavior:
+ * - If `error` is set, the field is automatically treated as required
+ *   (shows asterisk) even if `required={false}`
+ * - This ensures validation errors are visually paired with the required indicator
+ *
  * @param label - Field label text (always required)
  * @param children - Input component (Input, Select, DatePicker, etc.)
- * @param required - Show red asterisk (default: false)
+ * @param required - Show red asterisk (default: false, auto-inferred from error)
  * @param description - Helper text below label
- * @param error - Error message (displayed in red)
+ * @param error - Error message (displayed in red; also triggers required asterisk)
  * @param disabled - Disable field and dim styling (default: false)
  * @param htmlFor - HTML "for" attribute linking label to input
  * @param className - Optional wrapper class override
@@ -62,6 +67,8 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   htmlFor,
   className,
 }) => {
+  // Auto-infer required if error is present
+  const isRequired = required || !!error;
   const childrenWithError = React.Children.map(children, (child) => {
     if (React.isValidElement(child) && error) {
       return React.cloneElement(child, {
