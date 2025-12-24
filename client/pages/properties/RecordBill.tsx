@@ -11,7 +11,6 @@ import {
 import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 import AddVendorModal from "@/components/AddVendorModal";
-import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
@@ -283,7 +282,6 @@ export const RecordBill = () => {
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
-  const [showCreateWorkOrderModal, setShowCreateWorkOrderModal] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
       ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
@@ -1225,15 +1223,8 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.workOrder}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Work Order <span style={{ color: "rgb(255, 0, 0)" }}>*</span>&nbsp;
+                              Work Order <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => setShowCreateWorkOrderModal(true)}
-                              className="text-[#2563eb] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap hover:underline bg-transparent border-none p-0"
-                            >
-                              + New
-                            </button>
                           </div>
                           <div
                             className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1"
@@ -1703,10 +1694,6 @@ export const RecordBill = () => {
           });
           setShowAddVendorModal(false);
         }}
-      />
-      <CreateWorkOrderModal
-        open={showCreateWorkOrderModal}
-        onOpenChange={setShowCreateWorkOrderModal}
       />
     </div>
   );
