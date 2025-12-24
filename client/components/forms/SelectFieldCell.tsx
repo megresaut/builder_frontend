@@ -230,8 +230,9 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
     <PopoverContent
       className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
       align="start"
-      syncTriggerWidth={true}
+      syncTriggerWidth={false}
       maxHeight={280}
+      style={{ minWidth: "300px" }}
     >
       <div
         style={{
