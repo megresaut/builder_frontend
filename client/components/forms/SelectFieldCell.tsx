@@ -71,7 +71,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
   const [searchText, setSearchText] = React.useState("");
   const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
 
-  const fieldId = id || label?.toLowerCase().replace(/\s+/g, "-") || "select-cell";
+  const fieldId = id || "select-cell";
 
   const selectedOption = options.find((opt) => opt.value === value);
   const displayLabel = selectedOption?.label ?? placeholder;
