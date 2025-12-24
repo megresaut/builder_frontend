@@ -273,6 +273,7 @@ export default function CreateWorkOrderModalV2({
           <FormLayout.Field>
             <DateField
               label="Due Date"
+              required
               value={formData.dueDate}
               onChange={handleDueDateChange}
               placeholder="mm/dd/yyyy"
