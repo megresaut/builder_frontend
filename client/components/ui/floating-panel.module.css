@@ -1,0 +1,92 @@
+/**
+ * Floating Panel Styles
+ * 
+ * Shared floating panel styling used by DatePicker, Select, DropdownMenu, Popovers.
+ * Provides consistent elevation, border, and appearance for floating UI elements.
+ */
+
+.floatingPanel {
+  background-color: white;
+  border: 0.5px solid var(--color-border-default);
+  border-radius: 0.5rem;
+  box-shadow: 0 38px 11px 0 rgba(0, 0, 0, 0.00), 
+              0 24px 10px 0 rgba(0, 0, 0, 0.01), 
+              0 14px 8px 0 rgba(0, 0, 0, 0.04), 
+              0 6px 6px 0 rgba(0, 0, 0, 0.06), 
+              0 2px 3px 0 rgba(0, 0, 0, 0.07);
+  z-index: 40;
+  max-height: 400px;
+  pointer-events: auto;
+}
+
+/* Dropdown wrapper */
+.dropdown {
+  position: relative;
+}
+
+.dropdownTrigger {
+  cursor: pointer;
+}
+
+/* Dropdown panel inherits floating panel styling */
+.dropdownPanel {
+  composes: floatingPanel;
+}
+
+/* Actions dropdown menu */
+.actionsDropdown {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.actionItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.actionItem:hover {
+  opacity: 0.7;
+}
+
+/* Column filter modal */
+.columnFilterModal {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.columnFilterItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.columnFilterItem:hover {
+  background-color: #f9f9f9;
+}
+
+.columnFilterIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
