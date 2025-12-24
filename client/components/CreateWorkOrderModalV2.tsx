@@ -334,6 +334,7 @@ export default function CreateWorkOrderModalV2({
               files={formData.files}
               onFilesAdded={handleFilesAdded}
               onFileRemoved={handleFileRemoved}
+              onViewFile={handleViewFile}
               accept=".pdf,.jpg,.jpeg,.png"
               maxSize={10 * 1024 * 1024}
             />
