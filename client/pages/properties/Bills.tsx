@@ -1321,5 +1321,3 @@ export const Bills: React.FC<BillsProps> = ({
     </div>
   );
 };
-
-export const Bills;
