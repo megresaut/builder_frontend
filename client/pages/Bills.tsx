@@ -813,8 +813,8 @@ export default function Bills() {
           }}
         />
 
-        {/* Sub Header Section - Using SubPageHeader with toggles and buttons */}
-        <SubPageHeader
+        {/* Sub Header Section - Using SubPageHeaderV2 with toggles and secondary buttons */}
+        <SubPageHeaderV2
           toggles={[
             {
               id: "approved",
@@ -852,10 +852,9 @@ export default function Bills() {
             },
             {
               id: "sync",
-              label: "Sync",
-              onClick: () => {
-                // Sync action
-              },
+              label: syncState === "idle" ? "Sync" : syncState === "syncing" ? "Syncing..." : "Synced",
+              onClick: handleSync,
+              disabled: syncState !== "idle",
               icon: (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
