@@ -137,6 +137,12 @@ export default function CreateWorkOrderModalV2({
     }));
   };
 
+  const handleViewFile = (file: UploadedFile) => {
+    if (file.url) {
+      window.open(file.url, "_blank");
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
