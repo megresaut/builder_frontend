@@ -12,6 +12,7 @@ import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import { FileUploadField } from "@/components/forms/FileUploadField";
+import { UploadedFile } from "@/components/ui/attachment-uploader";
 
 interface CreateWorkOrderModalV2Props {
   open: boolean;
