@@ -568,61 +568,16 @@ export default function AllProperties() {
       }}
     >
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Properties
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p
-                className="text-[#717179] font-medium text-base leading-4"
-                style={{ marginTop: "-4px" }}
-              >
-                Click a property to manage its utility accounts and imports
-              </p>
-            </div>
-          </div>
-
-          {/* Add Property Button */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsAddPropertyModalOpen(true)}
-              className="flex items-center gap-2 h-10 px-4 rounded-lg border border-white text-white font-medium text-sm transition-colors"
-              style={{
-                backgroundColor: "var(--color-button-primary)",
-                boxShadow:
-                  "0 0 0 1px var(--color-button-primary-shadow), 0 0 10px -5px rgba(0,0,0,0.2)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                  "var(--color-button-primary-hover)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                  "var(--color-button-primary)";
-              }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>Add Property</span>
-            </button>
-          </div>
-        </div>
+        {/* Header Section - Using PageHeader Template */}
+        <PageHeader
+          title="All Properties"
+          subtitle="Click a property to manage its utility accounts and imports"
+          action={{
+            label: "Add Property",
+            onClick: () => setIsAddPropertyModalOpen(true),
+            icon: <Plus className="w-5 h-5" />,
+          }}
+        />
 
         <div className="flex flex-col gap-6">
           {/* Properties Table */}
