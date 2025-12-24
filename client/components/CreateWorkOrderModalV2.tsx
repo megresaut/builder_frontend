@@ -14,6 +14,7 @@ import { TextAreaField } from "@/components/forms/TextAreaField";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import { UploadedFile } from "@/components/ui/attachment-uploader";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import { usePdfViewer } from "@/hooks/usePdfViewer";
 
 interface CreateWorkOrderModalV2Props {
   open: boolean;
