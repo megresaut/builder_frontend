@@ -85,7 +85,6 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
 
   const handleOpen = (newOpen: boolean) => {
     setOpen(newOpen);
-    onOpenChange?.(newOpen);
     if (!newOpen) {
       setSearchText("");
     }
