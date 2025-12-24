@@ -115,7 +115,6 @@ export default function CreateWorkOrderModalV2({
     if (validateForm()) {
       console.log("Work Order Created:", formData);
       onOpenChange(false);
-      // Reset form
       setFormData({
         property: "",
         unit: "",
