@@ -28,7 +28,6 @@ interface LineItem {
   id: number;
   property: string;
   unit: string;
-  workOrder: string;
   description: string;
   glAccount: string;
   total: string;
@@ -83,7 +82,6 @@ const mockVendors: Vendor[] = [
 
 const mockProperties = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
 const mockUnits = ["N/A", "1", "2", "3", "4", "5"];
-const mockWorkOrders = ["N/A", "123456-1", "123456-2", "789012-1"];
 const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
 
 const placeholderBill = {
@@ -97,7 +95,6 @@ const placeholderBill = {
       id: 1,
       property: "22 Indian Creek Dr",
       unit: "1",
-      workOrder: "123456-1",
       description: "Monthly electric service charge and consumption",
       glAccount: "Utilities",
       total: "$450.00",
@@ -106,7 +103,6 @@ const placeholderBill = {
       id: 2,
       property: "22 Indian Creek Dr",
       unit: "2",
-      workOrder: "123456-2",
       description: "Water and sewer service",
       glAccount: "Utilities",
       total: "$125.50",
@@ -115,7 +111,6 @@ const placeholderBill = {
       id: 3,
       property: "25 Park Ave",
       unit: "1",
-      workOrder: "789012-1",
       description: "Gas heating service",
       glAccount: "Utilities",
       total: "$275.00",
@@ -142,7 +137,6 @@ const emptyLineItem = (id: number): LineItem => ({
   id,
   property: "",
   unit: "",
-  workOrder: "",
   description: "",
   glAccount: "",
   total: "",
@@ -290,7 +284,6 @@ export const RecordBill = () => {
             id: 1,
             property: "",
             unit: "",
-            workOrder: "",
             description: "",
             glAccount: "",
             total: "",
@@ -302,7 +295,6 @@ export const RecordBill = () => {
   const defaultColumnWidths = {
     property: 151,
     unit: 130,
-    workOrder: 150,
     description: 200,
     glAccount: 170,
     total: 80,
@@ -447,16 +439,6 @@ export const RecordBill = () => {
         const unitVal = String(item.unit).trim();
         if (!unitVal || unitVal === "N/A" || !mockUnits.includes(unitVal)) {
           itemErrors.add("unit");
-          hasErrors = true;
-        }
-
-        const workOrderVal = String(item.workOrder).trim();
-        if (
-          !workOrderVal ||
-          workOrderVal === "N/A" ||
-          !mockWorkOrders.includes(workOrderVal)
-        ) {
-          itemErrors.add("workOrder");
           hasErrors = true;
         }
 
@@ -1219,14 +1201,6 @@ export const RecordBill = () => {
                             </span>
                           </div>
                           <div
-                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                            style={{ width: `${columnWidths.workOrder}px` }}
-                          >
-                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Work Order <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
-                            </span>
-                          </div>
-                          <div
                             className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1"
                             style={{
                               minWidth: `${columnWidths.description}px`,
@@ -1338,43 +1312,6 @@ export const RecordBill = () => {
                               </Select>
                             </div>
 
-                            {/* Work Order */}
-                            <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("workOrder")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
-                              style={{ width: `${columnWidths.workOrder}px` }}
-                            >
-                              <Select
-                                value={item.workOrder}
-                                onValueChange={(value) => {
-                                  if (!isReadOnly) {
-                                    handleUpdateLineItem(
-                                      item.id,
-                                      "workOrder",
-                                      value,
-                                    );
-                                  }
-                                }}
-                                disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="workOrder"
-                                >
-                                  <SelectValue placeholder="Select a Work Order" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {mockWorkOrders.map((wo) => (
-                                    <SelectItem key={wo} value={wo}>
-                                      {wo}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
 
                             {/* Description */}
                             <div
