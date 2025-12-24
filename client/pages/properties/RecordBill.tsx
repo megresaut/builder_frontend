@@ -1265,16 +1265,12 @@ export const RecordBill = () => {
 
                             {/* Unit */}
                             <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("unit")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
+                              className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.unit}px` }}
                             >
-                              <Select
+                              <SelectFieldCell
                                 value={item.unit}
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                   if (!isReadOnly) {
                                     handleUpdateLineItem(
                                       item.id,
@@ -1283,22 +1279,14 @@ export const RecordBill = () => {
                                     );
                                   }
                                 }}
+                                placeholder="Select a Unit"
+                                options={mockUnits.map((unit) => ({
+                                  value: unit,
+                                  label: unit,
+                                }))}
                                 disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="unit"
-                                >
-                                  <SelectValue placeholder="Select a Unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {mockUnits.map((unit) => (
-                                    <SelectItem key={unit} value={unit}>
-                                      {unit}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                error={lineItemErrors[item.id]?.has("unit")}
+                              />
                             </div>
 
 
