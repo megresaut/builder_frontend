@@ -13,6 +13,7 @@ import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import { UploadedFile } from "@/components/ui/attachment-uploader";
+import PdfViewerModal from "@/components/PdfViewerModal";
 
 interface CreateWorkOrderModalV2Props {
   open: boolean;
