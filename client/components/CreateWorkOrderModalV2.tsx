@@ -55,8 +55,7 @@ export default function CreateWorkOrderModalV2({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [viewingFile, setViewingFile] = useState<UploadedFile | null>(null);
+  const pdfViewer = usePdfViewer();
 
   useEffect(() => {
     if (!open) {
