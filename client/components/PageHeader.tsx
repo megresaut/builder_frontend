@@ -47,14 +47,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           {title}
         </h1>
         {subtitle && (
-          <div className="flex items-center gap-3 mt-1">
-            <p
-              className="text-[#717179] font-medium text-base leading-4"
-              style={{ marginTop: "-4px" }}
-            >
-              {subtitle}
-            </p>
-          </div>
+          <span
+            className="text-[#717179] font-medium text-base leading-4 block"
+            style={{ marginTop: "4px" }}
+          >
+            {subtitle}
+          </span>
         )}
       </div>
 
