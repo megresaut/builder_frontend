@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface SubPageHeaderToggle {
   id: string;
@@ -13,6 +14,7 @@ export interface SubPageHeaderButton {
   onClick: () => void;
   icon?: React.ReactNode;
   variant?: "primary" | "secondary";
+  disabled?: boolean;
 }
 
 interface SubPageHeaderProps {
@@ -22,11 +24,11 @@ interface SubPageHeaderProps {
 }
 
 /**
- * SubPageHeader - Sub-section header with toggles and action buttons
+ * SubPageHeader - Sub-section header with segmented toggle and action buttons
  *
  * Provides a standardized layout for page sub-sections with:
- * - Left side: Optional toggle buttons for filtering/switching views
- * - Right side: Optional action buttons
+ * - Left side: Segmented toggle buttons for filtering/switching views
+ * - Right side: Action buttons (Add Vendor, Sync, Record Bill, etc.)
  * - Can be customized with any number of toggles and buttons
  *
  * @param toggles - Optional array of toggle buttons with state
@@ -37,11 +39,11 @@ interface SubPageHeaderProps {
  * ```tsx
  * <SubPageHeader
  *   toggles={[
- *     { id: "approved", label: "Approved & Exported Bills", active: true, onClick: () => {} },
- *     { id: "draft", label: "Draft Bills", active: false, onClick: () => {} },
+ *     { id: "approved", label: "Approved", active: true, onClick: () => {} },
+ *     { id: "draft", label: "Drafts", active: false, onClick: () => {} },
  *   ]}
  *   buttons={[
- *     { id: "sync", label: "Sync", onClick: () => {}, icon: <Sync /> },
+ *     { id: "sync", label: "Sync", onClick: () => {}, icon: <RefreshCw /> },
  *     { id: "vendor", label: "Add Vendor", onClick: () => {}, icon: <Plus /> },
  *   ]}
  * />
@@ -53,21 +55,27 @@ export const SubPageHeader: React.FC<SubPageHeaderProps> = ({
   children,
 }) => {
   return (
-    <div className="flex items-center gap-4 justify-between flex-wrap">
-      {/* Left side: Toggles */}
+    <div className="flex items-center justify-between w-full bg-white gap-6 flex-wrap">
+      {/* Left side: Segmented Toggles */}
       {toggles.length > 0 && (
-        <div className="flex items-center gap-3">
+        <div className="flex bg-gray-50 rounded-lg shadow-[0_0_0_0.5px_#D2D1CF] p-0.5">
           {toggles.map((toggle) => (
             <button
               key={toggle.id}
               onClick={toggle.onClick}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+              className={cn(
+                "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
                 toggle.active
-                  ? "bg-[#013764] text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                  ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
+                  : "bg-gray-50 hover:bg-gray-100"
+              )}
             >
-              {toggle.label}
+              <span className={cn(
+                "text-center font-normal text-sm leading-5",
+                toggle.active ? "text-[#282828] font-normal" : "text-[#282828]"
+              )}>
+                {toggle.label}
+              </span>
             </button>
           ))}
         </div>
@@ -78,19 +86,29 @@ export const SubPageHeader: React.FC<SubPageHeaderProps> = ({
 
       {/* Right side: Action buttons */}
       {buttons.length > 0 && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
           {buttons.map((button) => (
             <button
               key={button.id}
               onClick={button.onClick}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+              disabled={button.disabled}
+              className={cn(
+                "flex items-center gap-2 h-10 px-4 rounded-lg font-normal text-sm transition-colors",
                 button.variant === "primary"
-                  ? "bg-[#013764] text-white hover:bg-[#003a73]"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                  ? "border border-white bg-[#013764] text-white hover:bg-[#0a2e4d] shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
+                  : "border border-gray-200 bg-white text-[#303030] hover:bg-gray-50 shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]",
+                button.disabled && "opacity-50"
+              )}
+              style={button.variant === "primary" ? { marginTop: "-1px" } : {}}
             >
-              {button.icon && <span>{button.icon}</span>}
-              {button.label}
+              {button.icon && (
+                <span style={{ marginTop: button.variant === "primary" ? "-1px" : "-2px" }}>
+                  {button.icon}
+                </span>
+              )}
+              <span style={{ marginTop: button.variant === "primary" ? "0px" : "-1px" }}>
+                {button.label}
+              </span>
             </button>
           ))}
         </div>
