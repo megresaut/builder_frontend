@@ -1,74 +1,214 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import {
+  ModalTemplate,
+  ModalButtons,
+  ModalField,
+} from "@/components/ui/ModalTemplate";
+import { FieldShell } from "@/components/forms/FieldShell";
+import { SelectField } from "@/components/forms/SelectField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface AddVendorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddVendor?: (vendor: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    servicesProvided: string[];
+    notes: string;
+  }) => void;
 }
 
 export default function AddVendorModal({
   open,
   onOpenChange,
+  onAddVendor,
 }: AddVendorModalProps) {
+  const [vendorName, setVendorName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [servicesProvided, setServicesProvided] = useState<string[]>([]);
+  const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState<{ vendorName?: string }>({});
+
+  const availableServices = [
+    { value: "hvac", label: "HVAC" },
+    { value: "plumbing", label: "Plumbing" },
+    { value: "electrical", label: "Electrical" },
+    { value: "carpentry", label: "Carpentry" },
+    { value: "roofing", label: "Roofing" },
+    { value: "painting", label: "Painting" },
+    { value: "flooring", label: "Flooring" },
+    { value: "landscaping", label: "Landscaping" },
+    { value: "pest-control", label: "Pest Control" },
+    { value: "security-systems", label: "Security Systems" },
+    { value: "appliance-repair", label: "Appliance Repair" },
+    { value: "general-maintenance", label: "General Maintenance" },
+  ];
+
+  useEffect(() => {
+    if (open) {
+      setVendorName("");
+      setEmail("");
+      setPhone("");
+      setServicesProvided([]);
+      setNotes("");
+      setErrors({});
+    }
+  }, [open]);
+
+  const validateForm = (): boolean => {
+    const newErrors: { vendorName?: string } = {};
+    if (!vendorName.trim()) {
+      newErrors.vendorName = "Vendor Name is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+  
+    // servicesProvided[] -> "HVAC, Plumbing"
+    const category = servicesProvided.join(", ");
+  
+    try {
+      // ✅ 1) Capture backend response
+      const res = await fetchJSON("/vendors/create", {
+        method: "POST",
+        body: JSON.stringify({
+          name: vendorName,
+          primary_email: email || "",
+          phone: phone || "",
+          notes: notes || "",
+          category,
+          requires_1099: true,
+          has_insurance: true,
+        }),
+      });
+  
+      // ✅ 2) Notify parent with CREATED vendor info
+      onAddVendor?.({
+        id: res.id,
+        name: vendorName,
+        email: email || "",
+        phone: phone || "",
+        servicesProvided: servicesProvided,
+        notes: notes || "",
+      });
+  
+      // ✅ 3) Reset + close modal
+      setVendorName("");
+      setEmail("");
+      setPhone("");
+      setServicesProvided([]);
+      setNotes("");
+      onOpenChange(false);
+    } catch (err) {
+      console.error("Failed to create vendor:", err);
+      // later: toast / inline error
+    }
+  };
+  
+  
+
+  const handleVendorNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVendorName(e.target.value);
+    if (errors.vendorName && e.target.value.trim()) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.vendorName;
+        return newErrors;
+      });
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[694px] p-8 gap-0">
-        <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-          Add Vendor
-        </DialogTitle>
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Add Vendor"
+      size="lg"
+      onClose={() => onOpenChange(false)}
+      footer={
+        <ModalButtons
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel="Create Vendor"
+        />
+      }
+    >
+      <ModalField spacing="tight">
+        <FieldShell
+          label="Vendor Name"
+          required
+          error={errors.vendorName}
+          htmlFor="vendor-name"
+        >
+          <Input
+            id="vendor-name"
+            type="text"
+            value={vendorName}
+            onChange={handleVendorNameChange}
+            placeholder="Vendor Name"
+          />
+        </FieldShell>
+      </ModalField>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Vendor Name <span className="text-red-600">*</span>
-              </label>
-              <Input
-                placeholder="Input Vendor Name"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-              />
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Primary Email
-              </label>
-              <Input
-                type="email"
-                placeholder="Input Vendor Email"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-              />
-            </div>
-          </div>
+      <ModalField spacing="tight">
+        <FieldShell label="Primary Email" htmlFor="primary-email">
+          <Input
+            id="primary-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="vendor@example.com"
+          />
+        </FieldShell>
+      </ModalField>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Vendor Phone Number
-            </label>
-            <Input
-              type="tel"
-              placeholder="Input Vendor Phone"
-              className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-            />
-          </div>
+      <ModalField spacing="tight">
+        <FieldShell label="Vendor Phone Number" htmlFor="vendor-phone">
+          <Input
+            id="vendor-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="(123) 456-7890"
+          />
+        </FieldShell>
+      </ModalField>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Notes
-            </label>
-            <Textarea
-              placeholder="Insert Vendor Notes"
-              className="min-h-[169px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
-            />
-          </div>
+      <ModalField spacing="tight">
+        <SelectField
+          label="Services Provided"
+          id="services-provided"
+          value={servicesProvided}
+          onChange={(val) =>
+            setServicesProvided(Array.isArray(val) ? val : [val])
+          }
+          options={availableServices}
+          placeholder="Select services..."
+          multiple
+        />
+      </ModalField>
 
-          <button className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2">
-            <span className="text-white font-medium text-base">
-              Create Vendor
-            </span>
-          </button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      <ModalField spacing="tight">
+        <FieldShell label="Notes" htmlFor="notes">
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Insert Vendor Notes"
+            autoGrow
+          />
+        </FieldShell>
+      </ModalField>
+    </ModalTemplate>
   );
 }

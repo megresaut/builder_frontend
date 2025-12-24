@@ -3,7 +3,7 @@ import React from "react";
 export default function BlankPage() {
   return (
     <div className="flex-1 flex items-center justify-center bg-white">
-      <div className="text-center flex flex-col items-center gap-4">
+      <div className="text-center flex flex-col items-center gap-4" style={{ paddingTop: "300px" }}>
         <div className="text-gray-400">
           <svg
             width="64"

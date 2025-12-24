@@ -493,7 +493,7 @@ export default function FTOApprovalModal({
                     },
                   ]);
                 }}
-                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] border border-white hover:bg-[#014777] transition-colors"
               >
                 <svg
                   width="20"
@@ -711,7 +711,7 @@ export default function FTOApprovalModal({
                     },
                   ]);
                 }}
-                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] border border-white hover:bg-[#014777] transition-colors"
               >
                 <svg
                   width="20"
@@ -917,8 +917,8 @@ export default function FTOApprovalModal({
             disabled={!isFormValid()}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg transition-colors ${
               isFormValid()
-                ? "bg-[#013764] shadow-[0_0_0_1px_#002d5a] hover:bg-[#014777]"
-                : "bg-[#999] shadow-[0_0_0_1px_#777] cursor-not-allowed opacity-50"
+                ? "bg-[#013764] border border-white hover:bg-[#014777]"
+                : "bg-[#999] cursor-not-allowed opacity-50"
             }`}
           >
             <span className="text-white font-medium text-base">

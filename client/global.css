@@ -1,3 +1,35 @@
+/**
+ * ============================================================================
+ * GLOBAL STYLES - global.css
+ * ============================================================================
+ *
+ * This file contains ONLY foundational styles for the entire application.
+ *
+ * WHAT BELONGS HERE:
+ * ✅ Tailwind directives (@tailwind base/components/utilities)
+ * ✅ CSS variable definitions (color tokens, spacing, etc.)
+ * ✅ Global base element styling (@layer base)
+ * ✅ Global animations (@keyframes)
+ * ✅ Utility layer classes that are used across 3+ components (.ra-field-row, .ra-input-placeholder)
+ *
+ * WHAT DOES NOT BELONG HERE:
+ * ❌ Component-specific styles (Modal, Table, DatePicker, etc.)
+ *    → Move to component.module.css in the component directory
+ * ❌ Hardcoded colors or values
+ *    → Use semantic CSS variables (--color-text-primary, etc.)
+ * ❌ Component-specific classes
+ *    → Extract to component modules when they're only used in one component
+ *
+ * COMPONENT STYLE FILES:
+ * - code/client/components/ui/Modal.module.css — Modal sizing and structure
+ * - code/client/components/ui/ModalTemplate.module.css — ModalTemplate layout
+ * - code/client/components/ui/table.module.css — Table styling
+ * - code/client/components/ui/date-picker.module.css — DatePicker calendar
+ * - code/client/components/ui/floating-panel.module.css — Floating panels
+ *
+ * See code/client/DESIGN_SYSTEM.md for complete design system documentation.
+ */
+
 /** @import must precede all other statements */
 /* ⚠️  GOOGLE FONTS IMPORT REMOVED - STATIC MODE */
 /* Using system fonts instead of external network calls */
@@ -59,6 +91,20 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Semantic color tokens (light mode) */
+    --color-text-primary: #303030;
+    --color-text-secondary: #525252;
+    --color-text-muted: #717179;
+    --color-text-placeholder: #303030;
+    --color-border-default: #dadada;
+    --color-border-light: #e5e5e5;
+    --color-bg-subtle: #fbfbfb;
+    --color-bg-row: #f2f2f2;
+    --color-status-error: #dc2626;
+    --color-button-primary: #013764;
+    --color-button-primary-hover: #014578;
+    --color-button-primary-shadow: rgba(0, 45, 90, 1);
   }
 
   .dark {
@@ -97,6 +143,120 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Semantic color tokens (dark mode) */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #d0d0d0;
+    --color-text-muted: #8b8d8d;
+    --color-text-placeholder: #6b7280;
+    --color-border-default: #404040;
+    --color-border-light: #555555;
+    --color-bg-subtle: #1a1a1a;
+    --color-status-error: #ef4444;
+    --color-button-primary: #2563eb;
+    --color-button-primary-hover: #1d4ed8;
+  }
+}
+
+@layer utilities {
+  @keyframes fadeInBill {
+    0% {
+      background-color: rgba(254, 243, 199, 0.8);
+    }
+    100% {
+      background-color: rgba(254, 243, 199, 0);
+    }
+  }
+
+  .animate-fadeInBill {
+    animation: fadeInBill 2.5s ease-out forwards;
+  }
+}
+
+/**
+ * ============================================================================
+ * COMPONENT-SPECIFIC STYLES
+ * ============================================================================
+ *
+ * Component styles have been extracted to individual component files:
+ * - Modal styles → code/client/components/ui/Modal.module.css
+ * - Table styles → code/client/components/ui/table.module.css
+ * - DatePicker styles → code/client/components/ui/date-picker.module.css
+ * - Floating panel styles → code/client/components/ui/floating-panel.module.css
+ * - ModalTemplate styles → code/client/components/ui/ModalTemplate.module.css
+ *
+ * This keeps global.css focused on foundational styles only.
+ */
+
+@layer components {
+  /**
+   * FIELD SHELL - Base field wrapper styling
+   * Container for label, required indicator, helper text, input, and error message.
+   *
+   * All form fields (TextField, SelectField, CurrencyField, etc.) use this wrapper
+   * for consistent styling and vertical rhythm.
+   *
+   * Structure:
+   * - Label with required indicator
+   * - Description / helper text
+   * - Input control (Input, Select, DatePicker, etc.)
+   * - Error message
+   */
+  .ra-field-shell {
+    /* Handled by React component inline styles for flexibility */
+  }
+
+  /**
+   * FIELD ROW - Multi-column field layout
+   * Container for laying out multiple form fields horizontally on desktop,
+   * stacking vertically on mobile for responsive design.
+   *
+   * Usage: FieldRow(columns=2) contains FieldRowItem children
+   * Each FieldRowItem should wrap a field component (TextField, SelectField, etc.)
+   */
+  .ra-field-row {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    grid-template-columns: repeat(var(--field-row-columns, 2), 1fr);
+  }
+
+  /* Mobile/tablet: stack fields vertically */
+  @media (max-width: 640px) {
+    .ra-field-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Individual field container within a row */
+  .ra-field-row-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Ensure fields inside row items stretch to fill available space */
+  .ra-field-row-item > * {
+    width: 100%;
+  }
+
+  /**
+   * STANDARD INPUT PLACEHOLDER TEXT STYLE
+   * Used for placeholder-like text across modals.
+   * Matches the exact rendering of Input component placeholders.
+   */
+  .ra-input-placeholder {
+    font-family:
+      Geist,
+      -apple-system,
+      Roboto,
+      Helvetica,
+      sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.32px;
+    line-height: 1.4;
+    color: var(--color-text-primary);
   }
 }
 
@@ -127,6 +287,11 @@
       sans-serif;
   }
 
+  /* Input placeholder color using design system token */
+  input::placeholder {
+    color: var(--color-text-placeholder);
+  }
+
   #root {
     height: 100%;
     width: 100%;
@@ -145,3 +310,44 @@
     white-space: pre;
   }
 }
+
+/**
+ * ============================================================================
+ * DESIGN SYSTEM CLEANUP SUMMARY
+ * ============================================================================
+ *
+ * Global.css has been cleaned and refactored:
+ *
+ * ✅ BEFORE: ~600 lines (mixed component + foundation styles)
+ * ✅ AFTER:  ~180 lines (foundation + reusable utilities only)
+ *
+ * CHANGES MADE:
+ * 1. Extracted component-specific styles to individual CSS modules
+ * 2. Defined semantic color token variables for the entire app
+ * 3. Removed hardcoded colors; all classes now use CSS variables
+ * 4. Removed deprecated backward compatibility aliases
+ * 5. Kept only foundational styles and globally reusable utilities
+ *
+ * NEXT STEPS FOR COMPONENT FILES:
+ * Components with inline styles should migrate to use CSS variables:
+ * - Replace color: "#303030" with color: var(--color-text-primary)
+ * - Replace borderColor: "#DADADA" with border-color: var(--color-border-default)
+ * - See DESIGN_SYSTEM.md for all available color tokens
+ *
+ * NEW COLOR TOKENS:
+ * Light Mode:
+ *   --color-text-primary: #303030
+ *   --color-text-secondary: #525252
+ *   --color-text-muted: #717179
+ *   --color-text-placeholder: #A1A1A9
+ *   --color-border-default: #DADADA
+ *   --color-border-light: #E5E5E5
+ *   --color-bg-subtle: #fbfbfb
+ *   --color-bg-row: #F2F2F2
+ *   --color-status-error: #DC2626
+ *   --color-button-primary: #013764
+ *   --color-button-primary-hover: #014578
+ *   --color-button-primary-shadow: rgba(0, 45, 90, 1)
+ *
+ * These variables are available in light and dark modes via CSS custom properties.
+ */

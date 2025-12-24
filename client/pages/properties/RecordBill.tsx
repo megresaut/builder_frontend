@@ -8,9 +8,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
+
 import { fetchJSON } from "@/api/fetchJSON";
 import glAccounts from "@/data/gl_accounts.json";
+
+import AddVendorModal from "@/components/AddVendorModal";
+import { SelectField } from "@/components/forms/SelectField";
+import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
+import { TextField } from "@/components/forms/TextField";
+import { DateField } from "@/components/forms/DateField";
+import { TextAreaField } from "@/components/forms/TextAreaField";
 
 interface Vendor {
   id: number;
@@ -24,10 +33,10 @@ interface LineItem {
   id: number;
   property: string;
   unit: string;
-  workOrder: string;
   description: string;
   glAccount: string;
   total: string;
+  workOrder?: string;
 }
 
 interface ViewBillState {
@@ -88,7 +97,6 @@ const toCents = (value: string): number => {
 
 const mockProperties = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
 const mockUnits = ["N/A", "1", "2", "3", "4", "5"];
-const mockWorkOrders = ["N/A", "123456-1", "123456-2", "789012-1"];
 const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
 
 const placeholderBill = {
@@ -102,7 +110,6 @@ const placeholderBill = {
       id: 1,
       property: "22 Indian Creek Dr",
       unit: "1",
-      workOrder: "123456-1",
       description: "Monthly electric service charge and consumption",
       glAccount: "Utilities",
       total: "$450.00",
@@ -111,7 +118,6 @@ const placeholderBill = {
       id: 2,
       property: "22 Indian Creek Dr",
       unit: "2",
-      workOrder: "123456-2",
       description: "Water and sewer service",
       glAccount: "Utilities",
       total: "$125.50",
@@ -120,7 +126,6 @@ const placeholderBill = {
       id: 3,
       property: "25 Park Ave",
       unit: "1",
-      workOrder: "789012-1",
       description: "Gas heating service",
       glAccount: "Utilities",
       total: "$275.00",
@@ -135,6 +140,47 @@ const parseDateWithFallback = (value: string | undefined, fallback: Date) => {
     return parsed;
   }
   return fallback;
+};
+
+const parseDateNullable = (value: string | undefined): Date | null => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const emptyLineItem = (id: number): LineItem => ({
+  id,
+  property: "",
+  unit: "",
+  description: "",
+  glAccount: "",
+  total: "",
+});
+
+const buildEditableBillFromState = (stateBill?: ViewBillState) => {
+  const vendorName = (stateBill?.vendorName ?? "").trim();
+  const vendor =
+    vendorName && vendorName !== "—"
+      ? (mockVendors.find((v) => v.name === vendorName) ?? null)
+      : null;
+
+  const referenceNumber = stateBill?.referenceNumber ?? "";
+  const invoiceDate = parseDateNullable(stateBill?.invoiceDate);
+  const dueDate = parseDateNullable(stateBill?.dueDate);
+  const memo = stateBill?.memo ?? "";
+  const lineItems =
+    stateBill?.lineItems && stateBill.lineItems.length > 0
+      ? stateBill.lineItems
+      : [emptyLineItem(1)];
+
+  return {
+    vendor,
+    referenceNumber,
+    invoiceDate,
+    dueDate,
+    memo,
+    lineItems,
+  };
 };
 
 const buildReadOnlyBillFromState = (stateBill?: ViewBillState) => {
@@ -179,42 +225,59 @@ export const RecordBill = () => {
   const navigate = useNavigate();
   const location = useLocation(); 
   const isReadOnly = searchParams.get("readOnly") === "true";
+  const billIdParam = searchParams.get("billId");
+  // const billId = billIdParam ? Number(billIdParam) : Number.NaN;
+  const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
+
+  const stateBill = location.state?.bill;
+
   const readOnlyBill = isReadOnly
-    ? buildReadOnlyBillFromState(location.state?.bill)
+    ? buildReadOnlyBillFromState(stateBill)
     : null;
   const [draft, setDraft] = useState<any>(null);
+
+  const editableBill =
+    !isReadOnly && stateBill ? buildEditableBillFromState(stateBill) : null;
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
-    isReadOnly ? (readOnlyBill?.vendor ?? placeholderBill.vendor) : null,
+    isReadOnly
+      ? (readOnlyBill?.vendor ?? placeholderBill.vendor)
+      : (editableBill?.vendor ?? null),
   );
   const [referenceNumber, setReferenceNumber] = useState<string>(
     isReadOnly
       ? (readOnlyBill?.referenceNumber ?? placeholderBill.referenceNumber)
-      : "",
+      : (editableBill?.referenceNumber ?? ""),
   );
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(
     isReadOnly
       ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
-      : null,
+      : (editableBill?.invoiceDate ?? null),
   );
   const [dueDate, setDueDate] = useState<Date | null>(
-    isReadOnly ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate) : null,
+    isReadOnly
+      ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate)
+      : (editableBill?.dueDate ?? null),
   );
-  const [invoiceDateInput, setInvoiceDateInput] = useState<string>(
-    isReadOnly && (readOnlyBill?.invoiceDate || placeholderBill.invoiceDate)
-      ? format(
-          readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate,
-          "MM/dd/yyyy",
-        )
-      : "",
-  );
-  const [dueDateInput, setDueDateInput] = useState<string>(
-    isReadOnly && (readOnlyBill?.dueDate || placeholderBill.dueDate)
-      ? format(readOnlyBill?.dueDate ?? placeholderBill.dueDate, "MM/dd/yyyy")
-      : "",
-  );
+  const [invoiceDateInput, setInvoiceDateInput] = useState<string>(() => {
+    const date =
+      (isReadOnly
+        ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
+        : editableBill?.invoiceDate) ?? null;
+    return date ? format(date, "MM/dd/yyyy") : "";
+  });
+  const [dueDateInput, setDueDateInput] = useState<string>(() => {
+    const date =
+      (isReadOnly
+        ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate)
+        : editableBill?.dueDate) ?? null;
+    return date ? format(date, "MM/dd/yyyy") : "";
+  });
   const [memo, setMemo] = useState<string>(
-    isReadOnly ? (readOnlyBill?.memo ?? placeholderBill.memo) : "",
+    isReadOnly
+      ? (readOnlyBill?.memo ?? placeholderBill.memo)
+      : (editableBill?.memo ?? ""),
   );
   const [invoiceDateError, setInvoiceDateError] = useState<string>("");
   const [dueDateError, setDueDateError] = useState<string>("");
@@ -233,30 +296,30 @@ export const RecordBill = () => {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
       ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
-      : [
+      : (editableBill?.lineItems ?? [
           {
             id: 1,
             property: "",
             unit: "",
-            workOrder: "",
             description: "",
             glAccount: "",
             total: "",
           },
-        ],
+        ]),
   );
 
   // Dynamic column width tracking with default minimum widths
   const defaultColumnWidths = {
     property: 151,
     unit: 130,
-    workOrder: 150,
     description: 200,
     glAccount: 170,
     total: 80,
+    workOrder: 150,
   };
   // Real vendors + properties
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -462,16 +525,20 @@ export const RecordBill = () => {
     //
     const formatted = items.map((item: any, idx: number) => ({
       id: idx + 1,
-      property: draft.PropertyLabel || "",
+      property: item.PropertyID
+        ? item.PropertyID.toString()
+        : "",
       unit: item.Unit || "",
       workOrder: item.WorkOrderRef || "",
       description: item.Description || "",
-      glAccount: item.GLAccountName || "",
+      glAccount: item.GLAccountID
+        ? item.GLAccountID.toString()
+        : "",
       total: item.AmountCents
         ? `$${(item.AmountCents / 100).toFixed(2)}`
         : "",
     }));
-  
+    
     setLineItems(formatted);
   
     //
@@ -532,8 +599,9 @@ export const RecordBill = () => {
       return;
     }
   
+    // 🔹 NEW BILL: Save is a no-op (Approve is what persists)
     if (!billId) {
-      console.error("Missing billId");
+      navigate(-1);
       return;
     }
   
@@ -553,12 +621,13 @@ export const RecordBill = () => {
     }
   };
   
+  
   const handleApproveBill = async () => {
     // validation stays the same as handleRecordBill
     const formFieldErrors = new Set<string>();
     let hasErrors = false;
   
-    const patchPayload = buildPatchPayload(); // your existing function
+    const patchPayload = buildPatchPayload(); // existing function
   
     // --------------------------
     // 1. Validate again before approving
@@ -567,165 +636,175 @@ export const RecordBill = () => {
       formFieldErrors.add("vendor_id");
       hasErrors = true;
     }
-    
+  
     if (!patchPayload.statement_date) {
       formFieldErrors.add("statement_date");
       hasErrors = true;
     }
-    
+  
     if (!patchPayload.due_date) {
       formFieldErrors.add("due_date");
       hasErrors = true;
     }
-    
+  
     if (!patchPayload.line_items || patchPayload.line_items.length === 0) {
       alert("A bill must have at least one line item.");
       hasErrors = true;
     }
-    
   
     if (hasErrors) {
       setLineItemErrors(lineItemErrors);
       return;
     }
   
-    if (!billId) {
-      console.error("Missing billId");
-      return;
-    }
-  
     try {
-      // --------------------------
-      // 2. First PATCH the draft
-      // --------------------------
-      await fetchJSON(`/vendors/bill-drafts/${billId}`, {
-        method: "PATCH",
-        body: JSON.stringify(patchPayload),
-      });
+      let approvedBillId: number;
+  
+      // =====================================================
+      // 🧾 EXISTING DRAFT BILL FLOW (UNCHANGED)
+      // =====================================================
+      if (billId) {
+        // --------------------------
+        // 2. PATCH the draft
+        // --------------------------
+        await fetchJSON(`/vendors/bill-drafts/${billId}`, {
+          method: "PATCH",
+          body: JSON.stringify(patchPayload),
+        });
+  
+        // --------------------------
+        // 3. APPROVE the draft
+        // --------------------------
+        const approvePayload = {
+          pdf_object_key: uploadedPdfMeta?.pdf_object_key,
+          sha256_pdf: uploadedPdfMeta?.sha256_pdf,
+          vendor_id: patchPayload.vendor_id,
+          invoice_number: patchPayload.invoice_number,
+          statement_date: patchPayload.statement_date,
+          due_date: patchPayload.due_date,
+          memo: patchPayload.memo,
+  
+          line_items: patchPayload.line_items.map((li) => ({
+            line_id: li.line_id,                         // REQUIRED
+            property_id: li.property_id ?? null,         // number | null
+            unit: li.unit || "",
+            work_order_ref: li.work_order_ref || "",
+            gl_account_id: li.gl_account_id || "",
+            gl_account_name: li.gl_account_name || "",
+            description: li.description || "",
+            amount_cents: Number(li.amount_cents) || 0,  // int64
+          })),
+        };
+  
+        const approveRes = await fetchJSON(
+          `/vendors/bill-drafts/${billId}/approve`,
+          {
+            method: "POST",
+            body: JSON.stringify(approvePayload),
+          }
+        );
+  
+        approvedBillId = approveRes?.bill_id;
+      }
+  
+      // =====================================================
+      // 🆕 NEW MANUAL BILL FLOW (ADDITIVE)
+      // =====================================================
+      else {
+        if (!uploadedPdfMeta) {
+          alert("Please upload a PDF before approving.");
+          return;
+        }
+  
+        const createRes = await fetchJSON(`/vendors/bills/manual`, {
+          method: "POST",
+          body: JSON.stringify({
+            ...patchPayload,
+            pdf_object_key: uploadedPdfMeta.pdf_object_key,
+            sha256_pdf: uploadedPdfMeta.sha256_pdf,
+          }),
+        });
+  
+        approvedBillId = createRes?.bill_id;
+      }
+  
+      if (!approvedBillId) {
+        throw new Error("Approve succeeded but bill_id missing from response");
+      }
   
       // --------------------------
-      // 3. Then APPROVE the draft
+      // 4. PUSH bill to Buildium
       // --------------------------
-      const approvePayload = {
-        vendor_id: patchPayload.vendor_id,
-        invoice_number: patchPayload.invoice_number,
-        statement_date: patchPayload.statement_date,
-        due_date: patchPayload.due_date,
-        memo: patchPayload.memo,
-      
-        line_items: patchPayload.line_items.map((li) => ({
-          line_id: li.line_id,                                 // REQUIRED by backend
-          property_id: li.property_id ?? null,                 // must be number | null
-          unit: li.unit || "",
-          work_order_ref: li.work_order_ref || "",
-          gl_account_id: li.gl_account_id || "",
-          gl_account_name: li.gl_account_name || "",
-          description: li.description || "",
-          amount_cents: Number(li.amount_cents) || 0,          // ensure int64
-        })),
-      };
-      
-      await fetchJSON(`/vendors/bill-drafts/${billId}/approve`, {
+      await fetchJSON(`/vendors/bills/${approvedBillId}/push`, {
         method: "POST",
-        body: JSON.stringify(approvePayload),
       });
   
       // --------------------------
-      // 4. Notify Bills page
+      // 5. Notify Bills page
       // --------------------------
       window.dispatchEvent(
         new CustomEvent("billApproved", {
-          detail: { timestamp: Date.now() },
+          detail: {
+            billId: approvedBillId,
+            timestamp: Date.now(),
+          },
         })
       );
   
       // --------------------------
-      // 5. Close modal
+      // 6. Close modal
       // --------------------------
       navigate(-1);
     } catch (err) {
-      console.error("Failed to approve bill:", err);
-      alert("Could not approve bill.");
+      console.error("Failed to approve and export bill:", err);
+      alert("Bill was approved, but exporting to Buildium may have failed.");
     }
   };
   
   
+  
 
-  const validateDateFormat = (dateString: string): Date | null => {
-    if (!dateString) return null;
-
-    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
-    if (!dateRegex.test(dateString)) {
-      return null;
-    }
-
-    const [month, day, year] = dateString.split("/").map(Number);
-    const date = new Date(year, month - 1, day);
-
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
-    }
-
-    return date;
-  };
-
-  const handleInvoiceDateInputChange = (value: string) => {
-    setInvoiceDateInput(value);
-    setInvoiceDateError("");
-
-    if (value.length === 10) {
-      const parsedDate = validateDateFormat(value);
-      if (parsedDate) {
-        setInvoiceDate(parsedDate);
-      } else {
-        setInvoiceDateError("Invalid date format. Use mm/dd/yyyy");
-      }
-    }
-  };
-
-  const handleDueDateInputChange = (value: string) => {
-    setDueDateInput(value);
-    setDueDateError("");
-
-    if (value.length === 10) {
-      const parsedDate = validateDateFormat(value);
-      if (parsedDate) {
-        setDueDate(parsedDate);
-      } else {
-        setDueDateError("Invalid date format. Use mm/dd/yyyy");
-      }
-    }
-  };
-
-  const handleInvoiceDateSelect = (date: Date) => {
+  const handleInvoiceDateChange = (date: Date | null) => {
     setInvoiceDate(date);
-    setInvoiceDateInput(format(date, "MM/dd/yyyy"));
-    setInvoiceDateError("");
+    if (date) {
+      setInvoiceDateInput(format(date, "MM/dd/yyyy"));
+      setInvoiceDateError("");
+      setFormErrors((prev) => {
+        const newErrors = new Set(prev);
+        newErrors.delete("invoiceDate");
+        return newErrors;
+      });
+    } else {
+      setInvoiceDateInput("");
+    }
   };
 
-  const handleDueDateSelect = (date: Date) => {
+  const handleDueDateChange = (date: Date | null) => {
     setDueDate(date);
-    setDueDateInput(format(date, "MM/dd/yyyy"));
-    setDueDateError("");
+    if (date) {
+      setDueDateInput(format(date, "MM/dd/yyyy"));
+      setDueDateError("");
+      setFormErrors((prev) => {
+        const newErrors = new Set(prev);
+        newErrors.delete("dueDate");
+        return newErrors;
+      });
+    } else {
+      setDueDateInput("");
+    }
   };
 
-  // Add Escape key handler
+  // Add Escape key handler for file viewer
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
+      if (event.key === "Escape" && viewingFileUrl) {
         closeViewer();
-        navigate(-1);
       }
     };
 
     window.addEventListener("keydown", handleEscapeKey);
     return () => window.removeEventListener("keydown", handleEscapeKey);
-  }, [navigate]);
+  }, [viewingFileUrl]);
 
   // Effect to measure widths whenever lineItems change
   useEffect(() => {
@@ -826,22 +905,67 @@ export const RecordBill = () => {
     ]);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploadedPdfMeta, setUploadedPdfMeta] = useState<{
+    pdf_object_key: string;
+    sha256_pdf: string;
+  } | null>(null);
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
-    if (files) {
-      Array.from(files).forEach((file) => {
-        setUploadedFiles((prev) => [
-          ...prev,
-          {
-            name: file.name.replace(/\.[^.]*$/, ""),
-            size: file.size,
-            file,
-          },
-        ]);
-      });
+    if (!files || files.length === 0) return;
+  
+    const file = files[0];
+  
+    // -------------------------
+    // UI preview (existing)
+    // -------------------------
+    setUploadedFiles([
+      {
+        name: file.name.replace(/\.[^.]*$/, ""),
+        size: file.size,
+        file,
+      },
+    ]);
+  
+    // -------------------------
+    // NEW: Upload to backend
+    // Only for NEW bills (no billId yet)
+    // -------------------------
+    if (!billId) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+  
+        const res = await fetch(`/vendors/bills/upload-pdf`, {
+          method: "POST",
+          body: formData,
+        });
+  
+        if (!res.ok) {
+          throw new Error("PDF upload failed");
+        }
+  
+        const data = await res.json();
+  
+        setUploadedPdfMeta({
+          pdf_object_key: data.pdf_object_key,
+          sha256_pdf: data.sha256_pdf,
+        });
+  
+        console.log("PDF uploaded:", data);
+      } catch (err) {
+        console.error("Failed to upload PDF:", err);
+        alert("PDF upload failed");
+      }
     }
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
+  
 
   const handleRemoveFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -908,16 +1032,15 @@ export const RecordBill = () => {
   };
 
 
-  const loadWorkOrdersForProperty = useCallback(async (propertyName: string) => {
-    try {
-      const prop = properties.find((p) => p.name === propertyName);
-      if (!prop) return;
+  const loadWorkOrdersForProperty = useCallback(
+    async (propertyIdStr: string) => {
+      const propertyId = Number(propertyIdStr);
+      if (!propertyId) return;
   
       const list = await fetchJSON(
-        `/maintenance/work-orders?property_id=${prop.id}`
+        `/maintenance/work-orders?property_id=${propertyId}`
       );
   
-      // Normalize result → assume backend returns { ID, Number }
       const normalized = list.map((wo: any) => ({
         id: wo.ID,
         number: wo.Number || wo.WorkOrderRef || `WO-${wo.ID}`,
@@ -925,18 +1048,21 @@ export const RecordBill = () => {
   
       setWorkOrdersByProperty((prev) => ({
         ...prev,
-        [propertyName]: normalized,
+        [propertyIdStr]: normalized,
       }));
-    } catch (err) {
-      console.error("Failed to load work orders for property", err);
-    }
-  }, [properties]);
+    },
+    [properties]
+  );
+  
   
 
   const buildLineItemPayload = () => {
     return lineItems.map((item) => {
       // 1. Convert property name → id
-      const property_id = propertyMap[item.property] ?? null;
+      const property_id =
+      item.property && !isNaN(Number(item.property))
+        ? Number(item.property)
+        : null;
   
       // 2. Convert GL account string → id + name
       const gl = glAccountOptions.find(
@@ -1010,6 +1136,7 @@ export const RecordBill = () => {
               display: "flex",
               flexDirection: "column",
               padding: "24px 32px",
+              position: "relative",
             }}
           >
             {!viewingFileUrl ? (
@@ -1339,6 +1466,9 @@ export const RecordBill = () => {
               overflowX: "auto",
               overflowY: "auto",
               marginBottom: "4px",
+              position: "relative",
+              overscrollBehavior: "contain",
+              touchAction: "pan-x pan-y",
             }}
           >
             <div
@@ -1346,6 +1476,7 @@ export const RecordBill = () => {
               style={{
                 minWidth: "fit-content",
                 padding: "24px 32px 24px 16px",
+                position: "relative",
               }}
             >
               {/* Bill Details Section */}
@@ -1364,8 +1495,8 @@ export const RecordBill = () => {
 
                 {/* Form Fields */}
                 <div
-                  className="flex mt-3 flex-col"
-                  style={{ width: "auto", alignSelf: "start" }}
+                  className="flex mt-3 flex-col gap-5"
+                  style={{ width: "600px", alignSelf: "start" }}
                 >
                   <div
                     className="flex flex-col"
@@ -1374,7 +1505,7 @@ export const RecordBill = () => {
                       width: "auto",
                       alignSelf: "start",
                     }}
-                  >
+                    >
                     {/* Vendor and Reference Number Row */}
                     <div
                       className="flex items-start flex-wrap"
@@ -1437,119 +1568,79 @@ export const RecordBill = () => {
                           }
                           placeholder="INV-2024-001"
                           disabled={isReadOnly}
-                          className="rounded-lg bg-white border border-[#E5E5E5] mt-2 w-full px-3 py-2 items-center gap-2 overflow-hidden text-base text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6]"
-                          style={
-                            {
-                              "--tw-placeholder-opacity": "1",
-                              "--tw-placeholder-color": "rgb(161, 161, 169)",
-                            } as React.CSSProperties
-                          }
+                          className="rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] border-[#E5E5E5]"
                         />
                       </div>
                     </div>
-
-                    {/* Invoice Date and Due Date Row */}
-                    <div
-                      className="flex mt-5 items-start gap-5 flex-wrap"
-                      style={{ width: "600px" }}
-                    >
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Invoice Date{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
-                        </label>
-                        <input
-                          type="date"
-                          placeholder="mm/dd/yyyy"
-                          value={
-                            invoiceDate ? format(invoiceDate, "yyyy-MM-dd") : ""
-                          }
-                          onChange={(e) => {
-                            if (!isReadOnly && e.target.value) {
-                              const date = new Date(e.target.value);
-                              setInvoiceDate(date);
-                              setInvoiceDateInput(format(date, "MM/dd/yyyy"));
-                              setInvoiceDateError("");
-                              setFormErrors((prev) => {
-                                const newErrors = new Set(prev);
-                                newErrors.delete("invoiceDate");
-                                return newErrors;
-                              });
-                            } else if (!isReadOnly) {
-                              setInvoiceDate(null);
-                              setInvoiceDateInput("");
-                            }
-                          }}
-                          disabled={isReadOnly}
-                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
-                            formErrors.has("invoiceDate")
-                              ? "border-red-500 border-2"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
-                        {invoiceDateError && (
-                          <div className="text-red-500 text-xs mt-1">
-                            {invoiceDateError}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Due Date{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
-                        </label>
-                        <input
-                          type="date"
-                          placeholder="mm/dd/yyyy"
-                          value={dueDate ? format(dueDate, "yyyy-MM-dd") : ""}
-                          onChange={(e) => {
-                            if (!isReadOnly && e.target.value) {
-                              const date = new Date(e.target.value);
-                              setDueDate(date);
-                              setDueDateInput(format(date, "MM/dd/yyyy"));
-                              setDueDateError("");
-                              setFormErrors((prev) => {
-                                const newErrors = new Set(prev);
-                                newErrors.delete("dueDate");
-                                return newErrors;
-                              });
-                            } else if (!isReadOnly) {
-                              setDueDate(null);
-                              setDueDateInput("");
-                            }
-                          }}
-                          disabled={isReadOnly}
-                          className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9] ${
-                            formErrors.has("dueDate")
-                              ? "border-red-500 border-2"
-                              : "border-[#E5E5E5]"
-                          }`}
-                        />
-                        {dueDateError && (
-                          <div className="text-red-500 text-xs mt-1">
-                            {dueDateError}
-                          </div>
-                        )}
-                      </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddVendorModal(true)}
+                        className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline bg-transparent border-none p-0"
+                        style={{ marginTop: "32px" }}
+                      >
+                        + Add Vendor
+                      </button>
                     </div>
+                  </div>
 
-                    {/* Memo/Notes */}
-                    <div
-                      className="flex mt-5 w-full flex-col"
-                      style={{ width: "600px" }}
-                    >
-                      <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                        Memo/Notes
-                      </label>
-                      <textarea
-                        value={memo}
-                        onChange={(e) => !isReadOnly && setMemo(e.target.value)}
-                        placeholder="Additional notes..."
+                  <div className="flex gap-5">
+                    <div className="flex-1">
+                      <TextField
+                        label="Reference Number"
+                        value={referenceNumber}
+                        onChange={(e) =>
+                          !isReadOnly && setReferenceNumber(e.target.value)
+                        }
+                        placeholder="INV-2024-001"
                         disabled={isReadOnly}
-                        className="rounded-lg bg-white border border-[#E5E7EB] mt-2 min-h-[81px] w-full px-3 py-2 overflow-hidden text-base text-[#303030] font-normal tracking-[-0.32px] leading-[22px] resize-none focus:outline-none focus:border-[#3b82f6] placeholder-[#A1A1A9]"
                       />
                     </div>
                   </div>
+
+                  <div className="flex gap-5">
+                    <div className="flex-1">
+                      <DateField
+                        label="Invoice Date"
+                        required
+                        value={invoiceDate}
+                        onChange={handleInvoiceDateChange}
+                        disabled={isReadOnly}
+                        error={
+                          invoiceDateError ||
+                          (formErrors.has("invoiceDate")
+                            ? "Invoice Date is required"
+                            : undefined)
+                        }
+                        placeholder="mm/dd/yyyy"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <DateField
+                        label="Due Date"
+                        required
+                        value={dueDate}
+                        onChange={handleDueDateChange}
+                        disabled={isReadOnly}
+                        error={
+                          dueDateError ||
+                          (formErrors.has("dueDate")
+                            ? "Due Date is required"
+                            : undefined)
+                        }
+                        placeholder="mm/dd/yyyy"
+                      />
+                    </div>
+                  </div>
+
+                  <TextAreaField
+                    label="Memo/Notes"
+                    value={memo}
+                    onChange={(e) => !isReadOnly && setMemo(e.target.value)}
+                    placeholder="Additional notes..."
+                    disabled={isReadOnly}
+                    autoGrow
+                  />
                 </div>
 
                 {/* Line Items Section */}
@@ -1581,7 +1672,8 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.property}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Property / Ledger
+                              Property / Ledger{" "}
+                              <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1589,15 +1681,8 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.unit}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Unit
-                            </span>
-                          </div>
-                          <div
-                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                            style={{ width: `${columnWidths.workOrder}px` }}
-                          >
-                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Work Order
+                              Unit{" "}
+                              <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
                             </span>
                           </div>
                           <div
@@ -1615,7 +1700,15 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.glAccount}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              GL Account
+                              GL Account&nbsp;
+                              <span
+                                style={{
+                                  color: "rgb(255, 0, 0)",
+                                  letterSpacing: "-0.26px",
+                                }}
+                              >
+                                *
+                              </span>
                             </span>
                           </div>
                           <div
@@ -1623,7 +1716,15 @@ export const RecordBill = () => {
                             style={{ width: `${columnWidths.total}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Total
+                              Total&nbsp;
+                              <span
+                                style={{
+                                  color: "rgb(255, 0, 0)",
+                                  letterSpacing: "-0.26px",
+                                }}
+                              >
+                                *
+                              </span>
                             </span>
                           </div>
                           <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 w-[80px] flex-shrink-0">
@@ -1638,81 +1739,47 @@ export const RecordBill = () => {
                           <div key={item.id} className="flex items-center">
                             {/* Property */}
                             <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("property")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
+                              className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.property}px` }}
                             >
-                              <Select
+                              <SelectFieldCell
                                 value={item.property}
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                   if (!isReadOnly) {
-                                    handleUpdateLineItem(
-                                      item.id,
-                                      "property",
-                                      value,
-                                    );
+                                    handleUpdateLineItem(item.id, "property", value);
                                   }
                                 }}
+                                placeholder="Select a Property"
+                                options={properties.map((prop) => ({
+                                  value: prop.id.toString(),
+                                  label: prop.name,
+                                }))}
                                 disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="property"
-                                >
-                                  <SelectValue placeholder="Select a Property" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {properties.map((prop) => (
-                                    <SelectItem key={prop.id} value={prop.name}>
-                                      {prop.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              />
                             </div>
 
                             {/* Unit */}
                             <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("unit")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
+                              className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.unit}px` }}
                             >
-                              <Select
+                              <SelectFieldCell
                                 value={item.unit}
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                   if (!isReadOnly) {
-                                    handleUpdateLineItem(
-                                      item.id,
-                                      "unit",
-                                      value,
-                                    );
+                                    handleUpdateLineItem(item.id, "unit", value);
                                   }
                                 }}
+                                placeholder="Select a Unit"
+                                options={mockUnits.map((unit) => ({
+                                  value: unit,
+                                  label: unit,
+                                }))}
                                 disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="unit"
-                                >
-                                  <SelectValue placeholder="Select a Unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {mockUnits.map((unit) => (
-                                    <SelectItem key={unit} value={unit}>
-                                      {unit}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              />
                             </div>
 
-                            {/* Work Order */}
+                            {/* Work Order (Radix Select is OK here) */}
                             <div
                               className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
                                 lineItemErrors[item.id]?.has("workOrder")
@@ -1723,14 +1790,10 @@ export const RecordBill = () => {
                             >
                               <Select
                                 disabled={!item.property || isReadOnly}
-                                value={item.workOrder}
+                                value={item.workOrder ?? ""}
                                 onValueChange={(value) => {
                                   if (!isReadOnly) {
-                                    handleUpdateLineItem(
-                                      item.id,
-                                      "workOrder",
-                                      value,
-                                    );
+                                    handleUpdateLineItem(item.id, "workOrder", value);
                                   }
                                 }}
                               >
@@ -1742,7 +1805,8 @@ export const RecordBill = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {(() => {
-                                    const workOrders = workOrdersByProperty[item.property] || [];
+                                    const workOrders =
+                                      workOrdersByProperty[item.property] || [];
 
                                     if (workOrders.length === 0) {
                                       return (
@@ -1753,7 +1817,10 @@ export const RecordBill = () => {
                                     }
 
                                     return workOrders.map((wo) => (
-                                      <SelectItem key={wo.id} value={wo.id.toString()}>
+                                      <SelectItem
+                                        key={wo.id}
+                                        value={wo.id.toString()}
+                                      >
                                         {wo.number}
                                       </SelectItem>
                                     ));
@@ -1765,9 +1832,7 @@ export const RecordBill = () => {
                             {/* Description */}
                             <div
                               className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-1"
-                              style={{
-                                minWidth: `${columnWidths.description}px`,
-                              }}
+                              style={{ minWidth: `${columnWidths.description}px` }}
                             >
                               <input
                                 type="text"
@@ -1790,16 +1855,12 @@ export const RecordBill = () => {
 
                             {/* GL Account */}
                             <div
-                              className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
-                                lineItemErrors[item.id]?.has("glAccount")
-                                  ? "border-red-500 border-2"
-                                  : "border-[#DADADA]/50"
-                              }`}
+                              className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.glAccount}px` }}
                             >
-                              <Select
+                              <SelectFieldCell
                                 value={item.glAccount}
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                   if (!isReadOnly) {
                                     handleUpdateLineItem(
                                       item.id,
@@ -1808,22 +1869,13 @@ export const RecordBill = () => {
                                     );
                                   }
                                 }}
+                                placeholder="Select an Account"
+                                options={glAccountOptions.map((gl) => ({
+                                  value: gl.id.toString(),
+                                  label: gl.name,
+                                }))}
                                 disabled={isReadOnly}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
-                                  data-measure-width="glAccount"
-                                >
-                                  <SelectValue placeholder="Select an Account" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {glAccountOptions.map((gl) => (
-                                    <SelectItem key={gl.id} value={gl.id.toString()}>
-                                      {gl.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              />
                             </div>
 
                             {/* Total */}
@@ -1876,6 +1928,7 @@ export const RecordBill = () => {
                             </div>
                           </div>
                         ))}
+
                       </div>
                     </div>
                   </div>
@@ -1945,32 +1998,6 @@ export const RecordBill = () => {
             {!isReadOnly && (
               <>
                 <button
-                  onClick={handleApproveBill}
-                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d]"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "rgb(1, 55, 100)",
-                    borderRadius: "8px",
-                    boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
-                    color: "rgb(255, 255, 255)",
-                    fontWeight: "500",
-                    gap: "8px",
-                    minHeight: "36px",
-                    overflowX: "hidden",
-                    overflowY: "hidden",
-                    transitionDuration: "0.15s",
-                    transitionProperty:
-                      "color, background-color, border-color, text-decoration-color, fill, stroke",
-                    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                    borderColor: "rgba(0, 0, 0, 0)",
-                    padding: "8px 12px",
-                  }}
-                >
-                  <span>Approve</span>
-                </button>
-                <button
                   onClick={handleRecordBill}
                   className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d]"
                   style={{
@@ -1994,13 +2021,80 @@ export const RecordBill = () => {
                     padding: "8px 12px",
                   }}
                 >
-                  <span>Approve & Export</span>
+                  <span>Save</span>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Validate top-level form fields (same as Save button)
+                    const formFieldErrors = new Set<string>();
+                    let hasErrors = false;
+
+                    if (!selectedVendor) {
+                      formFieldErrors.add("vendor");
+                      hasErrors = true;
+                    }
+                    if (!invoiceDate) {
+                      formFieldErrors.add("invoiceDate");
+                      hasErrors = true;
+                    }
+                    if (!dueDate) {
+                      formFieldErrors.add("dueDate");
+                      hasErrors = true;
+                    }
+
+                    if (hasErrors) {
+                      setFormErrors(formFieldErrors);
+                      return;
+                    }
+
+                    // If quick validation passes, run full validation including line items
+                    handleApproveBill();
+                  }}
+                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
+                  style={{
+                    boxShadow:
+                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 0px 10px -5px",
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span className="text-white text-sm font-medium leading-5">
+                    Approve & Export
+                  </span>
                 </button>
               </>
             )}
           </div>
         </div>
       </div>
+      <AddVendorModal
+        open={showAddVendorModal}
+        onOpenChange={setShowAddVendorModal}
+        onAddVendor={(vendor) => {
+          setSelectedVendor({
+            id: Math.random(),
+            name: vendor.name,
+            email: vendor.email,
+            phone: vendor.phone,
+            notes: vendor.notes,
+          });
+          setShowAddVendorModal(false);
+        }}
+      />
     </div>
   );
 };

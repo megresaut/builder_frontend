@@ -5,11 +5,19 @@ import Header from "@/components/Header";
 import { useTabContext } from "@/hooks/useTabContext";
 
 const FULLSCREEN_KEY = "app-fullscreen-mode";
+
 const getFullscreenMode = () => {
   if (typeof window !== "undefined") {
     return localStorage.getItem(FULLSCREEN_KEY) === "true";
   }
   return false;
+};
+
+const isModalLikePage = (pathname: string): boolean => {
+  return (
+    pathname.includes("/bills/record") ||
+    pathname === "/utilities/view-bill"
+  );
 };
 
 interface ShellLayoutProps {
@@ -23,6 +31,9 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const lastTabIdRef = useRef<string>();
   const [isFullscreen, setIsFullscreen] = useState(getFullscreenMode());
+  const [forceCollapse, setForceCollapse] = useState(
+    isModalLikePage(location.pathname),
+  );
 
   // Listen for fullscreen mode changes
   useEffect(() => {
@@ -41,6 +52,12 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
       clearInterval(interval);
     };
   }, []);
+
+  // Detect modal-like pages and manage collapse state
+  useEffect(() => {
+    const isModal = isModalLikePage(location.pathname);
+    setForceCollapse(isModal);
+  }, [location.pathname]);
 
   // Get the current tab ID based on the route
   const getCurrentTabId = (): string => {
@@ -125,17 +142,29 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     });
   }, [currentTabId]);
 
+  // Clear scroll position when location pathname changes significantly
+  useEffect(() => {
+    const mainContent = mainContentRef.current;
+    if (!mainContent) return;
+
+    // Reset scroll to top when pathname changes
+    mainContent.scrollTop = 0;
+  }, [location.pathname]);
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar />
+      <Sidebar forceCollapse={forceCollapse} />
       <main className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header forceCollapse={forceCollapse} />
         <div
           ref={mainContentRef}
           data-testid="main-content"
           className="flex-1 overflow-auto bg-white"
+          style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
         >
-          {children}
+          <div key={location.pathname}>
+            {children}
+          </div>
         </div>
       </main>
     </div>

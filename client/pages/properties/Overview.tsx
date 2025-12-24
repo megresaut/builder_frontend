@@ -1,24 +1,28 @@
 import React from "react";
+import { PropertyDetails } from "@/components/PropertyDetails";
 
 interface OverviewProps {
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
+  propertyLocation?: string;
 }
 
 export const Overview: React.FC<OverviewProps> = ({
   propertyAddress,
   propertyType,
   propertyUnits,
+  propertyLocation,
 }) => {
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Overview</h2>
-        <p className="text-gray-600 text-base">
-          Property overview for {propertyAddress}
-        </p>
-      </div>
+      <PropertyDetails
+        propertyAddress={propertyAddress}
+        propertyLocation={propertyLocation || ""}
+        propertyType={propertyType}
+        rentalOwner="Eunice Bae"
+        propertyManager="Jake Delardi"
+      />
     </div>
   );
 };

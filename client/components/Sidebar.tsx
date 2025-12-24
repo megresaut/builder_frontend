@@ -11,21 +11,44 @@ interface SidebarItem {
   hasSubmenu?: boolean;
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  forceCollapse?: boolean;
+}
+
+export default function Sidebar({ forceCollapse = false }: SidebarProps) {
+  const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
+
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [isPinned, setIsPinnedState] = useState(() => {
+    // Load pinned state from localStorage on initial mount
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(SIDEBAR_PINNED_KEY);
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
   const { favorites, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Persist sidebar pinned state to localStorage
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_PINNED_KEY, JSON.stringify(isPinned));
+  }, [isPinned]);
+
+  // Wrapper for setIsPinnedState to maintain the original name
+  const setIsPinned = (value: boolean | ((prev: boolean) => boolean)) => {
+    setIsPinnedState(value);
+  };
+
   // Detect screen size changes
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 600);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -237,34 +260,58 @@ export default function Sidebar() {
 
   const tabContext = useContext(TabContext);
 
+  // Map section ID to the corresponding default tab ID
+  const getDefaultTabIdForSection = (sectionId: string | undefined): string | undefined => {
+    if (!sectionId) return undefined;
+
+    const sectionToTabMap: Record<string, string> = {
+      "all-properties": "properties",
+      "bills": "bills",
+      "all-tasks": "field-team-orders",
+      "recurring-tasks": "field-team-orders",
+      "field-team-orders": "field-team-orders",
+      "work-orders": "work-orders",
+      "vendors": "field-team-orders",
+    };
+
+    return sectionToTabMap[sectionId];
+  };
+
   const handleNavigation = (
     label: string,
     sectionId?: string,
     path?: string,
   ) => {
-    if (tabContext) {
-      if (tabContext.selectedTab.startsWith("new-tab-") && sectionId) {
-        tabContext.setTabMetadata(tabContext.selectedTab, {
-          label,
-          sectionId,
-          route: path,
-          scrollPosition: 0,
-        });
-      } else if (sectionId) {
-        tabContext.setTabMetadata(sectionId, {
-          label,
-          sectionId,
-          route: path,
-          scrollPosition: 0,
-        });
-        tabContext.setSelectedTab(sectionId);
+    if (tabContext && sectionId) {
+      // Update the current tab's metadata (don't switch tabs)
+      // History will be updated by the Header's useEffect when the location changes
+      const currentTabMetadata = tabContext.tabMetadata[tabContext.selectedTab];
+      tabContext.setTabMetadata(tabContext.selectedTab, {
+        ...currentTabMetadata,
+        label,
+        sectionId,
+        // Don't update route here - let Header's useEffect handle it
+        scrollPosition: 0,
+      });
+    }
+  };
+
+  const handleIconClick = (itemId: string) => {
+    const submenu = submenuMap[itemId];
+    if (submenu && submenu.length > 0) {
+      const firstItem = submenu[0];
+      if (firstItem.path) {
+        navigate(firstItem.path);
+        if (firstItem.label && firstItem.sectionId) {
+          handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
+        }
       }
     }
   };
 
   // Desktop: show expanded sidebar on hover with left edge trigger
   if (!isMobile) {
-    const isExpanded = isHovered || isPinned;
+    const isExpanded = forceCollapse ? false : isHovered || isPinned;
 
     return (
       <div
@@ -277,17 +324,19 @@ export default function Sidebar() {
           }
         }}
       >
-        <div
-          className="fixed left-0 top-0 h-screen z-0"
-          style={{ width: "40px", cursor: "default" }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => {
-            if (!isPinned) {
-              setIsHovered(false);
-              setActiveDropdown(null);
-            }
-          }}
-        />
+        {!isMobile && (
+          <div
+            className="fixed left-0 top-0 h-screen z-0"
+            style={{ width: "40px", cursor: "default" }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => {
+              if (!isPinned) {
+                setIsHovered(false);
+                setActiveDropdown(null);
+              }
+            }}
+          />
+        )}
 
         <aside
           className={`bg-gray-50 border-r absolute left-0 top-0 h-screen flex flex-col justify-between z-20 ${
@@ -323,9 +372,14 @@ export default function Sidebar() {
                 <span className="text-xl font-semibold text-gray-900">AVM</span>
               </div>
               <button
-                onClick={() => setIsPinned(!isPinned)}
-                className="p-0.5 hover:bg-gray-200 rounded transition-colors"
-                title={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+                onClick={() => {
+                  if (!forceCollapse) {
+                    setIsPinned(!isPinned);
+                  }
+                }}
+                className="p-0.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title={forceCollapse ? "Sidebar is locked on this page" : (isPinned ? "Unpin sidebar" : "Pin sidebar")}
+                disabled={forceCollapse}
               >
                 <svg
                   width="20"
