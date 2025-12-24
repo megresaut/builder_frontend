@@ -676,7 +676,7 @@ export default function MaintenanceWorkOrders() {
       </div>
 
       {/* Create Work Order Modal */}
-      <CreateWorkOrderModal
+      <CreateWorkOrderModalV2
         open={isCreateWorkOrderModalOpen}
         onOpenChange={(open) => {
           setIsCreateWorkOrderModalOpen(open);
@@ -684,16 +684,6 @@ export default function MaintenanceWorkOrders() {
             setEditingWorkOrder(null);
           }
         }}
-        editData={
-          editingWorkOrder
-            ? {
-                task: editingWorkOrder.task,
-                dueDate: editingWorkOrder.dueDate,
-                priority: editingWorkOrder.priority,
-                status: editingWorkOrder.status,
-              }
-            : undefined
-        }
       />
 
       {/* Column Filter Modal */}
