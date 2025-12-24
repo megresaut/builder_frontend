@@ -345,6 +345,13 @@ export default function CreateWorkOrderModalV2({
           </FormLayout.Field>
         </FormLayout.Section>
       </FormLayout>
+
+      <PdfViewerModal
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        title={viewingFile?.name || "Document"}
+        url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : undefined}
+      />
     </ModalTemplate>
   );
 }
