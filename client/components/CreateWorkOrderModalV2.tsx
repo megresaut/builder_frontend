@@ -142,8 +142,8 @@ export default function CreateWorkOrderModalV2({
 
   const handleViewFile = (file: UploadedFile) => {
     if (file.file) {
-      setViewingFile(file);
-      setPdfViewerOpen(true);
+      const url = URL.createObjectURL(file.file);
+      pdfViewer.openPdf(url, file.name);
     }
   };
 
