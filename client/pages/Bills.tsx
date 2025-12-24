@@ -803,16 +803,54 @@ export default function Bills() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section */}
+        {/* Header Section - Using PageHeader Template */}
+        <PageHeader
+          title="All Bills"
+          subtitle="All your bills, in one place"
+          action={{
+            label: "Record Bill",
+            onClick: () => navigate(`/bills/record?billId=${Date.now()}`),
+            icon: <Plus className="w-5 h-5" />,
+          }}
+        />
+
+        {/* Sub Header Section - Using SubPageHeader with toggles and buttons */}
+        <SubPageHeader
+          toggles={[
+            {
+              id: "approved",
+              label: "Approved & Exported Bills",
+              active: selectedTab === "approved",
+              onClick: () => setSelectedTab("approved"),
+            },
+            {
+              id: "draft",
+              label: "Draft Bills",
+              active: selectedTab === "drafts",
+              onClick: () => setSelectedTab("drafts"),
+            },
+          ]}
+          buttons={[
+            {
+              id: "sync",
+              label: "Sync",
+              onClick: () => {
+                // Sync action
+              },
+              icon: <RefreshCw className="w-4 h-4" />,
+              variant: "secondary",
+            },
+            {
+              id: "vendor",
+              label: "Add Vendor",
+              onClick: () => setIsAddVendorModalOpen(true),
+              icon: <Plus className="w-4 h-4" />,
+              variant: "secondary",
+            },
+          ]}
+        />
+
         <div className="flex flex-col gap-6">
-          <PageHeader
-            title="All Bills"
-            description="All your bills, in one place"
-            tabs={headerTabs}
-            selectedTab={selectedTab}
-            onTabChange={setSelectedTab}
-            actions={headerActions}
-          />
 
           {/* Bills Table - Using GlobalTable Component */}
           <GlobalTable
