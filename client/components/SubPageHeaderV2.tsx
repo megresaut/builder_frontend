@@ -101,3 +101,5 @@ export const SubPageHeaderV2: React.FC<SubPageHeaderV2Props> = ({
 };
 
 SubPageHeaderV2.displayName = "SubPageHeaderV2";
+
+export default SubPageHeaderV2;
