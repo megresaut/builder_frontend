@@ -182,6 +182,7 @@ export default function CreateWorkOrderModalV2({
   };
 
   return (
+    <>
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
@@ -346,12 +347,16 @@ export default function CreateWorkOrderModalV2({
         </FormLayout.Section>
       </FormLayout>
 
+    </ModalTemplate>
+
+    {viewingFile?.file && (
       <PdfViewerModal
         open={pdfViewerOpen}
         onOpenChange={setPdfViewerOpen}
-        title={viewingFile?.name || "Document"}
-        url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : undefined}
+        title={viewingFile.name}
+        url={URL.createObjectURL(viewingFile.file)}
       />
-    </ModalTemplate>
+    )}
+    </>
   );
 }
