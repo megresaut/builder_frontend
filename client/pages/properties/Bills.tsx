@@ -918,7 +918,7 @@ export const Bills: React.FC<BillsProps> = ({
 
         {/* Bills Table Container */}
         {selectedTab === "approved" && (
-          <GlobalTable
+        <GlobalTable
             columns={billsColumnManagement.columnOrder
               .filter((key) => key !== "status")
               .map((key) => ({
