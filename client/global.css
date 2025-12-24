@@ -258,6 +258,51 @@
     line-height: 1.4;
     color: var(--color-text-primary);
   }
+
+  /**
+   * FORM LAYOUT - Standardized vertical spacing for modal forms
+   * Based on Figma design system spacing analysis.
+   *
+   * Spacing Rules:
+   * - 12px: Between subheader/divider and first content element
+   * - 20px: Between standard form fields
+   * - 28px: Between major sections (new subheader blocks)
+   *
+   * Components:
+   * - .ra-form-layout: Main container (no spacing, just semantic wrapper)
+   * - .ra-form-section: Major section break (28px top margin)
+   * - .ra-form-field: Standard field spacing (20px bottom margin)
+   * - .ra-form-field-group: Tight field grouping (12px bottom margin)
+   */
+  .ra-form-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ra-form-section {
+    margin-top: 28px;
+  }
+
+  .ra-form-section:first-child {
+    margin-top: 0;
+  }
+
+  .ra-form-field {
+    margin-bottom: 20px;
+  }
+
+  .ra-form-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .ra-form-field-group {
+    margin-bottom: 12px;
+  }
+
+  .ra-form-field-group:last-child {
+    margin-bottom: 0;
+  }
 }
 
 @layer base {
