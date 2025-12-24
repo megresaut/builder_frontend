@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "../Utilities";
 import AddVendorModal from "@/components/AddVendorModal";
+import { SubPageHeader } from "@/components/SubPageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
