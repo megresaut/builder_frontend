@@ -136,7 +136,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
           }}
         >
           <div className="flex items-center gap-1.5 flex-wrap flex-1">
-            {value.length === 0 ? (
+            {uniqueValue.length === 0 ? (
               <span
                 style={{
                   color: "var(--color-text-placeholder)",
@@ -146,7 +146,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
                 {placeholder}
               </span>
             ) : (
-              value.map((item) => (
+              uniqueValue.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5 whitespace-nowrap"
