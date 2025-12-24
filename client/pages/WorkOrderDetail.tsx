@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Plus } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
