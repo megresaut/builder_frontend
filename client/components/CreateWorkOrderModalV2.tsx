@@ -25,6 +25,15 @@ const VENDORS = ["David Smith", "Elite HVAC", "ABC Plumbing", "Green Lawn Servic
 const STATUSES = ["In progress", "Completed", "Pending"];
 const PRIORITIES = ["Low", "Normal", "High"];
 
+// Fields that must be validated on submit
+const REQUIRED_FIELDS = new Set([
+  "property",
+  "task",
+  "workOrderName",
+  "vendor",
+  "dueDate",
+]);
+
 export default function CreateWorkOrderModalV2({
   open,
   onOpenChange,
