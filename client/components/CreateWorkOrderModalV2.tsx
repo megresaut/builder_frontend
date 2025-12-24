@@ -72,8 +72,9 @@ export default function CreateWorkOrderModalV2({
         files: [],
       });
       setErrors({});
+      pdfViewer.closePdf();
     }
-  }, [open]);
+  }, [open, pdfViewer]);
 
   const handlePropertyChange = (value: string) => {
     setFormData((prev) => ({ ...prev, property: value }));
