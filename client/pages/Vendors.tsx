@@ -235,36 +235,16 @@ export default function Vendors() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              Vendors
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p
-                className="text-[#717179] font-medium text-base leading-4"
-                style={{ marginTop: "-4px" }}
-              >
-                All your vendors, in one place
-              </p>
-            </div>
-          </div>
-
-          {/* Add Vendor Button */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsAddVendorModalOpen(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
-            >
-              <Plus className="w-5 h-5 text-white" />
-              <span className="text-white font-medium text-base leading-normal">
-                Add Vendor
-              </span>
-            </button>
-          </div>
-        </div>
+        {/* Header Section - Using PageHeader Template */}
+        <PageHeader
+          title="Vendors"
+          subtitle="All your vendors, in one place"
+          action={{
+            label: "Add Vendor",
+            onClick: () => setIsAddVendorModalOpen(true),
+            icon: <Plus className="w-5 h-5" />,
+          }}
+        />
 
         <div className="flex flex-col gap-6">
           {/* Vendors Table - Using GlobalTable Component */}
