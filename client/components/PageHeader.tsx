@@ -77,3 +77,5 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 };
 
 PageHeader.displayName = "PageHeader";
+
+export default PageHeader;
