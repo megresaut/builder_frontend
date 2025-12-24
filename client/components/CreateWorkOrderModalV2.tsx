@@ -349,14 +349,14 @@ export default function CreateWorkOrderModalV2({
 
     </ModalTemplate>
 
-    {viewingFile?.file && (
-      <PdfViewerModal
-        open={pdfViewerOpen}
-        onOpenChange={setPdfViewerOpen}
-        title={viewingFile.name}
-        url={URL.createObjectURL(viewingFile.file)}
-      />
-    )}
+    <PdfViewerModal
+      open={pdfViewer.isOpen}
+      onOpenChange={(open) => {
+        if (!open) pdfViewer.closePdf();
+      }}
+      title={pdfViewer.title || "Document"}
+      url={pdfViewer.url}
+    />
     </>
   );
 }
