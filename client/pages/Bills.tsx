@@ -613,11 +613,18 @@ export default function Bills() {
       }>;
 
       const billData = customEvent.detail;
-      const resolvedBillId =
-        typeof billData.billId === "number" && !Number.isNaN(billData.billId)
-          ? billData.billId
-          : Date.now();
+      // const resolvedBillId =
+      //   typeof billData.billId === "number" && !Number.isNaN(billData.billId)
+      //     ? billData.billId
+      //     : Date.now();
 
+
+      const resolvedBillId = billData.billId;
+
+      if (typeof resolvedBillId !== "number") {
+        console.warn("billApproved event missing billId, ignoring", billData);
+        return;
+      }
       // setApprovedTimestamp(billData.timestamp);
       // setRelativeTimeDisplay((prev) => ({
       //   ...prev,
@@ -699,10 +706,12 @@ export default function Bills() {
       }>;
 
       const billData = customEvent.detail;
-      const resolvedBillId =
-        typeof billData.billId === "number" && !Number.isNaN(billData.billId)
-          ? billData.billId
-          : Date.now();
+      const resolvedBillId = billData.billId;
+
+      if (typeof resolvedBillId !== "number") {
+        console.warn("billSaved event missing billId, ignoring", billData);
+        return;
+      }
 
       // setDraftsTimestamp(billData.timestamp);
       // setRelativeTimeDisplay((prev) => ({
@@ -929,7 +938,7 @@ export default function Bills() {
           <line x1="2" x2="22" y1="10" y2="10" />
         </svg>
       ),
-      onClick: () => navigate(`/bills/record?billId=${Date.now()}`),
+      onClick: () => navigate("/bills/record"),
       variant: "primary",
     },
   ];
