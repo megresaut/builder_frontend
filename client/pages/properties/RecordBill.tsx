@@ -221,13 +221,26 @@ const buildReadOnlyBillFromState = (stateBill?: ViewBillState) => {
 
 export const RecordBill = () => {
   const [searchParams] = useSearchParams();
-  const billId = searchParams.get("billId");
+  // const billId = searchParams.get("billId");
   const navigate = useNavigate();
   const location = useLocation(); 
   const isReadOnly = searchParams.get("readOnly") === "true";
-  const billIdParam = searchParams.get("billId");
+  // const billIdParam = searchParams.get("billId");
   // const billId = billIdParam ? Number(billIdParam) : Number.NaN;
-  const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
+  // const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
+  // const isEditingDraft = billId !== null;
+
+
+  const billIdParam = searchParams.get("billId");
+
+  // billId is either a real number OR null
+  const billId: number | null =
+    billIdParam && Number.isFinite(Number(billIdParam))
+      ? Number(billIdParam)
+      : null;
+
+  // editing draft ONLY if we have a real billId
+  const isEditingDraft = billId !== null;
 
   const stateBill = location.state?.bill;
 
@@ -407,7 +420,7 @@ export const RecordBill = () => {
   }, []);
 
   useEffect(() => {
-    if (!billId) return;
+    if (billId === null) return;
   
     async function load() {
       try {
@@ -420,6 +433,7 @@ export const RecordBill = () => {
   
     load();
   }, [billId]);
+  
 
   useEffect(() => {
     async function loadDropdowns() {
@@ -622,28 +636,169 @@ export const RecordBill = () => {
   };
   
   
+  // const handleApproveBill = async () => {
+  //   // validation stays the same as handleRecordBill
+  //   const formFieldErrors = new Set<string>();
+  //   let hasErrors = false;
+  
+  //   const patchPayload = buildPatchPayload(); // existing function
+  
+  //   // --------------------------
+  //   // 1. Validate again before approving
+  //   // --------------------------
+  //   if (!patchPayload.vendor_id) {
+  //     formFieldErrors.add("vendor_id");
+  //     hasErrors = true;
+  //   }
+  
+  //   if (!patchPayload.statement_date) {
+  //     formFieldErrors.add("statement_date");
+  //     hasErrors = true;
+  //   }
+  
+  //   if (!patchPayload.due_date) {
+  //     formFieldErrors.add("due_date");
+  //     hasErrors = true;
+  //   }
+  
+  //   if (!patchPayload.line_items || patchPayload.line_items.length === 0) {
+  //     alert("A bill must have at least one line item.");
+  //     hasErrors = true;
+  //   }
+  
+  //   if (hasErrors) {
+  //     setLineItemErrors(lineItemErrors);
+  //     return;
+  //   }
+  
+  //   try {
+  //     let approvedBillId: number;
+  
+  //     // =====================================================
+  //     // 🧾 EXISTING DRAFT BILL FLOW (UNCHANGED)
+  //     // =====================================================
+  //     if (billId) {
+  //       // --------------------------
+  //       // 2. PATCH the draft
+  //       // --------------------------
+  //       await fetchJSON(`/vendors/bill-drafts/${billId}`, {
+  //         method: "PATCH",
+  //         body: JSON.stringify(patchPayload),
+  //       });
+  
+  //       // --------------------------
+  //       // 3. APPROVE the draft
+  //       // --------------------------
+  //       const approvePayload = {
+  //         pdf_object_key: uploadedPdfMeta?.pdf_object_key,
+  //         sha256_pdf: uploadedPdfMeta?.sha256_pdf,
+  //         vendor_id: patchPayload.vendor_id,
+  //         invoice_number: patchPayload.invoice_number,
+  //         statement_date: patchPayload.statement_date,
+  //         due_date: patchPayload.due_date,
+  //         memo: patchPayload.memo,
+  
+  //         line_items: patchPayload.line_items.map((li) => ({
+  //           line_id: li.line_id,                         // REQUIRED
+  //           property_id: li.property_id ?? null,         // number | null
+  //           unit: li.unit || "",
+  //           work_order_ref: li.work_order_ref || "",
+  //           gl_account_id: li.gl_account_id || "",
+  //           gl_account_name: li.gl_account_name || "",
+  //           description: li.description || "",
+  //           amount_cents: Number(li.amount_cents) || 0,  // int64
+  //         })),
+  //       };
+  
+  //       const approveRes = await fetchJSON(
+  //         `/vendors/bill-drafts/${billId}/approve`,
+  //         {
+  //           method: "POST",
+  //           body: JSON.stringify(approvePayload),
+  //         }
+  //       );
+  
+  //       approvedBillId = approveRes?.bill_id;
+  //     }
+  
+  //     // =====================================================
+  //     // 🆕 NEW MANUAL BILL FLOW (ADDITIVE)
+  //     // =====================================================
+  //     else {
+  //       if (!uploadedPdfMeta) {
+  //         alert("Please upload a PDF before approving.");
+  //         return;
+  //       }
+  
+  //       const createRes = await fetchJSON(`/vendors/bills/manual`, {
+  //         method: "POST",
+  //         body: JSON.stringify({
+  //           ...patchPayload,
+  //           pdf_object_key: uploadedPdfMeta.pdf_object_key,
+  //           sha256_pdf: uploadedPdfMeta.sha256_pdf,
+  //         }),
+  //       });
+  
+  //       approvedBillId = createRes?.bill_id;
+  //     }
+  
+  //     if (!approvedBillId) {
+  //       throw new Error("Approve succeeded but bill_id missing from response");
+  //     }
+  
+  //     // --------------------------
+  //     // 4. PUSH bill to Buildium
+  //     // --------------------------
+  //     await fetchJSON(`/vendors/bills/${approvedBillId}/push`, {
+  //       method: "POST",
+  //     });
+  
+  //     // --------------------------
+  //     // 5. Notify Bills page
+  //     // --------------------------
+  //     window.dispatchEvent(
+  //       new CustomEvent("billApproved", {
+  //         detail: {
+  //           billId: approvedBillId,
+  //           timestamp: Date.now(),
+  //         },
+  //       })
+  //     );
+  
+  //     // --------------------------
+  //     // 6. Close modal
+  //     // --------------------------
+  //     navigate(-1);
+  //   } catch (err) {
+  //     console.error("Failed to approve and export bill:", err);
+  //     alert("Bill was approved, but exporting to Buildium may have failed.");
+  //   }
+  // };
+
+  const [createdBillId, setCreatedBillId] = useState<number | null>(null);
+  const effectiveBillId = billId ?? createdBillId;
+
   const handleApproveBill = async () => {
-    // validation stays the same as handleRecordBill
     const formFieldErrors = new Set<string>();
     let hasErrors = false;
   
-    const patchPayload = buildPatchPayload(); // existing function
+    const patchPayload = buildPatchPayload();
   
     // --------------------------
-    // 1. Validate again before approving
+    // 1. Validate required fields
     // --------------------------
     if (!patchPayload.vendor_id) {
-      formFieldErrors.add("vendor_id");
+      formFieldErrors.add("vendor");
       hasErrors = true;
     }
   
     if (!patchPayload.statement_date) {
-      formFieldErrors.add("statement_date");
+      formFieldErrors.add("invoiceDate");
       hasErrors = true;
     }
   
     if (!patchPayload.due_date) {
-      formFieldErrors.add("due_date");
+      formFieldErrors.add("dueDate");
       hasErrors = true;
     }
   
@@ -653,31 +808,27 @@ export const RecordBill = () => {
     }
   
     if (hasErrors) {
-      setLineItemErrors(lineItemErrors);
+      setFormErrors(formFieldErrors);
       return;
     }
   
     try {
-      let approvedBillId: number;
+      let approvedBillId: number | null = null;
   
       // =====================================================
-      // 🧾 EXISTING DRAFT BILL FLOW (UNCHANGED)
+      // 🧾 FLOW 1: EXISTING BILL DRAFT
       // =====================================================
-      if (billId) {
-        // --------------------------
-        // 2. PATCH the draft
-        // --------------------------
+      if (isEditingDraft) {
+        // 1️⃣ Update the draft
         await fetchJSON(`/vendors/bill-drafts/${billId}`, {
           method: "PATCH",
           body: JSON.stringify(patchPayload),
         });
   
-        // --------------------------
-        // 3. APPROVE the draft
-        // --------------------------
+        // 2️⃣ Approve the draft
         const approvePayload = {
-          pdf_object_key: uploadedPdfMeta?.pdf_object_key,
-          sha256_pdf: uploadedPdfMeta?.sha256_pdf,
+          pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? null,
+          sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? null,
           vendor_id: patchPayload.vendor_id,
           invoice_number: patchPayload.invoice_number,
           statement_date: patchPayload.statement_date,
@@ -685,14 +836,14 @@ export const RecordBill = () => {
           memo: patchPayload.memo,
   
           line_items: patchPayload.line_items.map((li) => ({
-            line_id: li.line_id,                         // REQUIRED
-            property_id: li.property_id ?? null,         // number | null
+            line_id: li.line_id,
+            property_id: li.property_id ?? null,
             unit: li.unit || "",
-            work_order_ref: li.work_order_ref || "",
+            // work_order_ref: li.work_order_ref || "",
             gl_account_id: li.gl_account_id || "",
             gl_account_name: li.gl_account_name || "",
             description: li.description || "",
-            amount_cents: Number(li.amount_cents) || 0,  // int64
+            amount_cents: Number(li.amount_cents) || 0,
           })),
         };
   
@@ -708,7 +859,7 @@ export const RecordBill = () => {
       }
   
       // =====================================================
-      // 🆕 NEW MANUAL BILL FLOW (ADDITIVE)
+      // 🆕 FLOW 2: BRAND-NEW MANUAL BILL
       // =====================================================
       else {
         if (!uploadedPdfMeta) {
@@ -716,7 +867,10 @@ export const RecordBill = () => {
           return;
         }
   
-        const createRes = await fetchJSON(`/vendors/bills/manual`, {
+        // =====================================================
+        // 🆕 FLOW: CREATE MANUAL BILL FIRST
+        // =====================================================
+        const createRes = await fetchJSON(`/vendors/bills`, {
           method: "POST",
           body: JSON.stringify({
             ...patchPayload,
@@ -724,24 +878,28 @@ export const RecordBill = () => {
             sha256_pdf: uploadedPdfMeta.sha256_pdf,
           }),
         });
-  
-        approvedBillId = createRes?.bill_id;
+
+        if (!createRes?.bill_id) {
+          throw new Error("Bill creation failed: bill_id missing");
+        }
+
+        approvedBillId = createRes.bill_id;
+        setCreatedBillId(approvedBillId);
+
       }
   
       if (!approvedBillId) {
         throw new Error("Approve succeeded but bill_id missing from response");
       }
   
-      // --------------------------
-      // 4. PUSH bill to Buildium
-      // --------------------------
+      // =====================================================
+      // 🚀 PUSH TO BUILDIUM
+      // =====================================================
       await fetchJSON(`/vendors/bills/${approvedBillId}/push`, {
         method: "POST",
       });
   
-      // --------------------------
-      // 5. Notify Bills page
-      // --------------------------
+      // Notify Bills page
       window.dispatchEvent(
         new CustomEvent("billApproved", {
           detail: {
@@ -751,15 +909,15 @@ export const RecordBill = () => {
         })
       );
   
-      // --------------------------
-      // 6. Close modal
-      // --------------------------
+      // Close page
       navigate(-1);
+  
     } catch (err) {
       console.error("Failed to approve and export bill:", err);
       alert("Bill was approved, but exporting to Buildium may have failed.");
     }
   };
+  
   
   
   
@@ -854,10 +1012,10 @@ export const RecordBill = () => {
         const updated = { ...item, [field]: value };
   
         // When property changes → clear work order + load new orders
-        if (field === "property") {
-          updated.workOrder = "";
-          loadWorkOrdersForProperty(value);
-        }
+        // if (field === "property") {
+        //   updated.workOrder = "";
+        //   loadWorkOrdersForProperty(value);
+        // }
   
         return updated;
       })
@@ -930,21 +1088,25 @@ export const RecordBill = () => {
     ]);
   
     // -------------------------
-    // NEW: Upload to backend
-    // Only for NEW bills (no billId yet)
+    // Upload to backend (NEW bills only)
     // -------------------------
     if (!billId) {
       try {
         const formData = new FormData();
         formData.append("file", file);
   
-        const res = await fetch(`/vendors/bills/upload-pdf`, {
-          method: "POST",
-          body: formData,
-        });
+        const res = await fetch(
+          "http://localhost:8080/vendors/bills/upload-pdf",
+          {
+            method: "POST",
+            body: formData,
+            // ❗ DO NOT set headers here
+          }
+        );
   
         if (!res.ok) {
-          throw new Error("PDF upload failed");
+          const errText = await res.text();
+          throw new Error(errText || "PDF upload failed");
         }
   
         const data = await res.json();
@@ -961,10 +1123,12 @@ export const RecordBill = () => {
       }
     }
   
+    // Reset file input so same file can be re-uploaded
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
+  
   
 
   const handleRemoveFile = (index: number) => {
@@ -1074,7 +1238,7 @@ export const RecordBill = () => {
         property_id: property_id,
         unit: "", // always empty for now
   
-        work_order_ref: item.workOrder ? item.workOrder.toString() : "",
+        // work_order_ref: item.workOrder ? item.workOrder.toString() : "",
   
         gl_account_id: gl?.id?.toString() ?? "",
         gl_account_name: gl?.name ?? "",
@@ -1118,7 +1282,8 @@ export const RecordBill = () => {
         borderLeft: "1px solid rgb(210, 209, 207)",
         flexDirection: "column",
         fontWeight: "400",
-        height: "100vh",
+        flex: 1,
+minHeight: 0,
         position: "relative",
       }}
     >
@@ -1508,17 +1673,13 @@ export const RecordBill = () => {
                     >
                     {/* Vendor and Reference Number Row */}
                     <div
-                      className="flex items-start flex-wrap"
-                      style={{
-                        width: "600px",
-                        marginBottom: "-10px",
-                        gap: "20px",
-                      }}
+                      className="flex items-end gap-4"
+                      style={{ width: "600px" }}
                     >
+                      {/* Vendor Select */}
                       <div className="flex flex-col flex-1 min-w-[240px]">
                         <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Vendor{" "}
-                          <span style={{ color: "rgb(255, 0, 0)" }}>*</span>
+                          Vendor <span className="text-red-500">*</span>
                         </label>
                         <Select
                           value={selectedVendor?.id.toString() || ""}
@@ -1526,17 +1687,17 @@ export const RecordBill = () => {
                             if (!isReadOnly) {
                               const vendor = vendors.find(v => v.id.toString() === vendorId);
                               setSelectedVendor(vendor || null);
-                              setFormErrors((prev) => {
-                                const newErrors = new Set(prev);
-                                newErrors.delete("vendor");
-                                return newErrors;
+                              setFormErrors(prev => {
+                                const next = new Set(prev);
+                                next.delete("vendor");
+                                return next;
                               });
                             }
                           }}
                           disabled={isReadOnly}
                         >
                           <SelectTrigger
-                            className={`rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] ${
+                            className={`mt-2 w-full rounded-lg border px-3 py-2 text-base ${
                               formErrors.has("vendor")
                                 ? "border-red-500 border-2"
                                 : "border-[#E5E5E5]"
@@ -1544,44 +1705,31 @@ export const RecordBill = () => {
                           >
                             <SelectValue placeholder="Select vendor..." />
                           </SelectTrigger>
-                          <SelectContent>
-                            {vendors.map((vendor) => (
-                              <SelectItem
-                                key={vendor.id}
-                                value={vendor.id.toString()}
-                              >
-                                {vendor.name}
+                          <SelectContent
+                            className="bg-white border border-[#E5E7EB] shadow-md"
+                            >
+                            {vendors.map(v => (
+                              <SelectItem key={v.id} value={v.id.toString()}>
+                                {v.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
+
                         </Select>
                       </div>
-                      <div className="flex flex-col flex-1 min-w-[240px]">
-                        <label className="text-[#303030] text-sm font-medium leading-[1.43]">
-                          Reference Number
-                        </label>
-                        <input
-                          type="text"
-                          value={referenceNumber}
-                          onChange={(e) =>
-                            !isReadOnly && setReferenceNumber(e.target.value)
-                          }
-                          placeholder="INV-2024-001"
-                          disabled={isReadOnly}
-                          className="rounded-lg bg-white border mt-2 w-full px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] border-[#E5E5E5]"
-                        />
-                      </div>
+
+                      {/* Add Vendor Button (right-aligned) */}
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAddVendorModal(true)}
+                          className="relative top-[-4px] whitespace-nowrap text-[#2563eb] text-sm font-medium hover:underline"
+                        >
+                          + Add Vendor
+                        </button>
+                      )}
                     </div>
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddVendorModal(true)}
-                        className="text-[#2563eb] text-sm font-medium leading-[1.43] hover:underline bg-transparent border-none p-0"
-                        style={{ marginTop: "32px" }}
-                      >
-                        + Add Vendor
-                      </button>
-                    </div>
+
                   </div>
 
                   <div className="flex gap-5">
@@ -1780,14 +1928,14 @@ export const RecordBill = () => {
                             </div>
 
                             {/* Work Order (Radix Select is OK here) */}
-                            <div
+                            {/* <div
                               className={`flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 ${
                                 lineItemErrors[item.id]?.has("workOrder")
                                   ? "border-red-500 border-2"
                                   : "border-[#DADADA]/50"
                               }`}
                               style={{ width: `${columnWidths.workOrder}px` }}
-                            >
+                              >
                               <Select
                                 disabled={!item.property || isReadOnly}
                                 value={item.workOrder ?? ""}
@@ -1796,7 +1944,7 @@ export const RecordBill = () => {
                                     handleUpdateLineItem(item.id, "workOrder", value);
                                   }
                                 }}
-                              >
+                                >
                                 <SelectTrigger
                                   className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent whitespace-nowrap"
                                   data-measure-width="workOrder"
@@ -1827,7 +1975,7 @@ export const RecordBill = () => {
                                   })()}
                                 </SelectContent>
                               </Select>
-                            </div>
+                            </div> */}
 
                             {/* Description */}
                             <div
@@ -1886,7 +2034,7 @@ export const RecordBill = () => {
                                   : "border-[#DADADA]/50"
                               }`}
                               style={{ width: `${columnWidths.total}px` }}
-                            >
+                              >
                               <input
                                 type="text"
                                 value={item.total}
@@ -1997,30 +2145,10 @@ export const RecordBill = () => {
             )}
             {!isReadOnly && (
               <>
-                <button
-                  onClick={handleRecordBill}
-                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#0a2e4d]"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "rgb(1, 55, 100)",
-                    borderRadius: "8px",
-                    boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px",
-                    color: "rgb(255, 255, 255)",
-                    fontWeight: "500",
-                    gap: "8px",
-                    minHeight: "36px",
-                    overflowX: "hidden",
-                    overflowY: "hidden",
-                    transitionDuration: "0.15s",
-                    transitionProperty:
-                      "color, background-color, border-color, text-decoration-color, fill, stroke",
-                    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                    borderColor: "rgba(0, 0, 0, 0)",
-                    padding: "8px 12px",
-                  }}
-                >
+                  <button
+                    onClick={handleRecordBill}
+                    className="mr-4"
+                  >
                   <span>Save</span>
                 </button>
                 <button
