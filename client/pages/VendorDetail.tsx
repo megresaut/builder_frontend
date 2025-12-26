@@ -647,31 +647,19 @@ export default function VendorDetail() {
         isValid={customFieldName.trim().length > 0 && customFieldValue.trim().length > 0}
         size="sm"
       >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Field Name
-            </label>
-            <Input
-              value={customFieldName}
-              onChange={(e) => setCustomFieldName(e.target.value)}
-              placeholder="Field name"
-              className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-            />
-          </div>
+        <TextField
+          label="Field Name"
+          value={customFieldName}
+          onChange={(e) => setCustomFieldName(e.target.value)}
+          placeholder="Field name"
+        />
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Value
-            </label>
-            <Input
-              value={customFieldValue}
-              onChange={(e) => setCustomFieldValue(e.target.value)}
-              placeholder="Value"
-              className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-            />
-          </div>
-        </div>
+        <TextField
+          label="Value"
+          value={customFieldValue}
+          onChange={(e) => setCustomFieldValue(e.target.value)}
+          placeholder="Value"
+        />
       </FormDialog>
 
       {/* Add File Dialog */}
