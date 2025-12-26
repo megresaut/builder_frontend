@@ -9,7 +9,7 @@ import GlobalTable from "@/components/GlobalTable";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
-import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
+import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
 import CreateFTOModal from "@/components/CreateFTOModal";
 
 interface Assignee {
