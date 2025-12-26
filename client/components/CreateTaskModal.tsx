@@ -44,7 +44,6 @@ export default function CreateTaskModal({
   const [unit, setUnit] = useState("");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState("");
   const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
   const [category, setCategory] = useState("");
