@@ -1020,138 +1020,142 @@ export default function VendorDetail() {
           </DialogTitle>
 
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Vendor Name <span className="text-red-600">*</span>
-                </label>
-                <Input
-                  value={vendorDraft.name}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  placeholder="Input Vendor Name"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Category
-                </label>
-                <Input
-                  value={vendorDraft.category}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                  placeholder="Category"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-            </div>
+            {vendorDraft && (
+              <>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                    <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                      Vendor Name <span className="text-red-600">*</span>
+                    </label>
+                    <Input
+                      value={vendorDraft.name}
+                      onChange={(e) =>
+                        setVendorDraft((prev) => (prev ? {
+                          ...prev,
+                          name: e.target.value,
+                        } : null))
+                      }
+                      placeholder="Input Vendor Name"
+                      className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                    <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                      Category
+                    </label>
+                    <Input
+                      value={vendorDraft.category}
+                      onChange={(e) =>
+                        setVendorDraft((prev) => (prev ? {
+                          ...prev,
+                          category: e.target.value,
+                        } : null))
+                      }
+                      placeholder="Category"
+                      className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Primary Email
-                </label>
-                <Input
-                  type="email"
-                  value={vendorDraft.email || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  placeholder="Input Vendor Email"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Phone
-                </label>
-                <Input
-                  value={vendorDraft.phone || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                  placeholder="Input Vendor Phone"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-            </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                    <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                      Primary Email
+                    </label>
+                    <Input
+                      type="email"
+                      value={vendorDraft.email || ""}
+                      onChange={(e) =>
+                        setVendorDraft((prev) => (prev ? {
+                          ...prev,
+                          email: e.target.value,
+                        } : null))
+                      }
+                      placeholder="Input Vendor Email"
+                      className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                    <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                      Phone
+                    </label>
+                    <Input
+                      value={vendorDraft.phone || ""}
+                      onChange={(e) =>
+                        setVendorDraft((prev) => (prev ? {
+                          ...prev,
+                          phone: e.target.value,
+                        } : null))
+                      }
+                      placeholder="Input Vendor Phone"
+                      className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Address
-                </label>
-                <Input
-                  value={vendorDraft.address || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      address: e.target.value,
-                    }))
-                  }
-                  placeholder="Address"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Website
-                </label>
-                <Input
-                  value={vendorDraft.website || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      website: e.target.value,
-                    }))
-                  }
-                  placeholder="https://..."
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-            </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                    <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                      Address
+                    </label>
+                    <Input
+                      value={vendorDraft.address || ""}
+                      onChange={(e) =>
+                        setVendorDraft((prev) => (prev ? {
+                          ...prev,
+                          address: e.target.value,
+                        } : null))
+                      }
+                      placeholder="Address"
+                      className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
+                    <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                      Website
+                    </label>
+                    <Input
+                      value={vendorDraft.website || ""}
+                      onChange={(e) =>
+                        setVendorDraft((prev) => (prev ? {
+                          ...prev,
+                          website: e.target.value,
+                        } : null))
+                      }
+                      placeholder="https://..."
+                      className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Services Provided
-              </label>
-              <Input
-                value={vendorDraft.servicesProvided || ""}
-                onChange={(e) =>
-                  setVendorDraft((prev) => ({
-                    ...prev,
-                    servicesProvided: e.target.value,
-                  }))
-                }
-                placeholder="Services provided"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-              />
-            </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
+                    Services Provided
+                  </label>
+                  <Input
+                    value={vendorDraft.servicesProvided || ""}
+                    onChange={(e) =>
+                      setVendorDraft((prev) => (prev ? {
+                        ...prev,
+                        servicesProvided: e.target.value,
+                      } : null))
+                    }
+                    placeholder="Services provided"
+                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                  />
+                </div>
 
-            <button
-              onClick={saveVendor}
-              disabled={!vendorDraft.name.trim()}
-              className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="text-white font-medium text-base">
-                Save Vendor
-              </span>
-            </button>
+                <button
+                  onClick={saveVendor}
+                  disabled={!vendorDraft.name.trim()}
+                  className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="text-white font-medium text-base">
+                    Save Vendor
+                  </span>
+                </button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
