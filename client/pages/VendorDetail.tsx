@@ -159,6 +159,14 @@ export default function VendorDetail() {
     // reserved for future tab switching
   };
 
+  if (vendorLoading) {
+    return <PageTemplate><div className="flex items-center justify-center h-96">Loading vendor details...</div></PageTemplate>;
+  }
+
+  if (vendorError || !vendor) {
+    return <PageTemplate><div className="flex items-center justify-center h-96">Error loading vendor</div></PageTemplate>;
+  }
+
   return (
     <>
       <PageTemplate>
