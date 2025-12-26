@@ -1,6 +1,5 @@
 import React from "react";
-import { ModalTemplate, ModalText, ModalButtons } from "@/components/ui/ModalTemplate";
-import type { ModalSize } from "@/components/ui/Modal";
+import { ModalTemplate, ModalText, ModalButtons, type ModalSize } from "@/components/ui/ModalTemplate";
 
 interface ConfirmDialogProps {
   open: boolean;
