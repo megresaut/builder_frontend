@@ -183,6 +183,20 @@ export default function AddVendorModal({
         </FieldShell>
       </ModalField>
 
+      {edit && (
+        <ModalField spacing="tight">
+          <FieldShell label="Category" htmlFor="vendor-category">
+            <Input
+              id="vendor-category"
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Vendor category"
+            />
+          </FieldShell>
+        </ModalField>
+      )}
+
       <ModalField spacing="tight">
         <FieldShell label="Primary Email" htmlFor="primary-email">
           <Input
@@ -207,31 +221,45 @@ export default function AddVendorModal({
         </FieldShell>
       </ModalField>
 
-      <ModalField spacing="tight">
-        <SelectField
-          label="Services Provided"
-          id="services-provided"
-          value={servicesProvided}
-          onChange={(val) =>
-            setServicesProvided(Array.isArray(val) ? val : [val])
-          }
-          options={availableServices}
-          placeholder="Select services..."
-          multiple
-        />
-      </ModalField>
+      {edit && (
+        <ModalField spacing="tight">
+          <FieldShell label="Website" htmlFor="vendor-website">
+            <Input
+              id="vendor-website"
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://..."
+            />
+          </FieldShell>
+        </ModalField>
+      )}
 
       <ModalField spacing="tight">
-        <FieldShell label="Notes" htmlFor="notes">
-          <Textarea
-            id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Insert Vendor Notes"
-            autoGrow
+        <FieldShell label="Services Provided" htmlFor="services-provided">
+          <Input
+            id="services-provided"
+            type="text"
+            value={servicesProvided}
+            onChange={(e) => setServicesProvided(e.target.value)}
+            placeholder={edit ? "Services provided" : "Select services..."}
           />
         </FieldShell>
       </ModalField>
+
+      {!edit && (
+        <ModalField spacing="tight">
+          <FieldShell label="Notes" htmlFor="notes">
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Insert Vendor Notes"
+              autoGrow
+            />
+          </FieldShell>
+        </ModalField>
+      )}
     </ModalTemplate>
   );
 }
