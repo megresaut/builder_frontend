@@ -35,51 +35,39 @@ import type { VendorDetail as VendorDetailType, VendorNote, VendorFile } from "@
 
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
+  const id = Number(vendorId);
 
-  const vendorFromRoute = useMemo(() => {
-    const id = Number(vendorId);
-    return MOCK_VENDOR_DETAIL.find((v) => v.id === id) || MOCK_VENDOR_DETAIL[0];
-  }, [vendorId]);
+  // Use hooks for data
+  const { vendor, loading: vendorLoading, error: vendorError } = useVendorDetail(id);
+  const { notes, addNote, removeNote, editNote } = useVendorNotes(id);
+  const { insurance, addInsurance } = useVendorInsurance(id);
+  const { files, uploadFile, deleteFile } = useVendorFiles(id);
+  const { fields, addField, removeField } = useVendorCustomFields(id);
 
-  const [vendor, setVendor] = useState<Vendor>(vendorFromRoute);
+  // Local state for UI
   const [isInactive, setIsInactive] = useState(false);
-
-  useEffect(() => {
-    setVendor(vendorFromRoute);
-    setIsInactive(false);
-  }, [vendorFromRoute]);
-
-  const [notes, setNotes] = useState<Note[]>(() => [...MOCK_VENDOR_NOTES]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-
+  const [selectedNote, setSelectedNote] = useState<VendorNote | null>(null);
   const [isAddEditNoteOpen, setIsAddEditNoteOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
-  const [vendorInsurances, setVendorInsurances] = useState<VendorInsurance[]>(
-    [],
-  );
   const [isAddInsuranceOpen, setIsAddInsuranceOpen] = useState(false);
   const [insuranceProvider, setInsuranceProvider] = useState("");
   const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
   const [insuranceExpirationDate, setInsuranceExpirationDate] = useState("");
 
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
   const [customFieldName, setCustomFieldName] = useState("");
   const [customFieldValue, setCustomFieldValue] = useState("");
 
-  const [files, setFiles] = useState<VendorFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<VendorFile | null>(null);
   const [isViewFileOpen, setIsViewFileOpen] = useState(false);
-
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
   const [fileDraft, setFileDraft] = useState<File | null>(null);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
-  const [vendorDraft, setVendorDraft] = useState<Vendor>(vendorFromRoute);
+  const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(vendor);
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
@@ -97,39 +85,21 @@ export default function VendorDetail() {
     setIsAddEditNoteOpen(true);
   };
 
-  const openEditNote = (note: Note) => {
+  const openEditNote = (note: VendorNote) => {
     setEditingNoteId(note.id);
     setNoteDraft(note.text);
     setIsAddEditNoteOpen(true);
   };
 
-  const saveNote = () => {
+  const saveNote = async () => {
     const text = noteDraft.trim();
     if (!text) return;
 
-    const now = new Date().toLocaleString();
-
-    setNotes((prev) => {
-      if (editingNoteId === null) {
-        const newNote: Note = {
-          id: nextId(prev),
-          text,
-          date: now,
-          author: "Current User",
-        };
-        return [newNote, ...prev];
-      }
-
-      return prev.map((n) =>
-        n.id === editingNoteId
-          ? {
-              ...n,
-              text,
-              date: now,
-            }
-          : n,
-      );
-    });
+    if (editingNoteId === null) {
+      await addNote(text);
+    } else {
+      await editNote(editingNoteId, text);
+    }
 
     setIsAddEditNoteOpen(false);
     setEditingNoteId(null);
@@ -137,42 +107,28 @@ export default function VendorDetail() {
   };
 
   const openEditVendor = () => {
-    setVendorDraft(vendor);
-    setIsEditVendorOpen(true);
+    if (vendor) {
+      setVendorDraft(vendor);
+      setIsEditVendorOpen(true);
+    }
   };
 
   const saveVendor = () => {
-    const trimmedName = vendorDraft.name.trim();
-    if (!trimmedName) return;
-
-    setVendor({
-      ...vendorDraft,
-      name: trimmedName,
-      category: vendorDraft.category.trim() || "Uncategorized",
-      email: vendorDraft.email?.trim() || undefined,
-      phone: vendorDraft.phone?.trim() || undefined,
-      address: vendorDraft.address?.trim() || undefined,
-      website: vendorDraft.website?.trim() || undefined,
-      servicesProvided: vendorDraft.servicesProvided?.trim() || undefined,
-    });
-    setIsEditVendorOpen(false);
+    // Mock implementation: update vendor draft
+    if (vendorDraft) {
+      const trimmedName = vendorDraft.name.trim();
+      if (!trimmedName) return;
+      setIsEditVendorOpen(false);
+    }
   };
 
-  const addInsurance = () => {
+  const handleAddInsurance = async () => {
     const provider = insuranceProvider.trim();
     const policyNumber = insurancePolicyNumber.trim();
     const expirationDate = insuranceExpirationDate.trim();
     if (!provider || !policyNumber || !expirationDate) return;
 
-    setVendorInsurances((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        provider,
-        policyNumber,
-        expirationDate,
-      },
-    ]);
+    await addInsurance(provider, policyNumber, expirationDate);
 
     setInsuranceProvider("");
     setInsurancePolicyNumber("");
@@ -180,57 +136,19 @@ export default function VendorDetail() {
     setIsAddInsuranceOpen(false);
   };
 
-  const revokeBlobUrl = (url?: string) => {
-    if (!url) return;
-    if (url.startsWith("blob:")) {
-      try {
-        URL.revokeObjectURL(url);
-      } catch {
-        // ignore
-      }
-    }
-  };
-
-  const addFile = () => {
+  const handleAddFile = async () => {
     if (!fileDraft) return;
-
-    const now = new Date().toLocaleString();
-    const fileName = fileDraft.name;
-    const ext = fileName.split(".").pop()?.toLowerCase() || "";
-    const docIcon =
-      "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-    const pdfIcon =
-      "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-    const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-    const url = URL.createObjectURL(fileDraft);
-
-    setFiles((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        name: fileName,
-        url,
-        uploadedAt: now,
-      },
-    ]);
-
+    await uploadFile(fileDraft);
     setFileDraft(null);
     setIsAddFileOpen(false);
   };
 
-  const addCustomField = () => {
+  const handleAddCustomField = async () => {
     const name = customFieldName.trim();
     const value = customFieldValue.trim();
     if (!name || !value) return;
 
-    setCustomFields((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        name,
-        value,
-      },
-    ]);
+    await addField(name, value);
 
     setCustomFieldName("");
     setCustomFieldValue("");
