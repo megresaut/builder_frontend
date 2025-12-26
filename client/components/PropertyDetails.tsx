@@ -870,115 +870,36 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
 
           {/* Add Note Modal */}
-          {showAddNoteModal &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowAddNoteModal(false)}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Add Note
-                    </div>
-                    <button
-                      onClick={() => setShowAddNoteModal(false)}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-5">
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Note
-                      </label>
-                      <Textarea
-                        value={noteDraft}
-                        onChange={(e) => setNoteDraft(e.target.value)}
-                        placeholder="Enter your note here..."
-                        className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setShowAddNoteModal(false)}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        const text = noteDraft.trim();
-                        if (!text) return;
+          <AddPropertyNoteModal
+            open={showAddNoteModal}
+            onOpenChange={setShowAddNoteModal}
+            onAddNote={(noteText) => {
+              const now = new Date();
+              const date = now.toLocaleString(undefined, {
+                month: "numeric",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              });
 
-                        const now = new Date();
-                        const date = now.toLocaleString(undefined, {
-                          month: "numeric",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        });
-
-                        setRecentNotes((prev) => {
-                          const nextId = prev.length
-                            ? Math.max(...prev.map((n) => n.id)) + 1
-                            : 1;
-                          return [
-                            ...prev,
-                            {
-                              id: nextId,
-                              text,
-                              type: "RENTAL",
-                              date,
-                              author: propertyManager,
-                            },
-                          ];
-                        });
-
-                        setNoteDraft("");
-                        setShowAddNoteModal(false);
-                      }}
-                      disabled={!noteDraft.trim()}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Add
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
+              setRecentNotes((prev) => {
+                const nextId = prev.length
+                  ? Math.max(...prev.map((n) => n.id)) + 1
+                  : 1;
+                return [
+                  ...prev,
+                  {
+                    id: nextId,
+                    text: noteText,
+                    type: "RENTAL",
+                    date,
+                    author: propertyManager,
+                  },
+                ];
+              });
+            }}
+          />
 
           {/* Add File Modal */}
           {showAddFileModal &&
