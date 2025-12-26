@@ -65,11 +65,13 @@ export default function Vendors() {
     servicesProvided: string[];
     notes: string;
   }) => {
-    const newVendor: Vendor = {
+    // Create and add new vendor to mock data
+    const newVendor: BaseVendor = {
       id: Math.max(...vendors.map(v => v.id), 0) + 1,
       ...vendorData,
     };
-    setVendors([...vendors, newVendor]);
+    // Mock implementation: add to vendors array (in real app, would be API call)
+    vendors.push(newVendor);
   };
 
   const columns = [
