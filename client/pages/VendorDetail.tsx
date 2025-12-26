@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 
@@ -24,41 +24,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MOCK_VENDOR_DETAIL, MOCK_VENDOR_NOTES, type Note } from "@/data/vendors";
-
-interface Vendor {
-  id: number;
-  name: string;
-  category: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  website?: string;
-  servicesProvided?: string;
-}
-
-interface VendorInsurance {
-  id: number;
-  provider: string;
-  policyNumber: string;
-  expirationDate: string;
-}
-
-interface CustomField {
-  id: number;
-  name: string;
-  value: string;
-}
-
-interface VendorFile {
-  id: number;
-  name: string;
-  url?: string;
-  uploadedAt: string;
-}
-
-const nextId = (items: { id: number }[]) =>
-  items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1;
+import {
+  useVendorDetail,
+  useVendorNotes,
+  useVendorInsurance,
+  useVendorFiles,
+  useVendorCustomFields,
+} from "@/hooks/vendors";
+import type { VendorDetail as VendorDetailType, VendorNote, VendorFile } from "@/data/vendors";
 
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
