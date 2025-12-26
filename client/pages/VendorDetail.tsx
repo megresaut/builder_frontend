@@ -688,41 +688,39 @@ export default function VendorDetail() {
         onOpenChange={(open) => {
           setIsAddFileOpen(open);
           if (!open) {
-            setFileDraft(null);
+            setUploadedFiles([]);
           }
         }}
         title="Add File"
         onSubmit={handleAddFile}
         onCancel={() => {
-          setFileDraft(null);
+          setUploadedFiles([]);
         }}
         submitLabel="Add"
-        isValid={fileDraft !== null}
+        isValid={uploadedFiles.length > 0}
         size="sm"
       >
         <FormLayout>
           <FormSection showDivider={false}>
-            <div>
-              <label
-                style={{
-                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "14px",
-                  color: "rgba(48, 48, 48, 1)",
-                  fontWeight: 500,
-                  lineHeight: 1.43,
-                  marginBottom: "8px",
-                  display: "block",
-                }}
-              >
-                File
-              </label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
-              />
-            </div>
+            <FileUploadField
+              label="File"
+              description="Upload PDF documents"
+              files={uploadedFiles}
+              onFilesAdded={(newFiles) => {
+                const mappedFiles = newFiles.map((f) => ({
+                  id: f.id,
+                  name: f.name,
+                  file: f.file,
+                }));
+                setUploadedFiles([...uploadedFiles, ...mappedFiles]);
+              }}
+              onFileRemoved={(fileId) => {
+                setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+              }}
+              accept=".pdf"
+              maxFiles={5}
+              maxSize={10 * 1024 * 1024}
+            />
           </FormSection>
         </FormLayout>
       </FormDialog>
