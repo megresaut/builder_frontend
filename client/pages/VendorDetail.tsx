@@ -946,13 +946,17 @@ export default function VendorDetail() {
 
           <DialogFooter className="mt-6 gap-3">
             <button
-              onClick={() => setIsAddCustomFieldOpen(false)}
+              onClick={() => {
+                setIsAddCustomFieldOpen(false);
+                setCustomFieldName("");
+                setCustomFieldValue("");
+              }}
               className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
-              onClick={addCustomField}
+              onClick={handleAddCustomField}
               disabled={!customFieldName.trim() || !customFieldValue.trim()}
               className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
