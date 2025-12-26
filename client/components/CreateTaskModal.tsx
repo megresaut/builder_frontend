@@ -13,11 +13,19 @@ import { format } from "date-fns";
 import {
   ModalTemplate,
   ModalButtons,
-  ModalField,
-  FieldRow,
-  FieldRowItem,
 } from "@/components/ui/ModalTemplate";
-import { MultiSelectField, type MultiSelectOption } from "@/components/forms";
+import {
+  FormLayout,
+  FormSection,
+  FormFieldRow,
+} from "@/components/ui/form-layout";
+import {
+  TextField,
+  TextAreaField,
+  SelectField,
+  MultiSelectField,
+  type MultiSelectOption,
+} from "@/components/forms";
 
 const ErrorMessage: React.FC<{ message?: string }> = ({ message }) => {
   if (!message) return null;
