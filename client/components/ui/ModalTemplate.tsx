@@ -1,6 +1,16 @@
 import * as React from "react";
-import { Dialog, DialogTitle } from "@/components/ui/dialog";
-import { Modal, type ModalSize } from "@/components/ui/Modal";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+
+type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
+
+const MODAL_WIDTHS: Record<ModalSize, number> = {
+  xs: 360,
+  sm: 442,
+  md: 600,
+  lg: 800,
+  xl: 1000,
+};
 
 interface ModalTemplateProps {
   open: boolean;
@@ -44,7 +54,7 @@ interface ModalButtonsProps {
   onConfirm?: () => void;
   cancelLabel?: string;
   confirmLabel?: string;
-  confirmDisabled?: boolean; // @deprecated - not used; primary button is always blue and clickable
+  confirmDisabled?: boolean;
   cancelDisabled?: boolean;
 }
 
@@ -58,7 +68,7 @@ interface ModalButtonsProps {
  * - Optional footer with actions
  *
  * Behavior:
- * - The underlying <Modal> container is capped to 85vh and scrolls vertically
+ * - The underlying <Dialog> container is capped to 85vh and scrolls vertically
  *   (rather than expanding beyond the viewport).
  * - The primary/confirm button is ALWAYS blue and clickable
  * - Form validation should happen INSIDE the onConfirm handler
@@ -101,6 +111,8 @@ export const ModalTemplate = React.forwardRef<
     },
     ref,
   ) => {
+    const widthValue = MODAL_WIDTHS[size];
+
     const handleClose = () => {
       if (onClose) onClose();
       onOpenChange(false);
@@ -108,8 +120,28 @@ export const ModalTemplate = React.forwardRef<
 
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <Modal size={size} hideCloseButton={true}>
+        <DialogContent
+          className={cn("gap-0 border-none", {
+            "[&>button]:hidden": hideCloseButton,
+          })}
+          style={{
+            width: `${widthValue}px`,
+            maxWidth: "calc(100vw - 32px)",
+            maxHeight: "85vh",
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+            borderRadius: "1rem",
+            backgroundColor: "white",
+            display: "flex",
+            flexDirection: "column",
+            padding: "2rem",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          }}
+        >
           <DialogTitle className="sr-only">{title}</DialogTitle>
+
           {/* Header */}
           <div
             className="flex w-full flex-col text-2xl text-[#303030] font-semibold"
@@ -167,7 +199,7 @@ export const ModalTemplate = React.forwardRef<
               {footer}
             </div>
           )}
-        </Modal>
+        </DialogContent>
       </Dialog>
     );
   },
@@ -268,7 +300,7 @@ ModalText.displayName = "ModalText";
  * - Font weight: 400 (normal)
  * - Text color: #303030
  *
- * Note: for standard <input> and <textarea> elements inside a `.ra-modal`, both
+ * Note: for standard <input> and <textarea> elements inside a modal, both
  * the field text color and placeholder color are enforced to `#303030` via
  * global CSS (see `code/client/global.css`).
  *
@@ -456,3 +488,5 @@ export const FieldRowItem: React.FC<FieldRowItemProps> = ({ children }) => {
 };
 
 FieldRowItem.displayName = "FieldRowItem";
+
+export type { ModalSize };
