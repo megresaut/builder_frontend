@@ -605,43 +605,26 @@ export default function VendorDetail() {
         }
         size="sm"
       >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Provider
-            </label>
-            <Input
-              value={insuranceProvider}
-              onChange={(e) => setInsuranceProvider(e.target.value)}
-              placeholder="Insurance provider"
-              className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-            />
-          </div>
+        <TextField
+          label="Provider"
+          value={insuranceProvider}
+          onChange={(e) => setInsuranceProvider(e.target.value)}
+          placeholder="Insurance provider"
+        />
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Policy Number
-            </label>
-            <Input
-              value={insurancePolicyNumber}
-              onChange={(e) => setInsurancePolicyNumber(e.target.value)}
-              placeholder="Policy number"
-              className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-            />
-          </div>
+        <TextField
+          label="Policy Number"
+          value={insurancePolicyNumber}
+          onChange={(e) => setInsurancePolicyNumber(e.target.value)}
+          placeholder="Policy number"
+        />
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[20px]">
-              Expiration Date
-            </label>
-            <Input
-              value={insuranceExpirationDate}
-              onChange={(e) => setInsuranceExpirationDate(e.target.value)}
-              placeholder="MM/DD/YYYY"
-              className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-            />
-          </div>
-        </div>
+        <TextField
+          label="Expiration Date"
+          value={insuranceExpirationDate}
+          onChange={(e) => setInsuranceExpirationDate(e.target.value)}
+          placeholder="MM/DD/YYYY"
+        />
       </FormDialog>
 
       {/* Add Custom Field Dialog */}
