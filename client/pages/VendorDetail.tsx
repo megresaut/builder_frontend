@@ -389,13 +389,13 @@ export default function VendorDetail() {
                     </button>
                   </div>
 
-                  {vendorInsurances.length === 0 ? (
+                  {insurance.length === 0 ? (
                     <p className="mt-3 text-[#303030] text-sm font-medium leading-[1.29]">
                       No vendor insurance information on file.
                     </p>
                   ) : (
                     <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {vendorInsurances.map((ins) => (
+                      {insurance.map((ins) => (
                         <div
                           key={ins.id}
                           className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
