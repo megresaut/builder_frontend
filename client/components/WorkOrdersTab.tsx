@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import CreateWorkOrderModal from "./CreateWorkOrderModal";
+import CreateWorkOrderModalV2 from "./CreateWorkOrderModalV2";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "./ColumnFilterModal";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -513,7 +513,7 @@ export default function WorkOrdersTab({
         onShowColumnModalChange={setShowColumnModal}
       />
 
-      <CreateWorkOrderModal
+      <CreateWorkOrderModalV2
         open={showCreateWorkOrderModal}
         onOpenChange={setShowCreateWorkOrderModal}
       />
