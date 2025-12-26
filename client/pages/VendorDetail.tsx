@@ -697,29 +697,31 @@ export default function VendorDetail() {
         isValid={fileDraft !== null}
         size="sm"
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div>
-            <label
-              style={{
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                fontSize: "14px",
-                color: "rgba(48, 48, 48, 1)",
-                fontWeight: 500,
-                lineHeight: 1.43,
-                marginBottom: "8px",
-                display: "block",
-              }}
-            >
-              File
-            </label>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
-            />
-          </div>
-        </div>
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <div>
+              <label
+                style={{
+                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "14px",
+                  color: "rgba(48, 48, 48, 1)",
+                  fontWeight: 500,
+                  lineHeight: 1.43,
+                  marginBottom: "8px",
+                  display: "block",
+                }}
+              >
+                File
+              </label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
+              />
+            </div>
+          </FormSection>
+        </FormLayout>
       </FormDialog>
 
       {/* Edit Vendor Dialog */}
