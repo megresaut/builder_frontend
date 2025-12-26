@@ -121,9 +121,7 @@ export const ModalTemplate = React.forwardRef<
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className={cn("gap-0 border-none", {
-            "[&>button]:hidden": hideCloseButton,
-          })}
+          className="gap-0 border-none [&>button]:hidden"
           style={{
             width: `${widthValue}px`,
             maxWidth: "calc(100vw - 32px)",
