@@ -291,7 +291,7 @@ export function FormShowcaseModal({
         />
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* TEXT FIELDS SECTION */}
         <FormSection
           title="Text & Contact Fields"
