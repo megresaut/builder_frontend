@@ -28,7 +28,7 @@ interface InvoicePreviewModalProps {
   invoiceDate: string;
   lineItems: InvoiceLineItem[];
   showCommitButton?: boolean;
-  onCommit?: (lineItems: InvoiceLineItem[]) => void;
+  onCommit?: (pdfBlob: Blob) => void;
   pendingUnapprovedCount?: number;
   rentalOwner?: string;
 }
@@ -204,16 +204,61 @@ export default function InvoicePreviewModal({
     }
   };
 
-  const handleCommit = () => {
+  const generatePdfBlob = async (): Promise<Blob> => {
+    const invoiceNode = invoiceRef.current;
+    if (!invoiceNode) {
+      throw new Error("Invoice DOM not ready");
+    }
+  
+    const clone = invoiceNode.cloneNode(true) as HTMLElement;
+  
+    clone.querySelectorAll<HTMLInputElement>("input.edit-field").forEach((input) => {
+      const span = document.createElement("span");
+      const field = input.dataset.field;
+      span.textContent =
+        field === "amount"
+          ? formatAmountWithCommas(input.value)
+          : input.value;
+  
+      input.replaceWith(span);
+    });
+  
+    clone.querySelectorAll(".no-print").forEach((el) => el.remove());
+  
+    const container = document.createElement("div");
+    container.style.width = "816px";
+    container.style.background = "white";
+    container.appendChild(clone);
+  
+    return await html2pdf()
+      .set({
+        margin: 0,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "px", format: [816, 1056] },
+      })
+      .from(container)
+      .outputPdf("blob");
+  };
+  
+
+  const handleCommit = async () => {
     if (pendingUnapprovedCount > 0) {
       setShowCommitConfirm(true);
       return;
     }
-
-    onCommit?.(lineItems);
-    onOpenChange(false);
+  
+    try {
+      const pdfBlob = await generatePdfBlob();
+      onCommit?.(pdfBlob);
+      onOpenChange(false);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+    }
   };
+  
 
+
+  
   return (
     <>
       <style>{`
@@ -772,7 +817,9 @@ export default function InvoicePreviewModal({
             <AlertDialogAction
               onClick={() => {
                 setShowCommitConfirm(false);
-                onCommit?.(lineItems);
+                generatePdfBlob()
+                .then((blob) => onCommit?.(blob))
+                .finally(() => onOpenChange(false));
                 onOpenChange(false);
               }}
             >

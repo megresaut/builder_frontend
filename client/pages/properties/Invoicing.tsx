@@ -1,368 +1,894 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { fetchJSON } from "@/api/fetchJSON";
-import { InvoiceTable } from "@/components/InvoiceTable";
-import { InvoiceHistoryTable } from "@/components/InvoiceHistoryTable";
-import { useParams } from "react-router-dom";
+import { useState, ReactNode } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Plus } from "lucide-react";
+import { useEffect } from "react";
+import { StatusBadge } from "@/components/StatusBadge";
+import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
+import GlobalTable from "../../components/GlobalTable";
+import BlueButton from "@/components/BlueButton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import FTOApprovalModal from "@/components/FTOApprovalModal";
+import InvoicePreviewModal, {
+  type InvoiceLineItem,
+} from "@/components/InvoicePreviewModal";
+import RecordBillModal, {
+  type RecordBillModalData,
+  type RecordBillModalMode,
+} from "@/components/RecordBillModal";
+
+import glAccounts from "@/data/gl_accounts.json";  
+
+type GLAccount = {
+  Id: string;
+  Name: string;
+};
+
+const GL_ACCOUNT_MAP: Record<string, string> = Object.fromEntries(
+  (glAccounts as GLAccount[]).map((acc) => [acc.Id, acc.Name])
+);
+
+function getGlAccountName(glAccountId?: string): string {
+  if (!glAccountId) return "—";
+  return GL_ACCOUNT_MAP[glAccountId] ?? `Unknown (${glAccountId})`;
+}
+
 interface InvoicingProps {
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
-}
-
-function mapBackendToUI(li: any) {
-  // 1. UI Source
-  const source =
-    {
-      utility: "Utility",
-      vendor: "Vendor",
-      fto_hours: "FTO (Hours)",
-      fto_expense: "FTO (Expense)",
-      management_fee: "Management Fee",
-      other: "Other"
-    }[li.source_type] || "Other";
-
-  // 2. UI Status rules
-  const status =
-    li.source_type === "vendor"
-      ? "Paid"
-      : li.source_type === "utility"
-      ? "Approved"
-      : (li.source_type === "fto_hours" || li.source_type === "fto_expense")
-      ? "Pending"
-      : "Pending";
-
-  // 3. Amount formatting
-  const amount =
-    li.amount != null ? `$${li.amount.toFixed(2)}` : "—";
-
-  return {
-    id: li.id,
-    vendor: li.source || li.description,
-    glAccount: "—",
-    description: li.description,
-    amount,
-    source,
-    status
-  };
+  propertyLocation?: string;
 }
 
 
-function mapHistoryToUI(inv: any) {
-  const date = new Date(inv.invoice_month);
-  const dateStr = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  // We don't have due_date now → placeholder for now
-  const dueDateStr = "—";
-
-  // Amount formatting
-  const amountStr = inv.total_amount != null ? `$${inv.total_amount.toFixed(2)}` : "—";
-
-  // Status: raw DB status is “finalized”
-  const status = "Paid";
-
-  return {
-    id: inv.id,
-    date: dateStr,
-    dueDate: dueDateStr,
-    amount: amountStr,
-    status,
-  };
+interface InvoiceHistoryApiItem {
+  id: number;
+  created_at: string;
+  total_amount: number;
+  pdf_object_key: string;
+  pdf_sha256: string;
 }
 
-const ActionButton = ({
-  itemId,
-  openMenuId,
-  setOpenMenuId,
-}: {
-  itemId: string;
-  openMenuId: string | null;
-  setOpenMenuId: (id: string | null) => void;
-}) => {
-  const showMenu = openMenuId === itemId;
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateMenuPos = () => {
-      if (showMenu && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 145,
-        });
-      }
-
-      if (showMenu) {
-        animationFrameId = requestAnimationFrame(updateMenuPos);
-      }
-    };
-
-    if (showMenu) {
-      updateMenuPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showMenu]);
-
-  return (
-    <>
-      <button
-        ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : itemId)}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="1" />
-          <circle cx="19" cy="12" r="1" />
-          <circle cx="5" cy="12" r="1" />
-        </svg>
-      </button>
-
-      {showMenu &&
-        createPortal(
-          <div
-            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
-            style={{
-              width: "145px",
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              position: "fixed",
-              top: menuPos.top + "px",
-              left: menuPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setOpenMenuId(null)}
-          >
-            <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Edit
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button className="flex justify-between items-center w-full hover:opacity-70 transition-opacity">
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Delete
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                  stroke="#982740"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>,
-          document.body,
-        )}
-    </>
-  );
+type ViewBillLineItem = {
+  id: number;
+  property: string;
+  unit: string;
+  workOrder: string;
+  description: string;
+  glAccount: string;
+  total: string;
 };
 
-export const Invoicing: React.FC<InvoicingProps> = () => {
+type ViewBillState = {
+  vendorName?: string;
+  referenceNumber?: string;
+  invoiceDate?: string;
+  dueDate?: string;
+  memo?: string;
+  lineItems?: ViewBillLineItem[];
+};
+
+
+
+type VendorAvatar = {
+  icon: string;
+  bg: string;
+  border: string;
+};
+
+const VENDOR_AVATARS: Record<string, VendorAvatar> = {
+  // Vendors
+  "RG White Painting LLC": {
+    icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390",
+    bg: "#FFF0EF",
+    border: "rgba(188, 66, 62, 0.22)",
+  },
+
+  "Elite HVAC": {
+    icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/c163c3bcaa194a5f948a36680b0501ecd8569640",
+    bg: "#DBE9FE",
+    border: "rgba(36, 99, 235, 0.22)",
+  },
+
+  "ABC Plumbing": {
+    icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/6a406e4d9d31a0d96e167fc376208ee79f53def5",
+    bg: "#FEFCDB",
+    border: "rgba(235, 165, 36, 0.22)",
+  },
+
+  "ConEd Electric": {
+    icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390",
+    bg: "#E0F2FE",
+    border: "rgba(2, 132, 199, 0.22)",
+  },
+
+  // Fallback
+  DEFAULT: {
+    icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594",
+    bg: "#F3F4F6",
+    border: "#E5E7EB",
+  },
+};
+
+function getVendorAvatar(vendorName: string): VendorAvatar {
+  return (
+    VENDOR_AVATARS[vendorName] ??
+    VENDOR_AVATARS.DEFAULT
+  );
+}
+
+
+export const Invoicing: React.FC<InvoicingProps> = ({
+  propertyAddress,
+  propertyType,
+  propertyUnits,
+  propertyLocation,
+}) => {
+  const navigate = useNavigate();
+  const { propertyId } = useParams<{ propertyId: string }>();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const [invoiceHistory, setInvoiceHistory] = useState([]);
-  const { propertyId } = useParams();
-  const [propertyAddress, setPropertyAddress] = useState("");
+  const [invoiceOpenMenuId, setInvoiceOpenMenuId] = useState<
+    string | number | null
+  >(null);
+  const [historyOpenMenuId, setHistoryOpenMenuId] = useState<
+    string | number | null
+  >(null);
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [invoicePreviewLineItems, setInvoicePreviewLineItems] = useState<
+    InvoiceLineItem[]
+  >([]);
+  const [invoicePreviewInvoiceDate, setInvoicePreviewInvoiceDate] =
+    useState<string>("");
+  const [invoicePreviewShowCommitButton, setInvoicePreviewShowCommitButton] =
+    useState(false);
+  const [recordBillModalOpen, setRecordBillModalOpen] = useState(false);
+  const [recordBillModalMode, setRecordBillModalMode] =
+    useState<RecordBillModalMode>("view");
+  const [recordBillModalData, setRecordBillModalData] = useState<
+    RecordBillModalData | undefined
+  >(undefined);
+  const [showFTOApprovalModal, setShowFTOApprovalModal] = useState(false);
+  const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
+  const [showAddAdditionalBillsModal, setShowAddAdditionalBillsModal] =
+    useState(false);
+  const [selectedAdditionalBillId, setSelectedAdditionalBillId] =
+    useState<string>("");
+  const [selectedAdditionalFtoId, setSelectedAdditionalFtoId] =
+    useState<string>("");
+  const [showingPendingInsights, setShowingPendingInsights] = useState(false);
 
-  useEffect(() => {
-    async function loadProperty() {
-      if (!propertyId) return;
-      try {
-        const prop = await fetchJSON(`/properties/${propertyId}`);
-        setPropertyAddress(prop.address);
-      } catch (err) {
-        console.error("Failed to load property", err);
-      }
+  // Column management for Invoice Items table
+  const invoiceColumnsManagement = useColumnManagement([
+    "vendor",
+    "glAccount",
+    "description",
+    "amount",
+    "source",
+    "status",
+  ]);
+
+  // Column management for Invoice History table
+  const historyColumnsManagement = useColumnManagement([
+    "dateCreated",
+    "invoiceMonth",
+    "amount",
+  ]);
+
+  const invoicingColumnConfig: Record<
+    string,
+    { label: string; icon: ReactNode | null }
+  > = {
+    vendor: {
+      label: "Vendor",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    glAccount: {
+      label: "GL Account",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    description: {
+      label: "Description",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    amount: {
+      label: "Amount",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    source: {
+      label: "Source",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/225d3e057a8e01f2536a35172298a3ee7a373378?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    status: {
+      label: "Approval Status",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="8"
+            cy="8"
+            r="5.5"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <path
+            d="M6 8l1.5 1.5L10 6.5"
+            stroke="#525252"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    dateCreated: {
+      label: "Date Created",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="2"
+            y="3"
+            width="12"
+            height="11"
+            rx="1"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <path
+            d="M5 1v4M11 1v4"
+            stroke="#525252"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+          <line
+            x1="2"
+            y1="6"
+            x2="14"
+            y2="6"
+            stroke="#525252"
+            strokeWidth="1.2"
+          />
+        </svg>
+      ),
+    },
+    invoiceMonth: {
+      label: "Invoice Month",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="2"
+            y="3"
+            width="12"
+            height="11"
+            rx="1"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <path
+            d="M5 1v4M11 1v4"
+            stroke="#525252"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+          <line
+            x1="2"
+            y1="6"
+            x2="14"
+            y2="6"
+            stroke="#525252"
+            strokeWidth="1.2"
+          />
+        </svg>
+      ),
+    },
+  };
+
+  const invoiceTableColumns = invoiceColumnsManagement.columnOrder.map((key) => ({
+    key,
+    label: invoicingColumnConfig[key]?.label ?? key,
+    icon: invoicingColumnConfig[key]?.icon ?? null,
+  }));
+
+  const historyTableColumns = historyColumnsManagement.columnOrder.map((key) => ({
+    key,
+    label: invoicingColumnConfig[key]?.label ?? key,
+    icon: invoicingColumnConfig[key]?.icon ?? null,
+  }));
+
+  const handleHistoryItemsPerPageChange = (nextPageSize: number) => {
+    setItemsPerPage(nextPageSize);
+    setCurrentPage(1);
+  };
+
+  const noopPageChange = (_page: number) => {};
+  const noopItemsPerPageChange = (_itemsPerPage: number) => {};
+
+  const getInvoiceItemRowClassName = (item: any) => {
+    const isHighlighted =
+      showingPendingInsights && item?.status === "Pending Approval";
+
+    return isHighlighted ? "h-14 bg-[#F5F3FF] border-[#E5E5FF]" : "h-14";
+  };
+
+  const getInvoiceItemCellClassName = (item: any, columnKey: string) => {
+    const isHighlighted =
+      showingPendingInsights && item?.status === "Pending Approval";
+
+    if (!isHighlighted) return "";
+
+    const base = "border-[#E5E5FF]";
+    if (columnKey === "vendor") {
+      return `${base} border-l-4 border-l-[#6366F1] pl-2`;
     }
-    loadProperty();
-  }, [propertyId]);
 
-  
-  useEffect(() => {
-    let animationFrameId: number;
+    return base;
+  };
 
-    const updateDropdownPos = () => {
-      if (showPageSizeDropdown && dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-    };
+  type InvoiceItemStatus = "Pending Approval" | "Approved";
 
-    updateDropdownPos();
-
-    if (showPageSizeDropdown) {
-      animationFrameId = requestAnimationFrame(updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
-      window.addEventListener("scroll", updateDropdownPos);
-    }
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", updateDropdownPos);
-      window.removeEventListener("scroll", updateDropdownPos);
-    };
-  }, [showPageSizeDropdown]);
+  interface InvoiceItem {
+    id: number;
+    vendor: string;
+    vendorIcon: string;
+    vendorBg: string;
+    vendorBorder: string;
+    glAccount: string;
+    description: string;
+    amount: string;
+    source: string;
+    status: InvoiceItemStatus;
+    statusColor: string;
+    statusBg: string;
+  }
 
 
-  useEffect(() => {
-    async function loadHistory() {
-      if (!propertyId) return;
-      try {
-        const hist = await fetchJSON(`/invoicing/history?property_id=${propertyId}`);
-        setInvoiceHistory(hist.map((h: any) => mapHistoryToUI(h)));
-      } catch (err) {
-        console.error("Failed to load invoice history", err);
-      }
-    }
-  
-    loadHistory();
-  }, [propertyId]);
-  
-  useEffect(() => {
-    const handleClickAnywhere = () => {
-      setOpenMenuId(null);
-    };
+  const [invoiceItems, setInvoiceItems] =
+  useState<InvoiceItem[]>([]);
 
-    document.addEventListener("mousedown", handleClickAnywhere);
-    return () => document.removeEventListener("mousedown", handleClickAnywhere);
-  }, []);
 
-  const invoiceItems = [
-    {
-      id: 1,
-      vendor: "Elite HVAC",
+  const VENDOR_PRESETS = {
+    vendor: {
       vendorIcon:
         "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390?placeholderIfAbsent=true",
       vendorBg: "#FFF0EF",
       vendorBorder: "rgba(188, 66, 62, 0.22)",
-      glAccount: "ConEd - 1,220 kWh",
-      description: "ConEd - 1,220 kWh",
-      amount: "$420",
-      source: "Auto-Import",
-      status: "Paid",
-      statusColor: "#059669",
-      statusBg: "#D1FAE5",
     },
-    {
-      id: 2,
-      vendor: "ABC Plumbing",
+    utility: {
+      vendorIcon:
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/c163c3bcaa194a5f948a36680b0501ecd8569640?placeholderIfAbsent=true",
+      vendorBg: "#E0F2FE",
+      vendorBorder: "rgba(2, 132, 199, 0.22)",
+    },
+    fto: {
       vendorIcon:
         "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/6a406e4d9d31a0d96e167fc376208ee79f53def5?placeholderIfAbsent=true",
       vendorBg: "#FEFCDB",
       vendorBorder: "rgba(235, 165, 36, 0.22)",
-      glAccount: "Unit 48 Thermostat",
-      description: "Unit 48 Thermostat",
-      amount: "$380",
-      source: "Vendor",
-      status: "Pending",
-      statusColor: "#D97706",
-      statusBg: "#FEF3C7",
     },
-    {
-      id: 3,
-      vendor: "Elite HVAC",
+    manual: {
       vendorIcon:
-        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/c163c3bcaa194a5f948a36680b0501ecd8569640?placeholderIfAbsent=true",
+        "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9ffc2d13a49e4caa7244ce9895eba63cc87e5390?placeholderIfAbsent=true",
       vendorBg: "#DBE9FE",
       vendorBorder: "rgba(36, 99, 235, 0.22)",
-      glAccount: "Tools for common area",
-      description: "Tools for common area",
-      amount: "$120",
-      source: "Manual",
-      status: "Approved",
-      statusColor: "#2463EB",
-      statusBg: "#DBE9FE",
     },
-  ];
-  const [lineItems, setLineItems] = useState([]);
+  };
+
+  const [generateInvoiceError, setGenerateInvoiceError] = useState<string | null>(null);
+
+  
+  const mapApiLineItemToInvoiceItem = (li: any): InvoiceItem => {
+    let preset = VENDOR_PRESETS.vendor;
+  
+    if (li.source === "Utility-Import") preset = VENDOR_PRESETS.utility;
+    else if (li.source === "FTO Submission") preset = VENDOR_PRESETS.fto;
+    else if (li.source === "Manual") preset = VENDOR_PRESETS.manual;
+  
+    const approved = li.status === "approved";
+  
+    return {
+      id: li.id,
+      vendor: li.vendor_name || "—",
+      vendorIcon: preset.vendorIcon,
+      vendorBg: preset.vendorBg,
+      vendorBorder: preset.vendorBorder,
+      glAccount: li.gl_account_id || "—",
+      description: li.description || "",
+      amount: `$${Number(li.amount || 0).toFixed(2)}`,
+      source: li.source,
+      status: approved ? "Approved" : "Pending Approval",
+      statusColor: approved ? "#059669" : "#D97706",
+      statusBg: approved ? "#D1FAE5" : "#FEF3C7",
+    };
+  };
+  
+  interface InvoiceHistoryItem {
+    id: number;
+    dateCreated: string;
+    invoiceMonth: string;
+    amount: string;
+    lineItems: InvoiceLineItem[];
+    pdfObjectKey: string;
+  }
+
+  const [currentInvoiceId, setCurrentInvoiceId] = useState<number | null>(null);
+  const [loadingInvoice, setLoadingInvoice] = useState(false);
+
+  const loadInvoiceForProperty = async () => {
+    if (!propertyId) return;
+  
+    try {
+      setLoadingInvoice(true);
+  
+      // 1️⃣ Generate (or regenerate) invoice
+      const generateRes = await fetch(
+        "/api/invoicing/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            property_id: Number(propertyId),
+            month: new Date().toISOString().slice(0, 10),
+          }),
+        }
+      );
+
+      if (!generateRes.ok) {
+        if (generateRes.status === 400) {
+          // 👇 clean, user-facing message
+          setGenerateInvoiceError("Invoice already generated for this month.");
+          return; // ⛔ stop here, do NOT throw
+        }
+
+        throw new Error("Failed to generate invoice");
+      }
+
+      // ✅ success path
+      setGenerateInvoiceError(null);
+
+      const generateData = await generateRes.json();
+      const invoiceId = generateData.invoice.id;
+      setCurrentInvoiceId(invoiceId);
+
+  
+      // 2️⃣ Fetch expanded line items
+      const itemsRes = await fetch(
+        `/api/invoicing/line-items-expanded?id=${invoiceId}`
+      );
+  
+      if (!itemsRes.ok) {
+        throw new Error("Failed to load invoice line items");
+      }
+  
+      const apiItems = await itemsRes.json();
+
+      const SOURCE_PRESETS = {
+        vendor: {
+          icon: "/vendor-placeholder.svg",
+          bg: "#FFF0EF",
+          border: "rgba(188, 66, 62, 0.22)",
+        },
+        utility: {
+          icon: "/utility-placeholder.svg",
+          bg: "#E0F2FE",
+          border: "rgba(2, 132, 199, 0.22)",
+        },
+        fto: {
+          icon: "/fto-placeholder.svg",
+          bg: "#FEFCDB",
+          border: "rgba(235, 165, 36, 0.22)",
+        },
+        manual: {
+          icon: "/vendor-placeholder.svg",
+          bg: "#DBE9FE",
+          border: "rgba(36, 99, 235, 0.22)",
+        },
+      };
+      
+  
+      // 3️⃣ Transform API → UI table shape
+      const mappedItems: InvoiceItem[] = apiItems.map((li: any) => {
+        const avatar = getVendorAvatar(li.vendor_name || "");
+      
+        return {
+          id: li.id,
+          vendor: li.vendor_name || "—",
+          vendorIcon: avatar.icon,
+          vendorBg: avatar.bg,
+          vendorBorder: avatar.border,
+          glAccount: getGlAccountName(li.gl_account_id),
+          description: li.description || "",
+          amount: `$${li.amount.toFixed(2)}`,
+          source: li.source,
+          status: li.status === "approved" ? "Approved" : "Pending Approval",
+          statusColor:
+            li.status === "approved" ? "#059669" : "#D97706",
+          statusBg:
+            li.status === "approved" ? "#D1FAE5" : "#FEF3C7",
+        };
+      });
+      
+      
+      setInvoiceItems(mappedItems);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingInvoice(false);
+    }
+  };
+  
+
+  const loadInvoiceHistory = async () => {
+    if (!propertyId) return;
+  
+    try {
+      const res = await fetch(
+        `/api/invoicing/history?property_id=${propertyId}`
+      );
+  
+      if (!res.ok) {
+        throw new Error("Failed to load invoice history");
+      }
+  
+      const apiItems: InvoiceHistoryApiItem[] = await res.json();
+  
+      const mapped: InvoiceHistoryItem[] = apiItems.map((inv) => {
+        const created = new Date(inv.created_at);
+  
+        return {
+          id: inv.id,
+          dateCreated: created.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          invoiceMonth: created.toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          }),
+          amount: `$${inv.total_amount.toFixed(2)}`,
+          lineItems: [], // lazy-load later if needed
+          pdfObjectKey: inv.pdf_object_key, // 👈 KEEP
+        };
+      });
+  
+      setInvoiceHistory(mapped);
+    } catch (err) {
+      console.error("Invoice history error:", err);
+    }
+  };
+  
+
 
   useEffect(() => {
-    async function load() {
-      try {
-        // STEP 1 — get current draft invoice id
-        const inv = await fetchJSON(`/invoicing/current-draft?property_id=${propertyId}`);
-        const invoiceId = inv.invoice_id;
+    loadInvoiceForProperty();
+    loadInvoiceHistory();
+  }, [propertyId]);
+
+  const formatInvoiceMonth = (dateStr: string) => {
+    const parsed = new Date(dateStr);
+    if (Number.isNaN(parsed.getTime())) return dateStr;
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      year: "numeric",
+    }).format(parsed);
+  };
+
+
+
+  const [invoiceHistory, setInvoiceHistory] =
+  useState<InvoiceHistoryItem[]>([]);
+
+  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(invoiceItems, "invoiceItems");
+  const { handleSortClick: handleHistorySortClick, getSortIndicator: getHistorySortIndicator, getSortedData: getSortedHistoryItems } = useSortingTable(invoiceHistory, "invoiceHistory");
+
+  const toIsoDateTime = (date: Date) => date.toISOString();
+
+  const toDateInputValue = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseCurrencyToNumber = (value: string): number => {
+    const parsed = parseFloat(value.replace(/[^\d.]/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const buildRecordBillModalDataFromInvoiceItem = (
+    item: InvoiceItem,
+  ): RecordBillModalData => {
+    const today = new Date();
+    const due = new Date(today);
+    due.setDate(due.getDate() + 30);
+
+    const subtotal = parseCurrencyToNumber(item.amount);
+
+    return {
+      vendor: item.vendor,
+      invoiceNumber: `INV-${String(item.id).padStart(4, "0")}`,
+      invoiceDate: toDateInputValue(today),
+      dueDate: toDateInputValue(due),
+      memo: item.description,
+      lineItems: [
+        {
+          id: 1,
+          property: propertyAddress,
+          unit: "N/A",
+          workOrder: "N/A",
+          description: item.description,
+          glAccount: item.glAccount,
+          reimbursement: false,
+          subtotal,
+          upcharge: 0,
+          total: subtotal,
+        },
+      ],
+    };
+  };
+
+  const buildViewBillStateFromInvoiceItem = (
+    item: InvoiceItem,
+    address: string,
+  ): ViewBillState => {
+    const today = new Date();
+    const due = new Date(today);
+    due.setDate(due.getDate() + 30);
+
+    return {
+      vendorName: item.vendor,
+      referenceNumber: `INV-${String(item.id).padStart(4, "0")}`,
+      invoiceDate: toIsoDateTime(today),
+      dueDate: toIsoDateTime(due),
+      memo: item.description,
+      lineItems: [
+        {
+          id: 1,
+          property: address,
+          unit: "N/A",
+          workOrder: "N/A",
+          description: item.description,
+          glAccount: item.glAccount,
+          total: item.amount,
+        },
+      ],
+    };
+  };
+
+  const openViewBill = (bill: ViewBillState) => {
+    const basePath = propertyId
+      ? `/property/${propertyId}/bills/record`
+      : "/bills/record";
+
+    navigate(`${basePath}?readOnly=true`);
+  };
+
+  const openEditBill = (bill: ViewBillState) => {
+    const basePath = propertyId
+      ? `/property/${propertyId}/bills/record`
+      : "/bills/record";
+
+    navigate(basePath);
+  };
+
+  const openViewFTO = (ftoId: number) => {
+    setSelectedFTOId(ftoId);
+    setShowFTOApprovalModal(true);
+  };
+
+  const buildPreviewLineItemsFromInvoiceItem = (
+    item: InvoiceItem,
+  ): InvoiceLineItem[] => [
+    {
+      id: 1,
+      vendor: item.vendor,
+      description: item.description,
+      amount: item.amount,
+    },
+  ];
+
+  const buildPreviewLineItemsFromHistoryItem = (
+    item: InvoiceHistoryItem,
+  ): InvoiceLineItem[] => {
+    if (item.lineItems.length > 0) return item.lineItems;
+
+    return [
+      {
+        id: 1,
+        vendor: "",
+        description: `Invoice ${item.invoiceMonth}`,
+        amount: item.amount,
+      },
+    ];
+  };
+
+  const openInvoicePreview = (options: {
+    lineItems: InvoiceLineItem[];
+    invoiceDate: string;
+    showCommitButton: boolean;
+  }) => {
+    setInvoicePreviewLineItems(options.lineItems);
+    setInvoicePreviewInvoiceDate(options.invoiceDate);
+    setInvoicePreviewShowCommitButton(options.showCommitButton);
+    setShowInvoicePreview(true);
+  };
+
+
+  const handleCommitInvoice = async (pdfBlob: Blob) => {
+    if (!currentInvoiceId) return;
   
-        // STEP 2 — fetch line items
-        const data = await fetchJSON(`/invoicing/line-items-expanded?id=${invoiceId}`);
-        setLineItems(data.map((li: any) => mapBackendToUI(li)));
-      } catch (err) {
-        console.error("Failed to load invoice items", err);
+    try {
+      // 1️⃣ Upload PDF
+      const formData = new FormData();
+      formData.append("file", pdfBlob, "invoice.pdf");
+  
+      const uploadRes = await fetch(
+        "/api/vendors/bills/upload-pdf",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      
+      console.log("uploadRes.status:", uploadRes.status);
+      
+      // ⚠️ Read raw text first
+      const uploadText = await uploadRes.text();
+      console.log("upload raw response:", uploadText);
+      
+      // Then parse JSON safely
+      let uploadJson;
+      try {
+        uploadJson = JSON.parse(uploadText);
+      } catch (e) {
+        throw new Error("Upload response is not valid JSON");
       }
+      
+      console.log("upload parsed JSON:", uploadJson);
+      
+      const { pdf_object_key, sha256_pdf } = uploadJson;
+      
+      console.log("pdf_object_key:", pdf_object_key);
+      console.log("sha256_pdf:", sha256_pdf);
+      
+      if (!pdf_object_key || !sha256_pdf) {
+        throw new Error("Upload did not return pdf_object_key or sha256_pdf");
+      }
+      
+  
+      // 2️⃣ Finalize invoice WITH PDF
+      const finalizeRes = await fetch(
+        `/api/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pdf_object_key,
+            sha256_pdf,
+          }),
+        }
+      );
+  
+      if (!finalizeRes.ok) {
+        throw new Error("Finalize failed");
+      }
+  
+      // 3️⃣ Refresh UI
+      await loadInvoiceForProperty();
+  
+    } catch (err) {
+      console.error("Commit failed:", err);
+    }
+  };
+  
+
+  const handleOpenAddAdditionalBillsModal = () => {
+    setSelectedAdditionalBillId("");
+    setSelectedAdditionalFtoId("");
+    setShowAddAdditionalBillsModal(true);
+  };
+
+  const openInvoicePDF = (pdfObjectKey?: string) => {
+    if (!pdfObjectKey) {
+      console.warn("No PDF object key available");
+      return;
     }
   
-    load();
-  }, []);
+    // Static file served by backend
+    const url = `/api/files/${pdfObjectKey}`;
   
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+  
+  
+
+  const handleAddAdditionalToInvoice = () => {
+    const selectedId = selectedAdditionalBillId || selectedAdditionalFtoId;
+    if (!selectedId) return;
+
+    const selectedItem = invoiceItems.find(
+      (item) => String(item.id) === selectedId,
+    );
+    if (!selectedItem) return;
+
+    setInvoiceItems((prev) => {
+      const nextId = prev.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+      return [...prev, { ...selectedItem, id: nextId }];
+    });
+
+    setShowAddAdditionalBillsModal(false);
+    setSelectedAdditionalBillId("");
+    setSelectedAdditionalFtoId("");
+  };
 
   const totalInvoices = invoiceHistory.length;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
-  const paginatedHistory = invoiceHistory.slice(
+  const paginatedHistory = getSortedHistoryItems().slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
@@ -399,107 +925,558 @@ export const Invoicing: React.FC<InvoicingProps> = () => {
     return pages;
   };
 
+  // Calculate pending approval bills
+  const pendingApprovalBills = invoiceItems.filter(
+    (item) => item.status === "Pending Approval",
+  );
+
+  const pendingVendorImportBills = pendingApprovalBills.filter(
+    (item) => item.source === "Vendor-Import",
+  );
+
+  const pendingFTOBills = pendingApprovalBills.filter(
+    (item) => item.source === "FTO Submission",
+  );
+
+  const totalPendingAmount = pendingApprovalBills.reduce((sum, item) => {
+    const amount = parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+    return sum + amount;
+  }, 0);
+
+  const showAlertBanner = pendingApprovalBills.length > 0;
+
+  const getAlertMessage = () => {
+    if (pendingVendorImportBills.length > 0 && pendingFTOBills.length > 0) {
+      return "There are unapproved vendor bills and Field Team Expenses outstanding.";
+    } else if (pendingVendorImportBills.length > 0) {
+      return "There are unapproved vendor bills outstanding.";
+    } else {
+      return "There are unapproved Field Team Expenses outstanding.";
+    }
+  };
+
+  const handleViewInsights = () => {
+    setShowingPendingInsights(!showingPendingInsights);
+  };
+
+  const invoiceNow = new Date();
+  const currentInvoiceMonthName = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+  }).format(invoiceNow);
+  const currentInvoiceMonth = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(invoiceNow);
+
   return (
     <div className="flex flex-col gap-0">
       {/* Alert Banner */}
-      <div
-        className="flex items-center justify-between self-stretch rounded-2xl border border-[#E5E5FF] p-3 px-4"
-        style={{
-          boxShadow:
-            "4px -4px 14px 0 rgba(0, 28, 237, 0.07) inset, -4px 4px 14px 0 rgba(237, 0, 217, 0.07) inset",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g clipPath="url(#clip0_10950_5031)">
-              <path
-                d="M3.00065 14.6668V11.3335M3.00065 4.66683V1.3335M1.33398 3.00016H4.66732M1.33398 13.0002H4.66732M8.66732 2.00016L7.5112 5.00607C7.32319 5.49489 7.22919 5.7393 7.083 5.94489C6.95344 6.12709 6.79425 6.28629 6.61204 6.41585C6.40646 6.56203 6.16204 6.65604 5.67322 6.84404L2.66732 8.00016L5.67323 9.15628C6.16205 9.34429 6.40646 9.43829 6.61204 9.58448C6.79425 9.71404 6.95344 9.87323 7.083 10.0554C7.22919 10.261 7.32319 10.5054 7.5112 10.9943L8.66732 14.0002L9.82344 10.9943C10.0114 10.5054 10.1054 10.261 10.2516 10.0554C10.3812 9.87323 10.5404 9.71404 10.7226 9.58448C10.9282 9.43829 11.1726 9.34429 11.6614 9.15628L14.6673 8.00016L11.6614 6.84404C11.1726 6.65604 10.9282 6.56203 10.7226 6.41585C10.5404 6.28629 10.3812 6.12709 10.2516 5.94489C10.1054 5.7393 10.0114 5.49489 9.82344 5.00607L8.66732 2.00016Z"
-                stroke="#1D407F"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </g>
-            <defs>
-              <clipPath id="clip0_10950_5031">
-                <rect width="16" height="16" fill="white" />
-              </clipPath>
-            </defs>
-          </svg>
-          <div className="text-base font-medium leading-[1.4] tracking-[-0.32px] capitalize">
-            <span className="font-bold">unapproved Expenses</span>
-            <span className="font-medium">
-              {" "}
-              - There are unapproved Field Team Expenses Outstanding. Please
-              Review before invoicing client.
-            </span>
+      {/* {showAlertBanner && (
+        <div
+          className="flex items-center justify-between self-stretch rounded-2xl border border-[#E5E5FF] p-3 px-4"
+          style={{
+            boxShadow:
+              "4px -4px 14px 0 rgba(0, 28, 237, 0.07) inset, -4px 4px 14px 0 rgba(237, 0, 217, 0.07) inset",
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clipPath="url(#clip0_10950_5031)">
+                <path
+                  d="M3.00065 14.6668V11.3335M3.00065 4.66683V1.3335M1.33398 3.00016H4.66732M1.33398 13.0002H4.66732M8.66732 2.00016L7.5112 5.00607C7.32319 5.49489 7.22919 5.7393 7.083 5.94489C6.95344 6.12709 6.79425 6.28629 6.61204 6.41585C6.40646 6.56203 6.16204 6.65604 5.67322 6.84404L2.66732 8.00016L5.67323 9.15628C6.16205 9.34429 6.40646 9.43829 6.61204 9.58448C6.79425 9.71404 6.95344 9.87323 7.083 10.0554C7.22919 10.261 7.32319 10.5054 7.5112 10.9943L8.66732 14.0002L9.82344 10.9943C10.0114 10.5054 10.1054 10.261 10.2516 10.0554C10.3812 9.87323 10.5404 9.71404 10.7226 9.58448C10.9282 9.43829 11.1726 9.34429 11.6614 9.15628L14.6673 8.00016L11.6614 6.84404C11.1726 6.65604 10.9282 6.56203 10.7226 6.41585C10.5404 6.28629 10.3812 6.12709 10.2516 5.94489C10.1054 5.7393 10.0114 5.49489 9.82344 5.00607L8.66732 2.00016Z"
+                  stroke="#1D407F"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_10950_5031">
+                  <rect width="16" height="16" fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
+            <div className="text-base font-medium leading-[1.4] tracking-[-0.32px] capitalize">
+              <span className="font-bold">Unapproved Bills</span>
+              <span className="font-medium">
+                {" "}
+                - {getAlertMessage()} (${totalPendingAmount.toFixed(2)})
+              </span>
+            </div>
           </div>
+          <button
+            onClick={handleViewInsights}
+            className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
+          >
+            View
+          </button>
         </div>
-        <div className="text-[#013764] underline font-medium text-base leading-[1.4] tracking-[-0.32px] capitalize whitespace-nowrap">
-          View 2 Insights
+      )} */}
+
+      {/* This Month's Invoice */}
+      <div className="bg-white flex w-full flex-col mt-6">
+        <div className="rounded-xl border border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] flex w-full flex-col overflow-hidden">
+          <ColumnFilterModal
+            isOpen={invoiceColumnsManagement.showColumnModal}
+            position={invoiceColumnsManagement.columnMenuPos}
+            columns={invoiceTableColumns}
+            visibleColumns={invoiceColumnsManagement.visibleColumns}
+            onToggleColumn={invoiceColumnsManagement.toggleColumnVisibility}
+            onClose={() => invoiceColumnsManagement.setShowColumnModal(false)}
+            buttonRef={invoiceColumnsManagement.columnButtonRef}
+          />
+
+          <GlobalTable
+            className="border-0 rounded-none"
+            columns={invoiceTableColumns}
+            data={invoiceItems}
+            rowKey="id"
+            title={`${currentInvoiceMonthName} Invoice`}
+            headerActions={
+              <>
+                <button
+                  ref={invoiceColumnsManagement.columnButtonRef}
+                  onClick={() =>
+                    invoiceColumnsManagement.setShowColumnModal((prev) => !prev)
+                  }
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                >
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="3" r="1.5" fill="#303030"/>
+                    <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                    <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                  </svg>
+                </button>
+                {/* <BlueButton
+                  icon={<Plus className="w-5 h-5" />}
+                  onClick={handleOpenAddAdditionalBillsModal}
+                >
+                  Add line item
+                </BlueButton> */}
+              </>
+            }
+            showSearchBar={true}
+            showFilterButton={false}
+            actions={[
+              {
+                label: (item: any) =>
+                  item?.source === "FTO Submission" ? "View FTO" : "View Bill",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  const isFTO = item?.source === "FTO Submission";
+                  if (isFTO) {
+                    openViewFTO(item.id);
+                    return;
+                  }
+
+                  const data = buildRecordBillModalDataFromInvoiceItem(item);
+                  if (item?.status === "Approved") {
+                    setRecordBillModalMode("view");
+                    setRecordBillModalData(data);
+                    setRecordBillModalOpen(true);
+                    return;
+                  }
+
+                  setRecordBillModalMode("create");
+                  setRecordBillModalData(data);
+                  setRecordBillModalOpen(true);
+                },
+              },
+            ]}
+            
+            renderCell={(item: any, columnKey: string) => {
+              switch (columnKey) {
+                case "vendor":
+                  return (
+                    <div className="flex items-center gap-2.5 whitespace-nowrap">
+                      <div
+                        className="rounded-full shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] border flex min-h-7 w-7 items-center gap-2.5 overflow-hidden justify-center flex-shrink-0"
+                        style={{
+                          backgroundColor: item.vendorBg,
+                          borderColor: item.vendorBorder,
+                        }}
+                      >
+                        <img
+                          loading="lazy"
+                          src={item.vendorIcon}
+                          className="w-5 h-5"
+                          alt=""
+                        />
+                      </div>
+                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] truncate">
+                        {item.vendor}
+                      </div>
+                    </div>
+                  );
+                case "status":
+                  return <StatusBadge status={item.status} />;
+                case "glAccount":
+                case "description":
+                case "amount":
+                case "source":
+                  return (
+                    <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
+                      {item[columnKey]}
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick: handleInvoiceSortClick,
+              getSortIndicator: getInvoiceSortIndicator,
+              getSortedData: getSortedInvoiceItems,
+            }}
+            columnManagementHook={invoiceColumnsManagement}
+            currentPage={1}
+            onPageChange={noopPageChange}
+            itemsPerPage={invoiceItems.length || 10}
+            onItemsPerPageChange={noopItemsPerPageChange}
+            openMenuId={invoiceOpenMenuId}
+            onOpenMenuIdChange={setInvoiceOpenMenuId}
+            showColumnModal={invoiceColumnsManagement.showColumnModal}
+            onShowColumnModalChange={invoiceColumnsManagement.setShowColumnModal}
+            showPagination={false}
+            getRowClassName={getInvoiceItemRowClassName}
+            getCellClassName={getInvoiceItemCellClassName}
+          />
+          {generateInvoiceError && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-5 text-sm text-amber-800">
+              {generateInvoiceError}
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
+            <div className="flex items-center gap-4">
+              <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
+                Subtotal: $
+                {invoiceItems
+                  .reduce((sum, item) => {
+                    const amount =
+                      parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+                    return sum + amount;
+                  }, 0)
+                  .toFixed(0)}
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <BlueButton
+                onClick={() =>
+                  openInvoicePreview({
+                    lineItems: invoiceItems.map((item) => ({
+                      id: item.id,
+                      vendor: item.vendor,
+                      description: item.description,
+                      amount: item.amount,
+                    })),
+                    invoiceDate: currentInvoiceMonth,
+                    showCommitButton: true,
+                  })
+                }
+                className="h-10"
+              >
+                Preview PDF
+              </BlueButton>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* This Month's Invoice */}
-      <InvoiceTable items={lineItems} propertyAddress={propertyAddress} />
-
       {/* Invoice History */}
-      <InvoiceHistoryTable items={invoiceHistory} />
+      <div className="flex mt-6 w-full flex-col items-center">
+        <div className="rounded-xl border border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] flex w-full flex-col overflow-hidden">
+          <ColumnFilterModal
+            isOpen={historyColumnsManagement.showColumnModal}
+            position={historyColumnsManagement.columnMenuPos}
+            columns={historyTableColumns}
+            visibleColumns={historyColumnsManagement.visibleColumns}
+            onToggleColumn={historyColumnsManagement.toggleColumnVisibility}
+            onClose={() => historyColumnsManagement.setShowColumnModal(false)}
+            buttonRef={historyColumnsManagement.columnButtonRef}
+          />
 
-      {/* Dropdown Menu - Rendered via Portal at body level */}
-      {showPageSizeDropdown &&
-        createPortal(
-          <div
-            className="bg-white overflow-hidden"
-            style={{
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              minWidth: "56px",
-              width: "56px",
-              position: "fixed",
-              top: dropdownPos.top + "px",
-              left: dropdownPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setShowPageSizeDropdown(false)}
-          >
-            {[10, 25, 50].map((size, index) => (
+          <GlobalTable
+            className="border-0 rounded-none"
+            columns={historyTableColumns}
+            data={invoiceHistory}
+            rowKey="id"
+            title="Invoice History"
+            headerActions={
               <button
-                key={size}
-                onClick={() => {
-                  setItemsPerPage(size);
-                  setCurrentPage(1);
-                  setShowPageSizeDropdown(false);
-                }}
-                className={`w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap ${
-                  itemsPerPage === size
-                    ? "bg-gray-50 font-medium text-gray-900"
-                    : "text-[#303030] hover:bg-gray-50"
-                }`}
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "16px",
-                  lineHeight: "140%",
-                  letterSpacing: "-0.32px",
-                  borderRadius: index === 2 ? "0 0 8px 8px" : "0",
-                }}
+                ref={historyColumnsManagement.columnButtonRef}
+                onClick={() =>
+                  historyColumnsManagement.setShowColumnModal((prev) => !prev)
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                {size}
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
+                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                </svg>
               </button>
-            ))}
-          </div>,
-          document.body,
-        )}
+            }
+            showSearchBar={true}
+            actions={[
+              {
+                label: "View PDF",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  openInvoicePDF(item.pdfObjectKey);
+                },
+              },
+            ]}
+            renderCell={(item: any, columnKey: string) => {
+              switch (columnKey) {
+                case "dateCreated":
+                case "invoiceMonth":
+                case "amount":
+                  return (
+                    <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
+                      {item[columnKey]}
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick: handleHistorySortClick,
+              getSortIndicator: getHistorySortIndicator,
+              getSortedData: getSortedHistoryItems,
+            }}
+            columnManagementHook={historyColumnsManagement}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={handleHistoryItemsPerPageChange}
+            openMenuId={historyOpenMenuId}
+            onOpenMenuIdChange={setHistoryOpenMenuId}
+            showColumnModal={historyColumnsManagement.showColumnModal}
+            onShowColumnModalChange={historyColumnsManagement.setShowColumnModal}
+            showPagination={true}
+            onRowClick={(item: InvoiceHistoryItem) => {
+              openInvoicePDF(item.pdfObjectKey);
+            }}
+            getRowClassName={() => "h-14"}
+          />
+        </div>
+      </div>
+
+
+      <RecordBillModal
+        open={recordBillModalOpen}
+        onOpenChange={setRecordBillModalOpen}
+        mode={recordBillModalMode}
+        data={recordBillModalData}
+      />
+
+      {/* Invoice Preview Modal */}
+      <InvoicePreviewModal
+        open={showInvoicePreview}
+        onOpenChange={setShowInvoicePreview}
+        propertyAddress={propertyAddress}
+        propertyLocation={propertyLocation || ""}
+        billTo="Jason Pascal"
+        rentalOwner="Eunice Bae"
+        invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
+        lineItems={
+          invoicePreviewLineItems.length > 0
+            ? invoicePreviewLineItems
+            : invoiceItems.map((item) => ({
+                id: item.id,
+                vendor: item.vendor,
+                description: item.description,
+                amount: item.amount,
+              }))
+        }
+        showCommitButton={invoicePreviewShowCommitButton}
+        onCommit={handleCommitInvoice}
+        pendingUnapprovedCount={pendingApprovalBills.length}
+      />
+
+      {showAddAdditionalBillsModal && (
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
+          <div className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
+              <div className="text-[#303030] font-medium text-lg">
+                Add additional bills
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddAdditionalBillsModal(false)}
+                className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                aria-label="Close"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18"
+                    stroke="#525252"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M6 6L18 18"
+                    stroke="#525252"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-6 py-5 grid gap-5">
+              <div className="grid gap-2">
+                <div className="text-sm font-medium text-[#303030]">
+                  All bills
+                </div>
+                <Select
+                  value={selectedAdditionalBillId}
+                  onValueChange={(value) => {
+                    setSelectedAdditionalBillId(value);
+                    setSelectedAdditionalFtoId("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a bill" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {invoiceItems
+                      .filter((item) => item.source !== "FTO Submission")
+                      .map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.vendor} — {item.description} ({item.amount})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <div className="text-sm font-medium text-[#303030]">
+                  All FTO orders
+                </div>
+                <Select
+                  value={selectedAdditionalFtoId}
+                  onValueChange={(value) => {
+                    setSelectedAdditionalFtoId(value);
+                    setSelectedAdditionalBillId("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an FTO order" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {invoiceItems
+                      .filter((item) => item.source === "FTO Submission")
+                      .map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.vendor} — {item.description} ({item.amount})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAddAdditionalBillsModal(false)}
+                className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-[#303030] font-normal text-base capitalize">
+                  Cancel
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={handleAddAdditionalToInvoice}
+                disabled={!selectedAdditionalBillId && !selectedAdditionalFtoId}
+                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <span className="text-white font-medium text-base">
+                  Add to invoice
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <FTOApprovalModal
+        open={showFTOApprovalModal}
+        onOpenChange={(open) => {
+          setShowFTOApprovalModal(open);
+          if (!open) setSelectedFTOId(null);
+        }}
+        selectedFTOId={selectedFTOId}
+        property={propertyAddress}
+        unit="N/A"
+        fieldTeamAssignee="Field Team"
+      />
     </div>
   );
 };

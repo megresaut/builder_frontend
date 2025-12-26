@@ -948,6 +948,8 @@ export const Bills: React.FC<BillsProps> = ({
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(displayedBills);
 
+
+
   return (
     <div className="max-w-full flex flex-col gap-6">
       {/* Header Section */}
@@ -1060,7 +1062,8 @@ export const Bills: React.FC<BillsProps> = ({
               onClick={() => {
                 const billId = Date.now();
                 if (propertyId) {
-                  navigate(`/property/${propertyId}/bills/record?billId=${billId}`);
+                  // navigate(`/property/${propertyId}/bills/record?billId=${billId}`);
+                  navigate(`/bills/record?billId=${billId}`);
                 } else {
                   navigate(`/bills/record?billId=${billId}`);
                 }
@@ -1194,6 +1197,16 @@ export const Bills: React.FC<BillsProps> = ({
             onOpenMenuIdChange={setOpenMenuId}
           />
         )}
+
+        {/* Draft Bills Empty Message */}
+        {selectedTab === "drafts" && draftBillsList.length === 0 && (
+          <div className="w-full flex justify-center items-center py-24">
+            <p className="text-sm text-gray-500">
+              No draft bills associated with this property
+            </p>
+          </div>
+        )}
+
 
 
         <AddVendorModal
