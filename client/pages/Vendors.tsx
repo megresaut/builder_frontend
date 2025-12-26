@@ -15,7 +15,7 @@ import type { BaseVendor } from "@/data/vendors";
 
 export default function Vendors() {
   const navigate = useNavigate();
-  const [vendors, setVendors] = useState<Vendor[]>(MOCK_VENDORS_LIST_PAGE);
+  const { vendors, loading, error } = useVendors();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
