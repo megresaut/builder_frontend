@@ -104,11 +104,22 @@ export default function AddVendorModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      if (onAddVendor) {
-        const serviceLabels = servicesProvided.map(
-          (value) =>
-            availableServices.find((s) => s.value === value)?.label || value,
-        );
+      if (edit && onEditVendor) {
+        onEditVendor({
+          name: vendorName,
+          category,
+          email,
+          phone,
+          website,
+          servicesProvided,
+        });
+      } else if (!edit && onAddVendor) {
+        const serviceLabels = Array.isArray(servicesProvided)
+          ? servicesProvided.map(
+              (value) =>
+                availableServices.find((s) => s.value === value)?.label || value,
+            )
+          : [];
         onAddVendor({
           name: vendorName,
           email,
@@ -118,9 +129,11 @@ export default function AddVendorModal({
         });
       }
       setVendorName("");
+      setCategory("");
       setEmail("");
       setPhone("");
-      setServicesProvided([]);
+      setWebsite("");
+      setServicesProvided("");
       setNotes("");
       onOpenChange(false);
     }
