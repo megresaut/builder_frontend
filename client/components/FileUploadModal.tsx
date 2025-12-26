@@ -1,5 +1,8 @@
 import { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  ModalTemplate,
+  ModalButtons,
+} from "@/components/ui/ModalTemplate";
 import { Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,67 +52,130 @@ export default function FileUploadModal({
   };
 
   const handleFiles = (files: File[]) => {
-    // Handle file upload logic here
     console.log("Files selected:", files);
-    // You can add your upload logic here
+    onOpenChange(false);
   };
 
   const handleBrowseClick = () => {
     fileInputRef.current?.click();
   };
 
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+
+  const handleUpload = () => {
+    console.log("Upload initiated");
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[997px] bg-white rounded-2xl">
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-
-        {/* Upload Area */}
-        <div className="w-full">
-          <div
-            className={cn(
-              "border-dashed border rounded-lg bg-white p-7 flex flex-col items-center justify-center transition-colors",
-              isDragging ? "border-blue-500 bg-blue-50" : "border-gray-400",
-            )}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <div className="flex flex-col items-center">
-              <div className="flex flex-col items-center p-2.5 text-center">
-                <div className="text-[#09090b] text-base font-normal leading-none">
-                  Choose a file or drag & drop it here
-                </div>
-                <div className="text-[#09090b] text-base font-normal leading-none mt-2">
-                  JPEG, PNG and PDF formats, up to 50 MB.
-                </div>
-              </div>
-
-              <button
-                onClick={handleBrowseClick}
-                className="flex items-center gap-2 mt-3 px-3 py-[7px] rounded-lg bg-[#fbfbfb] border border-[#dadada] shadow-[0px_1px_3px_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
-              >
-                <Upload className="w-4 h-4" />
-                <span className="text-[#303030] text-base font-normal leading-[1.4] tracking-[-0.32px]">
-                  Browse Files
-                </span>
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".jpeg,.jpg,.png,.pdf"
-                onChange={handleFileSelect}
-                multiple
-              />
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      size="lg"
+      footer={
+        <ModalButtons
+          onCancel={handleCancel}
+          onConfirm={handleUpload}
+          cancelLabel="Cancel"
+          confirmLabel="Upload"
+        />
+      }
+    >
+      <div
+        className={cn(
+          "border-dashed border-2 rounded-lg bg-white p-8 flex flex-col items-center justify-center transition-colors",
+          isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300",
+        )}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center p-2.5 text-center">
+            <div
+              style={{
+                color: "#303030",
+                fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "1.4",
+              }}
+            >
+              Choose a file or drag & drop it here
             </div>
-
-            {/* Spacer */}
-            <div className="min-h-[124px] mt-6 w-full" />
+            <div
+              style={{
+                color: "#303030",
+                fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "1.4",
+                marginTop: "8px",
+              }}
+            >
+              JPEG, PNG and PDF formats, up to 50 MB.
+            </div>
           </div>
+
+          <button
+            onClick={handleBrowseClick}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginTop: "12px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "6px",
+              paddingBottom: "6px",
+              borderRadius: "8px",
+              backgroundColor: "#fbfbfb",
+              border: "1px solid #dadada",
+              boxShadow: "0px 1px 3px rgba(0,0,0,0.03)",
+              cursor: "pointer",
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#f0f0f0")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#fbfbfb")
+            }
+          >
+            <Upload style={{ width: "16px", height: "16px" }} />
+            <span
+              style={{
+                color: "#303030",
+                fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "1.4",
+                letterSpacing: "-0.32px",
+              }}
+            >
+              Browse Files
+            </span>
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".jpeg,.jpg,.png,.pdf"
+            onChange={handleFileSelect}
+            multiple
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div
+          style={{
+            minHeight: "100px",
+            marginTop: "24px",
+            width: "100%",
+          }}
+        />
+      </div>
+    </ModalTemplate>
   );
 }
