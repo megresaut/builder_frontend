@@ -64,12 +64,8 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [showViewNoteModal, setShowViewNoteModal] = useState(false);
   const [showViewFileModal, setShowViewFileModal] = useState(false);
 
-  const [noteDraft, setNoteDraft] = useState("");
-  const [viewNoteDraft, setViewNoteDraft] = useState("");
-  const [fileDraft, setFileDraft] = useState<File | null>(null);
   const [selectedNote, setSelectedNote] = useState<RecentNote | null>(null);
   const [selectedFile, setSelectedFile] = useState<RecentFile | null>(null);
-  const [fileCategoryDraft, setFileCategoryDraft] = useState("Uncategorized");
   const [managementAgreementDate, setManagementAgreementDate] = useState("");
   const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
   const [monthlyRate, setMonthlyRate] = useState("$700.00 / month");
