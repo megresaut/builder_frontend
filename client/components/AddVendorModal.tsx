@@ -42,11 +42,16 @@ export default function AddVendorModal({
   open,
   onOpenChange,
   onAddVendor,
+  edit = false,
+  initialVendor,
+  onEditVendor,
 }: AddVendorModalProps) {
   const [vendorName, setVendorName] = useState("");
+  const [category, setCategory] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [servicesProvided, setServicesProvided] = useState<string[]>([]);
+  const [website, setWebsite] = useState("");
+  const [servicesProvided, setServicesProvided] = useState("");
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: string }>({});
 
@@ -67,14 +72,26 @@ export default function AddVendorModal({
 
   useEffect(() => {
     if (open) {
-      setVendorName("");
-      setEmail("");
-      setPhone("");
-      setServicesProvided([]);
-      setNotes("");
+      if (edit && initialVendor) {
+        setVendorName(initialVendor.name || "");
+        setCategory(initialVendor.category || "");
+        setEmail(initialVendor.email || "");
+        setPhone(initialVendor.phone || "");
+        setWebsite(initialVendor.website || "");
+        setServicesProvided(initialVendor.servicesProvided || "");
+        setNotes("");
+      } else {
+        setVendorName("");
+        setCategory("");
+        setEmail("");
+        setPhone("");
+        setWebsite("");
+        setServicesProvided("");
+        setNotes("");
+      }
       setErrors({});
     }
-  }, [open]);
+  }, [open, edit, initialVendor]);
 
   const validateForm = (): boolean => {
     const newErrors: { vendorName?: string } = {};
