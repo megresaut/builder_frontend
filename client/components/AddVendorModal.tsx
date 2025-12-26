@@ -154,7 +154,7 @@ export default function AddVendorModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title="Add Vendor"
+      title={edit ? "Edit Vendor" : "Add Vendor"}
       size="lg"
       onClose={() => onOpenChange(false)}
       footer={
@@ -162,7 +162,7 @@ export default function AddVendorModal({
           onCancel={() => onOpenChange(false)}
           onConfirm={handleSubmit}
           cancelLabel="Cancel"
-          confirmLabel="Create Vendor"
+          confirmLabel={edit ? "Save Vendor" : "Create Vendor"}
         />
       }
     >
