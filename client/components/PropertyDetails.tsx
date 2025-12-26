@@ -1,22 +1,19 @@
 import React, { useState } from "react";
-import { createPortal } from "react-dom";
 import PageHeader from "@/components/PageHeader";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import UploadPhotoModal from "@/components/UploadPhotoModal";
+import EditPropertyCustomFieldsModal from "@/components/EditPropertyCustomFieldsModal";
+import EditPropertyRatesModal from "@/components/EditPropertyRatesModal";
+import AddPropertyNoteModal from "@/components/AddPropertyNoteModal";
+import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
+import AddPropertyFileModal from "@/components/AddPropertyFileModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
