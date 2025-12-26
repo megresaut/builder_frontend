@@ -1787,7 +1787,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       />
 
       {/* Create Work Order Modal */}
-      <CreateWorkOrderModal
+      <CreateWorkOrderModalV2
         open={showCreateWorkOrderModal}
         onOpenChange={setShowCreateWorkOrderModal}
       />
