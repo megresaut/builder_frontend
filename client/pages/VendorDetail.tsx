@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MOCK_VENDOR_DETAIL, MOCK_VENDOR_NOTES, type Note } from "@/data/vendors";
 
 interface Vendor {
   id: number;
@@ -34,13 +35,6 @@ interface Vendor {
   address?: string;
   website?: string;
   servicesProvided?: string;
-}
-
-interface Note {
-  id: number;
-  text: string;
-  date: string;
-  author: string;
 }
 
 interface VendorInsurance {
@@ -63,52 +57,6 @@ interface VendorFile {
   uploadedAt: string;
 }
 
-const MOCK_VENDORS: Vendor[] = [
-  {
-    id: 1,
-    name: "Dolce Heating & Plumbing",
-    category: "Uncategorized",
-    email: "staff@avappraisalmgmt.com",
-    phone: undefined,
-    address: undefined,
-    website: undefined,
-    servicesProvided: undefined,
-  },
-];
-
-const MOCK_NOTES: Note[] = [
-  {
-    id: 1,
-    text: "Southern Conn Gas #05-00011476-6574",
-    date: "6/17/2024 10:32 AM",
-    author: "Johan Gonazlez",
-  },
-  {
-    id: 2,
-    text: "Eversource #51124508037",
-    date: "6/17/2024 10:31 AM",
-    author: "Johan Gonazlez",
-  },
-  {
-    id: 3,
-    text: "Ashley Bae (Daughter): (626) 340-7616",
-    date: "6/12/2024 2:31 PM",
-    author: "Carteg Hughes",
-  },
-  {
-    id: 4,
-    text: "Called Optimum and got the address moved from connors lane to 1544 wazee street denver, co. 80202",
-    date: "8/4/2021 10:47 AM",
-    author: "Heather Seabrook",
-  },
-  {
-    id: 5,
-    text: "Optimum\nAcct#07808-628921-02\n203-293-4709\nPin: 2258",
-    date: "3/16/2020 1:59 PM",
-    author: "Mario Sciarretta",
-  },
-];
-
 const nextId = (items: { id: number }[]) =>
   items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1;
 
@@ -117,7 +65,7 @@ export default function VendorDetail() {
 
   const vendorFromRoute = useMemo(() => {
     const id = Number(vendorId);
-    return MOCK_VENDORS.find((v) => v.id === id) || MOCK_VENDORS[0];
+    return MOCK_VENDOR_DETAIL.find((v) => v.id === id) || MOCK_VENDOR_DETAIL[0];
   }, [vendorId]);
 
   const [vendor, setVendor] = useState<Vendor>(vendorFromRoute);
@@ -128,7 +76,7 @@ export default function VendorDetail() {
     setIsInactive(false);
   }, [vendorFromRoute]);
 
-  const [notes, setNotes] = useState<Note[]>(() => [...MOCK_NOTES]);
+  const [notes, setNotes] = useState<Note[]>(() => [...MOCK_VENDOR_NOTES]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
   const [isAddEditNoteOpen, setIsAddEditNoteOpen] = useState(false);
