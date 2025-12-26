@@ -139,9 +139,11 @@ export default function VendorDetail() {
   };
 
   const handleAddFile = async () => {
-    if (!fileDraft) return;
-    await uploadFile(fileDraft);
-    setFileDraft(null);
+    if (uploadedFiles.length === 0) return;
+    for (const fileObj of uploadedFiles) {
+      await uploadFile(fileObj.file);
+    }
+    setUploadedFiles([]);
     setIsAddFileOpen(false);
   };
 
