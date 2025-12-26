@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Dialog, DialogTitle } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -251,7 +250,16 @@ export default function CreateRecurringTaskModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="lg">
+      <DialogContent
+        style={{
+          width: "800px",
+          maxWidth: "calc(100vw - 32px)",
+          maxHeight: "85vh",
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
+        className="gap-0 border-none"
+      >
         <div className="flex flex-col gap-4">
           {/* Title */}
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
@@ -492,7 +500,7 @@ export default function CreateRecurringTaskModal({
             </span>
           </button>
         </div>
-      </Modal>
+      </DialogContent>
     </Dialog>
   );
 }
