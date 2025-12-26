@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
 import { FormShowcaseModal } from "@/components/FormShowcaseModal";
+import AddVendorModal from "@/components/AddVendorModal";
 import EntityListSection from "@/components/EntityListSection";
 import { FormDialog } from "@/components/FormDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
