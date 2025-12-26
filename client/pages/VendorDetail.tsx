@@ -576,9 +576,7 @@ export default function VendorDetail() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onSelect={() => {
-                                    setNotes((prev) =>
-                                      prev.filter((n) => n.id !== note.id),
-                                    );
+                                    removeNote(note.id);
                                   }}
                                   className="w-full cursor-pointer text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
                                 >
