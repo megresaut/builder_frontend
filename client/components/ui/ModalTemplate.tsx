@@ -183,7 +183,7 @@ ModalTemplate.displayName = "ModalTemplate";
  */
 export const ModalSubheader: React.FC<ModalSubheaderProps> = ({ children }) => {
   return (
-    <div className="flex w-full flex-col" style={{ marginBottom: "12px" }}>
+    <div className="flex w-full flex-col">
       <div
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
