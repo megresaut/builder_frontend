@@ -142,7 +142,9 @@ export default function VendorDetail() {
   const handleAddFile = async () => {
     if (uploadedFiles.length === 0) return;
     for (const fileObj of uploadedFiles) {
-      await uploadFile(fileObj.file);
+      if (fileObj.file) {
+        await uploadFile(fileObj.file);
+      }
     }
     setUploadedFiles([]);
     setIsAddFileOpen(false);
