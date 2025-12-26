@@ -243,166 +243,122 @@ export default function CreateTaskModal({
         />
       }
     >
-      {/* Property and Unit Row */}
-      <FieldRow columns={2}>
-        <FieldRowItem>
-          <ModalField label="Property *" spacing="tight">
-              <Select
-                value={property}
-                onValueChange={(value) => {
-                  setProperty(value);
-                  if (errors.property && value.trim()) {
-                    setErrors((prev) => ({ ...prev, property: false }));
-                    setErrorMessages((prev) => ({ ...prev, property: undefined }));
-                  }
-                }}
-              >
-                <SelectTrigger
-                  style={{
-                    borderColor: errors.property ? "#ef4444" : "var(--color-border-light)",
-                    borderWidth: errors.property ? "2px" : "1px",
-                  }}
-                  className="h-11 rounded-lg"
-                >
-                  <SelectValue
-                    placeholder="Select Property"
-                    className="capitalize"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
-                  <SelectItem value="property2">Property 2</SelectItem>
-                </SelectContent>
-              </Select>
-              <ErrorMessage message={errorMessages.property} />
-            </ModalField>
-          </FieldRowItem>
-          <FieldRowItem>
-            <ModalField label="Unit" spacing="tight">
-              <Select value={unit} onValueChange={setUnit}>
-                <SelectTrigger className="h-11 rounded-lg">
-                  <SelectValue placeholder="Select Unit If Applicable" className="capitalize" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unit1">Unit 1</SelectItem>
-                  <SelectItem value="unit2">Unit 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </ModalField>
-          </FieldRowItem>
-        </FieldRow>
-
-      {/* Task Name and Priority Row */}
-      <FieldRow columns={2}>
-        <FieldRowItem>
-          <ModalField label="Task Name *" spacing="tight">
-              <Input
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (errors.title && e.target.value.trim()) {
-                    setErrors((prev) => ({ ...prev, title: false }));
-                    setErrorMessages((prev) => ({ ...prev, title: undefined }));
-                  }
-                }}
-                placeholder="Type Task Name"
-                style={{
-                  borderColor: errors.title ? "#ef4444" : "var(--color-border-light)",
-                  borderWidth: errors.title ? "2px" : "1px",
-                }}
-                className="h-11 rounded-lg"
-              />
-              <ErrorMessage message={errorMessages.title} />
-            </ModalField>
-          </FieldRowItem>
-          <FieldRowItem>
-            <ModalField label="Priority *" spacing="tight">
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="h-11 rounded-lg">
-                  <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
-                    style={{ backgroundColor: getPriorityBgColor() }}
-                  >
-                    {getPriorityIcon()}
-                    <span
-                      className="text-sm capitalize"
-                      style={{ color: getPriorityTextColor() }}
-                    >
-                      {getPriorityLabel()}
-                    </span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </ModalField>
-          </FieldRowItem>
-        </FieldRow>
-
-      {/* Assignees and Due Date Row */}
-      <FieldRow columns={2}>
-        <FieldRowItem>
-          <MultiSelectField
-            label="Assignees"
-            required
-            value={selectedAssignees}
-            onChange={(newAssignees) => {
-              setSelectedAssignees(newAssignees);
-              if (errors.selectedAssignees && newAssignees.length > 0) {
-                setErrors((prev) => ({ ...prev, selectedAssignees: false }));
-                setErrorMessages((prev) => ({ ...prev, selectedAssignees: undefined }));
-              }
-            }}
-            error={errorMessages.selectedAssignees}
-            placeholder="Select assignees"
-            options={AVAILABLE_ASSIGNEES}
-          />
-        </FieldRowItem>
-        <FieldRowItem>
-          <ModalField label="Due Date *" spacing="tight">
-            <DatePicker
-              value={selectedDate}
-              onChange={(date) => {
-                setSelectedDate(date);
-                if (errors.dueDate && date) {
-                  setErrors((prev) => ({ ...prev, dueDate: false }));
-                  setErrorMessages((prev) => ({ ...prev, dueDate: undefined }));
+      <FormLayout>
+        <FormSection title="Task Details" showDivider={true}>
+          <FormFieldRow columns={2}>
+            <SelectField
+              label="Property"
+              required
+              value={property}
+              onChange={(value) => {
+                setProperty(value);
+                if (errors.property && value.trim()) {
+                  setErrors((prev) => ({ ...prev, property: false }));
+                  setErrorMessages((prev) => ({ ...prev, property: undefined }));
                 }
               }}
-              error={errors.dueDate}
-              placeholder="MM/DD/YYYY"
+              error={errorMessages.property}
+              placeholder="Select Property"
+              options={[
+                { value: "property1", label: "22 Indian Chase Dr" },
+                { value: "property2", label: "Property 2" },
+              ]}
             />
-            <ErrorMessage message={errorMessages.dueDate} />
-          </ModalField>
-        </FieldRowItem>
-      </FieldRow>
+            <SelectField
+              label="Unit"
+              value={unit}
+              onChange={setUnit}
+              placeholder="Select Unit If Applicable"
+              options={[
+                { value: "unit1", label: "Unit 1" },
+                { value: "unit2", label: "Unit 2" },
+              ]}
+            />
+          </FormFieldRow>
 
-      {/* Category */}
-      <ModalField label="Category" spacing="tight">
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-11 rounded-lg">
-              <SelectValue placeholder="Select Category" className="capitalize" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
-              <SelectItem value="repair">Repair</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-      </ModalField>
+          <FormFieldRow columns={2}>
+            <TextField
+              label="Task Name"
+              required
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (errors.title && e.target.value.trim()) {
+                  setErrors((prev) => ({ ...prev, title: false }));
+                  setErrorMessages((prev) => ({ ...prev, title: undefined }));
+                }
+              }}
+              error={errorMessages.title}
+              placeholder="Type Task Name"
+            />
+            <SelectField
+              label="Priority"
+              required
+              value={priority}
+              onChange={setPriority}
+              placeholder="Select Priority"
+              options={[
+                { value: "low", label: "Low" },
+                { value: "normal", label: "Normal" },
+                { value: "high", label: "High" },
+              ]}
+            />
+          </FormFieldRow>
+        </FormSection>
 
-      {/* Description */}
-      <ModalField label="Description" spacing="tight">
-          <Textarea
+        <FormSection title="Assignment" showDivider={true}>
+          <FormFieldRow columns={2}>
+            <MultiSelectField
+              label="Assignees"
+              required
+              value={selectedAssignees}
+              onChange={(newAssignees) => {
+                setSelectedAssignees(newAssignees);
+                if (errors.selectedAssignees && newAssignees.length > 0) {
+                  setErrors((prev) => ({ ...prev, selectedAssignees: false }));
+                  setErrorMessages((prev) => ({ ...prev, selectedAssignees: undefined }));
+                }
+              }}
+              error={errorMessages.selectedAssignees}
+              placeholder="Select assignees"
+              options={AVAILABLE_ASSIGNEES}
+            />
+            <SelectField
+              label="Due Date"
+              required
+              value={dueDate}
+              onChange={setDueDate}
+              error={errorMessages.dueDate}
+              placeholder="MM/DD/YYYY"
+              options={[
+                { value: "today", label: "Today" },
+                { value: "tomorrow", label: "Tomorrow" },
+              ]}
+            />
+          </FormFieldRow>
+        </FormSection>
+
+        <FormSection title="Additional Information" showDivider={true}>
+          <SelectField
+            label="Category"
+            value={category}
+            onChange={setCategory}
+            placeholder="Select Category"
+            options={[
+              { value: "maintenance", label: "Maintenance" },
+              { value: "repair", label: "Repair" },
+              { value: "other", label: "Other" },
+            ]}
+          />
+
+          <TextAreaField
+            label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Insert Description Here"
-            className="min-h-[169px] rounded-lg resize-none"
           />
-      </ModalField>
+        </FormSection>
+      </FormLayout>
     </ModalTemplate>
   );
 }
