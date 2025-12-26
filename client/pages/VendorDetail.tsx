@@ -614,28 +614,30 @@ export default function VendorDetail() {
         }
         size="sm"
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <TextField
-            label="Provider"
-            value={insuranceProvider}
-            onChange={(e) => setInsuranceProvider(e.target.value)}
-            placeholder="Insurance provider"
-          />
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextField
+              label="Provider"
+              value={insuranceProvider}
+              onChange={(e) => setInsuranceProvider(e.target.value)}
+              placeholder="Insurance provider"
+            />
 
-          <TextField
-            label="Policy Number"
-            value={insurancePolicyNumber}
-            onChange={(e) => setInsurancePolicyNumber(e.target.value)}
-            placeholder="Policy number"
-          />
+            <TextField
+              label="Policy Number"
+              value={insurancePolicyNumber}
+              onChange={(e) => setInsurancePolicyNumber(e.target.value)}
+              placeholder="Policy number"
+            />
 
-          <TextField
-            label="Expiration Date"
-            value={insuranceExpirationDate}
-            onChange={(e) => setInsuranceExpirationDate(e.target.value)}
-            placeholder="MM/DD/YYYY"
-          />
-        </div>
+            <TextField
+              label="Expiration Date"
+              value={insuranceExpirationDate}
+              onChange={(e) => setInsuranceExpirationDate(e.target.value)}
+              placeholder="MM/DD/YYYY"
+            />
+          </FormSection>
+        </FormLayout>
       </FormDialog>
 
       {/* Add Custom Field Dialog */}
