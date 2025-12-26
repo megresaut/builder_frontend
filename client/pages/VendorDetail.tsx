@@ -10,9 +10,19 @@ import EntityListSection from "@/components/EntityListSection";
 import { FormDialog } from "@/components/FormDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { EmailIcon, EditIcon } from "@/components/icons";
+import {
+  TextField,
+  TextAreaField,
+  EmailField,
+  PhoneNumberField,
+  AddressField,
+  DateField,
+  FileUploadField,
+  FieldRow,
+  FieldRowItem,
+  type AddressValue,
+} from "@/components/forms";
 import {
   useVendorDetail,
   useVendorNotes,
