@@ -542,14 +542,16 @@ export default function VendorDetail() {
         isValid={noteDraft.trim().length > 0}
         size="sm"
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <TextAreaField
-            label="Note"
-            value={noteDraft}
-            onChange={(e) => setNoteDraft(e.target.value)}
-            placeholder="Enter your note here..."
-          />
-        </div>
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextAreaField
+              label="Note"
+              value={noteDraft}
+              onChange={(e) => setNoteDraft(e.target.value)}
+              placeholder="Enter your note here..."
+            />
+          </FormSection>
+        </FormLayout>
       </FormDialog>
 
       {/* View Note Dialog */}
