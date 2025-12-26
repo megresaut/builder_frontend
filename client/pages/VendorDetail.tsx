@@ -680,17 +680,11 @@ export default function VendorDetail() {
         isValid={fileDraft !== null}
         size="sm"
       >
-        <div className="px-6 py-5 grid gap-5">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#303030]">File</label>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
-            />
-          </div>
-        </div>
+        <FileUploadField
+          label="File"
+          accept="application/pdf"
+          onChange={(file) => setFileDraft(file ?? null)}
+        />
       </FormDialog>
 
       {/* Edit Vendor Dialog */}
