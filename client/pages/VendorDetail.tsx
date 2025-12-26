@@ -725,99 +725,26 @@ export default function VendorDetail() {
       </FormDialog>
 
       {/* Edit Vendor Dialog */}
-      <FormDialog
+      <AddVendorModal
         open={isEditVendorOpen}
         onOpenChange={setIsEditVendorOpen}
-        title="Edit Vendor"
-        onSubmit={saveVendor}
-        onCancel={() => {}}
-        submitLabel="Save Vendor"
-        isValid={vendorDraft?.name.trim().length ?? 0 > 0}
-        size="md"
-      >
-        {vendorDraft && (
-          <FormLayout>
-            <FormSection showDivider={false}>
-              <FormFieldRow columns={2}>
-                <TextField
-                  label="Vendor Name"
-                  required
-                  value={vendorDraft.name}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => (prev ? {
-                      ...prev,
-                      name: e.target.value,
-                    } : null))
-                  }
-                  placeholder="Input Vendor Name"
-                />
-                <TextField
-                  label="Category"
-                  value={vendorDraft.category}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => (prev ? {
-                      ...prev,
-                      category: e.target.value,
-                    } : null))
-                  }
-                  placeholder="Category"
-                />
-              </FormFieldRow>
-
-              <FormFieldRow columns={2}>
-                <EmailField
-                  label="Primary Email"
-                  value={vendorDraft.email || ""}
-                  onChange={(value) =>
-                    setVendorDraft((prev) => (prev ? {
-                      ...prev,
-                      email: value,
-                    } : null))
-                  }
-                  placeholder="Input Vendor Email"
-                />
-                <PhoneNumberField
-                  label="Phone"
-                  value={vendorDraft.phone || ""}
-                  onChange={(value) =>
-                    setVendorDraft((prev) => (prev ? {
-                      ...prev,
-                      phone: value,
-                    } : null))
-                  }
-                  placeholder="Input Vendor Phone"
-                />
-              </FormFieldRow>
-
-              <FormFieldRow columns={2}>
-                <TextField
-                  label="Website"
-                  value={vendorDraft.website || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => (prev ? {
-                      ...prev,
-                      website: e.target.value,
-                    } : null))
-                  }
-                  placeholder="https://..."
-                />
-              </FormFieldRow>
-
-              <TextField
-                label="Services Provided"
-                value={vendorDraft.servicesProvided || ""}
-                onChange={(e) =>
-                  setVendorDraft((prev) => (prev ? {
-                    ...prev,
-                    servicesProvided: e.target.value,
-                  } : null))
-                }
-                placeholder="Services provided"
-              />
-            </FormSection>
-          </FormLayout>
-        )}
-      </FormDialog>
+        edit={true}
+        initialVendor={vendorDraft || undefined}
+        onEditVendor={(updatedVendor) => {
+          if (vendorDraft) {
+            setVendorDraft({
+              ...vendorDraft,
+              name: updatedVendor.name,
+              category: updatedVendor.category,
+              email: updatedVendor.email,
+              phone: updatedVendor.phone,
+              website: updatedVendor.website,
+              servicesProvided: updatedVendor.servicesProvided,
+            });
+          }
+          setIsEditVendorOpen(false);
+        }}
+      />
 
       {/* Inactivate Confirmation Dialog */}
       <ConfirmDialog
