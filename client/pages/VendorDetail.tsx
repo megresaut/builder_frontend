@@ -700,10 +700,7 @@ export default function VendorDetail() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onSelect={() => {
-                                  setFiles((prev) => {
-                                    revokeBlobUrl(file.url);
-                                    return prev.filter((f) => f.id !== file.id);
-                                  });
+                                  deleteFile(file.id);
                                 }}
                                 className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
                               >
