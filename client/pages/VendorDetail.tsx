@@ -696,136 +696,98 @@ export default function VendorDetail() {
         onCancel={() => {}}
         submitLabel="Save Vendor"
         isValid={vendorDraft?.name.trim().length ?? 0 > 0}
-        size="sm"
+        size="md"
       >
-        <div className="flex flex-col gap-4">
-          {vendorDraft && (
-            <>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                    Vendor Name <span className="text-red-600">*</span>
-                  </label>
-                  <Input
-                    value={vendorDraft.name}
-                    onChange={(e) =>
-                      setVendorDraft((prev) => (prev ? {
-                        ...prev,
-                        name: e.target.value,
-                      } : null))
-                    }
-                    placeholder="Input Vendor Name"
-                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                  />
-                </div>
-                <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                    Category
-                  </label>
-                  <Input
-                    value={vendorDraft.category}
-                    onChange={(e) =>
-                      setVendorDraft((prev) => (prev ? {
-                        ...prev,
-                        category: e.target.value,
-                      } : null))
-                    }
-                    placeholder="Category"
-                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                    Primary Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={vendorDraft.email || ""}
-                    onChange={(e) =>
-                      setVendorDraft((prev) => (prev ? {
-                        ...prev,
-                        email: e.target.value,
-                      } : null))
-                    }
-                    placeholder="Input Vendor Email"
-                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                  />
-                </div>
-                <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                    Phone
-                  </label>
-                  <Input
-                    value={vendorDraft.phone || ""}
-                    onChange={(e) =>
-                      setVendorDraft((prev) => (prev ? {
-                        ...prev,
-                        phone: e.target.value,
-                      } : null))
-                    }
-                    placeholder="Input Vendor Phone"
-                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                    Address
-                  </label>
-                  <Input
-                    value={vendorDraft.address || ""}
-                    onChange={(e) =>
-                      setVendorDraft((prev) => (prev ? {
-                        ...prev,
-                        address: e.target.value,
-                      } : null))
-                    }
-                    placeholder="Address"
-                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                  />
-                </div>
-                <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                  <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                    Website
-                  </label>
-                  <Input
-                    value={vendorDraft.website || ""}
-                    onChange={(e) =>
-                      setVendorDraft((prev) => (prev ? {
-                        ...prev,
-                        website: e.target.value,
-                      } : null))
-                    }
-                    placeholder="https://..."
-                    className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Services Provided
-                </label>
-                <Input
-                  value={vendorDraft.servicesProvided || ""}
+        {vendorDraft && (
+          <>
+            <FieldRow columns={2}>
+              <FieldRowItem>
+                <TextField
+                  label="Vendor Name"
+                  required
+                  value={vendorDraft.name}
                   onChange={(e) =>
                     setVendorDraft((prev) => (prev ? {
                       ...prev,
-                      servicesProvided: e.target.value,
+                      name: e.target.value,
                     } : null))
                   }
-                  placeholder="Services provided"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
+                  placeholder="Input Vendor Name"
                 />
-              </div>
-            </>
-          )}
-        </div>
+              </FieldRowItem>
+              <FieldRowItem>
+                <TextField
+                  label="Category"
+                  value={vendorDraft.category}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => (prev ? {
+                      ...prev,
+                      category: e.target.value,
+                    } : null))
+                  }
+                  placeholder="Category"
+                />
+              </FieldRowItem>
+            </FieldRow>
+
+            <FieldRow columns={2}>
+              <FieldRowItem>
+                <EmailField
+                  label="Primary Email"
+                  value={vendorDraft.email || ""}
+                  onChange={(value) =>
+                    setVendorDraft((prev) => (prev ? {
+                      ...prev,
+                      email: value,
+                    } : null))
+                  }
+                  placeholder="Input Vendor Email"
+                />
+              </FieldRowItem>
+              <FieldRowItem>
+                <PhoneNumberField
+                  label="Phone"
+                  value={vendorDraft.phone || ""}
+                  onChange={(value) =>
+                    setVendorDraft((prev) => (prev ? {
+                      ...prev,
+                      phone: value,
+                    } : null))
+                  }
+                  placeholder="Input Vendor Phone"
+                />
+              </FieldRowItem>
+            </FieldRow>
+
+            <FieldRow columns={2}>
+              <FieldRowItem>
+                <TextField
+                  label="Website"
+                  value={vendorDraft.website || ""}
+                  onChange={(e) =>
+                    setVendorDraft((prev) => (prev ? {
+                      ...prev,
+                      website: e.target.value,
+                    } : null))
+                  }
+                  placeholder="https://..."
+                />
+              </FieldRowItem>
+            </FieldRow>
+
+            <TextField
+              label="Services Provided"
+              value={vendorDraft.servicesProvided || ""}
+              onChange={(e) =>
+                setVendorDraft((prev) => (prev ? {
+                  ...prev,
+                  servicesProvided: e.target.value,
+                } : null))
+              }
+              placeholder="Services provided"
+            />
+          </>
+        )}
       </FormDialog>
 
       {/* Inactivate Confirmation Dialog */}
