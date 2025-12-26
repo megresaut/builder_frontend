@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -9,7 +9,8 @@ import AddVendorModal from "@/components/AddVendorModal";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { MOCK_VENDORS_LIST_PAGE, type Vendor } from "@/data/vendors";
+import { useVendors } from "@/hooks/vendors";
+import type { BaseVendor } from "@/data/vendors";
 
 
 export default function Vendors() {
