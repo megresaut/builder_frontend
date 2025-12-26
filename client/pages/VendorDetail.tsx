@@ -753,7 +753,11 @@ export default function VendorDetail() {
 
           <DialogFooter className="mt-4 gap-3">
             <button
-              onClick={() => setIsAddEditNoteOpen(false)}
+              onClick={() => {
+                setIsAddEditNoteOpen(false);
+                setEditingNoteId(null);
+                setNoteDraft("");
+              }}
               className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
             >
               Cancel
