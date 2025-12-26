@@ -1,0 +1,1 @@
+export { useVendorsByProperty } from './useVendorsByProperty';
