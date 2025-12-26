@@ -1003,7 +1003,7 @@ export default function VendorDetail() {
               Cancel
             </button>
             <button
-              onClick={addFile}
+              onClick={handleAddFile}
               disabled={!fileDraft}
               className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
