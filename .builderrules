@@ -14,3 +14,5 @@
 # General
 - Prefer extracting reusable logic into hooks instead of duplicating behavior.
 - If a required template does not exist, create it before implementing the feature.
+
+Make sure to check if you need to delete old files whenever you create new files, so there isn't file bloat
