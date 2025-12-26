@@ -27,14 +27,6 @@ import {
   type MultiSelectOption,
 } from "@/components/forms";
 
-const ErrorMessage: React.FC<{ message?: string }> = ({ message }) => {
-  if (!message) return null;
-  return (
-    <div style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", fontWeight: 400 }}>
-      {message}
-    </div>
-  );
-};
 
 interface CreateTaskModalProps {
   open: boolean;
