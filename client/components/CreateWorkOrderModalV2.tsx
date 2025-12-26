@@ -186,28 +186,25 @@ export default function CreateWorkOrderModalV2({
 
   return (
     <>
-    <ModalTemplate
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Create Work Order"
-      size="md"
-      footer={
-        <ModalButtons
-          onCancel={handleCancel}
-          onConfirm={handleConfirm}
-          cancelLabel="Cancel"
-          confirmLabel="Create Work Order"
-        />
-      }
-    >
-      <FormLayout>
-        <ModalSubheader>Task</ModalSubheader>
-
-        <FormLayout.Field>
-          <FieldRow columns={2}>
-            <FieldRowItem>
+      <ModalTemplate
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Create Work Order"
+        size="md"
+        footer={
+          <ModalButtons
+            onCancel={handleCancel}
+            onConfirm={handleConfirm}
+            cancelLabel="Cancel"
+            confirmLabel="Create Work Order"
+          />
+        }
+      >
+        <FormLayout>
+          <FormSection title="Task Details">
+            <FormFieldRow columns={2}>
               <SelectField
-                label="Select Property"
+                label="Property"
                 required={REQUIRED_FIELDS.has("property")}
                 value={formData.property}
                 onChange={handlePropertyChange}
@@ -218,11 +215,8 @@ export default function CreateWorkOrderModalV2({
                 }))}
                 error={errors.property}
               />
-            </FieldRowItem>
-            <FieldRowItem>
               <SelectField
-                label="Select Unit"
-                required={REQUIRED_FIELDS.has("unit")}
+                label="Unit"
                 value={formData.unit}
                 onChange={handleUnitChange}
                 placeholder="Select a Unit"
@@ -231,89 +225,69 @@ export default function CreateWorkOrderModalV2({
                   label: unit,
                 }))}
               />
-            </FieldRowItem>
-          </FieldRow>
-        </FormLayout.Field>
+            </FormFieldRow>
 
-        <FormLayout.Field>
-          <SelectField
-            label="Create Task"
-            required={REQUIRED_FIELDS.has("task")}
-            value={formData.task}
-            onChange={handleTaskChange}
-            placeholder="Select Task Or Create A New Task"
-            options={TASKS.map((task) => ({
-              value: task,
-              label: task,
-            }))}
-            error={errors.task}
-          />
-        </FormLayout.Field>
+            <SelectField
+              label="Task"
+              required={REQUIRED_FIELDS.has("task")}
+              value={formData.task}
+              onChange={handleTaskChange}
+              placeholder="Select Task Or Create A New Task"
+              options={TASKS.map((task) => ({
+                value: task,
+                label: task,
+              }))}
+              error={errors.task}
+            />
+          </FormSection>
 
-        <FormLayout.Section>
-          <ModalSubheader>Work Order Details</ModalSubheader>
+          <FormSection title="Work Order Details">
+            <FormFieldRow columns={2}>
+              <TextField
+                label="Work Order Name"
+                required={REQUIRED_FIELDS.has("workOrderName")}
+                value={formData.workOrderName}
+                onChange={handleWorkOrderNameChange}
+                placeholder="Type Work Order Name"
+                error={errors.workOrderName}
+              />
+              <SelectField
+                label="Vendor"
+                required={REQUIRED_FIELDS.has("vendor")}
+                value={formData.vendor}
+                onChange={handleVendorChange}
+                placeholder="Select a Vendor"
+                options={VENDORS.map((vendor) => ({
+                  value: vendor,
+                  label: vendor,
+                }))}
+                error={errors.vendor}
+              />
+            </FormFieldRow>
 
-          <FormLayout.Field>
-            <FieldRow columns={2}>
-              <FieldRowItem>
-                <TextField
-                  label="Work Order Name"
-                  required={REQUIRED_FIELDS.has("workOrderName")}
-                  value={formData.workOrderName}
-                  onChange={handleWorkOrderNameChange}
-                  placeholder="Type Work Order Name"
-                  error={errors.workOrderName}
-                />
-              </FieldRowItem>
-              <FieldRowItem>
-                <SelectField
-                  label="Select Vendor"
-                  required={REQUIRED_FIELDS.has("vendor")}
-                  value={formData.vendor}
-                  onChange={handleVendorChange}
-                  placeholder="Select a Vendor"
-                  options={VENDORS.map((vendor) => ({
-                    value: vendor,
-                    label: vendor,
-                  }))}
-                  error={errors.vendor}
-                />
-              </FieldRowItem>
-            </FieldRow>
-          </FormLayout.Field>
+            <FormFieldRow columns={2}>
+              <SelectField
+                label="Status"
+                value={formData.status}
+                onChange={handleStatusChange}
+                placeholder="Select a Status"
+                options={STATUSES.map((status) => ({
+                  value: status,
+                  label: status,
+                }))}
+              />
+              <SelectField
+                label="Priority"
+                value={formData.priority}
+                onChange={handlePriorityChange}
+                placeholder="Select a Priority"
+                options={PRIORITIES.map((priority) => ({
+                  value: priority,
+                  label: priority,
+                }))}
+              />
+            </FormFieldRow>
 
-          <FormLayout.Field>
-            <FieldRow columns={2}>
-              <FieldRowItem>
-                <SelectField
-                  label="Status"
-                  required={REQUIRED_FIELDS.has("status")}
-                  value={formData.status}
-                  onChange={handleStatusChange}
-                  placeholder="Select a Status"
-                  options={STATUSES.map((status) => ({
-                    value: status,
-                    label: status,
-                  }))}
-                />
-              </FieldRowItem>
-              <FieldRowItem>
-                <SelectField
-                  label="Priority"
-                  required={REQUIRED_FIELDS.has("priority")}
-                  value={formData.priority}
-                  onChange={handlePriorityChange}
-                  placeholder="Select a Priority"
-                  options={PRIORITIES.map((priority) => ({
-                    value: priority,
-                    label: priority,
-                  }))}
-                />
-              </FieldRowItem>
-            </FieldRow>
-          </FormLayout.Field>
-
-          <FormLayout.Field>
             <DateField
               label="Due Date"
               required={REQUIRED_FIELDS.has("dueDate")}
@@ -322,23 +296,17 @@ export default function CreateWorkOrderModalV2({
               placeholder="mm/dd/yyyy"
               error={errors.dueDate}
             />
-          </FormLayout.Field>
 
-          <FormLayout.Field>
             <TextAreaField
               label="Notes"
-              required={REQUIRED_FIELDS.has("notes")}
               value={formData.notes}
               onChange={handleNotesChange}
               placeholder="Notes for your work Order"
               autoGrow
             />
-          </FormLayout.Field>
 
-          <FormLayout.Field>
             <FileUploadField
-              label="Upload File"
-              required={REQUIRED_FIELDS.has("fileUpload")}
+              label="Attachments"
               files={formData.files}
               onFilesAdded={handleFilesAdded}
               onFileRemoved={handleFileRemoved}
@@ -346,20 +314,18 @@ export default function CreateWorkOrderModalV2({
               accept=".pdf,.jpg,.jpeg,.png"
               maxSize={10 * 1024 * 1024}
             />
-          </FormLayout.Field>
-        </FormLayout.Section>
-      </FormLayout>
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
 
-    </ModalTemplate>
-
-    <PdfViewerModal
-      open={pdfViewer.isOpen}
-      onOpenChange={(open) => {
-        if (!open) pdfViewer.closePdf();
-      }}
-      title={pdfViewer.title || "Document"}
-      url={pdfViewer.url}
-    />
+      <PdfViewerModal
+        open={pdfViewer.isOpen}
+        onOpenChange={(open) => {
+          if (!open) pdfViewer.closePdf();
+        }}
+        title={pdfViewer.title || "Document"}
+        url={pdfViewer.url}
+      />
     </>
   );
 }
