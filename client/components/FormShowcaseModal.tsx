@@ -295,37 +295,33 @@ export function FormShowcaseModal({
         />
       }
     >
-      <div className="space-y-4">
+      <FormLayout>
         {/* TEXT FIELDS SECTION */}
         <FormSection
           title="Text & Contact Fields"
           description="Basic text, email, and phone inputs"
         >
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <TextField
-                label="Vendor Name"
-                required
-                placeholder="Enter vendor name"
-                value={vendorName}
-                onChange={(e) => setVendorName(e.target.value)}
-                error={errors.vendorName}
-                description="The official name of the vendor"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <EmailField
-                label="Email"
-                required
-                placeholder="vendor@example.com"
-                value={email}
-                onChange={setEmail}
-                onValidationChange={setIsEmailValid}
-                error={errors.email}
-                description="Valid email format required"
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <TextField
+              label="Vendor Name"
+              required
+              placeholder="Enter vendor name"
+              value={vendorName}
+              onChange={(e) => setVendorName(e.target.value)}
+              error={errors.vendorName}
+              description="The official name of the vendor"
+            />
+            <EmailField
+              label="Email"
+              required
+              placeholder="vendor@example.com"
+              value={email}
+              onChange={setEmail}
+              onValidationChange={setIsEmailValid}
+              error={errors.email}
+              description="Valid email format required"
+            />
+          </FormFieldRow>
 
           <PhoneNumberField
             label="Phone"
@@ -351,70 +347,62 @@ export function FormShowcaseModal({
           title="Selects & Dropdowns"
           description="Single select with keyboard navigation and searchable comboboxes"
         >
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <SelectField
-                label="Status"
-                required
-                value={status}
-                onChange={setStatus}
-                error={errors.status}
-                placeholder="Select a status"
-                options={[
-                  { value: "active", label: "Active" },
-                  { value: "inactive", label: "Inactive" },
-                  { value: "pending", label: "Pending" },
-                ]}
-                description="Use arrows/Enter to select, type to search"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <SelectField
-                label="Category"
-                value={category}
-                onChange={setCategory}
-                placeholder="Select a category"
-                options={[
-                  { value: "hvac", label: "HVAC" },
-                  { value: "plumbing", label: "Plumbing" },
-                  { value: "electrical", label: "Electrical" },
-                  { value: "roofing", label: "Roofing" },
-                ]}
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <SelectField
+              label="Status"
+              required
+              value={status}
+              onChange={setStatus}
+              error={errors.status}
+              placeholder="Select a status"
+              options={[
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" },
+                { value: "pending", label: "Pending" },
+              ]}
+              description="Use arrows/Enter to select, type to search"
+            />
+            <SelectField
+              label="Category"
+              value={category}
+              onChange={setCategory}
+              placeholder="Select a category"
+              options={[
+                { value: "hvac", label: "HVAC" },
+                { value: "plumbing", label: "Plumbing" },
+                { value: "electrical", label: "Electrical" },
+                { value: "roofing", label: "Roofing" },
+              ]}
+            />
+          </FormFieldRow>
 
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <SelectField
-                label="Priority"
-                value={priority}
-                onChange={setPriority}
-                placeholder="Select a priority"
-                options={[
-                  { value: "low", label: "Low" },
-                  { value: "medium", label: "Medium" },
-                  { value: "high", label: "High" },
-                  { value: "critical", label: "Critical" },
-                ]}
-                description="SelectField with keyboard navigation"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <SelectField
-                label="Department"
-                value={department}
-                onChange={setDepartment}
-                placeholder="Select a department"
-                options={[
-                  { value: "maintenance", label: "Maintenance" },
-                  { value: "operations", label: "Operations" },
-                  { value: "finance", label: "Finance" },
-                  { value: "sales", label: "Sales" },
-                ]}
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <SelectField
+              label="Priority"
+              value={priority}
+              onChange={setPriority}
+              placeholder="Select a priority"
+              options={[
+                { value: "low", label: "Low" },
+                { value: "medium", label: "Medium" },
+                { value: "high", label: "High" },
+                { value: "critical", label: "Critical" },
+              ]}
+              description="SelectField with keyboard navigation"
+            />
+            <SelectField
+              label="Department"
+              value={department}
+              onChange={setDepartment}
+              placeholder="Select a department"
+              options={[
+                { value: "maintenance", label: "Maintenance" },
+                { value: "operations", label: "Operations" },
+                { value: "finance", label: "Finance" },
+                { value: "sales", label: "Sales" },
+              ]}
+            />
+          </FormFieldRow>
 
           <ComboboxField
             label="Link to Vendor"
@@ -452,55 +440,47 @@ export function FormShowcaseModal({
           title="Numeric Fields"
           description="Number, currency, and percent inputs"
         >
-          <FieldRow columns={3}>
-            <FieldRowItem>
-              <NumberField
-                label="Quantity"
-                placeholder="0"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                min="0"
-                step="1"
-                description="Number field with step increment"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <CurrencyField
-                label="Amount"
-                value={amount}
-                onChange={setAmount}
-                placeholder="0.00"
-                description="Auto-formats on blur"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <PercentField
-                label="Tax Rate"
-                value={taxRate}
-                onChange={setTaxRate}
-                placeholder="5.25"
-                min={0}
-                max={100}
-                step={0.01}
-                description="Type 5 for 5%"
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={3}>
+            <NumberField
+              label="Quantity"
+              placeholder="0"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              min="0"
+              step="1"
+              description="Number field with step increment"
+            />
+            <CurrencyField
+              label="Amount"
+              value={amount}
+              onChange={setAmount}
+              placeholder="0.00"
+              description="Auto-formats on blur"
+            />
+            <PercentField
+              label="Tax Rate"
+              value={taxRate}
+              onChange={setTaxRate}
+              placeholder="5.25"
+              min={0}
+              max={100}
+              step={0.01}
+              description="Type 5 for 5%"
+            />
+          </FormFieldRow>
 
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <PercentField
-                label="Markup %"
-                value={markupPercent}
-                onChange={setMarkupPercent}
-                placeholder="25"
-                min={-50}
-                max={200}
-                allowNegative
-                description="Supports negative values"
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <PercentField
+              label="Markup %"
+              value={markupPercent}
+              onChange={setMarkupPercent}
+              placeholder="25"
+              min={-50}
+              max={200}
+              allowNegative
+              description="Supports negative values"
+            />
+          </FormFieldRow>
         </FormSection>
 
         {/* DATE & TIME FIELDS SECTION */}
@@ -508,51 +488,43 @@ export function FormShowcaseModal({
           title="Date & Time Fields"
           description="Date picker, time input, and combined datetime"
         >
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <DateField
-                label="Due Date"
-                required
-                value={dueDate}
-                onChange={setDueDate}
-                error={errors.dueDate}
-                returnFormat="Date"
-                description="Returns JavaScript Date object"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <DateField
-                label="Billing Date"
-                value={billingDate}
-                onChange={setBillingDate}
-                returnFormat="ISO"
-                description="Returns ISO string (YYYY-MM-DD)"
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <DateField
+              label="Due Date"
+              required
+              value={dueDate}
+              onChange={setDueDate}
+              error={errors.dueDate}
+              returnFormat="Date"
+              description="Returns JavaScript Date object"
+            />
+            <DateField
+              label="Billing Date"
+              value={billingDate}
+              onChange={setBillingDate}
+              returnFormat="ISO"
+              description="Returns ISO string (YYYY-MM-DD)"
+            />
+          </FormFieldRow>
 
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <TimeField
-                label="Appointment Time"
-                value={appointmentTime}
-                onChange={setAppointmentTime}
-                placeholder="14:30"
-                min="09:00"
-                max="17:30"
-                description="Operating hours: 9 AM - 5:30 PM"
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <TimeField
-                label="Maintenance Time"
-                value={maintenanceTime}
-                onChange={setMaintenanceTime}
-                placeholder="HH:MM"
-                description="Any time (24-hour format)"
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <TimeField
+              label="Appointment Time"
+              value={appointmentTime}
+              onChange={setAppointmentTime}
+              placeholder="14:30"
+              min="09:00"
+              max="17:30"
+              description="Operating hours: 9 AM - 5:30 PM"
+            />
+            <TimeField
+              label="Maintenance Time"
+              value={maintenanceTime}
+              onChange={setMaintenanceTime}
+              placeholder="HH:MM"
+              description="Any time (24-hour format)"
+            />
+          </FormFieldRow>
 
           <DateTimeField
             label="Scheduled Maintenance"
@@ -608,40 +580,36 @@ export function FormShowcaseModal({
           title="Multi-Select Fields"
           description="Select multiple options from dropdown"
         >
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <SelectField
-                label="Categories"
-                value={selectedCategories}
-                onChange={setSelectedCategories}
-                placeholder="Select categories"
-                options={[
-                  { value: "hvac", label: "HVAC" },
-                  { value: "plumbing", label: "Plumbing" },
-                  { value: "electrical", label: "Electrical" },
-                  { value: "roofing", label: "Roofing" },
-                  { value: "landscaping", label: "Landscaping" },
-                ]}
-                multiple
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <SelectField
-                label="Departments"
-                value={selectedDepartments}
-                onChange={setSelectedDepartments}
-                placeholder="Select departments"
-                options={[
-                  { value: "maintenance", label: "Maintenance" },
-                  { value: "operations", label: "Operations" },
-                  { value: "finance", label: "Finance" },
-                  { value: "sales", label: "Sales" },
-                  { value: "admin", label: "Administration" },
-                ]}
-                multiple
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <SelectField
+              label="Categories"
+              value={selectedCategories}
+              onChange={setSelectedCategories}
+              placeholder="Select categories"
+              options={[
+                { value: "hvac", label: "HVAC" },
+                { value: "plumbing", label: "Plumbing" },
+                { value: "electrical", label: "Electrical" },
+                { value: "roofing", label: "Roofing" },
+                { value: "landscaping", label: "Landscaping" },
+              ]}
+              multiple
+            />
+            <SelectField
+              label="Departments"
+              value={selectedDepartments}
+              onChange={setSelectedDepartments}
+              placeholder="Select departments"
+              options={[
+                { value: "maintenance", label: "Maintenance" },
+                { value: "operations", label: "Operations" },
+                { value: "finance", label: "Finance" },
+                { value: "sales", label: "Sales" },
+                { value: "admin", label: "Administration" },
+              ]}
+              multiple
+            />
+          </FormFieldRow>
         </FormSection>
 
         {/* ADDRESS FIELD SECTION */}
@@ -887,36 +855,32 @@ export function FormShowcaseModal({
           title="Additional Options"
           description="Payment and approval settings"
         >
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <SelectField
-                label="Payment Method"
-                value={paymentMethod}
-                onChange={setPaymentMethod}
-                placeholder="Select payment method"
-                options={[
-                  { value: "check", label: "Check" },
-                  { value: "ach", label: "ACH Transfer" },
-                  { value: "credit_card", label: "Credit Card" },
-                  { value: "wire", label: "Wire Transfer" },
-                ]}
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <SelectField
-                label="Approval Status"
-                value={approvalStatus}
-                onChange={setApprovalStatus}
-                placeholder="Select approval status"
-                options={[
-                  { value: "pending", label: "Pending" },
-                  { value: "approved", label: "Approved" },
-                  { value: "rejected", label: "Rejected" },
-                  { value: "on_hold", label: "On Hold" },
-                ]}
-              />
-            </FieldRowItem>
-          </FieldRow>
+          <FormFieldRow columns={2}>
+            <SelectField
+              label="Payment Method"
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+              placeholder="Select payment method"
+              options={[
+                { value: "check", label: "Check" },
+                { value: "ach", label: "ACH Transfer" },
+                { value: "credit_card", label: "Credit Card" },
+                { value: "wire", label: "Wire Transfer" },
+              ]}
+            />
+            <SelectField
+              label="Approval Status"
+              value={approvalStatus}
+              onChange={setApprovalStatus}
+              placeholder="Select approval status"
+              options={[
+                { value: "pending", label: "Pending" },
+                { value: "approved", label: "Approved" },
+                { value: "rejected", label: "Rejected" },
+                { value: "on_hold", label: "On Hold" },
+              ]}
+            />
+          </FormFieldRow>
         </FormSection>
 
         {/* READ-ONLY FIELD SECTION */}
@@ -930,7 +894,7 @@ export function FormShowcaseModal({
             description="Auto-generated identifier for this record"
           />
         </FormSection>
-      </div>
+      </FormLayout>
     </ModalTemplate>
   );
 }
