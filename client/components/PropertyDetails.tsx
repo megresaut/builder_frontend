@@ -675,114 +675,28 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           </div>
 
           {/* View Note Modal */}
-          {showViewNoteModal &&
-            selectedNote &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => {
-                  setShowViewNoteModal(false);
-                  setSelectedNote(null);
-                }}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Note Details
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowViewNoteModal(false);
-                        setSelectedNote(null);
-                      }}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-4">
-                    <Textarea
-                      value={viewNoteDraft}
-                      onChange={(e) => setViewNoteDraft(e.target.value)}
-                      className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
-                    />
-                    <div className="text-sm text-[#71717A]">
-                      <span className="font-medium">Author:</span>{" "}
-                      {selectedNote.author}
-                    </div>
-                    <div className="text-sm text-[#71717A]">
-                      <span className="font-medium">Date:</span>{" "}
-                      {selectedNote.date}
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setShowViewNoteModal(false);
-                        setSelectedNote(null);
-                      }}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        const nextText = viewNoteDraft.trim();
-                        if (!nextText) return;
-
-                        setRecentNotes((prev) =>
-                          prev.map((n) =>
-                            n.id === selectedNote.id
-                              ? {
-                                  ...n,
-                                  text: nextText,
-                                  date: new Date().toLocaleString(),
-                                }
-                              : n,
-                          ),
-                        );
-
-                        setShowViewNoteModal(false);
-                        setSelectedNote(null);
-                      }}
-                      disabled={!viewNoteDraft.trim()}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Save
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
+          <ViewPropertyNoteModal
+            open={showViewNoteModal}
+            onOpenChange={(open) => {
+              setShowViewNoteModal(open);
+              if (!open) setSelectedNote(null);
+            }}
+            note={selectedNote}
+            onSaveNote={(id, newText) => {
+              setRecentNotes((prev) =>
+                prev.map((n) =>
+                  n.id === id
+                    ? {
+                        ...n,
+                        text: newText,
+                        date: new Date().toLocaleString(),
+                      }
+                    : n,
+                ),
+              );
+            }}
+            onDeleteNote={handleDeleteNote}
+          />
 
           {/* PDF Viewer */}
           <PdfViewerModal
