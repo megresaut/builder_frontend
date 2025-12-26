@@ -214,23 +214,18 @@ export default function AddPropertyModal({
       onOpenChange={onOpenChange}
       title={editData ? "Edit Property" : "Add Property"}
       size="lg"
-      showDivider={true}
       footer={
-        <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            {editData ? "Update Property" : "Add Property"}
-          </Button>
-        </div>
+        <ModalButtons
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSave}
+          cancelLabel="Cancel"
+          confirmLabel={editData ? "Update Property" : "Add Property"}
+        />
       }
     >
-      <div className="space-y-6">
+      <FormLayout>
         {/* Address Section */}
-        <div className="space-y-4">
-          <ModalSubheader>Address</ModalSubheader>
-
+        <FormSection title="Address">
           <SelectField
             label="Country"
             value={country}
@@ -274,12 +269,10 @@ export default function AddPropertyModal({
               />
             </FieldRowItem>
           </FieldRow>
-        </div>
+        </FormSection>
 
         {/* Basics Section */}
-        <div className="space-y-4">
-          <ModalSubheader>Basics</ModalSubheader>
-
+        <FormSection title="Basics">
           <FieldRow columns={2}>
             <FieldRowItem>
               <SelectField
@@ -320,12 +313,10 @@ export default function AddPropertyModal({
             onChange={(e) => setRentalOwner(e.target.value)}
             placeholder="Rental Owner"
           />
-        </div>
+        </FormSection>
 
         {/* Rates Section */}
-        <div className="space-y-4">
-          <ModalSubheader>Rates</ModalSubheader>
-
+        <FormSection title="Rates">
           <FieldRow columns={2}>
             <FieldRowItem>
               <CurrencyField
@@ -367,8 +358,8 @@ export default function AddPropertyModal({
               />
             </FieldRowItem>
           </FieldRow>
-        </div>
-      </div>
+        </FormSection>
+      </FormLayout>
     </ModalTemplate>
   );
 }
