@@ -660,21 +660,23 @@ export default function VendorDetail() {
         isValid={customFieldName.trim().length > 0 && customFieldValue.trim().length > 0}
         size="sm"
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <TextField
-            label="Field Name"
-            value={customFieldName}
-            onChange={(e) => setCustomFieldName(e.target.value)}
-            placeholder="Field name"
-          />
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextField
+              label="Field Name"
+              value={customFieldName}
+              onChange={(e) => setCustomFieldName(e.target.value)}
+              placeholder="Field name"
+            />
 
-          <TextField
-            label="Value"
-            value={customFieldValue}
-            onChange={(e) => setCustomFieldValue(e.target.value)}
-            placeholder="Value"
-          />
-        </div>
+            <TextField
+              label="Value"
+              value={customFieldValue}
+              onChange={(e) => setCustomFieldValue(e.target.value)}
+              placeholder="Value"
+            />
+          </FormSection>
+        </FormLayout>
       </FormDialog>
 
       {/* Add File Dialog */}
