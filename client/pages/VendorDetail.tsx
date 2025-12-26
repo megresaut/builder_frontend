@@ -446,7 +446,7 @@ export default function VendorDetail() {
                     </button>
                   </div>
 
-                  {customFields.length === 0 ? (
+                  {fields.length === 0 ? (
                     <div className="mt-3 flex items-center justify-center min-h-[56px] w-full border border-[#DADADA] rounded-lg">
                       <p className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] text-center px-3">
                         There are no custom fields created to track additional
@@ -456,7 +456,7 @@ export default function VendorDetail() {
                     </div>
                   ) : (
                     <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {customFields.map((field) => (
+                      {fields.map((field) => (
                         <div
                           key={field.id}
                           className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
