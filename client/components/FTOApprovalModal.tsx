@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  ModalTemplate,
+  ModalButtons,
+} from "@/components/ui/ModalTemplate";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import {
   Select,
   SelectContent,
@@ -20,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface HourRow {
   id: string;
@@ -294,11 +299,11 @@ export default function FTOApprovalModal({
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
   const [pdfOpen, setPdfOpen] = useState(false);
 
-  // Clear rows when modal closes
   React.useEffect(() => {
     if (!open) {
       setHourRows([]);
       setExpenseRows([]);
+      setPdfOpen(false);
     }
   }, [open]);
 
@@ -336,10 +341,7 @@ export default function FTOApprovalModal({
   );
   const grandTotal = hoursTotal + expensesTotal;
 
-  // Validation functions
   const validateHourRow = (row: HourRow): boolean => {
-    // Required: date, hours, note
-    // If noFee is not checked: amount is also required
     if (!row.date || !row.hours || !row.note) return false;
     if (
       !row.noFee &&
@@ -350,7 +352,6 @@ export default function FTOApprovalModal({
   };
 
   const validateExpenseRow = (row: ExpenseRow): boolean => {
-    // Required: date, vendor, receipt note, amount
     if (!row.date || !row.vendor || !row.receiptNote) return false;
     if (row.amount === "$0" || row.amount === "$0.00" || !row.amount)
       return false;
@@ -358,16 +359,12 @@ export default function FTOApprovalModal({
   };
 
   const isFormValid = (): boolean => {
-    // Must have at least one row (hour or expense)
     if (hourRows.length === 0 && expenseRows.length === 0) return false;
-
-    // All rows must be valid
     const allHoursValid = hourRows.every(validateHourRow);
     const allExpensesValid = expenseRows.every(validateExpenseRow);
     return allHoursValid && allExpensesValid;
   };
 
-  // Helper functions to check if a field is missing
   const isHourFieldMissing = (row: HourRow, field: keyof HourRow): boolean => {
     if (field === "date") return !row.date;
     if (field === "hours") return !row.hours;
@@ -392,86 +389,256 @@ export default function FTOApprovalModal({
     return false;
   };
 
+  const handleReject = () => {
+    console.log("FTO Rejected");
+    onOpenChange(false);
+  };
+
+  const handleApprove = () => {
+    if (isFormValid()) {
+      console.log("FTO Approved");
+      onOpenChange(false);
+    }
+  };
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(newOpen) => {
-        // Don't close the dialog if PDF viewer is open
-        if (!newOpen && pdfOpen) return;
-        onOpenChange(newOpen);
-      }}
-    >
-      <DialogContent className="max-w-[min(1600px,95vw)] p-8 gap-0 max-h-[90vh] overflow-y-auto">
-        <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25] mb-4">
-          Field Team Order Approval
-        </DialogTitle>
+    <>
+      <ModalTemplate
+        open={open && !pdfOpen}
+        onOpenChange={onOpenChange}
+        title="Field Team Order Approval"
+        size="xl"
+        footer={
+          <div style={{ display: "flex", gap: "12px", width: "100%" }}>
+            <button
+              onClick={handleReject}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minHeight: "36px",
+                borderRadius: "8px",
+                backgroundColor: "#dc2626",
+                border: "1px solid #fbbf24",
+                color: "white",
+                fontWeight: 500,
+                fontSize: "16px",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
+            >
+              Reject
+            </button>
+            <button
+              onClick={handleApprove}
+              disabled={!isFormValid()}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minHeight: "36px",
+                borderRadius: "8px",
+                backgroundColor: isFormValid() ? "#013764" : "#999",
+                border: "1px solid white",
+                color: "white",
+                fontWeight: 500,
+                fontSize: "16px",
+                cursor: isFormValid() ? "pointer" : "not-allowed",
+                transition: "background-color 0.2s",
+                opacity: isFormValid() ? 1 : 0.5,
+              }}
+              onMouseEnter={(e) =>
+                isFormValid() && (e.currentTarget.style.backgroundColor = "#014777")
+              }
+              onMouseLeave={(e) =>
+                isFormValid() && (e.currentTarget.style.backgroundColor = "#013764")
+              }
+            >
+              Approve Field Team Order
+            </button>
+          </div>
+        }
+      >
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <label
+                  style={{
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    fontSize: "14px",
+                    color: "#303030",
+                    fontWeight: 500,
+                    lineHeight: 1.43,
+                  }}
+                >
+                  Property
+                </label>
+                <div
+                  style={{
+                    height: "36px",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e5e5",
+                    backgroundColor: "white",
+                    opacity: 0.5,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ color: "#303030", fontSize: "14px" }}>
+                    {property}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <label
+                  style={{
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    fontSize: "14px",
+                    color: "#303030",
+                    fontWeight: 500,
+                    lineHeight: 1.43,
+                  }}
+                >
+                  Unit
+                </label>
+                <div
+                  style={{
+                    height: "36px",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e5e5",
+                    backgroundColor: "white",
+                    opacity: 0.5,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ color: "#303030", fontSize: "14px" }}>
+                    {unit}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <label
+                  style={{
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    fontSize: "14px",
+                    color: "#303030",
+                    fontWeight: 500,
+                    lineHeight: 1.43,
+                  }}
+                >
+                  Field Team Assignee
+                </label>
+                <div
+                  style={{
+                    height: "36px",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e5e5",
+                    backgroundColor: "white",
+                    opacity: 0.5,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ color: "#303030", fontSize: "14px" }}>
+                    {fieldTeamAssignee}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <label
+                  style={{
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    fontSize: "14px",
+                    color: "#303030",
+                    fontWeight: 500,
+                    lineHeight: 1.43,
+                  }}
+                >
+                  Associated Task
+                </label>
+                <Select defaultValue="12311" disabled>
+                  <SelectTrigger
+                    style={{
+                      height: "36px",
+                      borderRadius: "8px",
+                      borderColor: "#e5e5e5",
+                      backgroundColor: "white",
+                      opacity: 0.5,
+                      cursor: "not-allowed",
+                    }}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="12311">12311</SelectItem>
+                    <SelectItem value="12312">12312</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        {/* Property, Unit, Field Team Assignee, and Associated Task - Read Only */}
-        <div className="flex gap-5 flex-row mb-4">
-          <div className="flex-1 min-w-[240px] flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Property
-            </label>
-            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">
-                {property}
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-[240px] flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Unit
-            </label>
-            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">{unit}</span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-[240px] flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Field Team Assignee
-            </label>
-            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">
-                {fieldTeamAssignee}
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-[240px] flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Associated Task
-            </label>
-            <Select defaultValue="12311" disabled>
-              <SelectTrigger className="h-[38px] rounded-lg border-[#e5e5e5] bg-white opacity-50 cursor-not-allowed">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="12311">12311</SelectItem>
-                <SelectItem value="12312">12312</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Description - Read Only */}
-        {editingOrder && (
-          <div className="flex-1 min-w-[240px] flex flex-col gap-2 mb-5">
-            <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-              Description
-            </label>
-            <div className="h-[38px] rounded-lg border border-[#e5e5e5] bg-white opacity-50 px-3 py-2 flex items-center">
-              <span className="text-[#303030] font-normal text-sm">
-                {editingOrder.description}
-              </span>
-            </div>
-          </div>
-        )}
+            {editingOrder && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <label
+                  style={{
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    fontSize: "14px",
+                    color: "#303030",
+                    fontWeight: 500,
+                    lineHeight: 1.43,
+                  }}
+                >
+                  Description
+                </label>
+                <div
+                  style={{
+                    height: "36px",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e5e5",
+                    backgroundColor: "white",
+                    opacity: 0.5,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ color: "#303030", fontSize: "14px" }}>
+                    {editingOrder.description}
+                  </span>
+                </div>
+              </div>
+            )}
+          </FormSection>
+        </FormLayout>
 
         {/* Hours Section */}
-        <div className="mb-4">
-          <div className="rounded-xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-            {/* Hours Header */}
-            <div className="bg-white px-4 py-4 flex items-center justify-between gap-5 flex-wrap">
-              <h3 className="text-[#303030] font-semibold text-xl leading-[1.3]">
+        <div style={{ marginTop: "28px" }}>
+          <div style={{ borderRadius: "12px", border: "1px solid #e5e5e5", boxShadow: "0 1px 2px rgba(0,0,0,0.05)", overflow: "hidden" }}>
+            <div style={{ backgroundColor: "white", paddingLeft: "16px", paddingRight: "16px", paddingTop: "16px", paddingBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" }}>
+              <h3 style={{ color: "#303030", fontWeight: 600, fontSize: "18px", lineHeight: 1.3 }}>
                 Hours
               </h3>
               <button
@@ -493,7 +660,24 @@ export default function FTOApprovalModal({
                     },
                   ]);
                 }}
-                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] border border-white hover:bg-[#014777] transition-colors"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  minHeight: "36px",
+                  borderRadius: "8px",
+                  backgroundColor: "#013764",
+                  border: "1px solid white",
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#014777")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#013764")}
               >
                 <svg
                   width="20"
@@ -510,56 +694,64 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">
-                  Add Hours
-                </span>
+                <span>Add Hours</span>
               </button>
             </div>
 
-            {/* Hours Table - CSS Grid */}
             <div
-              className="border-t border-[#dadada] grid overflow-x-auto"
               style={{
+                borderTop: "1px solid #dadada",
                 display: "grid",
                 gridTemplateColumns:
                   "118px 76px 1fr 80px 105px minmax(80px, auto) minmax(80px, auto) minmax(70px, auto) 85px",
                 gridAutoRows: "minmax(min-content, auto)",
               }}
             >
-              {/* Headers */}
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Date
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Hours
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Note
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 NoFee?
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Emergency
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Amount
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Upcharge
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Total
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Actions
               </div>
 
-              {/* Rows */}
               {hourRows.map((row) => (
                 <React.Fragment key={row.id}>
                   <div
-                    className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: isHourFieldMissing(row, "date")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isHourFieldMissing(row, "date")
+                        ? "#fef2f2"
+                        : "white",
+                    }}
                   >
                     <EditableCell
                       value={row.date}
@@ -568,7 +760,20 @@ export default function FTOApprovalModal({
                     />
                   </div>
                   <div
-                    className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "hours") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: isHourFieldMissing(row, "hours")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isHourFieldMissing(row, "hours")
+                        ? "#fef2f2"
+                        : "white",
+                    }}
                   >
                     <EditableCell
                       value={row.hours}
@@ -580,7 +785,20 @@ export default function FTOApprovalModal({
                     />
                   </div>
                   <div
-                    className={`px-3 py-3 flex items-center border ${isHourFieldMissing(row, "note") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: isHourFieldMissing(row, "note")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isHourFieldMissing(row, "note")
+                        ? "#fef2f2"
+                        : "white",
+                    }}
                   >
                     <EditableCell
                       value={row.note}
@@ -589,7 +807,7 @@ export default function FTOApprovalModal({
                       placeholder="Enter note"
                     />
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Checkbox
                       checked={row.noFee}
                       onCheckedChange={(checked) => {
@@ -602,7 +820,7 @@ export default function FTOApprovalModal({
                       className="w-[14px] h-[14px]"
                     />
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Checkbox
                       checked={row.emergency}
                       onCheckedChange={(checked) =>
@@ -612,56 +830,57 @@ export default function FTOApprovalModal({
                     />
                   </div>
                   <div
-                    className={`px-3 py-3 flex items-center justify-center border ${isHourFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
-                    style={{ pointerEvents: "auto" }}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: isHourFieldMissing(row, "amount")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isHourFieldMissing(row, "amount")
+                        ? "#fef2f2"
+                        : "white",
+                      pointerEvents: "auto",
+                    }}
                   >
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
-                      <EditableCell
-                        value={row.amount}
-                        onChange={(value) =>
-                          updateHourRow(row.id, "amount", value)
-                        }
-                        type="currency"
-                        placeholder="$0"
-                        disabled={row.noFee}
-                      />
-                    </div>
+                    <EditableCell
+                      value={row.amount}
+                      onChange={(value) =>
+                        updateHourRow(row.id, "amount", value)
+                      }
+                      type="currency"
+                      placeholder="$0"
+                      disabled={row.noFee}
+                    />
                   </div>
-                  <div
-                    className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
-                      <EditableCell
-                        value={row.upcharge}
-                        onChange={(value) =>
-                          updateHourRow(row.id, "upcharge", value)
-                        }
-                        type="currency"
-                        placeholder="$0"
-                        disabled={row.noFee}
-                      />
-                    </div>
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "auto" }}>
+                    <EditableCell
+                      value={row.upcharge}
+                      onChange={(value) =>
+                        updateHourRow(row.id, "upcharge", value)
+                      }
+                      type="currency"
+                      placeholder="$0"
+                      disabled={row.noFee}
+                    />
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-lg font-semibold">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ color: "#303030", fontWeight: 600, fontSize: "16px" }}>
                       ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
                     </span>
                   </div>
-                  <div className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
+                        <button style={{ width: "28px", height: "28px", borderRadius: "6px", border: "1px solid #dadada", backgroundColor: "#fbfbfb", boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fbfbfb")}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="1" />
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
@@ -671,7 +890,7 @@ export default function FTOApprovalModal({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => deleteHourRow(row.id)}
-                          className="text-red-600 cursor-pointer"
+                          style={{ color: "#dc2626", cursor: "pointer" }}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
@@ -686,11 +905,10 @@ export default function FTOApprovalModal({
         </div>
 
         {/* Expenses Section */}
-        <div className="mb-4">
-          <div className="rounded-xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-            {/* Expenses Header */}
-            <div className="bg-white px-4 py-4 flex items-center justify-between gap-5 flex-wrap">
-              <h3 className="text-[#303030] font-semibold text-xl leading-[1.3]">
+        <div style={{ marginTop: "28px" }}>
+          <div style={{ borderRadius: "12px", border: "1px solid #e5e5e5", boxShadow: "0 1px 2px rgba(0,0,0,0.05)", overflow: "hidden" }}>
+            <div style={{ backgroundColor: "white", paddingLeft: "16px", paddingRight: "16px", paddingTop: "16px", paddingBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" }}>
+              <h3 style={{ color: "#303030", fontWeight: 600, fontSize: "18px", lineHeight: 1.3 }}>
                 Expenses
               </h3>
               <button
@@ -711,7 +929,24 @@ export default function FTOApprovalModal({
                     },
                   ]);
                 }}
-                className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-[#013764] border border-white hover:bg-[#014777] transition-colors"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  minHeight: "36px",
+                  borderRadius: "8px",
+                  backgroundColor: "#013764",
+                  border: "1px solid white",
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#014777")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#013764")}
               >
                 <svg
                   width="20"
@@ -728,53 +963,61 @@ export default function FTOApprovalModal({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-white font-medium text-base">
-                  Add Expenses
-                </span>
+                <span>Add Expenses</span>
               </button>
             </div>
 
-            {/* Expenses Table - CSS Grid */}
             <div
-              className="border-t border-[#dadada] grid overflow-x-auto"
               style={{
+                borderTop: "1px solid #dadada",
                 display: "grid",
                 gridTemplateColumns:
                   "110px 130px 1fr 60px minmax(80px, auto) minmax(80px, auto) minmax(70px, auto) 85px",
                 gridAutoRows: "minmax(min-content, auto)",
               }}
             >
-              {/* Headers */}
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Date
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Vendor
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Receipt Note
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Receipts
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Amount
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Upcharge
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-r border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Total
               </div>
-              <div className="bg-[#fbfbfb] px-3 py-3 border-b border-[#dadada] font-medium text-sm text-[#525252] whitespace-nowrap">
+              <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", fontWeight: 500, fontSize: "14px", color: "#525252", whiteSpace: "nowrap" }}>
                 Actions
               </div>
 
-              {/* Rows */}
               {expenseRows.map((row) => (
                 <React.Fragment key={row.id}>
                   <div
-                    className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "date") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: isExpenseFieldMissing(row, "date")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isExpenseFieldMissing(row, "date")
+                        ? "#fef2f2"
+                        : "white",
+                    }}
                   >
                     <EditableCell
                       value={row.date}
@@ -785,7 +1028,20 @@ export default function FTOApprovalModal({
                     />
                   </div>
                   <div
-                    className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "vendor") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: isExpenseFieldMissing(row, "vendor")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isExpenseFieldMissing(row, "vendor")
+                        ? "#fef2f2"
+                        : "white",
+                    }}
                   >
                     <Select
                       value={row.vendor}
@@ -793,7 +1049,7 @@ export default function FTOApprovalModal({
                         updateExpenseRow(row.id, "vendor", value)
                       }
                     >
-                      <SelectTrigger className="h-auto border-0 bg-transparent p-0 hover:bg-[#f5f5f5] transition-colors">
+                      <SelectTrigger style={{ height: "auto", border: "0", backgroundColor: "transparent", padding: "0" }}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -806,7 +1062,20 @@ export default function FTOApprovalModal({
                     </Select>
                   </div>
                   <div
-                    className={`px-3 py-3 flex items-center border ${isExpenseFieldMissing(row, "receiptNote") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: isExpenseFieldMissing(row, "receiptNote")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isExpenseFieldMissing(row, "receiptNote")
+                        ? "#fef2f2"
+                        : "white",
+                    }}
                   >
                     <EditableCell
                       value={row.receiptNote}
@@ -817,64 +1086,67 @@ export default function FTOApprovalModal({
                       placeholder="Enter receipt note"
                     />
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <button
                       onClick={() => setPdfOpen(true)}
-                      className="w-6 h-6 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors"
+                      style={{ width: "24px", height: "24px", borderRadius: "6px", border: "1px solid #dadada", backgroundColor: "#fbfbfb", boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fbfbfb")}
                       title="View receipt"
                     >
-                      <Paperclip className="w-4 h-4 text-[#303030]" />
+                      <Paperclip style={{ width: "16px", height: "16px", color: "#303030" }} />
                     </button>
                   </div>
                   <div
-                    className={`px-3 py-3 flex items-center justify-center border ${isExpenseFieldMissing(row, "amount") ? "border-red-500 bg-red-50" : "border-[#dadada]"}`}
-                    style={{ pointerEvents: "auto" }}
+                    style={{
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: isExpenseFieldMissing(row, "amount")
+                        ? "1px solid #ef4444"
+                        : "1px solid #dadada",
+                      backgroundColor: isExpenseFieldMissing(row, "amount")
+                        ? "#fef2f2"
+                        : "white",
+                      pointerEvents: "auto",
+                    }}
                   >
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
-                      <EditableCell
-                        value={row.amount}
-                        onChange={(value) =>
-                          updateExpenseRow(row.id, "amount", value)
-                        }
-                        type="currency"
-                        placeholder="$0"
-                      />
-                    </div>
+                    <EditableCell
+                      value={row.amount}
+                      onChange={(value) =>
+                        updateExpenseRow(row.id, "amount", value)
+                      }
+                      type="currency"
+                      placeholder="$0"
+                    />
                   </div>
-                  <div
-                    className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <div className="text-lg" style={{ pointerEvents: "auto" }}>
-                      <EditableCell
-                        value={row.upcharge}
-                        onChange={(value) =>
-                          updateExpenseRow(row.id, "upcharge", value)
-                        }
-                        type="currency"
-                        placeholder="$0"
-                      />
-                    </div>
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "auto" }}>
+                    <EditableCell
+                      value={row.upcharge}
+                      onChange={(value) =>
+                        updateExpenseRow(row.id, "upcharge", value)
+                      }
+                      type="currency"
+                      placeholder="$0"
+                    />
                   </div>
-                  <div className="px-3 py-3 border-b border-r border-[#dadada] flex items-center justify-center">
-                    <span className="text-[#303030] font-normal text-lg font-semibold">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", borderRight: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ color: "#303030", fontWeight: 600, fontSize: "16px" }}>
                       ${calculateTotal(row.amount, row.upcharge).toFixed(2)}
                     </span>
                   </div>
-                  <div className="px-3 py-3 border-b border-[#dadada] flex items-center justify-center">
+                  <div style={{ paddingLeft: "12px", paddingRight: "12px", paddingTop: "12px", paddingBottom: "12px", borderBottom: "1px solid #dadada", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-md border border-[#dadada] bg-[#fbfbfb] shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
+                        <button style={{ width: "28px", height: "28px", borderRadius: "6px", border: "1px solid #dadada", backgroundColor: "#fbfbfb", boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fbfbfb")}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="1" />
                             <circle cx="19" cy="12" r="1" />
                             <circle cx="5" cy="12" r="1" />
@@ -884,7 +1156,7 @@ export default function FTOApprovalModal({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => deleteExpenseRow(row.id)}
-                          className="text-red-600 cursor-pointer"
+                          style={{ color: "#dc2626", cursor: "pointer" }}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
@@ -899,43 +1171,24 @@ export default function FTOApprovalModal({
         </div>
 
         {/* FTO Total */}
-        <div className="bg-[#fbfbfb] px-4 py-4 flex items-center justify-between mb-4 rounded">
-          <span className="text-[#303030] font-semibold text-xl leading-[1.3]">
+        <div style={{ backgroundColor: "#fbfbfb", paddingLeft: "16px", paddingRight: "16px", paddingTop: "16px", paddingBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "28px", borderRadius: "8px" }}>
+          <span style={{ color: "#303030", fontWeight: 600, fontSize: "18px", lineHeight: 1.3 }}>
             FTO Total:
           </span>
-          <span className="text-[#303030] font-semibold text-xl leading-[1.3]">
+          <span style={{ color: "#303030", fontWeight: 600, fontSize: "18px", lineHeight: 1.3 }}>
             ${grandTotal.toFixed(2)}
           </span>
         </div>
-
-        {/* Approve and Reject Buttons */}
-        <div className="flex gap-3">
-          <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg bg-red-600 shadow-[0_0_0_1px_#b91c1c] hover:bg-red-700 transition-colors">
-            <span className="text-white font-medium text-base">Reject</span>
-          </button>
-          <button
-            disabled={!isFormValid()}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] rounded-lg transition-colors ${
-              isFormValid()
-                ? "bg-[#013764] border border-white hover:bg-[#014777]"
-                : "bg-[#999] cursor-not-allowed opacity-50"
-            }`}
-          >
-            <span className="text-white font-medium text-base">
-              Approve Field Team Order
-            </span>
-          </button>
-        </div>
-      </DialogContent>
+      </ModalTemplate>
 
       {/* PDF Viewer Modal */}
       <Dialog open={pdfOpen} onOpenChange={setPdfOpen}>
-        <DialogContent className="max-w-4xl w-full h-[80vh] p-0 flex flex-col">
-          <DialogTitle className="flex items-center justify-between px-6 py-4 border-b border-[#e5e5e5] text-lg font-semibold text-[#303030] m-0">
+        <DialogContent style={{ maxWidth: "56rem", width: "100%", height: "80vh", padding: 0, display: "flex", flexDirection: "column" }}>
+          <DialogTitle style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingLeft: "24px", paddingRight: "24px", paddingTop: "16px", paddingBottom: "16px", borderBottom: "1px solid #e5e5e5", fontSize: "18px", fontWeight: 600, color: "#303030", margin: 0 }}>
             <span>Receipt</span>
           </DialogTitle>
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
-            <div className="text-center">
+          <div style={{ flex: 1, backgroundColor: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ textAlign: "center" }}>
               <svg
                 width="64"
                 height="64"
@@ -943,19 +1196,19 @@ export default function FTOApprovalModal({
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className="mx-auto mb-4 text-[#ccc]"
+                style={{ margin: "0 auto 16px", color: "#ccc" }}
               >
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
                 <line x1="12" y1="11" x2="12" y2="17" />
                 <line x1="9" y1="14" x2="15" y2="14" />
               </svg>
-              <p className="text-[#999]">PDF Document</p>
-              <p className="text-sm text-[#ccc] mt-2">Sample PDF Viewer</p>
+              <p style={{ color: "#999" }}>PDF Document</p>
+              <p style={{ fontSize: "14px", color: "#ccc", marginTop: "8px" }}>Sample PDF Viewer</p>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 }
