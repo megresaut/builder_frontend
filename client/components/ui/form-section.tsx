@@ -45,7 +45,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
   return (
     <div>
       {/* Section Header */}
-      <div style={{ marginBottom: showDivider ? "16px" : "20px" }}>
+      <div style={{ marginBottom: "12px" }}>
         <h3
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
