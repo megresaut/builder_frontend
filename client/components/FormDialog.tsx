@@ -1,6 +1,5 @@
 import React from "react";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
-import type { ModalSize } from "@/components/ui/Modal";
+import { ModalTemplate, ModalButtons, type ModalSize } from "@/components/ui/ModalTemplate";
 
 interface FormDialogProps {
   open: boolean;
