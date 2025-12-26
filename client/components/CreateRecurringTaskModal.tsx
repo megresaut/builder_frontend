@@ -1,18 +1,17 @@
-import { useState, useRef, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
-import { format, getDaysInMonth, getDay, startOfMonth } from "date-fns";
-import { ChevronDown } from "lucide-react";
-import { MultiSelectField, type MultiSelectOption } from "@/components/forms";
+  ModalTemplate,
+  ModalButtons,
+} from "@/components/ui/ModalTemplate";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import {
+  TextField,
+  SelectField,
+  TextAreaField,
+  DateField,
+  MultiSelectField,
+  type MultiSelectOption,
+} from "@/components/forms";
 
 interface CreateRecurringTaskModalProps {
   open: boolean;
@@ -39,51 +38,57 @@ export default function CreateRecurringTaskModal({
   editData,
 }: CreateRecurringTaskModalProps) {
   const [taskName, setTaskName] = useState("");
+  const [description, setDescription] = useState("");
+  const [property, setProperty] = useState("");
+  const [unit, setUnit] = useState("");
+  const [dueAfter, setDueAfter] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
   const [priority, setPriority] = useState("normal");
   const [category, setCategory] = useState("");
-  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
-  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<
-    MultiSelectOption[]
-  >([AVAILABLE_ASSIGNEES[0], AVAILABLE_ASSIGNEES[0]]);
-  const [errors, setErrors] = useState<{
-    taskName?: boolean;
-    startDate?: boolean;
-    selectedAssignees?: boolean;
-  }>({});
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [showStartCalendar, setShowStartCalendar] = useState(false);
-  const [showEndCalendar, setShowEndCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [startCalendarPos, setStartCalendarPos] = useState({ top: 0, left: 0 });
-  const [endCalendarPos, setEndCalendarPos] = useState({ top: 0, left: 0 });
-  const startDateInputRef = useRef<HTMLInputElement>(null);
-  const endDateInputRef = useRef<HTMLInputElement>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!open) {
+      setTaskName("");
+      setDescription("");
+      setProperty("");
+      setUnit("");
+      setDueAfter("");
+      setRepeat("");
+      setStartDate(null);
+      setEndDate(null);
+      setSelectedAssignees([]);
+      setPriority("normal");
+      setCategory("");
+      setErrors({});
+    }
+  }, [open]);
 
   useEffect(() => {
     if (editData) {
       setTaskName(editData.task);
-      setStartDate(editData.nextDate);
       setPriority(editData.priority.toLowerCase());
       setCategory(editData.category);
+      if (editData.nextDate) {
+        const date = new Date(editData.nextDate);
+        setStartDate(date);
+      }
     }
   }, [editData]);
 
   const validateForm = (): boolean => {
-    const newErrors: {
-      taskName?: boolean;
-      startDate?: boolean;
-      selectedAssignees?: boolean;
-    } = {};
+    const newErrors: Record<string, string> = {};
     if (!taskName.trim()) {
-      newErrors.taskName = true;
+      newErrors.taskName = "Task Name is required";
     }
-    if (!startDate.trim()) {
-      newErrors.startDate = true;
+    if (!startDate) {
+      newErrors.startDate = "Start Date is required";
     }
     if (selectedAssignees.length === 0) {
-      newErrors.selectedAssignees = true;
+      newErrors.selectedAssignees = "At least one assignee is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -91,10 +96,16 @@ export default function CreateRecurringTaskModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // Handle submit logic here
       console.log("Form submitted", {
         taskName,
+        description,
+        property,
+        unit,
+        dueAfter,
+        repeat,
         startDate,
+        endDate,
+        selectedAssignees,
         priority,
         category,
       });
@@ -102,405 +113,129 @@ export default function CreateRecurringTaskModal({
     }
   };
 
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updatePositions = () => {
-      if (showStartCalendar && startDateInputRef.current) {
-        const rect = startDateInputRef.current.getBoundingClientRect();
-        setStartCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showEndCalendar && endDateInputRef.current) {
-        const rect = endDateInputRef.current.getBoundingClientRect();
-        setEndCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showStartCalendar || showEndCalendar) {
-        animationFrameId = requestAnimationFrame(updatePositions);
-      }
-    };
-
-    if (showStartCalendar || showEndCalendar) {
-      updatePositions();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showStartCalendar, showEndCalendar]);
-
-  const getPriorityIcon = (priorityLevel: string = priority) => {
-    const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463EB",
-      high: "#D97706",
-    };
-    return (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M2.91602 7H11.0827"
-          stroke={colors[priorityLevel] || colors.normal}
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  };
-
-  const getPriorityLabel = () => {
-    const labels: Record<string, string> = {
-      low: "Low",
-      normal: "Normal",
-      high: "High",
-    };
-    return labels[priority] || "Normal";
-  };
-
-  const getPriorityBgColor = () => {
-    const colors: Record<string, string> = {
-      low: "#d1fae5",
-      normal: "#dbe9fe",
-      high: "#fef3c7",
-    };
-    return colors[priority] || colors.normal;
-  };
-
-  const getPriorityTextColor = () => {
-    const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463eb",
-      high: "#d97706",
-    };
-    return colors[priority] || colors.normal;
-  };
-
-  const handleStartDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setSelectedStartDate(selected);
-    const formatted = format(selected, "MM/dd/yyyy");
-    setStartDate(formatted);
-    if (errors.startDate) {
-      setErrors((prev) => ({ ...prev, startDate: false }));
-    }
-    setShowStartCalendar(false);
-  };
-
-  const handleEndDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setSelectedEndDate(selected);
-    const formatted = format(selected, "MM/dd/yyyy");
-    setEndDate(formatted);
-    if (errors.endDate) {
-      setErrors((prev) => ({ ...prev, endDate: false }));
-    }
-    setShowEndCalendar(false);
-  };
-
-  const getCalendarDays = () => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
-    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
-
-    const days: (number | null)[] = [];
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-
-  const previousMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
-    );
-  };
-
-  const nextMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
-    );
-  };
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        style={{
-          width: "800px",
-          maxWidth: "calc(100vw - 32px)",
-          maxHeight: "85vh",
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-        className="gap-0 border-none"
-      >
-        <div className="flex flex-col gap-4">
-          {/* Title */}
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            {editData ? "Edit Recurring Task" : "Create Recurring Task"}
-          </DialogTitle>
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title={editData ? "Edit Recurring Task" : "Create Recurring Task"}
+      size="lg"
+      footer={
+        <ModalButtons
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={editData ? "Update Recurring Task" : "Create Recurring Task"}
+        />
+      }
+    >
+      <FormLayout>
+        <FormSection showDivider={false}>
+          <TextField
+            label="Task Name"
+            required
+            value={taskName}
+            onChange={setTaskName}
+            error={errors.taskName}
+            placeholder="Type Task Name"
+          />
+          <TextAreaField
+            label="Description"
+            value={description}
+            onChange={setDescription}
+            placeholder="Insert Description Here"
+            rows={6}
+          />
+        </FormSection>
 
-          {/* Task Name */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Task Name <span className="text-red-600">*</span>
-            </label>
-            <div className="relative">
-              <Input
-                value={taskName}
-                onChange={(e) => {
-                  setTaskName(e.target.value);
-                  if (errors.taskName && e.target.value.trim()) {
-                    setErrors((prev) => ({ ...prev, taskName: false }));
-                  }
-                }}
-                placeholder="Type Task Name"
-                className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] placeholder:normal-case pr-10 ${
-                  errors.taskName
-                    ? "border-red-500 border-2"
-                    : "border-[#E5E5E5]"
-                }`}
-              />
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
-            </div>
-          </div>
+        <FormSection title="Property & Scheduling">
+          <SelectField
+            label="Property"
+            value={property}
+            onChange={setProperty}
+            placeholder="Select Property"
+            options={[
+              { value: "property1", label: "22 Indian Chase Dr" },
+              { value: "property2", label: "Property 2" },
+            ]}
+          />
+          <SelectField
+            label="Unit"
+            value={unit}
+            onChange={setUnit}
+            placeholder="Select Unit If Applicable"
+            options={[
+              { value: "unit1", label: "Unit 1" },
+              { value: "unit2", label: "Unit 2" },
+            ]}
+          />
+          <TextField
+            label="Due After"
+            value={dueAfter}
+            onChange={setDueAfter}
+            type="number"
+            placeholder="Insert Number Of Days"
+          />
+          <SelectField
+            label="Repeat"
+            value={repeat}
+            onChange={setRepeat}
+            placeholder="Daily, Monthly, Or Yearly, Etc"
+            options={[
+              { value: "daily", label: "Daily" },
+              { value: "weekly", label: "Weekly" },
+              { value: "monthly", label: "Monthly" },
+              { value: "yearly", label: "Yearly" },
+            ]}
+          />
+          <DateField
+            label="Start Date"
+            required
+            value={startDate}
+            onChange={setStartDate}
+            error={errors.startDate}
+            placeholder="MM/DD/YYYY"
+          />
+          <DateField
+            label="End Date"
+            value={endDate}
+            onChange={setEndDate}
+            placeholder="MM/DD/YYYY"
+          />
+        </FormSection>
 
-          {/* Description */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Description
-            </label>
-            <Textarea
-              placeholder="Insert Description Here"
-              className="min-h-[169px] rounded-lg bg-[#F7F7F7] border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:normal-case resize-none"
-            />
-          </div>
-
-          {/* Property and Unit Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Property
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Property"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
-                  <SelectItem value="property2">Property 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Unit
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Unit If Applicable"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unit1">Unit 1</SelectItem>
-                  <SelectItem value="unit2">Unit 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Due After and Repeat Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Due After
-              </label>
-              <Input
-                placeholder="Insert Number Of Days"
-                type="number"
-                className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:normal-case"
-              />
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Repeat
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Daily, Monthly, Or Yearly, Etc"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Start Date and End Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Start Date <span className="text-red-600">*</span>
-              </label>
-              <DatePicker
-                value={selectedStartDate}
-                onChange={(date) => {
-                  setSelectedStartDate(date);
-                  if (errors.startDate && date) {
-                    setErrors((prev) => ({ ...prev, startDate: false }));
-                  }
-                }}
-                error={errors.startDate}
-                placeholder="MM/DD/YYYY"
-              />
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                End
-              </label>
-              <DatePicker
-                value={selectedEndDate}
-                onChange={setSelectedEndDate}
-                placeholder="MM/DD/YYYY"
-              />
-            </div>
-          </div>
-
-          {/* Assignees */}
-          <div className="flex flex-col gap-2">
-            <MultiSelectField
-              label="Assignees"
-              required
-              value={selectedAssignees}
-              onChange={(newAssignees) => {
-                setSelectedAssignees(newAssignees);
-                if (errors.selectedAssignees && newAssignees.length > 0) {
-                  setErrors((prev) => ({ ...prev, selectedAssignees: false }));
-                }
-              }}
-              error={
-                errors.selectedAssignees
-                  ? "At least one assignee is required"
-                  : undefined
-              }
-              placeholder="Select assignees"
-              options={AVAILABLE_ASSIGNEES}
-            />
-          </div>
-
-          {/* Priority and Category Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Priority
-              </label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: getPriorityTextColor() }}
-                    />
-                    <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
-                      {getPriorityLabel()}
-                    </span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#059669]" />
-                      <span>Low</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="normal">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#2463eb]" />
-                      <span>Normal</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="high">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#d97706]" />
-                      <span>High</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Category
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Category"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category1">Maintenance</SelectItem>
-                  <SelectItem value="category2">Repair</SelectItem>
-                  <SelectItem value="category3">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Create/Update Recurring Task Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={
-              !taskName.trim() ||
-              !startDate.trim() ||
-              selectedAssignees.length === 0
-            }
-            className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="text-white font-medium text-base">
-              {editData ? "Update Recurring Task" : "Create Recurring Task"}
-            </span>
-          </button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <FormSection title="Assignment & Priority">
+          <MultiSelectField
+            label="Assignees"
+            required
+            value={selectedAssignees}
+            onChange={setSelectedAssignees}
+            error={errors.selectedAssignees}
+            placeholder="Select assignees"
+            options={AVAILABLE_ASSIGNEES}
+          />
+          <SelectField
+            label="Priority"
+            value={priority}
+            onChange={setPriority}
+            options={[
+              { value: "low", label: "Low" },
+              { value: "normal", label: "Normal" },
+              { value: "high", label: "High" },
+            ]}
+          />
+          <SelectField
+            label="Category"
+            value={category}
+            onChange={setCategory}
+            placeholder="Select Category"
+            options={[
+              { value: "maintenance", label: "Maintenance" },
+              { value: "repair", label: "Repair" },
+              { value: "other", label: "Other" },
+            ]}
+          />
+        </FormSection>
+      </FormLayout>
+    </ModalTemplate>
   );
 }
