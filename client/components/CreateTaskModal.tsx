@@ -105,7 +105,7 @@ export default function CreateTaskModal({
         unit,
         title,
         priority,
-        dueDate: selectedDate ? format(selectedDate, "MM/dd/yyyy") : "",
+        dueDate,
         selectedAssignees,
         category,
         description,
