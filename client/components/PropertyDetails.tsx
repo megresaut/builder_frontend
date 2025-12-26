@@ -840,108 +840,18 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
 
           {/* Edit Custom Fields Modal */}
-          {showEditCustomFieldsModal &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowEditCustomFieldsModal(false)}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Edit Custom Fields
-                    </div>
-                    <button
-                      onClick={() => setShowEditCustomFieldsModal(false)}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-5">
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Management Agreement Date
-                      </label>
-                      <input
-                        type="date"
-                        value={managementAgreementDate}
-                        onChange={(e) =>
-                          setManagementAgreementDate(e.target.value)
-                        }
-                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Inspection Frequency
-                      </label>
-                      <Select
-                        value={inspectionFrequency}
-                        onValueChange={setInspectionFrequency}
-                      >
-                        <SelectTrigger className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] focus:ring-2 focus:ring-[#013764]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-[#DADADA] rounded-lg">
-                          <SelectItem value="Weekly">Weekly</SelectItem>
-                          <SelectItem value="Biweekly">Biweekly</SelectItem>
-                          <SelectItem value="Monthly">Monthly</SelectItem>
-                          <SelectItem value="Bi-Monthly">Bi-Monthly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setShowEditCustomFieldsModal(false)}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setManagementAgreementDate(managementAgreementDate);
-                        setInspectionFrequency(inspectionFrequency);
-                        setShowEditCustomFieldsModal(false);
-                      }}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Save
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
+          <EditPropertyCustomFieldsModal
+            open={showEditCustomFieldsModal}
+            onOpenChange={setShowEditCustomFieldsModal}
+            initialData={{
+              managementAgreementDate,
+              inspectionFrequency,
+            }}
+            onSave={(data) => {
+              setManagementAgreementDate(data.managementAgreementDate);
+              setInspectionFrequency(data.inspectionFrequency);
+            }}
+          />
 
           {/* Edit Rates Modal */}
           {showEditRatesModal &&
