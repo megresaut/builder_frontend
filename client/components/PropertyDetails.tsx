@@ -902,157 +902,48 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
 
           {/* Add File Modal */}
-          {showAddFileModal &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowAddFileModal(false)}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Add File
-                    </div>
-                    <button
-                      onClick={() => setShowAddFileModal(false)}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-5">
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        File
-                      </label>
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={(e) =>
-                          setFileDraft(e.target.files?.[0] ?? null)
-                        }
-                        className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Category
-                      </label>
-                      <Select
-                        value={fileCategoryDraft}
-                        onValueChange={setFileCategoryDraft}
-                      >
-                        <SelectTrigger className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] focus:ring-2 focus:ring-[#013764]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-[#DADADA] rounded-lg">
-                          <SelectItem value="Uncategorized">
-                            Uncategorized
-                          </SelectItem>
-                          <SelectItem value="Insurance">Insurance</SelectItem>
-                          <SelectItem value="Compliance">Compliance</SelectItem>
-                          <SelectItem value="Owner Docs">Owner Docs</SelectItem>
-                          <SelectItem value="Lease Docs">Lease Docs</SelectItem>
-                          <SelectItem value="Maintenance">
-                            Maintenance
-                          </SelectItem>
-                          <SelectItem value="Inspection">Inspection</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setShowAddFileModal(false)}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!fileDraft) return;
+          <AddPropertyFileModal
+            open={showAddFileModal}
+            onOpenChange={setShowAddFileModal}
+            onAddFile={(file, category) => {
+              const blobUrl = URL.createObjectURL(file);
+              const now = new Date();
+              const date = now.toLocaleString(undefined, {
+                month: "numeric",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              });
 
-                        const now = new Date();
-                        const date = now.toLocaleString(undefined, {
-                          month: "numeric",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        });
+              const fileName = file.name;
+              const ext = fileName.split(".").pop()?.toLowerCase() || "";
+              const docIcon =
+                "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+              const pdfIcon =
+                "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+              const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
 
-                        const fileName = fileDraft.name;
-                        const ext =
-                          fileName.split(".").pop()?.toLowerCase() || "";
-                        const url = URL.createObjectURL(fileDraft);
-                        const docIcon =
-                          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-                        const pdfIcon =
-                          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-                        const icon =
-                          ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-
-                        setRecentFiles((prev) => {
-                          const nextId = prev.length
-                            ? Math.max(...prev.map((f) => f.id)) + 1
-                            : 1;
-                          return [
-                            ...prev,
-                            {
-                              id: nextId,
-                              name: fileName,
-                              category: fileCategoryDraft,
-                              date,
-                              author: propertyManager,
-                              type: ext || "file",
-                              icon,
-                              url,
-                            },
-                          ];
-                        });
-
-                        setFileDraft(null);
-                        setFileCategoryDraft("Uncategorized");
-                        setShowAddFileModal(false);
-                      }}
-                      disabled={!fileDraft}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Add
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
+              setRecentFiles((prev) => {
+                const nextId = prev.length
+                  ? Math.max(...prev.map((f) => f.id)) + 1
+                  : 1;
+                return [
+                  ...prev,
+                  {
+                    id: nextId,
+                    name: fileName,
+                    category,
+                    date,
+                    author: propertyManager,
+                    type: ext || "file",
+                    icon,
+                    url: blobUrl,
+                  },
+                ];
+              });
+            }}
+          />
         </div>
       </div>
     </div>
