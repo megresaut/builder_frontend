@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { ModalTemplate, ModalSubheader } from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import {
+  FormLayout,
+  FormSection,
+} from "@/components/ui/form-layout";
 import {
   TextField,
   SelectField,
@@ -9,7 +13,6 @@ import {
   FieldRowItem,
   type MultiSelectOption,
 } from "@/components/forms";
-import { Button } from "@/components/ui/button";
 
 interface Manager {
   id: string | number;
