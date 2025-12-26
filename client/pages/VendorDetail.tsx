@@ -35,6 +35,7 @@ import {
   useVendorCustomFields,
 } from "@/hooks/vendors";
 import type { VendorDetail as VendorDetailType, VendorNote, VendorFile } from "@/data/vendors";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
 
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
