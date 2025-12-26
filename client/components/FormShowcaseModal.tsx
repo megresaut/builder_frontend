@@ -22,11 +22,15 @@ import {
   FileUploadField,
   FieldRow,
   FieldRowItem,
-  FormSection,
   type AddressValue,
   type IdentityOption,
 } from "@/components/forms";
 import { UploadedFile } from "@/components/ui/attachment-uploader";
+import {
+  FormLayout,
+  FormSection,
+  FormFieldRow,
+} from "@/components/ui/form-layout";
 
 interface FormShowcaseModalProps {
   open: boolean;
