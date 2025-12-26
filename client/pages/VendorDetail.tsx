@@ -17,6 +17,7 @@ import {
   TextAreaField,
   EmailField,
   PhoneNumberField,
+  FileUploadField,
   FieldRow,
   FieldRowItem,
 } from "@/components/forms";
