@@ -680,8 +680,18 @@ export default function VendorDetail() {
         isValid={fileDraft !== null}
         size="sm"
       >
-        <div className="flex flex-col gap-2">
-          <label className="text-[#303030] font-medium text-sm leading-[20px]">
+        <div style={{ marginBottom: "20px" }}>
+          <label
+            style={{
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "14px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 500,
+              lineHeight: 1.43,
+              marginBottom: "8px",
+              display: "block",
+            }}
+          >
             File
           </label>
           <input
