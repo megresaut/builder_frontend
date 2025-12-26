@@ -119,3 +119,5 @@ export const EntityListSection = React.forwardRef<
 );
 
 EntityListSection.displayName = "EntityListSection";
+
+export default EntityListSection;
