@@ -710,12 +710,7 @@ export default function VendorDetail() {
               description="Upload PDF documents"
               files={uploadedFiles}
               onFilesAdded={(newFiles) => {
-                const mappedFiles = newFiles.map((f) => ({
-                  id: f.id,
-                  name: f.name,
-                  file: f.file,
-                }));
-                setUploadedFiles([...uploadedFiles, ...mappedFiles]);
+                setUploadedFiles([...uploadedFiles, ...newFiles]);
               }}
               onFileRemoved={(fileId) => {
                 setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
