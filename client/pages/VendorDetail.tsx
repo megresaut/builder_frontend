@@ -16,12 +16,8 @@ import {
   TextAreaField,
   EmailField,
   PhoneNumberField,
-  AddressField,
-  DateField,
-  FileUploadField,
   FieldRow,
   FieldRowItem,
-  type AddressValue,
 } from "@/components/forms";
 import {
   useVendorDetail,
