@@ -132,14 +132,16 @@ export default function Vendors() {
   ];
 
   const handleDeleteVendor = useCallback(
-    (vendor: Vendor) => {
-      setVendors((prev) => prev.filter((v) => v.id !== vendor.id));
+    (vendor: BaseVendor) => {
+      // Mock implementation: remove from vendors array (in real app, would be API call)
+      const idx = vendors.findIndex((v) => v.id === vendor.id);
+      if (idx >= 0) vendors.splice(idx, 1);
     },
-    []
+    [vendors]
   );
 
   const handleEditVendor = useCallback(
-    (vendor: Vendor) => {
+    (vendor: BaseVendor) => {
       navigate(`/vendors/${vendor.id}`);
     },
     [navigate]
