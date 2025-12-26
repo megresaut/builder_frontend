@@ -118,14 +118,6 @@ export default function VendorDetail() {
     }
   };
 
-  const saveVendor = () => {
-    if (vendorDraft) {
-      const trimmedName = vendorDraft.name.trim();
-      if (!trimmedName) return;
-      setIsEditVendorOpen(false);
-    }
-  };
-
   const handleAddInsurance = async () => {
     const provider = insuranceProvider.trim();
     const policyNumber = insurancePolicyNumber.trim();
