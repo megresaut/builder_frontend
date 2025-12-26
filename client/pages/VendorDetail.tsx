@@ -736,9 +736,9 @@ export default function VendorDetail() {
         size="md"
       >
         {vendorDraft && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <FieldRow columns={2}>
-              <FieldRowItem>
+          <FormLayout>
+            <FormSection showDivider={false}>
+              <FormFieldRow columns={2}>
                 <TextField
                   label="Vendor Name"
                   required
@@ -751,8 +751,6 @@ export default function VendorDetail() {
                   }
                   placeholder="Input Vendor Name"
                 />
-              </FieldRowItem>
-              <FieldRowItem>
                 <TextField
                   label="Category"
                   value={vendorDraft.category}
@@ -764,11 +762,9 @@ export default function VendorDetail() {
                   }
                   placeholder="Category"
                 />
-              </FieldRowItem>
-            </FieldRow>
+              </FormFieldRow>
 
-            <FieldRow columns={2}>
-              <FieldRowItem>
+              <FormFieldRow columns={2}>
                 <EmailField
                   label="Primary Email"
                   value={vendorDraft.email || ""}
@@ -780,8 +776,6 @@ export default function VendorDetail() {
                   }
                   placeholder="Input Vendor Email"
                 />
-              </FieldRowItem>
-              <FieldRowItem>
                 <PhoneNumberField
                   label="Phone"
                   value={vendorDraft.phone || ""}
@@ -793,11 +787,9 @@ export default function VendorDetail() {
                   }
                   placeholder="Input Vendor Phone"
                 />
-              </FieldRowItem>
-            </FieldRow>
+              </FormFieldRow>
 
-            <FieldRow columns={2}>
-              <FieldRowItem>
+              <FormFieldRow columns={2}>
                 <TextField
                   label="Website"
                   value={vendorDraft.website || ""}
@@ -809,21 +801,21 @@ export default function VendorDetail() {
                   }
                   placeholder="https://..."
                 />
-              </FieldRowItem>
-            </FieldRow>
+              </FormFieldRow>
 
-            <TextField
-              label="Services Provided"
-              value={vendorDraft.servicesProvided || ""}
-              onChange={(e) =>
-                setVendorDraft((prev) => (prev ? {
-                  ...prev,
-                  servicesProvided: e.target.value,
-                } : null))
-              }
-              placeholder="Services provided"
-            />
-          </div>
+              <TextField
+                label="Services Provided"
+                value={vendorDraft.servicesProvided || ""}
+                onChange={(e) =>
+                  setVendorDraft((prev) => (prev ? {
+                    ...prev,
+                    servicesProvided: e.target.value,
+                  } : null))
+                }
+                placeholder="Services provided"
+              />
+            </FormSection>
+          </FormLayout>
         )}
       </FormDialog>
 
