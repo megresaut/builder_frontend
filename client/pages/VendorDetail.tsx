@@ -539,11 +539,11 @@ export default function VendorDetail() {
         isValid={noteDraft.trim().length > 0}
         size="sm"
       >
-        <Textarea
+        <TextAreaField
+          label="Note"
           value={noteDraft}
           onChange={(e) => setNoteDraft(e.target.value)}
           placeholder="Enter your note here..."
-          className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
         />
       </FormDialog>
 
