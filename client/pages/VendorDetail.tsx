@@ -711,7 +711,7 @@ export default function VendorDetail() {
         size="md"
       >
         {vendorDraft && (
-          <>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <FieldRow columns={2}>
               <FieldRowItem>
                 <TextField
@@ -798,7 +798,7 @@ export default function VendorDetail() {
               }
               placeholder="Services provided"
             />
-          </>
+          </div>
         )}
       </FormDialog>
 
