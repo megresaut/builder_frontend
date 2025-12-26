@@ -43,7 +43,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
   showDivider = true,
 }) => {
   return (
-    <div style={{ marginTop: "28px" }}>
+    <div>
       {/* Section Header */}
       <div style={{ marginBottom: showDivider ? "16px" : "20px" }}>
         <h3
