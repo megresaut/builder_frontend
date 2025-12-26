@@ -83,7 +83,7 @@ export default function CreateTaskModal({
       newErrors.title = true;
       newErrorMessages.title = "Task name is required";
     }
-    if (!selectedDate) {
+    if (!dueDate.trim()) {
       newErrors.dueDate = true;
       newErrorMessages.dueDate = "Due date is required";
     }
