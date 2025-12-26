@@ -878,13 +878,18 @@ export default function VendorDetail() {
 
           <DialogFooter className="mt-6 gap-3">
             <button
-              onClick={() => setIsAddInsuranceOpen(false)}
+              onClick={() => {
+                setIsAddInsuranceOpen(false);
+                setInsuranceProvider("");
+                setInsurancePolicyNumber("");
+                setInsuranceExpirationDate("");
+              }}
               className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
-              onClick={addInsurance}
+              onClick={handleAddInsurance}
               disabled={
                 !insuranceProvider.trim() ||
                 !insurancePolicyNumber.trim() ||
