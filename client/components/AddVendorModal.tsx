@@ -19,6 +19,23 @@ interface AddVendorModalProps {
     servicesProvided: string[];
     notes: string;
   }) => void;
+  edit?: boolean;
+  initialVendor?: {
+    name: string;
+    category?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    servicesProvided?: string;
+  };
+  onEditVendor?: (vendor: {
+    name: string;
+    category: string;
+    email: string;
+    phone: string;
+    website: string;
+    servicesProvided: string;
+  }) => void;
 }
 
 export default function AddVendorModal({
