@@ -562,11 +562,11 @@ export default function VendorDetail() {
         size="sm"
       >
         {selectedNote ? (
-          <div>
-            <div className="text-[#303030] whitespace-pre-line mb-4 p-3 bg-gray-50 rounded-lg">
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">
               {selectedNote.text}
             </div>
-            <div className="text-sm text-[#71717A] mb-2">
+            <div className="text-sm text-[#71717A]">
               <span className="font-medium">Author:</span> {selectedNote.author}
             </div>
             <div className="text-sm text-[#71717A]">
