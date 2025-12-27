@@ -43,6 +43,9 @@ const Popover = React.forwardRef<
   const [searchableItems, setSearchableItems] = React.useState<
     Array<{ value: string; label: string }>
   >([]);
+  const [onEnterSelect, setOnEnterSelect] = React.useState<
+    ((item: { value: string; label: string } | null) => void) | undefined
+  >();
 
   // Use controlled prop if provided, otherwise use internal state
   const isOpen = props.open !== undefined ? props.open : internalOpen;
@@ -58,6 +61,7 @@ const Popover = React.forwardRef<
     onSearch: () => {
       // onSearch is called automatically on filter change
     },
+    onEnter: onEnterSelect,
   });
 
   return (
@@ -70,6 +74,7 @@ const Popover = React.forwardRef<
         searchTerm: "", // We track filtered items instead
         setSearchableItems,
         filteredItems,
+        onEnterSelect: setOnEnterSelect,
       }}
     >
       <PopoverPrimitive.Root {...props} open={isOpen} onOpenChange={setOpen} ref={ref}>
