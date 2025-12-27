@@ -109,19 +109,6 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
   const displayLabel = selectedOption?.label ?? placeholder;
   const isShowingPlaceholder = !value;
 
-  const filteredOptions = searchText
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(searchText.toLowerCase()),
-      )
-    : options;
-
-  const handleOpen = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (!newOpen) {
-      setSearchText("");
-    }
-  };
-
   const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
 
@@ -130,22 +117,22 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
       case " ":
         e.preventDefault();
         if (!open) {
-          handleOpen(true);
+          setOpen(true);
           setHighlightedIndex(0);
-        } else if (filteredOptions.length > 0) {
-          const selected = filteredOptions[highlightedIndex];
-          onChange?.(selected.value);
-          handleOpen(false);
+        } else if (popoverContext.filteredItems.length > 0) {
+          const item = popoverContext.filteredItems[highlightedIndex];
+          onChange?.(item.value);
+          setOpen(false);
         }
         break;
       case "ArrowDown":
         e.preventDefault();
         if (!open) {
-          handleOpen(true);
+          setOpen(true);
           setHighlightedIndex(0);
         } else {
           setHighlightedIndex((prev) =>
-            prev < filteredOptions.length - 1 ? prev + 1 : prev,
+            prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
           );
         }
         break;
@@ -157,34 +144,16 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
         break;
       case "Escape":
         e.preventDefault();
-        handleOpen(false);
+        setOpen(false);
         break;
       default:
-        // Typeahead search
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-          e.preventDefault();
-          if (!open) {
-            handleOpen(true);
-          }
-
-          const newSearchText = searchText + e.key;
-          setSearchText(newSearchText);
-          setHighlightedIndex(0);
-
-          if (searchTimeout) clearTimeout(searchTimeout);
-          setSearchTimeout(
-            setTimeout(() => {
-              setSearchText("");
-            }, 500),
-          );
-        }
         break;
     }
   };
 
   const handleOptionSelect = (optionValue: string) => {
     onChange?.(optionValue);
-    handleOpen(false);
+    setOpen(false);
   };
 
   const handleOptionKeyDown = (e: React.KeyboardEvent, optionIndex: number) => {
@@ -192,12 +161,12 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
       case "Enter":
       case " ":
         e.preventDefault();
-        handleOptionSelect(filteredOptions[optionIndex].value);
+        handleOptionSelect(popoverContext.filteredItems[optionIndex].value);
         break;
       case "ArrowDown":
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < filteredOptions.length - 1 ? prev + 1 : prev,
+          prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
         );
         break;
       case "ArrowUp":
@@ -206,7 +175,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
         break;
       case "Escape":
         e.preventDefault();
-        handleOpen(false);
+        setOpen(false);
         break;
       default:
         break;
