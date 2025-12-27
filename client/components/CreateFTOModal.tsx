@@ -10,8 +10,8 @@ import {
   TextAreaField,
   DateField,
   MultiSelectField,
-  type MultiSelectOption,
 } from "@/components/forms";
+import { AVAILABLE_ASSIGNEES } from "@/data/fto";
 
 interface CreateFTOModalProps {
   open: boolean;
@@ -22,14 +22,6 @@ interface CreateFTOModalProps {
     ftoStatus?: string;
   };
 }
-
-const AVAILABLE_ASSIGNEES: MultiSelectOption[] = [
-  { id: "1", label: "David Harris", initials: "DH" },
-  { id: "2", label: "Sarah Johnson", initials: "SJ" },
-  { id: "3", label: "Michael Chen", initials: "MC" },
-  { id: "4", label: "Emily Rodriguez", initials: "ER" },
-  { id: "5", label: "James Wilson", initials: "JW" },
-];
 
 export default function CreateFTOModal({
   open,
