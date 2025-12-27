@@ -110,5 +110,7 @@ export function usePopoverTypeahead({
     searchTerm,
     setSearchTerm,
     filteredItems,
+    highlightedIndex,
+    setHighlightedIndex,
   };
 }
