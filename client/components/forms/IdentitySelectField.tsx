@@ -336,37 +336,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
             overflow: "hidden",
           }}
         >
-          {multiple && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 12px",
-                borderBottom: "1px solid var(--color-border-light)",
-                flexShrink: 0,
-              }}
-            >
-              <Search className="h-4 w-4" style={{ color: "#717179" }} />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  padding: 0,
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "14px",
-                  color: "var(--color-text-primary)",
-                  backgroundColor: "transparent",
-                }}
-              />
-            </div>
-          )}
           <div
             style={{
               flex: 1,
@@ -375,7 +344,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
               padding: "4px 0",
             }}
           >
-            {filteredOptions.length === 0 ? (
+            {popoverContext.filteredItems.length === 0 ? (
               <div
                 style={{
                   padding: "8px 12px",
@@ -383,10 +352,14 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
                   fontSize: "14px",
                 }}
               >
-                {searchText ? "No matching options" : "No options"}
+                {popoverContext.filteredItems.length === 0 && options.length > 0
+                  ? "No matching options"
+                  : "No options"}
               </div>
             ) : (
-              filteredOptions.map((option) => {
+              popoverContext.filteredItems.map((item) => {
+                const option = options.find((opt) => opt.id === item.value);
+                if (!option) return null;
                 const isSelected = multiple
                   ? selectedIds.includes(option.id)
                   : selectedId === option.id;
