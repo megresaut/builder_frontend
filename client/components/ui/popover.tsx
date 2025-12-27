@@ -97,7 +97,7 @@ const PopoverContent = React.forwardRef<
     },
     ref,
   ) => {
-    const { triggerRef, containerRef, isOpen } = usePopoverContext();
+    const { triggerRef, containerRef, isOpen, setOpen } = usePopoverContext();
     const localRef = React.useRef<React.ElementRef<
       typeof PopoverPrimitive.Content
     > | null>(null);
@@ -154,7 +154,7 @@ const PopoverContent = React.forwardRef<
         const distance = Math.sqrt(distX * distX + distY * distY);
 
         if (distance > 150) {
-          (props as any).onOpenChange?.(false);
+          setOpen(false);
         }
       };
 
@@ -162,7 +162,7 @@ const PopoverContent = React.forwardRef<
       return () => {
         document.removeEventListener("mousemove", handleMouseMove);
       };
-    }, [isOpen, triggerRef, props]);
+    }, [isOpen, triggerRef, setOpen]);
 
     React.useEffect(() => {
       if (!syncTriggerWidth || !triggerRef.current) return;
