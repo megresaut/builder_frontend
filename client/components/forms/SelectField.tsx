@@ -107,8 +107,17 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [searchText, setSearchText] = React.useState("");
   const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  usePopoverAutoClose({
+    open,
+    onOpenChange: setOpen,
+    triggerRef: triggerRef as React.RefObject<HTMLElement>,
+    contentRef: contentRef as React.RefObject<HTMLElement>,
+  });
 
   // Determine if we're in multi-select mode
   const isMultiple = multiple;
