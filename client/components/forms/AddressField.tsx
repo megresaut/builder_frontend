@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
 import { FieldShell } from "./FieldShell";
 
 export interface AddressValue {
