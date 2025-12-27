@@ -13,7 +13,7 @@ export const ApproveIcon: React.FC<ApproveIconProps> = ({
 }) => (
   <img
     loading="lazy"
-    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b13c8f79f0bbe495c159d6f52432780ef6582cfb?placeholderIfAbsent=true"
+    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/e9050bb8a2ada9e901e47d68747b77108632e1b9?placeholderIfAbsent=true"
     width={width}
     height={height}
     alt="Approve"
