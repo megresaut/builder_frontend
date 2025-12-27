@@ -387,7 +387,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                     gap: "8px",
                     transition: "background-color 0.15s",
                   }}
-                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
                 >
                   {isSelected && <Check className="h-4 w-4 text-blue-600" />}
                   {!isSelected && <div className="h-4 w-4" />}
