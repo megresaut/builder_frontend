@@ -241,7 +241,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {filteredOptions.length === 0 ? (
+        {popoverContext.filteredItems.length === 0 ? (
           <div
             style={{
               padding: "8px 12px",
@@ -249,10 +249,14 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
               fontSize: "13px",
             }}
           >
-            {searchText ? "No matching options" : "No options"}
+            {popoverContext.filteredItems.length === 0 && options.length > 0
+              ? "No matching options"
+              : "No options"}
           </div>
         ) : (
-          filteredOptions.map((option, index) => {
+          popoverContext.filteredItems.map((item, index) => {
+            const option = options.find((opt) => opt.value === item.value);
+            if (!option) return null;
             const isSelected = value === option.value;
             return (
               <button
@@ -298,7 +302,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
 
   return (
     <FieldCellShell error={error}>
-      <Popover open={open} onOpenChange={handleOpen}>
+      <Popover open={open} onOpenChange={setOpen}>
         {trigger}
         {content}
       </Popover>
