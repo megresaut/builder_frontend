@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import GlobalActionsDropdown from "@/components/GlobalActionsDropdown";
+import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { Search, ChevronDown } from "lucide-react";
 
 interface Column {
@@ -415,12 +415,10 @@ export default function GlobalTable({
                         backgroundColor: "white",
                       }}
                     >
-                      <GlobalActionsDropdown
+                      <PopoverActionsDropdown
                         row={row}
                         rowKey={rowKey}
                         actions={actions}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={onOpenMenuIdChange}
                       />
                     </td>
                   )}
