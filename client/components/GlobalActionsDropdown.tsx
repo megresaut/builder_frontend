@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { useScrollLock } from "@/hooks/useScrollLock";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 
 interface ActionItem {
   label: string | ((row: any) => string);
@@ -31,7 +31,9 @@ export default function GlobalActionsDropdown({
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
-  useScrollLock(showMenu);
+  useGlobalActionsScrollLock(showMenu, {
+    allowRefs: [buttonRef, menuRef],
+  });
 
   useEffect(() => {
     let animationFrameId: number;

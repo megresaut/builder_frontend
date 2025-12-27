@@ -1,6 +1,7 @@
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 
 export interface ActionItem {
   label: string | ((row: any) => string);
@@ -27,6 +28,10 @@ export default function PopoverActionsDropdown({
   const contentRef = useRef<HTMLDivElement>(null);
   const isOverPopoverRef = useRef(false);
   const allActions = [...actions, ...additionalActions];
+
+  useGlobalActionsScrollLock(open, {
+    allowRefs: [triggerRef, contentRef],
+  });
 
   // Handle clicks outside
   useEffect(() => {
