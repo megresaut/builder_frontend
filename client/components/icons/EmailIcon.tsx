@@ -8,8 +8,8 @@ interface EmailIconProps {
 }
 
 export const EmailIcon: React.FC<EmailIconProps> = ({
-  width = 14,
-  height = 14,
+  width = 18,
+  height = 18,
   color = "currentColor",
   className = "",
 }) => (

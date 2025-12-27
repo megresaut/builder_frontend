@@ -8,8 +8,8 @@ interface EditIconProps {
 }
 
 export const EditIcon: React.FC<EditIconProps> = ({
-  width = 14,
-  height = 14,
+  width = 18,
+  height = 18,
   color = "currentColor",
   className = "",
 }) => (
