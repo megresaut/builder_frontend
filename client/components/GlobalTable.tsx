@@ -31,8 +31,6 @@ interface GlobalTableProps {
   onPageChange: (page: number) => void;
   itemsPerPage: number;
   onItemsPerPageChange: (itemsPerPage: number) => void;
-  showPageSizeDropdown: boolean;
-  onShowPageSizeDropdownChange?: (show: boolean) => void;
   openMenuId: string | number | null;
   onOpenMenuIdChange: (id: string | number | null) => void;
   title?: string;
@@ -64,8 +62,6 @@ export default function GlobalTable({
   onPageChange,
   itemsPerPage,
   onItemsPerPageChange,
-  showPageSizeDropdown,
-  onShowPageSizeDropdownChange,
   openMenuId,
   onOpenMenuIdChange,
   title,
@@ -360,8 +356,6 @@ export default function GlobalTable({
             onItemsPerPageChange={onItemsPerPageChange}
             onPageChange={onPageChange}
             totalRows={totalRows}
-            open={showPageSizeDropdown}
-            onOpenChange={onShowPageSizeDropdownChange || (() => {})}
           />
           <span className="ra-table-pagination-total text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
             of {totalRows}
