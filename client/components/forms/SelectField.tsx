@@ -357,6 +357,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         </PopoverTrigger>
 
         <PopoverContent
+          ref={contentRef}
           className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
           align="start"
           syncTriggerWidth={true}
