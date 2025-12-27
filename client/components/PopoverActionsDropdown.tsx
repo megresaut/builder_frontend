@@ -26,7 +26,6 @@ export default function PopoverActionsDropdown({
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const isOverPopoverRef = useRef(false);
   const allActions = [...actions, ...additionalActions];
 
   useGlobalActionsScrollLock(open, {
