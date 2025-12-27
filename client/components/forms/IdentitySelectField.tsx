@@ -99,11 +99,20 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   multiple = false,
 }) => {
   const [open, setOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [triggerWidth, setTriggerWidth] = useState(0);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const popoverContext = usePopoverContext();
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  // Register options with Popover for typeahead search
+  useEffect(() => {
+    if (open) {
+      popoverContext.setSearchableItems(
+        options.map((opt) => ({ value: opt.id, label: opt.label }))
+      );
+    }
+  }, [open, options, popoverContext]);
 
   usePopoverAutoClose({
     open,
@@ -132,17 +141,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
       ? (opt) => selectedIds.includes(opt.id)
       : (opt) => opt.id === selectedId,
   );
-
-  // Filter options based on search text
-  const filteredOptions = useMemo(() => {
-    if (!searchText) return options;
-    const lowerSearch = searchText.toLowerCase();
-    return options.filter(
-      (opt) =>
-        opt.label.toLowerCase().includes(lowerSearch) ||
-        opt.subtitle?.toLowerCase().includes(lowerSearch),
-    );
-  }, [options, searchText]);
 
   const displayLabel =
     multiple && selectedOptions.length > 0
