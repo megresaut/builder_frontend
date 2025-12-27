@@ -213,6 +213,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
         </PopoverTrigger>
 
         <PopoverContent
+          ref={stateContentRef}
           align="start"
           side="bottom"
           sideOffset={4}
