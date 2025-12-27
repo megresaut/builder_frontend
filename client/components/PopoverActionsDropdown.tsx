@@ -33,7 +33,7 @@ export default function PopoverActionsDropdown({
     onOpenChange: setOpen,
     triggerRef: triggerRef as React.RefObject<HTMLElement>,
     contentRef: contentRef as React.RefObject<HTMLElement>,
-    threshold: 300,
+    threshold: 400,
   });
 
   return (
