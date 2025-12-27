@@ -28,6 +28,13 @@ export const EditIcon: React.FC<EditIconProps> = ({
       strokeLinecap="round"
       strokeLinejoin="round"
     />
+    <path
+      d="M1.5 16.5H16.5"
+      stroke={color}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
