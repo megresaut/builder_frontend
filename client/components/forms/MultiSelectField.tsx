@@ -207,7 +207,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
               padding: "4px 0",
             }}
           >
-            {options.length === 0 ? (
+            {popoverContext.filteredItems.length === 0 ? (
               <div
                 style={{
                   padding: "8px 12px",
@@ -215,10 +215,14 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
                   fontSize: "14px",
                 }}
               >
-                No options
+                {popoverContext.filteredItems.length === 0 && options.length > 0
+                  ? "No matching options"
+                  : "No options"}
               </div>
             ) : (
-              options.map((option) => {
+              popoverContext.filteredItems.map((item) => {
+                const option = options.find((opt) => opt.id === item.value);
+                if (!option) return null;
                 const isSelected = uniqueValue.some((v) => v.id === option.id);
                 return (
                   <button
