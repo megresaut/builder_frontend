@@ -119,6 +119,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     contentRef: contentRef as React.RefObject<HTMLElement>,
   });
 
+  useGlobalActionsScrollLock(open, {
+    allowRefs: [
+      triggerRef as React.RefObject<HTMLElement>,
+      contentRef as React.RefObject<HTMLElement>,
+    ],
+  });
+
   // Determine if we're in multi-select mode
   const isMultiple = multiple;
   const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
