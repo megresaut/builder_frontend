@@ -25,6 +25,7 @@ export default function PopoverActionsDropdown({
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const isOverPopoverRef = useRef(false);
   const allActions = [...actions, ...additionalActions];
 
   // Handle clicks outside
@@ -50,19 +51,48 @@ export default function PopoverActionsDropdown({
     };
   }, [open]);
 
-  // Handle distance-based close (measure from popover content edges)
+  // Handle hover and distance-based close
   useEffect(() => {
-    if (!open || !contentRef.current) return;
+    if (!open) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      const trigger = triggerRef.current;
       const content = contentRef.current;
-      if (!content) return;
 
-      const rect = content.getBoundingClientRect();
+      if (!trigger || !content) return;
 
-      // Calculate minimum distance from mouse to popover edges
-      const distX = Math.max(0, Math.max(rect.left - e.clientX, e.clientX - rect.right));
-      const distY = Math.max(0, Math.max(rect.top - e.clientY, e.clientY - rect.bottom));
+      const triggerRect = trigger.getBoundingClientRect();
+      const contentRect = content.getBoundingClientRect();
+
+      // Check if mouse is over trigger or content
+      const isOverTrigger =
+        e.clientX >= triggerRect.left &&
+        e.clientX <= triggerRect.right &&
+        e.clientY >= triggerRect.top &&
+        e.clientY <= triggerRect.bottom;
+
+      const isOverContent =
+        e.clientX >= contentRect.left &&
+        e.clientX <= contentRect.right &&
+        e.clientY >= contentRect.top &&
+        e.clientY <= contentRect.bottom;
+
+      isOverPopoverRef.current = isOverTrigger || isOverContent;
+
+      // Only calculate distance if not hovering
+      if (isOverPopoverRef.current) return;
+
+      // Calculate distance from mouse to popover bounds
+      const distX = Math.max(
+        contentRect.left - e.clientX,
+        e.clientX - contentRect.right,
+        0
+      );
+      const distY = Math.max(
+        contentRect.top - e.clientY,
+        e.clientY - contentRect.bottom,
+        0
+      );
       const distance = Math.sqrt(distX * distX + distY * distY);
 
       // If mouse is more than 400px away from popover, close
