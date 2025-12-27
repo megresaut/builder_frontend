@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  usePopoverContext,
 } from "@/components/ui/popover";
 import { FieldShell } from "./FieldShell";
 
