@@ -161,6 +161,21 @@ const SelectFieldCellContent: React.FC<SelectFieldCellContentProps> = ({
     }
   }, [open, options, popoverContext]);
 
+  // Set up Enter key handler for selecting from type-ahead results
+  useEffect(() => {
+    if (open && popoverContext.onEnterSelect) {
+      popoverContext.onEnterSelect((item) => {
+        if (item) {
+          const option = options.find((opt) => opt.value === item.value);
+          if (option) {
+            onChange?.(option.value);
+            setOpen(false);
+          }
+        }
+      });
+    }
+  }, [open, popoverContext, options, onChange, setOpen]);
+
   const handleOptionSelect = (optionValue: string) => {
     onChange?.(optionValue);
     setOpen(false);
