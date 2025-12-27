@@ -142,8 +142,6 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   useEffect(() => {
     if (!open || !triggerRef.current || !containerRef.current) return;
 
-    const isOverDropdownRef = { current: false };
-
     const handleMouseMove = (e: MouseEvent) => {
       const trigger = triggerRef.current;
       const container = containerRef.current;
@@ -152,22 +150,6 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
 
       const triggerRect = trigger.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
-
-      const isOverTrigger =
-        e.clientX >= triggerRect.left &&
-        e.clientX <= triggerRect.right &&
-        e.clientY >= triggerRect.top &&
-        e.clientY <= triggerRect.bottom;
-
-      const isOverContainer =
-        e.clientX >= containerRect.left &&
-        e.clientX <= containerRect.right &&
-        e.clientY >= containerRect.top &&
-        e.clientY <= containerRect.bottom;
-
-      isOverDropdownRef.current = isOverTrigger || isOverContainer;
-
-      if (isOverDropdownRef.current) return;
 
       const distX = Math.max(
         containerRect.left - e.clientX,
