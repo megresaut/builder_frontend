@@ -302,4 +302,4 @@ const PopoverScroll = React.forwardRef<
 ));
 PopoverScroll.displayName = "PopoverScroll";
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverScroll };
+export { Popover, PopoverTrigger, PopoverContent, PopoverScroll, usePopoverContext };
