@@ -8,6 +8,7 @@ interface PopoverContextType {
   triggerRef: React.RefObject<HTMLButtonElement | HTMLInputElement>;
   containerRef?: React.RefObject<HTMLDivElement>;
   isOpen: boolean;
+  setOpen: (open: boolean) => void;
 }
 
 const PopoverContext = React.createContext<PopoverContextType | undefined>(
