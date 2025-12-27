@@ -278,11 +278,11 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         id={fieldId}
         disabled={disabled}
         className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-          !error
-            ? open
+          error
+            ? "border-red-600"
+            : open
               ? "border-black"
               : "border-[var(--color-border-light)]"
-            : "border-red-600"
         }`}
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
