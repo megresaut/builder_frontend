@@ -144,6 +144,7 @@ interface SelectFieldContentProps {
   contentRef: React.RefObject<HTMLDivElement>;
   fieldId: string;
   disabled: boolean;
+  error?: string;
   isShowingPlaceholder: boolean;
   displayLabel: string | undefined;
   value?: string | string[];
