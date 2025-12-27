@@ -176,6 +176,13 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     contentRef: stateContentRef as React.RefObject<HTMLElement>,
   });
 
+  useGlobalActionsScrollLock(stateOpen, {
+    allowRefs: [
+      stateButtonRef as React.RefObject<HTMLElement>,
+      stateContentRef as React.RefObject<HTMLElement>,
+    ],
+  });
+
   const StatePopover = useMemo(
     () => (
       <Popover open={stateOpen} onOpenChange={setStateOpen}>
