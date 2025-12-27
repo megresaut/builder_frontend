@@ -16,3 +16,7 @@
 - If a required template does not exist, create it before implementing the feature.
 
 Make sure to check if you need to delete old files whenever you create new files, so there isn't file bloat
+
+# icons
+
+Any icons that i add, add to the icon library and store as a template icon
