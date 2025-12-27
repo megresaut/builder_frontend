@@ -381,36 +381,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           align="start"
           syncTriggerWidth={true}
         >
-          {isMultiple && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 12px",
-                borderBottom: "1px solid var(--color-border-light)",
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={handleTriggerKeyDown}
-                style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  padding: 0,
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "14px",
-                  color: "var(--color-text-primary)",
-                  backgroundColor: "transparent",
-                }}
-              />
-            </div>
-          )}
           <div
             style={{
               padding: "4px 0",
@@ -421,7 +391,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {filteredOptions.length === 0 ? (
+            {popoverContext.filteredItems.length === 0 ? (
               <div
                 style={{
                   padding: "8px 12px",
@@ -429,10 +399,14 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                   fontSize: "14px",
                 }}
               >
-                {searchText ? "No matching options" : "No options"}
+                {popoverContext.filteredItems.length === 0 && options.length > 0
+                  ? "No matching options"
+                  : "No options"}
               </div>
             ) : (
-              filteredOptions.map((option, index) => {
+              popoverContext.filteredItems.map((item, index) => {
+                const option = options.find((opt) => opt.value === item.value);
+                if (!option) return null;
                 const isSelected = isMultiple
                   ? selectedValues.includes(option.value)
                   : selectedValue === option.value;
