@@ -239,15 +239,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Popover
-        open={open}
-        onOpenChange={(isOpen) => {
-          setOpen(isOpen);
-          if (!isOpen) {
-            setSearchText("");
-          }
-        }}
-      >
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             ref={triggerRef}
