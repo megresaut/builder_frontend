@@ -154,8 +154,6 @@ interface SelectFieldContentProps {
 const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
   open,
   setOpen,
-  highlightedIndex,
-  setHighlightedIndex,
   triggerRef,
   contentRef,
   fieldId,
@@ -172,6 +170,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
   multiple,
 }) => {
   const popoverContext = usePopoverContext();
+  const { highlightedIndex } = popoverContext;
 
   // Register options with Popover for typeahead search
   useEffect(() => {
@@ -212,24 +211,6 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
       case " ":
         e.preventDefault();
         setOpen(true);
-        setHighlightedIndex(0);
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        if (!open) {
-          setOpen(true);
-          setHighlightedIndex(0);
-        } else {
-          setHighlightedIndex((prev) =>
-            prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
-          );
-        }
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        if (open) {
-          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        }
         break;
       case "Escape":
         e.preventDefault();
