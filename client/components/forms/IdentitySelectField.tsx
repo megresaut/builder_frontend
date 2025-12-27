@@ -110,6 +110,13 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
     contentRef: contentRef as React.RefObject<HTMLElement>,
   });
 
+  useGlobalActionsScrollLock(open, {
+    allowRefs: [
+      triggerRef as React.RefObject<HTMLElement>,
+      contentRef as React.RefObject<HTMLElement>,
+    ],
+  });
+
   React.useEffect(() => {
     if (triggerRef.current) {
       setTriggerWidth(triggerRef.current.offsetWidth);
