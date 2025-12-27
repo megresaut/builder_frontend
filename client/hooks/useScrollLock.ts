@@ -3,9 +3,9 @@ import { useEffect } from "react";
 /**
  * useScrollLock - Prevents page scrolling when a popover/dropdown is open
  *
- * This hook disables scrolling on the body element while the component
- * using it has an open popover. Useful for modals and dropdowns that
- * should lock the background from scrolling.
+ * This hook disables scrolling on the main content container while the
+ * popover/dropdown is open. It finds the nearest scrollable parent element
+ * (typically the main content div in ShellLayout) and locks it.
  *
  * @param isOpen - Boolean indicating if the popover/dropdown is currently open
  *
@@ -25,11 +25,20 @@ export const useScrollLock = (isOpen: boolean) => {
   useEffect(() => {
     if (!isOpen) return;
 
-    const originalStyle = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Find the main scrollable container (the overflow-auto div in ShellLayout)
+    const scrollContainer = document.querySelector('[data-testid="main-content"]') as HTMLDivElement;
+
+    if (!scrollContainer) return;
+
+    const originalOverflow = scrollContainer.style.overflow;
+    const originalHeight = scrollContainer.style.height;
+
+    // Disable scrolling by setting overflow to hidden
+    scrollContainer.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = originalStyle;
+      scrollContainer.style.overflow = originalOverflow;
+      scrollContainer.style.height = originalHeight;
     };
   }, [isOpen]);
 };
