@@ -120,8 +120,6 @@ interface SelectFieldCellContentProps {
   displayLabel: string;
   isShowingPlaceholder: boolean;
   triggerRef: React.RefObject<HTMLButtonElement>;
-  highlightedIndex: number;
-  setHighlightedIndex: (index: number) => void;
   value?: string;
   options: SelectOption[];
   placeholder: string;
