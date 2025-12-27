@@ -315,6 +315,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
         </PopoverTrigger>
 
         <PopoverContent
+          ref={contentRef}
           align="start"
           side="bottom"
           sideOffset={4}
