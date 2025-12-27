@@ -6,6 +6,7 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 import { FieldCellShell } from "./FieldCellShell";
 
 interface SelectOption {
