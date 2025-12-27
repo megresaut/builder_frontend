@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useGlobalActionsScrollLock } from "./useGlobalActionsScrollLock";
 
 interface UsePopoverAutoCloseOptions {
   open: boolean;
@@ -14,11 +13,6 @@ export function usePopoverAutoClose({
   triggerRef,
   contentRef,
 }: UsePopoverAutoCloseOptions) {
-  // Enable scroll lock when popover is open (150px auto-close is handled in Popover component)
-  useGlobalActionsScrollLock(open, {
-    allowRefs: [triggerRef, contentRef],
-  });
-
   // Handle clicks outside
   useEffect(() => {
     if (!open) return;
