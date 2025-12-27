@@ -76,8 +76,17 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [searchText, setSearchText] = React.useState("");
   const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const fieldId = id || "select-cell";
+
+  usePopoverAutoClose({
+    open,
+    onOpenChange: setOpen,
+    triggerRef: triggerRef as React.RefObject<HTMLElement>,
+    contentRef: contentRef as React.RefObject<HTMLElement>,
+  });
 
   const selectedOption = options.find((opt) => opt.value === value);
   const displayLabel = selectedOption?.label ?? placeholder;
