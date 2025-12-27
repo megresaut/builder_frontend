@@ -289,7 +289,7 @@ const SelectFieldCellContent: React.FC<SelectFieldCellContentProps> = ({
                     transition: "background-color 0.15s",
                   }}
                   onMouseEnter={() => {
-                    setHighlightedIndex(index);
+                    popoverContext.setHighlightedIndex(index);
                   }}
                   type="button"
                 >
