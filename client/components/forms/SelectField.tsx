@@ -56,7 +56,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   multiple = false,
 }) => {
   const [open, setOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
