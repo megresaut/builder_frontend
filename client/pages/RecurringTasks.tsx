@@ -10,6 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { StatusBadge } from "./Utilities";
+import { EditIcon, DeleteIcon } from "@/components/icons";
 
 interface Assignee {
   id: number;
