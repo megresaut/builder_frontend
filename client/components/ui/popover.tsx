@@ -96,16 +96,13 @@ const PopoverContent = React.forwardRef<
     },
     ref,
   ) => {
-    const { triggerRef, containerRef } = usePopoverContext();
+    const { triggerRef, containerRef, isOpen } = usePopoverContext();
     const localRef = React.useRef<React.ElementRef<
       typeof PopoverPrimitive.Content
     > | null>(null);
     const [triggerWidth, setTriggerWidth] = React.useState<
       number | undefined
     >();
-
-    // Get the open state from the root Popover component
-    const isOpen = (props as any).open ?? true;
 
     // Enable scroll lock when popover is open
     useGlobalActionsScrollLock(isOpen, {
