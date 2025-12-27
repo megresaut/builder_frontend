@@ -242,16 +242,6 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
           handleOptionSelect(popoverContext.filteredItems[index].value);
         }
         break;
-      case "ArrowDown":
-        e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        break;
       case "Escape":
         e.preventDefault();
         setOpen(false);
