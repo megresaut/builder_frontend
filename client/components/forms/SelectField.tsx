@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   Popover,

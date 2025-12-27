@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { useState } from "react";
 import { Check, ChevronDown, X, Search } from "lucide-react";
 import {
   Popover,
