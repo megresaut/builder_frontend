@@ -8,6 +8,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
+import { EditIcon } from "@/components/icons";
 
 interface WorkOrderDetailData {
   id: number;
