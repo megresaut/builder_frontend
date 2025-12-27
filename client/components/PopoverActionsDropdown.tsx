@@ -65,26 +65,7 @@ export default function PopoverActionsDropdown({
 
       if (!trigger || !content) return;
 
-      const triggerRect = trigger.getBoundingClientRect();
       const contentRect = content.getBoundingClientRect();
-
-      // Check if mouse is over trigger or content
-      const isOverTrigger =
-        e.clientX >= triggerRect.left &&
-        e.clientX <= triggerRect.right &&
-        e.clientY >= triggerRect.top &&
-        e.clientY <= triggerRect.bottom;
-
-      const isOverContent =
-        e.clientX >= contentRect.left &&
-        e.clientX <= contentRect.right &&
-        e.clientY >= contentRect.top &&
-        e.clientY <= contentRect.bottom;
-
-      isOverPopoverRef.current = isOverTrigger || isOverContent;
-
-      // Only calculate distance if not hovering
-      if (isOverPopoverRef.current) return;
 
       // Calculate distance from mouse to popover bounds
       const distX = Math.max(
