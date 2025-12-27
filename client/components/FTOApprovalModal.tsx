@@ -25,6 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { ApproveIcon } from "@/components/icons";
 
 interface HourRow {
   id: string;
@@ -468,6 +469,7 @@ export default function FTOApprovalModal({
                 isFormValid() && (e.currentTarget.style.backgroundColor = "#013764")
               }
             >
+              <ApproveIcon width={16} height={16} className="text-white" />
               Approve Field Team Order
             </button>
           </div>
