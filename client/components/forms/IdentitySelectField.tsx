@@ -184,4 +184,282 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   );
 };
 
+interface IdentitySelectFieldContentProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  error?: string;
+  disabled: boolean;
+  fieldId: string;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  contentRef: React.RefObject<HTMLDivElement>;
+  displayLabel: string;
+  selectedIds: string[];
+  selectedId: string;
+  selectedOptions: IdentityOption[];
+  options: IdentityOption[];
+  multiple: boolean;
+  placeholder: string;
+  toggleItem: (optionId: string) => void;
+  removeItem: (optionId: string) => void;
+}
+
+const renderAvatar = (option: IdentityOption) => {
+  if (option.avatar) {
+    return (
+      <img
+        src={option.avatar}
+        alt={option.label}
+        className="w-6 h-6 rounded-full object-cover"
+      />
+    );
+  }
+  return (
+    <div
+      className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold ${
+        option.avatarColor || "bg-gray-400"
+      }`}
+    >
+      {option.initials || option.label[0]}
+    </div>
+  );
+};
+
+const renderOption = (option: IdentityOption, isSelected: boolean) => {
+  return (
+    <div key={option.id} className="flex items-center gap-3 w-full">
+      {isSelected && (
+        <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+      )}
+      {!isSelected && <div className="h-4 w-4 flex-shrink-0" />}
+
+      {renderAvatar(option)}
+
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-[#303030] truncate">
+          {option.label}
+        </div>
+        {option.subtitle && (
+          <div className="text-xs text-[#717179] truncate">
+            {option.subtitle}
+          </div>
+        )}
+        {option.tags && option.tags.length > 0 && (
+          <div className="flex gap-1 mt-1 flex-wrap">
+            {option.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="text-xs bg-[#f0f0f0] text-[#303030] px-2 py-0.5 rounded"
+              >
+                {tag}
+              </span>
+            ))}
+            {option.tags.length > 2 && (
+              <span className="text-xs text-[#717179]">
+                +{option.tags.length - 2} more
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
+  open,
+  setOpen,
+  error,
+  disabled,
+  fieldId,
+  triggerRef,
+  contentRef,
+  displayLabel,
+  selectedIds,
+  selectedId,
+  selectedOptions,
+  options,
+  multiple,
+  placeholder,
+  toggleItem,
+  removeItem,
+}) => {
+  const popoverContext = usePopoverContext();
+
+  useEffect(() => {
+    if (open) {
+      popoverContext.setSearchableItems(
+        options.map((opt) => ({ value: opt.id, label: opt.label }))
+      );
+    }
+  }, [open, options, popoverContext]);
+
+  return (
+    <>
+      <PopoverTrigger asChild>
+        <button
+          ref={triggerRef}
+          type="button"
+          id={fieldId}
+          disabled={disabled}
+          style={{
+            borderColor: error
+              ? "#ef4444"
+              : open
+                ? "#000000"
+                : "var(--color-border-light)",
+            borderWidth: error ? "2px" : "1px",
+            borderStyle: "solid",
+            minHeight: "44px",
+            height: "auto",
+            borderRadius: "8px",
+            backgroundColor: "white",
+            padding: "8px 12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+            width: "100%",
+            cursor: disabled ? "not-allowed" : "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            opacity: disabled ? 0.6 : 1,
+            justifyContent: "space-between",
+          }}
+        >
+          <div className="flex items-center gap-2 flex-wrap flex-1">
+            {multiple && selectedOptions.length > 0 ? (
+              selectedOptions.map((opt) => (
+                <div
+                  key={opt.id}
+                  className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
+                >
+                  {renderAvatar(opt)}
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "var(--color-text-primary)",
+                    }}
+                  >
+                    {opt.label}
+                  </span>
+                  <div
+                    role="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeItem(opt.id);
+                    }}
+                    className="hover:opacity-70 transition-opacity cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    <X className="w-3 h-3 text-[#2463EB]" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <span style={{ color: "#303030", fontSize: "14px" }}>
+                {displayLabel}
+              </span>
+            )}
+          </div>
+          <ChevronDown
+            className="h-4 w-4 flex-shrink-0"
+            style={{ color: "#303030" }}
+          />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent
+        ref={contentRef}
+        align="start"
+        side="bottom"
+        sideOffset={4}
+        avoidCollisions={true}
+        className="p-0"
+        style={{
+          backgroundColor: "white",
+          border: "1px solid var(--color-border-light)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          zIndex: 50,
+          minWidth: "200px",
+          padding: "0",
+          maxHeight: "320px",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            padding: "4px 0",
+          }}
+        >
+          {popoverContext.filteredItems.length === 0 ? (
+            <div
+              style={{
+                padding: "8px 12px",
+                color: "var(--color-text-muted)",
+                fontSize: "14px",
+              }}
+            >
+              {popoverContext.filteredItems.length === 0 && options.length > 0
+                ? "No matching options"
+                : "No options"}
+            </div>
+          ) : (
+            popoverContext.filteredItems.map((item) => {
+              const option = options.find((opt) => opt.id === item.value);
+              if (!option) return null;
+              const isSelected = multiple
+                ? selectedIds.includes(option.id)
+                : selectedId === option.id;
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => toggleItem(option.id)}
+                  type="button"
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    textAlign: "left",
+                    backgroundColor: isSelected
+                      ? "rgba(36, 99, 235, 0.1)"
+                      : "transparent",
+                    color: "var(--color-text-primary)",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    transition: "background-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = isSelected
+                      ? "rgba(36, 99, 235, 0.15)"
+                      : "rgba(36, 99, 235, 0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = isSelected
+                      ? "rgba(36, 99, 235, 0.1)"
+                      : "transparent";
+                  }}
+                >
+                  {renderOption(option, isSelected)}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
+    </>
+  );
+};
+
 IdentitySelectField.displayName = "IdentitySelectField";
