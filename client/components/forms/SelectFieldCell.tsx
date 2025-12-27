@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useState, useRef } from "react";
 import { Check } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
 import { FieldCellShell } from "./FieldCellShell";
 
 interface SelectOption {
