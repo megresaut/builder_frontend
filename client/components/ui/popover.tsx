@@ -2,6 +2,7 @@ import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "@/lib/utils";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 
 interface PopoverContextType {
   triggerRef: React.RefObject<HTMLButtonElement | HTMLInputElement>;
@@ -95,6 +96,68 @@ const PopoverContent = React.forwardRef<
     const [triggerWidth, setTriggerWidth] = React.useState<
       number | undefined
     >();
+
+    // Get the open state from the root Popover component
+    const isOpen = (props as any).open ?? true;
+
+    // Enable scroll lock when popover is open
+    useGlobalActionsScrollLock(isOpen, {
+      allowRefs: [triggerRef, localRef],
+    });
+
+    // Distance-based closing (150px threshold)
+    React.useEffect(() => {
+      if (!isOpen || !triggerRef.current || !localRef.current) return;
+
+      const isOverPopoverRef = { current: false };
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const trigger = triggerRef.current;
+        const content = localRef.current;
+
+        if (!trigger || !content) return;
+
+        const triggerRect = trigger.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+
+        const isOverTrigger =
+          e.clientX >= triggerRect.left &&
+          e.clientX <= triggerRect.right &&
+          e.clientY >= triggerRect.top &&
+          e.clientY <= triggerRect.bottom;
+
+        const isOverContent =
+          e.clientX >= contentRect.left &&
+          e.clientX <= contentRect.right &&
+          e.clientY >= contentRect.top &&
+          e.clientY <= contentRect.bottom;
+
+        isOverPopoverRef.current = isOverTrigger || isOverContent;
+
+        if (isOverPopoverRef.current) return;
+
+        const distX = Math.max(
+          contentRect.left - e.clientX,
+          e.clientX - contentRect.right,
+          0
+        );
+        const distY = Math.max(
+          contentRect.top - e.clientY,
+          e.clientY - contentRect.bottom,
+          0
+        );
+        const distance = Math.sqrt(distX * distX + distY * distY);
+
+        if (distance > 150) {
+          (props as any).onOpenChange?.(false);
+        }
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+      };
+    }, [isOpen, triggerRef, props]);
 
     React.useEffect(() => {
       if (!syncTriggerWidth || !triggerRef.current) return;
