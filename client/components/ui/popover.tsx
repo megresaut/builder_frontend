@@ -42,7 +42,7 @@ const Popover = React.forwardRef<
   };
 
   return (
-    <PopoverContext.Provider value={{ triggerRef, containerRef, isOpen }}>
+    <PopoverContext.Provider value={{ triggerRef, containerRef, isOpen, setOpen }}>
       <PopoverPrimitive.Root {...props} open={isOpen} onOpenChange={handleOpenChange} ref={ref}>
         {children}
       </PopoverPrimitive.Root>
