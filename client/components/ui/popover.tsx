@@ -7,6 +7,7 @@ import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 interface PopoverContextType {
   triggerRef: React.RefObject<HTMLButtonElement | HTMLInputElement>;
   containerRef?: React.RefObject<HTMLDivElement>;
+  isOpen: boolean;
 }
 
 const PopoverContext = React.createContext<PopoverContextType | undefined>(
