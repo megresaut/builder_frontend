@@ -116,32 +116,12 @@ const PopoverContent = React.forwardRef<
     React.useEffect(() => {
       if (!isOpen || !triggerRef.current || !localRef.current) return;
 
-      const isOverPopoverRef = { current: false };
-
       const handleMouseMove = (e: MouseEvent) => {
-        const trigger = triggerRef.current;
         const content = localRef.current;
 
-        if (!trigger || !content) return;
+        if (!content) return;
 
-        const triggerRect = trigger.getBoundingClientRect();
         const contentRect = content.getBoundingClientRect();
-
-        const isOverTrigger =
-          e.clientX >= triggerRect.left &&
-          e.clientX <= triggerRect.right &&
-          e.clientY >= triggerRect.top &&
-          e.clientY <= triggerRect.bottom;
-
-        const isOverContent =
-          e.clientX >= contentRect.left &&
-          e.clientX <= contentRect.right &&
-          e.clientY >= contentRect.top &&
-          e.clientY <= contentRect.bottom;
-
-        isOverPopoverRef.current = isOverTrigger || isOverContent;
-
-        if (isOverPopoverRef.current) return;
 
         const distX = Math.max(
           contentRect.left - e.clientX,
