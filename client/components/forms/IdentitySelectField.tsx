@@ -293,6 +293,20 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
     }
   }, [open, options, popoverContext]);
 
+  // Set up Enter key handler for selecting from type-ahead results
+  useEffect(() => {
+    if (open && popoverContext.onEnterSelect) {
+      popoverContext.onEnterSelect((item) => {
+        if (item) {
+          const option = options.find((opt) => opt.id === item.value);
+          if (option) {
+            toggleItem(option.id);
+          }
+        }
+      });
+    }
+  }, [open, popoverContext, options, toggleItem]);
+
   return (
     <>
       <PopoverTrigger asChild>
