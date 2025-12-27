@@ -14,6 +14,8 @@ interface PopoverContextType {
   setSearchableItems: (items: Array<{ value: string; label: string }>) => void;
   filteredItems: Array<{ value: string; label: string }>;
   onEnterSelect?: (item: { value: string; label: string } | null) => void;
+  highlightedIndex: number;
+  setHighlightedIndex: (index: number | ((prev: number) => number)) => void;
 }
 
 const PopoverContext = React.createContext<PopoverContextType | undefined>(
