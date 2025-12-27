@@ -187,6 +187,28 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
     }
   }, [open, options, popoverContext]);
 
+  // Set up Enter key handler for selecting from type-ahead results
+  useEffect(() => {
+    if (open && popoverContext.onEnterSelect) {
+      popoverContext.onEnterSelect((item) => {
+        if (item) {
+          const option = options.find((opt) => opt.value === item.value);
+          if (option) {
+            if (multiple) {
+              const newValues = selectedValues.includes(option.value)
+                ? selectedValues.filter((v) => v !== option.value)
+                : [...selectedValues, option.value];
+              onChange?.(newValues);
+            } else {
+              onChange?.(option.value);
+              setOpen(false);
+            }
+          }
+        }
+      });
+    }
+  }, [open, popoverContext, options, multiple, selectedValues, onChange, setOpen]);
+
   const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
 
