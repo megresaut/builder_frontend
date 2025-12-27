@@ -4,10 +4,12 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  usePopoverContext,
 } from "@/components/ui/popover";
 import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
 import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 import { FieldCellShell } from "./FieldCellShell";
+import { useEffect } from "react";
 
 interface SelectOption {
   value: string;
