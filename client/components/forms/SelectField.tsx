@@ -119,6 +119,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           contentRef={contentRef}
           fieldId={fieldId}
           disabled={disabled}
+          error={error}
           isShowingPlaceholder={isShowingPlaceholder}
           displayLabel={displayLabel}
           value={value}
