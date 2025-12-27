@@ -100,8 +100,8 @@ export default function PopoverActionsDropdown({
       );
       const distance = Math.sqrt(distX * distX + distY * distY);
 
-      // If mouse is more than 400px away from popover, close
-      if (distance > 400) {
+      // If mouse is more than 150px away from popover, close
+      if (distance > 150) {
         setOpen(false);
       }
     };
