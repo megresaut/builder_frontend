@@ -111,8 +111,18 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const popoverContext = usePopoverContext();
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  // Register options with Popover for typeahead search
+  useEffect(() => {
+    if (open) {
+      popoverContext.setSearchableItems(
+        options.map((opt) => ({ value: opt.value, label: opt.label }))
+      );
+    }
+  }, [open, options, popoverContext]);
 
   usePopoverAutoClose({
     open,
