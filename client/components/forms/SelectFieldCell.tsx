@@ -198,6 +198,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
 
   const trigger = (
     <PopoverTrigger
+      ref={triggerRef}
       id={fieldId}
       disabled={disabled}
       className="w-full text-sm font-normal transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
@@ -238,6 +239,7 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
 
   const content = (
     <PopoverContent
+      ref={contentRef}
       className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
       align="start"
       syncTriggerWidth={false}
