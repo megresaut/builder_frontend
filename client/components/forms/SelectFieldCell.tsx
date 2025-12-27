@@ -88,6 +88,13 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
     contentRef: contentRef as React.RefObject<HTMLElement>,
   });
 
+  useGlobalActionsScrollLock(open, {
+    allowRefs: [
+      triggerRef as React.RefObject<HTMLElement>,
+      contentRef as React.RefObject<HTMLElement>,
+    ],
+  });
+
   const selectedOption = options.find((opt) => opt.value === value);
   const displayLabel = selectedOption?.label ?? placeholder;
   const isShowingPlaceholder = !value;
