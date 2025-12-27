@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 
 interface ComboboxOption {
   value: string;
