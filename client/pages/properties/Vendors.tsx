@@ -8,6 +8,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import AddVendorModal from "@/components/AddVendorModal";
+import { EditIcon, DeleteIcon } from "@/components/icons";
 
 interface Vendor {
   id: number;
