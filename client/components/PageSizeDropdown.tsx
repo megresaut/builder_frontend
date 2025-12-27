@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
@@ -8,8 +8,6 @@ interface PageSizeDropdownProps {
   onItemsPerPageChange: (itemsPerPage: number) => void;
   onPageChange: (page: number) => void;
   totalRows: number;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
 }
 
 const PAGE_SIZES = [10, 25, 50];
@@ -19,24 +17,76 @@ export const PageSizeDropdown = ({
   onItemsPerPageChange,
   onPageChange,
   totalRows,
-  open,
-  onOpenChange,
 }: PageSizeDropdownProps) => {
+  const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const isOverPopoverRef = useRef(false);
 
   useGlobalActionsScrollLock(open, {
     allowRefs: [triggerRef, contentRef],
   });
 
+  // Distance-based closing (150px threshold)
+  useEffect(() => {
+    if (!open) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const trigger = triggerRef.current;
+      const content = contentRef.current;
+
+      if (!trigger || !content) return;
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const contentRect = content.getBoundingClientRect();
+
+      const isOverTrigger =
+        e.clientX >= triggerRect.left &&
+        e.clientX <= triggerRect.right &&
+        e.clientY >= triggerRect.top &&
+        e.clientY <= triggerRect.bottom;
+
+      const isOverContent =
+        e.clientX >= contentRect.left &&
+        e.clientX <= contentRect.right &&
+        e.clientY >= contentRect.top &&
+        e.clientY <= contentRect.bottom;
+
+      isOverPopoverRef.current = isOverTrigger || isOverContent;
+
+      if (isOverPopoverRef.current) return;
+
+      const distX = Math.max(
+        contentRect.left - e.clientX,
+        e.clientX - contentRect.right,
+        0
+      );
+      const distY = Math.max(
+        contentRect.top - e.clientY,
+        e.clientY - contentRect.bottom,
+        0
+      );
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      if (distance > 150) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [open]);
+
   const handleSelect = (size: number) => {
     onItemsPerPageChange(size);
     onPageChange(1);
-    onOpenChange(false);
+    setOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           ref={triggerRef}
