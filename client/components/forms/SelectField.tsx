@@ -112,8 +112,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         <SelectFieldContent
           open={open}
           setOpen={setOpen}
-          highlightedIndex={highlightedIndex}
-          setHighlightedIndex={setHighlightedIndex}
           triggerRef={triggerRef}
           contentRef={contentRef}
           fieldId={fieldId}
