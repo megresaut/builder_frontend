@@ -83,28 +83,23 @@ export function usePopoverCloseBehavior({
 
   // Handle distance-based close
   useEffect(() => {
-    if (!open || !triggerRef.current) return;
+    if (!open || !contentRef.current) return;
 
-    // Get trigger position on open
-    const trigger = triggerRef.current;
-    const rect = trigger.getBoundingClientRect();
-    triggerPosRef.current = {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-      width: rect.width,
-      height: rect.height,
-    };
-
+    // Get popover content position and calculate distance from its edges
     const handleMouseMove = (e: MouseEvent) => {
       lastMousePosRef.current = { x: e.clientX, y: e.clientY };
 
-      const triggerPos = triggerPosRef.current;
-      const distance = Math.sqrt(
-        Math.pow(e.clientX - triggerPos.x, 2) +
-          Math.pow(e.clientY - triggerPos.y, 2)
-      );
+      const content = contentRef.current;
+      if (!content) return;
 
-      // If mouse is more than threshold away, close
+      const rect = content.getBoundingClientRect();
+
+      // Calculate minimum distance from mouse to popover edges
+      const distX = Math.max(0, Math.max(rect.left - e.clientX, e.clientX - rect.right));
+      const distY = Math.max(0, Math.max(rect.top - e.clientY, e.clientY - rect.bottom));
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      // If mouse is more than threshold away from popover, close
       if (distance > threshold) {
         onOpenChange(false);
       }
@@ -114,5 +109,5 @@ export function usePopoverCloseBehavior({
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [open, onOpenChange, triggerRef, threshold]);
+  }, [open, onOpenChange, contentRef, threshold]);
 }
