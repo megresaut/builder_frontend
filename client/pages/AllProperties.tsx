@@ -10,6 +10,8 @@ import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
+import { EditIcon, DeleteIcon } from "@/components/icons";
+import { useState, useRef, useEffect } from "react";
 
 interface Manager {
   id: number;
