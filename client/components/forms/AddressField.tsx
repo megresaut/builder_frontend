@@ -160,6 +160,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
   };
 
   const stateButtonRef = React.useRef<HTMLButtonElement>(null);
+  const stateContentRef = React.useRef<HTMLDivElement>(null);
   const [stateButtonWidth, setStateButtonWidth] = React.useState(0);
 
   React.useEffect(() => {
@@ -167,6 +168,13 @@ export const AddressField: React.FC<AddressFieldProps> = ({
       setStateButtonWidth(stateButtonRef.current.offsetWidth);
     }
   }, []);
+
+  usePopoverAutoClose({
+    open: stateOpen,
+    onOpenChange: setStateOpen,
+    triggerRef: stateButtonRef as React.RefObject<HTMLElement>,
+    contentRef: stateContentRef as React.RefObject<HTMLElement>,
+  });
 
   const StatePopover = useMemo(
     () => (
