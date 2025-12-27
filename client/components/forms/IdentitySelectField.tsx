@@ -284,6 +284,7 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
   removeItem,
 }) => {
   const popoverContext = usePopoverContext();
+  const { highlightedIndex } = popoverContext;
 
   useEffect(() => {
     if (open) {
