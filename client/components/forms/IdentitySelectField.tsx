@@ -102,17 +102,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   const [triggerWidth, setTriggerWidth] = useState(0);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const popoverContext = usePopoverContext();
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
-
-  // Register options with Popover for typeahead search
-  useEffect(() => {
-    if (open) {
-      popoverContext.setSearchableItems(
-        options.map((opt) => ({ value: opt.id, label: opt.label }))
-      );
-    }
-  }, [open, options, popoverContext]);
 
   usePopoverAutoClose({
     open,
