@@ -100,7 +100,15 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
   const [searchText, setSearchText] = useState("");
   const [triggerWidth, setTriggerWidth] = useState(0);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  usePopoverAutoClose({
+    open,
+    onOpenChange: setOpen,
+    triggerRef: triggerRef as React.RefObject<HTMLElement>,
+    contentRef: contentRef as React.RefObject<HTMLElement>,
+  });
 
   React.useEffect(() => {
     if (triggerRef.current) {
