@@ -22,6 +22,7 @@ import RecordBillModal, {
   type RecordBillModalData,
   type RecordBillModalMode,
 } from "@/components/RecordBillModal";
+import { EditIcon } from "@/components/icons";
 
 interface InvoicingProps {
   propertyAddress: string;
