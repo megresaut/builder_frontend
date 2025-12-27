@@ -115,6 +115,7 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
   toggleItem,
 }) => {
   const popoverContext = usePopoverContext();
+  const { highlightedIndex } = popoverContext;
 
   // Register options with Popover for typeahead search
   useEffect(() => {
