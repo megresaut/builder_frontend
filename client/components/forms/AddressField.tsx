@@ -279,6 +279,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
       value.state,
       error,
       stateButtonWidth,
+      stateContentRef,
     ],
   );
 
