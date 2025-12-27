@@ -38,7 +38,6 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
   id,
 }) => {
   const [open, setOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
