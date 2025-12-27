@@ -92,6 +92,11 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   const selectedOption = options.find((opt) => opt.value === value);
   const selectedLabel = selectedOption?.label ?? placeholder;
 
+  // Enable scroll lock when dropdown is open
+  useGlobalActionsScrollLock(open, {
+    allowRefs: [triggerRef, containerRef],
+  });
+
   // Filter options based on search term
   const filteredOptions = searchTerm
     ? options.filter((opt) =>
