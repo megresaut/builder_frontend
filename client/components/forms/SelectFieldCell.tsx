@@ -78,18 +78,8 @@ export const SelectFieldCell: React.FC<SelectFieldCellProps> = ({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const popoverContext = usePopoverContext();
 
   const fieldId = id || "select-cell";
-
-  // Register options with Popover for typeahead search
-  useEffect(() => {
-    if (open) {
-      popoverContext.setSearchableItems(
-        options.map((opt) => ({ value: opt.value, label: opt.label }))
-      );
-    }
-  }, [open, options, popoverContext]);
 
   usePopoverAutoClose({
     open,
