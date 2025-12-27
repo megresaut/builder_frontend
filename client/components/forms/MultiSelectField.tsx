@@ -247,7 +247,7 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                 : "No options"}
             </div>
           ) : (
-            popoverContext.filteredItems.map((item) => {
+            popoverContext.filteredItems.map((item, index) => {
               const option = options.find((opt) => opt.id === item.value);
               if (!option) return null;
               const isSelected = uniqueValue.some((v) => v.id === option.id);
@@ -262,7 +262,9 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                     textAlign: "left",
                     backgroundColor: isSelected
                       ? "rgba(36, 99, 235, 0.1)"
-                      : "transparent",
+                      : highlightedIndex === index
+                        ? "rgba(36, 99, 235, 0.08)"
+                        : "transparent",
                     color: "var(--color-text-primary)",
                     border: "none",
                     cursor: "pointer",
@@ -274,17 +276,11 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                     gap: "8px",
                     transition: "background-color 0.15s",
                   }}
-                  onMouseEnter={(e) => {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.backgroundColor = "rgba(36, 99, 235, 0.08)";
+                  onMouseEnter={() => {
+                    popoverContext.setHighlightedIndex(index);
                   }}
-                  onMouseLeave={(e) => {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.backgroundColor = isSelected
-                      ? "rgba(36, 99, 235, 0.1)"
-                      : "transparent";
+                  onMouseLeave={() => {
+                    // Don't reset on mouse leave, keep arrow nav state
                   }}
                 >
                   {isSelected ? (
