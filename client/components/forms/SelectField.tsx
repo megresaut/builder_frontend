@@ -92,6 +92,301 @@ interface SelectFieldProps {
  * />
  * ```
  */
+const SelectFieldContent: React.FC<{
+  open: boolean;
+  highlightedIndex: number;
+  setHighlightedIndex: (index: number) => void;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  contentRef: React.RefObject<HTMLDivElement>;
+  value?: string | string[];
+  onChange?: (value: string | string[]) => void;
+  placeholder: string;
+  options: SelectOption[];
+  multiple: boolean;
+  disabled: boolean;
+  error?: string;
+  fieldId: string;
+  setOpen: (open: boolean) => void;
+}> = ({
+  open,
+  highlightedIndex,
+  setHighlightedIndex,
+  triggerRef,
+  contentRef,
+  value,
+  onChange,
+  placeholder,
+  options,
+  multiple,
+  disabled,
+  error,
+  fieldId,
+  setOpen,
+}) => {
+  const popoverContext = usePopoverContext();
+
+  // Register options with Popover for typeahead search
+  useEffect(() => {
+    if (open) {
+      popoverContext.setSearchableItems(
+        options.map((opt) => ({ value: opt.value, label: opt.label }))
+      );
+    }
+  }, [open, options, popoverContext]);
+
+  // Rest of SelectField logic goes here
+  const isMultiple = multiple;
+  const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
+  const selectedValue = !isMultiple
+    ? typeof value === "string"
+      ? value
+      : ""
+    : "";
+
+  const selectedOptions = isMultiple
+    ? options.filter((opt) => selectedValues.includes(opt.value))
+    : selectedValue
+      ? [options.find((opt) => opt.value === selectedValue)].filter(Boolean)
+      : [];
+
+  const displayLabel = isMultiple
+    ? selectedValues.length === 0
+      ? placeholder
+      : undefined
+    : (selectedOptions[0]?.label ?? placeholder);
+
+  const isShowingPlaceholder = isMultiple
+    ? selectedValues.length === 0
+    : !selectedValue;
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (disabled) return;
+
+    switch (e.key) {
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        setOpen(true);
+        setHighlightedIndex(0);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        if (!open) {
+          setOpen(true);
+          setHighlightedIndex(0);
+        } else {
+          setHighlightedIndex((prev) =>
+            prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
+          );
+        }
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (open) {
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleOptionSelect = (optionValue: string) => {
+    if (isMultiple) {
+      const newValues = selectedValues.includes(optionValue)
+        ? selectedValues.filter((v) => v !== optionValue)
+        : [...selectedValues, optionValue];
+      onChange?.(newValues);
+    } else {
+      onChange?.(optionValue);
+      setOpen(false);
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, index: number) => {
+    switch (e.key) {
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (popoverContext.filteredItems[index]) {
+          handleOptionSelect(popoverContext.filteredItems[index].value);
+        }
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const removeItem = (itemValue: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isMultiple) {
+      const newValues = selectedValues.filter((v) => v !== itemValue);
+      onChange?.(newValues);
+    }
+  };
+
+  return (
+    <>
+      <PopoverTrigger
+        ref={triggerRef}
+        id={fieldId}
+        disabled={disabled}
+        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+          error
+            ? "border-red-600"
+            : open
+              ? "border-black"
+              : "border-[var(--color-border-light)]"
+        }`}
+        style={{
+          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          lineHeight: 1.43,
+          minHeight: "44px",
+          height: "auto",
+          display: "flex",
+          alignItems: "center",
+          flexWrap: isMultiple ? "wrap" : "nowrap",
+          gap: isMultiple ? "6px" : "8px",
+          padding:
+            isMultiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
+        }}
+        onKeyDown={handleTriggerKeyDown}
+      >
+        <div className="flex items-center gap-2 flex-wrap flex-1">
+          {isMultiple && selectedValues.length > 0 ? (
+            selectedOptions.map((opt) => (
+              <div
+                key={opt.value}
+                className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
+                style={{
+                  fontSize: "12px",
+                }}
+              >
+                <span style={{ color: "var(--color-text-primary)" }}>
+                  {opt.label}
+                </span>
+                <div
+                  role="button"
+                  onClick={(e) => removeItem(opt.value, e)}
+                  className="hover:opacity-70 transition-opacity cursor-pointer"
+                  tabIndex={-1}
+                >
+                  <X className="w-3 h-3 text-[#2463EB]" />
+                </div>
+              </div>
+            ))
+          ) : (
+            <span
+              style={{
+                color: isShowingPlaceholder
+                  ? "#303030"
+                  : "var(--color-text-primary)",
+                fontSize: "14px",
+              }}
+            >
+              {displayLabel}
+            </span>
+          )}
+        </div>
+        <ChevronDown
+          className="h-4 w-4 shrink-0 flex-none"
+          style={{ color: "#303030" }}
+        />
+      </PopoverTrigger>
+
+      <PopoverContent
+        ref={contentRef}
+        className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
+        align="start"
+        syncTriggerWidth={true}
+      >
+        <div
+          style={{
+            padding: "4px 0",
+            maxHeight: "300px",
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {popoverContext.filteredItems.length === 0 ? (
+            <div
+              style={{
+                padding: "8px 12px",
+                color: "var(--color-text-muted)",
+                fontSize: "14px",
+              }}
+            >
+              {popoverContext.filteredItems.length === 0 && options.length > 0
+                ? "No matching options"
+                : "No options"}
+            </div>
+          ) : (
+            popoverContext.filteredItems.map((item, index) => {
+              const option = options.find((opt) => opt.value === item.value);
+              if (!option) return null;
+              const isSelected = isMultiple
+                ? selectedValues.includes(option.value)
+                : selectedValue === option.value;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => handleOptionSelect(option.value)}
+                  onKeyDown={(e) => handleOptionKeyDown(e, index)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    textAlign: "left",
+                    backgroundColor: isSelected
+                      ? "rgba(36, 99, 235, 0.15)"
+                      : highlightedIndex === index
+                        ? "rgba(36, 99, 235, 0.08)"
+                        : "transparent",
+                    color: "var(--color-text-primary)",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "background-color 0.15s",
+                  }}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                >
+                  {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                  {!isSelected && <div className="h-4 w-4" />}
+                  {option.label}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
+    </>
+  );
+};
+
 export const SelectField: React.FC<SelectFieldProps> = ({
   label,
   required = false,
@@ -107,22 +402,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const [searchText, setSearchText] = React.useState("");
-  const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const popoverContext = usePopoverContext();
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
-
-  // Register options with Popover for typeahead search
-  useEffect(() => {
-    if (open) {
-      popoverContext.setSearchableItems(
-        options.map((opt) => ({ value: opt.value, label: opt.label }))
-      );
-    }
-  }, [open, options, popoverContext]);
 
   usePopoverAutoClose({
     open,
