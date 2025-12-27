@@ -1,5 +1,6 @@
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useRef } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { usePopoverCloseBehavior } from "@/hooks/usePopoverCloseBehavior";
 import { cn } from "@/lib/utils";
 
 export interface ActionItem {
@@ -23,7 +24,17 @@ export default function PopoverActionsDropdown({
   additionalActions = [],
 }: PopoverActionsDropdownProps) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const allActions = [...actions, ...additionalActions];
+
+  usePopoverCloseBehavior({
+    open,
+    onOpenChange: setOpen,
+    triggerRef: triggerRef as React.RefObject<HTMLElement>,
+    contentRef: contentRef as React.RefObject<HTMLElement>,
+    threshold: 300,
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
