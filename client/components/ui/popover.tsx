@@ -3,12 +3,16 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "@/lib/utils";
 import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
+import { usePopoverTypeahead } from "@/hooks/usePopoverTypeahead";
 
 interface PopoverContextType {
   triggerRef: React.RefObject<HTMLButtonElement | HTMLInputElement>;
   containerRef?: React.RefObject<HTMLDivElement>;
   isOpen: boolean;
   setOpen: (open: boolean) => void;
+  searchTerm: string;
+  setSearchableItems: (items: Array<{ value: string; label: string }>) => void;
+  filteredItems: Array<{ value: string; label: string }>;
 }
 
 const PopoverContext = React.createContext<PopoverContextType | undefined>(
