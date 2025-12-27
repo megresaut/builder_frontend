@@ -165,6 +165,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
   contentRef,
   fieldId,
   disabled,
+  error,
   isShowingPlaceholder,
   displayLabel,
   value,
