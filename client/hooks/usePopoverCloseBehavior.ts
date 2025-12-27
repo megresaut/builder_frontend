@@ -15,9 +15,7 @@ export function usePopoverCloseBehavior({
   contentRef,
   threshold = 300,
 }: UsePopoverCloseBehaviorOptions) {
-  const isHoveringRef = useRef(false);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
-  const triggerPosRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   // Handle clicks outside
   useEffect(() => {
@@ -42,50 +40,10 @@ export function usePopoverCloseBehavior({
     };
   }, [open, onOpenChange, triggerRef, contentRef]);
 
-  // Handle hover close
-  useEffect(() => {
-    if (!open) return;
-
-    const handleMouseEnter = () => {
-      isHoveringRef.current = true;
-    };
-
-    const handleMouseLeave = () => {
-      isHoveringRef.current = false;
-      // Close on hover removal
-      onOpenChange(false);
-    };
-
-    const trigger = triggerRef.current;
-    const content = contentRef.current;
-
-    if (trigger) {
-      trigger.addEventListener("mouseenter", handleMouseEnter);
-      trigger.addEventListener("mouseleave", handleMouseLeave);
-    }
-
-    if (content) {
-      content.addEventListener("mouseenter", handleMouseEnter);
-      content.addEventListener("mouseleave", handleMouseLeave);
-    }
-
-    return () => {
-      if (trigger) {
-        trigger.removeEventListener("mouseenter", handleMouseEnter);
-        trigger.removeEventListener("mouseleave", handleMouseLeave);
-      }
-      if (content) {
-        content.removeEventListener("mouseenter", handleMouseEnter);
-        content.removeEventListener("mouseleave", handleMouseLeave);
-      }
-    };
-  }, [open, onOpenChange, triggerRef, contentRef]);
-
-  // Handle distance-based close
+  // Handle distance-based close (measure from popover content edges)
   useEffect(() => {
     if (!open || !contentRef.current) return;
 
-    // Get popover content position and calculate distance from its edges
     const handleMouseMove = (e: MouseEvent) => {
       lastMousePosRef.current = { x: e.clientX, y: e.clientY };
 
