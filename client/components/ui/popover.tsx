@@ -39,6 +39,9 @@ const Popover = React.forwardRef<
 >(({ children, containerRef, ...props }, ref) => {
   const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
   const [internalOpen, setInternalOpen] = React.useState(false);
+  const [searchableItems, setSearchableItems] = React.useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   // Use controlled prop if provided, otherwise use internal state
   const isOpen = props.open !== undefined ? props.open : internalOpen;
@@ -47,8 +50,27 @@ const Popover = React.forwardRef<
     props.onOpenChange?.(newOpen);
   };
 
+  // Type-ahead search
+  const { filteredItems } = usePopoverTypeahead({
+    enabled: isOpen,
+    searchableItems,
+    onSearch: () => {
+      // onSearch is called automatically on filter change
+    },
+  });
+
   return (
-    <PopoverContext.Provider value={{ triggerRef, containerRef, isOpen, setOpen }}>
+    <PopoverContext.Provider
+      value={{
+        triggerRef,
+        containerRef,
+        isOpen,
+        setOpen,
+        searchTerm: "", // We track filtered items instead
+        setSearchableItems,
+        filteredItems,
+      }}
+    >
       <PopoverPrimitive.Root {...props} open={isOpen} onOpenChange={setOpen} ref={ref}>
         {children}
       </PopoverPrimitive.Root>
