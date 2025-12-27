@@ -12,6 +12,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
+import { EditIcon } from "@/components/icons";
 
 interface BillsProps {
   propertyAddress: string;
