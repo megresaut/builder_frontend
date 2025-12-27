@@ -425,7 +425,7 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                 : "No options"}
             </div>
           ) : (
-            popoverContext.filteredItems.map((item) => {
+            popoverContext.filteredItems.map((item, index) => {
               const option = options.find((opt) => opt.id === item.value);
               if (!option) return null;
               const isSelected = multiple
@@ -442,7 +442,9 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                     textAlign: "left",
                     backgroundColor: isSelected
                       ? "rgba(36, 99, 235, 0.1)"
-                      : "transparent",
+                      : highlightedIndex === index
+                        ? "rgba(36, 99, 235, 0.08)"
+                        : "transparent",
                     color: "var(--color-text-primary)",
                     border: "none",
                     cursor: "pointer",
@@ -451,19 +453,11 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                     transition: "background-color 0.15s",
                   }}
-                  onMouseEnter={(e) => {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.backgroundColor = isSelected
-                      ? "rgba(36, 99, 235, 0.15)"
-                      : "rgba(36, 99, 235, 0.08)";
+                  onMouseEnter={() => {
+                    popoverContext.setHighlightedIndex(index);
                   }}
-                  onMouseLeave={(e) => {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.backgroundColor = isSelected
-                      ? "rgba(36, 99, 235, 0.1)"
-                      : "transparent";
+                  onMouseLeave={() => {
+                    // Don't reset on mouse leave, keep arrow nav state
                   }}
                 >
                   {renderOption(option, isSelected)}
