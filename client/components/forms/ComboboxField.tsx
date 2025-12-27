@@ -138,6 +138,60 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
     };
   }, [open]);
 
+  // Distance-based closing (150px threshold)
+  useEffect(() => {
+    if (!open || !triggerRef.current || !containerRef.current) return;
+
+    const isOverDropdownRef = { current: false };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const trigger = triggerRef.current;
+      const container = containerRef.current;
+
+      if (!trigger || !container) return;
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+
+      const isOverTrigger =
+        e.clientX >= triggerRect.left &&
+        e.clientX <= triggerRect.right &&
+        e.clientY >= triggerRect.top &&
+        e.clientY <= triggerRect.bottom;
+
+      const isOverContainer =
+        e.clientX >= containerRect.left &&
+        e.clientX <= containerRect.right &&
+        e.clientY >= containerRect.top &&
+        e.clientY <= containerRect.bottom;
+
+      isOverDropdownRef.current = isOverTrigger || isOverContainer;
+
+      if (isOverDropdownRef.current) return;
+
+      const distX = Math.max(
+        containerRect.left - e.clientX,
+        e.clientX - containerRect.right,
+        0
+      );
+      const distY = Math.max(
+        containerRect.top - e.clientY,
+        e.clientY - containerRect.bottom,
+        0
+      );
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      if (distance > 150) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [open]);
+
   const handleTriggerClick = () => {
     setOpen(!open);
   };
