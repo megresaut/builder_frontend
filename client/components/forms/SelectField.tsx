@@ -164,13 +164,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     ? selectedValues.length === 0
     : !selectedValue;
 
-  // Filter options based on search text
-  const filteredOptions = searchText
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(searchText.toLowerCase()),
-      )
-    : options;
-
   const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
 
@@ -188,7 +181,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           setHighlightedIndex(0);
         } else {
           setHighlightedIndex((prev) =>
-            prev < filteredOptions.length - 1 ? prev + 1 : prev,
+            prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
           );
         }
         break;
@@ -201,28 +194,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       case "Escape":
         e.preventDefault();
         setOpen(false);
-        setSearchText("");
         break;
       default:
-        // Typeahead search
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-          e.preventDefault();
-          if (!open) {
-            setOpen(true);
-          }
-
-          const newSearchText = searchText + e.key;
-          setSearchText(newSearchText);
-          setHighlightedIndex(0);
-
-          // Clear search after 500ms of inactivity
-          if (searchTimeout) clearTimeout(searchTimeout);
-          setSearchTimeout(
-            setTimeout(() => {
-              setSearchText("");
-            }, 500),
-          );
-        }
         break;
     }
   };
