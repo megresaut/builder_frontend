@@ -48,11 +48,15 @@ const Popover = React.forwardRef<
   const [onEnterSelect, setOnEnterSelect] = React.useState<
     ((item: { value: string; label: string } | null) => void) | undefined
   >();
+  const [highlightedIndex, setHighlightedIndex] = React.useState(0);
 
   // Use controlled prop if provided, otherwise use internal state
   const isOpen = props.open !== undefined ? props.open : internalOpen;
   const setOpen = (newOpen: boolean) => {
     setInternalOpen(newOpen);
+    if (!newOpen) {
+      setHighlightedIndex(0);
+    }
     props.onOpenChange?.(newOpen);
   };
 
@@ -64,6 +68,9 @@ const Popover = React.forwardRef<
       // onSearch is called automatically on filter change
     },
     onEnter: onEnterSelect,
+    onArrowNavigation: (index) => {
+      setHighlightedIndex(index);
+    },
   });
 
   return (
@@ -77,6 +84,8 @@ const Popover = React.forwardRef<
         setSearchableItems,
         filteredItems,
         onEnterSelect: setOnEnterSelect,
+        highlightedIndex,
+        setHighlightedIndex,
       }}
     >
       <PopoverPrimitive.Root {...props} open={isOpen} onOpenChange={setOpen} ref={ref}>
