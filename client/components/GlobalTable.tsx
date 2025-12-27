@@ -98,10 +98,6 @@ export default function GlobalTable({
     handleColumnDrop,
   } = columnManagementHook;
 
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const dropdownMenuRef = useRef<HTMLDivElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-
   const sorted = getSortedData();
   const totalRows = sorted.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / itemsPerPage));
@@ -143,86 +139,6 @@ export default function GlobalTable({
 
     return pages;
   };
-
-  useEffect(() => {
-    if (!showPagination) return;
-
-    let animationFrameId: number;
-
-    const updateDropdownPos = () => {
-      if (showPageSizeDropdown && dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showPageSizeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
-      }
-    };
-
-    if (showPageSizeDropdown) {
-      updateDropdownPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showPageSizeDropdown, showPagination]);
-
-  useEffect(() => {
-    if (!showPagination || !showPageSizeDropdown) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-
-      if (
-        dropdownButtonRef.current?.contains(target) ||
-        dropdownMenuRef.current?.contains(target)
-      ) {
-        return;
-      }
-
-      onShowPageSizeDropdownChange?.(false);
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const buttonRect = dropdownButtonRef.current?.getBoundingClientRect();
-      const menuRect = dropdownMenuRef.current?.getBoundingClientRect();
-
-      if (!buttonRect || !menuRect) return;
-
-      const { clientX, clientY } = event;
-      const DISTANCE_THRESHOLD = 150;
-
-      const isNearButton =
-        clientX >= buttonRect.left - DISTANCE_THRESHOLD &&
-        clientX <= buttonRect.right + DISTANCE_THRESHOLD &&
-        clientY >= buttonRect.top - DISTANCE_THRESHOLD &&
-        clientY <= buttonRect.bottom + DISTANCE_THRESHOLD;
-
-      const isNearMenu =
-        clientX >= menuRect.left - DISTANCE_THRESHOLD &&
-        clientX <= menuRect.right + DISTANCE_THRESHOLD &&
-        clientY >= menuRect.top - DISTANCE_THRESHOLD &&
-        clientY <= menuRect.bottom + DISTANCE_THRESHOLD;
-
-      if (!isNearButton && !isNearMenu) {
-        onShowPageSizeDropdownChange?.(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [showPageSizeDropdown, onShowPageSizeDropdownChange, showPagination]);
 
   const createColumnConfig = (): Record<string, { label: string; icon: ReactNode }> => {
     const config: Record<string, { label: string; icon: ReactNode }> = {};
