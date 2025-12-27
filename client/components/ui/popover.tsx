@@ -33,10 +33,16 @@ const Popover = React.forwardRef<
   PopoverProps
 >(({ children, containerRef, ...props }, ref) => {
   const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsOpen(newOpen);
+    props.onOpenChange?.(newOpen);
+  };
 
   return (
-    <PopoverContext.Provider value={{ triggerRef, containerRef }}>
-      <PopoverPrimitive.Root {...props} ref={ref}>
+    <PopoverContext.Provider value={{ triggerRef, containerRef, isOpen }}>
+      <PopoverPrimitive.Root {...props} open={isOpen} onOpenChange={handleOpenChange} ref={ref}>
         {children}
       </PopoverPrimitive.Root>
     </PopoverContext.Provider>
