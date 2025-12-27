@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
-import { Dropdown } from "@/components/ui/dropdown";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { FieldShell } from "./FieldShell";
 
 export interface MultiSelectOption {
@@ -25,14 +29,10 @@ interface MultiSelectFieldProps {
 /**
  * MultiSelectField - Multi-select dropdown field with FieldShell wrapper
  *
- * Composed of FieldShell + Dropdown primitive for consistent multi-select field styling.
- * Handles selection of multiple items with pill-style display.
- *
- * Uses Dropdown primitive which includes:
- * - Automatic collision detection and flipping based on container boundaries
- * - Real-time repositioning on scroll/resize
- * - Modal-aware z-index stacking
- * - Consistent A11y attributes
+ * Uses Popover primitive which includes:
+ * - Automatic scroll locking when open
+ * - 150px proximity-based auto-close
+ * - Handling of selection of multiple items with pill-style display
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
@@ -103,98 +103,90 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Dropdown
-        open={open}
-        onOpenChange={setOpen}
-        initialPlacement="bottom"
-        minSpaceBelow={280}
-        offset={8}
-        syncTriggerWidth={true}
-      >
-        <Dropdown.Trigger
-          id={fieldId}
-          disabled={disabled}
-          style={{
-            borderColor: error ? "#ef4444" : "var(--color-border-light)",
-            borderWidth: error ? "2px" : "1px",
-            minHeight: "44px",
-            height: "auto",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            padding: "8px 12px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexWrap: "wrap",
-            width: "100%",
-            cursor: disabled ? "not-allowed" : "pointer",
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
-            border: "solid",
-            opacity: disabled ? 0.6 : 1,
-            justifyContent: "space-between",
-          }}
-        >
-          <div className="flex items-center gap-1.5 flex-wrap flex-1">
-            {uniqueValue.length === 0 ? (
-              <span
-                style={{
-                  color: "var(--color-text-placeholder)",
-                  fontSize: "14px",
-                }}
-              >
-                {placeholder}
-              </span>
-            ) : (
-              uniqueValue.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5 whitespace-nowrap"
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            id={fieldId}
+            disabled={disabled}
+            type="button"
+            style={{
+              borderColor: error ? "#ef4444" : "var(--color-border-light)",
+              borderWidth: error ? "2px" : "1px",
+              minHeight: "44px",
+              height: "auto",
+              borderRadius: "8px",
+              backgroundColor: "white",
+              padding: "8px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
+              width: "100%",
+              cursor: disabled ? "not-allowed" : "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              border: "solid",
+              opacity: disabled ? 0.6 : 1,
+              justifyContent: "space-between",
+            }}
+          >
+            <div className="flex items-center gap-1.5 flex-wrap flex-1">
+              {uniqueValue.length === 0 ? (
+                <span
+                  style={{
+                    color: "var(--color-text-placeholder)",
+                    fontSize: "14px",
+                  }}
                 >
-                  {item.initials && (
-                    <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
-                      <span className="text-white font-semibold text-[8px]">
-                        {item.initials}
-                      </span>
-                    </div>
-                  )}
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--color-text-primary)",
-                    }}
+                  {placeholder}
+                </span>
+              ) : (
+                uniqueValue.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5 whitespace-nowrap"
                   >
-                    {item.label}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeItem(item.id);
-                    }}
-                    className="hover:opacity-70 transition-opacity"
-                    tabIndex={-1}
-                  >
-                    <X className="w-3 h-3 text-[#2463EB]" />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          <ChevronDown
-            className="h-4 w-4 flex-shrink-0"
-            style={{ color: "#303030" }}
-          />
-        </Dropdown.Trigger>
+                    {item.initials && (
+                      <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
+                        <span className="text-white font-semibold text-[8px]">
+                          {item.initials}
+                        </span>
+                      </div>
+                    )}
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        color: "var(--color-text-primary)",
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeItem(item.id);
+                      }}
+                      className="hover:opacity-70 transition-opacity"
+                      tabIndex={-1}
+                    >
+                      <X className="w-3 h-3 text-[#2463EB]" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            <ChevronDown
+              className="h-4 w-4 flex-shrink-0"
+              style={{ color: "#303030" }}
+            />
+          </button>
+        </PopoverTrigger>
 
-        <Dropdown.Content
-          closeOnOutsideClick={true}
-          closeOnEscape={true}
+        <PopoverContent
+          align="start"
+          className="w-auto p-0"
           style={{
-            backgroundColor: "white",
-            border: "1px solid var(--color-border-light)",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            zIndex: 50,
+            minWidth: "200px",
           }}
         >
           <div
@@ -221,6 +213,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
                   <button
                     key={option.id}
                     onClick={() => toggleItem(option)}
+                    type="button"
                     style={{
                       width: "100%",
                       padding: "8px 12px",
@@ -270,8 +263,8 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
               })
             )}
           </div>
-        </Dropdown.Content>
-      </Dropdown>
+        </PopoverContent>
+      </Popover>
     </FieldShell>
   );
 };
