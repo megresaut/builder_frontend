@@ -136,8 +136,6 @@ const SelectFieldCellContent: React.FC<SelectFieldCellContentProps> = ({
   displayLabel,
   isShowingPlaceholder,
   triggerRef,
-  highlightedIndex,
-  setHighlightedIndex,
   value,
   options,
   placeholder,
@@ -146,6 +144,7 @@ const SelectFieldCellContent: React.FC<SelectFieldCellContentProps> = ({
   handleTriggerKeyDown,
 }) => {
   const popoverContext = usePopoverContext();
+  const { highlightedIndex } = popoverContext;
 
   // Register options with Popover for typeahead search
   useEffect(() => {
