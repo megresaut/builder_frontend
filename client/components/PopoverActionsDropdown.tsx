@@ -69,7 +69,7 @@ export default function PopoverActionsDropdown({
           width: "145px",
         }}
       >
-        <div className="flex flex-col justify-start items-start">
+        <div ref={contentRef} className="flex flex-col justify-start items-start">
           {allActions.map((action, idx) => {
             const resolvedLabel =
               typeof action.label === "function" ? action.label(row) : action.label;
