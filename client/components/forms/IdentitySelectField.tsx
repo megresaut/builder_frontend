@@ -100,7 +100,6 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState(0);
-  const [searchableItemsSet, setSearchableItemsSet] = useState(false);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
