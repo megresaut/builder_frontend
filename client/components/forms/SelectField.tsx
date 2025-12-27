@@ -135,8 +135,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 interface SelectFieldContentProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  highlightedIndex: number;
-  setHighlightedIndex: (index: number) => void;
   triggerRef: React.RefObject<HTMLButtonElement>;
   contentRef: React.RefObject<HTMLDivElement>;
   fieldId: string;
