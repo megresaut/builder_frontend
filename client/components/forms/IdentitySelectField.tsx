@@ -140,6 +140,9 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
         ? selectedOptions[0].label
         : placeholder;
 
+  // Note: We don't use usePopoverContext here because it would break the rules of hooks.
+  // Instead, the Popover primitive itself handles type-ahead search internally when it's opened.
+
   const toggleItem = (optionId: string) => {
     if (multiple) {
       const newIds = selectedIds.includes(optionId)
