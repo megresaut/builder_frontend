@@ -421,7 +421,7 @@ export default function FieldTeamOrders() {
 
   // Load field team users with debugging
   useEffect(() => {
-    fetch("/api/users/field-team")
+    fetch("http://localhost:8080/users/field-team")
       .then(async (res) => {
         const raw = await res.text();      // <-- read raw body first
         console.log("RAW /users/field-team RESPONSE:", raw);
