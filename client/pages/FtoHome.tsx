@@ -59,16 +59,8 @@ const mockClosedOrders: FieldTeamOrder[] = [
 
 export default function FtoHome() {
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
-  const [openOrders, setOpenOrders] = useState<FieldTeamOrder[]>(mockOpenOrders);
-  const [closedOrders, setClosedOrders] = useState<FieldTeamOrder[]>(mockClosedOrders);
-
-  const handleDeleteOrder = (order: FieldTeamOrder) => {
-    if (activeTab === "open") {
-      setOpenOrders((prev) => prev.filter((o) => o.id !== order.id));
-    } else {
-      setClosedOrders((prev) => prev.filter((o) => o.id !== order.id));
-    }
-  };
+  const [openOrders] = useState<FieldTeamOrder[]>(mockOpenOrders);
+  const [closedOrders] = useState<FieldTeamOrder[]>(mockClosedOrders);
 
   const tabs = [
     { id: "open" as const, label: "Open" },
