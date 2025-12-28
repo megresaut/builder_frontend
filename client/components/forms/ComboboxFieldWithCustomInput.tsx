@@ -23,7 +23,6 @@ interface ComboboxFieldWithCustomInputProps {
   onChange?: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
-  searchPlaceholder?: string;
   options: ComboboxOption[];
   emptyMessage?: string;
   customInputPlaceholder?: string;
