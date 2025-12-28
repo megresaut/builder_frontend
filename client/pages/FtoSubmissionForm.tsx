@@ -486,7 +486,7 @@ export default function FtoSubmissionForm() {
                           label="Hours"
                           required
                           error={hourErrors[entry.id]?.hours}
-                          placeholder="0"
+                          placeholder="7.5"
                           value={entry.hours}
                           onChange={(e) => {
                             setHourErrors((prev) => {
