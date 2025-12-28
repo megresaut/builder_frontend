@@ -159,25 +159,7 @@ export const InvoiceTable: React.FC = () => {
               color: "rgb(48, 48, 48)",
             }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.25"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              style={{
-                width: "20px",
-                height: "20px",
-              }}
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
+            <PlusIcon width={20} height={20} />
             Add Line Item
           </button>
         </div>
