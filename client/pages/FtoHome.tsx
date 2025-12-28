@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import TableToggle from "@/components/TableToggle";
@@ -68,6 +69,7 @@ const mockClosedOrders: FieldTeamOrder[] = [
 ];
 
 export default function FtoHome() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
   const [openOrders] = useState<FieldTeamOrder[]>(mockOpenOrders);
   const [closedOrders] = useState<FieldTeamOrder[]>(mockClosedOrders);
@@ -192,7 +194,10 @@ export default function FtoHome() {
             />
           }
           rightContent={
-            <BlueButton icon={<PlusIcon width={20} height={20} />}>
+            <BlueButton
+              icon={<PlusIcon width={20} height={20} />}
+              onClick={() => navigate("/fto/submission")}
+            >
               Submit
             </BlueButton>
           }
@@ -312,9 +317,26 @@ export default function FtoHome() {
             {
               label: "Submit",
               icon: <ApproveIcon width={18} height={18} color="var(--color-text-secondary)" />,
-              onClick: () => {},
+              onClick: (order) => {
+                navigate(`/fto/submission/${order.id}`, {
+                  state: {
+                    property: order.property,
+                    unit: order.unit,
+                    description: order.description,
+                  },
+                });
+              },
             },
           ]}
+          onRowClick={(order) => {
+            navigate(`/fto/submission/${order.id}`, {
+              state: {
+                property: order.property,
+                unit: order.unit,
+                description: order.description,
+              },
+            });
+          }}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
         />
