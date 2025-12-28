@@ -498,7 +498,7 @@ export default function FtoSubmissionForm() {
                           label="Hours"
                           required
                           error={hourErrors[entry.id]?.hours}
-                          placeholder="7.5"
+                          placeholder="Input Hours"
                           value={entry.hours}
                           onChange={(e) => {
                             const value = e.target.value;
