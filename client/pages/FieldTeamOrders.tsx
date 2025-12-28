@@ -21,6 +21,7 @@ import {
   DocumentIcon,
   DollarIcon,
   UserIcon,
+  FlagIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -332,7 +333,7 @@ export default function FieldTeamOrders() {
     {
       key: "priority",
       label: "Priority",
-      icon: <DocumentIcon width={16} height={16} />,
+      icon: <FlagIcon width={16} height={16} />,
     },
     {
       key: "property",
@@ -357,12 +358,12 @@ export default function FieldTeamOrders() {
     {
       key: "status",
       label: "FTO Status",
-      icon: <DocumentIcon width={16} height={16} />,
+      icon: <ApproveIcon width={16} height={16} />,
     },
     {
       key: "timesheetStatus",
       label: "Timesheet Status",
-      icon: <DocumentIcon width={16} height={16} />,
+      icon: <ApproveIcon width={16} height={16} />,
     },
     {
       key: "amount",

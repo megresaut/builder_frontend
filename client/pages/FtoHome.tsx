@@ -14,7 +14,8 @@ import {
   CalendarIcon,
   BuildingIcon,
   NoteIcon,
-  DocumentIcon
+  DocumentIcon,
+  FlagIcon
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -99,7 +100,7 @@ export default function FtoHome() {
     },
     priority: {
       label: "Priority",
-      icon: <DocumentIcon width={16} height={16} />,
+      icon: <FlagIcon width={16} height={16} />,
     },
     createdBy: {
       label: "Created By",
@@ -150,13 +151,13 @@ export default function FtoHome() {
   );
 
   const columns = [
-    { key: "name", label: "Name", icon: columnConfig.name.icon },
-    { key: "dueDate", label: "Due date", icon: columnConfig.dueDate.icon },
-    { key: "description", label: "Description", icon: columnConfig.description.icon },
-    { key: "property", label: "Property", icon: columnConfig.property.icon },
-    { key: "unit", label: "Unit", icon: columnConfig.unit.icon },
-    { key: "priority", label: "Priority", icon: columnConfig.priority.icon },
-    { key: "createdBy", label: "Created By", icon: columnConfig.createdBy.icon },
+    { key: "name", label: "Name", icon: <DocumentIcon width={16} height={16} /> },
+    { key: "dueDate", label: "Due date", icon: <CalendarIcon width={16} height={16} /> },
+    { key: "description", label: "Description", icon: <NoteIcon width={16} height={16} /> },
+    { key: "property", label: "Property", icon: <BuildingIcon width={16} height={16} /> },
+    { key: "unit", label: "Unit", icon: <DocumentIcon width={16} height={16} /> },
+    { key: "priority", label: "Priority", icon: <FlagIcon width={16} height={16} /> },
+    { key: "createdBy", label: "Created By", icon: <DocumentIcon width={16} height={16} /> },
   ];
 
   const getPriorityColor = (priority: string) => {

@@ -33,5 +33,6 @@ export { DocumentIcon } from './DocumentIcon';
 export { NoteIcon } from './NoteIcon';
 export { SyncIcon } from './SyncIcon';
 export { RecordBillIcon } from './RecordBillIcon';
+export { FlagIcon } from './FlagIcon';
 
 export type { } from './EditIcon';
