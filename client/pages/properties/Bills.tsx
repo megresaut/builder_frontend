@@ -225,121 +225,31 @@ const billsColumnConfig: Record<string, { label: string; icon: React.ReactNode }
   },
   statementDate: {
     label: "Statement Date",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M8 2v4" />
-        <path d="M16 2v4" />
-        <rect width="18" height="18" x="3" y="4" rx="2" />
-        <path d="M3 10h18" />
-      </svg>
-    ),
+    icon: <CalendarIcon width={16} height={16} />,
   },
   dueDate: {
     label: "Due Date",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M8 2v4" />
-        <path d="M16 2v4" />
-        <rect width="18" height="18" x="3" y="4" rx="2" />
-        <path d="M3 10h18" />
-      </svg>
-    ),
+    icon: <CalendarIcon width={16} height={16} />,
   },
   memo: {
     label: "Memo",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-        <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
-      </svg>
-    ),
+    icon: <NoteIcon width={16} height={16} />,
   },
   invoiceNumber: {
     label: "Reference #",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <line x1="4" x2="20" y1="9" y2="9" />
-        <line x1="4" x2="20" y1="15" y2="15" />
-        <line x1="10" x2="8" y1="3" y2="21" />
-        <line x1="16" x2="14" y1="3" y2="21" />
-      </svg>
-    ),
+    icon: <DocumentIcon width={16} height={16} />,
   },
   amount: {
     label: "Amount",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <line x1="12" x2="12" y1="2" y2="22" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    ),
+    icon: <DollarIcon width={16} height={16} />,
   },
   status: {
     label: "Import Status",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 6v6l4 2" />
-      </svg>
-    ),
+    icon: <ClockIcon width={16} height={16} />,
   },
   exportedAt: {
     label: "Last Exported",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 6v6l4 2" />
-      </svg>
-    ),
+    icon: <ClockIcon width={16} height={16} />,
   },
 };
 
