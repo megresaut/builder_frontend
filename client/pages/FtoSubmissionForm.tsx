@@ -404,6 +404,7 @@ export default function FtoSubmissionForm() {
 
                         <TextAreaField
                           label="Note"
+                          required
                           placeholder="Notes for Hour entry"
                           value={entry.note}
                           onChange={(e) =>
