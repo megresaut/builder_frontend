@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
@@ -30,43 +30,90 @@ interface FieldTeamOrder {
   unit: string;
   priority: "low" | "normal" | "high";
   createdBy: string;
+  formSubmissionStatus: string;
 }
 
-const mockOpenOrders: FieldTeamOrder[] = [
-  {
-    id: 1,
-    name: "HVAC Inspection",
-    dueDate: "Dec 10, 2025",
-    description: "Annual HVAC system inspection",
-    property: "22 Indian Chase Dr",
-    unit: "Unit A",
-    priority: "high",
-    createdBy: "John Smith",
-  },
-  {
-    id: 2,
-    name: "Plumbing Repair",
-    dueDate: "Dec 12, 2025",
-    description: "Fix leaky faucet in kitchen",
-    property: "22 Indian Chase Dr",
-    unit: "Unit B",
-    priority: "normal",
-    createdBy: "Jane Doe",
-  },
-];
+// Mock API response types
+interface APIFieldTeamOrder {
+  id: number;
+  name: string;
+  description: string;
+  property_name: string;
+  unit?: string;
+  priority: "low" | "normal" | "high";
+  due_date: string;
+  form_submission_status: string;
+  created_by?: string;
+}
 
-const mockClosedOrders: FieldTeamOrder[] = [
-  {
-    id: 3,
-    name: "Electrical Repair",
-    dueDate: "Dec 5, 2025",
-    description: "Replace faulty outlet",
-    property: "22 Indian Chase Dr",
-    unit: "Unit C",
-    priority: "normal",
-    createdBy: "John Smith",
-  },
-];
+interface FetchFTOsParams {
+  field_team_member_id: number;
+  status?: string;
+}
+
+// Mock API function that simulates GET /maintenance/ftos
+const mockFetchFTOs = async (params: FetchFTOsParams): Promise<APIFieldTeamOrder[]> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  const mockData: APIFieldTeamOrder[] = [
+    {
+      id: 1,
+      name: "HVAC Inspection",
+      description: "Annual HVAC system inspection",
+      property_name: "22 Indian Chase Dr",
+      unit: "Unit A",
+      priority: "high",
+      due_date: "Dec 10, 2025",
+      form_submission_status: "none",
+      created_by: "John Smith",
+    },
+    {
+      id: 2,
+      name: "Plumbing Repair",
+      description: "Fix leaky faucet in kitchen",
+      property_name: "22 Indian Chase Dr",
+      unit: "Unit B",
+      priority: "normal",
+      due_date: "Dec 12, 2025",
+      form_submission_status: "none",
+      created_by: "Jane Doe",
+    },
+    {
+      id: 3,
+      name: "Electrical Repair",
+      description: "Replace faulty outlet",
+      property_name: "22 Indian Chase Dr",
+      unit: "Unit C",
+      priority: "normal",
+      due_date: "Dec 5, 2025",
+      form_submission_status: "submitted",
+      created_by: "John Smith",
+    },
+  ];
+
+  // Filter by status if provided
+  if (params.status) {
+    return mockData.filter(order => order.form_submission_status === params.status);
+  }
+
+  return mockData;
+};
+
+// Transform API response to component format
+const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
+  return apiData.map(order => ({
+    id: order.id,
+    name: order.name,
+    dueDate: order.due_date,
+    description: order.description,
+    property: order.property_name,
+    unit: order.unit || "N/A",
+    priority: order.priority,
+    createdBy: order.created_by || "Unknown",
+    formSubmissionStatus: order.form_submission_status,
+  }));
+};
 
 export default function FtoHome() {
   const navigate = useNavigate();
