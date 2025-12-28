@@ -511,7 +511,7 @@ export default function FtoSubmissionForm() {
                           required
                           error={hourErrors[entry.id]?.emergencyRate}
                           options={YES_NO_OPTIONS}
-                          value={entry.emergencyRate || ""}
+                          value={entry.emergencyRate || "no"}
                           onChange={(value) => {
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
