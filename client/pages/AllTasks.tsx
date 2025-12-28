@@ -406,7 +406,7 @@ export default function AllTasks() {
           action={{
             label: "Add Task",
             onClick: () => setIsCreateTaskModalOpen(true),
-            icon: <Plus className="w-5 h-5" />,
+            icon: <PlusIcon width={20} height={20} />,
           }}
         />
 
