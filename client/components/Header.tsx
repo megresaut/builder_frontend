@@ -30,9 +30,10 @@ const setFullscreenMode = (value: boolean) => {
 
 interface HeaderProps {
   forceCollapse?: boolean;
+  showTabs?: boolean;
 }
 
-export default function Header({ forceCollapse = false }: HeaderProps) {
+export default function Header({ forceCollapse = false, showTabs = true }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
