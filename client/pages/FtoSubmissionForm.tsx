@@ -224,39 +224,97 @@ export default function FtoSubmissionForm() {
   }));
 
   const validateForm = (): boolean => {
+    const newHourErrors: HourEntryErrors = {};
+    const newExpenseErrors: ExpenseEntryErrors = {};
+    let isValid = true;
+
     // Validate hour entries
     for (const entry of hourEntries) {
-      if (
-        !entry.date ||
-        !entry.propertyId ||
-        !entry.unitId ||
-        !entry.taskId ||
-        !entry.hours ||
-        !entry.emergencyRate ||
-        !entry.nonBillableHours ||
-        !entry.note
-      ) {
-        return false;
+      const errors: any = {};
+
+      if (!entry.date) {
+        errors.date = "Date is required";
+        isValid = false;
+      }
+      if (!entry.propertyId) {
+        errors.propertyId = "Property is required";
+        isValid = false;
+      }
+      if (!entry.unitId) {
+        errors.unitId = "Unit is required";
+        isValid = false;
+      }
+      if (!entry.taskId) {
+        errors.taskId = "Task is required";
+        isValid = false;
+      }
+      if (!entry.hours) {
+        errors.hours = "Hours is required";
+        isValid = false;
+      }
+      if (!entry.emergencyRate) {
+        errors.emergencyRate = "Emergency Rate is required";
+        isValid = false;
+      }
+      if (!entry.nonBillableHours) {
+        errors.nonBillableHours = "Non-Billable Hours is required";
+        isValid = false;
+      }
+      if (!entry.note) {
+        errors.note = "Note is required";
+        isValid = false;
+      }
+
+      if (Object.keys(errors).length > 0) {
+        newHourErrors[entry.id] = errors;
       }
     }
 
     // Validate expense entries
     for (const entry of expenseEntries) {
-      if (
-        !entry.date ||
-        !entry.propertyId ||
-        !entry.unitId ||
-        !entry.taskId ||
-        !entry.amount ||
-        !entry.chargeType ||
-        !entry.vendorId ||
-        !entry.note
-      ) {
-        return false;
+      const errors: any = {};
+
+      if (!entry.date) {
+        errors.date = "Date is required";
+        isValid = false;
+      }
+      if (!entry.propertyId) {
+        errors.propertyId = "Property is required";
+        isValid = false;
+      }
+      if (!entry.unitId) {
+        errors.unitId = "Unit is required";
+        isValid = false;
+      }
+      if (!entry.taskId) {
+        errors.taskId = "Task is required";
+        isValid = false;
+      }
+      if (!entry.amount) {
+        errors.amount = "Amount is required";
+        isValid = false;
+      }
+      if (!entry.chargeType) {
+        errors.chargeType = "Charge Type is required";
+        isValid = false;
+      }
+      if (!entry.vendorId) {
+        errors.vendorId = "Vendor is required";
+        isValid = false;
+      }
+      if (!entry.note) {
+        errors.note = "Note is required";
+        isValid = false;
+      }
+
+      if (Object.keys(errors).length > 0) {
+        newExpenseErrors[entry.id] = errors;
       }
     }
 
-    return true;
+    setHourErrors(newHourErrors);
+    setExpenseErrors(newExpenseErrors);
+    return isValid;
   };
 
   return (
