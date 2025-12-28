@@ -19,6 +19,8 @@ export interface SubPageHeaderV2Button {
 interface SubPageHeaderV2Props {
   toggles?: SubPageHeaderV2Toggle[];
   buttons?: SubPageHeaderV2Button[];
+  leftContent?: React.ReactNode;
+  rightContent?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -26,23 +28,29 @@ interface SubPageHeaderV2Props {
  * SubPageHeaderV2 - Simplified sub-section header with segmented toggle and secondary action buttons
  *
  * Provides a standardized layout for page sub-sections with:
- * - Left side: Segmented toggle buttons for filtering/switching views
- * - Right side: Secondary action buttons (Add Vendor, Sync, etc.)
+ * - Left side: Segmented toggle buttons for filtering/switching views (or custom leftContent)
+ * - Right side: Secondary action buttons (Add Vendor, Sync, etc.) or custom rightContent
  * - No primary action button (moved to PageHeader)
  *
  * @param toggles - Optional array of toggle buttons with state
  * @param buttons - Optional array of secondary action buttons
+ * @param leftContent - Optional custom content for left side (overrides toggles)
+ * @param rightContent - Optional custom content for right side (overrides buttons)
  * @param children - Optional custom content
  */
 export const SubPageHeaderV2: React.FC<SubPageHeaderV2Props> = ({
   toggles = [],
   buttons = [],
+  leftContent,
+  rightContent,
   children,
 }) => {
   return (
     <div className="flex items-center justify-between w-full bg-white gap-6 flex-wrap">
-      {/* Left side: Segmented Toggles */}
-      {toggles.length > 0 && (
+      {/* Left side: Custom content or Segmented Toggles */}
+      {leftContent ? (
+        leftContent
+      ) : toggles.length > 0 ? (
         <div className="flex bg-gray-50 rounded-lg shadow-[0_0_0_0.5px_#D2D1CF] p-0.5">
           {toggles.map((toggle) => (
             <button
@@ -64,13 +72,15 @@ export const SubPageHeaderV2: React.FC<SubPageHeaderV2Props> = ({
             </button>
           ))}
         </div>
-      )}
+      ) : null}
 
       {/* Custom content */}
       {children}
 
-      {/* Right side: Secondary action buttons */}
-      {buttons.length > 0 && (
+      {/* Right side: Custom content or Secondary action buttons */}
+      {rightContent ? (
+        rightContent
+      ) : buttons.length > 0 ? (
         <div className="flex flex-wrap gap-3 items-center">
           {buttons.map((button) => (
             <button
@@ -95,7 +105,7 @@ export const SubPageHeaderV2: React.FC<SubPageHeaderV2Props> = ({
             </button>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
