@@ -244,7 +244,15 @@ export default function FtoHome() {
           onOpenMenuIdChange={setOpenMenuId}
           title={activeTab === "open" ? "Open Orders" : "Closed Orders"}
           headerActions={
-            <button className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+            <button
+              ref={columnButtonRef}
+              onClick={() => {
+                setShowPageSizeDropdown(false);
+                setOpenMenuId(null);
+                setShowColumnModal((prev) => !prev);
+              }}
+              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+            >
               <svg
                 width="18"
                 height="18"
