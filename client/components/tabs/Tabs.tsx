@@ -68,7 +68,7 @@ export const Tabs: React.FC<TabsProps> = ({
             (!tab.id.startsWith("new-tab-") ? tab.id : undefined);
           const sectionIcon = getIconForSection(sectionId, isSelected);
           const displayIcon =
-            sectionIcon || (isSelected ? tab.iconDark : tab.iconLight);
+            sectionIcon || (isSelected ? (tab.iconDark || tab.icon) : (tab.iconLight || tab.icon));
 
           return (
             <div
