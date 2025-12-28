@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { VendorAvatar } from "./VendorAvatar";
 import { StatusBadge } from "./StatusBadge";
+import { SearchIcon, PlusIcon, BuildingIcon } from "@/components/icons";
 
 interface InvoiceLineItem {
   id: number;
