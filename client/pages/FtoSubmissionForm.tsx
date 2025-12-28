@@ -236,35 +236,43 @@ export default function FtoSubmissionForm() {
                 {hourEntries.map((entry, index) => (
                   <div key={entry.id}>
                     {/* Entry Header */}
-                    <div
-                      className="flex items-center gap-2 cursor-pointer"
-                      onClick={() => toggleHourEntry(entry.id)}
-                    >
-                      {entry.isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-[#303030]" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-[#303030]" />
-                      )}
-                      <span
-                        className="text-base font-medium text-[#303030]"
-                        style={{
-                          fontFamily:
-                            "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                        }}
+                    <div className="flex items-center justify-between pr-3">
+                      <div
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => toggleHourEntry(entry.id)}
                       >
-                        Hours Entry
-                      </span>
-                      <div className="w-5 h-5 rounded bg-[#BEE9FF] flex items-center justify-center">
+                        {entry.isExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-[#303030]" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-[#303030]" />
+                        )}
                         <span
-                          className="text-base font-medium text-[#2463EB]"
+                          className="text-base font-medium text-[#303030]"
                           style={{
                             fontFamily:
                               "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                           }}
                         >
-                          {index + 1}
+                          Hours Entry
                         </span>
+                        <div className="w-5 h-5 rounded bg-[#BEE9FF] flex items-center justify-center">
+                          <span
+                            className="text-base font-medium text-[#2463EB]"
+                            style={{
+                              fontFamily:
+                                "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                            }}
+                          >
+                            {index + 1}
+                          </span>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => deleteHourEntry(entry.id)}
+                        className="text-[#982740] hover:opacity-70 transition-opacity"
+                      >
+                        <DeleteIcon width={16} height={16} />
+                      </button>
                     </div>
 
                     {index < hourEntries.length - 1 && (
