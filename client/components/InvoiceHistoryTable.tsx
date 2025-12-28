@@ -221,25 +221,7 @@ export const InvoiceHistoryTable: React.FC = () => {
             }}
           >
             Filter
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              style={{
-                width: "18px",
-                height: "18px",
-                color: "rgb(48, 48, 48)",
-              }}
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+            <FilterIcon width={18} height={18} style={{ color: "rgb(48, 48, 48)" }} />
           </button>
           <button
             style={{
