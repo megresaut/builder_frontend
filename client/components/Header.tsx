@@ -998,17 +998,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
               aria-label="Go forward"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
+              <ArrowForwardIcon width={20} height={20} />
             </button>
 
             {/* Breadcrumb - Hidden on small screens */}
