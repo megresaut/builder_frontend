@@ -1028,21 +1028,23 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
             </div>
 
             {/* Favorites/Star Button */}
-            <button
-              onClick={handleFavoriteClick}
-              className={`h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
-                isCurrentPageFavorite
-                  ? "border-yellow-400 bg-yellow-50"
-                  : "border-gray-300 bg-transparent"
-              }`}
-              style={{ lineHeight: "24px" }}
-            >
-              <StarIcon
-                width={18}
-                height={18}
-                className={isCurrentPageFavorite ? "text-yellow-500" : "text-gray-700"}
-              />
-            </button>
+            {showTabs && (
+              <button
+                onClick={handleFavoriteClick}
+                className={`h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
+                  isCurrentPageFavorite
+                    ? "border-yellow-400 bg-yellow-50"
+                    : "border-gray-300 bg-transparent"
+                }`}
+                style={{ lineHeight: "24px" }}
+              >
+                <StarIcon
+                  width={18}
+                  height={18}
+                  className={isCurrentPageFavorite ? "text-yellow-500" : "text-gray-700"}
+                />
+              </button>
+            )}
 
             {/* Notification Button */}
             <button className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
