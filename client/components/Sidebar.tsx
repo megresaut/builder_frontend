@@ -1111,66 +1111,100 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="flex flex-col">
           <div className="flex flex-col gap-1.5">
-            {navigationItems.map((item) => (
-              <div
-                key={item.id}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <button
-                  className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
-                  style={{ minHeight: "38px" }}
-                >
-                  <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+            {navigationItems.map((item) => {
+              // For FTO mode, use direct links instead of submenus
+              if (isFtoMode) {
+                const submenu = submenuMap[item.id] || [];
+                const firstPath = submenu[0]?.path || "#";
+                return (
+                  <Link
+                    key={item.id}
+                    to={firstPath}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                    style={{ minHeight: "38px" }}
+                    onClick={() => {
+                      const firstItem = submenu[0];
+                      if (firstItem) {
+                        handleNavigation(
+                          firstItem.label,
+                          firstItem.sectionId,
+                          firstItem.path,
+                        );
+                      }
+                    }}
+                  >
                     <span className="flex items-center justify-center flex-shrink-0">
                       {getIcon(item)}
                     </span>
                     <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
                       {item.label}
                     </span>
-                  </div>
-                  {item.hasSubmenu && hoveredItem === item.id && (
-                    <svg
-                      className="w-4 h-4 text-gray-900"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 9l6 6 6-6"
-                      />
-                    </svg>
-                  )}
-                </button>
+                  </Link>
+                );
+              }
 
-                {item.hasSubmenu && hoveredItem === item.id && (
-                  <div className="ml-6 mt-1 flex flex-col gap-0">
-                    {(submenuMap[item.id] || []).map((subitem, idx) => (
-                      <Link
-                        key={idx}
-                        to={subitem.path!}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap"
-                        onClick={() =>
-                          handleNavigation(
-                            subitem.label,
-                            subitem.sectionId,
-                            subitem.path,
-                          )
-                        }
+              // Default mode: render with submenus
+              return (
+                <div
+                  key={item.id}
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <button
+                    className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                    style={{ minHeight: "38px" }}
+                  >
+                    <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+                      <span className="flex items-center justify-center flex-shrink-0">
+                        {getIcon(item)}
+                      </span>
+                      <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
+                        {item.label}
+                      </span>
+                    </div>
+                    {item.hasSubmenu && hoveredItem === item.id && (
+                      <svg
+                        className="w-4 h-4 text-gray-900"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        <div className="flex items-center h-full">
-                          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                        </div>
-                        <span className="text-sm">{subitem.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 9l6 6 6-6"
+                        />
+                      </svg>
+                    )}
+                  </button>
+
+                  {item.hasSubmenu && hoveredItem === item.id && (
+                    <div className="ml-6 mt-1 flex flex-col gap-0">
+                      {(submenuMap[item.id] || []).map((subitem, idx) => (
+                        <Link
+                          key={idx}
+                          to={subitem.path!}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap"
+                          onClick={() =>
+                            handleNavigation(
+                              subitem.label,
+                              subitem.sectionId,
+                              subitem.path,
+                            )
+                          }
+                        >
+                          <div className="flex items-center h-full">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                          </div>
+                          <span className="text-sm">{subitem.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {!isFtoMode && (
