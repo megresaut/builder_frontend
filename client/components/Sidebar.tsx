@@ -348,7 +348,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       ),
       hasSubmenu: true,
     },
-  ];
+      ];
 
   const submenuMap: Record<
     string,
