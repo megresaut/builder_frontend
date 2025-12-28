@@ -806,7 +806,7 @@ export default function FtoSubmissionForm() {
                             });
                             updateExpenseEntry(entry.id, "vendorId", value);
                           }}
-                          placeholder="Select Vendor Paid Or N/A"
+                          placeholder="Select Vendor"
                         />
 
                         <TextAreaField
