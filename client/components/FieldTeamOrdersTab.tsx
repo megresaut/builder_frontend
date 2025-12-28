@@ -552,11 +552,7 @@ export default function FieldTeamOrdersTab({
               }}
               className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
+              <DotsIcon width={18} height={18} color="#303030" />
             </button>
             <button
               onClick={() => {
@@ -565,21 +561,7 @@ export default function FieldTeamOrdersTab({
               }}
               className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] border border-white shadow-[0px_0px_0px_1px_rgba(0,45,90,1)] hover:bg-[#003a73] transition-colors"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <PlusIcon width={20} height={20} color="white" />
               <span className="text-white font-medium text-base leading-normal whitespace-nowrap">
                 Create FTO
               </span>
