@@ -15,6 +15,7 @@ const getFullscreenMode = () => {
 const isModalLikePage = (pathname: string): boolean => {
   return (
     pathname.includes("/fto/record") ||
+    pathname.includes("/fto/submission") ||
     pathname === "/utilities/view-bill"
   );
 };
