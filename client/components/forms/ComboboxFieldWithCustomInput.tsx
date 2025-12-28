@@ -206,46 +206,38 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
               maxHeight: "320px",
             }}
           >
-            {/* Search/Filter Section */}
+            {/* Add Custom Option Button */}
             {!customInputMode && (
-              <div
+              <button
+                type="button"
+                onClick={() => setCustomInputMode(true)}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "8px 12px",
+                  width: "100%",
+                  padding: "10px 12px",
+                  backgroundColor: "transparent",
+                  border: "none",
                   borderBottom: "1px solid var(--color-border-light)",
-                  flexShrink: 0,
+                  cursor: "pointer",
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--color-button-primary)",
+                  textAlign: "left",
+                  transition: "background-color 0.2s",
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(36, 99, 235, 0.08)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
-                <Search className="h-4 w-4" style={{ color: "#717179" }} />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder={searchPlaceholder}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    outline: "none",
-                    padding: 0,
-                    fontFamily:
-                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    fontSize: "14px",
-                    color: "var(--color-text-primary)",
-                    backgroundColor: "transparent",
-                  }}
-                />
-              </div>
+                + Add custom value
+              </button>
             )}
 
             {/* Options List */}
             {!customInputMode && (
               <div
                 style={{
-                  maxHeight: "200px",
+                  maxHeight: "240px",
                   overflowY: "auto",
                   overflowX: "hidden",
                   flexShrink: 1,
@@ -315,7 +307,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   flexDirection: "column",
                   gap: "8px",
                   padding: "12px",
-                  borderTop: "1px solid var(--color-border-light)",
                 }}
               >
                 <input
@@ -392,33 +383,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   </button>
                 </div>
               </div>
-            )}
-
-            {/* Add Custom Option Button */}
-            {!customInputMode && (
-              <button
-                type="button"
-                onClick={() => setCustomInputMode(true)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderTop: "1px solid var(--color-border-light)",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  color: "var(--color-button-primary)",
-                  textAlign: "left",
-                  transition: "background-color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(36, 99, 235, 0.08)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                + Add custom value
-              </button>
             )}
           </div>
         </PopoverContent>
