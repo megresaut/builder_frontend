@@ -9,6 +9,7 @@ import {
   NumberField,
   CurrencyField,
   TextAreaField,
+  FileUploadField,
 } from "@/components/forms";
 import {
   PROPERTIES,
