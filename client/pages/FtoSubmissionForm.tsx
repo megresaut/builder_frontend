@@ -44,6 +44,32 @@ interface ExpenseEntry {
   note: string;
 }
 
+interface HourEntryErrors {
+  [key: string]: {
+    date?: string;
+    propertyId?: string;
+    unitId?: string;
+    taskId?: string;
+    hours?: string;
+    emergencyRate?: string;
+    nonBillableHours?: string;
+    note?: string;
+  };
+}
+
+interface ExpenseEntryErrors {
+  [key: string]: {
+    date?: string;
+    propertyId?: string;
+    unitId?: string;
+    taskId?: string;
+    amount?: string;
+    chargeType?: string;
+    vendorId?: string;
+    note?: string;
+  };
+}
+
 export default function FtoSubmissionForm() {
   const navigate = useNavigate();
   const location = useLocation();
