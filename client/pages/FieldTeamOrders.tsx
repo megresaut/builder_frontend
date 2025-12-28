@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import PageHeader from "@/components/PageHeader";
@@ -10,7 +9,16 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { EditIcon, DeleteIcon, ApproveIcon } from "@/components/icons";
+import {
+  EditIcon,
+  DeleteIcon,
+  ApproveIcon,
+  PlusIcon,
+  BuildingIcon,
+  NoteIcon,
+  CalendarIcon,
+  DotsIcon,
+} from "@/components/icons";
 
 interface FieldTeamOrder {
   id: number;
