@@ -849,7 +849,11 @@ export default function FtoSubmissionForm() {
                           onViewFile={(file) => {
                             if (file.file) {
                               const fileURL = URL.createObjectURL(file.file);
-                              window.open(fileURL, "_blank");
+                              setPdfViewer({
+                                isOpen: true,
+                                url: fileURL,
+                                title: file.name,
+                              });
                             }
                           }}
                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
