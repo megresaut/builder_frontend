@@ -11,6 +11,19 @@ import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
 import { SubPageHeaderV2 } from "@/components/SubPageHeaderV2";
+import {
+  CalendarIcon,
+  ClockIcon,
+  DollarIcon,
+  DocumentIcon,
+  NoteIcon,
+  SyncIcon,
+  RecordBillIcon,
+  PlusIcon,
+  EditIcon,
+  DeleteIcon,
+  DotsIcon,
+} from "@/components/icons";
 
 interface Bill {
   id: number;
