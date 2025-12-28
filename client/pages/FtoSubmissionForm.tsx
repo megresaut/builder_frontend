@@ -610,6 +610,7 @@ export default function FtoSubmissionForm() {
 
                         <TextAreaField
                           label="Note"
+                          required
                           placeholder="notes for Expense Entry"
                           value={entry.note}
                           onChange={(e) =>
