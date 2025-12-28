@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Plus } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import AddVendorModal from "@/components/AddVendorModal";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, UserIcon, PhoneIcon, EmailIcon, NoteIcon, ListIcon, PlusIcon } from "@/components/icons";
 
 interface Vendor {
   id: number;
