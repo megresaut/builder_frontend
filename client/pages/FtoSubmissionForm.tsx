@@ -787,7 +787,7 @@ export default function FtoSubmissionForm() {
                             });
                             updateExpenseEntry(entry.id, "chargeType", value);
                           }}
-                          placeholder="Select an option"
+                          placeholder="Select An Option"
                         />
 
                         <SelectField
