@@ -977,10 +977,8 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
         <div
           className="flex items-center justify-between px-6"
           style={{
-            borderColor: "rgb(210, 209, 207)",
-            borderWidth: "1px",
-            borderRightWidth: "0px",
-            borderBottomWidth: isFullscreen ? "0px" : "1px",
+            borderLeftWidth: "1px",
+            border: isFullscreen ? "0px 0px 0px 1px solid rgb(210, 209, 207)" : "0px 0px 1px 1px solid rgb(210, 209, 207)",
             padding: "16px 24px",
           }}
         >
