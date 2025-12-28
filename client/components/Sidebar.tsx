@@ -498,16 +498,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
+                        <CloseIcon width={16} height={16} />
                       </button>
                     </div>
                   ))
@@ -807,16 +798,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
+                        <CloseIcon width={16} height={16} />
                       </button>
                     </div>
                   ))
