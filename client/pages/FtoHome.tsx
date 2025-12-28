@@ -281,11 +281,6 @@ export default function FtoHome() {
               icon: <ApproveIcon width={18} height={18} color="var(--color-text-secondary)" />,
               onClick: () => {},
             },
-            {
-              label: "Delete",
-              icon: <DeleteIcon width={18} height={18} color="var(--color-status-error)" />,
-              onClick: handleDeleteOrder,
-            },
           ]}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
