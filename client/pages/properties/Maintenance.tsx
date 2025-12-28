@@ -11,6 +11,7 @@ import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import TableToggle from "@/components/TableToggle";
 import {
   EditIcon,
   DeleteIcon,
