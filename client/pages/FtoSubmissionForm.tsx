@@ -822,6 +822,28 @@ export default function FtoSubmissionForm() {
                           }
                           autoGrow
                         />
+
+                        <FileUploadField
+                          label="Attachments"
+                          files={entry.files}
+                          onFilesAdded={(newFiles) => {
+                            updateExpenseEntry(entry.id, "files", [
+                              ...entry.files,
+                              ...newFiles,
+                            ]);
+                          }}
+                          onFileRemoved={(fileId) => {
+                            updateExpenseEntry(
+                              entry.id,
+                              "files",
+                              entry.files.filter((f) => f.id !== fileId)
+                            );
+                          }}
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                          maxFiles={10}
+                          maxSize={10 * 1024 * 1024}
+                          placeholder="Drag and drop files here, or click to browse"
+                        />
                       </div>
                     )}
                   </div>
