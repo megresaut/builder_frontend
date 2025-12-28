@@ -417,16 +417,24 @@ export default function FtoSubmissionForm() {
                         <DateField
                           label="Date"
                           required
+                          error={hourErrors[entry.id]?.date}
                           value={entry.date}
-                          onChange={(date) =>
+                          onChange={(date) => {
+                            setHourErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].date;
+                              }
+                              return newErrors;
+                            });
                             updateHourEntry(
                               entry.id,
                               "date",
                               date instanceof Date
                                 ? date.toISOString().split("T")[0]
                                 : date
-                            )
-                          }
+                            );
+                          }}
                           placeholder="mm/dd/yyyy"
                           returnFormat="ISO"
                         />
