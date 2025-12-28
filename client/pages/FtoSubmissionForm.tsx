@@ -78,6 +78,11 @@ export default function FtoSubmissionForm() {
   const location = useLocation();
   const { ftoId } = useParams();
 
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
   const [pdfViewer, setPdfViewer] = useState<{ isOpen: boolean; url?: string; title: string }>({
     isOpen: false,
     url: undefined,
@@ -88,7 +93,7 @@ export default function FtoSubmissionForm() {
     {
       id: "hour-1",
       isExpanded: true,
-      date: null,
+      date: getTodayDate(),
       propertyId: null,
       unitId: null,
       taskId: null,
@@ -103,7 +108,7 @@ export default function FtoSubmissionForm() {
     {
       id: "expense-1",
       isExpanded: true,
-      date: null,
+      date: getTodayDate(),
       propertyId: null,
       unitId: null,
       taskId: null,
