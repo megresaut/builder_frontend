@@ -522,7 +522,7 @@ export default function FtoSubmissionForm() {
                               value
                             );
                           }}
-                          placeholder="Select an option"
+                          placeholder="Select An Option"
                         />
 
                         <SelectField
