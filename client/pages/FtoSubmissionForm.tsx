@@ -697,16 +697,24 @@ export default function FtoSubmissionForm() {
                         <DateField
                           label="Date"
                           required
+                          error={expenseErrors[entry.id]?.date}
                           value={entry.date}
-                          onChange={(date) =>
+                          onChange={(date) => {
+                            setExpenseErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].date;
+                              }
+                              return newErrors;
+                            });
                             updateExpenseEntry(
                               entry.id,
                               "date",
                               date instanceof Date
                                 ? date.toISOString().split("T")[0]
                                 : date
-                            )
-                          }
+                            );
+                          }}
                           placeholder="mm/dd/yyyy"
                           returnFormat="ISO"
                         />
@@ -717,18 +725,26 @@ export default function FtoSubmissionForm() {
                             <SelectField
                               label="Property"
                               required
+                              error={expenseErrors[entry.id]?.propertyId}
                               options={PROPERTIES.map((p) => ({
                                 value: p.id,
                                 label: p.name,
                               }))}
                               value={entry.propertyId || ""}
-                              onChange={(value) =>
+                              onChange={(value) => {
+                                setExpenseErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  if (newErrors[entry.id]) {
+                                    delete newErrors[entry.id].propertyId;
+                                  }
+                                  return newErrors;
+                                });
                                 updateExpenseEntry(
                                   entry.id,
                                   "propertyId",
                                   value
-                                )
-                              }
+                                );
+                              }}
                               placeholder="Select Property"
                             />
                           </div>
@@ -736,6 +752,7 @@ export default function FtoSubmissionForm() {
                             <SelectField
                               label="Unit"
                               required
+                              error={expenseErrors[entry.id]?.unitId}
                               options={getPropertyUnits(
                                 entry.propertyId
                               ).map((u) => ({
@@ -743,9 +760,16 @@ export default function FtoSubmissionForm() {
                                 label: u.name,
                               }))}
                               value={entry.unitId || ""}
-                              onChange={(value) =>
-                                updateExpenseEntry(entry.id, "unitId", value)
-                              }
+                              onChange={(value) => {
+                                setExpenseErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  if (newErrors[entry.id]) {
+                                    delete newErrors[entry.id].unitId;
+                                  }
+                                  return newErrors;
+                                });
+                                updateExpenseEntry(entry.id, "unitId", value);
+                              }}
                               placeholder="Select unit if applicable"
                               disabled={!entry.propertyId}
                             />
@@ -755,54 +779,94 @@ export default function FtoSubmissionForm() {
                         <SelectField
                           label="Task"
                           required
+                          error={expenseErrors[entry.id]?.taskId}
                           options={TASKS}
                           value={entry.taskId || ""}
-                          onChange={(value) =>
-                            updateExpenseEntry(entry.id, "taskId", value)
-                          }
+                          onChange={(value) => {
+                            setExpenseErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].taskId;
+                              }
+                              return newErrors;
+                            });
+                            updateExpenseEntry(entry.id, "taskId", value);
+                          }}
                           placeholder="Select Task Or N/A"
                         />
 
                         <CurrencyField
                           label="Amount"
                           required
+                          error={expenseErrors[entry.id]?.amount}
                           placeholder="$0.00"
                           value={entry.amount}
-                          onChange={(value) =>
-                            updateExpenseEntry(entry.id, "amount", value)
-                          }
+                          onChange={(value) => {
+                            setExpenseErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].amount;
+                              }
+                              return newErrors;
+                            });
+                            updateExpenseEntry(entry.id, "amount", value);
+                          }}
                         />
 
                         <SelectField
                           label="Charge Type"
                           required
+                          error={expenseErrors[entry.id]?.chargeType}
                           options={CHARGE_TYPES}
                           value={entry.chargeType || ""}
-                          onChange={(value) =>
-                            updateExpenseEntry(entry.id, "chargeType", value)
-                          }
+                          onChange={(value) => {
+                            setExpenseErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].chargeType;
+                              }
+                              return newErrors;
+                            });
+                            updateExpenseEntry(entry.id, "chargeType", value);
+                          }}
                           placeholder="Select an option"
                         />
 
                         <SelectField
                           label="Vendor"
                           required
+                          error={expenseErrors[entry.id]?.vendorId}
                           options={vendorOptions}
                           value={entry.vendorId || ""}
-                          onChange={(value) =>
-                            updateExpenseEntry(entry.id, "vendorId", value)
-                          }
+                          onChange={(value) => {
+                            setExpenseErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].vendorId;
+                              }
+                              return newErrors;
+                            });
+                            updateExpenseEntry(entry.id, "vendorId", value);
+                          }}
                           placeholder="Select Vendor Paid Or N/A"
                         />
 
                         <TextAreaField
                           label="Note"
                           required
+                          error={expenseErrors[entry.id]?.note}
                           placeholder="notes for Expense Entry"
                           value={entry.note}
-                          onChange={(e) =>
-                            updateExpenseEntry(entry.id, "note", e.target.value)
-                          }
+                          onChange={(e) => {
+                            setExpenseErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].note;
+                              }
+                              return newErrors;
+                            });
+                            updateExpenseEntry(entry.id, "note", e.target.value);
+                          }}
                           autoGrow
                         />
                       </div>
