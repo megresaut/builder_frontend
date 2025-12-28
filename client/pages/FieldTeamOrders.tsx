@@ -18,6 +18,9 @@ import {
   NoteIcon,
   CalendarIcon,
   DotsIcon,
+  DocumentIcon,
+  DollarIcon,
+  UserIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
