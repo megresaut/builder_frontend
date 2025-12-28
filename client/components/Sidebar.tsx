@@ -547,6 +547,8 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                         to={firstPath}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                         style={{ minHeight: "38px" }}
+                        onMouseEnter={() => setHoveredItem(item.id)}
+                        onMouseLeave={() => setHoveredItem(null)}
                         onClick={() => {
                           const firstItem = submenu[0];
                           if (firstItem) {
