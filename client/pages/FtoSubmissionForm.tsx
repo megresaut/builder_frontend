@@ -530,11 +530,11 @@ export default function FtoSubmissionForm() {
                         />
 
                         <SelectField
-                          label="Non-Billable Hours?"
+                          label="Charge to Client?"
                           required
                           error={hourErrors[entry.id]?.nonBillableHours}
                           options={YES_NO_OPTIONS}
-                          value={entry.nonBillableHours || ""}
+                          value={entry.nonBillableHours || "no"}
                           onChange={(value) => {
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
