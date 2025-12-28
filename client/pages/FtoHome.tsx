@@ -76,6 +76,37 @@ export default function FtoHome() {
 
   const orderData = activeTab === "open" ? openOrders : closedOrders;
 
+  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
+    name: {
+      label: "Name",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    dueDate: {
+      label: "Due date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    description: {
+      label: "Description",
+      icon: <NoteIcon width={16} height={16} />,
+    },
+    property: {
+      label: "Property",
+      icon: <BuildingIcon width={16} height={16} />,
+    },
+    unit: {
+      label: "Unit",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    priority: {
+      label: "Priority",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    createdBy: {
+      label: "Created By",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+  };
+
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(orderData);
