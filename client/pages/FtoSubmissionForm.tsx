@@ -481,14 +481,12 @@ export default function FtoSubmissionForm() {
                           </span>
                         </div>
                       </div>
-                      {index === 0 && (
-                        <button
-                          onClick={() => deleteExpenseEntry(entry.id)}
-                          className="text-[#09090B] hover:opacity-70 transition-opacity"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => deleteExpenseEntry(entry.id)}
+                        className="text-[#982740] hover:opacity-70 transition-opacity"
+                      >
+                        <DeleteIcon width={16} height={16} />
+                      </button>
                     </div>
 
                     {index < expenseEntries.length - 1 && (
