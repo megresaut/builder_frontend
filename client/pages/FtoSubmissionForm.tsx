@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
-import { ClockIcon, DollarIcon, PlusIcon } from "@/components/icons";
-import { ChevronRight, ChevronDown, Trash2 } from "lucide-react";
+import { ClockIcon, DollarIcon, PlusIcon, DeleteIcon } from "@/components/icons";
+import { ChevronRight, ChevronDown } from "lucide-react";
 import {
   DateField,
   SelectField,
