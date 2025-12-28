@@ -839,6 +839,12 @@ export default function FtoSubmissionForm() {
                               entry.files.filter((f) => f.id !== fileId)
                             );
                           }}
+                          onViewFile={(file) => {
+                            if (file.file) {
+                              const fileURL = URL.createObjectURL(file.file);
+                              window.open(fileURL, "_blank");
+                            }
+                          }}
                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
                           maxFiles={10}
                           maxSize={10 * 1024 * 1024}
