@@ -18,5 +18,7 @@ export { CloseIcon } from './CloseIcon';
 export { ExpandCollapseIcon } from './ExpandCollapseIcon';
 export { StarIcon } from './StarIcon';
 export { CommandIcon } from './CommandIcon';
+export { PinIcon } from './PinIcon';
+export { ChevronDownIcon } from './ChevronDownIcon';
 
 export type { } from './EditIcon';
