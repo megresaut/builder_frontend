@@ -991,17 +991,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
               className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
               aria-label="Go back"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="m12 19-7-7 7-7" />
-                <path d="M19 12H5" />
-              </svg>
+              <ArrowBackIcon width={20} height={20} />
             </button>
             <button
               onClick={handleForwardInTab}
