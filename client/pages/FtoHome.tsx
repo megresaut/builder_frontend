@@ -61,7 +61,6 @@ export default function FtoHome() {
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
   const [openOrders] = useState<FieldTeamOrder[]>(mockOpenOrders);
   const [closedOrders] = useState<FieldTeamOrder[]>(mockClosedOrders);
-  const columnButtonRef = useRef<HTMLButtonElement>(null);
 
   const tabs = [
     { id: "open" as const, label: "Open" },
