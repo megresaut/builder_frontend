@@ -19,6 +19,7 @@ import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
+import FtoShellLayout from "./layout/FtoShellLayout";
 import { TabContext } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
 import Utilities from "./pages/Utilities";
@@ -30,6 +31,8 @@ import { Login } from "./pages/Login";
 import { Welcome } from "./pages/Welcome";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
+import FtoHome from "./pages/FtoHome";
+import FtoSubmissionSummary from "./pages/FtoSubmissionSummary";
 
 const queryClient = new QueryClient();
 
