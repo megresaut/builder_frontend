@@ -138,8 +138,8 @@ export default function FtoSubmissionForm() {
         unitId: null,
         taskId: null,
         hours: "",
-        emergencyRate: null,
-        nonBillableHours: null,
+        emergencyRate: "no",
+        nonBillableHours: "no",
         note: "",
       },
     ]);
