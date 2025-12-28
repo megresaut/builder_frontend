@@ -145,7 +145,7 @@ export default function FtoSubmissionForm() {
       {
         id: `hour-${Date.now()}`,
         isExpanded: true,
-        date: null,
+        date: getTodayDate(),
         propertyId: null,
         unitId: null,
         taskId: null,
