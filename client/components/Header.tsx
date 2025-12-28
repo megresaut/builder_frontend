@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
+import { useBreadcrumbs, Breadcrumbs } from "@/components/breadcrumbs";
 
 // Global state for fullscreen mode using localStorage
 const FULLSCREEN_KEY = "app-fullscreen-mode";
