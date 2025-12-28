@@ -13,6 +13,7 @@ export default function FtoSubmissionSummary() {
         </div>
 
         <SubPageHeaderV2
+          leftContent={<div />}
           rightContent={
             <BlueButton>Submit</BlueButton>
           }
