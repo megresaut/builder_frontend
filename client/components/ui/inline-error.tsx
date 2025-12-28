@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertCircle } from "lucide-react";
+import { CloseIcon } from "@/components/icons";
 
 interface InlineErrorProps {
   message?: string;
