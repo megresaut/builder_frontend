@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import PageHeader from "@/components/PageHeader";
@@ -10,7 +9,14 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import {
+  EditIcon,
+  DeleteIcon,
+  PlusIcon,
+  CalendarIcon,
+  ClockIcon,
+  DotsIcon,
+} from "@/components/icons";
 
 interface Assignee {
   id: number;
