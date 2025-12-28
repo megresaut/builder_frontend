@@ -574,20 +574,11 @@ export default function FtoSubmissionForm() {
 
                         <TextAreaField
                           label="Note"
-                          required
-                          error={hourErrors[entry.id]?.note}
                           placeholder="Notes for Hour entry"
                           value={entry.note}
-                          onChange={(e) => {
-                            setHourErrors((prev) => {
-                              const newErrors = { ...prev };
-                              if (newErrors[entry.id]) {
-                                delete newErrors[entry.id].note;
-                              }
-                              return newErrors;
-                            });
-                            updateHourEntry(entry.id, "note", e.target.value);
-                          }}
+                          onChange={(e) =>
+                            updateHourEntry(entry.id, "note", e.target.value)
+                          }
                           autoGrow
                         />
                       </div>
