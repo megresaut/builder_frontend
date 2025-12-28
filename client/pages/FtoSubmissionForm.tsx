@@ -43,6 +43,7 @@ interface ExpenseEntry {
   chargeType: string | null;
   vendorId: string | null;
   note: string;
+  files: any[];
 }
 
 interface HourEntryErrors {
