@@ -18,7 +18,7 @@ import {
   DocumentIcon,
   FlagIcon,
   EditIcon,
-  UserIcon
+  UserIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -52,9 +52,11 @@ interface FetchFTOsParams {
 }
 
 // Mock API function that simulates GET /maintenance/ftos
-const mockFetchFTOs = async (params: FetchFTOsParams): Promise<APIFieldTeamOrder[]> => {
+const mockFetchFTOs = async (
+  params: FetchFTOsParams,
+): Promise<APIFieldTeamOrder[]> => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   const mockData: APIFieldTeamOrder[] = [
     {
@@ -94,7 +96,9 @@ const mockFetchFTOs = async (params: FetchFTOsParams): Promise<APIFieldTeamOrder
 
   // Filter by status if provided
   if (params.status) {
-    return mockData.filter(order => order.form_submission_status === params.status);
+    return mockData.filter(
+      (order) => order.form_submission_status === params.status,
+    );
   }
 
   return mockData;
@@ -102,7 +106,7 @@ const mockFetchFTOs = async (params: FetchFTOsParams): Promise<APIFieldTeamOrder
 
 // Transform API response to component format
 const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
-  return apiData.map(order => ({
+  return apiData.map((order) => ({
     id: order.id,
     name: order.name,
     dueDate: order.due_date,
@@ -147,7 +151,7 @@ export default function FtoHome() {
   }, []);
 
   // Filter orders based on active tab
-  const orderData = allOrders.filter(order => {
+  const orderData = allOrders.filter((order) => {
     if (activeTab === "open") {
       return order.formSubmissionStatus === "none";
     } else {
@@ -155,36 +159,37 @@ export default function FtoHome() {
     }
   });
 
-  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
-    name: {
-      label: "Name",
-      icon: <DocumentIcon width={16} height={16} />,
-    },
-    dueDate: {
-      label: "Due date",
-      icon: <CalendarIcon width={16} height={16} />,
-    },
-    description: {
-      label: "Description",
-      icon: <NoteIcon width={16} height={16} />,
-    },
-    property: {
-      label: "Property",
-      icon: <BuildingIcon width={16} height={16} />,
-    },
-    unit: {
-      label: "Unit",
-      icon: <DocumentIcon width={16} height={16} />,
-    },
-    priority: {
-      label: "Priority",
-      icon: <FlagIcon width={16} height={16} />,
-    },
-    createdBy: {
-      label: "Created By",
-      icon: <DocumentIcon width={16} height={16} />,
-    },
-  };
+  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> =
+    {
+      name: {
+        label: "Name",
+        icon: <DocumentIcon width={16} height={16} />,
+      },
+      dueDate: {
+        label: "Due date",
+        icon: <CalendarIcon width={16} height={16} />,
+      },
+      description: {
+        label: "Description",
+        icon: <NoteIcon width={16} height={16} />,
+      },
+      property: {
+        label: "Property",
+        icon: <BuildingIcon width={16} height={16} />,
+      },
+      unit: {
+        label: "Unit",
+        icon: <DocumentIcon width={16} height={16} />,
+      },
+      priority: {
+        label: "Priority",
+        icon: <FlagIcon width={16} height={16} />,
+      },
+      createdBy: {
+        label: "Created By",
+        icon: <DocumentIcon width={16} height={16} />,
+      },
+    };
 
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } =
@@ -229,13 +234,41 @@ export default function FtoHome() {
   );
 
   const columns = [
-    { key: "name", label: "Name", icon: <EditIcon width={16} height={16} color="#525252" /> },
-    { key: "dueDate", label: "Due date", icon: <CalendarIcon width={16} height={16} /> },
-    { key: "description", label: "Description", icon: <NoteIcon width={16} height={16} /> },
-    { key: "property", label: "Property", icon: <BuildingIcon width={16} height={16} /> },
-    { key: "unit", label: "Unit", icon: <DocumentIcon width={16} height={16} /> },
-    { key: "priority", label: "Priority", icon: <FlagIcon width={16} height={16} /> },
-    { key: "createdBy", label: "Created By", icon: <UserIcon width={16} height={16} /> },
+    {
+      key: "name",
+      label: "Name",
+      icon: <EditIcon width={16} height={16} color="#525252" />,
+    },
+    {
+      key: "dueDate",
+      label: "Due date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    {
+      key: "description",
+      label: "Description",
+      icon: <NoteIcon width={16} height={16} />,
+    },
+    {
+      key: "property",
+      label: "Property",
+      icon: <BuildingIcon width={16} height={16} />,
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      icon: <FlagIcon width={16} height={16} />,
+    },
+    {
+      key: "createdBy",
+      label: "Created By",
+      icon: <UserIcon width={16} height={16} />,
+    },
   ];
 
   const getPriorityColor = (priority: string) => {
@@ -318,7 +351,9 @@ export default function FtoHome() {
                   <div className="flex items-center gap-2">
                     <div
                       className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: getPriorityColor(order.priority) }}
+                      style={{
+                        backgroundColor: getPriorityColor(order.priority),
+                      }}
                     />
                     <span className="text-gray-900 font-normal text-sm capitalize">
                       {order.priority}
@@ -380,9 +415,24 @@ export default function FtoHome() {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <circle cx="8" cy="3" r="1.5" fill="var(--color-text-primary)" />
-                <circle cx="8" cy="8" r="1.5" fill="var(--color-text-primary)" />
-                <circle cx="8" cy="13" r="1.5" fill="var(--color-text-primary)" />
+                <circle
+                  cx="8"
+                  cy="3"
+                  r="1.5"
+                  fill="var(--color-text-primary)"
+                />
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="1.5"
+                  fill="var(--color-text-primary)"
+                />
+                <circle
+                  cx="8"
+                  cy="13"
+                  r="1.5"
+                  fill="var(--color-text-primary)"
+                />
               </svg>
             </button>
           }
@@ -390,7 +440,13 @@ export default function FtoHome() {
           actions={[
             {
               label: "Submit",
-              icon: <ApproveIcon width={18} height={18} color="var(--color-text-secondary)" />,
+              icon: (
+                <ApproveIcon
+                  width={18}
+                  height={18}
+                  color="var(--color-text-secondary)"
+                />
+              ),
               onClick: (order) => {
                 navigate(`/fto/submission/${order.id}`, {
                   state: {
