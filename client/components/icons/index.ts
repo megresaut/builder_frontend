@@ -23,5 +23,12 @@ export { ChevronDownIcon } from './ChevronDownIcon';
 export { ChevronRightIcon } from './ChevronRightIcon';
 export { BuildingIcon } from './BuildingIcon';
 export { FilterIcon } from './FilterIcon';
+export { CalendarIcon } from './CalendarIcon';
+export { ClockIcon } from './ClockIcon';
+export { DollarIcon } from './DollarIcon';
+export { DocumentIcon } from './DocumentIcon';
+export { NoteIcon } from './NoteIcon';
+export { SyncIcon } from './SyncIcon';
+export { RecordBillIcon } from './RecordBillIcon';
 
 export type { } from './EditIcon';
