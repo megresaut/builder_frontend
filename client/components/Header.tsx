@@ -1013,18 +1013,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
             {/* Search Bar */}
             <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-28">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="text-gray-700 flex-shrink-0"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.34-4.34" />
-                </svg>
+                <SearchIcon width={18} height={18} className="text-gray-700 flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Search..."
@@ -1032,16 +1021,7 @@ export default function Header({ forceCollapse = false }: HeaderProps) {
                 />
               </div>
               <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-                </svg>
+                <CommandIcon width={14} height={14} />
                 <span>S</span>
               </div>
             </div>
