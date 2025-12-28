@@ -4,6 +4,15 @@ import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
 import { useBreadcrumbs, Breadcrumbs } from "@/components/breadcrumbs";
 import { Tabs, Tab } from "@/components/tabs";
+import {
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  SearchIcon,
+  CommandIcon,
+  StarIcon,
+  BellIcon,
+  ExpandCollapseIcon,
+} from "@/components/icons";
 
 // Global state for fullscreen mode using localStorage
 const FULLSCREEN_KEY = "app-fullscreen-mode";
