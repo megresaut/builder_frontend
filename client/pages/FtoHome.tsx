@@ -118,15 +118,42 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
 export default function FtoHome() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
-  const [openOrders] = useState<FieldTeamOrder[]>(mockOpenOrders);
-  const [closedOrders] = useState<FieldTeamOrder[]>(mockClosedOrders);
+  const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const tabs = [
     { id: "open" as const, label: "Open" },
     { id: "closed" as const, label: "Closed" },
   ];
 
-  const orderData = activeTab === "open" ? openOrders : closedOrders;
+  // Fetch FTOs from mock API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const apiResponse = await mockFetchFTOs({
+          field_team_member_id: 1, // Mock team member ID
+        });
+        const transformedData = transformAPIData(apiResponse);
+        setAllOrders(transformedData);
+      } catch (error) {
+        console.error("Error fetching FTOs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  // Filter orders based on active tab
+  const orderData = allOrders.filter(order => {
+    if (activeTab === "open") {
+      return order.formSubmissionStatus === "none";
+    } else {
+      return order.formSubmissionStatus !== "none";
+    }
+  });
 
   const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
     name: {
