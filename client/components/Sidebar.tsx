@@ -100,6 +100,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         {
           id: "fto-home",
           label: "Home",
+          hasSubmenu: true,
           iconLight: (
             <svg
               width="20"
