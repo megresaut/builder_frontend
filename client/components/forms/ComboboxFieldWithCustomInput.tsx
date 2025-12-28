@@ -92,38 +92,17 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
   customInputPlaceholder = "Or enter a new value",
 }) => {
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [customInputMode, setCustomInputMode] = useState(false);
   const [customValue, setCustomValue] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const customInputRef = useRef<HTMLInputElement>(null);
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
   const selectedLabel = selectedOption?.label ?? (value || placeholder);
 
-  // Filter options based on search term
-  const filteredOptions = searchTerm
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    : options;
-
-  // Reset highlighted index when search term changes
-  useEffect(() => {
-    setHighlightedIndex(0);
-  }, [searchTerm]);
-
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (open && searchInputRef.current) {
-      const timer = setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-  }, [open]);
+  // Use all options (no filtering)
+  const filteredOptions = options;
 
   // Focus custom input when entering custom mode
   useEffect(() => {
