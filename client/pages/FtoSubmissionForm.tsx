@@ -927,6 +927,13 @@ export default function FtoSubmissionForm() {
           </div>
         </div>
       </div>
+
+      <PdfViewerModal
+        open={pdfViewer.isOpen}
+        onOpenChange={(open) => setPdfViewer({ ...pdfViewer, isOpen: open })}
+        title={pdfViewer.title}
+        url={pdfViewer.url}
+      />
     </PageTemplate>
   );
 }
