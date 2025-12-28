@@ -93,18 +93,6 @@ export default function FtoSubmissionForm() {
   const [expenseEntries, setExpenseEntries] = useState<ExpenseEntry[]>([
     {
       id: "expense-1",
-      isExpanded: false,
-      date: null,
-      propertyId: null,
-      unitId: null,
-      taskId: null,
-      amount: "",
-      chargeType: null,
-      vendorId: null,
-      note: "",
-    },
-    {
-      id: "expense-2",
       isExpanded: true,
       date: null,
       propertyId: null,
