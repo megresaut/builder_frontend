@@ -910,17 +910,7 @@ export const Bills: React.FC<BillsProps> = ({
                 }}
                 className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-100 transition-colors"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
-                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
-                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
-                </svg>
+                <DotsIcon width={18} height={18} color="#303030" />
               </button>
             }
           />
@@ -1048,17 +1038,7 @@ export const Bills: React.FC<BillsProps> = ({
                 }}
                 className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-100 transition-colors"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
-                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
-                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
-                </svg>
+                <DotsIcon width={18} height={18} color="#303030" />
               </button>
             }
           />
