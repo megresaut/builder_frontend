@@ -24,7 +24,7 @@ interface SidebarProps {
   mode?: "default" | "fto";
 }
 
-export default function Sidebar({ forceCollapse = false }: SidebarProps) {
+export default function Sidebar({ forceCollapse = false, mode = "default" }: SidebarProps) {
   const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -43,6 +43,9 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
   const { favorites, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Determine if we're in FTO mode based on current route or prop
+  const isFtoMode = mode === "fto" || location.pathname.startsWith("/fto");
 
   // Persist sidebar pinned state to localStorage
   useEffect(() => {
