@@ -260,11 +260,6 @@ export default function FtoSubmissionForm() {
         errors.nonBillableHours = "Non-Billable Hours is required";
         isValid = false;
       }
-      if (!entry.note) {
-        errors.note = "Note is required";
-        isValid = false;
-      }
-
       if (Object.keys(errors).length > 0) {
         newHourErrors[entry.id] = errors;
       }
@@ -300,10 +295,6 @@ export default function FtoSubmissionForm() {
       }
       if (!entry.vendorId) {
         errors.vendorId = "Vendor is required";
-        isValid = false;
-      }
-      if (!entry.note) {
-        errors.note = "Note is required";
         isValid = false;
       }
 
