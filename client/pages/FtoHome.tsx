@@ -8,7 +8,7 @@ import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
-import { PlusIcon, DeleteIcon, ApproveIcon } from "@/components/icons";
+import { PlusIcon, ApproveIcon } from "@/components/icons";
 
 interface FieldTeamOrder {
   id: number;
