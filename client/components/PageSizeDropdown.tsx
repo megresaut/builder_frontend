@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { ChevronDownIcon } from "@/components/icons";
 
 interface PageSizeDropdownProps {
   itemsPerPage: number;
