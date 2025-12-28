@@ -12,7 +12,18 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import {
+  EditIcon,
+  DeleteIcon,
+  CalendarIcon,
+  ClockIcon,
+  NoteIcon,
+  DocumentIcon,
+  DollarIcon,
+  PlusIcon,
+  SyncIcon,
+  RecordBillIcon,
+} from "@/components/icons";
 
 interface BillsProps {
   propertyAddress: string;
