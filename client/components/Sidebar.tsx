@@ -161,6 +161,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         {
           id: "fto-submission",
           label: "Submission History",
+          hasSubmenu: true,
           iconLight: (
             <svg
               width="20"
