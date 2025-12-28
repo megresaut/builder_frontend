@@ -132,47 +132,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
     }
   };
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    switch (e.key) {
-      case "ArrowDown":
-        if (!open) {
-          setOpen(true);
-        } else if (filteredOptions.length > 0) {
-          e.preventDefault();
-          setHighlightedIndex((prev) =>
-            prev < filteredOptions.length - 1 ? prev + 1 : prev,
-          );
-        }
-        break;
-      case "ArrowUp":
-        if (!open) {
-          setOpen(true);
-        } else if (filteredOptions.length > 0) {
-          e.preventDefault();
-          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        }
-        break;
-      case "Enter":
-        if (open && filteredOptions.length > 0) {
-          e.preventDefault();
-          if (filteredOptions[highlightedIndex]) {
-            handleSelect(filteredOptions[highlightedIndex].value);
-          }
-        }
-        break;
-      case "Escape":
-        if (open) {
-          e.preventDefault();
-          setOpen(false);
-          setSearchTerm("");
-          setCustomInputMode(false);
-          setCustomValue("");
-        }
-        break;
-      default:
-        break;
-    }
-  };
 
   const handleCustomInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
