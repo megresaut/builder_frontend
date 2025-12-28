@@ -501,18 +501,18 @@ export default function FtoSubmissionForm() {
                           placeholder="7.5"
                           value={entry.hours}
                           onChange={(e) => {
-                            setHourErrors((prev) => {
-                              const newErrors = { ...prev };
-                              if (newErrors[entry.id]) {
-                                delete newErrors[entry.id].hours;
-                              }
-                              return newErrors;
-                            });
-                            updateHourEntry(
-                              entry.id,
-                              "hours",
-                              e.target.value
-                            );
+                            const value = e.target.value;
+                            // Only allow whole numbers or numbers with max one decimal place
+                            if (value === "" || /^(\d+\.?\d?)$/.test(value)) {
+                              setHourErrors((prev) => {
+                                const newErrors = { ...prev };
+                                if (newErrors[entry.id]) {
+                                  delete newErrors[entry.id].hours;
+                                }
+                                return newErrors;
+                              });
+                              updateHourEntry(entry.id, "hours", value);
+                            }
                           }}
                           step="0.5"
                           min="0"
