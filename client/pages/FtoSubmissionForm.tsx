@@ -11,6 +11,7 @@ import {
   CurrencyField,
   TextAreaField,
   FileUploadField,
+  ComboboxFieldWithCustomInput,
 } from "@/components/forms";
 import {
   PROPERTIES,
