@@ -19,13 +19,6 @@ const setFullscreenMode = (value: boolean) => {
   }
 };
 
-interface Tab {
-  id: string;
-  iconLight: React.ReactNode;
-  iconDark: React.ReactNode;
-  label: string;
-}
-
 interface HeaderProps {
   forceCollapse?: boolean;
 }
