@@ -175,6 +175,10 @@ export default function FtoSubmissionForm() {
     );
   };
 
+  const deleteHourEntry = (id: string) => {
+    setHourEntries((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
   const deleteExpenseEntry = (id: string) => {
     setExpenseEntries((prev) => prev.filter((entry) => entry.id !== id));
   };
