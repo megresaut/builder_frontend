@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { StatusBadge } from "./StatusBadge";
+import { SearchIcon, FilterIcon } from "@/components/icons";
 
 interface InvoiceHistory {
   id: number;
