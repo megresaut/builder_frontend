@@ -383,20 +383,13 @@ export default function GlobalTable({
               borderRightColor: "var(--color-border-light)",
             }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={currentPage === 1 ? "var(--color-text-muted)" : "currentColor"}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m12 19-7-7 7-7" />
-              <path d="M19 12H5" />
-            </svg>
+            <ArrowBackIcon
+              width={20}
+              height={20}
+              style={{
+                color: currentPage === 1 ? "var(--color-text-muted)" : "currentColor"
+              }}
+            />
             <div
               className={cn(
                 "font-medium text-sm",
