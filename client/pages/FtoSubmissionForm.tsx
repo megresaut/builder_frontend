@@ -700,8 +700,14 @@ export default function FtoSubmissionForm() {
               </span>
             </button>
             <button
-              onClick={() => navigate("/fto")}
-              className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center"
+              onClick={() => {
+                if (!validateForm()) {
+                  alert("Please fill in all required fields");
+                  return;
+                }
+                navigate("/fto");
+              }}
+              className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span
                 className="text-base text-white font-medium"
