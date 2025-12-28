@@ -352,7 +352,10 @@ function HourEntryCard({
   canRemove,
   getPropertyUnits,
 }: HourEntryCardProps) {
-  const propertyUnits = getPropertyUnits(entry.property);
+  const propertyUnits = getPropertyUnits(entry.property).map((unit) => ({
+    value: unit.id,
+    label: unit.name,
+  }));
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
@@ -500,7 +503,10 @@ function ExpenseEntryCard({
   canRemove,
   getPropertyUnits,
 }: ExpenseEntryCardProps) {
-  const propertyUnits = getPropertyUnits(entry.property);
+  const propertyUnits = getPropertyUnits(entry.property).map((unit) => ({
+    value: unit.id,
+    label: unit.name,
+  }));
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
