@@ -163,7 +163,7 @@ export default function FtoSubmissionForm() {
       {
         id: `expense-${Date.now()}`,
         isExpanded: true,
-        date: null,
+        date: getTodayDate(),
         propertyId: null,
         unitId: null,
         taskId: null,
