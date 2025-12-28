@@ -23,6 +23,7 @@ import {
   PlusIcon,
   SyncIcon,
   RecordBillIcon,
+  DotsIcon,
 } from "@/components/icons";
 
 interface BillsProps {
