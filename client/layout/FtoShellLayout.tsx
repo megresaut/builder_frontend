@@ -65,7 +65,7 @@ export default function FtoShellLayout({ children }: FtoShellLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar forceCollapse={forceCollapse} />
+      <Sidebar forceCollapse={forceCollapse} mode="fto" />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header forceCollapse={forceCollapse} />
         <div
