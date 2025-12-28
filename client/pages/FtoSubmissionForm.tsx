@@ -200,15 +200,24 @@ export default function FtoSubmissionForm() {
         <div className="w-full max-w-[700px] flex flex-col gap-7">
           {/* Title and Divider */}
           <div className="flex flex-col gap-3">
-            <h1
-              className="text-[28px] font-semibold text-[#303030] leading-[26px]"
-              style={{
-                fontFamily:
-                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              }}
-            >
-              Submission Summary
-            </h1>
+            <div className="flex items-center justify-between">
+              <h1
+                className="text-[28px] font-semibold text-[#303030] leading-[26px]"
+                style={{
+                  fontFamily:
+                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                }}
+              >
+                Submission Summary
+              </h1>
+              <button
+                onClick={() => navigate("/fto")}
+                className="text-[#303030] hover:opacity-70 transition-opacity"
+                aria-label="Close submission form"
+              >
+                <CloseIcon width={20} height={20} />
+              </button>
+            </div>
             <div className="h-px w-full bg-[#E5E5E5]" />
           </div>
 
