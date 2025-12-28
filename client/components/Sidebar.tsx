@@ -2,6 +2,13 @@ import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
+import {
+  PropertiesIcon,
+  BillsIcon,
+  WorkOrdersIcon,
+  PinIcon,
+  ChevronDownIcon,
+} from "@/components/icons";
 
 interface SidebarItem {
   id: string;
