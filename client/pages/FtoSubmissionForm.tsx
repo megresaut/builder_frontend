@@ -78,6 +78,12 @@ export default function FtoSubmissionForm() {
   const location = useLocation();
   const { ftoId } = useParams();
 
+  const [pdfViewer, setPdfViewer] = useState<{ isOpen: boolean; url?: string; title: string }>({
+    isOpen: false,
+    url: undefined,
+    title: "",
+  });
+
   const [hourEntries, setHourEntries] = useState<HourEntry[]>([
     {
       id: "hour-1",
