@@ -635,7 +635,7 @@ export default function FtoSubmissionForm() {
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-2.5 mt-9">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/fto/home")}
               className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] px-3 py-2 min-h-[36px] flex items-center justify-center"
             >
               <span
@@ -651,7 +651,7 @@ export default function FtoSubmissionForm() {
               </span>
             </button>
             <button
-              onClick={() => navigate("/fto/submission-history")}
+              onClick={() => navigate("/fto/home")}
               className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center"
             >
               <span
