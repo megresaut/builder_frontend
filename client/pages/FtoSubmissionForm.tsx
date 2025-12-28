@@ -445,14 +445,22 @@ export default function FtoSubmissionForm() {
                             <SelectField
                               label="Property"
                               required
+                              error={hourErrors[entry.id]?.propertyId}
                               options={PROPERTIES.map((p) => ({
                                 value: p.id,
                                 label: p.name,
                               }))}
                               value={entry.propertyId || ""}
-                              onChange={(value) =>
-                                updateHourEntry(entry.id, "propertyId", value)
-                              }
+                              onChange={(value) => {
+                                setHourErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  if (newErrors[entry.id]) {
+                                    delete newErrors[entry.id].propertyId;
+                                  }
+                                  return newErrors;
+                                });
+                                updateHourEntry(entry.id, "propertyId", value);
+                              }}
                               placeholder="Select Property"
                             />
                           </div>
@@ -460,6 +468,7 @@ export default function FtoSubmissionForm() {
                             <SelectField
                               label="Unit"
                               required
+                              error={hourErrors[entry.id]?.unitId}
                               options={getPropertyUnits(entry.propertyId).map(
                                 (u) => ({
                                   value: u.id,
@@ -467,9 +476,16 @@ export default function FtoSubmissionForm() {
                                 })
                               )}
                               value={entry.unitId || ""}
-                              onChange={(value) =>
-                                updateHourEntry(entry.id, "unitId", value)
-                              }
+                              onChange={(value) => {
+                                setHourErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  if (newErrors[entry.id]) {
+                                    delete newErrors[entry.id].unitId;
+                                  }
+                                  return newErrors;
+                                });
+                                updateHourEntry(entry.id, "unitId", value);
+                              }}
                               placeholder="Select unit if applicable"
                               disabled={!entry.propertyId}
                             />
