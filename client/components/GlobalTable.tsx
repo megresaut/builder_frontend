@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { PageSizeDropdown } from "@/components/PageSizeDropdown";
 import { Search, ChevronDown } from "lucide-react";
+import { ArrowBackIcon, ArrowForwardIcon } from "@/components/icons";
 
 interface Column {
   key: string;
