@@ -780,7 +780,7 @@ export default function FtoSubmissionForm() {
                           required
                           error={expenseErrors[entry.id]?.chargeType}
                           options={CHARGE_TYPES}
-                          value={entry.chargeType || ""}
+                          value={entry.chargeType || "client-expense"}
                           onChange={(value) => {
                             setExpenseErrors((prev) => {
                               const newErrors = { ...prev };
