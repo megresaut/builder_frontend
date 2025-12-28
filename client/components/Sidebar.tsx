@@ -388,24 +388,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                 title={forceCollapse ? "Sidebar is locked on this page" : (isPinned ? "Unpin sidebar" : "Pin sidebar")}
                 disabled={forceCollapse}
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {isPinned ? (
-                    <>
-                      <path d="M4 7h16M9 4v4M15 4v4M6 11v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9M9 14h6M9 18h6" />
-                    </>
-                  ) : (
-                    <path d="M10.5 1.5H3.75A2.25 2.25 0 0 0 1.5 3.75V20.25A2.25 2.25 0 0 0 3.75 22.5H20.25A2.25 2.25 0 0 0 22.5 20.25V13.5M16.5 6L8.25 14.25M8.25 6L16.5 14.25" />
-                  )}
-                </svg>
+                <PinIcon width={20} height={20} isPinned={isPinned} />
               </button>
             </div>
           </div>
