@@ -807,7 +807,7 @@ export default function FtoSubmissionForm() {
                           placeholder="Select An Option"
                         />
 
-                        <SelectField
+                        <ComboboxFieldWithCustomInput
                           label="Vendor"
                           required
                           error={expenseErrors[entry.id]?.vendorId}
@@ -824,6 +824,8 @@ export default function FtoSubmissionForm() {
                             updateExpenseEntry(entry.id, "vendorId", value);
                           }}
                           placeholder="Select Vendor"
+                          searchPlaceholder="Search vendors..."
+                          customInputPlaceholder="Enter vendor name"
                         />
 
                         <TextAreaField
