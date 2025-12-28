@@ -33,6 +33,7 @@ import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
 import FtoHome from "./pages/FtoHome";
 import FtoSubmissionSummary from "./pages/FtoSubmissionSummary";
+import FtoSubmissionForm from "./pages/FtoSubmissionForm";
 
 const queryClient = new QueryClient();
 
@@ -245,6 +246,22 @@ export default function App() {
                   element={
                     <FtoShellLayout>
                       <FtoSubmissionSummary />
+                    </FtoShellLayout>
+                  }
+                />
+                <Route
+                  path="/fto/submission/:ftoId"
+                  element={
+                    <FtoShellLayout>
+                      <FtoSubmissionForm />
+                    </FtoShellLayout>
+                  }
+                />
+                <Route
+                  path="/fto/submission"
+                  element={
+                    <FtoShellLayout>
+                      <FtoSubmissionForm />
                     </FtoShellLayout>
                   }
                 />
