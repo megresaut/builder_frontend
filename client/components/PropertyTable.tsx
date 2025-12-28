@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ChevronDownIcon, ArrowBackIcon, ArrowForwardIcon } from "@/components/icons";
 
 interface PropertyTablePaginationProps {
   currentPage: number;
