@@ -78,18 +78,6 @@ export default function FtoSubmissionForm() {
   const [hourEntries, setHourEntries] = useState<HourEntry[]>([
     {
       id: "hour-1",
-      isExpanded: false,
-      date: null,
-      propertyId: null,
-      unitId: null,
-      taskId: null,
-      hours: "",
-      emergencyRate: null,
-      nonBillableHours: null,
-      note: "",
-    },
-    {
-      id: "hour-2",
       isExpanded: true,
       date: null,
       propertyId: null,
