@@ -12,7 +12,11 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
     const path = location.pathname;
     const items: BreadcrumbItem[] = [];
 
-    if (path.includes("/vendors/") && !path.endsWith("/vendors")) {
+    if (path === "/fto") {
+      items.push({ label: "Home" });
+    } else if (path === "/fto/submission-history") {
+      items.push({ label: "Submission History" });
+    } else if (path.includes("/vendors/") && !path.endsWith("/vendors")) {
       const match = path.match(/\/vendors\/(\d+)/);
       if (match) {
         const vendorId = match[1];
