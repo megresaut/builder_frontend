@@ -893,41 +893,38 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Navigation and Action Button */}
-      <div className="flex items-start justify-between gap-6 flex-wrap">
-        {/* Segmented Tabs */}
-        <TableToggle
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-
-        {/* Add Button - Dynamic based on active tab */}
-        <button
-          onClick={() => {
-            if (activeTab === "tasks") {
-              setShowCreateTaskModal(true);
-            } else if (activeTab === "recurring") {
-              setShowCreateRecurringTaskModal(true);
-            } else if (activeTab === "workorders") {
-              setShowCreateWorkOrderModal(true);
-            } else if (activeTab === "fieldteam") {
-              setEditFTOData(null);
-              setShowCreateFTOModal(true);
-            }
-          }}
-          className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg border border-white bg-[#013764] text-white font-medium text-base overflow-hidden transition-colors hover:bg-[#002D5A]"
-          style={{ boxShadow: "0px 0px 0px 1px #002D5A" }}
-        >
-  <PlusIcon width={20} height={20} color="white" />
-          <span>
+      {/* Sub Page Header with TableToggle and Blue Button */}
+      <SubPageHeaderV2
+        leftContent={
+          <TableToggle
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        }
+        rightContent={
+          <BlueButton
+            icon={<PlusIcon width={20} height={20} />}
+            onClick={() => {
+              if (activeTab === "tasks") {
+                setShowCreateTaskModal(true);
+              } else if (activeTab === "recurring") {
+                setShowCreateRecurringTaskModal(true);
+              } else if (activeTab === "workorders") {
+                setShowCreateWorkOrderModal(true);
+              } else if (activeTab === "fieldteam") {
+                setEditFTOData(null);
+                setShowCreateFTOModal(true);
+              }
+            }}
+          >
             {activeTab === "tasks" && "Add Task"}
             {activeTab === "recurring" && "Add Recurring Task"}
             {activeTab === "workorders" && "Add Work Order"}
             {activeTab === "fieldteam" && "Create FTO"}
-          </span>
-        </button>
-      </div>
+          </BlueButton>
+        }
+      />
 
       {/* Tasks Table */}
       {activeTab === "tasks" && (
