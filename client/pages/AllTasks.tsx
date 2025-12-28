@@ -327,32 +327,17 @@ export default function AllTasks() {
     {
       key: "due",
       label: "Due",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-      ),
+      icon: <CalendarIcon width={16} height={16} />,
     },
     {
       key: "updated",
       label: "Updated",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-      ),
+      icon: <CalendarIcon width={16} height={16} />,
     },
     {
       key: "age",
       label: "Age",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
+      icon: <ClockIcon width={16} height={16} />,
     },
     {
       key: "assignees",
