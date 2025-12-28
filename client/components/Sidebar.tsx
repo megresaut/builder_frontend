@@ -418,19 +418,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                         </span>
                       </div>
                       {item.hasSubmenu && hoveredItem === item.id && (
-                        <svg
-                          className="w-4 h-4 text-gray-900"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 9l6 6 6-6"
-                          />
-                        </svg>
+                        <ChevronDownIcon className="w-4 h-4 text-gray-900" />
                       )}
                     </button>
 
@@ -742,19 +730,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                         </span>
                       </div>
                       {item.hasSubmenu && hoveredItem === item.id && (
-                        <svg
-                          className="w-4 h-4 text-gray-900"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 9l6 6 6-6"
-                          />
-                        </svg>
+                        <ChevronDownIcon className="w-4 h-4 text-gray-900" />
                       )}
                     </button>
 
