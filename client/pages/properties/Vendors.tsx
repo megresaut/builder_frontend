@@ -106,48 +106,23 @@ export const Vendors: React.FC<VendorsProps> = ({
   const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
     name: {
       label: "Name",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
+      icon: <UserIcon width={16} height={16} color="#525252" />,
     },
     phone: {
       label: "Phone",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-        </svg>
-      ),
+      icon: <PhoneIcon width={16} height={16} color="#525252" />,
     },
     email: {
       label: "Email",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="20" height="16" x="2" y="4" rx="2" />
-          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-        </svg>
-      ),
+      icon: <EmailIcon width={16} height={16} color="#525252" />,
     },
     notes: {
       label: "Notes",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-        </svg>
-      ),
+      icon: <NoteIcon width={16} height={16} color="#525252" />,
     },
     servicesProvided: {
       label: "Services",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 2v20M2 12h20" />
-        </svg>
-      ),
+      icon: <ListIcon width={16} height={16} color="#525252" />,
     },
   };
 
