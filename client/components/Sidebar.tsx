@@ -8,6 +8,7 @@ import {
   WorkOrdersIcon,
   PinIcon,
   ChevronDownIcon,
+  CloseIcon,
 } from "@/components/icons";
 
 interface SidebarItem {
