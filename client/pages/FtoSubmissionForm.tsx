@@ -453,7 +453,7 @@ export default function FtoSubmissionForm() {
                                 });
                                 updateHourEntry(entry.id, "unitId", value);
                               }}
-                              placeholder="Select unit if applicable"
+                              placeholder="Select Unit"
                               disabled={!entry.propertyId}
                             />
                           </div>
@@ -475,7 +475,7 @@ export default function FtoSubmissionForm() {
                             });
                             updateHourEntry(entry.id, "taskId", value);
                           }}
-                          placeholder="Select Task Or N/A"
+                          placeholder="Select Task"
                         />
 
                         <NumberField
