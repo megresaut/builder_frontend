@@ -85,7 +85,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
   value,
   onChange,
   placeholder = "Select or enter option",
-  searchPlaceholder = "Search...",
   options,
   emptyMessage = "No results found",
   customInputPlaceholder = "Or enter a new value",
