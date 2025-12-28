@@ -20,5 +20,6 @@ export { StarIcon } from './StarIcon';
 export { CommandIcon } from './CommandIcon';
 export { PinIcon } from './PinIcon';
 export { ChevronDownIcon } from './ChevronDownIcon';
+export { ChevronRightIcon } from './ChevronRightIcon';
 
 export type { } from './EditIcon';
