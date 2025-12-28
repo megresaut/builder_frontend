@@ -29,23 +29,23 @@ interface ComboboxFieldWithCustomInputProps {
 }
 
 /**
- * ComboboxFieldWithCustomInput - Searchable combobox with free text input capability
+ * ComboboxFieldWithCustomInput - Combobox with free text input capability
  *
  * Combines dropdown selection with ability to enter custom values (e.g., new vendor name).
  * Custom values are NOT persisted—they're temporary input only.
  *
  * Features:
- * - Search and filter existing options
- * - Type custom value (won't be saved to database)
- * - Arrow key navigation, typeahead search, Enter/Escape support
+ * - Select from existing options
+ * - Click "Add custom value" to enter custom text (won't be saved to database)
+ * - Enter/Escape support
  * - Automatic scroll locking when open
  *
  * Keyboard Interactions:
- * - Click or Space/Enter: Open dropdown
- * - Type in search field: Filter options or create custom value
- * - ArrowDown/ArrowUp: Navigate options
- * - Enter: Select highlighted option or confirm custom input
- * - Escape: Close dropdown
+ * - Click button: Open dropdown
+ * - Click option: Select it
+ * - Click "Add custom value": Enter custom input mode
+ * - Enter in custom input: Confirm value
+ * - Escape: Close dropdown or cancel custom input
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
