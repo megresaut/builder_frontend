@@ -21,5 +21,7 @@ export { CommandIcon } from './CommandIcon';
 export { PinIcon } from './PinIcon';
 export { ChevronDownIcon } from './ChevronDownIcon';
 export { ChevronRightIcon } from './ChevronRightIcon';
+export { BuildingIcon } from './BuildingIcon';
+export { FilterIcon } from './FilterIcon';
 
 export type { } from './EditIcon';
