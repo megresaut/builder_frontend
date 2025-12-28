@@ -3,5 +3,18 @@ export { EmailIcon } from './EmailIcon';
 export { DotsIcon } from './DotsIcon';
 export { DeleteIcon } from './DeleteIcon';
 export { ApproveIcon } from './ApproveIcon';
+export { PortfolioIcon } from './PortfolioIcon';
+export { PropertiesIcon } from './PropertiesIcon';
+export { ScreeningIcon } from './ScreeningIcon';
+export { BillsIcon } from './BillsIcon';
+export { FieldTeamOrdersIcon } from './FieldTeamOrdersIcon';
+export { WorkOrdersIcon } from './WorkOrdersIcon';
+export { ArrowBackIcon } from './ArrowBackIcon';
+export { ArrowForwardIcon } from './ArrowForwardIcon';
+export { SearchIcon } from './SearchIcon';
+export { BellIcon } from './BellIcon';
+export { PlusIcon } from './PlusIcon';
+export { CloseIcon } from './CloseIcon';
+export { ExpandCollapseIcon } from './ExpandCollapseIcon';
 
 export type { } from './EditIcon';
