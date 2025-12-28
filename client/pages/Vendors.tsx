@@ -128,7 +128,7 @@ export default function Vendors() {
           action={{
             label: "Add Vendor",
             onClick: () => setIsAddVendorModalOpen(true),
-            icon: <Plus className="w-5 h-5" />,
+            icon: <PlusIcon width={20} height={20} />,
           }}
         />
 
