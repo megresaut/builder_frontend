@@ -10,7 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { useVendors } from "@/hooks/vendors";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, UserIcon, PhoneIcon, EmailIcon, ListIcon, NoteIcon } from "@/components/icons";
 import type { BaseVendor } from "@/data/vendors";
 
 
