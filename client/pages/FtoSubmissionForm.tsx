@@ -101,9 +101,10 @@ export default function FtoSubmissionForm() {
       unitId: null,
       taskId: null,
       amount: "",
-      chargeType: null,
+      chargeType: "client-expense",
       vendorId: null,
       note: "",
+      files: [],
     },
   ]);
 
