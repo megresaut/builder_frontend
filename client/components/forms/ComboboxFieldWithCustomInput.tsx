@@ -56,10 +56,9 @@ interface ComboboxFieldWithCustomInputProps {
  * @param onChange - Change handler (receives selected value or custom input)
  * @param disabled - Disable field
  * @param placeholder - Placeholder text shown when no selection
- * @param searchPlaceholder - Placeholder text in search input (default: "Search...")
  * @param options - Array of {value, label} options
  * @param emptyMessage - Message when no options match search (default: "No results found")
- * @param customInputPlaceholder - Placeholder for custom input section
+ * @param customInputPlaceholder - Placeholder for custom input field
  *
  * Example:
  * ```tsx
