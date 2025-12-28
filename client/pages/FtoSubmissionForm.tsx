@@ -194,6 +194,42 @@ export default function FtoSubmissionForm() {
     label: vendor.name,
   }));
 
+  const validateForm = (): boolean => {
+    // Validate hour entries
+    for (const entry of hourEntries) {
+      if (
+        !entry.date ||
+        !entry.propertyId ||
+        !entry.unitId ||
+        !entry.taskId ||
+        !entry.hours ||
+        !entry.emergencyRate ||
+        !entry.nonBillableHours ||
+        !entry.note
+      ) {
+        return false;
+      }
+    }
+
+    // Validate expense entries
+    for (const entry of expenseEntries) {
+      if (
+        !entry.date ||
+        !entry.propertyId ||
+        !entry.unitId ||
+        !entry.taskId ||
+        !entry.amount ||
+        !entry.chargeType ||
+        !entry.vendorId ||
+        !entry.note
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   return (
     <PageTemplate>
       <div className="flex flex-col items-center w-full px-6 py-9">
