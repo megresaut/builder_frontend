@@ -16,6 +16,8 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
       items.push({ label: "Home" });
     } else if (path === "/fto/submission-history") {
       items.push({ label: "Submission History" });
+    } else if (path.includes("/fto/submission")) {
+      items.push({ label: "Submission Form" });
     } else if (path.includes("/vendors/") && !path.endsWith("/vendors")) {
       const match = path.match(/\/vendors\/(\d+)/);
       if (match) {
