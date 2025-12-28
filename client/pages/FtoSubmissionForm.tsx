@@ -550,7 +550,7 @@ export default function FtoSubmissionForm() {
 
                         <TextAreaField
                           label="Note"
-                          placeholder="Notes for Hour entry"
+                          placeholder="Notes For Hour Entry"
                           value={entry.note}
                           onChange={(e) =>
                             updateHourEntry(entry.id, "note", e.target.value)
