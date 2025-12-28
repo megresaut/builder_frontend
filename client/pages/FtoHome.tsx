@@ -15,7 +15,9 @@ import {
   BuildingIcon,
   NoteIcon,
   DocumentIcon,
-  FlagIcon
+  FlagIcon,
+  EditIcon,
+  UserIcon
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -151,13 +153,13 @@ export default function FtoHome() {
   );
 
   const columns = [
-    { key: "name", label: "Name", icon: <DocumentIcon width={16} height={16} /> },
+    { key: "name", label: "Name", icon: <EditIcon width={16} height={16} color="#525252" /> },
     { key: "dueDate", label: "Due date", icon: <CalendarIcon width={16} height={16} /> },
     { key: "description", label: "Description", icon: <NoteIcon width={16} height={16} /> },
     { key: "property", label: "Property", icon: <BuildingIcon width={16} height={16} /> },
     { key: "unit", label: "Unit", icon: <DocumentIcon width={16} height={16} /> },
     { key: "priority", label: "Priority", icon: <FlagIcon width={16} height={16} /> },
-    { key: "createdBy", label: "Created By", icon: <DocumentIcon width={16} height={16} /> },
+    { key: "createdBy", label: "Created By", icon: <UserIcon width={16} height={16} /> },
   ];
 
   const getPriorityColor = (priority: string) => {
