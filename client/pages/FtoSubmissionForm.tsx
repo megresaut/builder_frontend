@@ -129,6 +129,9 @@ export default function FtoSubmissionForm() {
     },
   ]);
 
+  const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
+  const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
+
   const toggleHourEntry = (id: string) => {
     setHourEntries((prev) =>
       prev.map((entry) =>
