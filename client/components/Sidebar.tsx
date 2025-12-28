@@ -21,6 +21,7 @@ interface SidebarItem {
 
 interface SidebarProps {
   forceCollapse?: boolean;
+  mode?: "default" | "fto";
 }
 
 export default function Sidebar({ forceCollapse = false }: SidebarProps) {
