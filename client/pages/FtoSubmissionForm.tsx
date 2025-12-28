@@ -547,6 +547,7 @@ export default function FtoSubmissionForm() {
                           <div className="flex-1">
                             <SelectField
                               label="Unit"
+                              required
                               options={getPropertyUnits(
                                 entry.propertyId
                               ).map((u) => ({
