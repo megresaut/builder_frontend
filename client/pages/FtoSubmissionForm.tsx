@@ -495,26 +495,42 @@ export default function FtoSubmissionForm() {
                         <SelectField
                           label="Task"
                           required
+                          error={hourErrors[entry.id]?.taskId}
                           options={TASKS}
                           value={entry.taskId || ""}
-                          onChange={(value) =>
-                            updateHourEntry(entry.id, "taskId", value)
-                          }
+                          onChange={(value) => {
+                            setHourErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].taskId;
+                              }
+                              return newErrors;
+                            });
+                            updateHourEntry(entry.id, "taskId", value);
+                          }}
                           placeholder="Select Task Or N/A"
                         />
 
                         <NumberField
                           label="Hours"
                           required
+                          error={hourErrors[entry.id]?.hours}
                           placeholder="0"
                           value={entry.hours}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            setHourErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].hours;
+                              }
+                              return newErrors;
+                            });
                             updateHourEntry(
                               entry.id,
                               "hours",
                               e.target.value
-                            )
-                          }
+                            );
+                          }}
                           step="0.5"
                           min="0"
                         />
@@ -522,41 +538,65 @@ export default function FtoSubmissionForm() {
                         <SelectField
                           label="Emergency Rate?"
                           required
+                          error={hourErrors[entry.id]?.emergencyRate}
                           options={YES_NO_OPTIONS}
                           value={entry.emergencyRate || ""}
-                          onChange={(value) =>
+                          onChange={(value) => {
+                            setHourErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].emergencyRate;
+                              }
+                              return newErrors;
+                            });
                             updateHourEntry(
                               entry.id,
                               "emergencyRate",
                               value
-                            )
-                          }
+                            );
+                          }}
                           placeholder="Select an option"
                         />
 
                         <SelectField
                           label="Non-Billable Hours?"
                           required
+                          error={hourErrors[entry.id]?.nonBillableHours}
                           options={YES_NO_OPTIONS}
                           value={entry.nonBillableHours || ""}
-                          onChange={(value) =>
+                          onChange={(value) => {
+                            setHourErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].nonBillableHours;
+                              }
+                              return newErrors;
+                            });
                             updateHourEntry(
                               entry.id,
                               "nonBillableHours",
                               value
-                            )
-                          }
+                            );
+                          }}
                           placeholder="Select an option"
                         />
 
                         <TextAreaField
                           label="Note"
                           required
+                          error={hourErrors[entry.id]?.note}
                           placeholder="Notes for Hour entry"
                           value={entry.note}
-                          onChange={(e) =>
-                            updateHourEntry(entry.id, "note", e.target.value)
-                          }
+                          onChange={(e) => {
+                            setHourErrors((prev) => {
+                              const newErrors = { ...prev };
+                              if (newErrors[entry.id]) {
+                                delete newErrors[entry.id].note;
+                              }
+                              return newErrors;
+                            });
+                            updateHourEntry(entry.id, "note", e.target.value);
+                          }}
                           autoGrow
                         />
                       </div>
