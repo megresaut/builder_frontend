@@ -3,9 +3,10 @@ import { TabContext } from "@/hooks/useTabContext";
 
 export interface Tab {
   id: string;
-  iconLight: React.ReactNode;
-  iconDark: React.ReactNode;
   label: string;
+  icon?: React.ReactNode;
+  iconLight?: React.ReactNode;
+  iconDark?: React.ReactNode;
 }
 
 interface TabsProps {
