@@ -811,7 +811,7 @@ export default function FtoSubmissionForm() {
 
                         <TextAreaField
                           label="Note"
-                          placeholder="notes for Expense Entry"
+                          placeholder="Notes for Expense Entry"
                           value={entry.note}
                           onChange={(e) =>
                             updateExpenseEntry(entry.id, "note", e.target.value)
