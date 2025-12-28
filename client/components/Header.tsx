@@ -945,7 +945,7 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
   return (
     <header className="bg-white">
       {/* Tabs Section */}
-      {!isFullscreen && !forceCollapse && (
+      {!isFullscreen && !forceCollapse && showTabs && (
         <Tabs
           tabs={tabs}
           openTabs={openTabs}
