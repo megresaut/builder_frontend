@@ -824,7 +824,6 @@ export default function FtoSubmissionForm() {
                             updateExpenseEntry(entry.id, "vendorId", value);
                           }}
                           placeholder="Select Vendor"
-                          searchPlaceholder="Search vendors..."
                           customInputPlaceholder="Enter vendor name"
                         />
 
