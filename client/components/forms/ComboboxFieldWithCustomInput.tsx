@@ -68,9 +68,9 @@ interface ComboboxFieldWithCustomInputProps {
  *   value={vendorId}
  *   onChange={setVendorId}
  *   error={errors.vendor}
- *   placeholder="Select or enter vendor"
+ *   placeholder="Select vendor"
  *   options={vendors.map(v => ({ value: v.id, label: v.name }))}
- *   customInputPlaceholder="Enter new vendor name"
+ *   customInputPlaceholder="Enter vendor name"
  * />
  * ```
  */
