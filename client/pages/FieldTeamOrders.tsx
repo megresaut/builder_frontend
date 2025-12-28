@@ -436,7 +436,7 @@ export default function FieldTeamOrders() {
           action={{
             label: "Create FTO",
             onClick: () => setShowFTOModal(true),
-            icon: <Plus className="w-5 h-5" />,
+            icon: <PlusIcon width={20} height={20} />,
           }}
         />
 
