@@ -332,14 +332,7 @@ export default function FieldTeamOrders() {
     {
       key: "priority",
       label: "Priority",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2834b8d73cc09ccc447b824960316d0f5f8d8f78?placeholderIfAbsent=true"
-          className="w-3.5 h-3.5"
-          alt=""
-        />
-      ),
+      icon: <DocumentIcon width={16} height={16} />,
     },
     {
       key: "property",
@@ -359,50 +352,22 @@ export default function FieldTeamOrders() {
     {
       key: "fieldTeam",
       label: "Field Team",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
+      icon: <UserIcon width={16} height={16} />,
     },
     {
       key: "status",
       label: "FTO Status",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
+      icon: <DocumentIcon width={16} height={16} />,
     },
     {
       key: "timesheetStatus",
       label: "Timesheet Status",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
+      icon: <DocumentIcon width={16} height={16} />,
     },
     {
       key: "amount",
       label: "Amount",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
+      icon: <DollarIcon width={16} height={16} />,
     },
   ];
 
