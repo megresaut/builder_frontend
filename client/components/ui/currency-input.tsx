@@ -261,6 +261,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
           borderStyle: "solid",
           borderWidth: error ? "2px" : "1px",
           padding: "8px 12px",
+          height: "44px",
           fontSize: "14px",
           fontWeight: 400,
           letterSpacing: "0.5px",
