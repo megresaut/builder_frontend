@@ -150,13 +150,13 @@ export default function FtoHome() {
   );
 
   const columns = [
-    { key: "name", label: "Name" },
-    { key: "dueDate", label: "Due date" },
-    { key: "description", label: "Description" },
-    { key: "property", label: "Property" },
-    { key: "unit", label: "Unit" },
-    { key: "priority", label: "Priority" },
-    { key: "createdBy", label: "Created By" },
+    { key: "name", label: "Name", icon: columnConfig.name.icon },
+    { key: "dueDate", label: "Due date", icon: columnConfig.dueDate.icon },
+    { key: "description", label: "Description", icon: columnConfig.description.icon },
+    { key: "property", label: "Property", icon: columnConfig.property.icon },
+    { key: "unit", label: "Unit", icon: columnConfig.unit.icon },
+    { key: "priority", label: "Priority", icon: columnConfig.priority.icon },
+    { key: "createdBy", label: "Created By", icon: columnConfig.createdBy.icon },
   ];
 
   const getPriorityColor = (priority: string) => {
