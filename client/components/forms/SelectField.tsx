@@ -390,23 +390,26 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
               const isSelected = multiple
                 ? selectedValues.includes(option.value)
                 : selectedValue === option.value;
+              const isHighlighted = highlightedIndex === index;
               return (
                 <button
                   key={option.value}
                   onClick={() => handleOptionSelect(option.value)}
                   onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   data-selected={isSelected ? "true" : "false"}
-                  data-highlighted={
-                    highlightedIndex === index ? "true" : "false"
-                  }
+                  data-highlighted={isHighlighted ? "true" : "false"}
                   className="w-full px-3 py-2 text-left text-sm text-[var(--color-text-primary)] flex items-center gap-2"
                   style={{
                     border: "none",
                     cursor: "pointer",
                     fontFamily:
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    backgroundColor: isHighlighted
+                      ? "rgba(36, 99, 235, 0.1)"
+                      : "transparent",
                   }}
                   onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
+                  autoFocus={isHighlighted && index === 0}
                 >
                   {isSelected && <Check className="h-4 w-4 text-blue-600" />}
                   {!isSelected && <div className="h-4 w-4" />}
