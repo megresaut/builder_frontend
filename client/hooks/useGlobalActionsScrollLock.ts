@@ -45,15 +45,21 @@ export function useGlobalActionsScrollLock(
   useEffect(() => {
     if (!open) return;
 
+    // Detect if on mobile/touch device
+    const isMobile = window.innerWidth < 1024 ||
+                     ('ontouchstart' in window) ||
+                     navigator.maxTouchPoints > 0;
+
+    // On mobile, skip scroll locking entirely to avoid focus scroll issues
+    if (isMobile) {
+      return;
+    }
+
     const scrollContainer = document.querySelector(
       '[data-testid="main-content"]',
     ) as HTMLElement | null;
 
     const container = scrollContainer ?? (document.scrollingElement as HTMLElement | null);
-
-    // Store scroll position before locking
-    const savedScrollY = container?.scrollTop ?? window.scrollY;
-    const savedScrollX = container?.scrollLeft ?? window.scrollX;
 
     const lock = () => {
       lockCount += 1;
@@ -70,13 +76,6 @@ export function useGlobalActionsScrollLock(
         }
 
         container.style.overflow = "hidden";
-
-        // Restore scroll position after setting overflow to hidden
-        // This prevents the browser from auto-scrolling on focus
-        if (container) {
-          container.scrollTop = savedScrollY;
-          container.scrollLeft = savedScrollX;
-        }
       }
     };
 
