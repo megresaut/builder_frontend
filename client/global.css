@@ -207,6 +207,23 @@
   }
 
   /**
+   * DATE FIELD CELL - Date picker for table cells
+   * Removes borders and styling from DatePicker when used in table cells
+   */
+  .date-field-cell-wrapper input {
+    border: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    padding-right: 0.5rem !important;
+    height: 100%;
+  }
+
+  .date-field-cell-wrapper input:focus {
+    border: none !important;
+    outline: none;
+  }
+
+  /**
    * FIELD ROW - Multi-column field layout
    * Container for laying out multiple form fields horizontally on desktop,
    * stacking vertically on mobile for responsive design.
