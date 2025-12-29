@@ -775,9 +775,8 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "120px",
                               minWidth: "120px",
-                              border: isHoursCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              border: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <CurrencyFieldCell
