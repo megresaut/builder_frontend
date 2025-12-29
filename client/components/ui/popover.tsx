@@ -13,7 +13,9 @@ interface PopoverContextType {
   searchTerm: string;
   setSearchableItems: (items: Array<{ value: string; label: string }>) => void;
   filteredItems: Array<{ value: string; label: string }>;
-  onEnterSelect?: (item: { value: string; label: string } | null) => void;
+  onEnterSelect: (
+    handler: ((item: { value: string; label: string } | null) => void) | undefined,
+  ) => void;
   highlightedIndex: number;
   setHighlightedIndex: (index: number | ((prev: number) => number)) => void;
 }
@@ -54,7 +56,7 @@ const Popover = React.forwardRef<
   const [searchableItems, setSearchableItems] = React.useState<
     Array<{ value: string; label: string }>
   >([]);
-  const [onEnterSelect, setOnEnterSelect] = React.useState<
+  const [enterSelectHandler, setEnterSelectHandler] = React.useState<
     ((item: { value: string; label: string } | null) => void) | undefined
   >();
   const [highlightedIndex, setHighlightedIndex] = React.useState(0);
@@ -65,6 +67,7 @@ const Popover = React.forwardRef<
     setInternalOpen(newOpen);
     if (!newOpen) {
       setHighlightedIndex(0);
+      setEnterSelectHandler(undefined);
     }
     props.onOpenChange?.(newOpen);
   };
@@ -76,7 +79,7 @@ const Popover = React.forwardRef<
     onSearch: () => {
       // onSearch is called automatically on filter change
     },
-    onEnter: onEnterSelect,
+    onEnter: enterSelectHandler,
     onArrowNavigation: (index) => {
       setHighlightedIndex(index);
     },
@@ -92,7 +95,11 @@ const Popover = React.forwardRef<
         searchTerm: "", // We track filtered items instead
         setSearchableItems,
         filteredItems,
-        onEnterSelect: setOnEnterSelect,
+        onEnterSelect: (handler) => {
+          // If you pass a function directly to setState, React treats it as an updater.
+          // Wrap to store the function as the value.
+          setEnterSelectHandler(() => handler);
+        },
         highlightedIndex,
         setHighlightedIndex,
       }}
