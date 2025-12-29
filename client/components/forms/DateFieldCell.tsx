@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { DatePicker } from "@/components/ui/date-picker";
 import { FieldCellShell } from "./FieldCellShell";
+import { format } from "date-fns";
 
 interface DateFieldCellProps {
   value?: string;
@@ -10,9 +12,9 @@ interface DateFieldCellProps {
 }
 
 /**
- * DateFieldCell - Date input for table cells
+ * DateFieldCell - Date picker for table cells
  *
- * Renders a native date input in a table cell.
+ * Renders a DatePicker trigger in a table cell.
  * Stores and displays ISO date strings (YYYY-MM-DD).
  */
 export const DateFieldCell: React.FC<DateFieldCellProps> = ({
@@ -22,18 +24,36 @@ export const DateFieldCell: React.FC<DateFieldCellProps> = ({
   error = false,
   id,
 }) => {
+  // Convert ISO string to Date object for DatePicker
+  const dateValue = useMemo(() => {
+    if (!value) return null;
+    if (typeof value === "string") {
+      const [year, month, day] = value.split("-").map(Number);
+      if (year && month && day) {
+        return new Date(year, month - 1, day);
+      }
+    }
+    return null;
+  }, [value]);
+
+  const displayValue = value ? format(new Date(value), "MM/dd/yyyy") : "Select date";
+
+  const handleDateChange = (newDate: Date | null) => {
+    if (newDate) {
+      // Convert Date to ISO string (YYYY-MM-DD)
+      const isoString = newDate.toISOString().split("T")[0];
+      onChange?.(isoString);
+    }
+  };
+
   return (
     <FieldCellShell error={error}>
-      <input
-        id={id}
-        type="date"
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
+      <DatePicker
+        value={dateValue}
+        onChange={handleDateChange}
         disabled={disabled}
-        className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
-        style={{
-          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-        }}
+        error={error}
+        placeholder="mm/dd/yyyy"
       />
     </FieldCellShell>
   );
