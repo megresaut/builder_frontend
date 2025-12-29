@@ -394,6 +394,15 @@ export default function FtoHome() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6">
+        {rejectedOrders.length > 0 && (
+          <AlertBanner
+            title="Rejected Field Team Orders"
+            message={`You have ${rejectedOrders.length} rejected order${rejectedOrders.length > 1 ? "s" : ""} that need to be filled out again.`}
+            actionText="View"
+            onAction={() => setActiveTab("open")}
+          />
+        )}
+
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Home</h1>
           <p className="text-gray-600 mt-2">Welcome to Field Team Orders</p>
