@@ -30,6 +30,7 @@ export default function CreateFTOModal({
   onOpenChange,
   editData,
   isSimple = false,
+  isViewOnly = false,
 }: CreateFTOModalProps) {
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
