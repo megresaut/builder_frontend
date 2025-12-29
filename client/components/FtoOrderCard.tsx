@@ -110,16 +110,24 @@ export default function FtoOrderCard({
         <span className="text-xs text-gray-500">By {createdBy}</span>
         <BlueButton
           icon={
-            <ApproveIcon
-              width={14}
-              height={14}
-              className="brightness-0 invert"
-            />
+            isApproved ? (
+              <EyeIcon
+                width={14}
+                height={14}
+                className="brightness-0 invert"
+              />
+            ) : (
+              <ApproveIcon
+                width={14}
+                height={14}
+                className="brightness-0 invert"
+              />
+            )
           }
           onClick={handleSubmitClick}
           className="h-7 px-2 text-xs"
         >
-          Submit
+          {isApproved ? "View Summary" : "Submit"}
         </BlueButton>
       </div>
     </div>
