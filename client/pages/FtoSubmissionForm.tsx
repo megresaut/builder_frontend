@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
@@ -79,6 +79,8 @@ export default function FtoSubmissionForm() {
   const location = useLocation();
   const { ftoId } = useParams();
 
+  const didApplyPrefillRef = useRef(false);
+
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -123,6 +125,73 @@ export default function FtoSubmissionForm() {
 
   const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
   const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
+
+  useEffect(() => {
+    if (didApplyPrefillRef.current) return;
+
+    const state = (location.state ?? {}) as Partial<{
+      property: string;
+      unit: string;
+      task: string;
+      description: string;
+    }>;
+
+    if (!state.property && !state.unit && !state.task && !state.description) return;
+
+    const normalize = (value: string) => value.trim().toLowerCase();
+
+    const propertyId = state.property
+      ? PROPERTIES.find((p) => normalize(p.name) === normalize(state.property!))?.id ?? null
+      : null;
+
+    const unitsForProperty = propertyId
+      ? PROPERTIES.find((p) => p.id === propertyId)?.units ?? []
+      : [];
+
+    const unitId = (() => {
+      if (!propertyId) return null;
+      if (!state.unit) return unitsForProperty.find((u) => u.id === "na")?.id ?? null;
+      const found = unitsForProperty.find((u) => normalize(u.name) === normalize(state.unit!));
+      return found?.id ?? unitsForProperty.find((u) => u.id === "na")?.id ?? null;
+    })();
+
+    const taskId = (() => {
+      const taskLabel = state.task ?? state.description;
+      if (!taskLabel) return null;
+      const found = TASKS.find((t) => normalize(t.label) === normalize(taskLabel));
+      return found?.value ?? null;
+    })();
+
+    setHourEntries((prev) =>
+      prev.map((entry, idx) => {
+        if (idx !== 0) return entry;
+        return {
+          ...entry,
+          propertyId: entry.propertyId ?? propertyId,
+          unitId: entry.unitId ?? unitId,
+          taskId: entry.taskId ?? taskId,
+          note:
+            entry.note || !state.description ? entry.note : String(state.description),
+        };
+      }),
+    );
+
+    setExpenseEntries((prev) =>
+      prev.map((entry, idx) => {
+        if (idx !== 0) return entry;
+        return {
+          ...entry,
+          propertyId: entry.propertyId ?? propertyId,
+          unitId: entry.unitId ?? unitId,
+          taskId: entry.taskId ?? taskId,
+          note:
+            entry.note || !state.description ? entry.note : String(state.description),
+        };
+      }),
+    );
+
+    didApplyPrefillRef.current = true;
+  }, [location.state]);
 
   const toggleHourEntry = (id: string) => {
     setHourEntries((prev) =>
