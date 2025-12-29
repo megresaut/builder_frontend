@@ -330,6 +330,19 @@ export default function FtoHome() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "#059669";
+      case "rejected":
+        return "#DC2626";
+      case "pending":
+        return "#2463EB";
+      default:
+        return "#6B7280";
+    }
+  };
+
   const rejectedOrders = allOrders.filter(
     (order) => order.approvalStatus === "rejected",
   );
