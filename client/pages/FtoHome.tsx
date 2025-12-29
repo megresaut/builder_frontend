@@ -12,6 +12,7 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import BlueButton from "@/components/BlueButton";
+import { PropertyManagerAvatarCombined } from "@/components/PropertyManagerAvatar";
 import {
   ApproveIcon,
   CalendarIcon,
