@@ -121,9 +121,6 @@ export default function CreateFTOModal({
     if (!dueDate) {
       newErrors.dueDate = "Due Date is required";
     }
-    if (selectedAssignees.length === 0) {
-      newErrors.selectedAssignees = "At least one assignee is required";
-    }
     if (!ftoStatus.trim()) {
       newErrors.ftoStatus = "FTO Status is required";
     }
