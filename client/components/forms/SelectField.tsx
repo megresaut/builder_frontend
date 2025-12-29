@@ -367,25 +367,14 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                   key={option.value}
                   onClick={() => handleOptionSelect(option.value)}
                   onKeyDown={(e) => handleOptionKeyDown(e, index)}
+                  data-selected={isSelected ? "true" : "false"}
+                  data-highlighted={highlightedIndex === index ? "true" : "false"}
+                  className="w-full px-3 py-2 text-left text-sm text-[var(--color-text-primary)] flex items-center gap-2"
                   style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    backgroundColor: isSelected
-                      ? "rgba(36, 99, 235, 0.15)"
-                      : highlightedIndex === index
-                        ? "rgba(36, 99, 235, 0.08)"
-                        : "transparent",
-                    color: "var(--color-text-primary)",
                     border: "none",
                     cursor: "pointer",
-                    fontSize: "14px",
                     fontFamily:
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "background-color 0.15s",
                   }}
                   onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
                 >
