@@ -1,4 +1,9 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 interface FieldShellProps {
   label: string;
@@ -9,6 +14,9 @@ interface FieldShellProps {
   disabled?: boolean;
   htmlFor?: string;
   className?: string;
+  mode?: "form" | "cell";
+  cellValue?: string;
+  onCellCommit?: (value: any) => void;
 }
 
 /**
