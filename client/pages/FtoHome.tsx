@@ -359,6 +359,15 @@ export default function FtoHome() {
               onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
             />
           }
+          rightContent={
+            <button
+              onClick={() => navigate("/fto/submission")}
+              className="flex items-center justify-center gap-2 h-9 px-3 rounded-lg bg-[#2463EB] text-white font-medium text-sm hover:bg-[#1a4fb8] transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]"
+            >
+              <PlusIcon width={18} height={18} color="white" />
+              <span>Submit</span>
+            </button>
+          }
         />
 
         <GlobalTable
