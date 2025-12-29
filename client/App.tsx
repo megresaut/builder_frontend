@@ -32,7 +32,6 @@ import { Welcome } from "./pages/Welcome";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
 import FtoHome from "./pages/FtoHome";
-import FtoSubmissionSummary from "./pages/FtoSubmissionSummary";
 import FtoSubmissionForm from "./pages/FtoSubmissionForm";
 
 const queryClient = new QueryClient();
