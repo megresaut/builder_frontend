@@ -19,6 +19,7 @@ import {
   FlagIcon,
   EditIcon,
   UserIcon,
+  EyeIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -31,6 +32,7 @@ interface FieldTeamOrder {
   priority: "low" | "normal" | "high";
   createdBy: string;
   formSubmissionStatus: string;
+  approvalStatus?: "approved" | "pending" | null;
 }
 
 // Mock API response types
@@ -109,6 +111,9 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
   const submittedOrders = JSON.parse(
     localStorage.getItem("submittedFTOs") || "[]"
   ) as number[];
+  const approvedOrders = JSON.parse(
+    localStorage.getItem("approvedFTOs") || "[]"
+  ) as number[];
 
   return apiData.map((order) => ({
     id: order.id,
@@ -122,6 +127,7 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
     formSubmissionStatus: submittedOrders.includes(order.id)
       ? "submitted"
       : order.form_submission_status,
+    approvalStatus: approvedOrders.includes(order.id) ? "approved" : "pending",
   }));
 };
 
@@ -505,8 +511,14 @@ export default function FtoHome() {
           showSearchBar={true}
           actions={[
             {
-              label: "Submit",
-              icon: (
+              label: activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved" ? "View Summary" : "Submit",
+              icon: activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved" ?
+                <EyeIcon
+                  width={18}
+                  height={18}
+                  color="var(--color-text-secondary)"
+                />
+                : (
                 <ApproveIcon
                   width={18}
                   height={18}
@@ -520,6 +532,7 @@ export default function FtoHome() {
                     unit: order.unit,
                     task: order.name,
                     description: order.description,
+                    isApproved: activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved",
                   },
                 });
               },
@@ -532,6 +545,7 @@ export default function FtoHome() {
                 unit: order.unit,
                 task: order.name,
                 description: order.description,
+                isApproved: activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved",
               },
             });
           }}
