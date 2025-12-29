@@ -484,7 +484,16 @@ export default function FtoHome() {
               title="Rejected Field Team Orders"
               message={`You have ${rejectedOrders.length} rejected order${rejectedOrders.length > 1 ? "s" : ""} that need to be filled out again.`}
               actionText="View"
-              onAction={() => setActiveTab("open")}
+              onAction={() => {
+                const firstRejected = rejectedOrders[0];
+                if (firstRejected) {
+                  navigate(`/fto/submission/${firstRejected.id}`, {
+                    state: {
+                      isApproved: firstRejected.status === "approved",
+                    },
+                  });
+                }
+              }}
             />
           )}
 
