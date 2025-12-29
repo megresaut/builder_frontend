@@ -660,8 +660,7 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "100px",
-                              borderBottom: '1px solid #DADADA',
-                              borderRight: isHoursCellInvalid(row, 'hours') ? '3px solid #dc2626' : '1px solid #DADADA',
+                              border: isHoursCellInvalid(row, 'hours') ? '2px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <NumberFieldCell
