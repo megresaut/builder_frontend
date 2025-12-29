@@ -92,25 +92,10 @@ export default function ApproveFTOPage() {
     },
   ]);
 
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ name: string; size: number; file: File }>
   >([]);
 
-  useEffect(() => {
-    const checkSidebarVisibility = () => {
-      const sidebar = document.querySelector('aside[style*="opacity"]');
-      if (sidebar) {
-        const opacity = window.getComputedStyle(sidebar).opacity;
-        setSidebarVisible(parseFloat(opacity) > 0.5);
-      }
-    };
-
-    checkSidebarVisibility();
-    const interval = setInterval(checkSidebarVisibility, 300);
-    return () => clearInterval(interval);
-  }, []);
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
@@ -241,11 +226,12 @@ export default function ApproveFTOPage() {
       {/* Main Content Area - Grid Layout */}
       <div
         style={{
-          flex: "1",
+          flex: 1,
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "0",
-          overflow: "hidden",
+          alignItems: "stretch",
+          minHeight: 0,
+          gap: 0,
         }}
       >
         {/* Left Column - File Upload/Viewer */}
@@ -255,15 +241,14 @@ export default function ApproveFTOPage() {
             flexDirection: "column",
             padding: "24px 32px",
             borderRight: "1px solid #E5E7EB",
-            overflow: "hidden",
+            height: "100%",
           }}
         >
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              flex: "1",
-              overflow: "hidden",
+              flex: 1,
             }}
           >
             {/* File Upload Section */}
@@ -271,8 +256,7 @@ export default function ApproveFTOPage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                flex: "1",
-                overflow: "hidden",
+                flex: 1,
               }}
             >
               {uploadedFiles.length === 0 ? (
@@ -336,8 +320,6 @@ export default function ApproveFTOPage() {
                     style={{
                       display: "flex",
                       flexDirection: "column",
-                      flex: "1",
-                      overflow: "auto",
                       gap: "12px",
                       marginBottom: "24px",
                     }}
@@ -412,28 +394,16 @@ export default function ApproveFTOPage() {
           </div>
         </div>
 
-        {/* Right Column - Scrollable Content */}
+        {/* Right Column */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            overflow: "hidden",
+            padding: "24px 32px",
+            height: "100%",
           }}
         >
-          {/* Scrollable Content Area */}
-          <div
-            style={{
-              flex: "1",
-              overflow: "auto",
-              overscrollBehavior: "contain",
-            }}
-          >
-            <div
-              style={{
-                padding: "24px 32px",
-                minWidth: "fit-content",
-              }}
-            >
+          <div style={{ minWidth: "fit-content" }}>
               {/* FTO Details Section */}
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {/* FTO Details Header */}
@@ -938,7 +908,6 @@ export default function ApproveFTOPage() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </div>
@@ -947,13 +916,10 @@ export default function ApproveFTOPage() {
       <div
         style={{
           position: "sticky",
-          bottom: "0",
-          backgroundColor: "rgb(255, 255, 255)",
+          bottom: 0,
+          background: "white",
           padding: "16px 32px",
-          borderTop: "none",
-          marginLeft: sidebarVisible ? "262px" : "0px",
-          transition: "margin-left 0.3s",
-          zIndex: "40",
+          zIndex: 10,
         }}
       >
         <div className="flex items-center justify-between">
