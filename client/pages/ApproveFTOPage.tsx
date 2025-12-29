@@ -752,11 +752,12 @@ export default function ApproveFTOPage() {
 
                           {/* Amount Cell - Currency */}
                           <div
-                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "120px",
                               minWidth: "120px",
-                              backgroundColor: isHoursCellInvalid(row, 'amount') ? '#ffcccc' : 'transparent',
+                              borderBottom: '1px solid #DADADA',
+                              borderRight: isHoursCellInvalid(row, 'amount') ? '3px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <CurrencyFieldCell
