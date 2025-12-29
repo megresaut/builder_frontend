@@ -111,18 +111,20 @@ export default function FtoTopNav() {
               <div className="flex flex-col py-1 whitespace-nowrap">
                 <button
                   onClick={() => handleNavigate("/fto")}
-                  className={`text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                    isHome ? "bg-blue-50 text-[#013764] font-medium" : "text-gray-700"
+                  className={`text-left px-4 py-2 text-sm transition-colors ${
+                    isHome
+                      ? "bg-blue-50 text-[#013764] font-medium hover:bg-blue-100"
+                      : "text-gray-700 hover:bg-blue-50"
                   }`}
                 >
                   Home
                 </button>
                 <button
                   onClick={() => handleNavigate("/fto/submission-history")}
-                  className={`text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                  className={`text-left px-4 py-2 text-sm transition-colors ${
                     isSubmissionHistory
-                      ? "bg-blue-50 text-[#013764] font-medium"
-                      : "text-gray-700"
+                      ? "bg-blue-50 text-[#013764] font-medium hover:bg-blue-100"
+                      : "text-gray-700 hover:bg-blue-50"
                   }`}
                 >
                   Submission History
@@ -130,7 +132,7 @@ export default function FtoTopNav() {
                 <div className="h-px bg-gray-200 my-1" />
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="text-left px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-blue-50"
                 >
                   Settings
                 </button>
