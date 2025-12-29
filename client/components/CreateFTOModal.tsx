@@ -294,7 +294,7 @@ export default function CreateFTOModal({
             value={dueDate}
             onChange={setDueDate}
             error={errors.dueDate}
-            placeholder="MM/DD/YYYY"
+            placeholder="mm/dd/yyyy"
             disabled={isViewOnly}
           />
           <MultiSelectField
