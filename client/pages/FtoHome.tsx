@@ -642,7 +642,7 @@ export default function FtoHome() {
           onShowPageSizeDropdownChange={setShowPageSizeDropdown}
           openMenuId={openMenuId}
           onOpenMenuIdChange={setOpenMenuId}
-          title={activeTab === "open" ? "Open Orders" : "Closed Orders"}
+          title={activeTab === "open" ? "Open Orders" : "Submission History"}
           headerActions={
             <button
               ref={columnButtonRef}
@@ -684,58 +684,63 @@ export default function FtoHome() {
           showSearchBar={true}
           actions={[
             {
-              label: (rowOrder) => {
-                const order = rowOrder as FieldTeamOrder;
-                const isApproved =
-                  activeTab === "closed" && order.approvalStatus === "approved";
-                return isApproved ? "View Summary" : "Submit";
-              },
-              icon: (rowOrder) => {
-                const order = rowOrder as FieldTeamOrder;
-                const isApproved =
-                  activeTab === "closed" && order.approvalStatus === "approved";
-                return isApproved ? (
-                  <EyeIcon
-                    width={18}
-                    height={18}
-                    color="var(--color-text-secondary)"
-                  />
-                ) : (
-                  <ApproveIcon
-                    width={18}
-                    height={18}
-                    color="var(--color-text-secondary)"
-                  />
-                );
-              },
-              onClick: (order) => {
-                const isApproved =
-                  activeTab === "closed" &&
-                  (order as FieldTeamOrder).approvalStatus === "approved";
-                navigate(`/fto/submission/${order.id}`, {
-                  state: {
-                    property: order.property,
-                    unit: order.unit,
-                    task: order.name,
-                    description: order.description,
-                    isApproved,
-                  },
-                });
+              label: () => activeTab === "open" ? "Submit" : "View",
+              icon: () => activeTab === "open" ? (
+                <ApproveIcon
+                  width={18}
+                  height={18}
+                  color="var(--color-text-secondary)"
+                />
+              ) : (
+                <EyeIcon
+                  width={18}
+                  height={18}
+                  color="var(--color-text-secondary)"
+                />
+              ),
+              onClick: (row) => {
+                if (activeTab === "open") {
+                  const order = row as FieldTeamOrder;
+                  navigate(`/fto/submission/${order.id}`, {
+                    state: {
+                      property: order.property,
+                      unit: order.unit,
+                      task: order.name,
+                      description: order.description,
+                      isApproved: order.approvalStatus === "approved",
+                    },
+                  });
+                } else {
+                  const submission = row as SubmissionRecord;
+                  navigate(`/fto/submission/${submission.id}`, {
+                    state: {
+                      isApproved: submission.status === "approved",
+                    },
+                  });
+                }
               },
             },
           ]}
-          onRowClick={(order) => {
-            navigate(`/fto/submission/${order.id}`, {
-              state: {
-                property: order.property,
-                unit: order.unit,
-                task: order.name,
-                description: order.description,
-                isApproved:
-                  activeTab === "closed" &&
-                  (order as FieldTeamOrder).approvalStatus === "approved",
-              },
-            });
+          onRowClick={(row) => {
+            if (activeTab === "open") {
+              const order = row as FieldTeamOrder;
+              navigate(`/fto/submission/${order.id}`, {
+                state: {
+                  property: order.property,
+                  unit: order.unit,
+                  task: order.name,
+                  description: order.description,
+                  isApproved: order.approvalStatus === "approved",
+                },
+              });
+            } else {
+              const submission = row as SubmissionRecord;
+              navigate(`/fto/submission/${submission.id}`, {
+                state: {
+                  isApproved: submission.status === "approved",
+                },
+              });
+            }
           }}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
