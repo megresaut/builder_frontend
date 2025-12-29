@@ -5,6 +5,7 @@ import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import TableToggle from "@/components/TableToggle";
 import GlobalTable from "@/components/GlobalTable";
 import FtoOrderCard from "@/components/FtoOrderCard";
+import SubmissionHistoryCard from "@/components/SubmissionHistoryCard";
 import { AlertBanner } from "@/components/AlertBanner";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -34,6 +35,18 @@ interface FieldTeamOrder {
   createdBy: string;
   formSubmissionStatus: string;
   approvalStatus?: "approved" | "pending" | "rejected" | null;
+}
+
+interface SubmissionRecord {
+  id: number;
+  name: string;
+  description: string;
+  dateOfWork: string;
+  property: string;
+  unit: string;
+  createdBy: string;
+  status: "pending" | "approved" | "rejected";
+  priority: "low" | "normal" | "high";
 }
 
 // Mock API response types
