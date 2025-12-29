@@ -214,13 +214,18 @@
     border: none !important;
     background-color: transparent !important;
     padding: 0 !important;
-    padding-right: 0.5rem !important;
+    padding-right: 0 !important;
     height: 100%;
   }
 
   .date-field-cell-wrapper input:focus {
     border: none !important;
     outline: none;
+  }
+
+  /* Hide calendar icon in date field cell */
+  .date-field-cell-wrapper svg {
+    display: none !important;
   }
 
   /**
