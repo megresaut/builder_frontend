@@ -213,6 +213,7 @@ export default function FtoSubmissionSummary() {
                   unit={submission.unit}
                   createdBy={submission.createdBy}
                   status={submission.status}
+                  priority={submission.priority}
                 />
               ))
             )}
