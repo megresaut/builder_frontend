@@ -307,6 +307,7 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                 <input
                   ref={customInputRef}
                   type="text"
+                  autoFocus
                   placeholder={customInputPlaceholder}
                   value={customValue}
                   onChange={(e) => setCustomValue(e.target.value)}
