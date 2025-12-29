@@ -658,7 +658,10 @@ export default function ApproveFTOPage() {
                           {/* Hours Cell - 1 decimal */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "100px" }}
+                            style={{
+                              width: "100px",
+                              backgroundColor: isHoursCellInvalid(row, 'hours') ? '#ffcccc' : 'transparent',
+                            }}
                           >
                             <NumberFieldCell
                               value={row.hours}
