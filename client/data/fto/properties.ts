@@ -42,6 +42,7 @@ export const TASKS = [
   { value: "task-1", label: "Doors Need To Be Repaired" },
   { value: "task-2", label: "HVAC Inspection" },
   { value: "task-3", label: "Plumbing Repair" },
+  { value: "task-4", label: "Electrical Repair" },
 ];
 
 export const YES_NO_OPTIONS = [
