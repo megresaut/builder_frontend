@@ -61,6 +61,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         ? label.toLowerCase().replace(/\s+/g, "-")
         : `field-${Math.random().toString(36).substr(2, 9)}`);
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const onChange = inputProps.onChange as React.ChangeEventHandler<HTMLInputElement> | undefined;
+      if (onChange) {
+        onChange(e.target.value as any);
+      }
+    };
+
     return (
       <FieldShell
         label={label}
@@ -76,6 +83,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           disabled={disabled}
           readOnly={readOnly}
           {...inputProps}
+          onChange={handleChange}
         />
       </FieldShell>
     );
