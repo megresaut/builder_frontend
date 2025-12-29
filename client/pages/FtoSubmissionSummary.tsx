@@ -111,9 +111,10 @@ export default function FtoSubmissionSummary() {
     handleColumnDrop,
   } = useColumnManagement([
     "name",
-    "submittedDate",
+    "dateOfWork",
     "property",
-    "submittedBy",
+    "unit",
+    "createdBy",
     "status",
   ]);
 
@@ -136,8 +137,8 @@ export default function FtoSubmissionSummary() {
       icon: <EditIcon width={16} height={16} color="#525252" />,
     },
     {
-      key: "submittedDate",
-      label: "Submitted Date",
+      key: "dateOfWork",
+      label: "Date of Work",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
@@ -146,8 +147,13 @@ export default function FtoSubmissionSummary() {
       icon: <BuildingIcon width={16} height={16} />,
     },
     {
-      key: "submittedBy",
-      label: "Submitted By",
+      key: "unit",
+      label: "Unit",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    {
+      key: "createdBy",
+      label: "Created By",
       icon: <UserIcon width={16} height={16} />,
     },
     {
