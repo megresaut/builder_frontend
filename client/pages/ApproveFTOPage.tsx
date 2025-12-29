@@ -535,12 +535,18 @@ export default function ApproveFTOPage() {
                     <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                       {/* Table Header */}
                       <div className="flex items-center">
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-32">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "120px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-24">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "100px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Hours
                           </span>
@@ -550,32 +556,50 @@ export default function ApproveFTOPage() {
                             Note
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-32">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "140px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Assignee
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-16">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "80px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             NoFee?
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-24">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "100px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Emergency
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-28">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "120px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Amount
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-28">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "120px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Upcharge
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-24">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ width: "100px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Total
                           </span>
