@@ -31,6 +31,9 @@ export default function PdfViewerModal({
     return u ? u : undefined;
   }, [url]);
 
+  // Detect mobile
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+
   useEffect(() => {
     if (!open) return;
     if (!safeUrl) return;
@@ -42,7 +45,7 @@ export default function PdfViewerModal({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      size="lg"
+      size={isMobile ? "md" : "lg"}
       footer={
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button
