@@ -10,7 +10,13 @@ type PdfViewerModalProps = {
 
 const isProbablyPdfUrl = (url: string) => {
   const clean = url.split("#")[0].split("?")[0];
-  return clean.toLowerCase().endsWith(".pdf") || url.startsWith("blob:");
+  return clean.toLowerCase().endsWith(".pdf");
+};
+
+const isProbablyImageUrl = (url: string) => {
+  const clean = url.split("#")[0].split("?")[0];
+  const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
+  return imageExtensions.some(ext => clean.toLowerCase().endsWith(ext)) || url.startsWith("blob:");
 };
 
 export default function PdfViewerModal({
@@ -114,23 +120,40 @@ export default function PdfViewerModal({
           width: "100%",
           height: "70vh",
           borderRadius: "8px",
-          overflow: "hidden",
+          overflow: "auto",
           border: "1px solid #E5E5E5",
           backgroundColor: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "16px",
         }}>
-          <iframe
-            title={title}
-            src={
-              isProbablyPdfUrl(safeUrl)
-                ? `${safeUrl}#view=FitH&toolbar=1&navpanes=0`
-                : safeUrl
-            }
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-            }}
-          />
+          {isProbablyImageUrl(safeUrl) ? (
+            <img
+              src={safeUrl}
+              alt={title}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                borderRadius: "4px",
+              }}
+            />
+          ) : (
+            <iframe
+              title={title}
+              src={
+                isProbablyPdfUrl(safeUrl)
+                  ? `${safeUrl}#view=FitH&toolbar=1&navpanes=0`
+                  : safeUrl
+              }
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+              }}
+            />
+          )}
         </div>
       ) : (
         <div style={{
