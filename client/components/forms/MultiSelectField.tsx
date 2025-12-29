@@ -199,16 +199,17 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                   >
                     {item.label}
                   </span>
-                  <button
+                  <div
                     onClick={(e) => {
                       e.stopPropagation();
                       removeItem(item.id);
                     }}
-                    className="hover:opacity-70 transition-opacity"
+                    className="hover:opacity-70 transition-opacity cursor-pointer"
+                    role="button"
                     tabIndex={-1}
                   >
                     <X className="w-3 h-3 text-[#2463EB]" />
-                  </button>
+                  </div>
                 </div>
               ))
             )}
