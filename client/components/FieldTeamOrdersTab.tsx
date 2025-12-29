@@ -268,6 +268,7 @@ export default function FieldTeamOrdersTab({
   onApprove,
   onEdit,
 }: FieldTeamOrdersTabProps) {
+  const navigate = useNavigate();
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>(initialFieldTeamOrders);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
