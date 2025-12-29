@@ -1,5 +1,10 @@
-import { useState, ReactNode, useRef, useEffect } from "react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  usePopoverContext,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 
@@ -15,6 +20,90 @@ interface PopoverActionsDropdownProps {
   rowKey: string;
   actions: ActionItem[];
   additionalActions?: ActionItem[];
+}
+
+function PopoverActionsDropdownContent({
+  row,
+  allActions,
+}: {
+  row: any;
+  allActions: ActionItem[];
+}) {
+  const popover = usePopoverContext();
+
+  const items = useMemo(
+    () =>
+      allActions.map((action, index) => {
+        const resolvedLabel =
+          typeof action.label === "function" ? action.label(row) : action.label;
+
+        return {
+          value: String(index),
+          label: resolvedLabel,
+          onSelect: () => {
+            popover.setOpen(false);
+            action.onClick(row);
+          },
+        };
+      }),
+    [allActions, popover, row],
+  );
+
+  useEffect(() => {
+    if (!popover.isOpen) return;
+
+    popover.setSearchableItems(
+      items.map(({ value, label }) => ({ value, label })),
+    );
+    popover.setHighlightedIndex(0);
+
+    popover.onEnterSelect((item) => {
+      if (!item) return;
+      const match = items.find((i) => i.value === item.value);
+      match?.onSelect();
+    });
+  }, [items, popover]);
+
+  return (
+    <div className="flex flex-col justify-start items-start">
+      {allActions.map((action, index) => {
+        const resolvedLabel =
+          typeof action.label === "function" ? action.label(row) : action.label;
+        const resolvedIcon =
+          typeof action.icon === "function" ? action.icon(row) : action.icon;
+        const isHighlighted = popover.highlightedIndex === index;
+
+        return (
+          <button
+            key={index}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              popover.setOpen(false);
+              action.onClick(row);
+            }}
+            onMouseEnter={() => popover.setHighlightedIndex(index)}
+            data-highlighted={isHighlighted ? "true" : "false"}
+            className={cn(
+              "ra-action-item flex justify-between items-center w-full gap-3 px-4 py-2 transition-colors first:rounded-t-md last:rounded-b-md text-left",
+              action.className,
+            )}
+          >
+            <span
+              className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1"
+              style={{
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              }}
+            >
+              {resolvedLabel}
+            </span>
+            {resolvedIcon && <div className="flex-shrink-0">{resolvedIcon}</div>}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function PopoverActionsDropdown({
@@ -125,45 +214,8 @@ export default function PopoverActionsDropdown({
           width: "145px",
         }}
       >
-        <div ref={contentRef} className="flex flex-col justify-start items-start">
-          {allActions.map((action, idx) => {
-            const resolvedLabel =
-              typeof action.label === "function" ? action.label(row) : action.label;
-            const resolvedIcon =
-              typeof action.icon === "function" ? action.icon(row) : action.icon;
-
-            return (
-              <button
-                key={idx}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setOpen(false);
-                  action.onClick(row);
-                }}
-                className={cn(
-                  "ra-action-item flex justify-between items-center w-full gap-3 px-4 py-2 hover:bg-gray-50 transition-colors first:rounded-t-md last:rounded-b-md text-left",
-                  action.className
-                )}
-              >
-                <span
-                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1"
-                  style={{
-                    fontFamily:
-                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  }}
-                >
-                  {resolvedLabel}
-                </span>
-                {resolvedIcon && (
-                  <div className="flex-shrink-0">
-                    {resolvedIcon}
-                  </div>
-                )}
-              </button>
-            );
-          })}
+        <div ref={contentRef}>
+          <PopoverActionsDropdownContent row={row} allActions={allActions} />
         </div>
       </PopoverContent>
     </Popover>

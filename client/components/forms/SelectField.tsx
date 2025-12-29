@@ -271,6 +271,16 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
           handleOptionSelect(popoverContext.filteredItems[index].value);
         }
         break;
+      case "ArrowDown":
+        e.preventDefault();
+        popoverContext.setHighlightedIndex((prev) =>
+          prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        popoverContext.setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
       case "Escape":
         e.preventDefault();
         setOpen(false);
@@ -401,17 +411,14 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                   data-selected={isSelected ? "true" : "false"}
                   data-highlighted={isHighlighted ? "true" : "false"}
                   className="w-full px-3 py-2 text-left text-sm text-[var(--color-text-primary)] flex items-center gap-2"
+                  type="button"
                   style={{
                     border: "none",
                     cursor: "pointer",
                     fontFamily:
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    backgroundColor: isHighlighted
-                      ? "rgba(36, 99, 235, 0.1)"
-                      : "transparent",
                   }}
                   onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
-                  autoFocus={isHighlighted}
                 >
                   {isSelected && <Check className="h-4 w-4 text-blue-600" />}
                   {!isSelected && <div className="h-4 w-4" />}
