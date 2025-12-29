@@ -867,7 +867,7 @@ export default function ApproveFTOPage() {
 
                       {/* Table Rows */}
                       {expenseRows.map((row) => (
-                        <div key={row.id} className="flex items-center">
+                        <div key={row.id} className="flex items-start">
                           {/* Date Cell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
@@ -884,7 +884,7 @@ export default function ApproveFTOPage() {
                           {/* Vendor Cell - SelectFieldCell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "150px" }}
+                            style={{ width: "150px", minWidth: "150px" }}
                           >
                             <SelectFieldCell
                               value={row.vendor}
@@ -900,20 +900,29 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Receipt Note Cell */}
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-1">
-                            <TextFieldCell
-                              value={row.receiptNote}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "receiptNote", value)
-                              }
-                              placeholder="Enter receipt note"
-                            />
+                          <div className="flex items-start border-b border-r px-3 min-h-14 py-2 flex-1">
+                            <div
+                              style={{
+                                width: "100%",
+                                wordWrap: "break-word",
+                                whiteSpace: "normal",
+                                overflowWrap: "break-word",
+                              }}
+                            >
+                              <TextFieldCell
+                                value={row.receiptNote}
+                                onChange={(value) =>
+                                  updateExpenseRow(row.id, "receiptNote", value)
+                                }
+                                placeholder="Enter receipt note"
+                              />
+                            </div>
                           </div>
 
                           {/* Assignee Cell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "140px" }}
+                            style={{ width: "140px", minWidth: "140px" }}
                           >
                             <SelectFieldCell
                               value={row.assignee}
@@ -931,7 +940,7 @@ export default function ApproveFTOPage() {
                           {/* Amount Cell - Currency */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "120px" }}
+                            style={{ width: "120px", minWidth: "120px" }}
                           >
                             <CurrencyFieldCell
                               value={row.amount}
@@ -945,7 +954,7 @@ export default function ApproveFTOPage() {
                           {/* Upcharge Cell - Currency */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "120px" }}
+                            style={{ width: "120px", minWidth: "120px" }}
                           >
                             <CurrencyFieldCell
                               value={row.upcharge}
