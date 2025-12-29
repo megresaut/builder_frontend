@@ -263,6 +263,12 @@ export default function FtoSubmissionSummary() {
                     {submission.name}
                   </span>
                 );
+              case "description":
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {submission.description}
+                  </span>
+                );
               case "dateOfWork":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
