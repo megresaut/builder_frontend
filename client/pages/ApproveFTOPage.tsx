@@ -910,7 +910,10 @@ export default function ApproveFTOPage() {
                           {/* Date Cell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "120px" }}
+                            style={{
+                              width: "120px",
+                              backgroundColor: isExpensesCellInvalid(row, 'date') ? '#ffcccc' : 'transparent',
+                            }}
                           >
                             <DateFieldCell
                               value={row.date}
@@ -923,7 +926,11 @@ export default function ApproveFTOPage() {
                           {/* Vendor Cell - VendorFieldCell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "150px", minWidth: "150px" }}
+                            style={{
+                              width: "150px",
+                              minWidth: "150px",
+                              backgroundColor: isExpensesCellInvalid(row, 'vendor') ? '#ffcccc' : 'transparent',
+                            }}
                           >
                             <VendorFieldCell
                               value={row.vendor}
