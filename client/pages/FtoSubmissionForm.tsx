@@ -995,7 +995,7 @@ export default function FtoSubmissionForm() {
                                     title: file.name,
                                   });
                                 };
-                                reader.readAsArrayBuffer(file.file);
+                                reader.readAsDataURL(file.file);
                               }
                             }}
                             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
