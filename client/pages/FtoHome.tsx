@@ -200,6 +200,17 @@ const mockSubmissionHistory: SubmissionRecord[] = [
     status: "approved",
     priority: "normal",
   },
+  {
+    id: 2,
+    name: "Plumbing Repair",
+    description: "Fix leaky faucet in kitchen",
+    dateOfWork: "Dec 6, 2025",
+    property: "22 Indian Chase Dr",
+    unit: "Unit B",
+    createdBy: "Jane Doe",
+    status: "rejected",
+    priority: "normal",
+  },
 ];
 
 // Transform API response to component format
