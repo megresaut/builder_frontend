@@ -109,6 +109,7 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
   setOpen,
   fieldId,
   disabled,
+  error,
   placeholder,
   uniqueValue,
   removeItem,
