@@ -450,12 +450,14 @@ export default function FtoSubmissionForm() {
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => deleteHourEntry(entry.id)}
-                        className="text-[#982740] hover:opacity-70 transition-opacity"
-                      >
-                        <DeleteIcon width={16} height={16} />
-                      </button>
+                      {!isApproved && (
+                        <button
+                          onClick={() => deleteHourEntry(entry.id)}
+                          className="text-[#982740] hover:opacity-70 transition-opacity"
+                        >
+                          <DeleteIcon width={16} height={16} />
+                        </button>
+                      )}
                     </div>
 
                     {index < hourEntries.length - 1 && (
