@@ -465,17 +465,14 @@ export default function FtoHome() {
     (submission) => submission.status === "rejected",
   );
 
-  // Ensure columnOrder includes all current columns
+  // Ensure columnOrder includes all current columns and reset visibility on tab change
   useEffect(() => {
     const currentColumnKeys = columns.map((col) => col.key);
-    const missingColumns = currentColumnKeys.filter(
-      (key) => !columnOrder.includes(key),
-    );
+    const defaultCols = getDefaultColumns();
 
-    if (missingColumns.length > 0) {
-      setColumnOrder([...columnOrder, ...missingColumns]);
-    }
-  }, [columns.length, activeTab]);
+    setColumnOrder(defaultCols);
+    setVisibleColumns(new Set(defaultCols));
+  }, [activeTab]);
 
   if (isMobile) {
     return (
