@@ -51,6 +51,10 @@ export function useGlobalActionsScrollLock(
 
     const container = scrollContainer ?? (document.scrollingElement as HTMLElement | null);
 
+    // Store scroll position before locking
+    const savedScrollY = container?.scrollTop ?? window.scrollY;
+    const savedScrollX = container?.scrollLeft ?? window.scrollX;
+
     const lock = () => {
       lockCount += 1;
       if (lockCount !== 1) return;
@@ -66,6 +70,13 @@ export function useGlobalActionsScrollLock(
         }
 
         container.style.overflow = "hidden";
+
+        // Restore scroll position after setting overflow to hidden
+        // This prevents the browser from auto-scrolling on focus
+        if (container) {
+          container.scrollTop = savedScrollY;
+          container.scrollLeft = savedScrollX;
+        }
       }
     };
 
