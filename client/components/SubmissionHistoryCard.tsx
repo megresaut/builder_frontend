@@ -103,7 +103,7 @@ export default function SubmissionHistoryCard({
           onClick={handleViewClick}
           className="h-7 px-2 text-xs"
         >
-          View
+          View Summary
         </BlueButton>
       </div>
     </div>
