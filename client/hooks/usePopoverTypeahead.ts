@@ -34,6 +34,18 @@ export function usePopoverTypeahead({
     (e: KeyboardEvent) => {
       if (!enabled) return;
 
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        const isTextInput =
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          (target as HTMLElement).isContentEditable;
+
+        // If the user is typing into a real input/textarea/contenteditable, don't hijack keystrokes
+        if (isTextInput) return;
+      }
+
       // Ignore modifier keys and special keys
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
 

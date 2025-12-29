@@ -252,6 +252,9 @@ const PopoverContent = React.forwardRef<
         sideOffset={sideOffset}
         className={cn(
           "z-[999] rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 popover-content",
+          // universal item highlighting inside popovers (works on desktop hover + mobile press)
+          "[&_button]:transition-colors [&_button:hover]:bg-blue-50 [&_button:active]:bg-blue-100 [&_button:focus-visible]:bg-blue-50",
+          "[&_a]:transition-colors [&_a:hover]:bg-blue-50 [&_a:active]:bg-blue-100 [&_a:focus-visible]:bg-blue-50",
           className,
         )}
         collisionPadding={32}
