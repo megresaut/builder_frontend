@@ -299,8 +299,7 @@ export default function ApproveFTOPage() {
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    flex: "1",
-                    overflow: "hidden",
+                    flex: 1,
                     paddingTop: "24px",
                   }}
                 >
