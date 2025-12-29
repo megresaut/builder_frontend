@@ -259,7 +259,9 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
 
 export default function FtoHome() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"open" | "submissionHistory">("open");
+  const [activeTab, setActiveTab] = useState<"open" | "submissionHistory">(
+    "open",
+  );
   const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -385,7 +387,10 @@ export default function FtoHome() {
   }, []);
 
   // Filter data based on active tab
-  const displayData = activeTab === "open" ? allOrders.filter((order) => order.formSubmissionStatus === "none") : submissions;
+  const displayData =
+    activeTab === "open"
+      ? allOrders.filter((order) => order.formSubmissionStatus === "none")
+      : submissions;
 
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } =
@@ -394,9 +399,26 @@ export default function FtoHome() {
   // Get column defaults based on active tab
   const getDefaultColumns = () => {
     if (activeTab === "submissionHistory") {
-      return ["name", "description", "dateOfWork", "property", "unit", "priority", "createdBy", "status"];
+      return [
+        "name",
+        "description",
+        "dateOfWork",
+        "property",
+        "unit",
+        "priority",
+        "createdBy",
+        "status",
+      ];
     }
-    return ["name", "dueDate", "description", "property", "unit", "priority", "createdBy"];
+    return [
+      "name",
+      "dueDate",
+      "description",
+      "property",
+      "unit",
+      "priority",
+      "createdBy",
+    ];
   };
 
   // Column management hook
@@ -577,7 +599,9 @@ export default function FtoHome() {
             <TableToggle
               tabs={tabs}
               activeTab={activeTab}
-              onTabChange={(tabId) => setActiveTab(tabId as "open" | "submissionHistory")}
+              onTabChange={(tabId) =>
+                setActiveTab(tabId as "open" | "submissionHistory")
+              }
             />
           </div>
 
@@ -603,10 +627,12 @@ export default function FtoHome() {
                   priority={order.priority}
                   createdBy={order.createdBy}
                   isApproved={order.approvalStatus === "approved"}
-                  status={(order.approvalStatus || "pending") as
-                    | "approved"
-                    | "pending"
-                    | "rejected"}
+                  status={
+                    (order.approvalStatus || "pending") as
+                      | "approved"
+                      | "pending"
+                      | "rejected"
+                  }
                   onViewTask={() => openViewTaskModal(order)}
                 />
               ))
@@ -676,7 +702,9 @@ export default function FtoHome() {
             <TableToggle
               tabs={tabs}
               activeTab={activeTab}
-              onTabChange={(tabId) => setActiveTab(tabId as "open" | "submissionHistory")}
+              onTabChange={(tabId) =>
+                setActiveTab(tabId as "open" | "submissionHistory")
+              }
             />
           }
           rightContent={
@@ -701,7 +729,10 @@ export default function FtoHome() {
           columns={columns}
           data={displayData}
           rowKey="id"
-          renderCell={(row: FieldTeamOrder | SubmissionRecord, columnKey: string) => {
+          renderCell={(
+            row: FieldTeamOrder | SubmissionRecord,
+            columnKey: string,
+          ) => {
             switch (columnKey) {
               case "name":
                 return (
@@ -755,7 +786,10 @@ export default function FtoHome() {
                 );
               case "createdBy":
                 return (
-                  <PropertyManagerAvatarCombined name={row.createdBy} isCreator={true} />
+                  <PropertyManagerAvatarCombined
+                    name={row.createdBy}
+                    isCreator={true}
+                  />
                 );
               case "status":
                 return (
@@ -763,11 +797,19 @@ export default function FtoHome() {
                     <div
                       className="w-2 h-2 rounded-full"
                       style={{
-                        backgroundColor: activeTab === "open" ? getStatusColor((row as FieldTeamOrder).approvalStatus || "pending") : getStatusColor((row as SubmissionRecord).status),
+                        backgroundColor:
+                          activeTab === "open"
+                            ? getStatusColor(
+                                (row as FieldTeamOrder).approvalStatus ||
+                                  "pending",
+                              )
+                            : getStatusColor((row as SubmissionRecord).status),
                       }}
                     />
                     <span className="text-gray-900 font-normal text-sm capitalize">
-                      {activeTab === "open" ? (row as FieldTeamOrder).approvalStatus || "pending" : (row as SubmissionRecord).status}
+                      {activeTab === "open"
+                        ? (row as FieldTeamOrder).approvalStatus || "pending"
+                        : (row as SubmissionRecord).status}
                     </span>
                   </div>
                 );
@@ -847,23 +889,25 @@ export default function FtoHome() {
               label: (row) => {
                 if (activeTab === "open") return "Submit";
                 const submission = row as SubmissionRecord;
-                return submission.status === "pending" || submission.status === "rejected"
+                return submission.status === "pending" ||
+                  submission.status === "rejected"
                   ? "Edit Submission"
                   : "View Submission";
               },
-              icon: () => activeTab === "open" ? (
-                <ApproveIcon
-                  width={18}
-                  height={18}
-                  color="var(--color-text-secondary)"
-                />
-              ) : (
-                <EyeIcon
-                  width={18}
-                  height={18}
-                  color="var(--color-text-secondary)"
-                />
-              ),
+              icon: () =>
+                activeTab === "open" ? (
+                  <ApproveIcon
+                    width={18}
+                    height={18}
+                    color="var(--color-text-secondary)"
+                  />
+                ) : (
+                  <EyeIcon
+                    width={18}
+                    height={18}
+                    color="var(--color-text-secondary)"
+                  />
+                ),
               onClick: (row) => {
                 if (activeTab === "open") {
                   const order = row as FieldTeamOrder;
@@ -878,7 +922,9 @@ export default function FtoHome() {
                   });
                 } else {
                   const submission = row as SubmissionRecord;
-                  const canEdit = submission.status === "pending" || submission.status === "rejected";
+                  const canEdit =
+                    submission.status === "pending" ||
+                    submission.status === "rejected";
                   navigate(`/fto/submission/${submission.id}`, {
                     state: {
                       isApproved: submission.status === "approved",

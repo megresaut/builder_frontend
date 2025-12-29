@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ModalTemplate,
-  ModalButtons,
-} from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import {
   TextField,
@@ -50,7 +47,9 @@ export default function CreateFTOModal({
   const [priority, setPriority] = useState("normal");
   const [ftoStatus, setFtoStatus] = useState("pending-approval");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<
+    MultiSelectOption[]
+  >([]);
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 

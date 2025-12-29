@@ -444,7 +444,8 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
               style={{
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontWeight: "500",
               }}
             >

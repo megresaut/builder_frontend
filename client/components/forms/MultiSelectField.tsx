@@ -49,7 +49,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
 
   // Deduplicate value array to prevent duplicate key warnings
   const uniqueValue = Array.from(
-    new Map(value.map((item) => [item.id, item])).values()
+    new Map(value.map((item) => [item.id, item])).values(),
   );
 
   const toggleItem = (item: MultiSelectOption) => {
@@ -124,7 +124,7 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
   useEffect(() => {
     if (open) {
       popoverContext.setSearchableItems(
-        options.map((opt) => ({ value: opt.id, label: opt.label }))
+        options.map((opt) => ({ value: opt.id, label: opt.label })),
       );
     }
   }, [open, options, popoverContext]);

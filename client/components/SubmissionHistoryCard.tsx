@@ -1,7 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import BlueButton from "@/components/BlueButton";
 import { PropertyManagerAvatar } from "@/components/PropertyManagerAvatar";
-import { CalendarIcon, BuildingIcon, UserIcon, EyeIcon } from "@/components/icons";
+import {
+  CalendarIcon,
+  BuildingIcon,
+  UserIcon,
+  EyeIcon,
+} from "@/components/icons";
 
 interface SubmissionHistoryCardProps {
   id: number;
@@ -146,16 +151,14 @@ export default function SubmissionHistoryCard({
         <PropertyManagerAvatar name={createdBy} isCreator={true} />
         <BlueButton
           icon={
-            <EyeIcon
-              width={14}
-              height={14}
-              className="brightness-0 invert"
-            />
+            <EyeIcon width={14} height={14} className="brightness-0 invert" />
           }
           onClick={handleViewClick}
           className="h-7 px-2 text-xs"
         >
-          {status === "pending" || status === "rejected" ? "Edit Submission" : "View Summary"}
+          {status === "pending" || status === "rejected"
+            ? "Edit Submission"
+            : "View Summary"}
         </BlueButton>
       </div>
     </div>

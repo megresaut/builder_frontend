@@ -67,7 +67,7 @@ export default function ApproveFTOPage() {
   const [property, setProperty] = useState(state.property || "");
   const [unit, setUnit] = useState(state.unit || "");
   const [fieldTeamAssignee, setFieldTeamAssignee] = useState(
-    state.fieldTeamAssignee || ""
+    state.fieldTeamAssignee || "",
   );
   const [task, setTask] = useState(state.task || "");
   const [description, setDescription] = useState(state.description || "");
@@ -115,13 +115,17 @@ export default function ApproveFTOPage() {
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
   };
 
-  const updateExpenseRow = (id: string, field: keyof ExpenseRow, value: any) => {
+  const updateExpenseRow = (
+    id: string,
+    field: keyof ExpenseRow,
+    value: any,
+  ) => {
     setExpenseRows((rows) =>
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
   };
 
@@ -135,7 +139,7 @@ export default function ApproveFTOPage() {
 
   const addHourRow = () => {
     const newId = String(
-      Math.max(...hourRows.map((r) => parseInt(r.id)), 0) + 1
+      Math.max(...hourRows.map((r) => parseInt(r.id)), 0) + 1,
     );
     setHourRows([
       ...hourRows,
@@ -154,7 +158,7 @@ export default function ApproveFTOPage() {
 
   const addExpenseRow = () => {
     const newId = String(
-      Math.max(...expenseRows.map((r) => parseInt(r.id)), 0) + 1
+      Math.max(...expenseRows.map((r) => parseInt(r.id)), 0) + 1,
     );
     setExpenseRows([
       ...expenseRows,
@@ -172,11 +176,11 @@ export default function ApproveFTOPage() {
 
   const hoursTotal = hourRows.reduce(
     (sum, row) => sum + calculateTotal(row.amount, row.upcharge),
-    0
+    0,
   );
   const expensesTotal = expenseRows.reduce(
     (sum, row) => sum + calculateTotal(row.amount, row.upcharge),
-    0
+    0,
   );
   const grandTotal = hoursTotal + expensesTotal;
 
@@ -463,7 +467,10 @@ export default function ApproveFTOPage() {
                                 value={row.amount}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  if (val === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(val)) {
+                                  if (
+                                    val === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
+                                  ) {
                                     updateHourRow(row.id, "amount", val);
                                   }
                                 }}
@@ -478,7 +485,10 @@ export default function ApproveFTOPage() {
                                 value={row.upcharge}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  if (val === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(val)) {
+                                  if (
+                                    val === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
+                                  ) {
                                     updateHourRow(row.id, "upcharge", val);
                                   }
                                 }}
@@ -489,9 +499,11 @@ export default function ApproveFTOPage() {
                             </div>
                             <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-24">
                               <span className="text-[#303030] font-600 text-[13px]">
-                                ${calculateTotal(row.amount, row.upcharge).toFixed(
-                                  2
-                                )}
+                                $
+                                {calculateTotal(
+                                  row.amount,
+                                  row.upcharge,
+                                ).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 w-16">
@@ -590,7 +602,11 @@ export default function ApproveFTOPage() {
                                 type="date"
                                 value={row.date}
                                 onChange={(e) =>
-                                  updateExpenseRow(row.id, "date", e.target.value)
+                                  updateExpenseRow(
+                                    row.id,
+                                    "date",
+                                    e.target.value,
+                                  )
                                 }
                                 className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
                               />
@@ -599,7 +615,11 @@ export default function ApproveFTOPage() {
                               <select
                                 value={row.vendor}
                                 onChange={(e) =>
-                                  updateExpenseRow(row.id, "vendor", e.target.value)
+                                  updateExpenseRow(
+                                    row.id,
+                                    "vendor",
+                                    e.target.value,
+                                  )
                                 }
                                 className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
                               >
@@ -619,7 +639,7 @@ export default function ApproveFTOPage() {
                                   updateExpenseRow(
                                     row.id,
                                     "receiptNote",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="Enter receipt note"
@@ -640,7 +660,10 @@ export default function ApproveFTOPage() {
                                 value={row.amount}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  if (val === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(val)) {
+                                  if (
+                                    val === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
+                                  ) {
                                     updateExpenseRow(row.id, "amount", val);
                                   }
                                 }}
@@ -654,7 +677,10 @@ export default function ApproveFTOPage() {
                                 value={row.upcharge}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  if (val === "" || /^\$?[\d,]*\.?\d{0,2}$/.test(val)) {
+                                  if (
+                                    val === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
+                                  ) {
                                     updateExpenseRow(row.id, "upcharge", val);
                                   }
                                 }}
@@ -664,9 +690,11 @@ export default function ApproveFTOPage() {
                             </div>
                             <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-24">
                               <span className="text-[#303030] font-600 text-[13px]">
-                                ${calculateTotal(row.amount, row.upcharge).toFixed(
-                                  2
-                                )}
+                                $
+                                {calculateTotal(
+                                  row.amount,
+                                  row.upcharge,
+                                ).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 w-16">
@@ -716,9 +744,7 @@ export default function ApproveFTOPage() {
           <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
             <div>
               FTO Total:{" "}
-              <span className="font-semibold">
-                ${grandTotal.toFixed(2)}
-              </span>
+              <span className="font-semibold">${grandTotal.toFixed(2)}</span>
             </div>
           </div>
           <div className="flex items-center gap-2.5">

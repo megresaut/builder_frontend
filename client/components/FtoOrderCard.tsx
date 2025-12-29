@@ -145,11 +145,7 @@ export default function FtoOrderCard({
         <BlueButton
           icon={
             isApproved ? (
-              <EyeIcon
-                width={14}
-                height={14}
-                className="brightness-0 invert"
-              />
+              <EyeIcon width={14} height={14} className="brightness-0 invert" />
             ) : (
               <ApproveIcon
                 width={14}

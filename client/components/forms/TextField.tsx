@@ -64,7 +64,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (readOnly) return;
-      if (onChange && typeof onChange === 'function') {
+      if (onChange && typeof onChange === "function") {
         // Call onChange with just the string value, not the event
         (onChange as any)(e.target.value);
       }

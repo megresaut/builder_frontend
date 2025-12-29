@@ -93,12 +93,15 @@ function PopoverActionsDropdownContent({
             <span
               className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1"
               style={{
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
               }}
             >
               {resolvedLabel}
             </span>
-            {resolvedIcon && <div className="flex-shrink-0">{resolvedIcon}</div>}
+            {resolvedIcon && (
+              <div className="flex-shrink-0">{resolvedIcon}</div>
+            )}
           </button>
         );
       })}
@@ -160,12 +163,12 @@ export default function PopoverActionsDropdown({
       const distX = Math.max(
         contentRect.left - e.clientX,
         e.clientX - contentRect.right,
-        0
+        0,
       );
       const distY = Math.max(
         contentRect.top - e.clientY,
         e.clientY - contentRect.bottom,
-        0
+        0,
       );
       const distance = Math.sqrt(distX * distX + distY * distY);
 
