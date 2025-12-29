@@ -797,6 +797,20 @@ export default function FtoHome() {
                 }
               },
             },
+            {
+              label: () => "View",
+              icon: () => (
+                <EyeIcon
+                  width={18}
+                  height={18}
+                  color="var(--color-text-secondary)"
+                />
+              ),
+              onClick: (row) => {
+                setViewingFTO(row);
+                setIsViewFTOModalOpen(true);
+              },
+            },
           ]}
           onRowClick={(row) => {
             if (activeTab === "open") {
