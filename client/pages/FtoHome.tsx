@@ -95,6 +95,17 @@ const mockFetchFTOs = async (
       form_submission_status: "submitted",
       created_by: "John Smith",
     },
+    {
+      id: 4,
+      name: "Window Replacement",
+      description: "Replace damaged window frame",
+      property_name: "22 Indian Chase Dr",
+      unit: "Unit D",
+      priority: "high",
+      due_date: "Dec 15, 2025",
+      form_submission_status: "none",
+      created_by: "Mike Johnson",
+    },
   ];
 
   // Filter by status if provided
