@@ -5,6 +5,7 @@ import { CalendarIcon, BuildingIcon, UserIcon, EyeIcon } from "@/components/icon
 interface SubmissionHistoryCardProps {
   id: number;
   name: string;
+  description: string;
   dateOfWork: string;
   property: string;
   unit: string;
