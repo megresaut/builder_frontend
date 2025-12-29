@@ -14,7 +14,7 @@ interface DateFieldCellProps {
 /**
  * DateFieldCell - Date picker for table cells
  *
- * Renders a DatePicker trigger in a table cell.
+ * Renders a DatePicker trigger in a table cell without visible borders.
  * Stores and displays ISO date strings (YYYY-MM-DD).
  */
 export const DateFieldCell: React.FC<DateFieldCellProps> = ({
@@ -64,11 +64,23 @@ export const DateFieldCell: React.FC<DateFieldCellProps> = ({
             alignItems: "center",
           }}
         >
+          <style>{`
+            #${id || "date-cell"}-picker-input {
+              border: none !important;
+              background: transparent !important;
+              padding: 0 !important;
+              height: 32px !important;
+            }
+            #${id || "date-cell"}-picker-input:focus {
+              border: none !important;
+              outline: none;
+            }
+          `}</style>
           <DatePicker
             value={dateValue}
             onChange={handleDateChange}
             disabled={disabled}
-            error={error}
+            error={false}
             placeholder="mm/dd/yyyy"
             className="w-full"
           />
