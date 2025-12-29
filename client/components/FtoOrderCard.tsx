@@ -43,6 +43,7 @@ export default function FtoOrderCard({
       state: {
         property,
         unit,
+        task: name,
         description,
       },
     });
@@ -54,6 +55,7 @@ export default function FtoOrderCard({
       state: {
         property,
         unit,
+        task: name,
         description,
       },
     });

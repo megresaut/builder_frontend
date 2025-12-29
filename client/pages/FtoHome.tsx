@@ -503,6 +503,7 @@ export default function FtoHome() {
                   state: {
                     property: order.property,
                     unit: order.unit,
+                    task: order.name,
                     description: order.description,
                   },
                 });
@@ -514,6 +515,7 @@ export default function FtoHome() {
               state: {
                 property: order.property,
                 unit: order.unit,
+                task: order.name,
                 description: order.description,
               },
             });
