@@ -303,7 +303,7 @@ export default function CreateFTOModal({
             value={selectedAssignees}
             onChange={setSelectedAssignees}
             error={errors.selectedAssignees}
-            placeholder="Select assignees"
+            placeholder="Select Assignees"
             options={AVAILABLE_ASSIGNEES}
             disabled={isViewOnly}
           />
