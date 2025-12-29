@@ -298,11 +298,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   flexDirection: "column",
                   gap: "8px",
                   padding: "12px",
-                  pointerEvents: "auto",
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
                 }}
               >
                 <input
@@ -314,23 +309,7 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   onChange={(e) => {
                     setCustomValue(e.target.value);
                   }}
-                  onKeyDown={(e) => {
-                    e.stopPropagation();
-                    handleCustomInputKeyDown(e);
-                  }}
-                  onKeyUp={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                  }}
-                  onTouchStart={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onFocus={(e) => {
-                    e.stopPropagation();
-                  }}
+                  onKeyDown={handleCustomInputKeyDown}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
