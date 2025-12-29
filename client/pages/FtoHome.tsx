@@ -629,6 +629,13 @@ export default function FtoHome() {
             )}
           </div>
         </div>
+
+        <CreateFTOModal
+          open={isViewFTOModalOpen}
+          onOpenChange={setIsViewFTOModalOpen}
+          isViewOnly={true}
+          viewData={viewingFTO ?? undefined}
+        />
       </PageTemplate>
     );
   }
