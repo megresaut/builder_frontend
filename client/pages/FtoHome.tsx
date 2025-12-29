@@ -307,20 +307,24 @@ export default function FtoHome() {
             </p>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
-            <TableToggle
-              tabs={tabs}
-              activeTab={activeTab}
-              onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
-            />
-            <BlueButton
-              icon={<PlusIcon width={18} height={18} />}
-              onClick={() => navigate("/fto/submission")}
-              className="text-xs"
-            >
-              Submit
-            </BlueButton>
-          </div>
+          <SubPageHeaderV2
+            leftContent={
+              <TableToggle
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
+              />
+            }
+            rightContent={
+              <BlueButton
+                icon={<PlusIcon width={18} height={18} />}
+                onClick={() => navigate("/fto/submission")}
+                className="text-xs"
+              >
+                Submit
+              </BlueButton>
+            }
+          />
 
           <div className="flex flex-col gap-3">
             {loading ? (
