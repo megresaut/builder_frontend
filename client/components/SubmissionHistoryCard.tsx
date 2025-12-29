@@ -72,7 +72,9 @@ export default function SubmissionHistoryCard({
   const handleViewClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (status === "pending" || status === "rejected") {
+    if (onViewTask) {
+      onViewTask();
+    } else if (status === "pending" || status === "rejected") {
       navigate(`/fto/submission/${id}`, {
         state: {
           isApproved: false,
@@ -83,8 +85,6 @@ export default function SubmissionHistoryCard({
           description,
         },
       });
-    } else if (onViewTask) {
-      onViewTask();
     } else {
       navigate(`/fto/submission/${id}`, {
         state: {
