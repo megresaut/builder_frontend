@@ -30,6 +30,7 @@ export default function FtoOrderCard({
   priority,
   createdBy,
   isApproved = false,
+  status = "pending",
 }: FtoOrderCardProps) {
   const navigate = useNavigate();
 
