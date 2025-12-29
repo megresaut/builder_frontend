@@ -234,30 +234,47 @@ export default function CreateFTOModal({
     >
       <FormLayout>
         <FormSection showDivider={false}>
-          <SelectField
-            label="Property"
-            required
-            value={property}
-            onChange={setProperty}
-            error={errors.property}
-            placeholder="Select Property"
-            options={[
-              { value: "property1", label: "22 Indian Chase Dr" },
-              { value: "property2", label: "Property 2" },
-            ]}
-            disabled={isViewOnly}
-          />
-          <SelectField
-            label="Unit"
-            value={unit}
-            onChange={setUnit}
-            placeholder="Select Unit If Applicable"
-            options={[
-              { value: "unit1", label: "Unit 1" },
-              { value: "unit2", label: "Unit 2" },
-            ]}
-            disabled={isViewOnly}
-          />
+          {isViewOnly ? (
+            <>
+              <TextField
+                label="Property"
+                value={property}
+                onChange={() => {}}
+                disabled={true}
+              />
+              <TextField
+                label="Unit"
+                value={unit}
+                onChange={() => {}}
+                disabled={true}
+              />
+            </>
+          ) : (
+            <>
+              <SelectField
+                label="Property"
+                required
+                value={property}
+                onChange={setProperty}
+                error={errors.property}
+                placeholder="Select Property"
+                options={[
+                  { value: "property1", label: "22 Indian Chase Dr" },
+                  { value: "property2", label: "Property 2" },
+                ]}
+              />
+              <SelectField
+                label="Unit"
+                value={unit}
+                onChange={setUnit}
+                placeholder="Select Unit If Applicable"
+                options={[
+                  { value: "unit1", label: "Unit 1" },
+                  { value: "unit2", label: "Unit 2" },
+                ]}
+              />
+            </>
+          )}
         </FormSection>
 
         <FormSection title="FTO Details">
