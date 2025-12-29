@@ -80,6 +80,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
           setOpen={setOpen}
           fieldId={fieldId}
           disabled={disabled}
+          error={error}
           placeholder={placeholder}
           uniqueValue={uniqueValue}
           removeItem={removeItem}
