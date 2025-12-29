@@ -7,6 +7,7 @@ import GlobalTable from "@/components/GlobalTable";
 import FtoOrderCard from "@/components/FtoOrderCard";
 import SubmissionHistoryCard from "@/components/SubmissionHistoryCard";
 import { AlertBanner } from "@/components/AlertBanner";
+import CreateFTOModal from "@/components/CreateFTOModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
