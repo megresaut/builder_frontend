@@ -307,7 +307,6 @@ export default function CreateFTOModal({
           />
           <MultiSelectField
             label="Assignees"
-            required
             value={selectedAssignees}
             onChange={setSelectedAssignees}
             error={errors.selectedAssignees}
