@@ -40,6 +40,78 @@ export default function PdfViewerModal({
     // Nothing else to do; kept for future enhancements.
   }, [open, safeUrl]);
 
+  const footerContent = (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <button
+        type="button"
+        onClick={() => onOpenChange(false)}
+        style={{
+          borderRadius: "8px",
+          backgroundColor: "rgba(251, 251, 251, 1)",
+          boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+          borderColor: "rgba(218, 218, 218, 1)",
+          borderStyle: "solid",
+          borderWidth: "1px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          paddingLeft: "12px",
+          paddingRight: "12px",
+          paddingTop: "8px",
+          paddingBottom: "8px",
+          minHeight: "36px",
+          color: "rgba(48, 48, 48, 1)",
+          fontWeight: 400,
+          letterSpacing: "-0.32px",
+          lineHeight: 1.4,
+          justifyContent: "center",
+          cursor: "pointer",
+          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          fontSize: "16px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Close
+      </button>
+      {safeUrl ? (
+        <a
+          href={safeUrl}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            borderRadius: "8px",
+            backgroundColor: "var(--color-button-primary)",
+            border: "1px solid rgba(255, 255, 255, 1)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            paddingLeft: "12px",
+            paddingRight: "12px",
+            paddingTop: "8px",
+            paddingBottom: "8px",
+            minHeight: "36px",
+            color: "rgba(255, 255, 255, 1)",
+            fontWeight: 500,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            justifyContent: "center",
+            cursor: "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            whiteSpace: "nowrap",
+            boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+            textDecoration: "none",
+            transition: "background-color 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
+        >
+          Open in new tab
+        </a>
+      ) : null}
+    </div>
+  );
+
   return (
     <ModalTemplate
       open={open}
@@ -47,79 +119,7 @@ export default function PdfViewerModal({
       title={isMobile ? "" : title}
       size={isMobile ? "md" : "lg"}
       hideCloseButton={isMobile}
-      footer={
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: isMobile ? "space-between" : "flex-start" }}>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            style={{
-              borderRadius: "8px",
-              backgroundColor: "rgba(251, 251, 251, 1)",
-              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
-              borderColor: "rgba(218, 218, 218, 1)",
-              borderStyle: "solid",
-              borderWidth: "1px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              paddingLeft: "12px",
-              paddingRight: "12px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
-              minHeight: "36px",
-              color: "rgba(48, 48, 48, 1)",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              justifyContent: "center",
-              cursor: "pointer",
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              fontSize: "16px",
-              whiteSpace: "nowrap",
-              flex: isMobile ? "0 0 auto" : undefined,
-            }}
-          >
-            Close
-          </button>
-          {safeUrl ? (
-            <a
-              href={safeUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                borderRadius: "8px",
-                backgroundColor: "var(--color-button-primary)",
-                border: "1px solid rgba(255, 255, 255, 1)",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                paddingTop: "8px",
-                paddingBottom: "8px",
-                minHeight: "36px",
-                color: "rgba(255, 255, 255, 1)",
-                fontWeight: 500,
-                letterSpacing: "-0.32px",
-                lineHeight: 1.4,
-                justifyContent: "center",
-                cursor: "pointer",
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                fontSize: "16px",
-                whiteSpace: "nowrap",
-                boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
-                textDecoration: "none",
-                transition: "background-color 0.2s",
-                flex: isMobile ? "0 0 auto" : undefined,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
-            >
-              Open in new tab
-            </a>
-          ) : null}
-        </div>
-      }
+      footer={!isMobile ? footerContent : null}
     >
       {safeUrl ? (
         <div style={{
