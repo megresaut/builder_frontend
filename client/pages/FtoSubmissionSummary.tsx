@@ -94,15 +94,6 @@ export default function FtoSubmissionSummary() {
     useSortingTable(submissions);
 
   // Column management hook
-  const columnManagementHook = useColumnManagement([
-    "name",
-    "dateOfWork",
-    "property",
-    "unit",
-    "createdBy",
-    "status",
-  ]);
-
   const {
     columnOrder,
     visibleColumns,
@@ -118,23 +109,14 @@ export default function FtoSubmissionSummary() {
     handleColumnDragOver,
     handleColumnDragLeave,
     handleColumnDrop,
-    setColumnOrder,
-    setVisibleColumns,
-  } = columnManagementHook;
-
-  // Reset columns on component mount to ensure all new columns are visible
-  useEffect(() => {
-    const defaultColumnKeys = [
-      "name",
-      "dateOfWork",
-      "property",
-      "unit",
-      "createdBy",
-      "status",
-    ];
-    setColumnOrder(defaultColumnKeys);
-    setVisibleColumns(new Set(defaultColumnKeys));
-  }, [setColumnOrder, setVisibleColumns]);
+  } = useColumnManagement([
+    "name",
+    "dateOfWork",
+    "property",
+    "unit",
+    "createdBy",
+    "status",
+  ]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
