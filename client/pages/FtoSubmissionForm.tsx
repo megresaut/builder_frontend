@@ -884,6 +884,8 @@ export default function FtoSubmissionForm() {
                           }}
                           placeholder="Select Task"
                           disabled={isApproved}
+                          onCreateNew={() => setIsCreateFTOModalOpen(true)}
+                          createNewLabel="Create New Task"
                         />
 
                         <CurrencyField
