@@ -514,22 +514,24 @@ export default function FtoHome() {
             <TableToggle
               tabs={tabs}
               activeTab={activeTab}
-              onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
+              onTabChange={(tabId) => setActiveTab(tabId as "open" | "submissionHistory")}
             />
           }
           rightContent={
-            <BlueButton
-              icon={
-                <ApproveIcon
-                  width={16}
-                  height={16}
-                  className="brightness-0 invert"
-                />
-              }
-              onClick={() => navigate("/fto/submission")}
-            >
-              Submit
-            </BlueButton>
+            activeTab === "open" && (
+              <BlueButton
+                icon={
+                  <ApproveIcon
+                    width={16}
+                    height={16}
+                    className="brightness-0 invert"
+                  />
+                }
+                onClick={() => navigate("/fto/submission")}
+              >
+                Submit
+              </BlueButton>
+            )
           }
         />
 
