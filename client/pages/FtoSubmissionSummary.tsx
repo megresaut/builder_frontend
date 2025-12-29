@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import GlobalTable from "@/components/GlobalTable";
+import SubmissionHistoryCard from "@/components/SubmissionHistoryCard";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
