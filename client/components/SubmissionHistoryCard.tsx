@@ -120,7 +120,7 @@ export default function SubmissionHistoryCard({
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <span className="text-xs text-gray-500">By {createdBy}</span>
+        <PropertyManagerAvatar name={createdBy} isCreator={true} />
         <BlueButton
           icon={
             <EyeIcon
