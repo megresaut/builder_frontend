@@ -10,12 +10,10 @@ import { cn } from "@/lib/utils";
 
 function ActionsMenuContent({
   isHome,
-  isSubmissionHistory,
   onNavigate,
   onClose,
 }: {
   isHome: boolean;
-  isSubmissionHistory: boolean;
   onNavigate: (path: string) => void;
   onClose: () => void;
 }) {
@@ -23,11 +21,6 @@ function ActionsMenuContent({
 
   const items = [
     { value: "home", label: "Home", onSelect: () => onNavigate("/fto") },
-    {
-      value: "submission-history",
-      label: "Submission History",
-      onSelect: () => onNavigate("/fto/submission-history"),
-    },
     { value: "settings", label: "Settings", onSelect: () => onClose() },
   ];
 
@@ -46,9 +39,7 @@ function ActionsMenuContent({
   return (
     <div className="flex flex-col py-1 whitespace-nowrap">
       {items.map((item, index) => {
-        const isSelected =
-          (item.value === "home" && isHome) ||
-          (item.value === "submission-history" && isSubmissionHistory);
+        const isSelected = item.value === "home" && isHome;
         const isHighlighted = popover.highlightedIndex === index;
 
         return (
