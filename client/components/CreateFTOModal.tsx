@@ -238,6 +238,7 @@ export default function CreateFTOModal({
               { value: "property2", label: "Property 2" },
             ]}
             disabled={isViewOnly}
+            allowCreate={false}
           />
           <SelectField
             label="Unit"
