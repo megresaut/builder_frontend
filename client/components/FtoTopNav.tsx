@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { PlusIcon } from "@/components/icons";
 
 export default function FtoTopNav() {
   const navigate = useNavigate();
@@ -55,8 +56,16 @@ export default function FtoTopNav() {
           )}
         </div>
 
-        {/* Right: Menu Button */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        {/* Right: Submit Button & Menu */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => navigate("/fto/submission")}
+            className="flex items-center justify-center gap-1 h-8 px-2.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors text-xs font-medium flex-shrink-0"
+          >
+            <PlusIcon width={14} height={14} />
+            <span className="hidden sm:inline">Submit</span>
+          </button>
+
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
