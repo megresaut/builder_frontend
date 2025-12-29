@@ -236,29 +236,28 @@ export default function ApproveFTOPage() {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
-  // Validation: Check if all required fields are filled
-  const isApproveDisabled = useMemo(() => {
-    // Check Hours table: all rows must have date, hours, assignee, and amount
-    const hoursValid = hourRows.every(
-      (row) =>
-        row.date.trim() &&
-        row.hours.trim() &&
-        row.assignee.trim() &&
-        row.amount &&
-        row.amount !== "$0",
-    );
+  // Helper to check if a cell is required but empty
+  const isHoursCellInvalid = (row: HourRow, field: keyof HourRow) => {
+    const requiredFields = ['date', 'hours', 'assignee', 'amount'];
+    if (!requiredFields.includes(field)) return false;
 
-    // Check Expenses table: all rows must have date, vendor, and amount
-    const expensesValid = expenseRows.every(
-      (row) =>
-        row.date.trim() &&
-        row.vendor.trim() &&
-        row.amount &&
-        row.amount !== "$0",
-    );
+    const value = row[field];
+    if (field === 'amount') {
+      return value === '$0' || !value;
+    }
+    return !(value && String(value).trim());
+  };
 
-    return !hoursValid || !expensesValid;
-  }, [hourRows, expenseRows]);
+  const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
+    const requiredFields = ['date', 'vendor', 'amount'];
+    if (!requiredFields.includes(field)) return false;
+
+    const value = row[field];
+    if (field === 'amount') {
+      return value === '$0' || !value;
+    }
+    return !(value && String(value).trim());
+  };
 
   return (
     <div
