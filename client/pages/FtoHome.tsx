@@ -415,7 +415,7 @@ export default function FtoHome() {
     if (missingColumns.length > 0) {
       setColumnOrder([...columnOrder, ...missingColumns]);
     }
-  }, [columns.length]);
+  }, [columns.length, activeTab]);
 
   if (isMobile) {
     return (
