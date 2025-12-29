@@ -302,8 +302,12 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   flexDirection: "column",
                   gap: "8px",
                   padding: "12px",
+                  pointerEvents: "auto",
                 }}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
               >
                 <input
                   ref={customInputRef}
@@ -312,15 +316,25 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   placeholder={customInputPlaceholder}
                   value={customValue}
                   onChange={(e) => {
-                    e.stopPropagation();
                     setCustomValue(e.target.value);
                   }}
                   onKeyDown={(e) => {
                     e.stopPropagation();
                     handleCustomInputKeyDown(e);
                   }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
+                  onKeyUp={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onFocus={(e) => {
+                    e.stopPropagation();
+                  }}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
@@ -331,6 +345,8 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                     fontSize: "14px",
                     color: "var(--color-text-primary)",
                     outline: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "textfield",
                   }}
                 />
                 <div
