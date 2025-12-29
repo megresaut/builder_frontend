@@ -69,9 +69,6 @@ export default function FtoTopNav() {
   const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === "/fto" || location.pathname === "/fto/";
-  const isSubmissionHistory = location.pathname.includes(
-    "/fto/submission-history",
-  );
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -107,12 +104,7 @@ export default function FtoTopNav() {
               Home
             </span>
           )}
-          {isSubmissionHistory && (
-            <span className="text-sm font-medium text-gray-900 truncate">
-              Submission History
-            </span>
-          )}
-          {!isHome && !isSubmissionHistory && (
+          {!isHome && (
             <span className="text-sm font-medium text-gray-900 truncate">
               Field Team Orders
             </span>
@@ -169,7 +161,6 @@ export default function FtoTopNav() {
             >
               <ActionsMenuContent
                 isHome={isHome}
-                isSubmissionHistory={isSubmissionHistory}
                 onNavigate={handleNavigate}
                 onClose={() => setOpen(false)}
               />
