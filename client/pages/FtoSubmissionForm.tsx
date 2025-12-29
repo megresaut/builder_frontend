@@ -612,7 +612,7 @@ export default function FtoSubmissionForm() {
                         />
 
                         <SelectField
-                          label="Charge to Client?"
+                          label="Non-Billable?"
                           required
                           error={hourErrors[entry.id]?.nonBillableHours}
                           options={YES_NO_OPTIONS}
