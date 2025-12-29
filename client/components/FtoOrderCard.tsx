@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import BlueButton from "@/components/BlueButton";
 import { ApproveIcon, CalendarIcon, BuildingIcon } from "@/components/icons";
 
 interface FtoOrderCardProps {
@@ -98,13 +99,13 @@ export default function FtoOrderCard({
 
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
         <span className="text-xs text-gray-500">By {createdBy}</span>
-        <button
+        <BlueButton
+          icon={<ApproveIcon width={14} height={14} />}
           onClick={handleSubmitClick}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium"
+          className="h-7 px-2 text-xs"
         >
-          <ApproveIcon width={14} height={14} color="white" />
           Submit
-        </button>
+        </BlueButton>
       </div>
     </div>
   );
