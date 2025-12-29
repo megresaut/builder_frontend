@@ -56,6 +56,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   placeholder = "Select an option",
   options,
   multiple = false,
+  onCreateNew,
+  createNewLabel = "Create New",
 }) => {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
