@@ -354,6 +354,10 @@ export default function FtoHome() {
                   unit={order.unit}
                   priority={order.priority}
                   createdBy={order.createdBy}
+                  isApproved={
+                    activeTab === "closed" &&
+                    order.approvalStatus === "approved"
+                  }
                 />
               ))
             )}
