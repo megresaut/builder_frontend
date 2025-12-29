@@ -21,6 +21,7 @@ interface CreateFTOModalProps {
     priority: string;
     ftoStatus?: string;
   };
+  isSimple?: boolean;
 }
 
 export default function CreateFTOModal({
