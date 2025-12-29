@@ -104,6 +104,16 @@ export default function FtoOrderCard({
         </div>
       </div>
 
+      <div className="flex items-center gap-1 mb-3">
+        <div
+          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ backgroundColor: getStatusColor(status) }}
+        />
+        <span className="text-xs font-medium text-gray-600 capitalize">
+          {status}
+        </span>
+      </div>
+
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2 text-xs text-gray-600">
           <BuildingIcon width={14} height={14} />
