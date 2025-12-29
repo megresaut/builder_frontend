@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2 } from "lucide-react";
+import { DeleteIcon } from "@/components/icons";
 
 interface HourRow {
   id: string;
@@ -15,6 +15,7 @@ interface HourRow {
   emergency: boolean;
   amount: string;
   upcharge: string;
+  assignee: string;
 }
 
 interface ExpenseRow {
@@ -25,6 +26,7 @@ interface ExpenseRow {
   avmExpense: boolean;
   amount: string;
   upcharge: string;
+  assignee: string;
 }
 
 interface ApproveFTOPageProps {
@@ -37,22 +39,12 @@ interface ApproveFTOPageProps {
 
 const mockVendors = ["Elite HVAC", "ABC Plumbing", "Green Lawn Services"];
 const mockTasks = ["HVAC Inspection", "Plumbing Repair", "Door Lock Repair"];
+const mockAssignees = ["John Smith", "Jane Doe", "Mike Johnson", "Sarah Williams"];
 
 const calculateTotal = (amount: string, upcharge: string): number => {
   const amountNum = parseFloat(amount.replace(/[^0-9.-]+/g, "")) || 0;
   const upchargeNum = parseFloat(upcharge.replace(/[^0-9.-]+/g, "")) || 0;
   return Math.max(0, amountNum + upchargeNum);
-};
-
-const formatCurrency = (value: string): string => {
-  const num = parseFloat(value.replace(/[^0-9.-]+/g, "")) || 0;
-  return "$" + num.toFixed(2);
-};
-
-const parseDate = (dateStr: string): Date | null => {
-  if (!dateStr) return null;
-  const date = new Date(dateStr);
-  return isNaN(date.getTime()) ? null : date;
 };
 
 const formatDate = (date: Date): string => {
@@ -63,6 +55,7 @@ export default function ApproveFTOPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state || {}) as ApproveFTOPageProps;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [property, setProperty] = useState(state.property || "");
   const [unit, setUnit] = useState(state.unit || "");
@@ -82,6 +75,7 @@ export default function ApproveFTOPage() {
       emergency: false,
       amount: "$0",
       upcharge: "$0",
+      assignee: "",
     },
   ]);
 
@@ -94,10 +88,15 @@ export default function ApproveFTOPage() {
       avmExpense: false,
       amount: "$0",
       upcharge: "$0",
+      assignee: "",
     },
   ]);
 
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Array<{ name: string; size: number; file: File }>
+  >([]);
 
   useEffect(() => {
     const checkSidebarVisibility = () => {
@@ -152,6 +151,7 @@ export default function ApproveFTOPage() {
         emergency: false,
         amount: "$0",
         upcharge: "$0",
+        assignee: "",
       },
     ]);
   };
@@ -170,6 +170,7 @@ export default function ApproveFTOPage() {
         avmExpense: false,
         amount: "$0",
         upcharge: "$0",
+        assignee: "",
       },
     ]);
   };
@@ -202,6 +203,30 @@ export default function ApproveFTOPage() {
     navigate(-1);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+    if (files) {
+      const newFiles = Array.from(files).map((file) => ({
+        name: file.name,
+        size: file.size,
+        file,
+      }));
+      setUploadedFiles([...uploadedFiles, ...newFiles]);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  };
+
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
@@ -221,7 +246,200 @@ export default function ApproveFTOPage() {
         className="flex flex-1 overflow-hidden"
         style={{ marginBottom: "72px" }}
       >
-        {/* Right Column - Scrollable Content (Full Width) */}
+        {/* Left Column - File Upload/Viewer (Fixed) */}
+        {isLeftPanelOpen && (
+          <div
+            className="w-1/2 border-r border-[#E5E7EB] flex-shrink-0 overflow-hidden"
+            style={{
+              alignSelf: "stretch",
+              display: "flex",
+              flexDirection: "column",
+              padding: "24px 32px",
+              position: "relative",
+            }}
+          >
+            <div
+              className="flex flex-col flex-1"
+              style={{
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* File Upload Section */}
+              <div
+                className="flex flex-col text-base font-normal flex-1"
+                style={{
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {uploadedFiles.length === 0 ? (
+                  <div
+                    className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center flex-1"
+                    style={{ padding: "16px 24px" }}
+                  >
+                    <div className="self-center flex flex-col items-center">
+                      <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
+                        <div>Choose a file or drag & drop it here</div>
+                        <div className="mt-2">
+                          JPEG, PNG and PDF formats, up to 50 MB.
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Browse Files</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col flex-1"
+                    style={{
+                      padding: "24px 0",
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div className="text-sm text-[#A1A1A9] mb-4">
+                      Limited to 10 files. Max file size is 20MB.
+                    </div>
+                    <div className="text-sm text-[#303030] mb-4">
+                      Drag & drop files here or{" "}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-blue-600 hover:underline"
+                      >
+                        browse
+                      </button>
+                    </div>
+                    <div
+                      className="space-y-3 mb-6 flex-1"
+                      style={{ overflow: "hidden" }}
+                    >
+                      {uploadedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <svg
+                              className="w-5 h-5 text-red-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-[#303030] truncate">
+                                {file.name}{" "}
+                                <span className="text-[#A1A1A9]">
+                                  ({formatFileSize(file.size)})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveFile(index)}
+                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors ml-4"
+                            title="Remove file"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
+                    >
+                      Add more files
+                    </button>
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Collapse Button */}
+        <button
+          onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+          className="w-6 bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          style={{ height: "25px" }}
+          title={isLeftPanelOpen ? "Collapse" : "Expand"}
+        >
+          <svg
+            className="w-4 h-4 text-gray-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+          >
+            {isLeftPanelOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            )}
+          </svg>
+        </button>
+
+        {/* Right Column - Scrollable Content */}
         <div
           className="flex flex-col flex-1"
           style={{
@@ -372,6 +590,11 @@ export default function ApproveFTOPage() {
                               Note
                             </span>
                           </div>
+                          <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-32">
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Assignee
+                            </span>
+                          </div>
                           <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-16">
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                               NoFee?
@@ -438,6 +661,26 @@ export default function ApproveFTOPage() {
                                 placeholder="Enter note"
                                 className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
                               />
+                            </div>
+                            <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-32">
+                              <select
+                                value={row.assignee}
+                                onChange={(e) =>
+                                  updateHourRow(
+                                    row.id,
+                                    "assignee",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
+                              >
+                                <option value="">Select assignee...</option>
+                                {mockAssignees.map((a) => (
+                                  <option key={a} value={a}>
+                                    {a}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                             <div className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-16">
                               <Checkbox
@@ -512,7 +755,11 @@ export default function ApproveFTOPage() {
                                 className="text-[#525252] hover:text-[#303030] transition-colors"
                                 title="Delete row"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <DeleteIcon
+                                  width={16}
+                                  height={16}
+                                  color="currentColor"
+                                />
                               </button>
                             </div>
                           </div>
@@ -567,9 +814,9 @@ export default function ApproveFTOPage() {
                               Receipt Note
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-20">
+                          <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-32">
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              Receipts
+                              Assignee
                             </span>
                           </div>
                           <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0 w-28">
@@ -646,13 +893,25 @@ export default function ApproveFTOPage() {
                                 className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
                               />
                             </div>
-                            <div className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-20">
-                              <button
-                                className="text-blue-600 hover:text-blue-700 text-sm"
-                                title="View receipt"
+                            <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-32">
+                              <select
+                                value={row.assignee}
+                                onChange={(e) =>
+                                  updateExpenseRow(
+                                    row.id,
+                                    "assignee",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
                               >
-                                📎
-                              </button>
+                                <option value="">Select assignee...</option>
+                                {mockAssignees.map((a) => (
+                                  <option key={a} value={a}>
+                                    {a}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                             <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-28">
                               <input
@@ -703,7 +962,11 @@ export default function ApproveFTOPage() {
                                 className="text-[#525252] hover:text-[#303030] transition-colors"
                                 title="Delete row"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <DeleteIcon
+                                  width={16}
+                                  height={16}
+                                  color="currentColor"
+                                />
                               </button>
                             </div>
                           </div>
