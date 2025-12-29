@@ -363,9 +363,9 @@ export default function FtoHome() {
           rightContent={
             <button
               onClick={() => navigate("/fto/submission")}
-              className="flex items-center justify-center gap-2 h-9 px-3 rounded-lg bg-[#2463EB] text-white font-medium text-sm hover:bg-[#1a4fb8] transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]"
+              className="flex items-center justify-center gap-2 h-9 px-3 rounded-lg bg-[#013764] text-white font-medium text-sm hover:bg-[#002D5A] transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]"
             >
-              <PlusIcon width={18} height={18} color="white" />
+              <ApproveIcon width={18} height={18} />
               <span>Submit</span>
             </button>
           }
