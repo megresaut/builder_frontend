@@ -167,7 +167,7 @@ export default function FtoHome() {
       localStorage.setItem("approvedFTOs", JSON.stringify([1, 3]));
     }
     if (!localStorage.getItem("rejectedFTOs")) {
-      localStorage.setItem("rejectedFTOs", JSON.stringify([]));
+      localStorage.setItem("rejectedFTOs", JSON.stringify([2]));
     }
   }, []);
 
