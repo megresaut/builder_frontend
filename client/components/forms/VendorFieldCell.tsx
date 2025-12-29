@@ -60,8 +60,8 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
       : false,
   );
 
-  const selectedOption = options.find((opt) => opt.value === value);
-  const displayLabel = selectedOption?.label || inputValue || placeholder;
+  const selectedOption = options.find((opt) => opt?.value === value);
+  const displayLabel = selectedOption?.label || inputValue || placeholder || '';
 
   const handleSelect = (optionValue: string) => {
     onChange?.(optionValue);
