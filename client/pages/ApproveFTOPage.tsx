@@ -212,8 +212,12 @@ export default function ApproveFTOPage() {
   };
 
   const handleViewFile = (file: { name: string; file: File }) => {
-    const url = URL.createObjectURL(file.file);
-    pdfViewer.openPdf(url, file.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      pdfViewer.openPdf(dataUrl, file.name);
+    };
+    reader.readAsDataURL(file.file);
   };
 
   const formatFileSize = (bytes: number): string => {
