@@ -565,7 +565,7 @@ export default function ApproveFTOPage() {
                           style={{ width: "120px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Date
+                            Date <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
@@ -573,7 +573,7 @@ export default function ApproveFTOPage() {
                           style={{ width: "100px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Hours
+                            Hours <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1">
@@ -586,7 +586,7 @@ export default function ApproveFTOPage() {
                           style={{ width: "140px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Assignee
+                            Assignee <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
