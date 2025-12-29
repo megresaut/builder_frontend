@@ -96,6 +96,17 @@ export default function CreateFTOModal({
     }
   }, [editData, viewData, isViewOnly, open]);
 
+  // Auto-update FTO Status when assignees are added/removed
+  useEffect(() => {
+    if (isViewOnly) return;
+
+    if (selectedAssignees.length > 0 && ftoStatus === "pending-approval") {
+      setFtoStatus("dispatched");
+    } else if (selectedAssignees.length === 0 && ftoStatus === "dispatched") {
+      setFtoStatus("pending-approval");
+    }
+  }, [selectedAssignees, isViewOnly, ftoStatus]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!property.trim()) {
