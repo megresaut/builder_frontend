@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
-import FTOApprovalModal from "@/components/FTOApprovalModal";
 import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -39,6 +38,9 @@ interface FieldTeamOrder {
     | "rejected"
     | "approved";
   amount: number;
+  unit?: string;
+  fieldTeamAssignee?: string;
+  task?: string;
 }
 
 const getRandomTimesheetStatus = ():
@@ -281,10 +283,6 @@ export default function FieldTeamOrders() {
   );
   const [editingOrder, setEditingOrder] = useState<FieldTeamOrder | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
-  const [showApprovalModal, setShowApprovalModal] = usePageState(
-    "showApprovalModal",
-    false,
-  );
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
 
   const filteredOrders = orders.filter((order) => {
@@ -389,10 +387,18 @@ export default function FieldTeamOrders() {
 
   const handleApproveOrder = useCallback(
     (order: FieldTeamOrder) => {
-      setEditingOrder(order);
-      setShowApprovalModal(true);
+      navigate(`/fto/approve/${order.id}`, {
+        state: {
+          property: order.property,
+          unit: order.unit ?? "",
+          fieldTeamAssignee:
+            order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
+          task: order.task ?? "",
+          description: order.description,
+        },
+      });
     },
-    [setShowApprovalModal]
+    [navigate]
   );
 
   return (
@@ -579,21 +585,6 @@ export default function FieldTeamOrders() {
               }
             : undefined
         }
-      />
-
-      {/* FTO Approval Modal */}
-      <FTOApprovalModal
-        open={showApprovalModal}
-        onOpenChange={(open) => {
-          setShowApprovalModal(open);
-          if (!open) {
-            setEditingOrder(null);
-          }
-        }}
-        editingOrder={editingOrder}
-        property={editingOrder?.property || "3 hekma Road"}
-        unit={editingOrder?.unit || "2"}
-        fieldTeamAssignee={editingOrder?.fieldTeamAssignee || "John Smith"}
       />
 
       {/* Column Filter Modal */}
