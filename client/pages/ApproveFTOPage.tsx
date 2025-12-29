@@ -186,6 +186,30 @@ export default function ApproveFTOPage() {
   const grandTotal = hoursTotal + expensesTotal;
 
   const handleApprove = () => {
+    setAttemptedSubmit(true);
+
+    // Check if all required fields are filled
+    const hoursValid = hourRows.every(
+      (row) =>
+        row.date.trim() &&
+        row.hours.trim() &&
+        row.assignee.trim() &&
+        row.amount &&
+        row.amount !== "$0",
+    );
+
+    const expensesValid = expenseRows.every(
+      (row) =>
+        row.date.trim() &&
+        row.vendor.trim() &&
+        row.amount &&
+        row.amount !== "$0",
+    );
+
+    if (!hoursValid || !expensesValid) {
+      return; // Don't navigate if validation fails
+    }
+
     console.log("FTO Approved", {
       ftoName,
       property,
