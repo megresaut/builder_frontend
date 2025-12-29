@@ -44,10 +44,11 @@ export default function PdfViewerModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={title}
+      title={isMobile ? "" : title}
       size={isMobile ? "md" : "lg"}
+      hideCloseButton={isMobile}
       footer={
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: isMobile ? "space-between" : "flex-start" }}>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
