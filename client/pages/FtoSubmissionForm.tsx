@@ -555,6 +555,7 @@ export default function FtoSubmissionForm() {
                           options={TASKS}
                           value={entry.taskId || ""}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -565,6 +566,7 @@ export default function FtoSubmissionForm() {
                             updateHourEntry(entry.id, "taskId", value);
                           }}
                           placeholder="Select Task"
+                          disabled={isApproved}
                         />
 
                         <NumberField
@@ -574,6 +576,7 @@ export default function FtoSubmissionForm() {
                           placeholder="Input Hours"
                           value={entry.hours}
                           onChange={(e) => {
+                            if (isApproved) return;
                             const value = e.target.value;
                             // Only allow whole numbers or numbers with max one decimal place
                             if (value === "" || /^(\d+\.?\d?)$/.test(value)) {
@@ -589,6 +592,7 @@ export default function FtoSubmissionForm() {
                           }}
                           step="0.5"
                           min="0"
+                          disabled={isApproved}
                         />
 
                         <SelectField
@@ -598,6 +602,7 @@ export default function FtoSubmissionForm() {
                           options={YES_NO_OPTIONS}
                           value={entry.emergencyRate || "no"}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -612,6 +617,7 @@ export default function FtoSubmissionForm() {
                             );
                           }}
                           placeholder="Select An Option"
+                          disabled={isApproved}
                         />
 
                         <SelectField
@@ -621,6 +627,7 @@ export default function FtoSubmissionForm() {
                           options={YES_NO_OPTIONS}
                           value={entry.nonBillableHours || "no"}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -635,16 +642,19 @@ export default function FtoSubmissionForm() {
                             );
                           }}
                           placeholder="Select An Option"
+                          disabled={isApproved}
                         />
 
                         <TextAreaField
                           label="Note"
                           placeholder="Notes For Hour Entry"
                           value={entry.note}
-                          onChange={(e) =>
-                            updateHourEntry(entry.id, "note", e.target.value)
-                          }
+                          onChange={(e) => {
+                            if (isApproved) return;
+                            updateHourEntry(entry.id, "note", e.target.value);
+                          }}
                           autoGrow
+                          disabled={isApproved}
                         />
                       </div>
                     )}
