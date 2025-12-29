@@ -369,7 +369,11 @@ export default function FtoHome() {
         label: "Due date",
         icon: <CalendarIcon width={16} height={16} />,
       },
-      ...baseColumns.slice(1),
+      baseColumns[1],
+      baseColumns[2],
+      baseColumns[3],
+      baseColumns[4],
+      baseColumns[5],
     ];
   };
 
