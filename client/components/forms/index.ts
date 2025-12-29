@@ -50,6 +50,7 @@ export { DateFieldCell } from "./DateFieldCell";
 export { NumberFieldCell } from "./NumberFieldCell";
 export { CurrencyFieldCell } from "./CurrencyFieldCell";
 export { TextFieldCell } from "./TextFieldCell";
+export { VendorFieldCell } from "./VendorFieldCell";
 
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";
