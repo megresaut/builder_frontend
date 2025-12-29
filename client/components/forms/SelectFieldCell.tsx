@@ -184,13 +184,13 @@ const SelectFieldCellContent: React.FC<SelectFieldCellContentProps> = ({
         break;
       case "ArrowDown":
         e.preventDefault();
-        setHighlightedIndex((prev) =>
+        popoverContext.setHighlightedIndex((prev) =>
           prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
         );
         break;
       case "ArrowUp":
         e.preventDefault();
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        popoverContext.setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
         break;
       case "Escape":
         e.preventDefault();
