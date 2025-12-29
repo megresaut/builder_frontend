@@ -171,7 +171,7 @@ export default function FtoSubmissionSummary() {
     {
       key: "priority",
       label: "Priority",
-      icon: <DocumentIcon width={16} height={16} />,
+      icon: <FlagIcon width={16} height={16} />,
     },
     {
       key: "createdBy",
@@ -181,7 +181,7 @@ export default function FtoSubmissionSummary() {
     {
       key: "status",
       label: "Status",
-      icon: <DocumentIcon width={16} height={16} />,
+      icon: <ApproveIcon width={16} height={16} />,
     },
   ];
 
