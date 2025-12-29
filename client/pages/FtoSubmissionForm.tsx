@@ -849,6 +849,7 @@ export default function FtoSubmissionForm() {
                           options={TASKS}
                           value={entry.taskId || ""}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setExpenseErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -859,6 +860,7 @@ export default function FtoSubmissionForm() {
                             updateExpenseEntry(entry.id, "taskId", value);
                           }}
                           placeholder="Select Task"
+                          disabled={isApproved}
                         />
 
                         <CurrencyField
@@ -868,6 +870,7 @@ export default function FtoSubmissionForm() {
                           placeholder="$0.00"
                           value={entry.amount}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setExpenseErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -877,6 +880,7 @@ export default function FtoSubmissionForm() {
                             });
                             updateExpenseEntry(entry.id, "amount", value);
                           }}
+                          disabled={isApproved}
                         />
 
                         <SelectField
@@ -886,6 +890,7 @@ export default function FtoSubmissionForm() {
                           options={CHARGE_TYPES}
                           value={entry.chargeType || "client-expense"}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setExpenseErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -896,6 +901,7 @@ export default function FtoSubmissionForm() {
                             updateExpenseEntry(entry.id, "chargeType", value);
                           }}
                           placeholder="Select An Option"
+                          disabled={isApproved}
                         />
 
                         <ComboboxFieldWithCustomInput
@@ -905,6 +911,7 @@ export default function FtoSubmissionForm() {
                           options={vendorOptions}
                           value={entry.vendorId || ""}
                           onChange={(value) => {
+                            if (isApproved) return;
                             setExpenseErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -916,16 +923,19 @@ export default function FtoSubmissionForm() {
                           }}
                           placeholder="Select Vendor"
                           customInputPlaceholder="Enter vendor name"
+                          disabled={isApproved}
                         />
 
                         <TextAreaField
                           label="Note"
                           placeholder="Notes For Expense Entry"
                           value={entry.note}
-                          onChange={(e) =>
-                            updateExpenseEntry(entry.id, "note", e.target.value)
-                          }
+                          onChange={(e) => {
+                            if (isApproved) return;
+                            updateExpenseEntry(entry.id, "note", e.target.value);
+                          }}
                           autoGrow
+                          disabled={isApproved}
                         />
 
                         <FileUploadField
