@@ -1,17 +1,22 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 export default function FtoTopNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showMenu, setShowMenu] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === "/fto" || location.pathname === "/fto/";
   const isSubmissionHistory = location.pathname.includes("/fto/submission-history");
 
   const handleNavigate = (path: string) => {
     navigate(path);
-    setShowMenu(false);
+    setOpen(false);
   };
 
   return (
@@ -76,29 +81,29 @@ export default function FtoTopNav() {
             </svg>
           </button>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center justify-center w-10 h-9 rounded-lg hover:bg-gray-100 transition-colors"
-              title="More options"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className="flex items-center justify-center w-10 h-9 rounded-lg hover:bg-gray-100 transition-colors"
+                title="More options"
               >
-                <circle cx="12" cy="5" r="1" />
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="12" cy="19" r="1" />
-              </svg>
-            </button>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="5" r="1" />
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="12" cy="19" r="1" />
+                </svg>
+              </button>
+            </PopoverTrigger>
 
-            {/* Dropdown Menu */}
-            {showMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-48 z-50">
+            <PopoverContent align="end" className="w-48 p-0">
+              <div className="flex flex-col py-1">
                 <button
                   onClick={() => handleNavigate("/fto")}
                   className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
@@ -119,17 +124,14 @@ export default function FtoTopNav() {
                 </button>
                 <div className="h-px bg-gray-200 my-1" />
                 <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    // You can add additional menu items here
-                  }}
+                  onClick={() => setOpen(false)}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 >
                   Settings
                 </button>
               </div>
-            )}
-          </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </nav>
