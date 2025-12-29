@@ -260,6 +260,7 @@ export default function FtoHome() {
     "unit",
     "priority",
     "createdBy",
+    "status",
   ]);
 
   // Pagination state
