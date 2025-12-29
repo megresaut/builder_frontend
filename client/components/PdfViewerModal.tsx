@@ -76,6 +76,7 @@ export default function PdfViewerModal({
               fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
               fontSize: "16px",
               whiteSpace: "nowrap",
+              flex: isMobile ? "0 0 auto" : undefined,
             }}
           >
             Close
@@ -109,6 +110,7 @@ export default function PdfViewerModal({
                 boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
                 textDecoration: "none",
                 transition: "background-color 0.2s",
+                flex: isMobile ? "0 0 auto" : undefined,
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
