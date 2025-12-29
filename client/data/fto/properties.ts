@@ -38,7 +38,6 @@ export const CHARGE_TYPES = [
 ];
 
 export const TASKS = [
-  { value: "na", label: "N/A" },
   { value: "task-1", label: "Doors Need To Be Repaired" },
   { value: "task-2", label: "HVAC Inspection" },
   { value: "task-3", label: "Plumbing Repair" },
