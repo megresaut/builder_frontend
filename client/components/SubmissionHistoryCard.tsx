@@ -72,16 +72,26 @@ export default function SubmissionHistoryCard({
   const handleViewClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (onViewTask) {
+    if (status === "pending" || status === "rejected") {
+      navigate(`/fto/submission/${id}`, {
+        state: {
+          isApproved: false,
+          canEdit: true,
+          property,
+          unit,
+          task: name,
+          description,
+        },
+      });
+    } else if (onViewTask) {
       onViewTask();
-      return;
+    } else {
+      navigate(`/fto/submission/${id}`, {
+        state: {
+          isApproved: status === "approved",
+        },
+      });
     }
-
-    navigate(`/fto/submission/${id}`, {
-      state: {
-        isApproved: status === "approved",
-      },
-    });
   };
 
   return (
