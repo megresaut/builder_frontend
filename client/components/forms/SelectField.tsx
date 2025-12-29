@@ -176,6 +176,8 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
   selectedValue,
   selectedOptions,
   multiple,
+  onCreateNew,
+  createNewLabel = "Create New",
 }) => {
   const popoverContext = usePopoverContext();
   const { highlightedIndex } = popoverContext;
