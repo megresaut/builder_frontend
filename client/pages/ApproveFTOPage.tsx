@@ -986,7 +986,11 @@ export default function ApproveFTOPage() {
                           {/* Amount Cell - Currency */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "120px", minWidth: "120px" }}
+                            style={{
+                              width: "120px",
+                              minWidth: "120px",
+                              backgroundColor: isExpensesCellInvalid(row, 'amount') ? '#ffcccc' : 'transparent',
+                            }}
                           >
                             <CurrencyFieldCell
                               value={row.amount}
