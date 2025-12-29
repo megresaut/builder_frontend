@@ -471,6 +471,7 @@ export default function FtoSubmissionForm() {
                           error={hourErrors[entry.id]?.date}
                           value={entry.date}
                           onChange={(date) => {
+                            if (isApproved) return;
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
@@ -488,6 +489,7 @@ export default function FtoSubmissionForm() {
                           }}
                           placeholder="mm/dd/yyyy"
                           returnFormat="ISO"
+                          disabled={isApproved}
                         />
 
                         {/* Property and Unit Row */}
