@@ -11,6 +11,7 @@ interface FtoOrderCardProps {
   unit: string;
   priority: "low" | "normal" | "high";
   createdBy: string;
+  isApproved?: boolean;
 }
 
 export default function FtoOrderCard({
