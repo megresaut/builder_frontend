@@ -243,37 +243,21 @@ const PopoverContent = React.forwardRef<
       }
     };
 
-    // Preserve scroll position when opening popover on mobile
+    // Prevent scroll jump when opening popover on mobile
     React.useEffect(() => {
       if (!isOpen) return;
 
-      // Store current scroll position
-      const scrollY = window.scrollY;
-      const scrollX = window.scrollX;
+      // Store scroll position when popover opens
+      const scrollPos = window.scrollY;
 
-      // Prevent automatic scroll behavior
-      const handleTouchStart = () => {
-        // Re-apply scroll position if it was changed
-        if (window.scrollY !== scrollY || window.scrollX !== scrollX) {
-          window.scrollTo(scrollX, scrollY);
+      // Restore scroll position on next frame to counteract auto-scroll
+      const timer = requestAnimationFrame(() => {
+        if (window.scrollY !== scrollPos) {
+          window.scrollTo(0, scrollPos);
         }
-      };
+      });
 
-      // Listen for any scroll changes and restore position
-      const handleScroll = () => {
-        // Only restore if scroll happened unintentionally (at top)
-        if (window.scrollY < scrollY - 10) {
-          window.scrollTo(scrollX, scrollY);
-        }
-      };
-
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      document.addEventListener("touchstart", handleTouchStart, { passive: true });
-
-      return () => {
-        window.removeEventListener("scroll", handleScroll);
-        document.removeEventListener("touchstart", handleTouchStart);
-      };
+      return () => cancelAnimationFrame(timer);
     }, [isOpen]);
 
     const content = (
