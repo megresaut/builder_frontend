@@ -1,6 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import BlueButton from "@/components/BlueButton";
-import { ApproveIcon, CalendarIcon, BuildingIcon } from "@/components/icons";
+import {
+  ApproveIcon,
+  CalendarIcon,
+  BuildingIcon,
+  EyeIcon,
+} from "@/components/icons";
 
 interface FtoOrderCardProps {
   id: number;
