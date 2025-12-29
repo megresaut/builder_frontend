@@ -18,6 +18,7 @@
 
 // Base wrapper
 export { FieldShell } from "./FieldShell";
+export { FieldCellShell } from "./FieldCellShell";
 
 // Field components (FieldShell + input)
 export { TextField } from "./TextField";
@@ -42,6 +43,13 @@ export {
 export { SensitiveInputField } from "./SensitiveInputField";
 export { ReadOnlyTextField } from "./ReadOnlyTextField";
 export { FileUploadField } from "./FileUploadField";
+
+// Cell field components (for table cells)
+export { SelectFieldCell } from "./SelectFieldCell";
+export { DateFieldCell } from "./DateFieldCell";
+export { NumberFieldCell } from "./NumberFieldCell";
+export { CurrencyFieldCell } from "./CurrencyFieldCell";
+export { TextFieldCell } from "./TextFieldCell";
 
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";
