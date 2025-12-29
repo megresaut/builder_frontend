@@ -119,6 +119,7 @@ export default function PdfViewerModal({
       title={isMobile ? "" : title}
       size={isMobile ? "md" : "lg"}
       hideCloseButton={isMobile}
+      showDivider={!isMobile}
       footer={!isMobile ? footerContent : null}
     >
       {isMobile && safeUrl && (
