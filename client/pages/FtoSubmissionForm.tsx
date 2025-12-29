@@ -424,7 +424,7 @@ export default function FtoSubmissionForm() {
                         />
 
                         {/* Property and Unit Row */}
-                        <div className="flex gap-3">
+                        <div className="flex flex-col lg:flex-row gap-3">
                           <div className="flex-1">
                             <SelectField
                               label="Property"
@@ -695,7 +695,7 @@ export default function FtoSubmissionForm() {
                         />
 
                         {/* Property and Unit Row */}
-                        <div className="flex gap-3">
+                        <div className="flex flex-col lg:flex-row gap-3">
                           <div className="flex-1">
                             <SelectField
                               label="Property"
