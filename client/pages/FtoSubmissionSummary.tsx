@@ -224,6 +224,7 @@ export default function FtoSubmissionSummary() {
                   key={submission.id}
                   id={submission.id}
                   name={submission.name}
+                  description={submission.description}
                   dateOfWork={submission.dateOfWork}
                   property={submission.property}
                   unit={submission.unit}
