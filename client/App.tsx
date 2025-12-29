@@ -241,14 +241,6 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/fto/submission-history"
-                  element={
-                    <FtoShellLayout>
-                      <FtoSubmissionSummary />
-                    </FtoShellLayout>
-                  }
-                />
-                <Route
                   path="/fto/submission/:ftoId"
                   element={
                     <FtoShellLayout>
