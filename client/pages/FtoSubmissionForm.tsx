@@ -795,6 +795,7 @@ export default function FtoSubmissionForm() {
                               }))}
                               value={entry.propertyId || ""}
                               onChange={(value) => {
+                                if (isApproved) return;
                                 setExpenseErrors((prev) => {
                                   const newErrors = { ...prev };
                                   if (newErrors[entry.id]) {
@@ -809,6 +810,7 @@ export default function FtoSubmissionForm() {
                                 );
                               }}
                               placeholder="Select Property"
+                              disabled={isApproved}
                             />
                           </div>
                           <div className="flex-1">
@@ -824,6 +826,7 @@ export default function FtoSubmissionForm() {
                               }))}
                               value={entry.unitId || ""}
                               onChange={(value) => {
+                                if (isApproved) return;
                                 setExpenseErrors((prev) => {
                                   const newErrors = { ...prev };
                                   if (newErrors[entry.id]) {
@@ -834,7 +837,7 @@ export default function FtoSubmissionForm() {
                                 updateExpenseEntry(entry.id, "unitId", value);
                               }}
                               placeholder="Select Unit"
-                              disabled={!entry.propertyId}
+                              disabled={!entry.propertyId || isApproved}
                             />
                           </div>
                         </div>
