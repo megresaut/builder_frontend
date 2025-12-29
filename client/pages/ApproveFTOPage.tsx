@@ -1089,8 +1089,6 @@ export default function ApproveFTOPage() {
             </button>
             <BlueButton
               onClick={handleApprove}
-              disabled={isApproveDisabled}
-              className={isApproveDisabled ? "opacity-50 cursor-not-allowed" : ""}
             >
               Approve Field Team Order
             </BlueButton>
