@@ -16,7 +16,8 @@ const getFullscreenMode = () => {
 const isModalLikePage = (pathname: string): boolean => {
   return (
     pathname.includes("/fto/record") ||
-    (pathname.includes("/fto/submission") && !pathname.includes("/fto/submission-history")) ||
+    (pathname.includes("/fto/submission") &&
+      !pathname.includes("/fto/submission-history")) ||
     pathname === "/utilities/view-bill"
   );
 };
@@ -88,9 +89,7 @@ export default function FtoShellLayout({ children }: FtoShellLayoutProps) {
             className="h-full"
             style={{ paddingBottom: "150px" }}
           >
-            <div key={location.pathname}>
-              {children}
-            </div>
+            <div key={location.pathname}>{children}</div>
           </div>
         </main>
       </div>
@@ -107,11 +106,13 @@ export default function FtoShellLayout({ children }: FtoShellLayoutProps) {
           ref={mainContentRef}
           data-testid="main-content"
           className="flex-1 overflow-auto bg-white"
-          style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
+          style={{
+            paddingBottom: "150px",
+            borderLeftWidth: "1px",
+            borderLeftColor: "#d2d1cf",
+          }}
         >
-          <div key={location.pathname}>
-            {children}
-          </div>
+          <div key={location.pathname}>{children}</div>
         </div>
       </main>
     </div>

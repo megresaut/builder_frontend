@@ -109,10 +109,10 @@ const mockFetchFTOs = async (
 // Transform API response to component format
 const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
   const submittedOrders = JSON.parse(
-    localStorage.getItem("submittedFTOs") || "[]"
+    localStorage.getItem("submittedFTOs") || "[]",
   ) as number[];
   const approvedOrders = JSON.parse(
-    localStorage.getItem("approvedFTOs") || "[]"
+    localStorage.getItem("approvedFTOs") || "[]",
   ) as number[];
 
   return apiData.map((order) => ({
@@ -381,7 +381,13 @@ export default function FtoHome() {
           }
           rightContent={
             <BlueButton
-              icon={<ApproveIcon width={16} height={16} className="brightness-0 invert" />}
+              icon={
+                <ApproveIcon
+                  width={16}
+                  height={16}
+                  className="brightness-0 invert"
+                />
+              }
               onClick={() => navigate("/fto/submission")}
             >
               Submit
@@ -520,12 +526,14 @@ export default function FtoHome() {
             {
               label: (rowOrder) => {
                 const order = rowOrder as FieldTeamOrder;
-                const isApproved = activeTab === "closed" && order.approvalStatus === "approved";
+                const isApproved =
+                  activeTab === "closed" && order.approvalStatus === "approved";
                 return isApproved ? "View Summary" : "Submit";
               },
               icon: (rowOrder) => {
                 const order = rowOrder as FieldTeamOrder;
-                const isApproved = activeTab === "closed" && order.approvalStatus === "approved";
+                const isApproved =
+                  activeTab === "closed" && order.approvalStatus === "approved";
                 return isApproved ? (
                   <EyeIcon
                     width={18}
@@ -541,7 +549,9 @@ export default function FtoHome() {
                 );
               },
               onClick: (order) => {
-                const isApproved = activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved";
+                const isApproved =
+                  activeTab === "closed" &&
+                  (order as FieldTeamOrder).approvalStatus === "approved";
                 navigate(`/fto/submission/${order.id}`, {
                   state: {
                     property: order.property,
@@ -561,7 +571,9 @@ export default function FtoHome() {
                 unit: order.unit,
                 task: order.name,
                 description: order.description,
-                isApproved: activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved",
+                isApproved:
+                  activeTab === "closed" &&
+                  (order as FieldTeamOrder).approvalStatus === "approved",
               },
             });
           }}

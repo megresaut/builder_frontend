@@ -14,7 +14,9 @@ interface PopoverContextType {
   setSearchableItems: (items: Array<{ value: string; label: string }>) => void;
   filteredItems: Array<{ value: string; label: string }>;
   onEnterSelect: (
-    handler: ((item: { value: string; label: string } | null) => void) | undefined,
+    handler:
+      | ((item: { value: string; label: string } | null) => void)
+      | undefined,
   ) => void;
   highlightedIndex: number;
   setHighlightedIndex: (index: number | ((prev: number) => number)) => void;
@@ -30,8 +32,9 @@ const globalWithPopoverContext = globalThis as GlobalWithPopoverContext;
 // multiple incompatible Context instances (which can cause Provider/Consumer mismatches).
 const PopoverContext =
   globalWithPopoverContext.__raPopoverContext ??
-  (globalWithPopoverContext.__raPopoverContext =
-    React.createContext<PopoverContextType | undefined>(undefined));
+  (globalWithPopoverContext.__raPopoverContext = React.createContext<
+    PopoverContextType | undefined
+  >(undefined));
 
 const usePopoverContext = () => {
   const context = React.useContext(PopoverContext);
@@ -104,7 +107,12 @@ const Popover = React.forwardRef<
         setHighlightedIndex,
       }}
     >
-      <PopoverPrimitive.Root {...props} open={isOpen} onOpenChange={setOpen} ref={ref}>
+      <PopoverPrimitive.Root
+        {...props}
+        open={isOpen}
+        onOpenChange={setOpen}
+        ref={ref}
+      >
         {children}
       </PopoverPrimitive.Root>
     </PopoverContext.Provider>
@@ -185,12 +193,12 @@ const PopoverContent = React.forwardRef<
         const distX = Math.max(
           contentRect.left - e.clientX,
           e.clientX - contentRect.right,
-          0
+          0,
         );
         const distY = Math.max(
           contentRect.top - e.clientY,
           e.clientY - contentRect.bottom,
-          0
+          0,
         );
         const distance = Math.sqrt(distX * distX + distY * distY);
 
@@ -258,7 +266,6 @@ const PopoverContent = React.forwardRef<
         e.stopPropagation();
       }
     };
-
 
     const content = (
       <PopoverPrimitive.Content
@@ -346,4 +353,10 @@ const PopoverScroll = React.forwardRef<
 ));
 PopoverScroll.displayName = "PopoverScroll";
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverScroll, usePopoverContext };
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverScroll,
+  usePopoverContext,
+};

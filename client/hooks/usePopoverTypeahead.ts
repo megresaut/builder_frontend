@@ -4,8 +4,13 @@ interface UsePopoverTypeaheadOptions {
   enabled?: boolean;
   searchableItems: Array<{ value: string; label: string }>;
   onSearch?: (results: Array<{ value: string; label: string }>) => void;
-  onEnter?: (firstFilteredItem: { value: string; label: string } | null) => void;
-  onArrowNavigation?: (highlightedIndex: number, filteredItems: Array<{ value: string; label: string }>) => void;
+  onEnter?: (
+    firstFilteredItem: { value: string; label: string } | null,
+  ) => void;
+  onArrowNavigation?: (
+    highlightedIndex: number,
+    filteredItems: Array<{ value: string; label: string }>,
+  ) => void;
 }
 
 export function usePopoverTypeahead({
@@ -53,7 +58,7 @@ export function usePopoverTypeahead({
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < filteredItems.length - 1 ? prev + 1 : prev
+          prev < filteredItems.length - 1 ? prev + 1 : prev,
         );
         return;
       }
@@ -97,7 +102,15 @@ export function usePopoverTypeahead({
         setSearchTimeout(timeout);
       }
     },
-    [enabled, searchTerm, searchTimeout, filteredItems, highlightedIndex, onEnter, onArrowNavigation],
+    [
+      enabled,
+      searchTerm,
+      searchTimeout,
+      filteredItems,
+      highlightedIndex,
+      onEnter,
+      onArrowNavigation,
+    ],
   );
 
   // Notify when highlighted index changes

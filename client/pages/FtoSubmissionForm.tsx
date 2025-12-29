@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import { ClockIcon, DollarIcon, PlusIcon, DeleteIcon, CloseIcon } from "@/components/icons";
+import {
+  ClockIcon,
+  DollarIcon,
+  PlusIcon,
+  DeleteIcon,
+  CloseIcon,
+} from "@/components/icons";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import {
   DateField,
@@ -88,7 +94,11 @@ export default function FtoSubmissionForm() {
     return today.toISOString().split("T")[0];
   };
 
-  const [pdfViewer, setPdfViewer] = useState<{ isOpen: boolean; url?: string; title: string }>({
+  const [pdfViewer, setPdfViewer] = useState<{
+    isOpen: boolean;
+    url?: string;
+    title: string;
+  }>({
     isOpen: false,
     url: undefined,
     title: "",
@@ -138,29 +148,39 @@ export default function FtoSubmissionForm() {
       description: string;
     }>;
 
-    if (!state.property && !state.unit && !state.task && !state.description) return;
+    if (!state.property && !state.unit && !state.task && !state.description)
+      return;
 
     const normalize = (value: string) => value.trim().toLowerCase();
 
     const propertyId = state.property
-      ? PROPERTIES.find((p) => normalize(p.name) === normalize(state.property!))?.id ?? null
+      ? (PROPERTIES.find(
+          (p) => normalize(p.name) === normalize(state.property!),
+        )?.id ?? null)
       : null;
 
     const unitsForProperty = propertyId
-      ? PROPERTIES.find((p) => p.id === propertyId)?.units ?? []
+      ? (PROPERTIES.find((p) => p.id === propertyId)?.units ?? [])
       : [];
 
     const unitId = (() => {
       if (!propertyId) return null;
-      if (!state.unit) return unitsForProperty.find((u) => u.id === "na")?.id ?? null;
-      const found = unitsForProperty.find((u) => normalize(u.name) === normalize(state.unit!));
-      return found?.id ?? unitsForProperty.find((u) => u.id === "na")?.id ?? null;
+      if (!state.unit)
+        return unitsForProperty.find((u) => u.id === "na")?.id ?? null;
+      const found = unitsForProperty.find(
+        (u) => normalize(u.name) === normalize(state.unit!),
+      );
+      return (
+        found?.id ?? unitsForProperty.find((u) => u.id === "na")?.id ?? null
+      );
     })();
 
     const taskId = (() => {
       const taskLabel = state.task ?? state.description;
       if (!taskLabel) return null;
-      const found = TASKS.find((t) => normalize(t.label) === normalize(taskLabel));
+      const found = TASKS.find(
+        (t) => normalize(t.label) === normalize(taskLabel),
+      );
       return found?.value ?? null;
     })();
 
@@ -194,16 +214,16 @@ export default function FtoSubmissionForm() {
   const toggleHourEntry = (id: string) => {
     setHourEntries((prev) =>
       prev.map((entry) =>
-        entry.id === id ? { ...entry, isExpanded: !entry.isExpanded } : entry
-      )
+        entry.id === id ? { ...entry, isExpanded: !entry.isExpanded } : entry,
+      ),
     );
   };
 
   const toggleExpenseEntry = (id: string) => {
     setExpenseEntries((prev) =>
       prev.map((entry) =>
-        entry.id === id ? { ...entry, isExpanded: !entry.isExpanded } : entry
-      )
+        entry.id === id ? { ...entry, isExpanded: !entry.isExpanded } : entry,
+      ),
     );
   };
 
@@ -247,20 +267,20 @@ export default function FtoSubmissionForm() {
   const updateHourEntry = (id: string, field: keyof HourEntry, value: any) => {
     setHourEntries((prev) =>
       prev.map((entry) =>
-        entry.id === id ? { ...entry, [field]: value } : entry
-      )
+        entry.id === id ? { ...entry, [field]: value } : entry,
+      ),
     );
   };
 
   const updateExpenseEntry = (
     id: string,
     field: keyof ExpenseEntry,
-    value: any
+    value: any,
   ) => {
     setExpenseEntries((prev) =>
       prev.map((entry) =>
-        entry.id === id ? { ...entry, [field]: value } : entry
-      )
+        entry.id === id ? { ...entry, [field]: value } : entry,
+      ),
     );
   };
 
@@ -486,7 +506,7 @@ export default function FtoSubmissionForm() {
                               "date",
                               date instanceof Date
                                 ? date.toISOString().split("T")[0]
-                                : date
+                                : date,
                             );
                           }}
                           placeholder="mm/dd/yyyy"
@@ -530,7 +550,7 @@ export default function FtoSubmissionForm() {
                                 (u) => ({
                                   value: u.id,
                                   label: u.name,
-                                })
+                                }),
                               )}
                               value={entry.unitId || ""}
                               onChange={(value) => {
@@ -612,11 +632,7 @@ export default function FtoSubmissionForm() {
                               }
                               return newErrors;
                             });
-                            updateHourEntry(
-                              entry.id,
-                              "emergencyRate",
-                              value
-                            );
+                            updateHourEntry(entry.id, "emergencyRate", value);
                           }}
                           placeholder="Select An Option"
                           disabled={isApproved}
@@ -640,7 +656,7 @@ export default function FtoSubmissionForm() {
                             updateHourEntry(
                               entry.id,
                               "nonBillableHours",
-                              value
+                              value,
                             );
                           }}
                           placeholder="Select An Option"
@@ -776,7 +792,7 @@ export default function FtoSubmissionForm() {
                               "date",
                               date instanceof Date
                                 ? date.toISOString().split("T")[0]
-                                : date
+                                : date,
                             );
                           }}
                           placeholder="mm/dd/yyyy"
@@ -808,7 +824,7 @@ export default function FtoSubmissionForm() {
                                 updateExpenseEntry(
                                   entry.id,
                                   "propertyId",
-                                  value
+                                  value,
                                 );
                               }}
                               placeholder="Select Property"
@@ -820,12 +836,12 @@ export default function FtoSubmissionForm() {
                               label="Unit"
                               required
                               error={expenseErrors[entry.id]?.unitId}
-                              options={getPropertyUnits(
-                                entry.propertyId
-                              ).map((u) => ({
-                                value: u.id,
-                                label: u.name,
-                              }))}
+                              options={getPropertyUnits(entry.propertyId).map(
+                                (u) => ({
+                                  value: u.id,
+                                  label: u.name,
+                                }),
+                              )}
                               value={entry.unitId || ""}
                               onChange={(value) => {
                                 if (isApproved) return;
@@ -934,7 +950,11 @@ export default function FtoSubmissionForm() {
                           value={entry.note}
                           onChange={(e) => {
                             if (isApproved) return;
-                            updateExpenseEntry(entry.id, "note", e.target.value);
+                            updateExpenseEntry(
+                              entry.id,
+                              "note",
+                              e.target.value,
+                            );
                           }}
                           autoGrow
                           disabled={isApproved}
@@ -954,7 +974,7 @@ export default function FtoSubmissionForm() {
                               updateExpenseEntry(
                                 entry.id,
                                 "files",
-                                entry.files.filter((f) => f.id !== fileId)
+                                entry.files.filter((f) => f.id !== fileId),
                               );
                             }}
                             onViewFile={(file) => {
@@ -1026,14 +1046,14 @@ export default function FtoSubmissionForm() {
                   if (validateForm()) {
                     if (ftoId) {
                       const submittedOrders = JSON.parse(
-                        localStorage.getItem("submittedFTOs") || "[]"
+                        localStorage.getItem("submittedFTOs") || "[]",
                       ) as number[];
                       const orderId = parseInt(ftoId);
                       if (!submittedOrders.includes(orderId)) {
                         submittedOrders.push(orderId);
                         localStorage.setItem(
                           "submittedFTOs",
-                          JSON.stringify(submittedOrders)
+                          JSON.stringify(submittedOrders),
                         );
                       }
                     }

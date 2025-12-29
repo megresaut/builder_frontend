@@ -46,9 +46,10 @@ export function useGlobalActionsScrollLock(
     if (!open) return;
 
     // Detect if on mobile/touch device
-    const isMobile = window.innerWidth < 1024 ||
-                     ('ontouchstart' in window) ||
-                     navigator.maxTouchPoints > 0;
+    const isMobile =
+      window.innerWidth < 1024 ||
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0;
 
     // On mobile, skip scroll locking entirely to avoid focus scroll issues
     if (isMobile) {
@@ -59,7 +60,8 @@ export function useGlobalActionsScrollLock(
       '[data-testid="main-content"]',
     ) as HTMLElement | null;
 
-    const container = scrollContainer ?? (document.scrollingElement as HTMLElement | null);
+    const container =
+      scrollContainer ?? (document.scrollingElement as HTMLElement | null);
 
     const lock = () => {
       lockCount += 1;
@@ -111,7 +113,10 @@ export function useGlobalActionsScrollLock(
     lock();
 
     // Capture + passive:false ensures we can preventDefault reliably.
-    window.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    window.addEventListener("wheel", onWheel, {
+      passive: false,
+      capture: true,
+    });
     window.addEventListener("touchmove", onTouchMove, {
       passive: false,
       capture: true,

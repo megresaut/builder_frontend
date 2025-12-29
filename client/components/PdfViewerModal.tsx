@@ -16,7 +16,10 @@ const isProbablyPdfUrl = (url: string) => {
 const isProbablyImageUrl = (url: string) => {
   const clean = url.split("#")[0].split("?")[0];
   const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
-  return imageExtensions.some(ext => clean.toLowerCase().endsWith(ext)) || url.startsWith("blob:");
+  return (
+    imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext)) ||
+    url.startsWith("blob:")
+  );
 };
 
 export default function PdfViewerModal({
@@ -103,8 +106,14 @@ export default function PdfViewerModal({
             textDecoration: "none",
             transition: "background-color 0.2s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "var(--color-button-primary-hover)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "var(--color-button-primary)")
+          }
         >
           Open in new tab
         </a>
@@ -123,23 +132,34 @@ export default function PdfViewerModal({
       footer={!isMobile ? footerContent : null}
     >
       {isMobile && safeUrl && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", marginTop: "-16px", justifyContent: "flex-end" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "8px",
+            marginTop: "-16px",
+            justifyContent: "flex-end",
+          }}
+        >
           {footerContent}
         </div>
       )}
       {safeUrl ? (
-        <div style={{
-          width: "100%",
-          height: "70vh",
-          borderRadius: "8px",
-          overflow: "auto",
-          border: "1px solid #E5E5E5",
-          backgroundColor: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "16px",
-        }}>
+        <div
+          style={{
+            width: "100%",
+            height: "70vh",
+            borderRadius: "8px",
+            overflow: "auto",
+            border: "1px solid #E5E5E5",
+            backgroundColor: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+        >
           {isProbablyImageUrl(safeUrl) ? (
             <img
               src={safeUrl}
@@ -168,16 +188,18 @@ export default function PdfViewerModal({
           )}
         </div>
       ) : (
-        <div style={{
-          width: "100%",
-          borderRadius: "8px",
-          border: "1px solid #E5E5E5",
-          backgroundColor: "#F7F7F7",
-          padding: "16px",
-          fontSize: "14px",
-          color: "#71717A",
-          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-        }}>
+        <div
+          style={{
+            width: "100%",
+            borderRadius: "8px",
+            border: "1px solid #E5E5E5",
+            backgroundColor: "#F7F7F7",
+            padding: "16px",
+            fontSize: "14px",
+            color: "#71717A",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          }}
+        >
           No preview available for this file.
         </div>
       )}

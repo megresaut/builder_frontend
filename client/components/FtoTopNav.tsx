@@ -33,7 +33,9 @@ function ActionsMenuContent({
 
   // Register items for typeahead + Enter selection
   React.useEffect(() => {
-    popover.setSearchableItems(items.map(({ value, label }) => ({ value, label })));
+    popover.setSearchableItems(
+      items.map(({ value, label }) => ({ value, label })),
+    );
     popover.onEnterSelect?.((item) => {
       if (!item) return;
       const match = items.find((i) => i.value === item.value);
@@ -76,7 +78,9 @@ export default function FtoTopNav() {
   const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === "/fto" || location.pathname === "/fto/";
-  const isSubmissionHistory = location.pathname.includes("/fto/submission-history");
+  const isSubmissionHistory = location.pathname.includes(
+    "/fto/submission-history",
+  );
 
   const handleNavigate = (path: string) => {
     navigate(path);

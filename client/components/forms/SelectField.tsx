@@ -176,7 +176,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
   useEffect(() => {
     if (open) {
       popoverContext.setSearchableItems(
-        options.map((opt) => ({ value: opt.value, label: opt.label }))
+        options.map((opt) => ({ value: opt.value, label: opt.label })),
       );
     }
   }, [open, options, popoverContext]);
@@ -201,7 +201,15 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         }
       });
     }
-  }, [open, popoverContext, options, multiple, selectedValues, onChange, setOpen]);
+  }, [
+    open,
+    popoverContext,
+    options,
+    multiple,
+    selectedValues,
+    onChange,
+    setOpen,
+  ]);
 
   const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
@@ -281,7 +289,8 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
           alignItems: "center",
           flexWrap: multiple ? "wrap" : "nowrap",
           gap: multiple ? "6px" : "8px",
-          padding: multiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
+          padding:
+            multiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
         }}
         onKeyDown={handleTriggerKeyDown}
       >
@@ -368,7 +377,9 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                   onClick={() => handleOptionSelect(option.value)}
                   onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   data-selected={isSelected ? "true" : "false"}
-                  data-highlighted={highlightedIndex === index ? "true" : "false"}
+                  data-highlighted={
+                    highlightedIndex === index ? "true" : "false"
+                  }
                   className="w-full px-3 py-2 text-left text-sm text-[var(--color-text-primary)] flex items-center gap-2"
                   style={{
                     border: "none",

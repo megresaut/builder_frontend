@@ -71,11 +71,11 @@ export default function FtoSubmissionSummary() {
 
         // Get submitted orders from localStorage
         const submittedIds = JSON.parse(
-          localStorage.getItem("submittedFTOs") || "[]"
+          localStorage.getItem("submittedFTOs") || "[]",
         ) as number[];
 
         const filteredSubmissions = mockSubmissionHistory.filter((sub) =>
-          submittedIds.includes(sub.id)
+          submittedIds.includes(sub.id),
         );
 
         setSubmissions(filteredSubmissions);

@@ -74,7 +74,9 @@ interface ComboboxFieldWithCustomInputProps {
  * />
  * ```
  */
-export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInputProps> = ({
+export const ComboboxFieldWithCustomInput: React.FC<
+  ComboboxFieldWithCustomInputProps
+> = ({
   label,
   required = false,
   description,
@@ -126,7 +128,9 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
     }
   };
 
-  const handleCustomInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleCustomInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key === "Enter") {
       handleCustomInput();
     } else if (e.key === "Escape") {
@@ -217,8 +221,13 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   textAlign: "left",
                   transition: "background-color 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(36, 99, 235, 0.08)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    "rgba(36, 99, 235, 0.08)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
               >
                 + Add custom vendor
               </button>
@@ -347,7 +356,9 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                       fontWeight: 500,
                       transition: "opacity 0.2s",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.opacity = "0.8")
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                   >
                     Confirm
@@ -372,7 +383,9 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                       fontWeight: 500,
                       transition: "opacity 0.2s",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.opacity = "0.8")
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                   >
                     Cancel
