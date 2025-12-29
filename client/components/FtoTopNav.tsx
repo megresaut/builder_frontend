@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Popover,
@@ -38,7 +38,7 @@ function ActionsMenuContent({
       const match = items.find((i) => i.value === item.value);
       match?.onSelect();
     });
-  }, [popover, onClose, onNavigate]);
+  }, [popover]);
 
   return (
     <div className="flex flex-col py-1 whitespace-nowrap">
