@@ -260,9 +260,9 @@ export default function App() {
                 <Route
                   path="/fto/approve/:ftoId"
                   element={
-                    <FtoShellLayout>
+                    <ShellLayout>
                       <ApproveFTOPage />
-                    </FtoShellLayout>
+                    </ShellLayout>
                   }
                 />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
