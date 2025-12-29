@@ -82,11 +82,6 @@ export default function FtoOrderCard({
   const handleSubmitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (onViewTask) {
-      onViewTask();
-      return;
-    }
-
     navigate(`/fto/submission/${id}`, {
       state: {
         property,
