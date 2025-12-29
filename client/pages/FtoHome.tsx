@@ -325,10 +325,23 @@ export default function FtoHome() {
     }
   };
 
+  const rejectedOrders = allOrders.filter(
+    (order) => order.approvalStatus === "rejected",
+  );
+
   if (isMobile) {
     return (
       <PageTemplate className="!px-4 !pt-6 !pb-6 max-w-none !min-w-0">
         <div className="flex flex-col gap-4">
+          {rejectedOrders.length > 0 && (
+            <AlertBanner
+              title="Rejected Field Team Orders"
+              message={`You have ${rejectedOrders.length} rejected order${rejectedOrders.length > 1 ? "s" : ""} that need to be filled out again.`}
+              actionText="View"
+              onAction={() => setActiveTab("open")}
+            />
+          )}
+
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Home</h1>
             <p className="text-gray-600 mt-1 text-sm">
