@@ -696,7 +696,11 @@ export default function ApproveFTOPage() {
                           {/* Assignee Cell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "140px", minWidth: "140px" }}
+                            style={{
+                              width: "140px",
+                              minWidth: "140px",
+                              backgroundColor: isHoursCellInvalid(row, 'assignee') ? '#ffcccc' : 'transparent',
+                            }}
                           >
                             <SelectFieldCell
                               value={row.assignee}
