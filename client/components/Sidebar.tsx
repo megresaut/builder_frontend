@@ -355,13 +355,6 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   > = {
     dashboard: [],
     "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
-    "fto-submission": [
-      {
-        label: "Submission History",
-        path: "/fto/submission-history",
-        sectionId: "fto-submission",
-      },
-    ],
     properties: [
       {
         label: "All Properties",
