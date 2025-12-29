@@ -489,7 +489,7 @@ export default function FtoHome() {
                 if (firstRejected) {
                   navigate(`/fto/submission/${firstRejected.id}`, {
                     state: {
-                      isApproved: firstRejected.status === "approved",
+                      isApproved: false,
                     },
                   });
                 }
