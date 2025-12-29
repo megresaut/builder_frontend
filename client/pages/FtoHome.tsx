@@ -635,23 +635,18 @@ export default function FtoHome() {
             message={`You have ${rejectedOrders.length} rejected order${rejectedOrders.length > 1 ? "s" : ""} that need to be filled out again.`}
             actionText="View"
             onAction={() => {
-              const firstRejectedId = rejectedOrders[0];
-              if (firstRejectedId) {
-                const rejectedSubmission = submissions.find(
-                  (sub) => sub.id === firstRejectedId.id,
-                );
-                if (rejectedSubmission) {
-                  navigate(`/fto/submission/${rejectedSubmission.id}`, {
-                    state: {
-                      property: rejectedSubmission.property,
-                      unit: rejectedSubmission.unit,
-                      task: rejectedSubmission.name,
-                      description: rejectedSubmission.description,
-                      isApproved: false,
-                      canEdit: true,
-                    },
-                  });
-                }
+              const firstRejectedSubmission = rejectedOrders[0];
+              if (firstRejectedSubmission) {
+                navigate(`/fto/submission/${firstRejectedSubmission.id}`, {
+                  state: {
+                    property: firstRejectedSubmission.property,
+                    unit: firstRejectedSubmission.unit,
+                    task: firstRejectedSubmission.name,
+                    description: firstRejectedSubmission.description,
+                    isApproved: false,
+                    canEdit: true,
+                  },
+                });
               }
             }}
           />
