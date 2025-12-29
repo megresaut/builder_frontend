@@ -979,23 +979,25 @@ export default function FtoSubmissionForm() {
                 ))}
 
                 {/* Add Expense Button */}
-                <button
-                  onClick={addExpenseEntry}
-                  className="rounded-lg bg-white border border-dashed border-[rgba(18,18,18,0.4)] px-3 py-2 flex items-center justify-center gap-2"
-                >
-                  <PlusIcon width={16} height={16} color="#2463EB" />
-                  <span
-                    className="text-base font-medium text-[#2463EB]"
-                    style={{
-                      fontFamily:
-                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                      letterSpacing: "-0.32px",
-                      lineHeight: "1.4",
-                    }}
+                {!isApproved && (
+                  <button
+                    onClick={addExpenseEntry}
+                    className="rounded-lg bg-white border border-dashed border-[rgba(18,18,18,0.4)] px-3 py-2 flex items-center justify-center gap-2"
                   >
-                    Add Expense
-                  </span>
-                </button>
+                    <PlusIcon width={16} height={16} color="#2463EB" />
+                    <span
+                      className="text-base font-medium text-[#2463EB]"
+                      style={{
+                        fontFamily:
+                          "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                        letterSpacing: "-0.32px",
+                        lineHeight: "1.4",
+                      }}
+                    >
+                      Add Expense
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
