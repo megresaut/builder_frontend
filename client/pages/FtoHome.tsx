@@ -637,15 +637,18 @@ export default function FtoHome() {
             onAction={() => {
               const firstRejectedId = rejectedOrders[0];
               if (firstRejectedId) {
-                const rejectedOrder = allOrders.find((order) => order.id === firstRejectedId);
-                if (rejectedOrder) {
-                  navigate(`/fto/submission/${rejectedOrder.id}`, {
+                const rejectedSubmission = submissions.find(
+                  (sub) => sub.id === firstRejectedId.id,
+                );
+                if (rejectedSubmission) {
+                  navigate(`/fto/submission/${rejectedSubmission.id}`, {
                     state: {
-                      property: rejectedOrder.property,
-                      unit: rejectedOrder.unit,
-                      task: rejectedOrder.name,
-                      description: rejectedOrder.description,
+                      property: rejectedSubmission.property,
+                      unit: rejectedSubmission.unit,
+                      task: rejectedSubmission.name,
+                      description: rejectedSubmission.description,
                       isApproved: false,
+                      canEdit: true,
                     },
                   });
                 }
