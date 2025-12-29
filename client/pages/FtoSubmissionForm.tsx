@@ -986,12 +986,16 @@ export default function FtoSubmissionForm() {
                             }}
                             onViewFile={(file) => {
                               if (file.file) {
-                                const fileURL = URL.createObjectURL(file.file);
-                                setPdfViewer({
-                                  isOpen: true,
-                                  url: fileURL,
-                                  title: file.name,
-                                });
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                  const dataUrl = e.target?.result as string;
+                                  setPdfViewer({
+                                    isOpen: true,
+                                    url: dataUrl,
+                                    title: file.name,
+                                  });
+                                };
+                                reader.readAsArrayBuffer(file.file);
                               }
                             }}
                             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
