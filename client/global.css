@@ -305,6 +305,16 @@
   .ra-form-field-group:last-child {
     margin-bottom: 0;
   }
+
+  /* Popover button hover styles */
+  .popover-content button:hover {
+    background-color: rgba(219, 234, 254, 0.6);
+    transition: background-color 0.15s ease;
+  }
+
+  .popover-content button:active {
+    background-color: rgba(191, 219, 254, 0.8);
+  }
 }
 
 @layer base {
