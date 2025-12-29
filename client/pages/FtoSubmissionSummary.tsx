@@ -118,6 +118,7 @@ export default function FtoSubmissionSummary() {
     handleColumnDrop,
   } = useColumnManagement([
     "name",
+    "description",
     "dateOfWork",
     "property",
     "unit",
