@@ -130,6 +130,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           selectedValue={selectedValue}
           selectedOptions={selectedOptions}
           multiple={isMultiple}
+          onCreateNew={onCreateNew}
+          createNewLabel={createNewLabel}
         />
       </Popover>
     </FieldShell>
