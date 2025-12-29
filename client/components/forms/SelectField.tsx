@@ -182,12 +182,14 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
   const popoverContext = usePopoverContext();
   const { highlightedIndex } = popoverContext;
 
-  // Register options with Popover for typeahead search
+  // Register options with Popover for typeahead search and highlight first option
   useEffect(() => {
     if (open) {
       popoverContext.setSearchableItems(
         options.map((opt) => ({ value: opt.value, label: opt.label })),
       );
+      // Highlight first option when dropdown opens
+      popoverContext.setHighlightedIndex(0);
     }
   }, [open, options, popoverContext]);
 
