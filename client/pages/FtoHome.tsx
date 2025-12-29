@@ -5,6 +5,7 @@ import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import TableToggle from "@/components/TableToggle";
 import BlueButton from "@/components/BlueButton";
 import GlobalTable from "@/components/GlobalTable";
+import FtoOrderCard from "@/components/FtoOrderCard";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -124,11 +125,22 @@ export default function FtoHome() {
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
   const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   const tabs = [
     { id: "open" as const, label: "Open" },
     { id: "closed" as const, label: "Closed" },
   ];
+
+  // Handle responsive layout
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Fetch FTOs from mock API
   useEffect(() => {
@@ -283,6 +295,62 @@ export default function FtoHome() {
         return "#6B7280";
     }
   };
+
+  if (isMobile) {
+    return (
+      <PageTemplate className="!px-4 !pt-6 !pb-6 max-w-none !min-w-0">
+        <div className="flex flex-col gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Home</h1>
+            <p className="text-gray-600 mt-1 text-sm">
+              Welcome to Field Team Orders
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <TableToggle
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
+            />
+            <BlueButton
+              icon={<PlusIcon width={18} height={18} />}
+              onClick={() => navigate("/fto/submission")}
+              className="text-xs"
+            >
+              Submit
+            </BlueButton>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {loading ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                Loading orders...
+              </div>
+            ) : orderData.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                No {activeTab} orders
+              </div>
+            ) : (
+              orderData.map((order) => (
+                <FtoOrderCard
+                  key={order.id}
+                  id={order.id}
+                  name={order.name}
+                  dueDate={order.dueDate}
+                  description={order.description}
+                  property={order.property}
+                  unit={order.unit}
+                  priority={order.priority}
+                  createdBy={order.createdBy}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </PageTemplate>
+    );
+  }
 
   return (
     <PageTemplate>
