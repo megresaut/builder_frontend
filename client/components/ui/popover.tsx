@@ -243,6 +243,24 @@ const PopoverContent = React.forwardRef<
       }
     };
 
+    // Prevent scroll-to-top when popover opens on mobile
+    React.useEffect(() => {
+      if (!isOpen) return;
+
+      const handleFocus = (e: FocusEvent) => {
+        const target = e.target as HTMLElement;
+        // Prevent automatic scroll to focused element
+        if (target && localRef.current?.contains(target)) {
+          e.preventDefault();
+        }
+      };
+
+      document.addEventListener("focus", handleFocus, true);
+      return () => {
+        document.removeEventListener("focus", handleFocus, true);
+      };
+    }, [isOpen]);
+
     const content = (
       <PopoverPrimitive.Content
         ref={setRefs}
