@@ -233,10 +233,10 @@ export default function FtoSubmissionSummary() {
                     {submission.name}
                   </span>
                 );
-              case "submittedDate":
+              case "dateOfWork":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {submission.submittedDate}
+                    {submission.dateOfWork}
                   </span>
                 );
               case "property":
@@ -245,10 +245,16 @@ export default function FtoSubmissionSummary() {
                     {submission.property}
                   </span>
                 );
-              case "submittedBy":
+              case "unit":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {submission.submittedBy}
+                    {submission.unit}
+                  </span>
+                );
+              case "createdBy":
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {submission.createdBy}
                   </span>
                 );
               case "status":
