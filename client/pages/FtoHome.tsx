@@ -422,6 +422,7 @@ export default function FtoHome() {
                     activeTab === "closed" &&
                     order.approvalStatus === "approved"
                   }
+                  status={(order.approvalStatus || "pending") as "approved" | "pending" | "rejected"}
                 />
               ))
             )}
