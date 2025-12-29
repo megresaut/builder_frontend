@@ -506,6 +506,22 @@ export default function FtoHome() {
                     {order.createdBy}
                   </span>
                 );
+              case "status":
+                return (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: getStatusColor(
+                          order.approvalStatus || "pending",
+                        ),
+                      }}
+                    />
+                    <span className="text-gray-900 font-normal text-sm capitalize">
+                      {order.approvalStatus || "pending"}
+                    </span>
+                  </div>
+                );
               default:
                 return null;
             }
