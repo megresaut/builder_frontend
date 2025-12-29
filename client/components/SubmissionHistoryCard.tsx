@@ -17,6 +17,7 @@ interface SubmissionHistoryCardProps {
 export default function SubmissionHistoryCard({
   id,
   name,
+  description,
   dateOfWork,
   property,
   unit,
