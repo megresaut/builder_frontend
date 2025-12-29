@@ -5,7 +5,6 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import GlobalTable from "./GlobalTable";
 import ColumnFilterModal from "./ColumnFilterModal";
 import CreateFTOModal from "./CreateFTOModal";
-import FTOApprovalModal from "./FTOApprovalModal";
 import {
   CalendarIcon,
   NoteIcon,
@@ -281,8 +280,6 @@ export default function FieldTeamOrdersTab({
     priority: string;
     ftoStatus?: string;
   } | null>(null);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const [selectedFTOId, setSelectedFTOId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<FieldTeamOrder | null>(null);
 
@@ -621,27 +618,6 @@ export default function FieldTeamOrdersTab({
           }
         }}
         editData={editFTOData || undefined}
-      />
-
-      <FTOApprovalModal
-        open={showApprovalModal}
-        onOpenChange={(open) => {
-          setShowApprovalModal(open);
-          if (!open) {
-            setSelectedFTOId(null);
-          }
-        }}
-        selectedFTOId={selectedFTOId}
-        rowId={`fto-${selectedFTOId}`}
-        editingOrder={fieldTeamOrders.find((o) => o.id === selectedFTOId)}
-        property={
-          fieldTeamOrders.find((o) => o.id === selectedFTOId)?.property
-        }
-        unit={fieldTeamOrders.find((o) => o.id === selectedFTOId)?.unit}
-        fieldTeamAssignee={
-          fieldTeamOrders.find((o) => o.id === selectedFTOId)?.fieldTeam[0]
-            ?.name
-        }
       />
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
