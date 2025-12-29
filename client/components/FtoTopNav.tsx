@@ -111,28 +111,49 @@ export default function FtoTopNav() {
               <div className="flex flex-col py-1 whitespace-nowrap">
                 <button
                   onClick={() => handleNavigate("/fto")}
-                  className={`text-left px-4 py-2 text-sm transition-colors ${
-                    isHome
-                      ? "bg-blue-50 text-[#013764] font-medium hover:bg-blue-100"
-                      : "text-gray-700 hover:bg-blue-50"
-                  }`}
+                  className="text-left px-4 py-2 text-sm transition-colors"
+                  style={{
+                    backgroundColor: isHome ? "#eff6ff" : "transparent",
+                    color: isHome ? "#013764" : "#374151",
+                    fontWeight: isHome ? 500 : 400,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = isHome ? "#dbeafe" : "#eff6ff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isHome ? "#eff6ff" : "transparent";
+                  }}
                 >
                   Home
                 </button>
                 <button
                   onClick={() => handleNavigate("/fto/submission-history")}
-                  className={`text-left px-4 py-2 text-sm transition-colors ${
-                    isSubmissionHistory
-                      ? "bg-blue-50 text-[#013764] font-medium hover:bg-blue-100"
-                      : "text-gray-700 hover:bg-blue-50"
-                  }`}
+                  className="text-left px-4 py-2 text-sm transition-colors"
+                  style={{
+                    backgroundColor: isSubmissionHistory ? "#eff6ff" : "transparent",
+                    color: isSubmissionHistory ? "#013764" : "#374151",
+                    fontWeight: isSubmissionHistory ? 500 : 400,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = isSubmissionHistory ? "#dbeafe" : "#eff6ff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isSubmissionHistory ? "#eff6ff" : "transparent";
+                  }}
                 >
                   Submission History
                 </button>
                 <div className="h-px bg-gray-200 my-1" />
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-left px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-blue-50"
+                  className="text-left px-4 py-2 text-sm transition-colors"
+                  style={{ color: "#374151" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#eff6ff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
                 >
                   Settings
                 </button>
