@@ -51,6 +51,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       id,
       disabled = false,
       readOnly = false,
+      onChange,
       ...inputProps
     },
     ref,
@@ -62,7 +63,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         : `field-${Math.random().toString(36).substr(2, 9)}`);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const onChange = inputProps.onChange as React.ChangeEventHandler<HTMLInputElement> | undefined;
+      if (readOnly) return;
       if (onChange) {
         onChange(e.target.value as any);
       }
