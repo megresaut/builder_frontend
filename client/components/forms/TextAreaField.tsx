@@ -86,7 +86,7 @@ export const TextAreaField = forwardRef<
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (readOnly) return;
       setCharCount(e.target.value.length);
-      onChange?.(e);
+      onChange?.(e.target.value);
     };
 
     const charCountText = maxLength
