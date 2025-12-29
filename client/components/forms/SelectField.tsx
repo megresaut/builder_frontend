@@ -411,7 +411,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                       : "transparent",
                   }}
                   onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
-                  autoFocus={isHighlighted && index === 0}
+                  autoFocus={isHighlighted}
                 >
                   {isSelected && <Check className="h-4 w-4 text-blue-600" />}
                   {!isSelected && <div className="h-4 w-4" />}
