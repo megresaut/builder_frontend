@@ -155,7 +155,7 @@ export default function SubmissionHistoryCard({
           onClick={handleViewClick}
           className="h-7 px-2 text-xs"
         >
-          View Summary
+          {status === "pending" || status === "rejected" ? "Edit Submission" : "View Summary"}
         </BlueButton>
       </div>
     </div>
