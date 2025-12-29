@@ -227,12 +227,21 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
     switch (e.key) {
       case "Enter":
       case " ":
-        e.preventDefault();
-        setOpen(true);
+        if (!open) {
+          e.preventDefault();
+          setOpen(true);
+        }
         break;
       case "Escape":
         e.preventDefault();
         setOpen(false);
+        break;
+      case "ArrowDown":
+      case "ArrowUp":
+        if (!open) {
+          e.preventDefault();
+          setOpen(true);
+        }
         break;
       default:
         break;
