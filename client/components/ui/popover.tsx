@@ -18,9 +18,18 @@ interface PopoverContextType {
   setHighlightedIndex: (index: number | ((prev: number) => number)) => void;
 }
 
-const PopoverContext = React.createContext<PopoverContextType | undefined>(
-  undefined,
-);
+type GlobalWithPopoverContext = typeof globalThis & {
+  __raPopoverContext?: React.Context<PopoverContextType | undefined>;
+};
+
+const globalWithPopoverContext = globalThis as GlobalWithPopoverContext;
+
+// Store the context on globalThis to avoid HMR/module duplication creating
+// multiple incompatible Context instances (which can cause Provider/Consumer mismatches).
+const PopoverContext =
+  globalWithPopoverContext.__raPopoverContext ??
+  (globalWithPopoverContext.__raPopoverContext =
+    React.createContext<PopoverContextType | undefined>(undefined));
 
 const usePopoverContext = () => {
   const context = React.useContext(PopoverContext);
