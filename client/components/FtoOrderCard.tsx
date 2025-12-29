@@ -23,6 +23,7 @@ export default function FtoOrderCard({
   unit,
   priority,
   createdBy,
+  isApproved = false,
 }: FtoOrderCardProps) {
   const navigate = useNavigate();
 
