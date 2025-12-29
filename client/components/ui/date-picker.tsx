@@ -29,6 +29,7 @@ export const DatePicker = ({
   );
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(value || new Date());
+  const [isFirstFocus, setIsFirstFocus] = useState(true);
 
   // Format input as user types (mm/dd/yyyy)
   const formatDateInput = (input: string): string => {
@@ -84,6 +85,25 @@ export const DatePicker = ({
       onChange(null);
     }
   };
+
+  const handleInputFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    // Detect mobile device
+    const isMobile = window.innerWidth < 1024 ||
+                     ('ontouchstart' in window) ||
+                     navigator.maxTouchPoints > 0;
+
+    // On first focus on mobile, prevent keyboard by blurring then refocusing with readonly
+    if (isMobile && isFirstFocus) {
+      e.preventDefault();
+      setIsFirstFocus(false);
+
+      // Blur to close any keyboard
+      e.currentTarget.blur();
+
+      // Open calendar instead
+      setShowCalendar(true);
+    }
+  }, [isFirstFocus]);
 
   const getDaysInCurrentMonth = () => {
     const year = calendarMonth.getFullYear();
