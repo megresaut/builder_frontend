@@ -118,6 +118,7 @@ export default function FtoSubmissionSummary() {
     "dateOfWork",
     "property",
     "unit",
+    "priority",
     "createdBy",
     "status",
   ]);
