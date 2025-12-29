@@ -348,6 +348,18 @@ export default function FtoHome() {
     (order) => order.approvalStatus === "rejected",
   );
 
+  // Ensure columnOrder includes all current columns
+  useEffect(() => {
+    const currentColumnKeys = columns.map((col) => col.key);
+    const missingColumns = currentColumnKeys.filter(
+      (key) => !columnOrder.includes(key),
+    );
+
+    if (missingColumns.length > 0) {
+      setColumnOrder([...columnOrder, ...missingColumns]);
+    }
+  }, [columns.length]);
+
   if (isMobile) {
     return (
       <PageTemplate className="!px-4 !pt-6 !pb-6 max-w-none !min-w-0">
