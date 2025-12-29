@@ -104,10 +104,9 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
   // Focus custom input when entering custom mode
   useEffect(() => {
     if (customInputMode && customInputRef.current) {
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         customInputRef.current?.focus();
       }, 0);
-      return () => clearTimeout(timer);
     }
   }, [customInputMode]);
 
@@ -127,13 +126,10 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
     }
   };
 
-
   const handleCustomInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.preventDefault();
       handleCustomInput();
     } else if (e.key === "Escape") {
-      e.preventDefault();
       setCustomInputMode(false);
       setCustomValue("");
     }
