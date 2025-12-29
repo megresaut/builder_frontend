@@ -106,6 +106,10 @@ const mockFetchFTOs = async (
 
 // Transform API response to component format
 const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
+  const submittedOrders = JSON.parse(
+    localStorage.getItem("submittedFTOs") || "[]"
+  ) as number[];
+
   return apiData.map((order) => ({
     id: order.id,
     name: order.name,
@@ -115,7 +119,9 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
     unit: order.unit || "N/A",
     priority: order.priority,
     createdBy: order.created_by || "Unknown",
-    formSubmissionStatus: order.form_submission_status,
+    formSubmissionStatus: submittedOrders.includes(order.id)
+      ? "submitted"
+      : order.form_submission_status,
   }));
 };
 
