@@ -981,6 +981,19 @@ export default function FtoSubmissionForm() {
             <button
               onClick={() => {
                 if (validateForm()) {
+                  if (ftoId) {
+                    const submittedOrders = JSON.parse(
+                      localStorage.getItem("submittedFTOs") || "[]"
+                    ) as number[];
+                    const orderId = parseInt(ftoId);
+                    if (!submittedOrders.includes(orderId)) {
+                      submittedOrders.push(orderId);
+                      localStorage.setItem(
+                        "submittedFTOs",
+                        JSON.stringify(submittedOrders)
+                      );
+                    }
+                  }
                   navigate("/fto");
                 }
               }}
