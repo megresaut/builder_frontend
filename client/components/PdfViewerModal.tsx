@@ -121,6 +121,11 @@ export default function PdfViewerModal({
       hideCloseButton={isMobile}
       footer={!isMobile ? footerContent : null}
     >
+      {isMobile && safeUrl && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+          {footerContent}
+        </div>
+      )}
       {safeUrl ? (
         <div style={{
           width: "100%",
