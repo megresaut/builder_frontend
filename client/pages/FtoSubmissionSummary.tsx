@@ -18,6 +18,7 @@ import {
 interface SubmissionRecord {
   id: number;
   name: string;
+  description: string;
   dateOfWork: string;
   property: string;
   unit: string;
