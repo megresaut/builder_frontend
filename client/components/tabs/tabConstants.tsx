@@ -1,4 +1,5 @@
 import { Tab } from "./Tabs";
+import type { Tab } from "./Tabs";
 import {
   PortfolioIcon,
   PropertiesIcon,
