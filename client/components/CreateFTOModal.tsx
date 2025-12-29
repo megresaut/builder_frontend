@@ -150,15 +150,48 @@ export default function CreateFTOModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={editData ? "Edit FTO" : "Create FTO"}
+      title={isViewOnly ? "View FTO" : editData ? "Edit FTO" : "Create FTO"}
       size="lg"
       footer={
-        <ModalButtons
-          onCancel={() => onOpenChange(false)}
-          onConfirm={handleSubmit}
-          cancelLabel="Cancel"
-          confirmLabel={editData ? "Update FTO" : "Create FTO"}
-        />
+        isViewOnly ? (
+          <button
+            onClick={() => onOpenChange(false)}
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(251, 251, 251, 1)",
+              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+              borderColor: "rgba(218, 218, 218, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              minHeight: "36px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              justifyContent: "center",
+              cursor: "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Close
+          </button>
+        ) : (
+          <ModalButtons
+            onCancel={() => onOpenChange(false)}
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel={editData ? "Update FTO" : "Create FTO"}
+          />
+        )
       }
     >
       <FormLayout>
@@ -174,6 +207,7 @@ export default function CreateFTOModal({
               { value: "property1", label: "22 Indian Chase Dr" },
               { value: "property2", label: "Property 2" },
             ]}
+            disabled={isViewOnly}
           />
           <SelectField
             label="Unit"
@@ -184,6 +218,7 @@ export default function CreateFTOModal({
               { value: "unit1", label: "Unit 1" },
               { value: "unit2", label: "Unit 2" },
             ]}
+            disabled={isViewOnly}
           />
           <SelectField
             label="Select Task"
@@ -195,6 +230,7 @@ export default function CreateFTOModal({
               { value: "task1", label: "Task 1" },
               { value: "task2", label: "Task 2" },
             ]}
+            disabled={isViewOnly}
           />
         </FormSection>
 
@@ -206,6 +242,7 @@ export default function CreateFTOModal({
             onChange={setFtoName}
             error={errors.ftoName}
             placeholder="Type FTO Name"
+            disabled={isViewOnly}
           />
           <SelectField
             label="Priority"
@@ -217,6 +254,7 @@ export default function CreateFTOModal({
               { value: "normal", label: "Normal" },
               { value: "high", label: "High" },
             ]}
+            disabled={isViewOnly}
           />
           <DateField
             label="Due Date"
@@ -225,6 +263,7 @@ export default function CreateFTOModal({
             onChange={setDueDate}
             error={errors.dueDate}
             placeholder="MM/DD/YYYY"
+            disabled={isViewOnly}
           />
           <MultiSelectField
             label="Assignees"
@@ -234,6 +273,7 @@ export default function CreateFTOModal({
             error={errors.selectedAssignees}
             placeholder="Select assignees"
             options={AVAILABLE_ASSIGNEES}
+            disabled={isViewOnly}
           />
         </FormSection>
 
@@ -250,6 +290,7 @@ export default function CreateFTOModal({
               { value: "completed", label: "Completed" },
               { value: "cancelled", label: "Cancelled" },
             ]}
+            disabled={isViewOnly}
           />
           <TextAreaField
             label="Description"
@@ -257,6 +298,7 @@ export default function CreateFTOModal({
             onChange={setDescription}
             placeholder="Insert Description Here"
             rows={6}
+            disabled={isViewOnly}
           />
         </FormSection>
       </FormLayout>
