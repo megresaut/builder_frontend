@@ -253,6 +253,8 @@ export default function FtoHome() {
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isViewFTOModalOpen, setIsViewFTOModalOpen] = useState(false);
+  const [viewingFTO, setViewingFTO] = useState<FieldTeamOrder | SubmissionRecord | null>(null);
 
   const tabs = [
     { id: "open" as const, label: "Open" },
