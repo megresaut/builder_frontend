@@ -591,103 +591,67 @@ export default function ApproveFTOPage() {
                       {hourRows.map((row) => (
                         <div key={row.id} className="flex items-center">
                           {/* Date Cell */}
-                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-32 min-h-14">
-                            <FieldShell
-                              mode="cell"
-                              label="Date"
-                              cellValue={row.date}
-                              onCellCommit={(value) =>
+                          <div
+                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "120px" }}
+                          >
+                            <DateFieldCell
+                              value={row.date}
+                              onChange={(value) =>
                                 updateHourRow(row.id, "date", value)
                               }
-                            >
-                              <input
-                                type="date"
-                                value={row.date}
-                                onChange={(e) =>
-                                  updateHourRow(row.id, "date", e.target.value)
-                                }
-                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                              />
-                            </FieldShell>
+                            />
                           </div>
 
-                          {/* Hours Cell */}
-                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-24 min-h-14">
-                            <FieldShell
-                              mode="cell"
-                              label="Hours"
-                              cellValue={row.hours || "0"}
-                              onCellCommit={(value) =>
+                          {/* Hours Cell - 1 decimal */}
+                          <div
+                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "100px" }}
+                          >
+                            <NumberFieldCell
+                              value={row.hours}
+                              onChange={(value) =>
                                 updateHourRow(row.id, "hours", value)
                               }
-                            >
-                              <input
-                                type="text"
-                                value={row.hours}
-                                onChange={(e) =>
-                                  updateHourRow(row.id, "hours", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                              />
-                            </FieldShell>
+                              placeholder="0"
+                              decimals={1}
+                            />
                           </div>
 
                           {/* Note Cell */}
-                          <div className="border-b border-r border-[#DADADA]/50 flex-1 min-h-14">
-                            <FieldShell
-                              mode="cell"
-                              label="Note"
-                              cellValue={row.note || "(empty)"}
-                              onCellCommit={(value) =>
+                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-1">
+                            <TextFieldCell
+                              value={row.note}
+                              onChange={(value) =>
                                 updateHourRow(row.id, "note", value)
                               }
-                            >
-                              <input
-                                type="text"
-                                value={row.note}
-                                onChange={(e) =>
-                                  updateHourRow(row.id, "note", e.target.value)
-                                }
-                                placeholder="Enter note"
-                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                              />
-                            </FieldShell>
+                              placeholder="Enter note"
+                            />
                           </div>
 
                           {/* Assignee Cell */}
-                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-32 min-h-14">
-                            <FieldShell
-                              mode="cell"
-                              label="Assignee"
-                              cellValue={row.assignee || "(none)"}
-                              onCellCommit={(value) =>
+                          <div
+                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "140px" }}
+                          >
+                            <SelectFieldCell
+                              value={row.assignee}
+                              onChange={(value) =>
                                 updateHourRow(row.id, "assignee", value)
                               }
-                            >
-                              <select
-                                value={row.assignee}
-                                onChange={(e) =>
-                                  updateHourRow(
-                                    row.id,
-                                    "assignee",
-                                    e.target.value,
-                                  )
-                                }
-                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                              >
-                                <option value="">Select assignee...</option>
-                                {mockAssignees.map((a) => (
-                                  <option key={a} value={a}>
-                                    {a}
-                                  </option>
-                                ))}
-                              </select>
-                            </FieldShell>
+                              placeholder="Select assignee..."
+                              options={mockAssignees.map((a) => ({
+                                value: a,
+                                label: a,
+                              }))}
+                            />
                           </div>
 
-                          {/* NoFee Cell - Checkbox stays inline */}
-                          <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0 w-16">
+                          {/* NoFee Cell - Checkbox */}
+                          <div
+                            className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "80px" }}
+                          >
                             <Checkbox
                               checked={row.noFee}
                               onCheckedChange={(checked) => {
@@ -701,8 +665,11 @@ export default function ApproveFTOPage() {
                             />
                           </div>
 
-                          {/* Emergency Cell - Checkbox stays inline */}
-                          <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0 w-24">
+                          {/* Emergency Cell - Checkbox */}
+                          <div
+                            className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "100px" }}
+                          >
                             <Checkbox
                               checked={row.emergency}
                               onCheckedChange={(checked) =>
@@ -712,78 +679,41 @@ export default function ApproveFTOPage() {
                             />
                           </div>
 
-                          {/* Amount Cell */}
-                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-28 min-h-14">
-                            <FieldShell
-                              mode="cell"
-                              label="Amount"
-                              cellValue={row.amount || "$0"}
-                              onCellCommit={(value) => {
-                                const val = value;
-                                if (
-                                  val === "" ||
-                                  /^\$?[\d,]*\.?\d{0,2}$/.test(val)
-                                ) {
-                                  updateHourRow(row.id, "amount", val);
-                                }
-                              }}
-                            >
-                              <input
-                                type="text"
-                                value={row.amount}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (
-                                    val === "" ||
-                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
-                                  ) {
-                                    updateHourRow(row.id, "amount", val);
-                                  }
-                                }}
-                                placeholder="$0"
-                                disabled={row.noFee}
-                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
-                              />
-                            </FieldShell>
+                          {/* Amount Cell - Currency */}
+                          <div
+                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "120px" }}
+                          >
+                            <CurrencyFieldCell
+                              value={row.amount}
+                              onChange={(value) =>
+                                updateHourRow(row.id, "amount", value)
+                              }
+                              disabled={row.noFee}
+                              placeholder="$0"
+                            />
                           </div>
 
-                          {/* Upcharge Cell */}
-                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-28 min-h-14">
-                            <FieldShell
-                              mode="cell"
-                              label="Upcharge"
-                              cellValue={row.upcharge || "$0"}
-                              onCellCommit={(value) => {
-                                const val = value;
-                                if (
-                                  val === "" ||
-                                  /^\$?[\d,]*\.?\d{0,2}$/.test(val)
-                                ) {
-                                  updateHourRow(row.id, "upcharge", val);
-                                }
-                              }}
-                            >
-                              <input
-                                type="text"
-                                value={row.upcharge}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (
-                                    val === "" ||
-                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
-                                  ) {
-                                    updateHourRow(row.id, "upcharge", val);
-                                  }
-                                }}
-                                placeholder="$0"
-                                disabled={row.noFee}
-                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
-                              />
-                            </FieldShell>
+                          {/* Upcharge Cell - Currency */}
+                          <div
+                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "120px" }}
+                          >
+                            <CurrencyFieldCell
+                              value={row.upcharge}
+                              onChange={(value) =>
+                                updateHourRow(row.id, "upcharge", value)
+                              }
+                              disabled={row.noFee}
+                              placeholder="$0"
+                            />
                           </div>
 
                           {/* Total Cell - Display only */}
-                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0 w-24">
+                          <div
+                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "100px" }}
+                          >
                             <span className="text-[#303030] font-600 text-[13px]">
                               $
                               {calculateTotal(
