@@ -239,14 +239,33 @@ export default function FtoHome() {
     fetchOrders();
   }, []);
 
-  // Filter orders based on active tab
-  const orderData = allOrders.filter((order) => {
-    if (activeTab === "open") {
-      return order.formSubmissionStatus === "none";
-    } else {
-      return order.formSubmissionStatus !== "none";
-    }
-  });
+  // Fetch submission history
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Get submitted orders from localStorage
+        const submittedIds = JSON.parse(
+          localStorage.getItem("submittedFTOs") || "[]",
+        ) as number[];
+
+        const filteredSubmissions = mockSubmissionHistory.filter((sub) =>
+          submittedIds.includes(sub.id),
+        );
+
+        setSubmissions(filteredSubmissions);
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+      }
+    };
+
+    fetchSubmissions();
+  }, []);
+
+  // Filter data based on active tab
+  const displayData = activeTab === "open" ? allOrders.filter((order) => order.formSubmissionStatus === "none") : submissions;
 
   const columnConfig: Record<string, { label: string; icon: React.ReactNode }> =
     {
