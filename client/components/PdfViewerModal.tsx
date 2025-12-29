@@ -123,7 +123,7 @@ export default function PdfViewerModal({
       footer={!isMobile ? footerContent : null}
     >
       {isMobile && safeUrl && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", marginTop: "-8px", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", marginTop: "-16px", justifyContent: "flex-end" }}>
           {footerContent}
         </div>
       )}
