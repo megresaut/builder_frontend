@@ -17,9 +17,10 @@ import {
 interface SubmissionRecord {
   id: number;
   name: string;
-  submittedDate: string;
+  dateOfWork: string;
   property: string;
-  submittedBy: string;
+  unit: string;
+  createdBy: string;
   status: "pending" | "approved" | "rejected";
 }
 
@@ -27,17 +28,19 @@ const mockSubmissionHistory: SubmissionRecord[] = [
   {
     id: 1,
     name: "HVAC Inspection",
-    submittedDate: "Dec 10, 2025",
+    dateOfWork: "Dec 10, 2025",
     property: "22 Indian Chase Dr",
-    submittedBy: "John Smith",
+    unit: "Unit A",
+    createdBy: "John Smith",
     status: "approved",
   },
   {
     id: 3,
     name: "Electrical Repair",
-    submittedDate: "Dec 8, 2025",
+    dateOfWork: "Dec 8, 2025",
     property: "22 Indian Chase Dr",
-    submittedBy: "John Smith",
+    unit: "Unit C",
+    createdBy: "John Smith",
     status: "approved",
   },
 ];
