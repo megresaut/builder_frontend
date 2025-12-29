@@ -339,7 +339,7 @@ export default function FtoHome() {
       },
       {
         key: "createdBy",
-        label: "Created By",
+        label: "Property Manager",
         icon: <UserIcon width={16} height={16} />,
       },
       {
