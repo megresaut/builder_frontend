@@ -21,6 +21,7 @@ export default function SubmissionHistoryCard({
   unit,
   createdBy,
   status,
+  priority,
 }: SubmissionHistoryCardProps) {
   const navigate = useNavigate();
 
@@ -31,6 +32,19 @@ export default function SubmissionHistoryCard({
       case "rejected":
         return "#DC2626";
       case "pending":
+        return "#2463EB";
+      default:
+        return "#6B7280";
+    }
+  };
+
+  const getPriorityColor = (priorityLevel: string) => {
+    switch (priorityLevel) {
+      case "high":
+        return "#D97706";
+      case "low":
+        return "#059669";
+      case "normal":
         return "#2463EB";
       default:
         return "#6B7280";
