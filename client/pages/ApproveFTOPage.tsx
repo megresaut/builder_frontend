@@ -109,6 +109,7 @@ export default function ApproveFTOPage() {
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ name: string; size: number; file: File }>
   >([]);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
