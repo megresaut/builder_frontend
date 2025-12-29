@@ -131,6 +131,32 @@ const mockFetchFTOs = async (
   return mockData;
 };
 
+// Mock submission history data
+const mockSubmissionHistory: SubmissionRecord[] = [
+  {
+    id: 1,
+    name: "HVAC Inspection",
+    description: "Annual HVAC system inspection",
+    dateOfWork: "Dec 10, 2025",
+    property: "22 Indian Chase Dr",
+    unit: "Unit A",
+    createdBy: "John Smith",
+    status: "approved",
+    priority: "high",
+  },
+  {
+    id: 3,
+    name: "Electrical Repair",
+    description: "Replace faulty outlet",
+    dateOfWork: "Dec 8, 2025",
+    property: "22 Indian Chase Dr",
+    unit: "Unit C",
+    createdBy: "John Smith",
+    status: "approved",
+    priority: "normal",
+  },
+];
+
 // Transform API response to component format
 const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
   const submittedOrders = JSON.parse(
