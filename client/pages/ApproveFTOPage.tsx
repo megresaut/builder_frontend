@@ -610,7 +610,7 @@ export default function ApproveFTOPage() {
                           style={{ width: "120px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Amount
+                            Amount <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
