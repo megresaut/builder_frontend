@@ -71,7 +71,6 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     const path = location.pathname;
     if (isFtoMode) {
       if (path === "/fto" || path === "/fto/") return "fto-home";
-      if (path.includes("/fto/submission-history")) return "fto-submission";
       return null;
     }
     if (path === "/all-properties" || path === "/") return "properties";
