@@ -276,7 +276,7 @@ export default function FtoHome() {
     if (activeTab === "submissionHistory") {
       return ["name", "description", "dateOfWork", "property", "unit", "priority", "createdBy", "status"];
     }
-    return ["name", "dueDate", "description", "property", "unit", "priority", "createdBy", "status"];
+    return ["name", "dueDate", "description", "property", "unit", "priority", "createdBy"];
   };
 
   // Column management hook
