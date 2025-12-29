@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import BlueButton from "@/components/BlueButton";
-import { PlusIcon } from "@/components/icons";
 
 export default function FtoTopNav() {
   const navigate = useNavigate();
@@ -57,15 +55,26 @@ export default function FtoTopNav() {
           )}
         </div>
 
-        {/* Right: Submit Button & Menu */}
+        {/* Right: Add Button & Menu */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <BlueButton
-            icon={<PlusIcon width={12} height={12} />}
+          <button
             onClick={() => navigate("/fto/submission")}
-            className="h-7 px-2 text-xs"
+            className="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-gray-700"
+            title="Add new order"
           >
-            Submit
-          </BlueButton>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
 
           <div className="relative">
             <button
