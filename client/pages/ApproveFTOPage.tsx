@@ -959,6 +959,8 @@ export default function ApproveFTOPage() {
           background: "white",
           padding: "16px 32px",
           zIndex: 10,
+          borderTop: "1.33333px solid #d2d1cf",
+          boxShadow: "rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
         }}
       >
         <div className="flex items-center justify-between">
