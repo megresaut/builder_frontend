@@ -28,6 +28,8 @@ interface SelectFieldProps {
   placeholder?: string;
   options: SelectOption[];
   multiple?: boolean;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
 }
 
 /**
