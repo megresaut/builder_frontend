@@ -340,6 +340,7 @@ export default function FtoHome() {
     columnOrder,
     setColumnOrder,
     visibleColumns,
+    setVisibleColumns,
     draggedColumn,
     dropTargetColumn,
     dropPosition,
