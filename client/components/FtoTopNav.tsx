@@ -60,9 +60,9 @@ export default function FtoTopNav() {
         {/* Right: Submit Button & Menu */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <BlueButton
-            icon={<PlusIcon width={16} height={16} />}
+            icon={<PlusIcon width={12} height={12} />}
             onClick={() => navigate("/fto/submission")}
-            className="h-8 px-3 text-xs"
+            className="h-7 px-2 text-xs"
           >
             Submit
           </BlueButton>
