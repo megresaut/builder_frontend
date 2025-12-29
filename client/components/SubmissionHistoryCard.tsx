@@ -86,6 +86,15 @@ export default function SubmissionHistoryCard({
             </span>
           </div>
         </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: getPriorityColor(priority) }}
+          />
+          <span className="text-xs font-medium text-gray-600 capitalize">
+            {priority}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2 mb-4">
