@@ -254,12 +254,54 @@ export default function FtoHome() {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isViewFTOModalOpen, setIsViewFTOModalOpen] = useState(false);
-  const [viewingFTO, setViewingFTO] = useState<
-    FieldTeamOrder | SubmissionRecord | null
-  >(null);
+
+  type ViewTaskData = {
+    name: string;
+    description: string;
+    dueDate?: string;
+    dateOfWork?: string;
+    priority?: string;
+    status?: string;
+    property?: string;
+    unit?: string;
+  };
+
+  const [viewingFTO, setViewingFTO] = useState<ViewTaskData | null>(null);
+
+  const toFtoStatus = (status: string | undefined) => {
+    switch (status) {
+      case "approved":
+        return "completed";
+      case "rejected":
+        return "cancelled";
+      case "pending":
+        return "pending-approval";
+      default:
+        return "pending-approval";
+    }
+  };
 
   const openViewTaskModal = (row: FieldTeamOrder | SubmissionRecord) => {
-    setViewingFTO(row);
+    const isSubmission = "dateOfWork" in row;
+
+    const viewData: ViewTaskData = {
+      name: row.name,
+      description: row.description,
+      property: row.property,
+      unit: row.unit,
+      priority: row.priority,
+      ...(isSubmission
+        ? {
+            dateOfWork: (row as SubmissionRecord).dateOfWork,
+            status: toFtoStatus((row as SubmissionRecord).status),
+          }
+        : {
+            dueDate: (row as FieldTeamOrder).dueDate,
+            status: toFtoStatus((row as FieldTeamOrder).approvalStatus),
+          }),
+    };
+
+    setViewingFTO(viewData);
     setIsViewFTOModalOpen(true);
   };
 
@@ -825,8 +867,7 @@ export default function FtoHome() {
                 />
               ),
               onClick: (row) => {
-                setViewingFTO(row);
-                setIsViewFTOModalOpen(true);
+                openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
               },
             },
           ]}
@@ -856,7 +897,7 @@ export default function FtoHome() {
         open={isViewFTOModalOpen}
         onOpenChange={setIsViewFTOModalOpen}
         isViewOnly={true}
-        viewData={viewingFTO as any}
+        viewData={viewingFTO ?? undefined}
       />
     </PageTemplate>
   );
