@@ -1,17 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  FieldTeamOrdersIcon,
-  PlusIcon,
-  CloseIcon,
-  ChevronDownIcon,
-} from "@/components/icons";
 
-interface FtoTopNavProps {
-  onSubmitClick?: () => void;
-}
-
-export default function FtoTopNav({ onSubmitClick }: FtoTopNavProps) {
+export default function FtoTopNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showMenu, setShowMenu] = useState(false);
@@ -22,12 +12,6 @@ export default function FtoTopNav({ onSubmitClick }: FtoTopNavProps) {
   const handleNavigate = (path: string) => {
     navigate(path);
     setShowMenu(false);
-  };
-
-  const handleSubmit = () => {
-    navigate("/fto/submission");
-    setShowMenu(false);
-    onSubmitClick?.();
   };
 
   return (
@@ -71,17 +55,8 @@ export default function FtoTopNav({ onSubmitClick }: FtoTopNavProps) {
           )}
         </div>
 
-        {/* Right: Actions */}
+        {/* Right: Menu Button */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            onClick={handleSubmit}
-            className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            <PlusIcon width={16} height={16} />
-            <span className="hidden sm:inline">Submit</span>
-          </button>
-
-          {/* Menu Button */}
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
