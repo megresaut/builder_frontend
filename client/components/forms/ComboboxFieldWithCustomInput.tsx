@@ -114,7 +114,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
   const handleSelect = (optionValue: string) => {
     onChange?.(optionValue === value ? "" : optionValue);
     setOpen(false);
-    setSearchTerm("");
     setCustomInputMode(false);
     setCustomValue("");
   };
@@ -123,7 +122,6 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
     if (customValue.trim()) {
       onChange?.(customValue);
       setOpen(false);
-      setSearchTerm("");
       setCustomInputMode(false);
       setCustomValue("");
     }
