@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import BlueButton from "@/components/BlueButton";
+import { PropertyManagerAvatar } from "@/components/PropertyManagerAvatar";
 import { CalendarIcon, BuildingIcon, UserIcon, EyeIcon } from "@/components/icons";
 
 interface SubmissionHistoryCardProps {
