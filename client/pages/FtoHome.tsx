@@ -154,10 +154,13 @@ export default function FtoHome() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Initialize mock approved orders on first load
+  // Initialize mock approved and rejected orders on first load
   useEffect(() => {
     if (!localStorage.getItem("approvedFTOs")) {
       localStorage.setItem("approvedFTOs", JSON.stringify([1, 3]));
+    }
+    if (!localStorage.getItem("rejectedFTOs")) {
+      localStorage.setItem("rejectedFTOs", JSON.stringify([]));
     }
   }, []);
 
