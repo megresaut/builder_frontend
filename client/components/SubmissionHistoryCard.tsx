@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { CalendarIcon, BuildingIcon, UserIcon, DocumentIcon } from "@/components/icons";
+import BlueButton from "@/components/BlueButton";
+import { CalendarIcon, BuildingIcon, UserIcon, EyeIcon } from "@/components/icons";
 
 interface SubmissionHistoryCardProps {
   id: number;
@@ -43,6 +44,15 @@ export default function SubmissionHistoryCard({
     });
   };
 
+  const handleViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/fto/submission/${id}`, {
+      state: {
+        isApproved: status === "approved",
+      },
+    });
+  };
+
   return (
     <div
       onClick={handleCardClick}
@@ -51,16 +61,15 @@ export default function SubmissionHistoryCard({
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-sm text-gray-900 truncate">{name}</h3>
-          <p className="text-xs text-gray-600 truncate mt-0.5">{dateOfWork}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: getStatusColor(status) }}
-          />
-          <span className="text-xs font-medium text-gray-600 capitalize">
-            {status}
-          </span>
+          <div className="flex items-center gap-1 mt-0.5">
+            <div
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: getStatusColor(status) }}
+            />
+            <span className="text-xs font-medium text-gray-600 capitalize">
+              {status}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -76,18 +85,26 @@ export default function SubmissionHistoryCard({
           )}
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-600">
-          <UserIcon width={14} height={14} />
-          <span className="truncate">{createdBy}</span>
+          <CalendarIcon width={14} height={14} />
+          <span>{dateOfWork}</span>
         </div>
       </div>
 
-      <div className="pt-3 border-t border-gray-100">
-        <button
-          onClick={handleCardClick}
-          className="w-full text-xs font-medium text-blue-600 hover:text-blue-700 py-2"
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <span className="text-xs text-gray-500">By {createdBy}</span>
+        <BlueButton
+          icon={
+            <EyeIcon
+              width={14}
+              height={14}
+              className="brightness-0 invert"
+            />
+          }
+          onClick={handleViewClick}
+          className="h-7 px-2 text-xs"
         >
-          View Details →
-        </button>
+          View
+        </BlueButton>
       </div>
     </div>
   );
