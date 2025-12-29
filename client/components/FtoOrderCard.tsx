@@ -17,6 +17,7 @@ interface FtoOrderCardProps {
   priority: "low" | "normal" | "high";
   createdBy: string;
   isApproved?: boolean;
+  status?: "approved" | "pending" | "rejected";
 }
 
 export default function FtoOrderCard({
