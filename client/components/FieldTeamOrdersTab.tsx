@@ -415,11 +415,18 @@ export default function FieldTeamOrdersTab({
 
   const handleApproveFTO = useCallback(
     (order: FieldTeamOrder) => {
-      setSelectedFTOId(order.id);
-      setShowApprovalModal(true);
+      navigate(`/fto/approve/${order.id}`, {
+        state: {
+          property: order.property || "",
+          unit: order.unit || "",
+          fieldTeamAssignee: order.assignee || "",
+          task: order.task || "",
+          description: order.description || "",
+        },
+      });
       onApprove?.(order);
     },
-    [onApprove]
+    [onApprove, navigate]
   );
 
   const handleDeleteFTO = useCallback((order: FieldTeamOrder) => {
