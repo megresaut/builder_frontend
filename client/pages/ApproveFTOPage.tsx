@@ -907,17 +907,17 @@ export default function ApproveFTOPage() {
                             />
                           </div>
 
-                          {/* Vendor Cell - SelectFieldCell */}
+                          {/* Vendor Cell - VendorFieldCell */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                             style={{ width: "150px", minWidth: "150px" }}
                           >
-                            <SelectFieldCell
+                            <VendorFieldCell
                               value={row.vendor}
                               onChange={(value) =>
                                 updateExpenseRow(row.id, "vendor", value)
                               }
-                              placeholder="Select vendor..."
+                              placeholder="Select or type vendor..."
                               options={mockVendors.map((v) => ({
                                 value: v,
                                 label: v,
