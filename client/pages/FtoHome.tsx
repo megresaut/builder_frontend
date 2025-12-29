@@ -267,41 +267,17 @@ export default function FtoHome() {
   // Filter data based on active tab
   const displayData = activeTab === "open" ? allOrders.filter((order) => order.formSubmissionStatus === "none") : submissions;
 
-  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> =
-    {
-      name: {
-        label: "Name",
-        icon: <DocumentIcon width={16} height={16} />,
-      },
-      dueDate: {
-        label: "Due date",
-        icon: <CalendarIcon width={16} height={16} />,
-      },
-      description: {
-        label: "Description",
-        icon: <NoteIcon width={16} height={16} />,
-      },
-      property: {
-        label: "Property",
-        icon: <BuildingIcon width={16} height={16} />,
-      },
-      unit: {
-        label: "Unit",
-        icon: <DocumentIcon width={16} height={16} />,
-      },
-      priority: {
-        label: "Priority",
-        icon: <FlagIcon width={16} height={16} />,
-      },
-      createdBy: {
-        label: "Created By",
-        icon: <DocumentIcon width={16} height={16} />,
-      },
-    };
-
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(orderData);
+    useSortingTable(displayData);
+
+  // Get column defaults based on active tab
+  const getDefaultColumns = () => {
+    if (activeTab === "submissionHistory") {
+      return ["name", "description", "dateOfWork", "property", "unit", "priority", "createdBy", "status"];
+    }
+    return ["name", "dueDate", "description", "property", "unit", "priority", "createdBy", "status"];
+  };
 
   // Column management hook
   const {
@@ -320,16 +296,7 @@ export default function FtoHome() {
     handleColumnDragOver,
     handleColumnDragLeave,
     handleColumnDrop,
-  } = useColumnManagement([
-    "name",
-    "dueDate",
-    "description",
-    "property",
-    "unit",
-    "priority",
-    "createdBy",
-    "status",
-  ]);
+  } = useColumnManagement(getDefaultColumns());
 
   // Pagination state
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
