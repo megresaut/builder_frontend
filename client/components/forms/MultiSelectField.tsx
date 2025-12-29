@@ -96,6 +96,7 @@ interface MultiSelectFieldContentProps {
   setOpen: (open: boolean) => void;
   fieldId: string;
   disabled: boolean;
+  error?: string;
   placeholder: string;
   uniqueValue: MultiSelectOption[];
   removeItem: (itemId: string) => void;
