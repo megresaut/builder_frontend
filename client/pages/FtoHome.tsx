@@ -334,8 +334,9 @@ export default function FtoHome() {
   // Initialize mock approved and rejected orders on first load
   useEffect(() => {
     // Always set these to ensure correct mock data
+    localStorage.setItem("submittedFTOs", JSON.stringify([1, 2, 3, 5]));
     localStorage.setItem("approvedFTOs", JSON.stringify([1, 3]));
-    localStorage.setItem("rejectedFTOs", JSON.stringify([4]));
+    localStorage.setItem("rejectedFTOs", JSON.stringify([2]));
   }, []);
 
   // Fetch FTOs from mock API
