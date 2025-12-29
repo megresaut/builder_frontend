@@ -226,7 +226,7 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(36, 99, 235, 0.08)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
-                + Add custom value
+                + Add custom vendor
               </button>
             )}
 
