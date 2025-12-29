@@ -10,6 +10,7 @@ interface SubmissionHistoryCardProps {
   unit: string;
   createdBy: string;
   status: "pending" | "approved" | "rejected";
+  priority: "low" | "normal" | "high";
 }
 
 export default function SubmissionHistoryCard({
