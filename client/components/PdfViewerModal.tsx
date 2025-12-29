@@ -20,7 +20,8 @@ const isProbablyImageUrl = (url: string) => {
   const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
   return (
     imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext)) ||
-    url.startsWith("blob:")
+    url.startsWith("blob:") ||
+    url.startsWith("data:image/")
   );
 };
 
