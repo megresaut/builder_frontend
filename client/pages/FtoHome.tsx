@@ -310,6 +310,11 @@ export default function FtoHome() {
       label: "Created By",
       icon: <UserIcon width={16} height={16} />,
     },
+    {
+      key: "status",
+      label: "Status",
+      icon: <ApproveIcon width={16} height={16} />,
+    },
   ];
 
   const getPriorityColor = (priority: string) => {
