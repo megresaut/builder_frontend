@@ -9,6 +9,7 @@ import { DateFieldCell } from "@/components/forms/DateFieldCell";
 import { NumberFieldCell } from "@/components/forms/NumberFieldCell";
 import { CurrencyFieldCell } from "@/components/forms/CurrencyFieldCell";
 import { TextFieldCell } from "@/components/forms/TextFieldCell";
+import { VendorFieldCell } from "@/components/forms/VendorFieldCell";
 import { FieldCellShell } from "@/components/forms/FieldCellShell";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteIcon, EyeIcon } from "@/components/icons";
