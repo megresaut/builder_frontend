@@ -641,10 +641,11 @@ export default function ApproveFTOPage() {
                         <div key={row.id} className="flex items-start">
                           {/* Date Cell */}
                           <div
-                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "120px",
-                              backgroundColor: isHoursCellInvalid(row, 'date') ? '#ffcccc' : 'transparent',
+                              borderBottom: '1px solid #DADADA',
+                              borderRight: isHoursCellInvalid(row, 'date') ? '3px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <DateFieldCell
