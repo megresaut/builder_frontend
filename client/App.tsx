@@ -33,6 +33,7 @@ import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
 import FtoHome from "./pages/FtoHome";
 import FtoSubmissionForm from "./pages/FtoSubmissionForm";
+import ApproveFTOPage from "./pages/ApproveFTOPage";
 
 const queryClient = new QueryClient();
 
