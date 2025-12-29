@@ -450,8 +450,8 @@ export default function FtoHome() {
     }
   };
 
-  const rejectedOrders = allOrders.filter(
-    (order) => order.approvalStatus === "rejected",
+  const rejectedOrders = submissions.filter(
+    (submission) => submission.status === "rejected",
   );
 
   // Ensure columnOrder includes all current columns
