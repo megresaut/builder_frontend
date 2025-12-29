@@ -761,7 +761,7 @@ export default function FtoHome() {
           showSearchBar={true}
           actions={[
             {
-              label: () => activeTab === "open" ? "Submit" : "View",
+              label: () => activeTab === "open" ? "Submit" : "View Submission",
               icon: () => activeTab === "open" ? (
                 <ApproveIcon
                   width={18}
@@ -798,7 +798,7 @@ export default function FtoHome() {
               },
             },
             {
-              label: () => "View",
+              label: () => "View Task",
               icon: () => (
                 <EyeIcon
                   width={18}
