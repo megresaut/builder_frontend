@@ -157,6 +157,11 @@ export default function FtoSubmissionSummary() {
       icon: <DocumentIcon width={16} height={16} />,
     },
     {
+      key: "priority",
+      label: "Priority",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    {
       key: "createdBy",
       label: "Created By",
       icon: <UserIcon width={16} height={16} />,
