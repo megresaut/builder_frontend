@@ -177,7 +177,7 @@ export default function PdfViewerModal({
             <iframe
               title={title}
               src={
-                isProbablyPdfUrl(safeUrl)
+                isProbablyPdfUrl(safeUrl, title)
                   ? `${safeUrl}#view=FitW&toolbar=1&navpanes=0&zoom=100`
                   : safeUrl
               }
