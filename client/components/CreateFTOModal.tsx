@@ -104,6 +104,9 @@ export default function CreateFTOModal({
     if (!ftoName.trim()) {
       newErrors.ftoName = "FTO Name is required";
     }
+    if (!priority.trim()) {
+      newErrors.priority = "Priority is required";
+    }
     if (!dueDate) {
       newErrors.dueDate = "Due Date is required";
     }
