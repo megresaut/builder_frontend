@@ -303,6 +303,7 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   gap: "8px",
                   padding: "12px",
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
                 <input
                   ref={customInputRef}
@@ -310,8 +311,16 @@ export const ComboboxFieldWithCustomInput: React.FC<ComboboxFieldWithCustomInput
                   autoFocus
                   placeholder={customInputPlaceholder}
                   value={customValue}
-                  onChange={(e) => setCustomValue(e.target.value)}
-                  onKeyDown={handleCustomInputKeyDown}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    setCustomValue(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    handleCustomInputKeyDown(e);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
