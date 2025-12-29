@@ -48,44 +48,28 @@ export const DateFieldCell: React.FC<DateFieldCellProps> = ({
 
   return (
     <FieldCellShell error={error}>
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          height: "100%",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            height: "32px",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <style>{`
-            #${id || "date-cell"}-picker-input {
-              border: none !important;
-              background: transparent !important;
-              padding: 0 !important;
-              height: 32px !important;
-            }
-            #${id || "date-cell"}-picker-input:focus {
-              border: none !important;
-              outline: none;
-            }
-          `}</style>
-          <DatePicker
-            value={dateValue}
-            onChange={handleDateChange}
-            disabled={disabled}
-            error={false}
-            placeholder="mm/dd/yyyy"
-            className="w-full"
-          />
-        </div>
-      </div>
+      <style>{`
+        .ra-field-cell-shell input[placeholder="mm/dd/yyyy"] {
+          border: none !important;
+          background: transparent !important;
+          padding: 0 !important;
+          height: 100% !important;
+          font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif;
+          font-size: 13px;
+        }
+        .ra-field-cell-shell input[placeholder="mm/dd/yyyy"]:focus {
+          border: none !important;
+          outline: none;
+        }
+      `}</style>
+      <DatePicker
+        value={dateValue}
+        onChange={handleDateChange}
+        disabled={disabled}
+        error={false}
+        placeholder="mm/dd/yyyy"
+        className="w-full"
+      />
     </FieldCellShell>
   );
 };
