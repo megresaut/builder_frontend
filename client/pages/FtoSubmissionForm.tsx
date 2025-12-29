@@ -938,37 +938,39 @@ export default function FtoSubmissionForm() {
                           disabled={isApproved}
                         />
 
-                        <FileUploadField
-                          label="Attachments"
-                          files={entry.files}
-                          onFilesAdded={(newFiles) => {
-                            updateExpenseEntry(entry.id, "files", [
-                              ...entry.files,
-                              ...newFiles,
-                            ]);
-                          }}
-                          onFileRemoved={(fileId) => {
-                            updateExpenseEntry(
-                              entry.id,
-                              "files",
-                              entry.files.filter((f) => f.id !== fileId)
-                            );
-                          }}
-                          onViewFile={(file) => {
-                            if (file.file) {
-                              const fileURL = URL.createObjectURL(file.file);
-                              setPdfViewer({
-                                isOpen: true,
-                                url: fileURL,
-                                title: file.name,
-                              });
-                            }
-                          }}
-                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
-                          maxFiles={10}
-                          maxSize={10 * 1024 * 1024}
-                          placeholder="Drag and drop files here, or click to browse"
-                        />
+                        {!isApproved && (
+                          <FileUploadField
+                            label="Attachments"
+                            files={entry.files}
+                            onFilesAdded={(newFiles) => {
+                              updateExpenseEntry(entry.id, "files", [
+                                ...entry.files,
+                                ...newFiles,
+                              ]);
+                            }}
+                            onFileRemoved={(fileId) => {
+                              updateExpenseEntry(
+                                entry.id,
+                                "files",
+                                entry.files.filter((f) => f.id !== fileId)
+                              );
+                            }}
+                            onViewFile={(file) => {
+                              if (file.file) {
+                                const fileURL = URL.createObjectURL(file.file);
+                                setPdfViewer({
+                                  isOpen: true,
+                                  url: fileURL,
+                                  title: file.name,
+                                });
+                              }
+                            }}
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                            maxFiles={10}
+                            maxSize={10 * 1024 * 1024}
+                            placeholder="Drag and drop files here, or click to browse"
+                          />
+                        )}
                       </div>
                     )}
                   </div>
