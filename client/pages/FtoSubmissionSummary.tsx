@@ -147,6 +147,11 @@ export default function FtoSubmissionSummary() {
       icon: <EditIcon width={16} height={16} color="#525252" />,
     },
     {
+      key: "description",
+      label: "Description",
+      icon: <NoteIcon width={16} height={16} />,
+    },
+    {
       key: "dateOfWork",
       label: "Date of Work",
       icon: <CalendarIcon width={16} height={16} />,
