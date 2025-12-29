@@ -407,6 +407,30 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
             })
           )}
         </div>
+        {onCreateNew && (
+          <div
+            style={{
+              borderTop: "1px solid var(--color-border-light)",
+              padding: "8px 0",
+            }}
+          >
+            <button
+              onClick={() => {
+                onCreateNew();
+                setOpen(false);
+              }}
+              className="w-full px-3 py-2 text-left text-sm text-[#2463EB] hover:bg-blue-50 transition-colors flex items-center gap-2"
+              style={{
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontWeight: "500",
+              }}
+            >
+              <span>+ {createNewLabel}</span>
+            </button>
+          </div>
+        )}
       </PopoverContent>
     </>
   );
