@@ -35,6 +35,7 @@ const mockSubmissionHistory: SubmissionRecord[] = [
     unit: "Unit A",
     createdBy: "John Smith",
     status: "approved",
+    priority: "high",
   },
   {
     id: 3,
@@ -44,6 +45,7 @@ const mockSubmissionHistory: SubmissionRecord[] = [
     unit: "Unit C",
     createdBy: "John Smith",
     status: "approved",
+    priority: "normal",
   },
 ];
 
