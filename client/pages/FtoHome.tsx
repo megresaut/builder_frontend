@@ -310,48 +310,70 @@ export default function FtoHome() {
     null,
   );
 
-  const columns = [
-    {
-      key: "name",
-      label: "Name",
-      icon: <EditIcon width={16} height={16} color="#525252" />,
-    },
-    {
-      key: "dueDate",
-      label: "Due date",
-      icon: <CalendarIcon width={16} height={16} />,
-    },
-    {
-      key: "description",
-      label: "Description",
-      icon: <NoteIcon width={16} height={16} />,
-    },
-    {
-      key: "property",
-      label: "Property",
-      icon: <BuildingIcon width={16} height={16} />,
-    },
-    {
-      key: "unit",
-      label: "Unit",
-      icon: <DocumentIcon width={16} height={16} />,
-    },
-    {
-      key: "priority",
-      label: "Priority",
-      icon: <FlagIcon width={16} height={16} />,
-    },
-    {
-      key: "createdBy",
-      label: "Created By",
-      icon: <UserIcon width={16} height={16} />,
-    },
-    {
-      key: "status",
-      label: "Status",
-      icon: <ApproveIcon width={16} height={16} />,
-    },
-  ];
+  const getColumns = () => {
+    const baseColumns = [
+      {
+        key: "name",
+        label: "Name",
+        icon: <EditIcon width={16} height={16} color="#525252" />,
+      },
+      {
+        key: "description",
+        label: "Description",
+        icon: <NoteIcon width={16} height={16} />,
+      },
+      {
+        key: "property",
+        label: "Property",
+        icon: <BuildingIcon width={16} height={16} />,
+      },
+      {
+        key: "unit",
+        label: "Unit",
+        icon: <DocumentIcon width={16} height={16} />,
+      },
+      {
+        key: "priority",
+        label: "Priority",
+        icon: <FlagIcon width={16} height={16} />,
+      },
+      {
+        key: "createdBy",
+        label: "Created By",
+        icon: <UserIcon width={16} height={16} />,
+      },
+      {
+        key: "status",
+        label: "Status",
+        icon: <ApproveIcon width={16} height={16} />,
+      },
+    ];
+
+    if (activeTab === "submissionHistory") {
+      return [
+        baseColumns[0],
+        baseColumns[1],
+        {
+          key: "dateOfWork",
+          label: "Date of Work",
+          icon: <CalendarIcon width={16} height={16} />,
+        },
+        ...baseColumns.slice(2),
+      ];
+    }
+
+    return [
+      baseColumns[0],
+      {
+        key: "dueDate",
+        label: "Due date",
+        icon: <CalendarIcon width={16} height={16} />,
+      },
+      ...baseColumns.slice(1),
+    ];
+  };
+
+  const columns = getColumns();
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
