@@ -441,21 +441,21 @@ export default function FtoHome() {
             <TableToggle
               tabs={tabs}
               activeTab={activeTab}
-              onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
+              onTabChange={(tabId) => setActiveTab(tabId as "open" | "submissionHistory")}
             />
           </div>
 
           <div className="flex flex-col gap-3">
             {loading ? (
               <div className="text-center py-8 text-gray-500 text-sm">
-                Loading orders...
+                Loading...
               </div>
-            ) : orderData.length === 0 ? (
+            ) : displayData.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
-                No {activeTab} orders
+                No {activeTab === "open" ? "open" : "submission history"} orders
               </div>
-            ) : (
-              orderData.map((order) => (
+            ) : activeTab === "open" ? (
+              (displayData as FieldTeamOrder[]).map((order) => (
                 <FtoOrderCard
                   key={order.id}
                   id={order.id}
@@ -466,11 +466,23 @@ export default function FtoHome() {
                   unit={order.unit}
                   priority={order.priority}
                   createdBy={order.createdBy}
-                  isApproved={
-                    activeTab === "closed" &&
-                    order.approvalStatus === "approved"
-                  }
+                  isApproved={order.approvalStatus === "approved"}
                   status={(order.approvalStatus || "pending") as "approved" | "pending" | "rejected"}
+                />
+              ))
+            ) : (
+              (displayData as SubmissionRecord[]).map((submission) => (
+                <SubmissionHistoryCard
+                  key={submission.id}
+                  id={submission.id}
+                  name={submission.name}
+                  description={submission.description}
+                  dateOfWork={submission.dateOfWork}
+                  property={submission.property}
+                  unit={submission.unit}
+                  createdBy={submission.createdBy}
+                  status={submission.status}
+                  priority={submission.priority}
                 />
               ))
             )}
