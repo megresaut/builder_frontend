@@ -279,6 +279,7 @@ export default function CreateFTOModal({
             required
             value={priority}
             onChange={setPriority}
+            error={errors.priority}
             options={[
               { value: "low", label: "Low" },
               { value: "normal", label: "Normal" },
