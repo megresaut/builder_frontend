@@ -239,6 +239,7 @@ export default function FtoHome() {
   // Column management hook
   const {
     columnOrder,
+    setColumnOrder,
     visibleColumns,
     draggedColumn,
     dropTargetColumn,
