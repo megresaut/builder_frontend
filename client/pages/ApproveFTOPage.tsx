@@ -229,22 +229,24 @@ export default function ApproveFTOPage() {
 
   return (
     <div
-      className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
+      className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]"
       style={{
         display: "flex",
         backgroundColor: "rgb(255, 255, 255)",
-        borderBottom: "1.33333px solid rgb(210, 209, 207)",
-        borderLeft: "1px solid rgb(210, 209, 207)",
         flexDirection: "column",
         fontWeight: "400",
-        height: "100vh",
-        position: "relative",
+        minHeight: "100vh",
       }}
     >
       {/* Main Content Area */}
       <div
-        className="flex flex-1 overflow-hidden"
-        style={{ marginBottom: "72px" }}
+        className="flex flex-1"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "0",
+          overflow: "hidden",
+        }}
       >
         {/* Left Column - File Upload/Viewer (Fixed) */}
         {isLeftPanelOpen && (
