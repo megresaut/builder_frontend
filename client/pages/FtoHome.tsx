@@ -212,6 +212,17 @@ const mockSubmissionHistory: SubmissionRecord[] = [
     status: "rejected",
     priority: "normal",
   },
+  {
+    id: 5,
+    name: "Door Lock Repair",
+    description: "Fix faulty front door lock mechanism",
+    dateOfWork: "Dec 20, 2025",
+    property: "22 Indian Chase Dr",
+    unit: "Unit F",
+    createdBy: "James Brown",
+    status: "pending",
+    priority: "normal",
+  },
 ];
 
 // Transform API response to component format
