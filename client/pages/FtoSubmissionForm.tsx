@@ -1020,37 +1020,39 @@ export default function FtoSubmissionForm() {
                 Back
               </span>
             </button>
-            <button
-              onClick={() => {
-                if (validateForm()) {
-                  if (ftoId) {
-                    const submittedOrders = JSON.parse(
-                      localStorage.getItem("submittedFTOs") || "[]"
-                    ) as number[];
-                    const orderId = parseInt(ftoId);
-                    if (!submittedOrders.includes(orderId)) {
-                      submittedOrders.push(orderId);
-                      localStorage.setItem(
-                        "submittedFTOs",
-                        JSON.stringify(submittedOrders)
-                      );
+            {!isApproved && (
+              <button
+                onClick={() => {
+                  if (validateForm()) {
+                    if (ftoId) {
+                      const submittedOrders = JSON.parse(
+                        localStorage.getItem("submittedFTOs") || "[]"
+                      ) as number[];
+                      const orderId = parseInt(ftoId);
+                      if (!submittedOrders.includes(orderId)) {
+                        submittedOrders.push(orderId);
+                        localStorage.setItem(
+                          "submittedFTOs",
+                          JSON.stringify(submittedOrders)
+                        );
+                      }
                     }
+                    navigate("/fto");
                   }
-                  navigate("/fto");
-                }
-              }}
-              className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center"
-            >
-              <span
-                className="text-base text-white font-medium"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 }}
+                className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center"
               >
-                Submit
-              </span>
-            </button>
+                <span
+                  className="text-base text-white font-medium"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  Submit
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </div>
