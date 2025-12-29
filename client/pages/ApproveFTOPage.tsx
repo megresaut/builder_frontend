@@ -235,6 +235,30 @@ export default function ApproveFTOPage() {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
+  // Validation: Check if all required fields are filled
+  const isApproveDisabled = useMemo(() => {
+    // Check Hours table: all rows must have date, hours, assignee, and amount
+    const hoursValid = hourRows.every(
+      (row) =>
+        row.date.trim() &&
+        row.hours.trim() &&
+        row.assignee.trim() &&
+        row.amount &&
+        row.amount !== "$0",
+    );
+
+    // Check Expenses table: all rows must have date, vendor, and amount
+    const expensesValid = expenseRows.every(
+      (row) =>
+        row.date.trim() &&
+        row.vendor.trim() &&
+        row.amount &&
+        row.amount !== "$0",
+    );
+
+    return !hoursValid || !expensesValid;
+  }, [hourRows, expenseRows]);
+
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]"
