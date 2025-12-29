@@ -18,6 +18,7 @@ import {
   FlagIcon,
   EditIcon,
   UserIcon,
+  PlusIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
