@@ -14,6 +14,8 @@ import {
   UserIcon,
   EditIcon,
   NoteIcon,
+  FlagIcon,
+  ApproveIcon,
 } from "@/components/icons";
 
 interface SubmissionRecord {
