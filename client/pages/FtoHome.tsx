@@ -153,6 +153,13 @@ export default function FtoHome() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Initialize mock approved orders on first load
+  useEffect(() => {
+    if (!localStorage.getItem("approvedFTOs")) {
+      localStorage.setItem("approvedFTOs", JSON.stringify([1, 3]));
+    }
+  }, []);
+
   // Fetch FTOs from mock API
   useEffect(() => {
     const fetchOrders = async () => {
