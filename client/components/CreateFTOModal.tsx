@@ -39,6 +39,7 @@ export default function CreateFTOModal({
   open,
   onOpenChange,
   editData,
+  viewData,
   isSimple = false,
   isViewOnly = false,
 }: CreateFTOModalProps) {
@@ -69,7 +70,23 @@ export default function CreateFTOModal({
   }, [open]);
 
   useEffect(() => {
-    if (editData) {
+    if (isViewOnly && viewData) {
+      setFtoName(viewData.name || "");
+      setDescription(viewData.description || "");
+      setPriority(viewData.priority?.toLowerCase() || "normal");
+      setProperty(viewData.property || "");
+      setUnit(viewData.unit || "");
+
+      const dateStr = viewData.dueDate || viewData.dateOfWork;
+      if (dateStr) {
+        const date = new Date(dateStr);
+        setDueDate(isNaN(date.getTime()) ? null : date);
+      }
+
+      if ("status" in viewData) {
+        setFtoStatus(viewData.status || "pending-approval");
+      }
+    } else if (editData) {
       setPriority(editData.priority.toLowerCase());
       setFtoStatus(editData.ftoStatus || "pending-approval");
       if (editData.dueDate) {
@@ -77,7 +94,7 @@ export default function CreateFTOModal({
         setDueDate(date);
       }
     }
-  }, [editData]);
+  }, [editData, viewData, isViewOnly, open]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
