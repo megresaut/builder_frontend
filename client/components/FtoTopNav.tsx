@@ -112,7 +112,7 @@ export default function FtoTopNav() {
                 <button
                   onClick={() => handleNavigate("/fto")}
                   className={`text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                    isHome ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-700"
+                    isHome ? "bg-blue-50 text-[#013764] font-medium" : "text-gray-700"
                   }`}
                 >
                   Home
@@ -121,7 +121,7 @@ export default function FtoTopNav() {
                   onClick={() => handleNavigate("/fto/submission-history")}
                   className={`text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
                     isSubmissionHistory
-                      ? "bg-blue-50 text-blue-600 font-medium"
+                      ? "bg-blue-50 text-[#013764] font-medium"
                       : "text-gray-700"
                   }`}
                 >
