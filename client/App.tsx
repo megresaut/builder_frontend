@@ -257,6 +257,14 @@ export default function App() {
                     </FtoShellLayout>
                   }
                 />
+                <Route
+                  path="/fto/approve/:ftoId"
+                  element={
+                    <FtoShellLayout>
+                      <ApproveFTOPage />
+                    </FtoShellLayout>
+                  }
+                />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
