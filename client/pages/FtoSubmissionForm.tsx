@@ -81,6 +81,8 @@ export default function FtoSubmissionForm() {
 
   const didApplyPrefillRef = useRef(false);
 
+  const isApproved = (location.state as any)?.isApproved ?? false;
+
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
