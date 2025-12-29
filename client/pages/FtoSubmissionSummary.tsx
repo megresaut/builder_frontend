@@ -200,9 +200,18 @@ export default function FtoSubmissionSummary() {
                 No submissions yet
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500 text-sm">
-                Submission history
-              </div>
+              submissions.map((submission) => (
+                <SubmissionHistoryCard
+                  key={submission.id}
+                  id={submission.id}
+                  name={submission.name}
+                  dateOfWork={submission.dateOfWork}
+                  property={submission.property}
+                  unit={submission.unit}
+                  createdBy={submission.createdBy}
+                  status={submission.status}
+                />
+              ))
             )}
           </div>
         </div>
