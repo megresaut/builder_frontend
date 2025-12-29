@@ -699,8 +699,7 @@ export default function ApproveFTOPage() {
                             style={{
                               width: "140px",
                               minWidth: "140px",
-                              borderBottom: '1px solid #DADADA',
-                              borderRight: isHoursCellInvalid(row, 'assignee') ? '3px solid #dc2626' : '1px solid #DADADA',
+                              border: isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <SelectFieldCell
