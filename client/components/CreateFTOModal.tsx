@@ -22,6 +22,7 @@ interface CreateFTOModalProps {
     ftoStatus?: string;
   };
   isSimple?: boolean;
+  isViewOnly?: boolean;
 }
 
 export default function CreateFTOModal({
