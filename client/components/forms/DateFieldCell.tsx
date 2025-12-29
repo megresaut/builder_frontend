@@ -48,15 +48,31 @@ export const DateFieldCell: React.FC<DateFieldCellProps> = ({
 
   return (
     <FieldCellShell error={error}>
-      <div style={{ height: "100%", width: "100%", display: "flex", alignItems: "center" }}>
-        <DatePicker
-          value={dateValue}
-          onChange={handleDateChange}
-          disabled={disabled}
-          error={error}
-          placeholder="mm/dd/yyyy"
-          className="w-full"
-        />
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            height: "32px",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <DatePicker
+            value={dateValue}
+            onChange={handleDateChange}
+            disabled={disabled}
+            error={error}
+            placeholder="mm/dd/yyyy"
+            className="w-full"
+          />
+        </div>
       </div>
     </FieldCellShell>
   );
