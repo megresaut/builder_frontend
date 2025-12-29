@@ -102,11 +102,16 @@ export default function FtoTopNav() {
               </button>
             </PopoverTrigger>
 
-            <PopoverContent align="end" className="w-48 p-0">
-              <div className="flex flex-col py-1">
+            <PopoverContent
+              align="end"
+              syncTriggerWidth={false}
+              className="p-0"
+              style={{ width: "auto", minWidth: "180px" }}
+            >
+              <div className="flex flex-col py-1 whitespace-nowrap">
                 <button
                   onClick={() => handleNavigate("/fto")}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                  className={`text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
                     isHome ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-700"
                   }`}
                 >
@@ -114,7 +119,7 @@ export default function FtoTopNav() {
                 </button>
                 <button
                   onClick={() => handleNavigate("/fto/submission-history")}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                  className={`text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
                     isSubmissionHistory
                       ? "bg-blue-50 text-blue-600 font-medium"
                       : "text-gray-700"
@@ -125,7 +130,7 @@ export default function FtoTopNav() {
                 <div className="h-px bg-gray-200 my-1" />
                 <button
                   onClick={() => setOpen(false)}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 >
                   Settings
                 </button>
