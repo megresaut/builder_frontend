@@ -393,13 +393,14 @@ export default function ApproveFTOPage() {
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column (scroll container) */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            padding: "24px 32px",
             height: "100%",
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "auto",
+            padding: "24px 32px",
           }}
         >
           <div style={{ minWidth: "fit-content" }}>
