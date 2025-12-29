@@ -105,6 +105,45 @@ export default function CreateFTOModal({
     }
   };
 
+  if (isSimple) {
+    return (
+      <ModalTemplate
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Create Task"
+        size="lg"
+        footer={
+          <ModalButtons
+            onCancel={() => onOpenChange(false)}
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel="Create Task"
+          />
+        }
+      >
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextField
+              label="Task"
+              required
+              value={ftoName}
+              onChange={setFtoName}
+              error={errors.ftoName}
+              placeholder="Type Task Name"
+            />
+            <TextAreaField
+              label="Description"
+              value={description}
+              onChange={setDescription}
+              placeholder="Insert Description Here"
+              rows={6}
+            />
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
+    );
+  }
+
   return (
     <ModalTemplate
       open={open}
