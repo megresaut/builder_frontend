@@ -148,8 +148,8 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
           disabled={disabled}
           type="button"
           style={{
-            borderColor: "#ef4444" ? "#ef4444" : "var(--color-border-light)",
-            borderWidth: "#ef4444" ? "2px" : "1px",
+            borderColor: error ? "#ef4444" : "var(--color-border-light)",
+            borderWidth: error ? "2px" : "1px",
             minHeight: "44px",
             height: "auto",
             borderRadius: "8px",
@@ -163,7 +163,7 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
             cursor: disabled ? "not-allowed" : "pointer",
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             fontSize: "16px",
-            border: "solid",
+            borderStyle: "solid",
             opacity: disabled ? 0.6 : 1,
             justifyContent: "space-between",
           }}
