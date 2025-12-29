@@ -642,9 +642,7 @@ export default function FtoHome() {
                 );
               case "createdBy":
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {row.createdBy}
-                  </span>
+                  <PropertyManagerAvatarCombined name={row.createdBy} isCreator={true} />
                 );
               case "status":
                 return (
