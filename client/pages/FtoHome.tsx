@@ -537,38 +537,44 @@ export default function FtoHome() {
 
         <GlobalTable
           columns={columns}
-          data={orderData}
+          data={displayData}
           rowKey="id"
-          renderCell={(order: FieldTeamOrder, columnKey: string) => {
+          renderCell={(row: FieldTeamOrder | SubmissionRecord, columnKey: string) => {
             switch (columnKey) {
               case "name":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.name}
+                    {row.name}
                   </span>
                 );
               case "dueDate":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.dueDate}
+                    {(row as FieldTeamOrder).dueDate}
+                  </span>
+                );
+              case "dateOfWork":
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {(row as SubmissionRecord).dateOfWork}
                   </span>
                 );
               case "description":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.description}
+                    {row.description}
                   </span>
                 );
               case "property":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.property}
+                    {row.property}
                   </span>
                 );
               case "unit":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.unit}
+                    {row.unit}
                   </span>
                 );
               case "priority":
@@ -577,18 +583,18 @@ export default function FtoHome() {
                     <div
                       className="w-2 h-2 rounded-full"
                       style={{
-                        backgroundColor: getPriorityColor(order.priority),
+                        backgroundColor: getPriorityColor(row.priority),
                       }}
                     />
                     <span className="text-gray-900 font-normal text-sm capitalize">
-                      {order.priority}
+                      {row.priority}
                     </span>
                   </div>
                 );
               case "createdBy":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.createdBy}
+                    {row.createdBy}
                   </span>
                 );
               case "status":
@@ -597,13 +603,11 @@ export default function FtoHome() {
                     <div
                       className="w-2 h-2 rounded-full"
                       style={{
-                        backgroundColor: getStatusColor(
-                          order.approvalStatus || "pending",
-                        ),
+                        backgroundColor: activeTab === "open" ? getStatusColor((row as FieldTeamOrder).approvalStatus || "pending") : getStatusColor((row as SubmissionRecord).status),
                       }}
                     />
                     <span className="text-gray-900 font-normal text-sm capitalize">
-                      {order.approvalStatus || "pending"}
+                      {activeTab === "open" ? (row as FieldTeamOrder).approvalStatus || "pending" : (row as SubmissionRecord).status}
                     </span>
                   </div>
                 );
