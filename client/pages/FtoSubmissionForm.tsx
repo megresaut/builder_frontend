@@ -591,7 +591,7 @@ export default function FtoSubmissionForm() {
                             updateHourEntry(entry.id, "taskId", value);
                           }}
                           placeholder="Select Task"
-                          disabled={isApproved}
+                          disabled={!entry.propertyId || !entry.unitId || isApproved}
                           onCreateNew={() => setIsCreateFTOModalOpen(true)}
                           createNewLabel="Create New Task"
                         />
