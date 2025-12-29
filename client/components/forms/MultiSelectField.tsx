@@ -151,8 +151,8 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
           disabled={disabled}
           type="button"
           style={{
-            borderColor: error ? "#ef4444" : "var(--color-border-light)",
-            borderWidth: error ? "2px" : "1px",
+            borderColor: error ? "#dc2626" : "var(--color-border-light)",
+            borderWidth: "1px",
             minHeight: "44px",
             height: "auto",
             borderRadius: "8px",
