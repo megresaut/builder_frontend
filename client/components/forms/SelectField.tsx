@@ -155,6 +155,8 @@ interface SelectFieldContentProps {
   selectedValue: string;
   selectedOptions: SelectOption[];
   multiple: boolean;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
 }
 
 const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
