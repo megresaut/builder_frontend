@@ -33,7 +33,7 @@ interface FieldTeamOrder {
   priority: "low" | "normal" | "high";
   createdBy: string;
   formSubmissionStatus: string;
-  approvalStatus?: "approved" | "pending" | null;
+  approvalStatus?: "approved" | "pending" | "rejected" | null;
 }
 
 // Mock API response types
