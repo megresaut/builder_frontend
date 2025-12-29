@@ -644,8 +644,7 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "120px",
-                              borderBottom: '1px solid #DADADA',
-                              borderRight: isHoursCellInvalid(row, 'date') ? '3px solid #dc2626' : '1px solid #DADADA',
+                              border: isHoursCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <DateFieldCell
