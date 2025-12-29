@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useTabContext } from "@/hooks/useTabContext";
@@ -20,11 +20,7 @@ const isModalLikePage = (pathname: string): boolean => {
   );
 };
 
-interface ShellLayoutProps {
-  children?: React.ReactNode;
-}
-
-export default function ShellLayout({ children }: ShellLayoutProps) {
+export default function ShellLayout() {
   const location = useLocation();
   const { tabMetadata, setTabMetadata } = useTabContext();
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -42,7 +38,6 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    // Also check periodically in case storage was updated in the same tab
     const interval = setInterval(() => {
       setIsFullscreen(getFullscreenMode());
     }, 100);
@@ -53,13 +48,12 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     };
   }, []);
 
-  // Detect modal-like pages and manage collapse state
+  // Detect modal-like pages
   useEffect(() => {
-    const isModal = isModalLikePage(location.pathname);
-    setForceCollapse(isModal);
+    setForceCollapse(isModalLikePage(location.pathname));
   }, [location.pathname]);
 
-  // Get the current tab ID based on the route
+  // Determine current tab ID
   const getCurrentTabId = (): string => {
     const path = location.pathname;
 
@@ -83,13 +77,12 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const currentTabId = getCurrentTabId();
   const currentMetadata = tabMetadata[currentTabId];
 
-  // Save scroll position immediately when leaving a tab
+  // Save scroll position when leaving a tab
   useEffect(() => {
     const prevTabId = lastTabIdRef.current;
     if (prevTabId && prevTabId !== currentTabId) {
       const mainContent = mainContentRef.current;
       if (mainContent) {
-        // Save scroll position for the previous tab immediately
         const prevMetadata = tabMetadata[prevTabId];
         setTabMetadata(prevTabId, {
           ...prevMetadata,
@@ -100,7 +93,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
     lastTabIdRef.current = currentTabId;
   }, [currentTabId, tabMetadata, setTabMetadata]);
 
-  // Save scroll position when scrolling (debounced)
+  // Save scroll position (debounced)
   useEffect(() => {
     const mainContent = mainContentRef.current;
     if (!mainContent) return;
@@ -118,7 +111,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           ...prevMetadata,
           scrollPosition: scrollPos,
         });
-      }, 200); // Debounce scroll updates
+      }, 200);
     };
 
     mainContent.addEventListener("scroll", handleScroll, { passive: true });
@@ -128,28 +121,18 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [currentTabId, setTabMetadata]);
+  }, [currentTabId, tabMetadata, currentMetadata, setTabMetadata]);
 
-  // Restore scroll position when tab changes or metadata updates
+  // Restore scroll position
   useEffect(() => {
     const mainContent = mainContentRef.current;
     if (!mainContent) return;
 
     const scrollPos = currentMetadata?.scrollPosition ?? 0;
-    // Use requestAnimationFrame to ensure DOM is ready
     requestAnimationFrame(() => {
       mainContent.scrollTop = scrollPos;
     });
-  }, [currentTabId]);
-
-  // Clear scroll position when location pathname changes significantly
-  useEffect(() => {
-    const mainContent = mainContentRef.current;
-    if (!mainContent) return;
-
-    // Reset scroll to top when pathname changes
-    mainContent.scrollTop = 0;
-  }, [location.pathname]);
+  }, [currentTabId, currentMetadata]);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -160,11 +143,13 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           ref={mainContentRef}
           data-testid="main-content"
           className="flex-1 overflow-auto bg-white"
-          style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
+          style={{
+            paddingBottom: "150px",
+            borderLeftWidth: "1px",
+            borderLeftColor: "#d2d1cf",
+          }}
         >
-          <div key={location.pathname}>
-            {children}
-          </div>
+          <Outlet />
         </div>
       </main>
     </div>

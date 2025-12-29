@@ -20,6 +20,7 @@ import {
   EditIcon,
   UserIcon
 } from "@/components/icons";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface FieldTeamOrder {
   id: number;
@@ -52,53 +53,6 @@ interface FetchFTOsParams {
 }
 
 // Mock API function that simulates GET /maintenance/ftos
-const mockFetchFTOs = async (params: FetchFTOsParams): Promise<APIFieldTeamOrder[]> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 100));
-
-  const mockData: APIFieldTeamOrder[] = [
-    {
-      id: 1,
-      name: "HVAC Inspection",
-      description: "Annual HVAC system inspection",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit A",
-      priority: "high",
-      due_date: "Dec 10, 2025",
-      form_submission_status: "none",
-      created_by: "John Smith",
-    },
-    {
-      id: 2,
-      name: "Plumbing Repair",
-      description: "Fix leaky faucet in kitchen",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit B",
-      priority: "normal",
-      due_date: "Dec 12, 2025",
-      form_submission_status: "none",
-      created_by: "Jane Doe",
-    },
-    {
-      id: 3,
-      name: "Electrical Repair",
-      description: "Replace faulty outlet",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit C",
-      priority: "normal",
-      due_date: "Dec 5, 2025",
-      form_submission_status: "submitted",
-      created_by: "John Smith",
-    },
-  ];
-
-  // Filter by status if provided
-  if (params.status) {
-    return mockData.filter(order => order.form_submission_status === params.status);
-  }
-
-  return mockData;
-};
 
 // Transform API response to component format
 const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
@@ -114,6 +68,17 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
     formSubmissionStatus: order.form_submission_status,
   }));
 };
+
+
+const fetchFTOs = async (
+  fieldTeamMemberId: number,
+): Promise<APIFieldTeamOrder[]> => {
+  return fetchJSON(
+    `/maintenance/ftos?field_team_member_id=${fieldTeamMemberId}`
+  );
+};
+
+  
 
 export default function FtoHome() {
   const navigate = useNavigate();
@@ -131,9 +96,7 @@ export default function FtoHome() {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const apiResponse = await mockFetchFTOs({
-          field_team_member_id: 1, // Mock team member ID
-        });
+        const apiResponse = await fetchFTOs(2);
         const transformedData = transformAPIData(apiResponse);
         setAllOrders(transformedData);
       } catch (error) {
@@ -180,10 +143,10 @@ export default function FtoHome() {
       label: "Priority",
       icon: <FlagIcon width={16} height={16} />,
     },
-    createdBy: {
-      label: "Created By",
-      icon: <DocumentIcon width={16} height={16} />,
-    },
+    // createdBy: {
+    //   label: "Created By",
+    //   icon: <DocumentIcon width={16} height={16} />,
+    // },
   };
 
   // Sorting hook
@@ -235,7 +198,7 @@ export default function FtoHome() {
     { key: "property", label: "Property", icon: <BuildingIcon width={16} height={16} /> },
     { key: "unit", label: "Unit", icon: <DocumentIcon width={16} height={16} /> },
     { key: "priority", label: "Priority", icon: <FlagIcon width={16} height={16} /> },
-    { key: "createdBy", label: "Created By", icon: <UserIcon width={16} height={16} /> },
+    // { key: "createdBy", label: "Created By", icon: <UserIcon width={16} height={16} /> },
   ];
 
   const getPriorityColor = (priority: string) => {
