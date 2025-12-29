@@ -144,7 +144,7 @@ export default function PdfViewerModal({
               title={title}
               src={
                 isProbablyPdfUrl(safeUrl)
-                  ? `${safeUrl}#view=FitH&toolbar=1&navpanes=0`
+                  ? `${safeUrl}#view=FitW&toolbar=1&navpanes=0&zoom=100`
                   : safeUrl
               }
               style={{
