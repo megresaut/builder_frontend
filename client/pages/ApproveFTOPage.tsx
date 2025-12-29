@@ -989,8 +989,7 @@ export default function ApproveFTOPage() {
                             style={{
                               width: "120px",
                               minWidth: "120px",
-                              borderBottom: '1px solid #DADADA',
-                              borderRight: isExpensesCellInvalid(row, 'amount') ? '3px solid #dc2626' : '1px solid #DADADA',
+                              border: isExpensesCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
                             <CurrencyFieldCell
