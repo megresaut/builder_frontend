@@ -115,6 +115,9 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
   const approvedOrders = JSON.parse(
     localStorage.getItem("approvedFTOs") || "[]",
   ) as number[];
+  const rejectedOrders = JSON.parse(
+    localStorage.getItem("rejectedFTOs") || "[]",
+  ) as number[];
 
   return apiData.map((order) => ({
     id: order.id,
@@ -128,7 +131,11 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
     formSubmissionStatus: submittedOrders.includes(order.id)
       ? "submitted"
       : order.form_submission_status,
-    approvalStatus: approvedOrders.includes(order.id) ? "approved" : "pending",
+    approvalStatus: rejectedOrders.includes(order.id)
+      ? "rejected"
+      : approvedOrders.includes(order.id)
+        ? "approved"
+        : "pending",
   }));
 };
 
