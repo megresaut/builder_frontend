@@ -7,6 +7,68 @@ import {
   usePopoverContext,
 } from "@/components/ui/popover";
 
+function ActionsMenuContent({
+  isHome,
+  isSubmissionHistory,
+  onNavigate,
+  onClose,
+}: {
+  isHome: boolean;
+  isSubmissionHistory: boolean;
+  onNavigate: (path: string) => void;
+  onClose: () => void;
+}) {
+  const popover = usePopoverContext();
+
+  const items = [
+    { value: "home", label: "Home", onSelect: () => onNavigate("/fto") },
+    {
+      value: "submission-history",
+      label: "Submission History",
+      onSelect: () => onNavigate("/fto/submission-history"),
+    },
+    { value: "settings", label: "Settings", onSelect: () => onClose() },
+  ];
+
+  // Register items for typeahead + Enter selection
+  React.useEffect(() => {
+    popover.setSearchableItems(items.map(({ value, label }) => ({ value, label })));
+    popover.onEnterSelect?.((item) => {
+      if (!item) return;
+      const match = items.find((i) => i.value === item.value);
+      match?.onSelect();
+    });
+  }, [popover, onClose, onNavigate]);
+
+  return (
+    <div className="flex flex-col py-1 whitespace-nowrap">
+      {items.map((item, index) => {
+        const isSelected =
+          (item.value === "home" && isHome) ||
+          (item.value === "submission-history" && isSubmissionHistory);
+        const isHighlighted = popover.highlightedIndex === index;
+
+        return (
+          <button
+            key={item.value}
+            type="button"
+            onClick={item.onSelect}
+            onMouseEnter={() => popover.setHighlightedIndex(index)}
+            data-selected={isSelected ? "true" : "false"}
+            data-highlighted={isHighlighted ? "true" : "false"}
+            className={cn(
+              "text-left px-4 py-2 text-sm",
+              isSelected ? "text-[#013764] font-medium" : "text-gray-700",
+            )}
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function FtoTopNav() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,33 +171,12 @@ export default function FtoTopNav() {
               className="p-0"
               style={{ width: "auto", minWidth: "180px" }}
             >
-              <div className="flex flex-col py-1 whitespace-nowrap">
-                <button
-                  onClick={() => handleNavigate("/fto")}
-                  className={`text-left px-4 py-2 text-sm transition-colors ${
-                    isHome ? "bg-blue-50 text-[#013764] font-medium" : "text-gray-700"
-                  }`}
-                >
-                  Home
-                </button>
-                <button
-                  onClick={() => handleNavigate("/fto/submission-history")}
-                  className={`text-left px-4 py-2 text-sm transition-colors ${
-                    isSubmissionHistory
-                      ? "bg-blue-50 text-[#013764] font-medium"
-                      : "text-gray-700"
-                  }`}
-                >
-                  Submission History
-                </button>
-                <div className="h-px bg-gray-200 my-1" />
-                <button
-                  onClick={() => setOpen(false)}
-                  className="text-left px-4 py-2 text-sm text-gray-700 transition-colors"
-                >
-                  Settings
-                </button>
-              </div>
+              <ActionsMenuContent
+                isHome={isHome}
+                isSubmissionHistory={isSubmissionHistory}
+                onNavigate={handleNavigate}
+                onClose={() => setOpen(false)}
+              />
             </PopoverContent>
           </Popover>
         </div>
