@@ -8,9 +8,11 @@ type PdfViewerModalProps = {
   url?: string;
 };
 
-const isProbablyPdfUrl = (url: string) => {
+const isProbablyPdfUrl = (url: string, filename?: string) => {
   const clean = url.split("#")[0].split("?")[0];
-  return clean.toLowerCase().endsWith(".pdf");
+  if (clean.toLowerCase().endsWith(".pdf")) return true;
+  if (filename && filename.toLowerCase().endsWith(".pdf")) return true;
+  return false;
 };
 
 const isProbablyImageUrl = (url: string) => {
