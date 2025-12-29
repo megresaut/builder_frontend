@@ -21,6 +21,16 @@ interface CreateFTOModalProps {
     priority: string;
     ftoStatus?: string;
   };
+  viewData?: {
+    name: string;
+    description: string;
+    dueDate?: string;
+    dateOfWork?: string;
+    priority?: string;
+    status?: string;
+    property?: string;
+    unit?: string;
+  };
   isSimple?: boolean;
   isViewOnly?: boolean;
 }
