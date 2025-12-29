@@ -836,7 +836,13 @@ export default function FtoHome() {
           showSearchBar={true}
           actions={[
             {
-              label: () => activeTab === "open" ? "Submit" : "View Submission",
+              label: (row) => {
+                if (activeTab === "open") return "Submit";
+                const submission = row as SubmissionRecord;
+                return submission.status === "pending" || submission.status === "rejected"
+                  ? "Edit Submission"
+                  : "View Submission";
+              },
               icon: () => activeTab === "open" ? (
                 <ApproveIcon
                   width={18}
@@ -864,9 +870,15 @@ export default function FtoHome() {
                   });
                 } else {
                   const submission = row as SubmissionRecord;
+                  const canEdit = submission.status === "pending" || submission.status === "rejected";
                   navigate(`/fto/submission/${submission.id}`, {
                     state: {
                       isApproved: submission.status === "approved",
+                      canEdit,
+                      property: submission.property,
+                      unit: submission.unit,
+                      task: submission.name,
+                      description: submission.description,
                     },
                   });
                 }
