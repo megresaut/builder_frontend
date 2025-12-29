@@ -668,7 +668,7 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              minWidth: "120px",
+                              width: "120px",
                               border: attemptedSubmit && isHoursCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
                             }}
                           >
