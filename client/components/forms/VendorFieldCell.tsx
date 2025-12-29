@@ -55,7 +55,9 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
 
   // Filter options based on input
   const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(inputValue.toLowerCase()),
+    opt?.label && typeof opt.label === 'string'
+      ? opt.label.toLowerCase().includes((inputValue || '').toLowerCase())
+      : false,
   );
 
   const selectedOption = options.find((opt) => opt.value === value);
