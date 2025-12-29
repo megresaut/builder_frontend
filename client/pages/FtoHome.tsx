@@ -926,14 +926,14 @@ export default function FtoHome() {
           onClose={() => setShowColumnModal(false)}
           buttonRef={columnButtonRef}
         />
-      </div>
 
-      <CreateFTOModal
-        open={isViewFTOModalOpen}
-        onOpenChange={setIsViewFTOModalOpen}
-        isViewOnly={true}
-        viewData={viewingFTO ?? undefined}
-      />
+        <CreateFTOModal
+          open={isViewFTOModalOpen}
+          onOpenChange={setIsViewFTOModalOpen}
+          isViewOnly={true}
+          viewData={viewingFTO ?? undefined}
+        />
+      </div>
     </PageTemplate>
   );
 }
