@@ -74,18 +74,7 @@ export default function SubmissionHistoryCard({
       className="w-full bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-sm text-gray-900 truncate">{name}</h3>
-          <div className="flex items-center gap-1 mt-0.5">
-            <div
-              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: getStatusColor(status) }}
-            />
-            <span className="text-xs font-medium text-gray-600 capitalize">
-              {status}
-            </span>
-          </div>
-        </div>
+        <h3 className="font-medium text-sm text-gray-900 truncate flex-1">{name}</h3>
         <div className="flex items-center gap-2 flex-shrink-0">
           <div
             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
