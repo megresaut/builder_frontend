@@ -361,14 +361,6 @@ export default function FtoHome() {
               onTabChange={(tabId) => setActiveTab(tabId as "open" | "closed")}
             />
           }
-          rightContent={
-            <BlueButton
-              icon={<PlusIcon width={20} height={20} />}
-              onClick={() => navigate("/fto/submission")}
-            >
-              Submit
-            </BlueButton>
-          }
         />
 
         <GlobalTable
