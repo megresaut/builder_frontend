@@ -1077,7 +1077,9 @@ export default function ApproveFTOPage() {
           <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
             <div>
               FTO Total:{" "}
-              <span className="font-semibold">${grandTotal.toFixed(2)}</span>
+              <span className="font-semibold">
+                ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
