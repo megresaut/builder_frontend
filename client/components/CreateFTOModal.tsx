@@ -150,7 +150,7 @@ export default function CreateFTOModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={isViewOnly ? "View FTO" : editData ? "Edit FTO" : "Create FTO"}
+      title={isViewOnly ? "View Task" : editData ? "Edit FTO" : "Create FTO"}
       size="lg"
       footer={
         isViewOnly ? (
