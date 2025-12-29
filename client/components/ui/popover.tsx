@@ -243,22 +243,6 @@ const PopoverContent = React.forwardRef<
       }
     };
 
-    // Prevent scroll jump when opening popover on mobile
-    React.useEffect(() => {
-      if (!isOpen) return;
-
-      // Store scroll position when popover opens
-      const scrollPos = window.scrollY;
-
-      // Restore scroll position on next frame to counteract auto-scroll
-      const timer = requestAnimationFrame(() => {
-        if (window.scrollY !== scrollPos) {
-          window.scrollTo(0, scrollPos);
-        }
-      });
-
-      return () => cancelAnimationFrame(timer);
-    }, [isOpen]);
 
     const content = (
       <PopoverPrimitive.Content
