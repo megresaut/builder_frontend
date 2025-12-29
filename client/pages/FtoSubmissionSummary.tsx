@@ -31,6 +31,7 @@ const mockSubmissionHistory: SubmissionRecord[] = [
   {
     id: 1,
     name: "HVAC Inspection",
+    description: "Annual HVAC system inspection",
     dateOfWork: "Dec 10, 2025",
     property: "22 Indian Chase Dr",
     unit: "Unit A",
@@ -41,6 +42,7 @@ const mockSubmissionHistory: SubmissionRecord[] = [
   {
     id: 3,
     name: "Electrical Repair",
+    description: "Replace faulty outlet",
     dateOfWork: "Dec 8, 2025",
     property: "22 Indian Chase Dr",
     unit: "Unit C",
