@@ -250,7 +250,8 @@ export default function CreateFTOModal({
             ]}
             disabled={isViewOnly}
           />
-          <SelectField
+          {/* TODO: Re-enable Select Task field when needed */}
+          {/* <SelectField
             label="Select Task"
             value={selectedTask}
             onChange={setSelectedTask}
@@ -261,7 +262,7 @@ export default function CreateFTOModal({
               { value: "task2", label: "Task 2" },
             ]}
             disabled={isViewOnly}
-          />
+          /> */}
         </FormSection>
 
         <FormSection title="FTO Details">
