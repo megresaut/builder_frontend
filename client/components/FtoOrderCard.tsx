@@ -19,6 +19,7 @@ interface FtoOrderCardProps {
   createdBy: string;
   isApproved?: boolean;
   status?: "approved" | "pending" | "rejected";
+  onViewTask?: () => void;
 }
 
 export default function FtoOrderCard({
@@ -32,6 +33,7 @@ export default function FtoOrderCard({
   createdBy,
   isApproved = false,
   status = "pending",
+  onViewTask,
 }: FtoOrderCardProps) {
   const navigate = useNavigate();
 
@@ -62,6 +64,11 @@ export default function FtoOrderCard({
   };
 
   const handleCardClick = () => {
+    if (onViewTask) {
+      onViewTask();
+      return;
+    }
+
     navigate(`/fto/submission/${id}`, {
       state: {
         property,
@@ -74,6 +81,12 @@ export default function FtoOrderCard({
 
   const handleSubmitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (onViewTask) {
+      onViewTask();
+      return;
+    }
+
     navigate(`/fto/submission/${id}`, {
       state: {
         property,

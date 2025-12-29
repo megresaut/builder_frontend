@@ -13,6 +13,7 @@ interface SubmissionHistoryCardProps {
   createdBy: string;
   status: "pending" | "approved" | "rejected";
   priority: "low" | "normal" | "high";
+  onViewTask?: () => void;
 }
 
 export default function SubmissionHistoryCard({
@@ -25,6 +26,7 @@ export default function SubmissionHistoryCard({
   createdBy,
   status,
   priority,
+  onViewTask,
 }: SubmissionHistoryCardProps) {
   const navigate = useNavigate();
 
@@ -55,6 +57,11 @@ export default function SubmissionHistoryCard({
   };
 
   const handleCardClick = () => {
+    if (onViewTask) {
+      onViewTask();
+      return;
+    }
+
     navigate(`/fto/submission/${id}`, {
       state: {
         isApproved: status === "approved",
@@ -64,6 +71,12 @@ export default function SubmissionHistoryCard({
 
   const handleViewClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (onViewTask) {
+      onViewTask();
+      return;
+    }
+
     navigate(`/fto/submission/${id}`, {
       state: {
         isApproved: status === "approved",

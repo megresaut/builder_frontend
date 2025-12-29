@@ -254,7 +254,14 @@ export default function FtoHome() {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isViewFTOModalOpen, setIsViewFTOModalOpen] = useState(false);
-  const [viewingFTO, setViewingFTO] = useState<FieldTeamOrder | SubmissionRecord | null>(null);
+  const [viewingFTO, setViewingFTO] = useState<
+    FieldTeamOrder | SubmissionRecord | null
+  >(null);
+
+  const openViewTaskModal = (row: FieldTeamOrder | SubmissionRecord) => {
+    setViewingFTO(row);
+    setIsViewFTOModalOpen(true);
+  };
 
   const tabs = [
     { id: "open" as const, label: "Open" },
@@ -492,15 +499,7 @@ export default function FtoHome() {
                 if (firstRejectedId) {
                   const rejectedOrder = allOrders.find((order) => order.id === firstRejectedId);
                   if (rejectedOrder) {
-                    navigate(`/fto/submission/${rejectedOrder.id}`, {
-                      state: {
-                        property: rejectedOrder.property,
-                        unit: rejectedOrder.unit,
-                        task: rejectedOrder.name,
-                        description: rejectedOrder.description,
-                        isApproved: false,
-                      },
-                    });
+                    openViewTaskModal(rejectedOrder);
                   }
                 }
               }}
@@ -544,7 +543,11 @@ export default function FtoHome() {
                   priority={order.priority}
                   createdBy={order.createdBy}
                   isApproved={order.approvalStatus === "approved"}
-                  status={(order.approvalStatus || "pending") as "approved" | "pending" | "rejected"}
+                  status={(order.approvalStatus || "pending") as
+                    | "approved"
+                    | "pending"
+                    | "rejected"}
+                  onViewTask={() => openViewTaskModal(order)}
                 />
               ))
             ) : (
@@ -560,6 +563,7 @@ export default function FtoHome() {
                   createdBy={submission.createdBy}
                   status={submission.status}
                   priority={submission.priority}
+                  onViewTask={() => openViewTaskModal(submission)}
                 />
               ))
             )}
@@ -827,25 +831,7 @@ export default function FtoHome() {
             },
           ]}
           onRowClick={(row) => {
-            if (activeTab === "open") {
-              const order = row as FieldTeamOrder;
-              navigate(`/fto/submission/${order.id}`, {
-                state: {
-                  property: order.property,
-                  unit: order.unit,
-                  task: order.name,
-                  description: order.description,
-                  isApproved: order.approvalStatus === "approved",
-                },
-              });
-            } else {
-              const submission = row as SubmissionRecord;
-              navigate(`/fto/submission/${submission.id}`, {
-                state: {
-                  isApproved: submission.status === "approved",
-                },
-              });
-            }
+            openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
           }}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
