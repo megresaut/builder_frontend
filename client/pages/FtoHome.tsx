@@ -191,14 +191,15 @@ const transformAPIData = (apiData: APIFieldTeamOrder[]): FieldTeamOrder[] => {
 
 export default function FtoHome() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
+  const [activeTab, setActiveTab] = useState<"open" | "submissionHistory">("open");
   const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
+  const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   const tabs = [
     { id: "open" as const, label: "Open" },
-    { id: "closed" as const, label: "Closed" },
+    { id: "submissionHistory" as const, label: "Submission History" },
   ];
 
   // Handle responsive layout
