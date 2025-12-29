@@ -851,6 +851,27 @@ export default function FtoHome() {
           buttonRef={columnButtonRef}
         />
       </div>
+
+      <CreateFTOModal
+        open={isViewFTOModalOpen}
+        onOpenChange={setIsViewFTOModalOpen}
+        isViewOnly={true}
+        editData={
+          viewingFTO
+            ? {
+                dueDate:
+                  "property" in viewingFTO && "dueDate" in viewingFTO
+                    ? (viewingFTO as FieldTeamOrder).dueDate
+                    : (viewingFTO as SubmissionRecord).dateOfWork,
+                priority: viewingFTO.priority || "normal",
+                ftoStatus:
+                  "status" in viewingFTO
+                    ? (viewingFTO as SubmissionRecord).status
+                    : "pending-approval",
+              }
+            : undefined
+        }
+      />
     </PageTemplate>
   );
 }
