@@ -170,8 +170,6 @@ export default function FtoSubmissionForm() {
           propertyId: entry.propertyId ?? propertyId,
           unitId: entry.unitId ?? unitId,
           taskId: entry.taskId ?? taskId,
-          note:
-            entry.note || !state.description ? entry.note : String(state.description),
         };
       }),
     );
@@ -184,8 +182,6 @@ export default function FtoSubmissionForm() {
           propertyId: entry.propertyId ?? propertyId,
           unitId: entry.unitId ?? unitId,
           taskId: entry.taskId ?? taskId,
-          note:
-            entry.note || !state.description ? entry.note : String(state.description),
         };
       }),
     );
