@@ -11,8 +11,7 @@ export const PageTemplate: React.FC<PageTemplateProps> = ({
 }) => {
   return (
     <div
-      className={`flex flex-col px-6 pt-9 pb-8 bg-white ${className}`}
-      style={{ minWidth: "1200px" }}
+      className={`flex flex-col px-6 pt-9 pb-8 bg-white lg:min-w-[1200px] ${className}`}
     >
       {children}
     </div>
