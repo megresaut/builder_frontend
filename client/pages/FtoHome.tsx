@@ -518,14 +518,28 @@ export default function FtoHome() {
           showSearchBar={true}
           actions={[
             {
-              label: "View",
-              icon: (
-                <ApproveIcon
-                  width={18}
-                  height={18}
-                  color="var(--color-text-secondary)"
-                />
-              ),
+              label: (rowOrder) => {
+                const order = rowOrder as FieldTeamOrder;
+                const isApproved = activeTab === "closed" && order.approvalStatus === "approved";
+                return isApproved ? "View Summary" : "Submit";
+              },
+              icon: (rowOrder) => {
+                const order = rowOrder as FieldTeamOrder;
+                const isApproved = activeTab === "closed" && order.approvalStatus === "approved";
+                return isApproved ? (
+                  <EyeIcon
+                    width={18}
+                    height={18}
+                    color="var(--color-text-secondary)"
+                  />
+                ) : (
+                  <ApproveIcon
+                    width={18}
+                    height={18}
+                    color="var(--color-text-secondary)"
+                  />
+                );
+              },
               onClick: (order) => {
                 const isApproved = activeTab === "closed" && (order as FieldTeamOrder).approvalStatus === "approved";
                 navigate(`/fto/submission/${order.id}`, {
