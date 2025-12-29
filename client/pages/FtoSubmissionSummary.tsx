@@ -271,6 +271,25 @@ export default function FtoSubmissionSummary() {
                     {submission.unit}
                   </span>
                 );
+              case "priority":
+                return (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          submission.priority === "high"
+                            ? "#D97706"
+                            : submission.priority === "low"
+                              ? "#059669"
+                              : "#2463EB",
+                      }}
+                    />
+                    <span className="text-gray-900 font-normal text-sm capitalize">
+                      {submission.priority}
+                    </span>
+                  </div>
+                );
               case "createdBy":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
