@@ -586,59 +586,104 @@ export default function ApproveFTOPage() {
                       {/* Table Rows */}
                       {hourRows.map((row) => (
                         <div key={row.id} className="flex items-center">
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-32">
-                            <input
-                              type="date"
-                              value={row.date}
-                              onChange={(e) =>
-                                updateHourRow(row.id, "date", e.target.value)
+                          {/* Date Cell */}
+                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-32 min-h-14">
+                            <FieldShell
+                              mode="cell"
+                              label="Date"
+                              cellValue={row.date}
+                              onCellCommit={(value) =>
+                                updateHourRow(row.id, "date", value)
                               }
-                              className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                            />
-                          </div>
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-24">
-                            <input
-                              type="text"
-                              value={row.hours}
-                              onChange={(e) =>
-                                updateHourRow(row.id, "hours", e.target.value)
-                              }
-                              placeholder="0"
-                              className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                            />
-                          </div>
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-1">
-                            <input
-                              type="text"
-                              value={row.note}
-                              onChange={(e) =>
-                                updateHourRow(row.id, "note", e.target.value)
-                              }
-                              placeholder="Enter note"
-                              className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
-                            />
-                          </div>
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-32">
-                            <select
-                              value={row.assignee}
-                              onChange={(e) =>
-                                updateHourRow(
-                                  row.id,
-                                  "assignee",
-                                  e.target.value,
-                                )
-                              }
-                              className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
                             >
-                              <option value="">Select assignee...</option>
-                              {mockAssignees.map((a) => (
-                                <option key={a} value={a}>
-                                  {a}
-                                </option>
-                              ))}
-                            </select>
+                              <input
+                                type="date"
+                                value={row.date}
+                                onChange={(e) =>
+                                  updateHourRow(row.id, "date", e.target.value)
+                                }
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
+                              />
+                            </FieldShell>
                           </div>
-                          <div className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-16">
+
+                          {/* Hours Cell */}
+                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-24 min-h-14">
+                            <FieldShell
+                              mode="cell"
+                              label="Hours"
+                              cellValue={row.hours || "0"}
+                              onCellCommit={(value) =>
+                                updateHourRow(row.id, "hours", value)
+                              }
+                            >
+                              <input
+                                type="text"
+                                value={row.hours}
+                                onChange={(e) =>
+                                  updateHourRow(row.id, "hours", e.target.value)
+                                }
+                                placeholder="0"
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
+                              />
+                            </FieldShell>
+                          </div>
+
+                          {/* Note Cell */}
+                          <div className="border-b border-r border-[#DADADA]/50 flex-1 min-h-14">
+                            <FieldShell
+                              mode="cell"
+                              label="Note"
+                              cellValue={row.note || "(empty)"}
+                              onCellCommit={(value) =>
+                                updateHourRow(row.id, "note", value)
+                              }
+                            >
+                              <input
+                                type="text"
+                                value={row.note}
+                                onChange={(e) =>
+                                  updateHourRow(row.id, "note", e.target.value)
+                                }
+                                placeholder="Enter note"
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
+                              />
+                            </FieldShell>
+                          </div>
+
+                          {/* Assignee Cell */}
+                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-32 min-h-14">
+                            <FieldShell
+                              mode="cell"
+                              label="Assignee"
+                              cellValue={row.assignee || "(none)"}
+                              onCellCommit={(value) =>
+                                updateHourRow(row.id, "assignee", value)
+                              }
+                            >
+                              <select
+                                value={row.assignee}
+                                onChange={(e) =>
+                                  updateHourRow(
+                                    row.id,
+                                    "assignee",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9]"
+                              >
+                                <option value="">Select assignee...</option>
+                                {mockAssignees.map((a) => (
+                                  <option key={a} value={a}>
+                                    {a}
+                                  </option>
+                                ))}
+                              </select>
+                            </FieldShell>
+                          </div>
+
+                          {/* NoFee Cell - Checkbox stays inline */}
+                          <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0 w-16">
                             <Checkbox
                               checked={row.noFee}
                               onCheckedChange={(checked) => {
@@ -651,7 +696,9 @@ export default function ApproveFTOPage() {
                               className="w-[14px] h-[14px]"
                             />
                           </div>
-                          <div className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-24">
+
+                          {/* Emergency Cell - Checkbox stays inline */}
+                          <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0 w-24">
                             <Checkbox
                               checked={row.emergency}
                               onCheckedChange={(checked) =>
@@ -660,12 +707,15 @@ export default function ApproveFTOPage() {
                               className="w-[14px] h-[14px]"
                             />
                           </div>
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-28">
-                            <input
-                              type="text"
-                              value={row.amount}
-                              onChange={(e) => {
-                                const val = e.target.value;
+
+                          {/* Amount Cell */}
+                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-28 min-h-14">
+                            <FieldShell
+                              mode="cell"
+                              label="Amount"
+                              cellValue={row.amount || "$0"}
+                              onCellCommit={(value) => {
+                                const val = value;
                                 if (
                                   val === "" ||
                                   /^\$?[\d,]*\.?\d{0,2}$/.test(val)
@@ -673,17 +723,34 @@ export default function ApproveFTOPage() {
                                   updateHourRow(row.id, "amount", val);
                                 }
                               }}
-                              placeholder="$0"
-                              disabled={row.noFee}
-                              className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
-                            />
+                            >
+                              <input
+                                type="text"
+                                value={row.amount}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (
+                                    val === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
+                                  ) {
+                                    updateHourRow(row.id, "amount", val);
+                                  }
+                                }}
+                                placeholder="$0"
+                                disabled={row.noFee}
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
+                              />
+                            </FieldShell>
                           </div>
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-28">
-                            <input
-                              type="text"
-                              value={row.upcharge}
-                              onChange={(e) => {
-                                const val = e.target.value;
+
+                          {/* Upcharge Cell */}
+                          <div className="border-b border-r border-[#DADADA]/50 flex-shrink-0 w-28 min-h-14">
+                            <FieldShell
+                              mode="cell"
+                              label="Upcharge"
+                              cellValue={row.upcharge || "$0"}
+                              onCellCommit={(value) => {
+                                const val = value;
                                 if (
                                   val === "" ||
                                   /^\$?[\d,]*\.?\d{0,2}$/.test(val)
@@ -691,12 +758,28 @@ export default function ApproveFTOPage() {
                                   updateHourRow(row.id, "upcharge", val);
                                 }
                               }}
-                              placeholder="$0"
-                              disabled={row.noFee}
-                              className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
-                            />
+                            >
+                              <input
+                                type="text"
+                                value={row.upcharge}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (
+                                    val === "" ||
+                                    /^\$?[\d,]*\.?\d{0,2}$/.test(val)
+                                  ) {
+                                    updateHourRow(row.id, "upcharge", val);
+                                  }
+                                }}
+                                placeholder="$0"
+                                disabled={row.noFee}
+                                className="w-full bg-transparent outline-none text-[13px] placeholder-[#A1A1A9] disabled:opacity-50"
+                              />
+                            </FieldShell>
                           </div>
-                          <div className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0 w-24">
+
+                          {/* Total Cell - Display only */}
+                          <div className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0 w-24">
                             <span className="text-[#303030] font-600 text-[13px]">
                               $
                               {calculateTotal(
@@ -705,6 +788,8 @@ export default function ApproveFTOPage() {
                               ).toFixed(2)}
                             </span>
                           </div>
+
+                          {/* Actions Cell */}
                           <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 w-16">
                             <button
                               onClick={() => deleteHourRow(row.id)}
