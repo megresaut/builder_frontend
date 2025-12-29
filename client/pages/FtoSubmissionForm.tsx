@@ -303,7 +303,7 @@ export default function FtoSubmissionForm() {
 
   return (
     <PageTemplate>
-      <div className="flex flex-col items-center w-full px-2 py-4 lg:px-6 lg:py-9">
+      <div className="flex flex-col items-center w-full px-4 pt-6 pb-8 lg:px-6 lg:py-9">
         <div className="w-full lg:max-w-[700px] flex flex-col gap-7">
           {/* Title and Divider */}
           <div className="flex flex-col gap-3">
