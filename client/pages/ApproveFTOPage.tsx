@@ -4,7 +4,10 @@ import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DeleteIcon } from "@/components/icons";
+import { DeleteIcon, EyeIcon } from "@/components/icons";
+import BlueButton from "@/components/BlueButton";
+import PdfViewerModal from "@/components/PdfViewerModal";
+import { usePdfViewer } from "@/hooks/usePdfViewer";
 
 interface HourRow {
   id: string;
@@ -30,6 +33,7 @@ interface ExpenseRow {
 }
 
 interface ApproveFTOPageProps {
+  ftoName?: string;
   property?: string;
   unit?: string;
   fieldTeamAssignee?: string;
@@ -56,7 +60,9 @@ export default function ApproveFTOPage() {
   const location = useLocation();
   const state = (location.state || {}) as ApproveFTOPageProps;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfViewer = usePdfViewer();
 
+  const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
   const [unit, setUnit] = useState(state.unit || "");
   const [fieldTeamAssignee, setFieldTeamAssignee] = useState(
@@ -172,6 +178,7 @@ export default function ApproveFTOPage() {
 
   const handleApprove = () => {
     console.log("FTO Approved", {
+      ftoName,
       property,
       unit,
       fieldTeamAssignee,
@@ -202,6 +209,11 @@ export default function ApproveFTOPage() {
 
   const handleRemoveFile = (index: number) => {
     setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
+  };
+
+  const handleViewFile = (file: { name: string; file: File }) => {
+    const url = URL.createObjectURL(file.file);
+    pdfViewer.openPdf(url, file.name);
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -351,25 +363,34 @@ export default function ApproveFTOPage() {
                             </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleRemoveFile(index)}
-                          className="text-[#A1A1A9] hover:text-[#303030] transition-colors ml-4"
-                          title="Remove file"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                        <div className="flex items-center gap-2 ml-4">
+                          <button
+                            onClick={() => handleViewFile(file)}
+                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
+                            title="View file"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
+                            <EyeIcon width={16} height={16} color="currentColor" />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveFile(index)}
+                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
+                            title="Remove file"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -425,6 +446,16 @@ export default function ApproveFTOPage() {
                     width: "600px",
                   }}
                 >
+                  {/* FTO Name */}
+                  <div>
+                    <TextField
+                      label="FTO Name"
+                      value={ftoName}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
+                  </div>
+
                   {/* Property and Unit Row */}
                   <div className="flex gap-5">
                     <div className="flex-1">
@@ -445,16 +476,8 @@ export default function ApproveFTOPage() {
                     </div>
                   </div>
 
-                  {/* Field Team Assignee and Associated Task Row */}
-                  <div className="flex gap-5">
-                    <div className="flex-1">
-                      <TextField
-                        label="Field Team Assignee"
-                        value={fieldTeamAssignee}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
+                  {/* Associated Task Row - Commented Out */}
+                  {/* <div className="flex gap-5">
                     <div className="flex-1">
                       <SelectField
                         label="Associated Task"
@@ -468,7 +491,7 @@ export default function ApproveFTOPage() {
                         }))}
                       />
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Description */}
                   <TextAreaField
@@ -484,27 +507,19 @@ export default function ApproveFTOPage() {
                 {/* Hours Section */}
                 <div style={{ marginTop: "60px" }}>
                   {/* Header */}
-                  <div className="flex h-9 justify-between items-start mb-6">
-                    <div className="flex flex-col gap-5">
-                      <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                        <div className="font-semibold">Hours</div>
-                        <div
-                          className="h-px bg-gray-200 mt-5"
-                          style={{ width: "790px" }}
-                        />
-                      </div>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                      <div className="font-semibold">Hours</div>
+                      <div
+                        className="h-px bg-gray-200 mt-5"
+                        style={{ width: "790px" }}
+                      />
                     </div>
-                    <button
-                      onClick={addHourRow}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
-                    >
-                      + Add Hours
-                    </button>
                   </div>
 
                   {/* Hours Table */}
                   <div
-                    className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
+                    className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
                     style={{ minWidth: "fit-content" }}
                   >
                     <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
@@ -701,32 +716,32 @@ export default function ApproveFTOPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Add Hours Button */}
+                  <button
+                    onClick={addHourRow}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap mb-12"
+                  >
+                    + Add Hours
+                  </button>
                 </div>
 
                 {/* Expenses Section */}
                 <div style={{ marginTop: "60px" }}>
                   {/* Header */}
-                  <div className="flex h-9 justify-between items-start mb-6">
-                    <div className="flex flex-col gap-5">
-                      <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                        <div className="font-semibold">Expenses</div>
-                        <div
-                          className="h-px bg-gray-200 mt-5"
-                          style={{ width: "790px" }}
-                        />
-                      </div>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                      <div className="font-semibold">Expenses</div>
+                      <div
+                        className="h-px bg-gray-200 mt-5"
+                        style={{ width: "790px" }}
+                      />
                     </div>
-                    <button
-                      onClick={addExpenseRow}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
-                    >
-                      + Add Expenses
-                    </button>
                   </div>
 
                   {/* Expenses Table */}
                   <div
-                    className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)]"
+                    className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
                     style={{ minWidth: "fit-content" }}
                   >
                     <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
@@ -906,6 +921,14 @@ export default function ApproveFTOPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Add Expenses Button */}
+                  <button
+                    onClick={addExpenseRow}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
+                  >
+                    + Add Expenses
+                  </button>
                 </div>
               </div>
           </div>
@@ -936,15 +959,22 @@ export default function ApproveFTOPage() {
             >
               <span>Reject</span>
             </button>
-            <button
-              onClick={handleApprove}
-              className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#014777]"
-            >
-              <span>Approve Field Team Order</span>
-            </button>
+            <BlueButton onClick={handleApprove}>
+              Approve Field Team Order
+            </BlueButton>
           </div>
         </div>
       </div>
+
+      {/* PDF Viewer Modal */}
+      <PdfViewerModal
+        open={pdfViewer.isOpen}
+        onOpenChange={(open) => {
+          if (!open) pdfViewer.closePdf();
+        }}
+        url={pdfViewer.url}
+        title={pdfViewer.title}
+      />
     </div>
   );
 }
