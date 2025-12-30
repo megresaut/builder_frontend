@@ -495,6 +495,17 @@ const fieldTeamColumnConfig: Record<
       />
     ),
   },
+  unit: {
+    label: "Unit",
+    icon: (
+      <img
+        loading="lazy"
+        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+        className="w-3.5 h-3.5"
+        alt=""
+      />
+    ),
+  },
   dueDate: {
     label: "Due Date",
     icon: <CalendarIcon width={16} height={16} />,
