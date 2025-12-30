@@ -674,11 +674,6 @@ export default function FtoHome() {
           />
         )}
 
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Home</h1>
-          <p className="text-gray-600 mt-2">Welcome to Field Team Orders</p>
-        </div>
-
         <SubPageHeaderV2
           leftContent={
             <TableToggle
