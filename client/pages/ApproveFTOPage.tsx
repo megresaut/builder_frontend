@@ -36,6 +36,7 @@ interface ExpenseRow {
   vendor: string;
   receiptNote: string;
   avmExpense: boolean;
+  chargeType: "personal" | "avm" | "client";
   amount: string;
   upcharge: string;
   assignee: string;
@@ -103,6 +104,7 @@ export default function ApproveFTOPage() {
       vendor: "",
       receiptNote: "",
       avmExpense: false,
+      chargeType: "personal",
       amount: "$0",
       upcharge: "$0",
       assignee: "",
@@ -173,6 +175,7 @@ export default function ApproveFTOPage() {
         vendor: "",
         receiptNote: "",
         avmExpense: false,
+        chargeType: "personal",
         amount: "$0",
         upcharge: "$0",
         assignee: "",
@@ -655,15 +658,15 @@ export default function ApproveFTOPage() {
                           style={{ width: "90px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            NoFee?
+                            Non-Billable
                           </span>
                         </div>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ width: "130px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Emergency
+                            Emergency Rate
                           </span>
                         </div>
                         <div
