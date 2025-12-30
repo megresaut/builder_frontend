@@ -1202,7 +1202,7 @@ export default function ApproveFTOPage() {
                   {/* Add Expenses Button */}
                   <button
                     onClick={addExpenseRow}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap mt-4"
                   >
                     + Add Expenses
                   </button>
