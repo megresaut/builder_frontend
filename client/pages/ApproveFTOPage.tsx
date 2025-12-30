@@ -589,78 +589,78 @@ export default function ApproveFTOPage() {
                       {/* Table Header */}
                       <div className="flex items-center" style={{ minWidth: "fit-content" }}>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "110px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Hours <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "260px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ minWidth: "180px", maxWidth: "260px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Note
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "240px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ minWidth: "180px", maxWidth: "240px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Assignee <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "90px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "90px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             NoFee?
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "110px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Emergency
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Amount <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Upcharge
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px" }}
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Total
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b px-3 py-3 flex-shrink-0" style={{ width: "80px" }}>
+                        <div className="flex items-center gap-2 px-3 py-3 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Actions
                           </span>
