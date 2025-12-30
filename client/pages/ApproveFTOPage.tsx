@@ -826,7 +826,7 @@ export default function ApproveFTOPage() {
                           {/* Emergency Cell - Checkbox */}
                           <div
                             className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                            style={{ width: "130px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                           >
                             <Checkbox
                               checked={row.emergency}
@@ -985,6 +985,14 @@ export default function ApproveFTOPage() {
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Assignee
+                          </span>
+                        </div>
+                        <div
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ minWidth: "160px", maxWidth: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                        >
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Charge Type <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
