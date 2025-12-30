@@ -541,6 +541,31 @@ export default function ApproveFTOPage() {
                     </div>
                   </div>
 
+                  {/* Priority and Due Date Row */}
+                  <div className="flex gap-5">
+                    <div className="flex-1">
+                      <SelectField
+                        label="Priority"
+                        value={priority}
+                        onChange={() => {}}
+                        disabled={true}
+                        options={[
+                          { value: "low", label: "Low" },
+                          { value: "normal", label: "Normal" },
+                          { value: "high", label: "High" },
+                        ]}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <DateField
+                        label="Due Date"
+                        value={dueDate}
+                        onChange={() => {}}
+                        disabled={true}
+                      />
+                    </div>
+                  </div>
+
                   {/* Associated Task Row - Commented Out */}
                   {/* <div className="flex gap-5">
                     <div className="flex-1">
