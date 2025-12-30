@@ -1466,6 +1466,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     {order.description}
                   </span>
                 );
+              case "unit":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {order.unit || "-"}
+                  </span>
+                );
               case "dueDate":
                 return (
                   <span className="text-gray-900 font-normal text-sm">
