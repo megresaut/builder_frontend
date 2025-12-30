@@ -987,7 +987,8 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
-                              border: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderRight: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -1007,7 +1008,8 @@ export default function ApproveFTOPage() {
                             style={{
                               minWidth: "200px",
                               maxWidth: "280px",
-                              border: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderRight: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? '2px solid #dc2626' : '1px solid #DADADA',
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
