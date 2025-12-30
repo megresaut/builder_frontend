@@ -753,11 +753,13 @@ export default function ApproveFTOPage() {
                               wordBreak: "break-word",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
+                              boxShadow: "inset 0 0 0 1px transparent",
                             }}
                           >
                             <div
                               style={{
                                 width: "100%",
+                                boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'note') ? "inset 0 0 0 2px #dc2626" : "none",
                               }}
                             >
                               <TextFieldCell
@@ -1038,11 +1040,12 @@ export default function ApproveFTOPage() {
                             style={{
                               minWidth: "200px",
                               maxWidth: "280px",
-                              borderBottom: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                             title={row.vendor}
                           >
@@ -1070,11 +1073,13 @@ export default function ApproveFTOPage() {
                               wordBreak: "break-word",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
+                              boxShadow: "inset 0 0 0 1px transparent",
                             }}
                           >
                             <div
                               style={{
                                 width: "100%",
+                                boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'receiptNote') ? "inset 0 0 0 2px #dc2626" : "none",
                               }}
                             >
                               <TextFieldCell
