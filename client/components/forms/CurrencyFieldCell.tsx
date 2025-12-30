@@ -54,7 +54,9 @@ export const CurrencyFieldCell: React.FC<CurrencyFieldCellProps> = ({
   // Commit changes and exit edit mode
   const handleCommit = () => {
     const parsedValue = parseNumericValue(draftValue);
-    onChange?.(parsedValue.toString());
+    if (onChange) {
+      onChange(parsedValue.toString());
+    }
     setIsEditing(false);
     setDraftValue("");
   };
