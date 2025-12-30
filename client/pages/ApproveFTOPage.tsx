@@ -1174,10 +1174,9 @@ export default function ApproveFTOPage() {
                                 </button>
                               </PopoverTrigger>
                               <PopoverContent
-                                className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
+                                className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md p-0"
                                 align="start"
                                 syncTriggerWidth={false}
-                                style={{ width: "max-content" }}
                               >
                                 <div
                                   style={{
