@@ -1385,6 +1385,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           columns={[
             { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
             { key: "description", label: "Description", icon: fieldTeamColumnConfig.description.icon },
+            { key: "unit", label: "Unit", icon: fieldTeamColumnConfig.unit.icon },
             { key: "dueDate", label: "Due Date", icon: fieldTeamColumnConfig.dueDate.icon },
             { key: "fieldTeam", label: "Field Team", icon: fieldTeamColumnConfig.fieldTeam.icon },
             { key: "status", label: "Status", icon: fieldTeamColumnConfig.status.icon },
