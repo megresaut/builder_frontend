@@ -943,7 +943,7 @@ export default function ApproveFTOPage() {
                       width: "100%",
                     }}
                   >
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex-1">
+                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                       {/* Table Header */}
                       <div className="flex items-center" style={{ minWidth: "fit-content" }}>
                         <div
