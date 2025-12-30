@@ -301,6 +301,7 @@ export default function FieldTeamOrdersTab({
   } = useColumnManagement([
     "priority",
     "description",
+    "unit",
     "dueDate",
     "fieldTeam",
     "status",
@@ -325,6 +326,18 @@ export default function FieldTeamOrdersTab({
       key: "description",
       label: "FTO Name",
       icon: <NoteIcon width={16} height={16} />,
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+          className="w-3.5 h-3.5 object-contain"
+          alt=""
+        />
+      ),
     },
     {
       key: "dueDate",
