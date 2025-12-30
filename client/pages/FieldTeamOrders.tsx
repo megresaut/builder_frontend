@@ -615,6 +615,23 @@ export default function FieldTeamOrders() {
               }
             : undefined
         }
+        onFTOCreated={(ftoData) => {
+          const newId = Math.max(...orders.map(o => o.id), 0) + 1;
+          const newFTO: FieldTeamOrder = {
+            id: newId,
+            taskId: newId,
+            property: ftoData.property,
+            unit: ftoData.unit,
+            description: ftoData.description,
+            dueDate: ftoData.dueDate?.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || '',
+            priority: ftoData.priority as "low" | "normal" | "high",
+            fieldTeam: [],
+            status: "pending-approval",
+            timesheetStatus: "awaiting-submission",
+            amount: 0,
+          };
+          setOrders([newFTO, ...orders]);
+        }}
       />
 
       {/* Column Filter Modal */}
