@@ -746,7 +746,8 @@ export default function ApproveFTOPage() {
                             style={{
                               minWidth: "180px",
                               maxWidth: "240px",
-                              border: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderRight: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
