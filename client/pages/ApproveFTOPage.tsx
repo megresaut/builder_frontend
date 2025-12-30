@@ -341,7 +341,7 @@ export default function ApproveFTOPage() {
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: isLeftPanelOpen ? "1fr 1fr" : "0fr 1fr",
+          gridTemplateColumns: isLeftPanelOpen ? "1fr 1fr" : "1fr",
           alignItems: "stretch",
           minHeight: 0,
           gap: 0,
