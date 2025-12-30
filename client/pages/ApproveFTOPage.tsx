@@ -787,8 +787,8 @@ export default function ApproveFTOPage() {
 
                           {/* Emergency Cell - Checkbox */}
                           <div
-                            className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "110px" }}
+                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                           >
                             <Checkbox
                               checked={row.emergency}
