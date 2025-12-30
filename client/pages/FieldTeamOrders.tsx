@@ -354,7 +354,7 @@ export default function FieldTeamOrders() {
       label: "Unit",
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 2L3 14M13 2L13 14M4 5L12 5M4 8L12 8M4 11L12 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M3.5 2L3.5 14M12.5 2L12.5 14M2 5.5L14 5.5M2 10.5L14 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
         </svg>
       ),
     },
