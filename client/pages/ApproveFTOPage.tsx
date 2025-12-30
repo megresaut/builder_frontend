@@ -47,6 +47,8 @@ interface ApproveFTOPageProps {
   fieldTeamAssignee?: string;
   task?: string;
   description?: string;
+  dueDate?: string;
+  priority?: string;
 }
 
 const mockVendors = ["Elite HVAC", "ABC Plumbing", "Green Lawn Services"];
