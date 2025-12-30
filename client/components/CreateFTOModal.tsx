@@ -153,9 +153,11 @@ export default function CreateFTOModal({
       onFTOCreated?.({
         property,
         unit,
+        ftoName,
         description,
         dueDate,
         priority,
+        selectedAssignees,
       });
       onOpenChange(false);
     }
