@@ -116,6 +116,7 @@ export default function ApproveFTOPage() {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
 
   const parseDueDate = (dateStr: string | undefined): Date | null => {
     if (!dateStr) return null;
