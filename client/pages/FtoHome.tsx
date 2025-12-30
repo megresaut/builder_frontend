@@ -292,14 +292,15 @@ export default function FtoHome() {
       property: row.property,
       unit: row.unit,
       priority: row.priority,
+      status: isSubmission
+        ? toFtoStatus((row as SubmissionRecord).status)
+        : toFtoStatus((row as FieldTeamOrder).approvalStatus),
       ...(isSubmission
         ? {
             dateOfWork: (row as SubmissionRecord).dateOfWork,
-            status: toFtoStatus((row as SubmissionRecord).status),
           }
         : {
             dueDate: (row as FieldTeamOrder).dueDate,
-            status: toFtoStatus((row as FieldTeamOrder).approvalStatus),
           }),
     };
 
