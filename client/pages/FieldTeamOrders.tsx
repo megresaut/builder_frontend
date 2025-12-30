@@ -356,7 +356,7 @@ export default function FieldTeamOrders() {
         <img
           loading="lazy"
           src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
-          className="w-4 h-4 object-contain"
+          style={{ width: "16px", height: "16px" }}
           alt=""
         />
       ),
