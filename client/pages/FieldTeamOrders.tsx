@@ -339,6 +339,11 @@ export default function FieldTeamOrders() {
       icon: <BuildingIcon width={16} height={16} />,
     },
     {
+      key: "unit",
+      label: "Unit",
+      icon: <BuildingIcon width={16} height={16} />,
+    },
+    {
       key: "description",
       label: "FTO Name",
       icon: <NoteIcon width={16} height={16} />,
