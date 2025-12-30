@@ -897,12 +897,15 @@ export default function ApproveFTOPage() {
 
                   {/* Expenses Table */}
                   <div
-                    className="flex w-full flex-col rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
-                    style={{ minWidth: "fit-content" }}
+                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
+                    style={{
+                      overflowX: "auto",
+                      width: "100%",
+                    }}
                   >
                     <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                       {/* Table Header */}
-                      <div className="flex items-center">
+                      <div className="flex items-center" style={{ minWidth: "fit-content" }}>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
                           style={{ width: "120px" }}
