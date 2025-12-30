@@ -379,7 +379,7 @@ export default function FieldTeamOrders() {
     {
       key: "status",
       label: "FTO Status",
-      icon: <ApproveIcon width={16} height={16} />,
+      icon: <ApproveIcon width={18} height={18} />,
     },
     {
       key: "timesheetStatus",
