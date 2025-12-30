@@ -412,6 +412,7 @@ export default function FieldTeamOrders() {
     (order: FieldTeamOrder) => {
       navigate(`/fto/approve/${order.id}`, {
         state: {
+          ftoName: order.description,
           property: order.property,
           unit: order.unit ?? "",
           fieldTeamAssignee:
