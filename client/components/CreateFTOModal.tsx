@@ -46,6 +46,7 @@ export default function CreateFTOModal({
   viewData,
   isSimple = false,
   isViewOnly = false,
+  onFTOCreated,
 }: CreateFTOModalProps) {
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
