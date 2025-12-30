@@ -491,6 +491,13 @@ export default function FieldTeamOrdersTab({
               </span>
             );
           }
+          if (columnKey === "unit") {
+            return (
+              <span className="text-gray-900 font-normal text-sm">
+                {order.unit || "-"}
+              </span>
+            );
+          }
           if (columnKey === "dueDate") {
             return (
               <span className="text-gray-900 font-normal text-sm">
