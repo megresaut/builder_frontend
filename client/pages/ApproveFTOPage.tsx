@@ -705,11 +705,12 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
-                              borderBottom: attemptedSubmit && isHoursCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isHoursCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'date') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                           >
                             <DateFieldCell
@@ -725,11 +726,12 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "110px",
-                              borderBottom: attemptedSubmit && isHoursCellInvalid(row, 'hours') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isHoursCellInvalid(row, 'hours') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'hours') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                           >
                             <NumberFieldCell
@@ -778,11 +780,12 @@ export default function ApproveFTOPage() {
                             style={{
                               minWidth: "180px",
                               maxWidth: "240px",
-                              borderBottom: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                             title={row.assignee}
                           >
@@ -836,11 +839,12 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
-                              borderBottom: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                           >
                             <CurrencyFieldCell
@@ -1019,11 +1023,12 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
-                              borderBottom: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                           >
                             <DateFieldCell
@@ -1124,11 +1129,12 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
-                              borderBottom: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
-                              borderRight: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                           >
                             <CurrencyFieldCell
