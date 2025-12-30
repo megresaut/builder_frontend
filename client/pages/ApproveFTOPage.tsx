@@ -1136,6 +1136,72 @@ export default function ApproveFTOPage() {
                             />
                           </div>
 
+                          {/* Charge Type Cell - Popover */}
+                          <div
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{
+                              minWidth: "160px",
+                              maxWidth: "200px",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
+                            }}
+                          >
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  className="w-full text-left text-[#303030] text-sm bg-transparent hover:bg-gray-50 px-2 py-1 rounded border border-transparent hover:border-gray-200 transition-colors truncate"
+                                  style={{ minHeight: "32px" }}
+                                >
+                                  {row.chargeType === "personal"
+                                    ? "Personal"
+                                    : row.chargeType === "avm"
+                                      ? "AVM"
+                                      : "Client"}
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-40 p-0" align="start">
+                                <div className="flex flex-col gap-1 p-2">
+                                  <button
+                                    onClick={() =>
+                                      updateExpenseRow(row.id, "chargeType", "personal")
+                                    }
+                                    className={`text-sm text-left px-3 py-2 rounded transition-colors ${
+                                      row.chargeType === "personal"
+                                        ? "bg-blue-100 text-blue-900"
+                                        : "hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    Personal Expense
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      updateExpenseRow(row.id, "chargeType", "avm")
+                                    }
+                                    className={`text-sm text-left px-3 py-2 rounded transition-colors ${
+                                      row.chargeType === "avm"
+                                        ? "bg-blue-100 text-blue-900"
+                                        : "hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    AVM Expense
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      updateExpenseRow(row.id, "chargeType", "client")
+                                    }
+                                    className={`text-sm text-left px-3 py-2 rounded transition-colors ${
+                                      row.chargeType === "client"
+                                        ? "bg-blue-100 text-blue-900"
+                                        : "hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    Client Expense
+                                  </button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
                           {/* Amount Cell - Currency */}
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
