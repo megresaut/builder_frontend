@@ -617,15 +617,20 @@ export default function FieldTeamOrders() {
         }
         onFTOCreated={(ftoData) => {
           const newId = Math.max(...orders.map(o => o.id), 0) + 1;
+          const fieldTeamArray = ftoData.selectedAssignees.map((assignee: any) => ({
+            initials: assignee.initials || assignee.value?.substring(0, 2).toUpperCase() || "?",
+            color: assignee.color || "bg-blue-500",
+            name: assignee.name || assignee.label || assignee.value || "",
+          }));
           const newFTO: FieldTeamOrder = {
             id: newId,
             taskId: newId,
             property: ftoData.property,
             unit: ftoData.unit,
-            description: ftoData.description,
+            description: ftoData.ftoName || ftoData.description,
             dueDate: ftoData.dueDate?.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || '',
             priority: ftoData.priority as "low" | "normal" | "high",
-            fieldTeam: [],
+            fieldTeam: fieldTeamArray,
             status: "pending-approval",
             timesheetStatus: "awaiting-submission",
             amount: 0,
