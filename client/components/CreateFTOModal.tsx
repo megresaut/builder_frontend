@@ -30,6 +30,13 @@ interface CreateFTOModalProps {
   };
   isSimple?: boolean;
   isViewOnly?: boolean;
+  onFTOCreated?: (ftoData: {
+    property: string;
+    unit: string;
+    description: string;
+    dueDate: Date | null;
+    priority: string;
+  }) => void;
 }
 
 export default function CreateFTOModal({
