@@ -1031,13 +1031,15 @@ export default function ApproveFTOPage() {
 
                           {/* Receipt Note Cell */}
                           <div
-                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               minWidth: "220px",
                               maxWidth: "340px",
                               whiteSpace: "normal",
                               overflowWrap: "anywhere",
                               wordBreak: "break-word",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                             }}
                           >
                             <div
@@ -1061,7 +1063,8 @@ export default function ApproveFTOPage() {
                             style={{
                               minWidth: "180px",
                               maxWidth: "240px",
-                              border: '1px solid #DADADA',
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
