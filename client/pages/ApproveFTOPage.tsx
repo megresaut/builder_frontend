@@ -110,6 +110,8 @@ export default function ApproveFTOPage() {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [dueDate, setDueDate] = useState<Date | null>(state.dueDate ? new Date(state.dueDate) : null);
+  const [priority, setPriority] = useState(state.priority || "normal");
 
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
