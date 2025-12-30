@@ -353,9 +353,12 @@ export default function FieldTeamOrders() {
       key: "unit",
       label: "Unit",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3.5 2L3.5 14M12.5 2L12.5 14M2 5.5L14 5.5M2 10.5L14 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-        </svg>
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
+          className="w-4 h-4 object-contain"
+          alt=""
+        />
       ),
     },
     {
