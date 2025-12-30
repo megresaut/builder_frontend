@@ -1089,7 +1089,8 @@ export default function ApproveFTOPage() {
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
-                              border: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderBottom: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              borderRight: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -1106,9 +1107,11 @@ export default function ApproveFTOPage() {
 
                           {/* Upcharge Cell - Currency */}
                           <div
-                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -1125,9 +1128,11 @@ export default function ApproveFTOPage() {
 
                           {/* Total Cell - Display only */}
                           <div
-                            className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
                               width: "140px",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -1143,7 +1148,7 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Actions Cell */}
-                          <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px" }}>
+                          <div className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
                             <button
                               onClick={() => deleteExpenseRow(row.id)}
                               className="text-[#525252] hover:text-[#303030] transition-colors"
