@@ -783,7 +783,7 @@ export default function ApproveFTOPage() {
                           {/* Emergency Cell - Checkbox */}
                           <div
                             className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "100px" }}
+                            style={{ width: "110px" }}
                           >
                             <Checkbox
                               checked={row.emergency}
@@ -798,9 +798,11 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "120px",
-                              minWidth: "120px",
+                              width: "140px",
                               border: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             <CurrencyFieldCell
@@ -816,7 +818,12 @@ export default function ApproveFTOPage() {
                           {/* Upcharge Cell - Currency */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "120px", minWidth: "120px" }}
+                            style={{
+                              width: "140px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
                           >
                             <CurrencyFieldCell
                               value={row.upcharge}
@@ -831,7 +838,12 @@ export default function ApproveFTOPage() {
                           {/* Total Cell - Display only */}
                           <div
                             className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "100px" }}
+                            style={{
+                              width: "140px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
                           >
                             <span className="text-[#303030] font-600 text-[13px]">
                               $
@@ -843,7 +855,7 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Actions Cell */}
-                          <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 w-16">
+                          <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px" }}>
                             <button
                               onClick={() => deleteHourRow(row.id)}
                               className="text-[#525252] hover:text-[#303030] transition-colors"
