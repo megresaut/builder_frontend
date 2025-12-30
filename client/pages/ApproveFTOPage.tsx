@@ -908,7 +908,7 @@ export default function ApproveFTOPage() {
                       <div className="flex items-center" style={{ minWidth: "fit-content" }}>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "120px" }}
+                          style={{ width: "140px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date <span className="text-red-600">*</span>
@@ -916,20 +916,23 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "150px" }}
+                          style={{ minWidth: "200px", maxWidth: "280px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Vendor <span className="text-red-600">*</span>
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-1">
+                        <div
+                          className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                          style={{ minWidth: "220px", maxWidth: "340px" }}
+                        >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Receipt Note
                           </span>
                         </div>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px" }}
+                          style={{ minWidth: "180px", maxWidth: "240px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Assignee
@@ -937,7 +940,7 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "120px" }}
+                          style={{ width: "140px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Amount <span className="text-red-600">*</span>
@@ -945,7 +948,7 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "120px" }}
+                          style={{ width: "140px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Upcharge
@@ -953,13 +956,13 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
-                          style={{ width: "100px" }}
+                          style={{ width: "140px" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Total
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 border-b px-3 py-3 w-16">
+                        <div className="flex items-center gap-2 border-b px-3 py-3 flex-shrink-0" style={{ width: "80px" }}>
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Actions
                           </span>
