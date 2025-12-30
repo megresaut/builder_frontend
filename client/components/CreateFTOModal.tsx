@@ -33,9 +33,11 @@ interface CreateFTOModalProps {
   onFTOCreated?: (ftoData: {
     property: string;
     unit: string;
+    ftoName: string;
     description: string;
     dueDate: Date | null;
     priority: string;
+    selectedAssignees: Array<{ initials: string; color: string; name: string }>;
   }) => void;
 }
 
