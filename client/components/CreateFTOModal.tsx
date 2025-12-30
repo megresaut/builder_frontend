@@ -37,7 +37,7 @@ interface CreateFTOModalProps {
     description: string;
     dueDate: Date | null;
     priority: string;
-    selectedAssignees: Array<{ initials: string; color: string; name: string }>;
+    selectedAssignees: any[];
   }) => void;
 }
 
