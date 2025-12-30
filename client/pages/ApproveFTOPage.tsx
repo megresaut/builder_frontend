@@ -923,7 +923,7 @@ export default function ApproveFTOPage() {
                 </div>
 
                 {/* Expenses Section */}
-                <div style={{ marginTop: "60px" }}>
+                <div style={{ marginTop: "60px", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
                   {/* Header */}
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
@@ -937,13 +937,16 @@ export default function ApproveFTOPage() {
 
                   {/* Expenses Table */}
                   <div
-                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
+                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6 flex-1"
                     style={{
                       overflowX: "auto",
                       width: "100%",
+                      minHeight: 0,
+                      display: "flex",
+                      flexDirection: "column",
                     }}
                   >
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white flex-1">
                       {/* Table Header */}
                       <div className="flex items-center" style={{ minWidth: "fit-content" }}>
                         <div
