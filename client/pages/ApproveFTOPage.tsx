@@ -353,7 +353,7 @@ export default function ApproveFTOPage() {
           onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
           style={{
             position: "absolute",
-            left: isLeftPanelOpen ? "calc(50% - 16px)" : "24px",
+            right: "32px",
             top: "24px",
             width: "32px",
             height: "32px",
