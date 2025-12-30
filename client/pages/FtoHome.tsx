@@ -577,13 +577,6 @@ export default function FtoHome() {
             />
           )}
 
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Home</h1>
-            <p className="text-gray-600 mt-1 text-sm">
-              Welcome to Field Team Orders
-            </p>
-          </div>
-
           <div className="flex items-center justify-between gap-3 w-full">
             <TableToggle
               tabs={tabs}
