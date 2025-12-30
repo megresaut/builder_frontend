@@ -1149,54 +1149,88 @@ export default function ApproveFTOPage() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <button
-                                  className="w-full text-left text-[#303030] text-sm bg-transparent hover:bg-gray-50 px-2 py-1 rounded border border-transparent hover:border-gray-200 transition-colors truncate"
-                                  style={{ minHeight: "32px" }}
+                                  className="flex items-center justify-between gap-2 w-full h-9 px-3 rounded-md border border-0 text-sm bg-white text-left cursor-pointer hover:bg-gray-50 transition-colors"
+                                  style={{
+                                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                  }}
                                 >
-                                  {row.chargeType === "personal"
-                                    ? "Personal"
-                                    : row.chargeType === "avm"
-                                      ? "AVM"
-                                      : "Client"}
+                                  <span
+                                    style={{
+                                      color: "var(--color-text-primary, #303030)",
+                                      fontSize: "13px",
+                                      flex: 1,
+                                      textAlign: "left",
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                    }}
+                                  >
+                                    {row.chargeType === "personal"
+                                      ? "Personal Expense"
+                                      : row.chargeType === "avm"
+                                        ? "AVM Expense"
+                                        : "Client Expense"}
+                                  </span>
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-40 p-0" align="start">
-                                <div className="flex flex-col gap-1 p-2">
-                                  <button
-                                    onClick={() =>
-                                      updateExpenseRow(row.id, "chargeType", "personal")
-                                    }
-                                    className={`text-sm text-left px-3 py-2 rounded transition-colors ${
-                                      row.chargeType === "personal"
-                                        ? "bg-blue-100 text-blue-900"
-                                        : "hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    Personal Expense
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      updateExpenseRow(row.id, "chargeType", "avm")
-                                    }
-                                    className={`text-sm text-left px-3 py-2 rounded transition-colors ${
-                                      row.chargeType === "avm"
-                                        ? "bg-blue-100 text-blue-900"
-                                        : "hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    AVM Expense
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      updateExpenseRow(row.id, "chargeType", "client")
-                                    }
-                                    className={`text-sm text-left px-3 py-2 rounded transition-colors ${
-                                      row.chargeType === "client"
-                                        ? "bg-blue-100 text-blue-900"
-                                        : "hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    Client Expense
-                                  </button>
+                              <PopoverContent
+                                className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
+                                align="start"
+                                syncTriggerWidth={false}
+                                style={{ width: "max-content" }}
+                              >
+                                <div
+                                  style={{
+                                    padding: "4px 0",
+                                    overflowY: "auto",
+                                    overflowX: "hidden",
+                                    overscrollBehavior: "contain",
+                                    WebkitOverflowScrolling: "touch",
+                                  }}
+                                >
+                                  {[
+                                    { value: "personal", label: "Personal Expense" },
+                                    { value: "avm", label: "AVM Expense" },
+                                    { value: "client", label: "Client Expense" },
+                                  ].map((option) => (
+                                    <button
+                                      key={option.value}
+                                      onClick={() =>
+                                        updateExpenseRow(row.id, "chargeType", option.value as "personal" | "avm" | "client")
+                                      }
+                                      style={{
+                                        width: "100%",
+                                        padding: "8px 12px",
+                                        textAlign: "left",
+                                        backgroundColor:
+                                          row.chargeType === option.value
+                                            ? "rgba(36, 99, 235, 0.15)"
+                                            : "transparent",
+                                        color: "var(--color-text-primary, #303030)",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        fontSize: "13px",
+                                        fontFamily:
+                                          "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                        transition: "background-color 0.15s",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                                          row.chargeType === option.value
+                                            ? "rgba(36, 99, 235, 0.15)"
+                                            : "rgba(36, 99, 235, 0.08)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                                          row.chargeType === option.value
+                                            ? "rgba(36, 99, 235, 0.15)"
+                                            : "transparent";
+                                      }}
+                                      type="button"
+                                    >
+                                      {option.label}
+                                    </button>
+                                  ))}
                                 </div>
                               </PopoverContent>
                             </Popover>
