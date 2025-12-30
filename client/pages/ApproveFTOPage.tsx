@@ -17,6 +17,7 @@ import { DeleteIcon, EyeIcon } from "@/components/icons";
 import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 interface HourRow {
   id: string;
