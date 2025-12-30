@@ -319,6 +319,7 @@ export default function FieldTeamOrders() {
   } = useColumnManagement([
     "priority",
     "property",
+    "unit",
     "description",
     "dueDate",
     "fieldTeam",
