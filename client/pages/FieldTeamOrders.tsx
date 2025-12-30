@@ -457,6 +457,13 @@ export default function FieldTeamOrders() {
                   </span>
                 );
               }
+              if (columnKey === "unit") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {order.unit || "-"}
+                  </span>
+                );
+              }
               if (columnKey === "description") {
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
