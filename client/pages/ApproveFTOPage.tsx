@@ -341,22 +341,74 @@ export default function ApproveFTOPage() {
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: isLeftPanelOpen ? "1fr 1fr" : "0fr 1fr",
           alignItems: "stretch",
           minHeight: 0,
           gap: 0,
+          position: "relative",
         }}
       >
-        {/* Left Column - File Upload/Viewer */}
-        <div
+        {/* Toggle Button - Middle Divider */}
+        <button
+          onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
           style={{
+            position: "absolute",
+            left: isLeftPanelOpen ? "50%" : "0",
+            top: "24px",
+            transform: "translateX(-50%)",
+            width: "32px",
+            height: "32px",
             display: "flex",
-            flexDirection: "column",
-            padding: "24px 32px",
-            borderRight: "1px solid #E5E7EB",
-            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "white",
+            border: "1px solid #DADADA",
+            borderRadius: "8px",
+            cursor: "pointer",
+            zIndex: 50,
+            transition: "all 0.2s ease",
           }}
+          title={isLeftPanelOpen ? "Close PDF panel" : "Open PDF panel"}
         >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {isLeftPanelOpen ? (
+              <path
+                d="M10 12L6 8L10 4"
+                stroke="#525252"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ) : (
+              <path
+                d="M6 12L10 8L6 4"
+                stroke="#525252"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
+          </svg>
+        </button>
+
+        {/* Left Column - File Upload/Viewer */}
+        {isLeftPanelOpen && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              padding: "24px 32px",
+              borderRight: "1px solid #E5E7EB",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
           <div
             style={{
               display: "flex",
@@ -514,6 +566,7 @@ export default function ApproveFTOPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Right Column (scroll container) */}
         <div
