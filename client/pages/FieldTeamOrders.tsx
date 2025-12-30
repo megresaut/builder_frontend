@@ -356,7 +356,7 @@ export default function FieldTeamOrders() {
         <img
           loading="lazy"
           src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
+          style={{ width: "14px", height: "14px" }}
           alt=""
         />
       ),
@@ -379,7 +379,7 @@ export default function FieldTeamOrders() {
     {
       key: "status",
       label: "FTO Status",
-      icon: <ApproveIcon width={18} height={18} />,
+      icon: <ApproveIcon width={16} height={16} />,
     },
     {
       key: "timesheetStatus",
