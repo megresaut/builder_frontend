@@ -65,6 +65,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Oct 2, 2025",
     priority: "high",
+    unit: "3B",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -80,6 +81,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 29, 2025",
     priority: "normal",
+    unit: "1A",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -95,6 +97,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 10, 2025",
     priority: "low",
+    unit: "2C",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -110,6 +113,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 6, 2025",
     priority: "high",
+    unit: "4D",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -125,6 +129,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 5, 2025",
     priority: "normal",
+    unit: "1B",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -140,6 +145,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 4, 2025",
     priority: "low",
+    unit: "5A",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -155,6 +161,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 4, 2025",
     priority: "high",
+    unit: "2A",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -170,6 +177,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 3, 2025",
     priority: "normal",
+    unit: "3C",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -185,6 +193,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
     priority: "low",
+    unit: "1C",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -200,6 +209,7 @@ const fieldTeamOrders: FieldTeamOrder[] = [
     description: "Doors Need To Be Repaired",
     dueDate: "Sep 1, 2025",
     priority: "high",
+    unit: "4B",
     fieldTeam: [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
       { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
@@ -342,7 +352,11 @@ export default function FieldTeamOrders() {
     {
       key: "unit",
       label: "Unit",
-      icon: <BuildingIcon width={16} height={16} />,
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 2L3 14M13 2L13 14M4 5L12 5M4 8L12 8M4 11L12 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+        </svg>
+      ),
     },
     {
       key: "description",
