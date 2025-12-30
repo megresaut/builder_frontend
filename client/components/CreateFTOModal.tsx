@@ -88,8 +88,31 @@ export default function CreateFTOModal({
 
       const dateStr = viewData.dueDate || viewData.dateOfWork;
       if (dateStr) {
-        const date = new Date(dateStr);
-        setDueDate(isNaN(date.getTime()) ? null : date);
+        let date: Date | null = null;
+
+        // Try parsing as standard Date first
+        const parsedDate = new Date(dateStr);
+        if (!isNaN(parsedDate.getTime())) {
+          date = parsedDate;
+        } else if (typeof dateStr === "string") {
+          // Try parsing format like "Dec 10, 2025"
+          try {
+            const parts = dateStr.split(" ");
+            if (parts.length >= 2) {
+              const monthStr = parts[0];
+              const dayStr = parts[1].replace(",", "");
+              const yearStr = parts[2];
+              const parsedFromFormat = new Date(`${monthStr} ${dayStr}, ${yearStr}`);
+              if (!isNaN(parsedFromFormat.getTime())) {
+                date = parsedFromFormat;
+              }
+            }
+          } catch (e) {
+            // Fallback: date remains null
+          }
+        }
+
+        setDueDate(date);
       }
 
       if ("status" in viewData) {
