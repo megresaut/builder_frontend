@@ -674,8 +674,11 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "120px",
+                              width: "140px",
                               border: attemptedSubmit && isHoursCellInvalid(row, 'date') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             <DateFieldCell
@@ -690,8 +693,11 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "100px",
+                              width: "110px",
                               border: attemptedSubmit && isHoursCellInvalid(row, 'hours') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             <NumberFieldCell
@@ -705,13 +711,19 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Note Cell */}
-                          <div className="flex items-start border-b border-r px-3 min-h-14 py-2 flex-1">
+                          <div
+                            className="flex items-start border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{
+                              minWidth: "180px",
+                              maxWidth: "260px",
+                              whiteSpace: "normal",
+                              overflowWrap: "anywhere",
+                              wordBreak: "break-word",
+                            }}
+                          >
                             <div
                               style={{
                                 width: "100%",
-                                wordWrap: "break-word",
-                                whiteSpace: "normal",
-                                overflowWrap: "break-word",
                               }}
                             >
                               <TextFieldCell
@@ -728,10 +740,14 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "140px",
-                              minWidth: "140px",
+                              minWidth: "180px",
+                              maxWidth: "240px",
                               border: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? '2px solid #dc2626' : '1px solid #DADADA',
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
+                            title={row.assignee}
                           >
                             <SelectFieldCell
                               value={row.assignee}
@@ -749,7 +765,7 @@ export default function ApproveFTOPage() {
                           {/* NoFee Cell - Checkbox */}
                           <div
                             className="flex items-center justify-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "80px" }}
+                            style={{ width: "90px" }}
                           >
                             <Checkbox
                               checked={row.noFee}
