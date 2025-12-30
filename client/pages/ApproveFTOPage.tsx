@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
+import { DateField } from "@/components/forms/DateField";
 import { ComboboxFieldWithCustomInput } from "@/components/forms/ComboboxFieldWithCustomInput";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
 import { DateFieldCell } from "@/components/forms/DateFieldCell";
