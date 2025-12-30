@@ -1128,7 +1128,7 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Actions Cell */}
-                          <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 w-16">
+                          <div className="flex items-center justify-center border-b px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px" }}>
                             <button
                               onClick={() => deleteExpenseRow(row.id)}
                               className="text-[#525252] hover:text-[#303030] transition-colors"
