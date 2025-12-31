@@ -19,6 +19,7 @@ interface FileUploadFieldProps {
   maxSize?: number;
   placeholder?: string;
   variant?: "default" | "single";
+  validate?: boolean;
 }
 
 /**
