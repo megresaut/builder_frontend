@@ -21,6 +21,7 @@ export async function uploadVendorFile(
   file: File,
   category?: string,
   description?: string,
+  fileName?: string,
 ): Promise<VendorFile> {
   // Mock: create blob URL + add to MOCK_VENDOR_FILES
   // API: return fetch(`/api/vendors/${vendorId}/files`, { method: 'POST', body: formData })
@@ -28,7 +29,7 @@ export async function uploadVendorFile(
   const newFile: VendorFile = {
     id: Date.now(),
     vendorId,
-    name: file.name,
+    name: fileName || file.name,
     url,
     uploadedAt: new Date().toLocaleString(),
     category,
