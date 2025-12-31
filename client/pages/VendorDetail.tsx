@@ -651,8 +651,8 @@ export default function VendorDetail() {
         </FormLayout>
       </FormDialog>
 
-      {/* Add File Dialog */}
-      <FormDialog
+      {/* Add File Modal */}
+      <ModalTemplate
         open={isAddFileOpen}
         onOpenChange={(open) => {
           setIsAddFileOpen(open);
@@ -661,33 +661,49 @@ export default function VendorDetail() {
           }
         }}
         title="Add File"
-        onSubmit={handleAddFile}
-        onCancel={() => {
+        size="sm"
+        onClose={() => {
           setUploadedFiles([]);
         }}
-        submitLabel="Add"
-        isValid={uploadedFiles.length > 0}
-        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setUploadedFiles([]);
+              setIsAddFileOpen(false);
+            }}
+            onConfirm={handleAddFile}
+            cancelLabel="Cancel"
+            confirmLabel="Add"
+            confirmDisabled={uploadedFiles.length === 0}
+          />
+        }
       >
-        <FormLayout>
-          <FormSection showDivider={false}>
-            <FileUploadField
-              label="File"
-              description="Upload PDF documents"
-              files={uploadedFiles}
-              onFilesAdded={(newFiles) => {
-                setUploadedFiles([...uploadedFiles, ...newFiles]);
-              }}
-              onFileRemoved={(fileId) => {
-                setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
-              }}
-              accept=".pdf"
-              maxFiles={5}
-              maxSize={10 * 1024 * 1024}
-            />
-          </FormSection>
-        </FormLayout>
-      </FormDialog>
+        <ModalField spacing="tight">
+          <FileUploadField
+            label="File"
+            description="Upload PDF documents"
+            files={uploadedFiles}
+            onFilesAdded={(newFiles) => {
+              setUploadedFiles([...uploadedFiles, ...newFiles]);
+            }}
+            onFileRemoved={(fileId) => {
+              setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+            }}
+            onViewFile={(file) => {
+              setSelectedFile({
+                id: file.id,
+                name: file.name,
+                url: file.file ? URL.createObjectURL(file.file) : undefined,
+                uploadedAt: new Date().toLocaleDateString(),
+              });
+              setIsViewFileOpen(true);
+            }}
+            accept=".pdf"
+            maxFiles={5}
+            maxSize={10 * 1024 * 1024}
+          />
+        </ModalField>
+      </ModalTemplate>
 
       {/* Edit Vendor Dialog */}
       <AddVendorModal
