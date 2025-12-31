@@ -416,6 +416,10 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
         }}
       >
         <div
+          id="identity-listbox"
+          role="listbox"
+          aria-label={label}
+          aria-multiselectable={multiple}
           style={{
             flex: 1,
             overflowY: "auto",
