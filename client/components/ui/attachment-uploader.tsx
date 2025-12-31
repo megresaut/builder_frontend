@@ -209,6 +209,26 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
     }
   };
 
+  const handleStartEditingFileName = (file: UploadedFile) => {
+    setEditingFileId(file.id);
+    setEditingFileName(file.name);
+  };
+
+  const handleSaveFileName = (fileId: string) => {
+    if (editingFileName.trim() && onFileRenamed) {
+      onFileRenamed(fileId, editingFileName.trim());
+    }
+    setEditingFileId(null);
+    setEditingFileName("");
+  };
+
+  const handleCancelEditingFileName = () => {
+    setEditingFileId(null);
+    setEditingFileName("");
+  };
+
+  const shouldShowDropzone = variant === "default" || files.length === 0;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* Dropzone */}
