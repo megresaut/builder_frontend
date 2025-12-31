@@ -10,10 +10,12 @@ export interface VendorFile {
 
 export const MOCK_VENDOR_FILES: VendorFile[] = [];
 
-export async function fetchVendorFiles(vendorId: number): Promise<VendorFile[]> {
+export async function fetchVendorFiles(
+  vendorId: number,
+): Promise<VendorFile[]> {
   // Mock: filter MOCK_VENDOR_FILES by vendorId
   // API: return fetch(`/api/vendors/${vendorId}/files`).then(r => r.json())
-  return MOCK_VENDOR_FILES.filter(f => f.vendorId === vendorId);
+  return MOCK_VENDOR_FILES.filter((f) => f.vendorId === vendorId);
 }
 
 export async function uploadVendorFile(
@@ -41,22 +43,23 @@ export async function uploadVendorFile(
 
 export async function updateVendorFile(
   fileId: number,
-  updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>,
+  updates: Partial<Pick<VendorFile, "name" | "category" | "description">>,
 ): Promise<void> {
   // Mock: update file in MOCK_VENDOR_FILES
   // API: return fetch(`/api/files/${fileId}`, { method: 'PATCH', body: JSON.stringify(updates) })
-  const file = MOCK_VENDOR_FILES.find(f => f.id === fileId);
+  const file = MOCK_VENDOR_FILES.find((f) => f.id === fileId);
   if (file) {
     if (updates.name !== undefined) file.name = updates.name;
     if (updates.category !== undefined) file.category = updates.category;
-    if (updates.description !== undefined) file.description = updates.description;
+    if (updates.description !== undefined)
+      file.description = updates.description;
   }
 }
 
 export async function deleteVendorFile(fileId: number): Promise<void> {
   // Mock: revoke URL + remove from MOCK_VENDOR_FILES
   // API: return fetch(`/api/files/${fileId}`, { method: 'DELETE' })
-  const file = MOCK_VENDOR_FILES.find(f => f.id === fileId);
+  const file = MOCK_VENDOR_FILES.find((f) => f.id === fileId);
   if (file && file.url) {
     try {
       URL.revokeObjectURL(file.url);
@@ -64,6 +67,6 @@ export async function deleteVendorFile(fileId: number): Promise<void> {
       // ignore
     }
   }
-  const idx = MOCK_VENDOR_FILES.findIndex(f => f.id === fileId);
+  const idx = MOCK_VENDOR_FILES.findIndex((f) => f.id === fileId);
   if (idx >= 0) MOCK_VENDOR_FILES.splice(idx, 1);
 }

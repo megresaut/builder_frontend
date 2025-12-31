@@ -10,7 +10,7 @@ interface SectionActionTemplateProps {
 
 /**
  * SectionActionTemplate
- * 
+ *
  * Styled action button for section headers (Add, Edit, etc).
  * Renders as blue text with icon and label.
  */

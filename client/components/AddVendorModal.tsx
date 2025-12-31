@@ -57,7 +57,9 @@ export default function AddVendorModal({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
-  const [servicesProvided, setServicesProvided] = useState<string | string[]>("");
+  const [servicesProvided, setServicesProvided] = useState<string | string[]>(
+    "",
+  );
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{
     vendorName?: string;
@@ -115,7 +117,10 @@ export default function AddVendorModal({
   const validatePhone = (phoneValue: string): string | undefined => {
     if (!phoneValue.trim()) return undefined;
     const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-    if (!phoneRegex.test(phoneValue) || phoneValue.replace(/\D/g, "").length < 10) {
+    if (
+      !phoneRegex.test(phoneValue) ||
+      phoneValue.replace(/\D/g, "").length < 10
+    ) {
       return "Invalid phone number (min 10 digits)";
     }
     return undefined;
@@ -155,10 +160,14 @@ export default function AddVendorModal({
           email,
           phone,
           website,
-          servicesProvided: Array.isArray(servicesProvided) ? servicesProvided.join(", ") : servicesProvided,
+          servicesProvided: Array.isArray(servicesProvided)
+            ? servicesProvided.join(", ")
+            : servicesProvided,
         });
       } else if (!edit && onAddVendor) {
-        const serviceArray = Array.isArray(servicesProvided) ? servicesProvided : [];
+        const serviceArray = Array.isArray(servicesProvided)
+          ? servicesProvided
+          : [];
         const serviceLabels = serviceArray.map(
           (value) =>
             availableServices.find((s) => s.value === value)?.label || value,
@@ -295,7 +304,13 @@ export default function AddVendorModal({
       <ModalField spacing="tight">
         <SelectField
           label="Services Provided"
-          value={Array.isArray(servicesProvided) ? servicesProvided : (servicesProvided ? [servicesProvided] : [])}
+          value={
+            Array.isArray(servicesProvided)
+              ? servicesProvided
+              : servicesProvided
+                ? [servicesProvided]
+                : []
+          }
           onChange={(val) => setServicesProvided(val)}
           options={[
             { value: "hvac", label: "HVAC" },

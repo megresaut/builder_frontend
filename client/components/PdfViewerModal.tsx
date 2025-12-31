@@ -22,8 +22,12 @@ const isProbablyImageUrl = (url: string, filename?: string) => {
   const clean = url.split("#")[0].split("?")[0];
   const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
 
-  if (imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext))) return true;
-  if (filename && imageExtensions.some((ext) => filename.toLowerCase().endsWith(ext))) {
+  if (imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext)))
+    return true;
+  if (
+    filename &&
+    imageExtensions.some((ext) => filename.toLowerCase().endsWith(ext))
+  ) {
     return true;
   }
 

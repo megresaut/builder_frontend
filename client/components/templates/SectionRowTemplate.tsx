@@ -20,12 +20,8 @@ export const SectionRowTemplate: React.FC<SectionRowTemplateProps> = ({
   className = "",
 }) => (
   <div className={className}>
-    <div className="p-4 flex flex-col">
-      {children}
-    </div>
-    {!isLast && (
-      <div className="mx-4 h-px border-t border-[#E5E5E5]" />
-    )}
+    <div className="p-4 flex flex-col">{children}</div>
+    {!isLast && <div className="mx-4 h-px border-t border-[#E5E5E5]" />}
   </div>
 );
 

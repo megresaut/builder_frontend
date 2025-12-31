@@ -114,8 +114,10 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   const isRequired = required;
 
   // Only validate required fields when validate=true (e.g., on form submission)
-  const isEmpty = value === "" || value === null || value === undefined || value === false;
-  const validationError = validate && required && isEmpty && !error ? `${label} is required` : error;
+  const isEmpty =
+    value === "" || value === null || value === undefined || value === false;
+  const validationError =
+    validate && required && isEmpty && !error ? `${label} is required` : error;
 
   // For cell mode, inject ref and event handlers into child
   const childrenWithCellHandlers = React.Children.map(children, (child) => {

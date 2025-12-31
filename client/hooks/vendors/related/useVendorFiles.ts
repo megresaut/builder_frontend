@@ -1,19 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   fetchVendorFiles,
   uploadVendorFile,
   deleteVendorFile,
   updateVendorFile,
   type VendorFile,
-} from '@/data/vendors';
+} from "@/data/vendors";
 
 interface UseVendorFilesResult {
   files: VendorFile[];
   loading: boolean;
   error: Error | null;
-  uploadFile: (file: File, category?: string, description?: string, fileName?: string) => Promise<void>;
+  uploadFile: (
+    file: File,
+    category?: string,
+    description?: string,
+    fileName?: string,
+  ) => Promise<void>;
   deleteFile: (fileId: number) => Promise<void>;
-  updateFile: (fileId: number, updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>) => Promise<void>;
+  updateFile: (
+    fileId: number,
+    updates: Partial<Pick<VendorFile, "name" | "category" | "description">>,
+  ) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -35,9 +43,20 @@ export function useVendorFiles(vendorId: number): UseVendorFilesResult {
     }
   };
 
-  const uploadFile = async (file: File, category?: string, description?: string, fileName?: string) => {
+  const uploadFile = async (
+    file: File,
+    category?: string,
+    description?: string,
+    fileName?: string,
+  ) => {
     try {
-      const newFile = await uploadVendorFile(vendorId, file, category, description, fileName);
+      const newFile = await uploadVendorFile(
+        vendorId,
+        file,
+        category,
+        description,
+        fileName,
+      );
       setFiles([...files, newFile]);
     } catch (err) {
       setError(err as Error);
@@ -47,16 +66,19 @@ export function useVendorFiles(vendorId: number): UseVendorFilesResult {
   const deleteFile = async (fileId: number) => {
     try {
       await deleteVendorFile(fileId);
-      setFiles(files.filter(f => f.id !== fileId));
+      setFiles(files.filter((f) => f.id !== fileId));
     } catch (err) {
       setError(err as Error);
     }
   };
 
-  const updateFile = async (fileId: number, updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>) => {
+  const updateFile = async (
+    fileId: number,
+    updates: Partial<Pick<VendorFile, "name" | "category" | "description">>,
+  ) => {
     try {
       await updateVendorFile(fileId, updates);
-      setFiles(files.map(f => f.id === fileId ? { ...f, ...updates } : f));
+      setFiles(files.map((f) => (f.id === fileId ? { ...f, ...updates } : f)));
     } catch (err) {
       setError(err as Error);
     }

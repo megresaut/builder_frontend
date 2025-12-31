@@ -6,7 +6,7 @@ interface EmptyStateTemplateProps {
 
 /**
  * EmptyStateTemplate
- * 
+ *
  * Simple empty state display for list sections.
  * Used when there are no items to display.
  */

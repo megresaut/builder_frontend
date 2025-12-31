@@ -23,10 +23,7 @@ import {
   FileUploadField,
   SelectField,
 } from "@/components/forms";
-import {
-  FormLayout,
-  FormSection,
-} from "@/components/ui/form-layout";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import {
   useVendorDetail,
   useVendorNotes,
@@ -34,7 +31,11 @@ import {
   useVendorFiles,
   useVendorCustomFields,
 } from "@/hooks/vendors";
-import type { VendorDetail as VendorDetailType, VendorNote, VendorFile } from "@/data/vendors";
+import type {
+  VendorDetail as VendorDetailType,
+  VendorNote,
+  VendorFile,
+} from "@/data/vendors";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import {
   SectionRowTemplate,
@@ -52,7 +53,11 @@ export default function VendorDetail() {
   const id = Number(vendorId);
 
   // Use hooks for data
-  const { vendor, loading: vendorLoading, error: vendorError } = useVendorDetail(id);
+  const {
+    vendor,
+    loading: vendorLoading,
+    error: vendorError,
+  } = useVendorDetail(id);
   const { notes, addNote, removeNote, editNote } = useVendorNotes(id);
   const { insurance, addInsurance } = useVendorInsurance(id);
   const { files, uploadFile, deleteFile, updateFile } = useVendorFiles(id);
@@ -175,7 +180,9 @@ export default function VendorDetail() {
 
     if (isEditingFile && selectedFile) {
       // Update existing file
-      const updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>> = {
+      const updates: Partial<
+        Pick<VendorFile, "name" | "category" | "description">
+      > = {
         name: fileObj.name,
       };
       if (fileCategory) updates.category = fileCategory;
@@ -219,11 +226,23 @@ export default function VendorDetail() {
   };
 
   if (vendorLoading) {
-    return <PageTemplate><div className="flex items-center justify-center h-96">Loading vendor details...</div></PageTemplate>;
+    return (
+      <PageTemplate>
+        <div className="flex items-center justify-center h-96">
+          Loading vendor details...
+        </div>
+      </PageTemplate>
+    );
   }
 
   if (vendorError || !vendor) {
-    return <PageTemplate><div className="flex items-center justify-center h-96">Error loading vendor</div></PageTemplate>;
+    return (
+      <PageTemplate>
+        <div className="flex items-center justify-center h-96">
+          Error loading vendor
+        </div>
+      </PageTemplate>
+    );
   }
 
   return (
@@ -305,7 +324,9 @@ export default function VendorDetail() {
                       {
                         label: "EMAIL",
                         value: (vendorDraft || vendor).email,
-                        icon: (vendorDraft || vendor).email ? <EmailIcon width={14} height={14} /> : undefined,
+                        icon: (vendorDraft || vendor).email ? (
+                          <EmailIcon width={14} height={14} />
+                        ) : undefined,
                         isLink: (vendorDraft || vendor).email ? true : false,
                       },
                       {
@@ -406,10 +427,7 @@ export default function VendorDetail() {
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Recent Notes
                     </h2>
-                    <SectionActionTemplate
-                      label="Add"
-                      onClick={openAddNote}
-                    />
+                    <SectionActionTemplate label="Add" onClick={openAddNote} />
                   </div>
 
                   {notes.length === 0 ? (
@@ -438,7 +456,13 @@ export default function VendorDetail() {
                               actions={[
                                 {
                                   label: "Edit",
-                                  icon: <EditIcon width={18} height={18} color="#303030" />,
+                                  icon: (
+                                    <EditIcon
+                                      width={18}
+                                      height={18}
+                                      color="#303030"
+                                    />
+                                  ),
                                   onClick: () => {
                                     setSelectedNote(note);
                                     setIsViewNoteOpen(true);
@@ -446,7 +470,13 @@ export default function VendorDetail() {
                                 },
                                 {
                                   label: "Delete",
-                                  icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                                  icon: (
+                                    <DeleteIcon
+                                      width={18}
+                                      height={18}
+                                      color="#982740"
+                                    />
+                                  ),
                                   onClick: () => removeNote(note.id),
                                 },
                               ]}
@@ -508,8 +538,12 @@ export default function VendorDetail() {
                               </div>
                               {(file.category || file.description) && (
                                 <div className="text-[#71717A] text-xs mt-2 space-y-1">
-                                  {file.category && <div>Category: {file.category}</div>}
-                                  {file.description && <div>Description: {file.description}</div>}
+                                  {file.category && (
+                                    <div>Category: {file.category}</div>
+                                  )}
+                                  {file.description && (
+                                    <div>Description: {file.description}</div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -521,7 +555,13 @@ export default function VendorDetail() {
                               actions={[
                                 {
                                   label: "Edit",
-                                  icon: <EditIcon width={18} height={18} color="#303030" />,
+                                  icon: (
+                                    <EditIcon
+                                      width={18}
+                                      height={18}
+                                      color="#303030"
+                                    />
+                                  ),
                                   onClick: () => {
                                     setSelectedFile(file);
                                     setIsEditingFile(true);
@@ -530,7 +570,13 @@ export default function VendorDetail() {
                                 },
                                 {
                                   label: "Delete",
-                                  icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                                  icon: (
+                                    <DeleteIcon
+                                      width={18}
+                                      height={18}
+                                      color="#982740"
+                                    />
+                                  ),
                                   onClick: () => deleteFile(file.id),
                                 },
                               ]}
@@ -614,7 +660,8 @@ export default function VendorDetail() {
                 {selectedNote.text}
               </div>
               <div className="text-sm text-[#71717A]">
-                <span className="font-medium">Author:</span> {selectedNote.author}
+                <span className="font-medium">Author:</span>{" "}
+                {selectedNote.author}
               </div>
               <div className="text-sm text-[#71717A]">
                 <span className="font-medium">Date:</span> {selectedNote.date}
@@ -693,7 +740,10 @@ export default function VendorDetail() {
           setCustomFieldValue("");
         }}
         submitLabel="Save"
-        isValid={customFieldName.trim().length > 0 && customFieldValue.trim().length > 0}
+        isValid={
+          customFieldName.trim().length > 0 &&
+          customFieldValue.trim().length > 0
+        }
         size="sm"
       >
         <FormLayout>
@@ -771,13 +821,15 @@ export default function VendorDetail() {
                   }
                 }}
                 onFileRemoved={(fileId) => {
-                  setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+                  setUploadedFiles(
+                    uploadedFiles.filter((f) => f.id !== fileId),
+                  );
                 }}
                 onFileRenamed={(fileId, newName) => {
                   setUploadedFiles(
                     uploadedFiles.map((f) =>
-                      f.id === fileId ? { ...f, name: newName } : f
-                    )
+                      f.id === fileId ? { ...f, name: newName } : f,
+                    ),
                   );
                 }}
                 onViewFile={(file) => {
@@ -789,7 +841,9 @@ export default function VendorDetail() {
                     setSelectedFile({
                       id: Number(file.id),
                       name: file.name,
-                      url: file.file ? URL.createObjectURL(file.file) : undefined,
+                      url: file.file
+                        ? URL.createObjectURL(file.file)
+                        : undefined,
                       uploadedAt: new Date().toLocaleDateString(),
                     });
                   }

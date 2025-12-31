@@ -113,11 +113,18 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
       "image/gif",
       "image/webp",
     ];
-    const viewableExtensions = [".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp"];
+    const viewableExtensions = [
+      ".pdf",
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp",
+    ];
 
     const isViewableType = viewableTypes.includes(file.type);
     const isViewableExt = viewableExtensions.some((ext) =>
-      file.name.toLowerCase().endsWith(ext)
+      file.name.toLowerCase().endsWith(ext),
     );
 
     return isViewableType || isViewableExt;
@@ -128,7 +135,7 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const processFiles = (fileList: FileList | null) => {
@@ -268,13 +275,16 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
             width={32}
             height={32}
             style={{
-              color: isDragging ? "var(--color-button-primary)" : "var(--color-text-muted)",
+              color: isDragging
+                ? "var(--color-button-primary)"
+                : "var(--color-text-muted)",
             }}
           />
           <div style={{ textAlign: "center" }}>
             <p
               style={{
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontSize: "14px",
                 fontWeight: 500,
                 color: "var(--color-text-primary)",
@@ -344,7 +354,15 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                 borderRadius: "6px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
                 <File
                   width={20}
                   height={20}
@@ -352,7 +370,13 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                 />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   {editingFileId === file.id ? (
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        alignItems: "center",
+                      }}
+                    >
                       <input
                         type="text"
                         value={editingFileName}
@@ -366,7 +390,8 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                           }
                         }}
                         style={{
-                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          fontFamily:
+                            "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                           fontSize: "14px",
                           fontWeight: 400,
                           color: "var(--color-text-primary)",
@@ -391,8 +416,16 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                           flexShrink: 0,
                           transition: "opacity 0.2s",
                         }}
-                        onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.8")}
-                        onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                        onMouseEnter={(e) =>
+                          ((
+                            e.currentTarget as HTMLButtonElement
+                          ).style.opacity = "0.8")
+                        }
+                        onMouseLeave={(e) =>
+                          ((
+                            e.currentTarget as HTMLButtonElement
+                          ).style.opacity = "1")
+                        }
                       >
                         Save
                       </button>
@@ -410,8 +443,16 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                           flexShrink: 0,
                           transition: "opacity 0.2s",
                         }}
-                        onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
-                        onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                        onMouseEnter={(e) =>
+                          ((
+                            e.currentTarget as HTMLButtonElement
+                          ).style.opacity = "0.7")
+                        }
+                        onMouseLeave={(e) =>
+                          ((
+                            e.currentTarget as HTMLButtonElement
+                          ).style.opacity = "1")
+                        }
                       >
                         Cancel
                       </button>
@@ -419,9 +460,14 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                   ) : (
                     <>
                       <p
-                        onClick={onFileRenamed ? () => handleStartEditingFileName(file) : undefined}
+                        onClick={
+                          onFileRenamed
+                            ? () => handleStartEditingFileName(file)
+                            : undefined
+                        }
                         style={{
-                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          fontFamily:
+                            "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                           fontSize: "14px",
                           fontWeight: 400,
                           color: "var(--color-text-primary)",
@@ -434,23 +480,35 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                         }}
                         onMouseEnter={(e) => {
                           if (onFileRenamed) {
-                            (e.currentTarget as HTMLParagraphElement).style.opacity = "0.7";
+                            (
+                              e.currentTarget as HTMLParagraphElement
+                            ).style.opacity = "0.7";
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (onFileRenamed) {
-                            (e.currentTarget as HTMLParagraphElement).style.opacity = "1";
+                            (
+                              e.currentTarget as HTMLParagraphElement
+                            ).style.opacity = "1";
                           }
                         }}
                       >
                         {file.name}
                       </p>
-                        </>
+                    </>
                   )}
                 </div>
               </div>
               {editingFileId !== file.id && (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0, marginLeft: "12px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    flexShrink: 0,
+                    marginLeft: "12px",
+                  }}
+                >
                   {isViewableFile(file) && onViewFile && (
                     <button
                       onClick={() => onViewFile(file)}
@@ -466,8 +524,14 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                         flexShrink: 0,
                         transition: "opacity 0.2s",
                       }}
-                      onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
-                      onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                      onMouseEnter={(e) =>
+                        ((e.currentTarget as HTMLButtonElement).style.opacity =
+                          "0.7")
+                      }
+                      onMouseLeave={(e) =>
+                        ((e.currentTarget as HTMLButtonElement).style.opacity =
+                          "1")
+                      }
                       aria-label={`View ${file.name}`}
                       title="View document"
                     >
@@ -488,8 +552,14 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                       flexShrink: 0,
                       transition: "opacity 0.2s",
                     }}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
-                    onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLButtonElement).style.opacity =
+                        "0.7")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLButtonElement).style.opacity =
+                        "1")
+                    }
                     aria-label={`Remove ${file.name}`}
                     title="Remove file"
                   >

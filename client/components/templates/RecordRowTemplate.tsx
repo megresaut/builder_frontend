@@ -8,7 +8,7 @@ interface RecordRowTemplateProps {
 
 /**
  * RecordRowTemplate
- * 
+ *
  * Standard row layout for list items.
  * Handles padding, divider lines, and optional right slot (for actions).
  */

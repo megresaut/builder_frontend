@@ -6,7 +6,7 @@ interface RecordListTemplateProps {
 
 /**
  * RecordListTemplate
- * 
+ *
  * Bordered container for lists of records.
  * Handles border, rounded corners, and overflow.
  */

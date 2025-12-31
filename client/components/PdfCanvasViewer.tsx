@@ -60,8 +60,12 @@ function PdfPageCanvas({
       const baseViewport = page.getViewport({ scale: 1 });
       const horizontalPadding = 32;
       const availableWidth = Math.max(320, containerWidth - horizontalPadding);
-      const scaleCss = Math.max(0.5, Math.min(2.5, availableWidth / baseViewport.width));
-      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const scaleCss = Math.max(
+        0.5,
+        Math.min(2.5, availableWidth / baseViewport.width),
+      );
+      const dpr =
+        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
       const viewport = page.getViewport({ scale: scaleCss * dpr });
 
@@ -108,7 +112,9 @@ function PdfPageCanvas({
 export function PdfCanvasViewer({ url, title }: PdfCanvasViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(800);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pdfDoc, setPdfDoc] = useState<PdfDocProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
@@ -122,7 +128,8 @@ export function PdfCanvasViewer({ url, title }: PdfCanvasViewerProps) {
     const el = containerRef.current;
     if (!el) return;
 
-    const update = () => setContainerWidth(el.getBoundingClientRect().width || 800);
+    const update = () =>
+      setContainerWidth(el.getBoundingClientRect().width || 800);
     update();
 
     const observer = new ResizeObserver(() => update());

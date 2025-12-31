@@ -1,6 +1,9 @@
 import React from "react";
 import { FieldShell } from "./FieldShell";
-import { AttachmentUploader, UploadedFile } from "@/components/ui/attachment-uploader";
+import {
+  AttachmentUploader,
+  UploadedFile,
+} from "@/components/ui/attachment-uploader";
 
 interface FileUploadFieldProps {
   label: string;
