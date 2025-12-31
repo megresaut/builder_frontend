@@ -472,6 +472,7 @@ export default function VendorDetail() {
                         setUploadedFiles([]);
                         setFileCategory("");
                         setFileDescription("");
+                        setValidateFileForm(false);
                         setIsAddFileOpen(true);
                       }}
                     />
