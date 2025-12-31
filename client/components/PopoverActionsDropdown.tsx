@@ -237,7 +237,7 @@ export default function PopoverActionsDropdown({
           width: "145px",
         }}
       >
-        <div ref={contentRef}>
+        <div ref={contentRef} role="menu">
           <PopoverActionsDropdownContent row={row} allActions={allActions} />
         </div>
       </PopoverContent>
