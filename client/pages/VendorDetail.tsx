@@ -9,12 +9,12 @@ import AddVendorModal from "@/components/AddVendorModal";
 import AddVendorNoteModal from "@/components/AddVendorNoteModal";
 import AddVendorFileModal from "@/components/AddVendorFileModal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { FormDialog } from "@/components/FormDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { EmailIcon, EditIcon } from "@/components/icons";
 import { TextField, SelectField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   useVendorDetail,
   useVendorNotes,
