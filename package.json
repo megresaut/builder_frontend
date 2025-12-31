@@ -24,6 +24,7 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "html2pdf.js": "^0.12.1",
+    "pdfjs-dist": "^5.4.530",
     "zod": "^3.25.76"
   },
   "devDependencies": {
