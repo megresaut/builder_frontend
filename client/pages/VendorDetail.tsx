@@ -74,10 +74,17 @@ export default function VendorDetail() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
-  const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(vendor);
+  const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(null);
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
+
+  // Sync vendorDraft with vendor when vendor data loads
+  React.useEffect(() => {
+    if (vendor && !vendorDraft) {
+      setVendorDraft(vendor);
+    }
+  }, [vendor]);
 
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
