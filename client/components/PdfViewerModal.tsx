@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type PdfViewerModalProps = {
   open: boolean;
