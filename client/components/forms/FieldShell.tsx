@@ -210,7 +210,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
             {childrenWithCellHandlers}
 
             {/* Error message - only in popover */}
-            {error && (
+            {validationError && (
               <p
                 style={{
                   fontFamily:
@@ -222,7 +222,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
                   margin: 0,
                 }}
               >
-                {error}
+                {validationError}
               </p>
             )}
           </div>
