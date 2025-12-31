@@ -19,6 +19,8 @@ export async function fetchVendorFiles(vendorId: number): Promise<VendorFile[]> 
 export async function uploadVendorFile(
   vendorId: number,
   file: File,
+  category?: string,
+  description?: string,
 ): Promise<VendorFile> {
   // Mock: create blob URL + add to MOCK_VENDOR_FILES
   // API: return fetch(`/api/vendors/${vendorId}/files`, { method: 'POST', body: formData })
@@ -29,9 +31,25 @@ export async function uploadVendorFile(
     name: file.name,
     url,
     uploadedAt: new Date().toLocaleString(),
+    category,
+    description,
   };
   MOCK_VENDOR_FILES.push(newFile);
   return newFile;
+}
+
+export async function updateVendorFile(
+  fileId: number,
+  updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>,
+): Promise<void> {
+  // Mock: update file in MOCK_VENDOR_FILES
+  // API: return fetch(`/api/files/${fileId}`, { method: 'PATCH', body: JSON.stringify(updates) })
+  const file = MOCK_VENDOR_FILES.find(f => f.id === fileId);
+  if (file) {
+    if (updates.name !== undefined) file.name = updates.name;
+    if (updates.category !== undefined) file.category = updates.category;
+    if (updates.description !== undefined) file.description = updates.description;
+  }
 }
 
 export async function deleteVendorFile(fileId: number): Promise<void> {
