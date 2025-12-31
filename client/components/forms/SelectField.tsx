@@ -416,6 +416,9 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
               return (
                 <button
                   key={option.value}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
                   onClick={() => handleOptionSelect(option.value)}
                   onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   data-selected={isSelected ? "true" : "false"}
