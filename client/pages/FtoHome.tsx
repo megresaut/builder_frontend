@@ -27,6 +27,8 @@ import {
   EyeIcon,
 } from "@/components/icons";
 
+type ApprovalStatusType = "pending" | "approved" | "rejected";
+
 interface FieldTeamOrder {
   id: number;
   name: string;
