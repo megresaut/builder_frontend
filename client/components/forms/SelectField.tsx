@@ -181,6 +181,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
 }) => {
   const popoverContext = usePopoverContext();
   const { highlightedIndex } = popoverContext;
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Register options with Popover for typeahead search and highlight first option
   useEffect(() => {
@@ -192,6 +193,13 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
       popoverContext.setHighlightedIndex(0);
     }
   }, [open, options, popoverContext]);
+
+  // Sync DOM focus with visual highlight when arrow keys navigate
+  useEffect(() => {
+    if (open && optionRefs.current[highlightedIndex]) {
+      optionRefs.current[highlightedIndex]?.focus();
+    }
+  }, [highlightedIndex, open]);
 
   // Set up Enter key handler for selecting from type-ahead results
   useEffect(() => {
