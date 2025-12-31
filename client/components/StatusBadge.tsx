@@ -51,6 +51,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant = "leg
     config = FTO_STATUS_CONFIG[status as FTOStatusType];
   } else if (variant === "timesheet-status") {
     config = TIMESHEET_STATUS_CONFIG[status as TimesheetStatusType];
+  } else if (variant === "approval-status") {
+    config = APPROVAL_STATUS_CONFIG[status as ApprovalStatusType];
   } else {
     config = LEGACY_STATUS_CONFIG[status as LegacyStatusType];
   }
