@@ -36,7 +36,8 @@ import {
 import type { VendorDetail as VendorDetailType, VendorNote, VendorFile } from "@/data/vendors";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import {
-  SectionCardTemplate,
+  SectionRowTemplate,
+  SectionGroupCardTemplate,
   SectionActionTemplate,
   EmptyStateTemplate,
   RecordListTemplate,
@@ -234,296 +235,298 @@ export default function VendorDetail() {
 
           <div className="flex items-start gap-6">
             <div className="flex-1 min-w-[240px] w-full">
-              <SectionCardTemplate>
+              <SectionGroupCardTemplate>
                 {/* Vendor Information Section */}
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                    Vendor Information
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsFormShowcaseOpen(true)}
-                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                      title="View field components showcase"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 14 14"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                <SectionRowTemplate isLast={false}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Vendor Information
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsFormShowcaseOpen(true)}
+                        className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
+                        title="View field components showcase"
                       >
-                        <path
-                          d="M11.2 1H2.8C1.81 1 1.009 1.81 1.009 2.8L1 12.2C1 13.19 1.81 14 2.8 14H11.2C12.19 14 13 13.19 13 12.2V2.8C13 1.81 12.19 1 11.2 1ZM11.2 12.2H2.8V2.8H11.2V12.2ZM3.5 5.25H8.75V6.75H3.5V5.25ZM3.5 7.75H10.5V9.25H3.5V7.75Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      <span>Showcase</span>
-                    </button>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M11.2 1H2.8C1.81 1 1.009 1.81 1.009 2.8L1 12.2C1 13.19 1.81 14 2.8 14H11.2C12.19 14 13 13.19 13 12.2V2.8C13 1.81 12.19 1 11.2 1ZM11.2 12.2H2.8V2.8H11.2V12.2ZM3.5 5.25H8.75V6.75H3.5V5.25ZM3.5 7.75H10.5V9.25H3.5V7.75Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <span>Showcase</span>
+                      </button>
+                      <SectionActionTemplate
+                        icon={<EditIcon width={14} height={14} />}
+                        label="Edit"
+                        onClick={openEditVendor}
+                      />
+                    </div>
+                  </div>
+
+                  <KeyValueGrid
+                    showDivider={true}
+                    cells={[
+                      {
+                        label: "EMAIL",
+                        value: vendor.email,
+                        icon: vendor.email ? <EmailIcon width={14} height={14} /> : undefined,
+                        isLink: vendor.email ? true : false,
+                      },
+                      {
+                        label: "PHONE",
+                        value: vendor.phone,
+                      },
+                      {
+                        label: "ADDRESS",
+                        value: vendor.address,
+                      },
+                      {
+                        label: "WEBSITE",
+                        value: vendor.website,
+                      },
+                      {
+                        label: "SERVICES PROVIDED",
+                        value: vendor.servicesProvided,
+                        fullWidth: true,
+                      },
+                    ]}
+                  />
+                </SectionRowTemplate>
+
+                {/* Vendor Insurance Section */}
+                <SectionRowTemplate isLast={false}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Vendor Insurance
+                    </h2>
                     <SectionActionTemplate
-                      icon={<EditIcon width={14} height={14} />}
-                      label="Edit"
-                      onClick={openEditVendor}
+                      label="Add"
+                      onClick={() => setIsAddInsuranceOpen(true)}
                     />
                   </div>
-                </div>
 
-                <KeyValueGrid
-                  showDivider={true}
-                  cells={[
-                    {
-                      label: "EMAIL",
-                      value: vendor.email,
-                      icon: vendor.email ? <EmailIcon width={14} height={14} /> : undefined,
-                      isLink: vendor.email ? true : false,
-                    },
-                    {
-                      label: "PHONE",
-                      value: vendor.phone,
-                    },
-                    {
-                      label: "ADDRESS",
-                      value: vendor.address,
-                    },
-                    {
-                      label: "WEBSITE",
-                      value: vendor.website,
-                    },
-                    {
-                      label: "SERVICES PROVIDED",
-                      value: vendor.servicesProvided,
-                      fullWidth: true,
-                    },
-                  ]}
-                />
-              </SectionCardTemplate>
-
-              {/* Vendor Insurance Section */}
-              <SectionCardTemplate className="mt-5">
-                <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                  <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                    Vendor Insurance
-                  </h2>
-                  <SectionActionTemplate
-                    label="Add"
-                    onClick={() => setIsAddInsuranceOpen(true)}
-                  />
-                </div>
-
-                {insurance.length === 0 ? (
-                  <EmptyStateTemplate message="No vendor insurance information on file." />
-                ) : (
-                  <RecordListTemplate>
-                    {insurance.map((ins, idx) => (
-                      <RecordRowTemplate
-                        key={ins.id}
-                        isLast={idx === insurance.length - 1}
-                        leftSlot={
-                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                            <div>{ins.provider}</div>
-                            <div className="text-[#71717A] text-xs mt-1">
-                              Policy: {ins.policyNumber} • Expires:{" "}
-                              {ins.expirationDate}
-                            </div>
-                          </div>
-                        }
-                      />
-                    ))}
-                  </RecordListTemplate>
-                )}
-              </SectionCardTemplate>
-
-              {/* Custom Fields Section */}
-              <SectionCardTemplate className="mt-5">
-                <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                  <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                    Custom Fields
-                  </h2>
-                  <SectionActionTemplate
-                    label="Add"
-                    onClick={() => setIsAddCustomFieldOpen(true)}
-                  />
-                </div>
-
-                {fields.length === 0 ? (
-                  <EmptyStateTemplate message="There are no custom fields created to track additional information in this location. Contact your administrator to add custom fields." />
-                ) : (
-                  <RecordListTemplate>
-                    {fields.map((field, idx) => (
-                      <RecordRowTemplate
-                        key={field.id}
-                        isLast={idx === fields.length - 1}
-                        leftSlot={
-                          <div className="flex gap-6 flex-1">
-                            <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
-                              <div className="font-medium">{field.name}</div>
+                  {insurance.length === 0 ? (
+                    <EmptyStateTemplate message="No vendor insurance information on file." />
+                  ) : (
+                    <RecordListTemplate>
+                      {insurance.map((ins, idx) => (
+                        <RecordRowTemplate
+                          key={ins.id}
+                          isLast={idx === insurance.length - 1}
+                          leftSlot={
+                            <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                              <div>{ins.provider}</div>
                               <div className="text-[#71717A] text-xs mt-1">
-                                {field.value}
+                                Policy: {ins.policyNumber} • Expires:{" "}
+                                {ins.expirationDate}
                               </div>
                             </div>
-                          </div>
-                        }
-                      />
-                    ))}
-                  </RecordListTemplate>
-                )}
-              </SectionCardTemplate>
+                          }
+                        />
+                      ))}
+                    </RecordListTemplate>
+                  )}
+                </SectionRowTemplate>
 
-              {/* Recent Notes Section */}
-              <SectionCardTemplate className="mt-5">
-                <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                  <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                    Recent Notes
-                  </h2>
-                  <SectionActionTemplate
-                    label="Add"
-                    onClick={openAddNote}
-                  />
-                </div>
+                {/* Custom Fields Section */}
+                <SectionRowTemplate isLast={false}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Custom Fields
+                    </h2>
+                    <SectionActionTemplate
+                      label="Add"
+                      onClick={() => setIsAddCustomFieldOpen(true)}
+                    />
+                  </div>
 
-                {notes.length === 0 ? (
-                  <EmptyStateTemplate message="You don't have any notes for this vendor right now." />
-                ) : (
-                  <RecordListTemplate>
-                    {notes.map((note, idx) => (
-                      <RecordRowTemplate
-                        key={note.id}
-                        isLast={idx === notes.length - 1}
-                        leftSlot={
-                          <div className="flex-1">
-                            <div className="text-[#303030] text-sm font-normal leading-[1.29] whitespace-pre-line">
-                              {note.text}
-                            </div>
-                            <div className="flex items-center gap-8 mt-2 text-xs text-[#71717A]">
-                              <span>{note.date}</span>
-                              <span>{note.author}</span>
-                            </div>
-                          </div>
-                        }
-                        rightSlot={
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                type="button"
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                                aria-label="Actions"
-                              >
-                                <DotsIcon width={18} height={18} />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 rounded-lg"
-                              style={{ border: "0.5px solid #DADADA" }}
-                            >
-                              <DropdownMenuItem
-                                onSelect={() => {
-                                  setSelectedNote(note);
-                                  setIsViewNoteOpen(true);
-                                }}
-                                className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#303030] focus:text-[#303030]"
-                              >
-                                View
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={() => removeNote(note.id)}
-                                className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#982740] focus:text-[#982740]"
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        }
-                      />
-                    ))}
-                  </RecordListTemplate>
-                )}
-              </SectionCardTemplate>
-
-              {/* Recent Files Section */}
-              <SectionCardTemplate className="mt-5">
-                <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                  <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                    Recent Files
-                  </h2>
-                  <SectionActionTemplate
-                    label="Add"
-                    onClick={() => setIsAddFileOpen(true)}
-                  />
-                </div>
-
-                {files.length === 0 ? (
-                  <EmptyStateTemplate message="You don't have any files for this vendor right now." />
-                ) : (
-                  <RecordListTemplate>
-                    {files.map((file, idx) => (
-                      <RecordRowTemplate
-                        key={file.id}
-                        isLast={idx === files.length - 1}
-                        leftSlot={
-                          <div className="flex-1">
-                            {file.url ? (
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline"
-                              >
-                                {file.name}
-                              </a>
-                            ) : (
-                              <div className="text-[#303030] text-sm font-normal leading-[1.29]">
-                                {file.name}
+                  {fields.length === 0 ? (
+                    <EmptyStateTemplate message="There are no custom fields created to track additional information in this location. Contact your administrator to add custom fields." />
+                  ) : (
+                    <RecordListTemplate>
+                      {fields.map((field, idx) => (
+                        <RecordRowTemplate
+                          key={field.id}
+                          isLast={idx === fields.length - 1}
+                          leftSlot={
+                            <div className="flex gap-6 flex-1">
+                              <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
+                                <div className="font-medium">{field.name}</div>
+                                <div className="text-[#71717A] text-xs mt-1">
+                                  {field.value}
+                                </div>
                               </div>
-                            )}
-                            <div className="text-[#71717A] text-xs mt-1">
-                              {file.uploadedAt}
                             </div>
-                          </div>
-                        }
-                        rightSlot={
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                type="button"
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                                aria-label="Actions"
+                          }
+                        />
+                      ))}
+                    </RecordListTemplate>
+                  )}
+                </SectionRowTemplate>
+
+                {/* Recent Notes Section */}
+                <SectionRowTemplate isLast={false}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Recent Notes
+                    </h2>
+                    <SectionActionTemplate
+                      label="Add"
+                      onClick={openAddNote}
+                    />
+                  </div>
+
+                  {notes.length === 0 ? (
+                    <EmptyStateTemplate message="You don't have any notes for this vendor right now." />
+                  ) : (
+                    <RecordListTemplate>
+                      {notes.map((note, idx) => (
+                        <RecordRowTemplate
+                          key={note.id}
+                          isLast={idx === notes.length - 1}
+                          leftSlot={
+                            <div className="flex-1">
+                              <div className="text-[#303030] text-sm font-normal leading-[1.29] whitespace-pre-line">
+                                {note.text}
+                              </div>
+                              <div className="flex items-center gap-8 mt-2 text-xs text-[#71717A]">
+                                <span>{note.date}</span>
+                                <span>{note.author}</span>
+                              </div>
+                            </div>
+                          }
+                          rightSlot={
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                  aria-label="Actions"
+                                >
+                                  <DotsIcon width={18} height={18} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 rounded-lg"
+                                style={{ border: "0.5px solid #DADADA" }}
                               >
-                                <DotsIcon width={18} height={18} />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 rounded-lg"
-                              style={{ border: "0.5px solid #DADADA" }}
-                            >
-                              <DropdownMenuItem
-                                onSelect={() => {
-                                  setSelectedFile(file);
-                                  setIsViewFileOpen(true);
-                                }}
-                                className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#303030] focus:text-[#303030]"
+                                <DropdownMenuItem
+                                  onSelect={() => {
+                                    setSelectedNote(note);
+                                    setIsViewNoteOpen(true);
+                                  }}
+                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#303030] focus:text-[#303030]"
+                                >
+                                  View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => removeNote(note.id)}
+                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#982740] focus:text-[#982740]"
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          }
+                        />
+                      ))}
+                    </RecordListTemplate>
+                  )}
+                </SectionRowTemplate>
+
+                {/* Recent Files Section */}
+                <SectionRowTemplate isLast={true}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+                      Recent Files
+                    </h2>
+                    <SectionActionTemplate
+                      label="Add"
+                      onClick={() => setIsAddFileOpen(true)}
+                    />
+                  </div>
+
+                  {files.length === 0 ? (
+                    <EmptyStateTemplate message="You don't have any files for this vendor right now." />
+                  ) : (
+                    <RecordListTemplate>
+                      {files.map((file, idx) => (
+                        <RecordRowTemplate
+                          key={file.id}
+                          isLast={idx === files.length - 1}
+                          leftSlot={
+                            <div className="flex-1">
+                              {file.url ? (
+                                <a
+                                  href={file.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline"
+                                >
+                                  {file.name}
+                                </a>
+                              ) : (
+                                <div className="text-[#303030] text-sm font-normal leading-[1.29]">
+                                  {file.name}
+                                </div>
+                              )}
+                              <div className="text-[#71717A] text-xs mt-1">
+                                {file.uploadedAt}
+                              </div>
+                            </div>
+                          }
+                          rightSlot={
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                  aria-label="Actions"
+                                >
+                                  <DotsIcon width={18} height={18} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 rounded-lg"
+                                style={{ border: "0.5px solid #DADADA" }}
                               >
-                                View
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={() => deleteFile(file.id)}
-                                className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#982740] focus:text-[#982740]"
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        }
-                      />
-                    ))}
-                  </RecordListTemplate>
-                )}
-              </SectionCardTemplate>
+                                <DropdownMenuItem
+                                  onSelect={() => {
+                                    setSelectedFile(file);
+                                    setIsViewFileOpen(true);
+                                  }}
+                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#303030] focus:text-[#303030]"
+                                >
+                                  View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => deleteFile(file.id)}
+                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#982740] focus:text-[#982740]"
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          }
+                        />
+                      ))}
+                    </RecordListTemplate>
+                  )}
+                </SectionRowTemplate>
+              </SectionGroupCardTemplate>
             </div>
           </div>
         </div>
