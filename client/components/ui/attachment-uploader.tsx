@@ -88,6 +88,7 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   onFilesAdded,
   onFileRemoved,
   onViewFile,
+  onFileRenamed,
   files = [],
   accept = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif",
   maxFiles = 10,
@@ -95,9 +96,12 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   disabled = false,
   error = false,
   placeholder = "Drag and drop files here, or click to browse",
+  variant = "default",
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
+  const [editingFileId, setEditingFileId] = useState<string | null>(null);
+  const [editingFileName, setEditingFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isViewableFile = (file: UploadedFile): boolean => {
