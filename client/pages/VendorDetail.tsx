@@ -612,7 +612,7 @@ export default function VendorDetail() {
       </FormDialog>
 
       {/* Add/Edit File Modal */}
-      <ModalTemplate
+      <AddVendorFileModal
         open={isAddFileOpen}
         onOpenChange={(open) => {
           setIsAddFileOpen(open);
@@ -625,109 +625,12 @@ export default function VendorDetail() {
             setSelectedFile(null);
           }
         }}
-        title={isEditingFile ? "Edit File" : "Add File"}
-        size="sm"
-        onClose={() => {
-          setUploadedFiles([]);
-          setFileCategory("");
-          setFileDescription("");
-          setIsEditingFile(false);
-          setSelectedFile(null);
-        }}
-        footer={
-          <ModalButtons
-            onCancel={() => {
-              setUploadedFiles([]);
-              setFileCategory("");
-              setFileDescription("");
-              setIsEditingFile(false);
-              setSelectedFile(null);
-              setIsAddFileOpen(false);
-            }}
-            onConfirm={handleAddFile}
-            cancelLabel="Cancel"
-            confirmLabel={isEditingFile ? "Update" : "Add"}
-            confirmDisabled={isEditingFile ? false : uploadedFiles.length === 0}
-          />
-        }
-      >
-        <FormLayout>
-          <FormSection showDivider={false}>
-            <ModalField spacing="tight">
-              <FileUploadField
-                label="File"
-                required={true}
-                description=""
-                validate={validateFileForm}
-                files={uploadedFiles}
-                onFilesAdded={(newFiles) => {
-                  if (newFiles.length > 0) {
-                    setUploadedFiles([newFiles[0]]);
-                    setValidateFileForm(false);
-                  }
-                }}
-                onFileRemoved={(fileId) => {
-                  setUploadedFiles(
-                    uploadedFiles.filter((f) => f.id !== fileId),
-                  );
-                }}
-                onFileRenamed={(fileId, newName) => {
-                  setUploadedFiles(
-                    uploadedFiles.map((f) =>
-                      f.id === fileId ? { ...f, name: newName } : f,
-                    ),
-                  );
-                }}
-                onViewFile={(file) => {
-                  if (isEditingFile && selectedFile) {
-                    // Use existing file URL when editing
-                    setSelectedFile(selectedFile);
-                  } else {
-                    // Create new blob URL for new file
-                    setSelectedFile({
-                      id: Number(file.id),
-                      name: file.name,
-                      url: file.file
-                        ? URL.createObjectURL(file.file)
-                        : undefined,
-                      uploadedAt: new Date().toLocaleDateString(),
-                    });
-                  }
-                  setIsViewFileOpen(true);
-                }}
-                accept=".pdf"
-                maxFiles={1}
-                maxSize={10 * 1024 * 1024}
-                variant="single"
-              />
-            </ModalField>
-
-            <SelectField
-              label="Category"
-              value={fileCategory}
-              onChange={(value) => setFileCategory(value as string)}
-              options={[
-                { label: "Invoice", value: "Invoice" },
-                { label: "Contract", value: "Contract" },
-                { label: "License", value: "License" },
-                { label: "Insurance", value: "Insurance" },
-                { label: "Certificate", value: "Certificate" },
-                { label: "Agreement", value: "Agreement" },
-                { label: "Other", value: "Other" },
-              ]}
-              placeholder="Select a category"
-            />
-
-            <TextAreaField
-              label="Description"
-              value={fileDescription}
-              onChange={setFileDescription}
-              placeholder="Enter file description (optional)"
-              rows={3}
-            />
-          </FormSection>
-        </FormLayout>
-      </ModalTemplate>
+        initialFiles={uploadedFiles}
+        initialCategory={fileCategory}
+        initialDescription={fileDescription}
+        isEditMode={isEditingFile}
+        onSubmit={handleAddFile}
+      />
 
       {/* Edit Vendor Dialog */}
       <AddVendorModal
