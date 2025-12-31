@@ -1,65 +1,68 @@
 import React from "react";
 
+type FTOStatusType = "pending-approval" | "dispatched" | "approved";
+type TimesheetStatusType = "awaiting-submission" | "submitted" | "rejected" | "approved";
+type LegacyStatusType = "Paid" | "Pending" | "Pending Approval" | "Partially Paid" | "Overdue" | "Draft" | "active" | "inactive" | "Cancelled";
+
+type StatusType = FTOStatusType | TimesheetStatusType | LegacyStatusType;
+
 interface StatusBadgeProps {
-  status:
-    | "Paid"
-    | "Pending"
-    | "Pending Approval"
-    | "Partially Paid"
-    | "Approved"
-    | "Overdue"
-    | "Draft"
-    | "active"
-    | "inactive"
-    | "Dispatched"
-    | "New"
-    | "Cancelled";
+  status: StatusType;
+  variant?: "fto-status" | "timesheet-status" | "legacy";
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const getStatusColor = (status: StatusBadgeProps["status"]): string => {
-    switch (status) {
-      case "Paid":
-        return "rgb(39, 176, 125)";
-      case "Pending":
-      case "Pending Approval":
-      case "Partially Paid":
-        return "rgb(214, 133, 10)";
-      case "Approved":
-        return "rgb(36, 99, 235)";
-      case "Overdue":
-        return "rgb(215, 42, 29)";
-      case "Draft":
-        return "rgb(100, 100, 100)";
-      case "active":
-        return "rgb(5, 150, 105)";
-      case "inactive":
-        return "rgb(217, 119, 6)";
-      case "Dispatched":
-        return "rgb(36, 99, 235)";
-      case "New":
-        return "rgb(36, 99, 235)";
-      case "Cancelled":
-        return "rgb(100, 100, 100)";
-      default:
-        return "rgb(100, 100, 100)";
-    }
-  };
+const FTO_STATUS_CONFIG: Record<FTOStatusType, { label: string; color: string }> = {
+  "pending-approval": { label: "New", color: "#1E40AF" },
+  dispatched: { label: "Dispatched", color: "#B45309" },
+  approved: { label: "Completed", color: "#166534" },
+};
 
-  const dotColor = getStatusColor(status);
+const TIMESHEET_STATUS_CONFIG: Record<TimesheetStatusType, { label: string; color: string }> = {
+  "awaiting-submission": { label: "Awaiting Submission", color: "#3730A3" },
+  submitted: { label: "Submitted", color: "#991B1B" },
+  rejected: { label: "Rejected", color: "#DC2626" },
+  approved: { label: "Approved", color: "#065F46" },
+};
+
+const LEGACY_STATUS_CONFIG: Record<LegacyStatusType, { label: string; color: string }> = {
+  Paid: { label: "Paid", color: "rgb(39, 176, 125)" },
+  Pending: { label: "Pending", color: "rgb(214, 133, 10)" },
+  "Pending Approval": { label: "Pending Approval", color: "rgb(214, 133, 10)" },
+  "Partially Paid": { label: "Partially Paid", color: "rgb(214, 133, 10)" },
+  Approved: { label: "Approved", color: "rgb(36, 99, 235)" },
+  Overdue: { label: "Overdue", color: "rgb(215, 42, 29)" },
+  Draft: { label: "Draft", color: "rgb(100, 100, 100)" },
+  active: { label: "Active", color: "rgb(5, 150, 105)" },
+  inactive: { label: "Inactive", color: "rgb(217, 119, 6)" },
+  Cancelled: { label: "Cancelled", color: "rgb(100, 100, 100)" },
+};
+
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant = "legacy" }) => {
+  let config: { label: string; color: string } | undefined;
+
+  if (variant === "fto-status") {
+    config = FTO_STATUS_CONFIG[status as FTOStatusType];
+  } else if (variant === "timesheet-status") {
+    config = TIMESHEET_STATUS_CONFIG[status as TimesheetStatusType];
+  } else {
+    config = LEGACY_STATUS_CONFIG[status as LegacyStatusType];
+  }
+
+  if (!config) {
+    config = { label: String(status), color: "rgb(100, 100, 100)" };
+  }
 
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        color: dotColor,
+        color: config.color,
         gap: "8px",
         fontSize: "14px",
         fontWeight: "400",
         letterSpacing: "-0.32px",
         lineHeight: "22.4px",
-        textTransform: "capitalize",
         width: "fit-content",
       }}
     >
@@ -68,11 +71,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
           width: "8px",
           height: "8px",
           borderRadius: "50%",
-          backgroundColor: dotColor,
+          backgroundColor: config.color,
           flexShrink: 0,
         }}
       />
-      {status}
+      {config.label}
     </div>
   );
 };
