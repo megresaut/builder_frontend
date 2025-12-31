@@ -30,6 +30,7 @@ function PopoverActionsDropdownContent({
   allActions: ActionItem[];
 }) {
   const popover = usePopoverContext();
+  const actionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const items = useMemo(
     () =>
@@ -63,6 +64,13 @@ function PopoverActionsDropdownContent({
       match?.onSelect();
     });
   }, [items, popover]);
+
+  // Sync DOM focus with visual highlight when arrow keys navigate
+  useEffect(() => {
+    if (popover.isOpen && actionRefs.current[popover.highlightedIndex]) {
+      actionRefs.current[popover.highlightedIndex]?.focus();
+    }
+  }, [popover.highlightedIndex, popover.isOpen]);
 
   return (
     <div className="flex flex-col justify-start items-start">
