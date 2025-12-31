@@ -51,18 +51,6 @@ export default function FtoOrderCard({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "#059669";
-      case "rejected":
-        return "#DC2626";
-      case "pending":
-        return "#2463EB";
-      default:
-        return "#6B7280";
-    }
-  };
 
   const handleCardClick = () => {
     if (onViewTask) {
