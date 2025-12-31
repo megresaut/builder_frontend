@@ -661,7 +661,7 @@ export default function VendorDetail() {
         </FormLayout>
       </FormDialog>
 
-      {/* Add File Modal */}
+      {/* Add/Edit File Modal */}
       <ModalTemplate
         open={isAddFileOpen}
         onOpenChange={(open) => {
@@ -670,14 +670,18 @@ export default function VendorDetail() {
             setUploadedFiles([]);
             setFileCategory("");
             setFileDescription("");
+            setIsEditingFile(false);
+            setSelectedFile(null);
           }
         }}
-        title="Add File"
+        title={isEditingFile ? "Edit File" : "Add File"}
         size="sm"
         onClose={() => {
           setUploadedFiles([]);
           setFileCategory("");
           setFileDescription("");
+          setIsEditingFile(false);
+          setSelectedFile(null);
         }}
         footer={
           <ModalButtons
@@ -685,11 +689,13 @@ export default function VendorDetail() {
               setUploadedFiles([]);
               setFileCategory("");
               setFileDescription("");
+              setIsEditingFile(false);
+              setSelectedFile(null);
               setIsAddFileOpen(false);
             }}
             onConfirm={handleAddFile}
             cancelLabel="Cancel"
-            confirmLabel="Add"
+            confirmLabel={isEditingFile ? "Update" : "Add"}
             confirmDisabled={uploadedFiles.length === 0}
           />
         }
