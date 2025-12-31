@@ -54,6 +54,7 @@ interface FieldShellProps {
  * @param cellValue - Display value for cell mode (shown when popover is closed)
  * @param onCellCommit - Callback when value is committed in cell mode (blur/Enter)
  * @param value - Field value for automatic required field validation
+ * @param validate - Only show required field errors when this is true (default: false)
  *
  * Example (form mode):
  * ```tsx
