@@ -711,7 +711,7 @@ export default function VendorDetail() {
             onConfirm={handleAddFile}
             cancelLabel="Cancel"
             confirmLabel={isEditingFile ? "Update" : "Add"}
-            confirmDisabled={uploadedFiles.length === 0}
+            confirmDisabled={isEditingFile ? false : uploadedFiles.length === 0}
           />
         }
       >
