@@ -28,3 +28,18 @@ Tables must use GlobalTable
 Fields must go through FieldShell
 
 Modals must use ModalTemplate
+
+# State Management
+
+Do not add multiple useState calls for modals, selection, or form values. All page-level UI state must live in a single useReducer using activeModal, selection, and drafts. Only one modal may be open at a time, and closing a modal must reset its draft state. Child components must remain presentational.
+
+# Mock Data
+
+When mocking data, always create a mock API request (function or handler), not static mock objects.
+The mock request must:
+
+Accept the inferred or known parameters the real endpoint would require.
+
+Return mock JSON shaped exactly as the UI consumes.
+
+Infer the minimum required parameters from UI usage if docs are unavailable (e.g. propertyId, noteId, fileId) and do not invent extras.
