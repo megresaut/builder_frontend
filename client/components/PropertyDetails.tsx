@@ -66,6 +66,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [showAddFileModal, setShowAddFileModal] = useState(false);
   const [showViewNoteModal, setShowViewNoteModal] = useState(false);
   const [showViewFileModal, setShowViewFileModal] = useState(false);
+  const [viewNoteDraft, setViewNoteDraft] = useState("");
 
   const [selectedNote, setSelectedNote] = useState<RecentNote | null>(null);
   const [selectedFile, setSelectedFile] = useState<RecentFile | null>(null);
@@ -179,119 +180,97 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   return (
     <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
       <div className="flex flex-col w-full min-w-[240px]">
-        <div className="rounded-lg bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-[#E5E5E5] flex flex-col w-full p-4">
+        <SectionGroupCardTemplate>
           {/* Property Details Section */}
-          <div className="flex flex-col w-full font-medium">
-            <PageHeader
-              title="Property Details"
-              actionButton={{
-                label: "Edit",
-                onClick: () => setShowEditPropertyModal(true),
-              }}
-              moreOptions={{}}
-            />
-
-            <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
-              <img
-                loading="lazy"
-                srcSet={`${propertyImage}&width=100 100w, ${propertyImage}&width=200 200w, ${propertyImage}&width=400 400w`}
-                src={propertyImage}
-                className="rounded-lg min-w-[240px] w-[273px] aspect-[1.57] object-cover"
-                alt="Property"
+          <SectionRowTemplate isLast={false}>
+            <div className="flex flex-col w-full font-medium">
+              <PageHeader
+                title="Property Details"
+                actionButton={{
+                  label: "Edit",
+                  onClick: () => setShowEditPropertyModal(true),
+                }}
+                moreOptions={{}}
               />
-              <div className="flex min-w-[240px] min-h-[160px] flex-col justify-center flex-1">
-                <div className="flex flex-col w-full max-w-[423px]">
-                  <div className="text-[#71717A] text-xs leading-[1.33]">
-                    ADDRESS
+
+              <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
+                <img
+                  loading="lazy"
+                  srcSet={`${propertyImage}&width=100 100w, ${propertyImage}&width=200 200w, ${propertyImage}&width=400 400w`}
+                  src={propertyImage}
+                  className="rounded-lg min-w-[240px] w-[273px] aspect-[1.57] object-cover"
+                  alt="Property"
+                />
+                <div className="flex min-w-[240px] min-h-[160px] flex-col justify-center flex-1">
+                  <div className="flex flex-col w-full max-w-[423px]">
+                    <div className="text-[#71717A] text-xs leading-[1.33]">
+                      ADDRESS
+                    </div>
+                    <div className="text-[#303030] text-base leading-[1.13] mt-1">
+                      <div>{propertyAddress}</div>
+                      <div>{propertyLocation}</div>
+                    </div>
+                    <button
+                      onClick={openViewMaps}
+                      className="rounded-lg self-start flex mt-1 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
+                    >
+                      <img
+                        loading="lazy"
+                        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/8eb71e6b8a164f52539454633c48318f2d6d3eee?placeholderIfAbsent=true"
+                        className="w-[14px] h-[14px]"
+                        alt=""
+                      />
+                      <span>View Maps</span>
+                    </button>
                   </div>
-                  <div className="text-[#303030] text-base leading-[1.13] mt-1">
-                    <div>{propertyAddress}</div>
-                    <div>{propertyLocation}</div>
+
+                  <div className="flex mt-5 w-full items-start gap-14 flex-1">
+                    <div className="flex flex-col">
+                      <div className="text-[#71717A] text-xs leading-[1.33]">
+                        RENTAL OWNERS
+                      </div>
+                      <div className="flex self-start mt-1 items-end gap-2 text-base text-[#303030] leading-[1.13]">
+                        <div>{rentalOwner}</div>
+                      </div>
+                    </div>
+                    <div className="flex min-h-[33px] flex-col">
+                      <div className="text-[#71717A] text-xs leading-[1.33]">
+                        PROPERTY MANAGERS
+                      </div>
+                      <div className="text-[#303030] text-base leading-[1.13] mt-1">
+                        {propertyManager}
+                      </div>
+                    </div>
                   </div>
+
                   <button
-                    onClick={openViewMaps}
-                    className="rounded-lg self-start flex mt-1 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
+                    onClick={() => setShowPhotoUploadModal(true)}
+                    className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
                   >
                     <img
                       loading="lazy"
-                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/8eb71e6b8a164f52539454633c48318f2d6d3eee?placeholderIfAbsent=true"
+                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d427594bd49179e577cb5955600fc9901bcd3437?placeholderIfAbsent=true"
                       className="w-[14px] h-[14px]"
                       alt=""
                     />
-                    <span>View Maps</span>
+                    <span>Upload Photo</span>
                   </button>
                 </div>
-
-                <div className="flex mt-5 w-full items-start gap-14 flex-1">
-                  <div className="flex flex-col">
-                    <div className="text-[#71717A] text-xs leading-[1.33]">
-                      RENTAL OWNERS
-                    </div>
-                    <div className="flex self-start mt-1 items-end gap-2 text-base text-[#303030] leading-[1.13]">
-                      <div>{rentalOwner}</div>
-                    </div>
-                  </div>
-                  <div className="flex min-h-[33px] flex-col">
-                    <div className="text-[#71717A] text-xs leading-[1.33]">
-                      PROPERTY MANAGERS
-                    </div>
-                    <div className="text-[#303030] text-base leading-[1.13] mt-1">
-                      {propertyManager}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowPhotoUploadModal(true)}
-                  className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-                >
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d427594bd49179e577cb5955600fc9901bcd3437?placeholderIfAbsent=true"
-                    className="w-[14px] h-[14px]"
-                    alt=""
-                  />
-                  <span>Upload Photo</span>
-                </button>
               </div>
             </div>
-          </div>
+          </SectionRowTemplate>
 
-          {/* Separator */}
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
-            alt=""
-          />
-
-          {/* Separator */}
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
-            alt=""
-          />
-
-          {/* Custom Fields and Rates Section */}
-          <div className="flex mt-5 w-full items-start gap-5 font-medium flex-wrap">
-            <div className="flex min-w-[240px] flex-col flex-1">
+          {/* Custom Fields Section */}
+          <SectionRowTemplate isLast={false}>
+            <div className="flex min-w-[240px] flex-col flex-1 w-full">
               <div className="flex w-full items-center justify-between gap-4 flex-wrap">
                 <div className="text-[#303030] text-xl leading-[1.1]">
                   Custom Fields
                 </div>
-                <button
+                <SectionActionTemplate
+                  label="Edit"
                   onClick={() => setShowEditCustomFieldsModal(true)}
-                  className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-                >
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
-                    className="w-3 h-3"
-                    alt=""
-                  />
-                  <span>Edit</span>
-                </button>
+                />
               </div>
 
               <div className="flex mt-3 w-full flex-col">
@@ -346,24 +325,19 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 </div>
               </div>
             </div>
+          </SectionRowTemplate>
 
-            <div className="flex min-w-[240px] flex-col flex-1">
+          {/* Rates Section */}
+          <SectionRowTemplate isLast={false}>
+            <div className="flex min-w-[240px] flex-col flex-1 w-full">
               <div className="flex w-full items-center justify-between gap-4 flex-wrap whitespace-nowrap">
                 <div className="text-[#303030] text-xl leading-[1.1]">
                   Rates
                 </div>
-                <button
+                <SectionActionTemplate
+                  label="Edit"
                   onClick={() => setShowEditRatesModal(true)}
-                  className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-                >
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
-                    className="w-3 h-3"
-                    alt=""
-                  />
-                  <span>Edit</span>
-                </button>
+                />
               </div>
 
               <div className="flex mt-3 w-full flex-col">
@@ -402,460 +376,403 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Separator */}
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
-            alt=""
-          />
+          </SectionRowTemplate>
 
           {/* Recent Notes Section */}
-          <div className="flex mt-5 w-full flex-col">
-            <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
-              <div className="text-[#303030] text-xl leading-[1.1]">
-                Recent Notes
-              </div>
-              <button
-                onClick={() => setShowAddNoteModal(true)}
-                className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/eb2ef5646108571624ccf8540dc9922047c9c587?placeholderIfAbsent=true"
-                  className="w-3 h-3"
-                  alt=""
+          <SectionRowTemplate isLast={false}>
+            <div className="flex w-full flex-col">
+              <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
+                <div className="text-[#303030] text-xl leading-[1.1]">
+                  Recent Notes
+                </div>
+                <SectionActionTemplate
+                  label="Add"
+                  onClick={() => setShowAddNoteModal(true)}
                 />
-                <span>Add</span>
-              </button>
-            </div>
-
-            {recentNotes.length === 0 ? (
-              <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                  You don't have any notes for this property right now.{" "}
-                  <button
-                    onClick={() => setShowAddNoteModal(true)}
-                    className="font-medium text-[#2463EB] hover:underline"
-                  >
-                    Add your first note
-                  </button>
-                </p>
               </div>
-            ) : (
-              <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-sm text-[#303030] font-normal">
-                {recentNotes.map((note, index) => (
-                  <div
-                    key={note.id}
-                    className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
-                      index !== recentNotes.length - 1
-                        ? "border-b border-[#DADADA]"
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className="leading-[18px] w-[232px]"
-                      style={{ whiteSpace: "pre-line" }}
-                    >
-                      {note.text}
-                    </div>
-                    <div className="flex min-w-[240px] items-center gap-8 leading-[1.29]">
-                      <div className="w-[135px]">{note.date}</div>
-                      <div className="w-[118px]">{note.author}</div>
-                      <PopoverActionsDropdown
-                        row={note}
-                        rowKey="id"
-                        actions={[
-                          {
-                            label: "View",
-                            icon: (
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                                  stroke="#525252"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <circle
-                                  cx="12"
-                                  cy="12"
-                                  r="3"
-                                  stroke="#525252"
-                                  strokeWidth="1.5"
-                                />
-                              </svg>
-                            ),
-                            onClick: (note) => {
-                              setSelectedNote(note);
-                              setViewNoteDraft(note.text);
-                              setShowViewNoteModal(true);
+
+              {recentNotes.length === 0 ? (
+                <EmptyStateTemplate message="You don't have any notes for this property right now." />
+              ) : (
+                <RecordListTemplate>
+                  {recentNotes.map((note, idx) => (
+                    <RecordRowTemplate
+                      key={note.id}
+                      isLast={idx === recentNotes.length - 1}
+                      leftSlot={
+                        <div className="flex-1">
+                          <div className="text-[#303030] text-sm font-normal leading-[1.29] whitespace-pre-line">
+                            {note.text}
+                          </div>
+                          <div className="flex items-center gap-8 mt-2 text-xs text-[#71717A]">
+                            <span>{note.date}</span>
+                            <span>{note.author}</span>
+                          </div>
+                        </div>
+                      }
+                      rightSlot={
+                        <PopoverActionsDropdown
+                          row={note}
+                          rowKey="id"
+                          actions={[
+                            {
+                              label: "View",
+                              icon: (
+                                <svg
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                                    stroke="#525252"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="3"
+                                    stroke="#525252"
+                                    strokeWidth="1.5"
+                                  />
+                                </svg>
+                              ),
+                              onClick: (note) => {
+                                setSelectedNote(note);
+                                setViewNoteDraft(note.text);
+                                setShowViewNoteModal(true);
+                              },
                             },
-                          },
-                          {
-                            label: "Delete",
-                            icon: (
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 18 18"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                                  stroke="#982740"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            ),
-                            onClick: (note) => handleDeleteNote(note.id),
-                          },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Separator */}
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
-            alt=""
-          />
+                            {
+                              label: "Delete",
+                              icon: (
+                                <svg
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 18 18"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                                    stroke="#982740"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              ),
+                              onClick: (note) => handleDeleteNote(note.id),
+                            },
+                          ]}
+                        />
+                      }
+                    />
+                  ))}
+                </RecordListTemplate>
+              )}
+            </div>
+          </SectionRowTemplate>
 
           {/* Recent Files Section */}
-          <div className="flex mt-5 w-full flex-col">
-            <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
-              <div className="text-[#303030] text-xl leading-[1.1]">
-                Recent Files
-              </div>
-              <button
-                onClick={() => setShowAddFileModal(true)}
-                className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/eb2ef5646108571624ccf8540dc9922047c9c587?placeholderIfAbsent=true"
-                  className="w-3 h-3"
-                  alt=""
+          <SectionRowTemplate isLast={true}>
+            <div className="flex w-full flex-col">
+              <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
+                <div className="text-[#303030] text-xl leading-[1.1]">
+                  Recent Files
+                </div>
+                <SectionActionTemplate
+                  label="Add"
+                  onClick={() => setShowAddFileModal(true)}
                 />
-                <span>Add</span>
-              </button>
-            </div>
-
-            {recentFiles.length === 0 ? (
-              <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                  You don't have any files for this property right now.{" "}
-                  <button
-                    onClick={() => setShowAddFileModal(true)}
-                    className="font-medium text-[#2463EB] hover:underline"
-                  >
-                    Add your first file
-                  </button>
-                </p>
               </div>
-            ) : (
-              <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-[#303030]">
-                {recentFiles.map((file, index) => (
-                  <div
-                    key={file.id}
-                    className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
-                      index !== recentFiles.length - 1
-                        ? "border-b border-[#DADADA]"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex min-w-[240px] items-center gap-2 w-[301px]">
-                      <img
-                        loading="lazy"
-                        src={file.icon}
-                        className="w-9 h-9"
-                        alt="File icon"
-                      />
-                      {file.subtitle ? (
-                        <div className="flex min-w-[240px] flex-col flex-1">
-                          <div className="text-sm font-medium leading-[1.29]">
-                            {file.name}
-                          </div>
-                          <div className="text-xs font-normal">
-                            {file.subtitle}
+
+              {recentFiles.length === 0 ? (
+                <EmptyStateTemplate message="You don't have any files for this property right now." />
+              ) : (
+                <RecordListTemplate>
+                  {recentFiles.map((file, idx) => (
+                    <RecordRowTemplate
+                      key={file.id}
+                      isLast={idx === recentFiles.length - 1}
+                      leftSlot={
+                        <div className="flex items-center gap-2">
+                          <img
+                            loading="lazy"
+                            src={file.icon}
+                            className="w-9 h-9"
+                            alt="File icon"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium leading-[1.29]">
+                              {file.name}
+                            </div>
+                            {file.subtitle && (
+                              <div className="text-xs font-normal">
+                                {file.subtitle}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      ) : (
-                        <div className="text-sm font-medium leading-[1.29]">
-                          {file.name}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex min-w-[240px] items-center gap-8 font-normal">
-                      <div className="text-sm leading-[1.29]">
-                        {file.category}
-                      </div>
-                      <div className="flex flex-col w-[135px]">
-                        <div className="text-sm leading-[1.29]">
-                          {file.date}
-                        </div>
-                        <div className="text-xs">by {file.author}</div>
-                      </div>
-                      <PopoverActionsDropdown
-                        row={file}
-                        rowKey="id"
-                        actions={[
-                          {
-                            label: "View",
-                            icon: (
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                                  stroke="#525252"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <circle
-                                  cx="12"
-                                  cy="12"
-                                  r="3"
-                                  stroke="#525252"
-                                  strokeWidth="1.5"
-                                />
-                              </svg>
-                            ),
-                            onClick: (file) => {
-                              setSelectedFile(file);
-                              setShowViewFileModal(true);
-                            },
-                          },
-                          {
-                            label: "Delete",
-                            icon: (
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 18 18"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                                  stroke="#982740"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            ),
-                            onClick: (file) => handleDeleteFile(file.id),
-                          },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* View Note Modal */}
-          <ViewPropertyNoteModal
-            open={showViewNoteModal}
-            onOpenChange={(open) => {
-              setShowViewNoteModal(open);
-              if (!open) setSelectedNote(null);
-            }}
-            note={selectedNote}
-            onSaveNote={(id, newText) => {
-              setRecentNotes((prev) =>
-                prev.map((n) =>
-                  n.id === id
-                    ? {
-                        ...n,
-                        text: newText,
-                        date: new Date().toLocaleString(),
                       }
-                    : n,
-                ),
-              );
-            }}
-            onDeleteNote={handleDeleteNote}
-          />
+                      rightSlot={
+                        <div className="flex items-center gap-8">
+                          <div className="text-sm leading-[1.29]">
+                            {file.category}
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="text-sm leading-[1.29]">
+                              {file.date}
+                            </div>
+                            <div className="text-xs">by {file.author}</div>
+                          </div>
+                          <PopoverActionsDropdown
+                            row={file}
+                            rowKey="id"
+                            actions={[
+                              {
+                                label: "View",
+                                icon: (
+                                  <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                                      stroke="#525252"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <circle
+                                      cx="12"
+                                      cy="12"
+                                      r="3"
+                                      stroke="#525252"
+                                      strokeWidth="1.5"
+                                    />
+                                  </svg>
+                                ),
+                                onClick: (file) => {
+                                  setSelectedFile(file);
+                                  setShowViewFileModal(true);
+                                },
+                              },
+                              {
+                                label: "Delete",
+                                icon: (
+                                  <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 18 18"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                                      stroke="#982740"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                ),
+                                onClick: (file) => handleDeleteFile(file.id),
+                              },
+                            ]}
+                          />
+                        </div>
+                      }
+                    />
+                  ))}
+                </RecordListTemplate>
+              )}
+            </div>
+          </SectionRowTemplate>
+        </SectionGroupCardTemplate>
 
-          {/* PDF Viewer */}
-          <PdfViewerModal
-            open={showViewFileModal}
-            onOpenChange={(open) => {
-              setShowViewFileModal(open);
-              if (!open) setSelectedFile(null);
-            }}
-            title={selectedFile?.name || "File Preview"}
-            url={selectedFile?.url}
-          />
+        {/* View Note Modal */}
+        <ViewPropertyNoteModal
+          open={showViewNoteModal}
+          onOpenChange={(open) => {
+            setShowViewNoteModal(open);
+            if (!open) setSelectedNote(null);
+          }}
+          note={selectedNote}
+          onSaveNote={(id, newText) => {
+            setRecentNotes((prev) =>
+              prev.map((n) =>
+                n.id === id
+                  ? {
+                      ...n,
+                      text: newText,
+                      date: new Date().toLocaleString(),
+                    }
+                  : n,
+              ),
+            );
+          }}
+          onDeleteNote={handleDeleteNote}
+        />
 
+        {/* PDF Viewer */}
+        <PdfViewerModal
+          open={showViewFileModal}
+          onOpenChange={(open) => {
+            setShowViewFileModal(open);
+            if (!open) setSelectedFile(null);
+          }}
+          title={selectedFile?.name || "File Preview"}
+          url={selectedFile?.url}
+        />
 
-          {/* Upload Photo Modal */}
-          <UploadPhotoModal
-            open={showPhotoUploadModal}
-            onOpenChange={setShowPhotoUploadModal}
-            onUpload={(file) => {
-              console.log("Photo uploaded:", file.name);
-            }}
-          />
+        {/* Upload Photo Modal */}
+        <UploadPhotoModal
+          open={showPhotoUploadModal}
+          onOpenChange={setShowPhotoUploadModal}
+          onUpload={(file) => {
+            console.log("Photo uploaded:", file.name);
+          }}
+        />
 
-          {/* Edit Property Modal */}
-          <AddPropertyModal
-            open={showEditPropertyModal}
-            onOpenChange={setShowEditPropertyModal}
-            editData={{
-              address: propertyAddress,
-              location: propertyLocation,
-              type: propertyType,
-              buildingId: "624090",
-              status: "inactive",
-              managers: [
+        {/* Edit Property Modal */}
+        <AddPropertyModal
+          open={showEditPropertyModal}
+          onOpenChange={setShowEditPropertyModal}
+          editData={{
+            address: propertyAddress,
+            location: propertyLocation,
+            type: propertyType,
+            buildingId: "624090",
+            status: "inactive",
+            managers: [
+              {
+                id: "pm",
+                name: propertyManager,
+                initials: propertyManager
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((p) => p[0]?.toUpperCase())
+                  .join(""),
+              },
+            ],
+            rentalOwner,
+          }}
+        />
+
+        {/* Edit Custom Fields Modal */}
+        <EditPropertyCustomFieldsModal
+          open={showEditCustomFieldsModal}
+          onOpenChange={setShowEditCustomFieldsModal}
+          initialData={{
+            managementAgreementDate,
+            inspectionFrequency,
+          }}
+          onSave={(data) => {
+            setManagementAgreementDate(data.managementAgreementDate);
+            setInspectionFrequency(data.inspectionFrequency);
+          }}
+        />
+
+        {/* Edit Rates Modal */}
+        <EditPropertyRatesModal
+          open={showEditRatesModal}
+          onOpenChange={setShowEditRatesModal}
+          initialData={{
+            monthlyRate,
+            defaultRate,
+            emergencyRate,
+          }}
+          onSave={(data) => {
+            setMonthlyRate(data.monthlyRate);
+            setDefaultRate(data.defaultRate);
+            setEmergencyRate(data.emergencyRate);
+          }}
+        />
+
+        {/* Add Note Modal */}
+        <AddPropertyNoteModal
+          open={showAddNoteModal}
+          onOpenChange={setShowAddNoteModal}
+          onAddNote={(noteText) => {
+            const now = new Date();
+            const date = now.toLocaleString(undefined, {
+              month: "numeric",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            });
+
+            setRecentNotes((prev) => {
+              const nextId = prev.length
+                ? Math.max(...prev.map((n) => n.id)) + 1
+                : 1;
+              return [
+                ...prev,
                 {
-                  id: "pm",
-                  name: propertyManager,
-                  initials: propertyManager
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((p) => p[0]?.toUpperCase())
-                    .join(""),
+                  id: nextId,
+                  text: noteText,
+                  type: "RENTAL",
+                  date,
+                  author: propertyManager,
                 },
-              ],
-              rentalOwner,
-            }}
-          />
+              ];
+            });
+          }}
+        />
 
-          {/* Edit Custom Fields Modal */}
-          <EditPropertyCustomFieldsModal
-            open={showEditCustomFieldsModal}
-            onOpenChange={setShowEditCustomFieldsModal}
-            initialData={{
-              managementAgreementDate,
-              inspectionFrequency,
-            }}
-            onSave={(data) => {
-              setManagementAgreementDate(data.managementAgreementDate);
-              setInspectionFrequency(data.inspectionFrequency);
-            }}
-          />
+        {/* Add File Modal */}
+        <AddPropertyFileModal
+          open={showAddFileModal}
+          onOpenChange={setShowAddFileModal}
+          onAddFile={(file, category) => {
+            const blobUrl = URL.createObjectURL(file);
+            const now = new Date();
+            const date = now.toLocaleString(undefined, {
+              month: "numeric",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            });
 
-          {/* Edit Rates Modal */}
-          <EditPropertyRatesModal
-            open={showEditRatesModal}
-            onOpenChange={setShowEditRatesModal}
-            initialData={{
-              monthlyRate,
-              defaultRate,
-              emergencyRate,
-            }}
-            onSave={(data) => {
-              setMonthlyRate(data.monthlyRate);
-              setDefaultRate(data.defaultRate);
-              setEmergencyRate(data.emergencyRate);
-            }}
-          />
+            const fileName = file.name;
+            const ext = fileName.split(".").pop()?.toLowerCase() || "";
+            const docIcon =
+              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+            const pdfIcon =
+              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+            const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
 
-          {/* Add Note Modal */}
-          <AddPropertyNoteModal
-            open={showAddNoteModal}
-            onOpenChange={setShowAddNoteModal}
-            onAddNote={(noteText) => {
-              const now = new Date();
-              const date = now.toLocaleString(undefined, {
-                month: "numeric",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              });
-
-              setRecentNotes((prev) => {
-                const nextId = prev.length
-                  ? Math.max(...prev.map((n) => n.id)) + 1
-                  : 1;
-                return [
-                  ...prev,
-                  {
-                    id: nextId,
-                    text: noteText,
-                    type: "RENTAL",
-                    date,
-                    author: propertyManager,
-                  },
-                ];
-              });
-            }}
-          />
-
-          {/* Add File Modal */}
-          <AddPropertyFileModal
-            open={showAddFileModal}
-            onOpenChange={setShowAddFileModal}
-            onAddFile={(file, category) => {
-              const blobUrl = URL.createObjectURL(file);
-              const now = new Date();
-              const date = now.toLocaleString(undefined, {
-                month: "numeric",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              });
-
-              const fileName = file.name;
-              const ext = fileName.split(".").pop()?.toLowerCase() || "";
-              const docIcon =
-                "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-              const pdfIcon =
-                "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-              const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-
-              setRecentFiles((prev) => {
-                const nextId = prev.length
-                  ? Math.max(...prev.map((f) => f.id)) + 1
-                  : 1;
-                return [
-                  ...prev,
-                  {
-                    id: nextId,
-                    name: fileName,
-                    category,
-                    date,
-                    author: propertyManager,
-                    type: ext || "file",
-                    icon,
-                    url: blobUrl,
-                  },
-                ];
-              });
-            }}
-          />
-        </div>
+            setRecentFiles((prev) => {
+              const nextId = prev.length
+                ? Math.max(...prev.map((f) => f.id)) + 1
+                : 1;
+              return [
+                ...prev,
+                {
+                  id: nextId,
+                  name: fileName,
+                  category,
+                  date,
+                  author: propertyManager,
+                  type: ext || "file",
+                  icon,
+                  url: blobUrl,
+                },
+              ];
+            });
+          }}
+        />
       </div>
     </div>
   );
