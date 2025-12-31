@@ -248,6 +248,18 @@ export default function AddVendorModal({
           </ModalField>
 
           <ModalField spacing="tight">
+            <FieldShell label="Category" htmlFor="category">
+              <Input
+                id="category"
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g., Contractor, Service Provider"
+              />
+            </FieldShell>
+          </ModalField>
+
+          <ModalField spacing="tight">
             <FieldShell label="Primary Email" htmlFor="primary-email">
               <Input
                 id="primary-email"
@@ -272,15 +284,39 @@ export default function AddVendorModal({
           </ModalField>
 
           <ModalField spacing="tight">
-            <FieldShell label="Services Provided" htmlFor="services-provided">
+            <FieldShell label="Website" htmlFor="website">
               <Input
-                id="services-provided"
-                type="text"
-                value={servicesProvided}
-                onChange={(e) => setServicesProvided(e.target.value)}
-                placeholder="Select services..."
+                id="website"
+                type="url"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://example.com"
               />
             </FieldShell>
+          </ModalField>
+
+          <ModalField spacing="tight">
+            <SelectField
+              label="Services Provided"
+              value={Array.isArray(servicesProvided) ? servicesProvided : (servicesProvided ? [servicesProvided] : [])}
+              onChange={(val) => setServicesProvided(val)}
+              options={[
+                { value: "hvac", label: "HVAC" },
+                { value: "plumbing", label: "Plumbing" },
+                { value: "electrical", label: "Electrical" },
+                { value: "carpentry", label: "Carpentry" },
+                { value: "roofing", label: "Roofing" },
+                { value: "painting", label: "Painting" },
+                { value: "flooring", label: "Flooring" },
+                { value: "landscaping", label: "Landscaping" },
+                { value: "pest-control", label: "Pest Control" },
+                { value: "security-systems", label: "Security Systems" },
+                { value: "appliance-repair", label: "Appliance Repair" },
+                { value: "general-maintenance", label: "General Maintenance" },
+              ]}
+              multiple={true}
+              placeholder="Select services..."
+            />
           </ModalField>
 
           <ModalField spacing="tight">
