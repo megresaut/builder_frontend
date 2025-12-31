@@ -4,8 +4,6 @@ export interface VendorFile {
   name: string;
   url?: string;
   uploadedAt: string;
-  category?: string;
-  description?: string;
 }
 
 export const MOCK_VENDOR_FILES: VendorFile[] = [];
@@ -19,8 +17,6 @@ export async function fetchVendorFiles(vendorId: number): Promise<VendorFile[]> 
 export async function uploadVendorFile(
   vendorId: number,
   file: File,
-  category?: string,
-  description?: string,
 ): Promise<VendorFile> {
   // Mock: create blob URL + add to MOCK_VENDOR_FILES
   // API: return fetch(`/api/vendors/${vendorId}/files`, { method: 'POST', body: formData })
@@ -31,8 +27,6 @@ export async function uploadVendorFile(
     name: file.name,
     url,
     uploadedAt: new Date().toLocaleString(),
-    category,
-    description,
   };
   MOCK_VENDOR_FILES.push(newFile);
   return newFile;
