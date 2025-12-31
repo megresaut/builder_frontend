@@ -76,6 +76,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
     >
       <Popover open={open} onOpenChange={setOpen}>
         <MultiSelectFieldContent
+          label={label}
           open={open}
           setOpen={setOpen}
           fieldId={fieldId}
