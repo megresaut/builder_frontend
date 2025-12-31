@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FormDialog } from "@/components/FormDialog";
-import { TextField } from "@/components/forms";
+import { TextAreaField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
 interface AddVendorNoteModalProps {
