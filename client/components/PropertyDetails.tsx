@@ -458,12 +458,12 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         />
 
         {/* Add Note Modal */}
-        <AddPropertyNoteModal
+        <AddVendorNoteModal
           open={state.activeModal === "addNote"}
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
-          onAddNote={(noteText) => {
+          onSubmit={(noteText) => {
             const now = new Date();
             const date = now.toLocaleString(undefined, {
               month: "numeric",
@@ -492,13 +492,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         />
 
         {/* Add File Modal */}
-        <AddPropertyFileModal
+        <AddVendorFileModal
           open={state.activeModal === "addFile"}
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
-          onAddFile={(file, category) => {
-            const blobUrl = URL.createObjectURL(file);
+          onSubmit={(uploadedFiles, category) => {
+            const blobUrl = URL.createObjectURL(uploadedFiles[0].file!);
             const now = new Date();
             const date = now.toLocaleString(undefined, {
               month: "numeric",
@@ -508,7 +508,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               minute: "2-digit",
             });
 
-            const fileName = file.name;
+            const fileName = uploadedFiles[0].name;
             const ext = fileName.split(".").pop()?.toLowerCase() || "";
             const docIcon =
               "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
