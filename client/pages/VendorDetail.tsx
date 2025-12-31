@@ -772,12 +772,18 @@ export default function VendorDetail() {
                   );
                 }}
                 onViewFile={(file) => {
-                  setSelectedFile({
-                    id: Number(file.id),
-                    name: file.name,
-                    url: file.file ? URL.createObjectURL(file.file) : undefined,
-                    uploadedAt: new Date().toLocaleDateString(),
-                  });
+                  if (isEditingFile && selectedFile) {
+                    // Use existing file URL when editing
+                    setSelectedFile(selectedFile);
+                  } else {
+                    // Create new blob URL for new file
+                    setSelectedFile({
+                      id: Number(file.id),
+                      name: file.name,
+                      url: file.file ? URL.createObjectURL(file.file) : undefined,
+                      uploadedAt: new Date().toLocaleDateString(),
+                    });
+                  }
                   setIsViewFileOpen(true);
                 }}
                 accept=".pdf"
