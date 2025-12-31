@@ -1,4 +1,5 @@
-export { SectionCardTemplate } from "./SectionCardTemplate";
+export { SectionRowTemplate } from "./SectionRowTemplate";
+export { SectionGroupCardTemplate } from "./SectionGroupCardTemplate";
 export { SectionActionTemplate } from "./SectionActionTemplate";
 export { EmptyStateTemplate } from "./EmptyStateTemplate";
 export { RecordListTemplate } from "./RecordListTemplate";
