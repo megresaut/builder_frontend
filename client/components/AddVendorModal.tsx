@@ -122,15 +122,14 @@ export default function AddVendorModal({
           email,
           phone,
           website,
-          servicesProvided,
+          servicesProvided: Array.isArray(servicesProvided) ? servicesProvided.join(", ") : servicesProvided,
         });
       } else if (!edit && onAddVendor) {
-        const serviceLabels = Array.isArray(servicesProvided)
-          ? servicesProvided.map(
-              (value) =>
-                availableServices.find((s) => s.value === value)?.label || value,
-            )
-          : [];
+        const serviceArray = Array.isArray(servicesProvided) ? servicesProvided : [];
+        const serviceLabels = serviceArray.map(
+          (value) =>
+            availableServices.find((s) => s.value === value)?.label || value,
+        );
         onAddVendor({
           name: vendorName,
           email,
