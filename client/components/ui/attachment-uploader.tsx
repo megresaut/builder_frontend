@@ -39,10 +39,13 @@ interface AttachmentUploaderProps {
  * - Customizable accepted file types
  * - Disabled state
  * - Error highlighting
+ * - Optional filename editing
+ * - Optional single-file variant with conditional dropzone visibility
  *
  * @param onFilesAdded - Callback when files are added
  * @param onFileRemoved - Callback when file is removed (pass fileId)
  * @param onViewFile - Callback when View button is clicked (pass UploadedFile)
+ * @param onFileRenamed - Callback when file is renamed (pass fileId and newName)
  * @param files - Current list of uploaded files
  * @param accept - Accepted file types (e.g., "image/*,.pdf")
  * @param maxFiles - Maximum number of files (default: 10)
@@ -50,6 +53,7 @@ interface AttachmentUploaderProps {
  * @param disabled - Disable upload
  * @param error - Show error styling
  * @param placeholder - Custom placeholder text
+ * @param variant - "default" for multiple files, "single" for single file with dropzone toggle
  *
  * Example:
  * ```tsx
@@ -66,6 +70,17 @@ interface AttachmentUploaderProps {
  *   accept="image/*,.pdf"
  *   maxFiles={5}
  *   maxSize={5 * 1024 * 1024} // 5MB
+ * />
+ *
+ * // Single file variant with editable names
+ * <AttachmentUploader
+ *   variant="single"
+ *   files={files}
+ *   onFilesAdded={(newFiles) => setFiles(newFiles)}
+ *   onFileRemoved={(fileId) => setFiles([])}
+ *   onFileRenamed={(fileId, newName) => {
+ *     setFiles(files.map(f => f.id === fileId ? { ...f, name: newName } : f))
+ *   }}
  * />
  * ```
  */
