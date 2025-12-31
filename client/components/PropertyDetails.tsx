@@ -497,7 +497,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
-          onSubmit={(uploadedFiles, category) => {
+          onSubmit={(uploadedFiles, category, description) => {
             const blobUrl = URL.createObjectURL(uploadedFiles[0].file!);
             const now = new Date();
             const date = now.toLocaleString(undefined, {
