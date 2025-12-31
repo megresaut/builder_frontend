@@ -310,48 +310,41 @@ export default function VendorDetail() {
             <div className="flex-1 min-w-[240px] w-full">
               <SectionGroupCardTemplate>
                 {/* Vendor Information Section */}
-                <SectionRowTemplate isLast={false}>
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Vendor Information
-                    </h2>
-                    <SectionActionTemplate
-                      icon={<EditIcon width={14} height={14} />}
-                      label="Edit"
-                      onClick={openEditVendor}
-                    />
-                  </div>
-
-                  <KeyValueGrid
-                    cells={[
-                      {
-                        label: "EMAIL",
-                        value: (vendorDraft || vendor).email,
-                        icon: (vendorDraft || vendor).email ? (
-                          <EmailIcon width={14} height={14} />
-                        ) : undefined,
-                        isLink: (vendorDraft || vendor).email ? true : false,
-                      },
-                      {
-                        label: "PHONE",
-                        value: (vendorDraft || vendor).phone,
-                      },
-                      {
-                        label: "ADDRESS",
-                        value: (vendorDraft || vendor).address,
-                      },
-                      {
-                        label: "WEBSITE",
-                        value: (vendorDraft || vendor).website,
-                      },
-                      {
-                        label: "SERVICES PROVIDED",
-                        value: (vendorDraft || vendor).servicesProvided,
-                        fullWidth: true,
-                      },
-                    ]}
-                  />
-                </SectionRowTemplate>
+                <DataSectionTemplate
+                  title="Vendor Information"
+                  subsections={[
+                    {
+                      title: "",
+                      fields: [
+                        {
+                          label: "EMAIL",
+                          value: (vendorDraft || vendor).email,
+                          icon: (vendorDraft || vendor).email ? (
+                            <EmailIcon width={14} height={14} />
+                          ) : undefined,
+                        },
+                        {
+                          label: "PHONE",
+                          value: (vendorDraft || vendor).phone,
+                        },
+                        {
+                          label: "ADDRESS",
+                          value: (vendorDraft || vendor).address,
+                        },
+                        {
+                          label: "WEBSITE",
+                          value: (vendorDraft || vendor).website,
+                        },
+                        {
+                          label: "SERVICES PROVIDED",
+                          value: (vendorDraft || vendor).servicesProvided,
+                        },
+                      ],
+                    },
+                  ]}
+                  onEdit={openEditVendor}
+                  isLast={false}
+                />
 
                 {/* Vendor Insurance Section */}
                 <SectionRowTemplate isLast={false}>
