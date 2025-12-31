@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import BlueButton from "@/components/BlueButton";
 import { PropertyManagerAvatar } from "@/components/PropertyManagerAvatar";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   CalendarIcon,
   BuildingIcon,
