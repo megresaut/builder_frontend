@@ -168,13 +168,28 @@ export default function VendorDetail() {
     if (uploadedFiles.length === 0) return;
 
     const fileObj = uploadedFiles[0];
-    if (fileObj?.file) {
-      await uploadFile(fileObj.file);
+
+    if (isEditingFile && selectedFile) {
+      // Update existing file
+      const updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>> = {
+        name: fileObj.name,
+      };
+      if (fileCategory) updates.category = fileCategory;
+      if (fileDescription) updates.description = fileDescription;
+
+      await updateFile(selectedFile.id, updates);
+    } else {
+      // Create new file
+      if (fileObj?.file) {
+        await uploadFile(fileObj.file, fileCategory || undefined, fileDescription || undefined);
+      }
     }
 
     setUploadedFiles([]);
     setFileCategory("");
     setFileDescription("");
+    setIsEditingFile(false);
+    setSelectedFile(null);
     setIsAddFileOpen(false);
   };
 
