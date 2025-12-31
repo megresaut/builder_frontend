@@ -99,6 +99,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   maxSize = 10 * 1024 * 1024, // 10MB
   placeholder = "Drag and drop files here, or click to browse",
   variant = "default",
+  validate = false,
 }) => {
   return (
     <FieldShell
@@ -109,6 +110,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
       disabled={disabled}
       htmlFor={id}
       value={files.length > 0 ? files.length : ""}
+      validate={validate}
     >
       <AttachmentUploader
         files={files}
