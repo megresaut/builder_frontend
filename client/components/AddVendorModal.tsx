@@ -62,7 +62,7 @@ export default function AddVendorModal({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
-  const [servicesProvided, setServicesProvided] = useState("");
+  const [servicesProvided, setServicesProvided] = useState<string | string[]>("");
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: string }>({});
 
