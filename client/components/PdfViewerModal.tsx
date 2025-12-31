@@ -178,14 +178,22 @@ export default function PdfViewerModal({
                 borderRadius: "4px",
               }}
             />
+          ) : isProbablyPdfUrl(safeUrl, title) ? (
+            <embed
+              key={iframeKey}
+              src={safeUrl}
+              type="application/pdf"
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+              }}
+            />
           ) : (
             <iframe
+              key={iframeKey}
               title={title}
-              src={
-                isProbablyPdfUrl(safeUrl, title)
-                  ? `${safeUrl}#toolbar=1&navpanes=0&view=Fit`
-                  : safeUrl
-              }
+              src={safeUrl}
               style={{
                 width: "100%",
                 height: "100%",
