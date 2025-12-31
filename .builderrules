@@ -33,6 +33,8 @@ Modals must use ModalTemplate
 
 Do not add multiple useState calls for modals, selection, or form values. All page-level UI state must live in a single useReducer using activeModal, selection, and drafts. Only one modal may be open at a time, and closing a modal must reset its draft state. Child components must remain presentational.
 
+It should be a separate hook, similar to usePropertyDetailsState.ts
+
 # Mock Data
 
 When mocking data, always create a mock API request (function or handler), not static mock objects.
