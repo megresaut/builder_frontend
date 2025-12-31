@@ -762,6 +762,7 @@ export default function VendorDetail() {
                 label="File"
                 required={true}
                 description=""
+                validate={validateFileForm}
                 files={uploadedFiles}
                 onFilesAdded={(newFiles) => {
                   if (newFiles.length > 0) {
