@@ -440,6 +440,16 @@ export default function VendorDetail() {
                                   {file.name}
                                 </div>
                               )}
+                              {file.category && (
+                                <div className="text-[#71717A] text-xs mt-1">
+                                  <span className="font-medium">Category:</span> {file.category}
+                                </div>
+                              )}
+                              {file.description && (
+                                <div className="text-[#71717A] text-xs mt-1">
+                                  <span className="font-medium">Description:</span> {file.description}
+                                </div>
+                              )}
                               <div className="text-[#71717A] text-xs mt-1">
                                 {file.uploadedAt}
                               </div>
