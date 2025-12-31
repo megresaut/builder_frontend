@@ -395,123 +395,21 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
 
           {/* Recent Files Section */}
-          <SectionRowTemplate isLast={true}>
-            <div className="flex w-full flex-col">
-              <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
-                <div className="text-[#303030] text-xl leading-[1.1]">
-                  Recent Files
-                </div>
-                <SectionActionTemplate
-                  label="Add"
-                  onClick={() => setShowAddFileModal(true)}
-                />
-              </div>
-
-              {recentFiles.length === 0 ? (
-                <EmptyStateTemplate message="You don't have any files for this property right now." />
-              ) : (
-                <RecordListTemplate>
-                  {recentFiles.map((file, idx) => (
-                    <RecordRowTemplate
-                      key={file.id}
-                      isLast={idx === recentFiles.length - 1}
-                      leftSlot={
-                        <div className="flex items-center gap-2">
-                          <img
-                            loading="lazy"
-                            src={file.icon}
-                            className="w-9 h-9"
-                            alt="File icon"
-                          />
-                          <div className="flex-1">
-                            <div className="text-sm font-medium leading-[1.29]">
-                              {file.name}
-                            </div>
-                            {file.subtitle && (
-                              <div className="text-xs font-normal">
-                                {file.subtitle}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      }
-                      rightSlot={
-                        <div className="flex items-center gap-8">
-                          <div className="text-sm leading-[1.29]">
-                            {file.category}
-                          </div>
-                          <div className="flex flex-col">
-                            <div className="text-sm leading-[1.29]">
-                              {file.date}
-                            </div>
-                            <div className="text-xs">by {file.author}</div>
-                          </div>
-                          <PopoverActionsDropdown
-                            row={file}
-                            rowKey="id"
-                            actions={[
-                              {
-                                label: "View",
-                                icon: (
-                                  <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                                      stroke="#525252"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <circle
-                                      cx="12"
-                                      cy="12"
-                                      r="3"
-                                      stroke="#525252"
-                                      strokeWidth="1.5"
-                                    />
-                                  </svg>
-                                ),
-                                onClick: (file) => {
-                                  setSelectedFile(file);
-                                  setShowViewFileModal(true);
-                                },
-                              },
-                              {
-                                label: "Delete",
-                                icon: (
-                                  <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 18 18"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                                      stroke="#982740"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                ),
-                                onClick: (file) => handleDeleteFile(file.id),
-                              },
-                            ]}
-                          />
-                        </div>
-                      }
-                    />
-                  ))}
-                </RecordListTemplate>
-              )}
-            </div>
-          </SectionRowTemplate>
+          <FilesTemplate
+            files={recentFiles}
+            onAdd={() => setShowAddFileModal(true)}
+            onEdit={(file) => {
+              setSelectedFile(file);
+              setShowViewFileModal(true);
+            }}
+            onDelete={handleDeleteFile}
+            onView={(file) => {
+              setSelectedFile(file);
+              setShowViewFileModal(true);
+            }}
+            isLast={true}
+            emptyMessage="You don't have any files for this property right now."
+          />
         </SectionGroupCardTemplate>
 
         {/* View Note Modal */}
