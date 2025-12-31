@@ -488,6 +488,12 @@ export default function VendorDetail() {
                               <div className="text-[#71717A] text-xs mt-1">
                                 {file.uploadedAt}
                               </div>
+                              {(file.category || file.description) && (
+                                <div className="text-[#71717A] text-xs mt-2 space-y-1">
+                                  {file.category && <div>Category: {file.category}</div>}
+                                  {file.description && <div>Description: {file.description}</div>}
+                                </div>
+                              )}
                             </div>
                           }
                           rightSlot={
