@@ -267,71 +267,45 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           </SectionRowTemplate>
 
           {/* Custom Fields Section */}
-          <SectionRowTemplate isLast={false}>
-            <div className="flex min-w-[240px] flex-col flex-1 w-full">
-              <div className="flex w-full items-center justify-between gap-4 flex-wrap">
-                <div className="text-[#303030] text-xl leading-[1.1]">
-                  Custom Fields
-                </div>
-                <SectionActionTemplate
-                  label="Edit"
-                  onClick={() => setShowEditCustomFieldsModal(true)}
-                />
-              </div>
-
-              <div className="flex mt-3 w-full flex-col">
-                <div className="flex flex-col w-full">
-                  <div className="text-[#303030] text-base leading-[1.38]">
-                    Agreement
-                  </div>
-                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
-                    <div className="flex flex-col">
-                      <div>MANAGEMENT AGREEMENT DATE</div>
-                      <div>
-                        {managementAgreementDate
-                          ? new Date(
-                              managementAgreementDate,
-                            ).toLocaleDateString()
-                          : "-"}
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>INSPECTION FREQUENCY</div>
-                      <div>{inspectionFrequency}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex mt-5 w-full flex-col">
-                  <div className="text-[#303030] text-base leading-[1.38]">
-                    Vendor Agreement
-                  </div>
-                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
-                    <div className="flex flex-col">
-                      <div>HVAC START</div>
-                      <div>-</div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>HVAC END</div>
-                      <div>-</div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>LANDSCAPING START</div>
-                      <div>-</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setShowMoreCustomFields(!showMoreCustomFields)
-                    }
-                    className="text-[#2463EB] text-sm leading-[1.4] tracking-[-0.28px] mt-3 text-left"
-                  >
-                    {showMoreCustomFields ? "Show less" : "Show more"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </SectionRowTemplate>
+          <DataSectionTemplate
+            title="Custom Fields"
+            subsections={[
+              {
+                title: "Agreement",
+                fields: [
+                  {
+                    label: "MANAGEMENT AGREEMENT DATE",
+                    value: managementAgreementDate
+                      ? new Date(managementAgreementDate).toLocaleDateString()
+                      : "-",
+                  },
+                  {
+                    label: "INSPECTION FREQUENCY",
+                    value: inspectionFrequency,
+                  },
+                ],
+              },
+              {
+                title: "Vendor Agreement",
+                fields: [
+                  {
+                    label: "HVAC START",
+                    value: "-",
+                  },
+                  {
+                    label: "HVAC END",
+                    value: "-",
+                  },
+                  {
+                    label: "LANDSCAPING START",
+                    value: "-",
+                  },
+                ],
+              },
+            ]}
+            onEdit={() => setShowEditCustomFieldsModal(true)}
+            isLast={false}
+          />
 
           {/* Rates Section */}
           <SectionRowTemplate isLast={false}>
