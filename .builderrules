@@ -1,43 +1,71 @@
-# Fields & Inputs
-- All form fields MUST use `FieldShell` with a field variant.
-- Do NOT render raw <input>, <select>, or <textarea> directly in pages.
-- Validation, error text, helper text, and icons must be handled by FieldShell.
-
-# Modals & Popovers
-- All modals MUST use `ModalTemplate`.
-
-
-# Refactoring Rule (CRUNCH SAFE)
-- Do NOT refactor backend contracts or handler signatures.
-
-
 # General
-- Prefer extracting reusable logic into hooks instead of duplicating behavior.
-- If a required template does not exist, create it before implementing the feature.
 
-Make sure to check if you need to delete old files whenever you create new files, so there isn't file bloat
-
-# icons
-
-Any icons that i add, add to the icon library and store as a template icon
-
-Pages may not set padding directly
+Prefer extracting reusable logic into hooks instead of duplicating behavior.
 
 Tables must use GlobalTable
 
-Fields must go through FieldShell
+Before creating any new component or template, check for an existing one and reuse it. If unsure whether one exists, ask before creating a new file.
 
-Modals must use ModalTemplate
+Each file must have a single clear responsibility. If a file grows beyond one responsibility, split it. Do not mix layout, state management, and data fetching in the same file.
+
+# Fields & Inputs
+
+All form fields MUST use FieldShell with a field variant.
+
+Do NOT render raw <input>, <select>, or <textarea> directly in pages.
+
+Validation, error text, helper text, and icons must be handled by FieldShell.
+
+# Modals & Popovers
+
+All modals MUST use ModalTemplate.
+
+File Management
+
+Make sure to check if you need to delete old files whenever you create new files, so there isn't file bloat.
+
+If a new file replaces an old file, delete the unused file and remove unused imports.
+
+Do not leave unused imports, unused exports, or dead files. If functionality is removed or replaced, clean up immediately.
+
+# Icons
+
+Any svg icons I import, add to the icon library and then import from the icon library into the component.
 
 # State Management
 
-Do not add multiple useState calls for modals, selection, or form values. All page-level UI state must live in a single useReducer using activeModal, selection, and drafts. Only one modal may be open at a time, and closing a modal must reset its draft state. Child components must remain presentational.
+Do not add multiple useState calls for modals, selection, or form values.
 
-It should be a separate hook, similar to usePropertyDetailsState.ts
+All page-level UI state must live in a single useReducer using activeModal, selection, and drafts.
+
+Only one modal may be open at a time, and closing a modal must reset its draft state.
+
+Child components must remain presentational and may only use local state for purely visual UI (e.g. hover), not page data or modal state.
+
+Page-level state and handlers should live in a separate hook, similar to usePropertyDetailsState.ts.
+
+Custom hooks may manage state, side effects, and orchestration. Components should only render UI and forward events.
+
+# Types
+
+Shared data types (e.g. RecentNote, RecentFile) must live in code/client/types/ and be imported, not defined locally.
+
+# Naming Conventions
+
+Name hooks with useXState or useXController.
+
+Name templates with Template.
+
+Name presentational components without use or State.
+
+Side Effects
+
+API calls, mutations, and side effects must live in hooks or service files, not directly in components or templates.
 
 # Mock Data
 
 When mocking data, always create a mock API request (function or handler), not static mock objects.
+
 The mock request must:
 
 Accept the inferred or known parameters the real endpoint would require.
