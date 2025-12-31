@@ -35,9 +35,9 @@ export function useVendorFiles(vendorId: number): UseVendorFilesResult {
     }
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, category?: string, description?: string) => {
     try {
-      const newFile = await uploadVendorFile(vendorId, file);
+      const newFile = await uploadVendorFile(vendorId, file, category, description);
       setFiles([...files, newFile]);
     } catch (err) {
       setError(err as Error);
@@ -48,6 +48,15 @@ export function useVendorFiles(vendorId: number): UseVendorFilesResult {
     try {
       await deleteVendorFile(fileId);
       setFiles(files.filter(f => f.id !== fileId));
+    } catch (err) {
+      setError(err as Error);
+    }
+  };
+
+  const updateFile = async (fileId: number, updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>) => {
+    try {
+      await updateVendorFile(fileId, updates);
+      setFiles(files.map(f => f.id === fileId ? { ...f, ...updates } : f));
     } catch (err) {
       setError(err as Error);
     }
