@@ -178,18 +178,26 @@ export default function PdfViewerModal({
               }}
             />
           ) : (
-            <iframe
+            <object
               key={iframeKey}
-              title={title}
-              src={safeUrl}
+              data={safeUrl}
+              type="application/pdf"
               style={{
                 width: "100%",
                 height: "100%",
                 border: "none",
               }}
-              sandbox="allow-same-origin"
-              allow="fullscreen"
-            />
+            >
+              <iframe
+                title={title}
+                src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(safeUrl)}`}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                }}
+              />
+            </object>
           )}
         </div>
       ) : (
