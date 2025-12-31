@@ -98,10 +98,10 @@ export default function VendorDetail() {
 
   // Sync vendorDraft with vendor when vendor data loads
   useEffect(() => {
-    if (vendor && !vendorDraft) {
+    if (vendor) {
       setVendorDraft(vendor);
     }
-  }, [vendor, vendorDraft]);
+  }, [vendor]);
 
   // Populate form fields when editing a file
   useEffect(() => {
