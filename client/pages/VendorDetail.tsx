@@ -96,6 +96,21 @@ export default function VendorDetail() {
     }
   }, [vendor, vendorDraft]);
 
+  // Populate form fields when editing a file
+  useEffect(() => {
+    if (isEditingFile && selectedFile) {
+      setUploadedFiles([
+        {
+          id: String(selectedFile.id),
+          name: selectedFile.name,
+          size: 0,
+          type: "application/pdf",
+        },
+      ]);
+      // TODO: Set fileCategory and fileDescription from file metadata if available
+    }
+  }, [isEditingFile, selectedFile]);
+
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
     onAction: () => setIsInactive((v) => !v),
