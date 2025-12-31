@@ -26,31 +26,20 @@ export default function EditPropertyCustomFieldsModal({
   onSave,
 }: EditPropertyCustomFieldsModalProps) {
   const [managementAgreementDate, setManagementAgreementDate] = useState<
-    Date | null
+    string | null
   >(null);
   const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
 
   useEffect(() => {
-    if (!open) {
-      setManagementAgreementDate(null);
-      setInspectionFrequency("Monthly");
-    } else if (initialData) {
-      if (initialData.managementAgreementDate) {
-        setManagementAgreementDate(
-          new Date(initialData.managementAgreementDate)
-        );
-      }
-      if (initialData.inspectionFrequency) {
-        setInspectionFrequency(initialData.inspectionFrequency);
-      }
+    if (open && initialData) {
+      setManagementAgreementDate(initialData.managementAgreementDate || null);
+      setInspectionFrequency(initialData.inspectionFrequency || "Monthly");
     }
   }, [open, initialData]);
 
   const handleSave = () => {
     onSave?.({
-      managementAgreementDate: managementAgreementDate
-        ? managementAgreementDate.toISOString().split("T")[0]
-        : "",
+      managementAgreementDate: managementAgreementDate || "",
       inspectionFrequency,
     });
     onOpenChange(false);
@@ -76,19 +65,25 @@ export default function EditPropertyCustomFieldsModal({
           <DateField
             label="Management Agreement Date"
             value={managementAgreementDate}
-            onChange={setManagementAgreementDate}
+            onChange={(value) =>
+              setManagementAgreementDate(
+                typeof value === "string" ? value : value?.toISOString().split("T")[0] || null
+              )
+            }
+            returnFormat="ISO"
             placeholder="MM/DD/YYYY"
           />
           <SelectField
             label="Inspection Frequency"
             value={inspectionFrequency}
-            onChange={setInspectionFrequency}
+            onChange={(value) => setInspectionFrequency(value as string)}
             options={[
               { value: "Weekly", label: "Weekly" },
               { value: "Biweekly", label: "Biweekly" },
               { value: "Monthly", label: "Monthly" },
               { value: "Bi-Monthly", label: "Bi-Monthly" },
             ]}
+            placeholder="Select frequency"
           />
         </FormSection>
       </FormLayout>
