@@ -3,6 +3,7 @@ import {
   fetchVendorFiles,
   uploadVendorFile,
   deleteVendorFile,
+  updateVendorFile,
   type VendorFile,
 } from '@/data/vendors';
 
@@ -10,8 +11,9 @@ interface UseVendorFilesResult {
   files: VendorFile[];
   loading: boolean;
   error: Error | null;
-  uploadFile: (file: File) => Promise<void>;
+  uploadFile: (file: File, category?: string, description?: string) => Promise<void>;
   deleteFile: (fileId: number) => Promise<void>;
+  updateFile: (fileId: number, updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
