@@ -102,11 +102,45 @@ export default function AddVendorModal({
     }
   }, [open, edit, initialVendor]);
 
+  const validateEmail = (emailValue: string): string | undefined => {
+    if (!emailValue.trim()) return undefined;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailValue)) {
+      return "Invalid email format";
+    }
+    return undefined;
+  };
+
+  const validatePhone = (phoneValue: string): string | undefined => {
+    if (!phoneValue.trim()) return undefined;
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    if (!phoneRegex.test(phoneValue) || phoneValue.replace(/\D/g, "").length < 10) {
+      return "Invalid phone number (min 10 digits)";
+    }
+    return undefined;
+  };
+
   const validateForm = (): boolean => {
-    const newErrors: { vendorName?: string } = {};
+    const newErrors: {
+      vendorName?: string;
+      email?: string;
+      phone?: string;
+    } = {};
+
     if (!vendorName.trim()) {
       newErrors.vendorName = "Vendor Name is required";
     }
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      newErrors.email = emailError;
+    }
+
+    const phoneError = validatePhone(phone);
+    if (phoneError) {
+      newErrors.phone = phoneError;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
