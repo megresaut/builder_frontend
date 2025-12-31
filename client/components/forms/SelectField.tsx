@@ -387,6 +387,9 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         syncTriggerWidth={true}
       >
         <div
+          id="select-listbox"
+          role="listbox"
+          aria-label={label}
           style={{
             padding: "4px 0",
             maxHeight: "300px",
