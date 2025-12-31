@@ -91,11 +91,13 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   onFilesAdded,
   onFileRemoved,
   onViewFile,
+  onFileRenamed,
   disabled = false,
   accept = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif",
   maxFiles = 10,
   maxSize = 10 * 1024 * 1024, // 10MB
   placeholder = "Drag and drop files here, or click to browse",
+  variant = "default",
 }) => {
   return (
     <FieldShell
@@ -111,12 +113,14 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         onFilesAdded={onFilesAdded}
         onFileRemoved={onFileRemoved}
         onViewFile={onViewFile}
+        onFileRenamed={onFileRenamed}
         accept={accept}
         maxFiles={maxFiles}
         maxSize={maxSize}
         disabled={disabled}
         error={!!error}
         placeholder={placeholder}
+        variant={variant}
       />
     </FieldShell>
   );
