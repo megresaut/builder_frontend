@@ -188,15 +188,35 @@ export default function PdfViewerModal({
                 border: "none",
               }}
             >
-              <iframe
-                title={title}
-                src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(safeUrl)}`}
+              <div
                 style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   width: "100%",
                   height: "100%",
-                  border: "none",
+                  color: "#71717A",
+                  textAlign: "center",
+                  padding: "20px",
+                  fontSize: "14px",
                 }}
-              />
+              >
+                <p>
+                  PDF viewer not available.
+                  <br />
+                  <a
+                    href={safeUrl}
+                    download={title}
+                    style={{
+                      color: "var(--color-button-primary)",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Download the file instead
+                  </a>
+                </p>
+              </div>
             </object>
           )}
         </div>
