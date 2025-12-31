@@ -18,6 +18,8 @@ import {
   RecordRowTemplate,
   NotesTemplate,
   FilesTemplate,
+  DataSectionTemplate,
+  type Subsection,
 } from "@/components/templates";
 
 interface PropertyDetailsProps {
