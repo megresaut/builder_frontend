@@ -754,7 +754,7 @@ export default function VendorDetail() {
             <ModalField spacing="tight">
               <FileUploadField
                 label="File"
-                description="Upload PDF documents"
+                required={true}
                 files={uploadedFiles}
                 onFilesAdded={(newFiles) => {
                   if (newFiles.length > 0) {
