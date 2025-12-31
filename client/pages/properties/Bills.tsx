@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "../Utilities";
+import { StatusBadge } from "@/components/StatusBadge";
 import AddVendorModal from "@/components/AddVendorModal";
 import PageHeader from "@/components/PageHeader";
 import { SubPageHeaderV2 } from "@/components/SubPageHeaderV2";

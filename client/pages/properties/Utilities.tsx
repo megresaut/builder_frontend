@@ -2,12 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import {
-  StatusBadge,
-  BillStatusBadge,
-  AIInsightBadge,
-  ActionButton,
-} from "../Utilities";
+import { StatusBadge } from "@/components/StatusBadge";
+import { BillStatusBadge } from "@/components/BillStatusBadge";
+import { AIInsightBadge } from "@/components/AIInsightBadge";
+import { ActionButton } from "@/components/ActionButton";
 import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
 
 interface UtilityAccount {
