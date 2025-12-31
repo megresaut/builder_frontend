@@ -66,6 +66,55 @@ interface APIFTOResponse {
   updated_at?: string;
 }
 
+// Mock user database - simulates GET /users/{id}
+const mockUsers: Record<number, { id: number; name: string }> = {
+  1: { id: 1, name: "Christopher Harris" },
+  2: { id: 2, name: "Cassandra Smith" },
+  3: { id: 3, name: "David Chen" },
+  4: { id: 4, name: "Emma Rodriguez" },
+  5: { id: 5, name: "James Wilson" },
+};
+
+// Helper to generate initials from name
+const getInitials = (name: string): string => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
+};
+
+// Helper to resolve field team members (replaces real GET /users/{id} call)
+const resolveFieldTeamMembers = (
+  memberIds: number[]
+): Array<{ initials: string; color: string; name: string }> => {
+  return memberIds.map((id) => {
+    const user = mockUsers[id] || { id, name: "Unknown User" };
+    return {
+      initials: getInitials(user.name),
+      color: "bg-blue-500",
+      name: user.name,
+    };
+  });
+};
+
+// Map form_submission_status to timesheetStatus
+const mapFormSubmissionToTimesheetStatus = (
+  formStatus: "none" | "partial" | "complete"
+): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
+  switch (formStatus) {
+    case "none":
+      return "awaiting-submission";
+    case "partial":
+      return "submitted";
+    case "complete":
+      return "approved";
+    default:
+      return "awaiting-submission";
+  }
+};
+
 const mockFetchFTOs = async (params: {
   field_team_member_id: number;
   status?: string;
@@ -109,7 +158,7 @@ const mockFetchFTOs = async (params: {
       priority: "normal",
       due_date: "2025-09-29T00:00:00Z",
       approval_status: "approved",
-      form_submission_status: "none",
+      form_submission_status: "complete",
       is_visible_to_client: true,
       hours_decimal: 6.0,
       total_amount: 95,
@@ -130,7 +179,7 @@ const mockFetchFTOs = async (params: {
       priority: "low",
       due_date: "2025-09-10T00:00:00Z",
       approval_status: "pending",
-      form_submission_status: "none",
+      form_submission_status: "partial",
       is_visible_to_client: true,
       hours_decimal: 4.5,
       total_amount: 95,
@@ -172,7 +221,7 @@ const mockFetchFTOs = async (params: {
       priority: "normal",
       due_date: "2025-09-05T00:00:00Z",
       approval_status: "pending",
-      form_submission_status: "none",
+      form_submission_status: "complete",
       is_visible_to_client: true,
       hours_decimal: 5.5,
       total_amount: 93,
@@ -208,13 +257,13 @@ const mockFetchFTOs = async (params: {
       property_name: "22 Indian Chase Dr",
       property_address: "22 Indian Chase Dr, Springfield, IL 62701",
       task_id: 6,
-      field_team_member_ids: [1, 2],
+      field_team_member_ids: [3, 4],
       pm_assignee_ids: [101, 102],
       status: "dispatched",
       priority: "high",
       due_date: "2025-09-04T00:00:00Z",
       approval_status: "pending",
-      form_submission_status: "none",
+      form_submission_status: "partial",
       is_visible_to_client: true,
       hours_decimal: 6.5,
       total_amount: 101,
@@ -250,13 +299,13 @@ const mockFetchFTOs = async (params: {
       property_name: "22 Indian Chase Dr",
       property_address: "22 Indian Chase Dr, Springfield, IL 62701",
       task_id: 6,
-      field_team_member_ids: [1, 2],
+      field_team_member_ids: [5],
       pm_assignee_ids: [101, 102],
       status: "dispatched",
       priority: "low",
       due_date: "2025-09-01T00:00:00Z",
       approval_status: "pending",
-      form_submission_status: "none",
+      form_submission_status: "complete",
       is_visible_to_client: true,
       hours_decimal: 3.5,
       total_amount: 67,
@@ -304,11 +353,9 @@ const transformAPIToFieldTeamOrder = (
       day: "numeric",
     });
 
-    const timesheetStatuses: Array<
-      "awaiting-submission" | "submitted" | "rejected" | "approved"
-    > = ["awaiting-submission", "submitted", "rejected", "approved"];
-    const randomStatus =
-      timesheetStatuses[Math.floor(Math.random() * timesheetStatuses.length)];
+    const timesheetStatus = mapFormSubmissionToTimesheetStatus(
+      fto.form_submission_status
+    );
 
     return {
       id: fto.id,
@@ -317,12 +364,9 @@ const transformAPIToFieldTeamOrder = (
       description: fto.description,
       dueDate,
       priority: (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
-      fieldTeam: [
-        { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
-        { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" },
-      ],
+      fieldTeam: resolveFieldTeamMembers(fto.field_team_member_ids),
       status: (fto.status as "dispatched" | "approved" | "pending-approval") || "pending-approval",
-      timesheetStatus: randomStatus,
+      timesheetStatus,
       amount: fto.total_amount,
       unit: "Unit",
     };
