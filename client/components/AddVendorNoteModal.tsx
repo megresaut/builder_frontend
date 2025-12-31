@@ -59,12 +59,11 @@ export const AddVendorNoteModal: React.FC<AddVendorNoteModalProps> = ({
     >
       <FormLayout>
         <FormSection showDivider={false}>
-          <TextField
+          <TextAreaField
             label="Note"
             value={noteDraft}
             onChange={(e) => setNoteDraft(e.target.value)}
             placeholder="Enter your note here..."
-            multiline
             rows={4}
           />
         </FormSection>
