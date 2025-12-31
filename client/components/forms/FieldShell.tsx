@@ -18,6 +18,7 @@ interface FieldShellProps {
   cellValue?: string;
   onCellCommit?: (value: any) => void;
   value?: string | number | boolean | null;
+  validate?: boolean;
 }
 
 /**
