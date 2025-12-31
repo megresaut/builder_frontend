@@ -442,43 +442,25 @@ export default function VendorDetail() {
                             </div>
                           }
                           rightSlot={
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  type="button"
-                                  onMouseDown={(e) => e.stopPropagation()}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                                  aria-label="Actions"
-                                >
-                                  <DotsIcon width={18} height={18} />
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                align="end"
-                                className="w-auto p-0 border border-gray-200"
-                              >
-                                <div className="flex flex-col gap-1 p-1">
-                                  <button
-                                    onClick={() => {
-                                      setSelectedFile(file);
-                                      setIsViewFileOpen(true);
-                                    }}
-                                    className="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 transition-colors"
-                                    title="Edit"
-                                  >
-                                    <EditIcon width={16} height={16} color="#303030" />
-                                  </button>
-                                  <button
-                                    onClick={() => deleteFile(file.id)}
-                                    className="flex h-8 w-8 items-center justify-center rounded hover:bg-red-50 transition-colors"
-                                    title="Delete"
-                                  >
-                                    <DeleteIcon width={16} height={16} color="#982740" />
-                                  </button>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
+                            <PopoverActionsDropdown
+                              row={file}
+                              rowKey="id"
+                              actions={[
+                                {
+                                  label: "View",
+                                  icon: <EditIcon width={18} height={18} color="#303030" />,
+                                  onClick: () => {
+                                    setSelectedFile(file);
+                                    setIsViewFileOpen(true);
+                                  },
+                                },
+                                {
+                                  label: "Delete",
+                                  icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                                  onClick: () => deleteFile(file.id),
+                                },
+                              ]}
+                            />
                           }
                         />
                       ))}
