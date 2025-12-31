@@ -707,6 +707,13 @@ export default function VendorDetail() {
                 onFileRemoved={(fileId) => {
                   setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
                 }}
+                onFileRenamed={(fileId, newName) => {
+                  setUploadedFiles(
+                    uploadedFiles.map((f) =>
+                      f.id === fileId ? { ...f, name: newName } : f
+                    )
+                  );
+                }}
                 onViewFile={(file) => {
                   setSelectedFile({
                     id: Number(file.id),
@@ -719,6 +726,7 @@ export default function VendorDetail() {
                 accept=".pdf"
                 maxFiles={1}
                 maxSize={10 * 1024 * 1024}
+                variant="single"
               />
             </ModalField>
 
