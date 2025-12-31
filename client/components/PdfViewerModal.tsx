@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
+import { PdfCanvasViewer } from "@/components/PdfCanvasViewer";
 
 type PdfViewerModalProps = {
   open: boolean;
@@ -15,14 +16,18 @@ const isProbablyPdfUrl = (url: string, filename?: string) => {
   return false;
 };
 
-const isProbablyImageUrl = (url: string) => {
+const isProbablyImageUrl = (url: string, filename?: string) => {
+  if (url.startsWith("data:image/")) return true;
+
   const clean = url.split("#")[0].split("?")[0];
   const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
-  return (
-    imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext)) ||
-    url.startsWith("blob:") ||
-    url.startsWith("data:image/")
-  );
+
+  if (imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext))) return true;
+  if (filename && imageExtensions.some((ext) => filename.toLowerCase().endsWith(ext))) {
+    return true;
+  }
+
+  return false;
 };
 
 export default function PdfViewerModal({
@@ -157,67 +162,66 @@ export default function PdfViewerModal({
             width: "100%",
             height: "70vh",
             borderRadius: "8px",
-            overflow: "auto",
+            overflow: "hidden",
             border: "1px solid #E5E5E5",
             backgroundColor: "white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "16px",
           }}
         >
-          {isProbablyImageUrl(safeUrl) ? (
-            <img
-              src={safeUrl}
-              alt={title}
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                objectFit: "contain",
-                borderRadius: "4px",
-              }}
-            />
-          ) : (
-            <object
-              key={iframeKey}
-              data={safeUrl}
-              type="application/pdf"
+          {isProbablyImageUrl(safeUrl, title) ? (
+            <div
               style={{
                 width: "100%",
                 height: "100%",
-                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "16px",
               }}
             >
-              <div
+              <img
+                src={safeUrl}
+                alt={title}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                  height: "100%",
-                  color: "#71717A",
-                  textAlign: "center",
-                  padding: "20px",
-                  fontSize: "14px",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  objectFit: "contain",
+                  borderRadius: "4px",
                 }}
-              >
-                <p>
-                  PDF viewer not available.
-                  <br />
-                  <a
-                    href={safeUrl}
-                    download={title}
-                    style={{
-                      color: "var(--color-button-primary)",
-                      textDecoration: "underline",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Download the file instead
-                  </a>
-                </p>
-              </div>
-            </object>
+              />
+            </div>
+          ) : isProbablyPdfUrl(safeUrl, title) ? (
+            <PdfCanvasViewer url={safeUrl} title={title} />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#71717A",
+                textAlign: "center",
+                padding: "20px",
+                fontSize: "14px",
+              }}
+            >
+              <p>
+                No preview available for this file type.
+                <br />
+                <a
+                  href={safeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    color: "var(--color-button-primary)",
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                  }}
+                >
+                  Open the file instead
+                </a>
+              </p>
+            </div>
           )}
         </div>
       ) : (
