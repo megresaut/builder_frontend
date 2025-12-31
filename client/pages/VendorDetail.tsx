@@ -374,8 +374,8 @@ export default function VendorDetail() {
                             </div>
                           }
                           rightSlot={
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                            <Popover>
+                              <PopoverTrigger asChild>
                                 <button
                                   type="button"
                                   onMouseDown={(e) => e.stopPropagation()}
@@ -385,29 +385,30 @@ export default function VendorDetail() {
                                 >
                                   <DotsIcon width={18} height={18} />
                                 </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
+                              </PopoverTrigger>
+                              <PopoverContent
                                 align="end"
-                                className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 rounded-lg"
-                                style={{ border: "0.5px solid #DADADA" }}
+                                className="w-auto p-0 border border-gray-200"
                               >
-                                <DropdownMenuItem
-                                  onSelect={() => {
-                                    setSelectedNote(note);
-                                    setIsViewNoteOpen(true);
-                                  }}
-                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#303030] focus:text-[#303030]"
-                                >
-                                  View
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onSelect={() => removeNote(note.id)}
-                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#982740] focus:text-[#982740]"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                <div className="flex flex-col gap-1 p-1">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedNote(note);
+                                      setIsViewNoteOpen(true);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#303030] hover:bg-gray-100 rounded transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => removeNote(note.id)}
+                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#982740] hover:bg-red-50 rounded transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           }
                         />
                       ))}
@@ -457,8 +458,8 @@ export default function VendorDetail() {
                             </div>
                           }
                           rightSlot={
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                            <Popover>
+                              <PopoverTrigger asChild>
                                 <button
                                   type="button"
                                   onMouseDown={(e) => e.stopPropagation()}
@@ -468,29 +469,30 @@ export default function VendorDetail() {
                                 >
                                   <DotsIcon width={18} height={18} />
                                 </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
+                              </PopoverTrigger>
+                              <PopoverContent
                                 align="end"
-                                className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 rounded-lg"
-                                style={{ border: "0.5px solid #DADADA" }}
+                                className="w-auto p-0 border border-gray-200"
                               >
-                                <DropdownMenuItem
-                                  onSelect={() => {
-                                    setSelectedFile(file);
-                                    setIsViewFileOpen(true);
-                                  }}
-                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#303030] focus:text-[#303030]"
-                                >
-                                  View
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onSelect={() => deleteFile(file.id)}
-                                  className="w-full cursor-pointer text-left font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent whitespace-nowrap text-[#982740] focus:text-[#982740]"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                <div className="flex flex-col gap-1 p-1">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedFile(file);
+                                      setIsViewFileOpen(true);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#303030] hover:bg-gray-100 rounded transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => deleteFile(file.id)}
+                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#982740] hover:bg-red-50 rounded transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           }
                         />
                       ))}
