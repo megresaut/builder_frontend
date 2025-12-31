@@ -280,17 +280,6 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
             >
               {placeholder}
             </p>
-            <p
-              style={{
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                fontSize: "12px",
-                fontWeight: 400,
-                color: "var(--color-text-muted)",
-                margin: 0,
-              }}
-            >
-              {formatFileSize(maxSize)} max per file
-            </p>
           </div>
         </div>
       )}
