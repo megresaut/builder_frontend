@@ -8,12 +8,7 @@ import EditPropertyRatesModal from "@/components/EditPropertyRatesModal";
 import AddPropertyNoteModal from "@/components/AddPropertyNoteModal";
 import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
 import AddPropertyFileModal from "@/components/AddPropertyFileModal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
