@@ -388,7 +388,8 @@ const getTimesheetStatusBadge = (status: string) => {
 
 export default function FieldTeamOrders() {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<FieldTeamOrder[]>(fieldTeamOrders);
+  const [orders, setOrders] = useState<FieldTeamOrder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -402,6 +403,27 @@ export default function FieldTeamOrders() {
   const [editingOrder, setEditingOrder] = useState<FieldTeamOrder | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const apiData = await mockFetchFTOs({
+          field_team_member_id: 1,
+          limit: 100,
+        });
+        const transformedOrders = transformAPIToFieldTeamOrder(apiData);
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error("Error fetching FTOs:", error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
