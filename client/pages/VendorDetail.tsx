@@ -6,15 +6,22 @@ import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
 import AddVendorModal from "@/components/AddVendorModal";
-import AddFileModal from "@/components/AddFileModal";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import {
+  ModalTemplate,
+  ModalButtons,
+  ModalField,
+} from "@/components/ui/ModalTemplate";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { FormDialog } from "@/components/FormDialog";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { EmailIcon, EditIcon, DeleteIcon } from "@/components/icons";
-import { TextField, TextAreaField } from "@/components/forms";
+import {
+  TextField,
+  TextAreaField,
+  FileUploadField,
+} from "@/components/forms";
 import {
   FormLayout,
   FormSection,
@@ -70,6 +77,7 @@ export default function VendorDetail() {
   const [selectedFile, setSelectedFile] = useState<VendorFile | null>(null);
   const [isViewFileOpen, setIsViewFileOpen] = useState(false);
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
   const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(null);
@@ -137,14 +145,15 @@ export default function VendorDetail() {
     setIsAddInsuranceOpen(false);
   };
 
-  const handleAddFile = async (
-    file: UploadedFile,
-    category: string,
-    description: string,
-  ) => {
-    if (file.file) {
-      await uploadFile(file.file, category, description);
+  const handleAddFile = async () => {
+    if (uploadedFiles.length === 0) return;
+
+    const fileObj = uploadedFiles[0];
+    if (fileObj?.file) {
+      await uploadFile(fileObj.file);
     }
+
+    setUploadedFiles([]);
     setIsAddFileOpen(false);
   };
 
@@ -440,16 +449,6 @@ export default function VendorDetail() {
                                   {file.name}
                                 </div>
                               )}
-                              {file.category && (
-                                <div className="text-[#71717A] text-xs mt-1">
-                                  <span className="font-medium">Category:</span> {file.category}
-                                </div>
-                              )}
-                              {file.description && (
-                                <div className="text-[#71717A] text-xs mt-1">
-                                  <span className="font-medium">Description:</span> {file.description}
-                                </div>
-                              )}
                               <div className="text-[#71717A] text-xs mt-1">
                                 {file.uploadedAt}
                               </div>
@@ -656,12 +655,60 @@ export default function VendorDetail() {
       </FormDialog>
 
       {/* Add File Modal */}
-      <AddFileModal
+      <ModalTemplate
         open={isAddFileOpen}
-        onOpenChange={setIsAddFileOpen}
-        onAddFile={handleAddFile}
-        vendorId={id}
-      />
+        onOpenChange={(open) => {
+          setIsAddFileOpen(open);
+          if (!open) {
+            setUploadedFiles([]);
+          }
+        }}
+        title="Add File"
+        size="sm"
+        onClose={() => {
+          setUploadedFiles([]);
+        }}
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setUploadedFiles([]);
+              setIsAddFileOpen(false);
+            }}
+            onConfirm={handleAddFile}
+            cancelLabel="Cancel"
+            confirmLabel="Add"
+            confirmDisabled={uploadedFiles.length === 0}
+          />
+        }
+      >
+        <ModalField spacing="tight">
+          <FileUploadField
+            label="File"
+            description="Upload PDF documents"
+            files={uploadedFiles}
+            onFilesAdded={(newFiles) => {
+              if (newFiles.length > 0) {
+                setUploadedFiles([newFiles[0]]);
+              }
+            }}
+            onFileRemoved={(fileId) => {
+              setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+            }}
+            onViewFile={(file) => {
+              setSelectedFile({
+                id: Number(file.id),
+                name: file.name,
+                url: file.file ? URL.createObjectURL(file.file) : undefined,
+                uploadedAt: new Date().toLocaleDateString(),
+              });
+              setIsViewFileOpen(true);
+            }}
+            accept=".pdf"
+            maxFiles={1}
+            maxSize={10 * 1024 * 1024}
+          />
+        </ModalField>
+      </ModalTemplate>
 
       {/* Edit Vendor Dialog */}
       <AddVendorModal
