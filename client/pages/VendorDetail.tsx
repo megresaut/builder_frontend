@@ -521,7 +521,7 @@ export default function VendorDetail() {
       </ModalTemplate>
 
       {/* Add Insurance Dialog */}
-      <FormDialog
+      <ModalTemplate
         open={isAddInsuranceOpen}
         onOpenChange={(open) => {
           setIsAddInsuranceOpen(open);
@@ -532,19 +532,25 @@ export default function VendorDetail() {
           }
         }}
         title="Add Vendor Insurance"
-        onSubmit={handleAddInsurance}
-        onCancel={() => {
-          setInsuranceProvider("");
-          setInsurancePolicyNumber("");
-          setInsuranceExpirationDate("");
-        }}
-        submitLabel="Save"
-        isValid={
-          insuranceProvider.trim().length > 0 &&
-          insurancePolicyNumber.trim().length > 0 &&
-          insuranceExpirationDate.trim().length > 0
-        }
         size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setInsuranceProvider("");
+              setInsurancePolicyNumber("");
+              setInsuranceExpirationDate("");
+              setIsAddInsuranceOpen(false);
+            }}
+            onConfirm={handleAddInsurance}
+            cancelLabel="Cancel"
+            confirmLabel="Save"
+            confirmDisabled={
+              insuranceProvider.trim().length === 0 ||
+              insurancePolicyNumber.trim().length === 0 ||
+              insuranceExpirationDate.trim().length === 0
+            }
+          />
+        }
       >
         <FormLayout>
           <FormSection showDivider={false}>
@@ -570,7 +576,7 @@ export default function VendorDetail() {
             />
           </FormSection>
         </FormLayout>
-      </FormDialog>
+      </ModalTemplate>
 
       {/* Add Custom Field Dialog */}
       <FormDialog
