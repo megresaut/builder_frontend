@@ -6,11 +6,8 @@ import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
 import AddVendorModal from "@/components/AddVendorModal";
-import {
-  ModalTemplate,
-  ModalButtons,
-  ModalField,
-} from "@/components/ui/ModalTemplate";
+import AddVendorNoteModal from "@/components/AddVendorNoteModal";
+import AddVendorFileModal from "@/components/AddVendorFileModal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { FormDialog } from "@/components/FormDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
@@ -18,8 +15,6 @@ import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { EmailIcon, EditIcon } from "@/components/icons";
 import {
   TextField,
-  TextAreaField,
-  FileUploadField,
   SelectField,
 } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
