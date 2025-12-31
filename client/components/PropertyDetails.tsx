@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import PageHeader from "@/components/PageHeader";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
@@ -9,6 +9,7 @@ import AddPropertyNoteModal from "@/components/AddPropertyNoteModal";
 import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
 import AddPropertyFileModal from "@/components/AddPropertyFileModal";
 import { EditIcon } from "@/components/icons";
+import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
 import {
   SectionRowTemplate,
   SectionGroupCardTemplate,
@@ -31,26 +32,6 @@ interface PropertyDetailsProps {
   propertyImage?: string;
 }
 
-type RecentNote = {
-  id: number;
-  text: string;
-  type: string;
-  date: string;
-  author: string;
-};
-
-type RecentFile = {
-  id: number;
-  name: string;
-  subtitle?: string;
-  category: string;
-  date: string;
-  author: string;
-  type: string;
-  icon: string;
-  url?: string;
-};
-
 export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   propertyAddress,
   propertyLocation = "Westport, CT, 28282",
@@ -59,99 +40,81 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   propertyManager = "Jake Delardi",
   propertyImage = "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true",
 }) => {
-  const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
-  const [showEditPropertyModal, setShowEditPropertyModal] = useState(false);
-  const [showEditCustomFieldsModal, setShowEditCustomFieldsModal] =
-    useState(false);
-  const [showEditRatesModal, setShowEditRatesModal] = useState(false);
-  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
-  const [showAddFileModal, setShowAddFileModal] = useState(false);
-  const [showViewNoteModal, setShowViewNoteModal] = useState(false);
-  const [showViewFileModal, setShowViewFileModal] = useState(false);
-  const [viewNoteDraft, setViewNoteDraft] = useState("");
+  const { state, dispatch } = usePropertyDetailsState();
 
-  const [selectedNote, setSelectedNote] = useState<RecentNote | null>(null);
-  const [selectedFile, setSelectedFile] = useState<RecentFile | null>(null);
-  const [managementAgreementDate, setManagementAgreementDate] = useState("");
-  const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
-  const [monthlyRate, setMonthlyRate] = useState("$700.00 / month");
-  const [defaultRate, setDefaultRate] = useState("$60 / hour");
-  const [emergencyRate, setEmergencyRate] = useState("$50 / hour");
+  useEffect(() => {
+    const initialNotes: RecentNote[] = [
+      {
+        id: 1,
+        text: "Southern Conn Gas #05-00011476-6574",
+        type: "RENTAL",
+        date: "6/17/2024 10:32 AM",
+        author: "Johan Gonazlez",
+      },
+      {
+        id: 2,
+        text: "Eversource #51124508037",
+        type: "RENTAL",
+        date: "6/17/2024 10:31 AM",
+        author: "Johan Gonazlez",
+      },
+      {
+        id: 3,
+        text: "Ashley Bae (Daughter): (626) 340-7616",
+        type: "RENTAL",
+        date: "6/12/2024 2:31 PM",
+        author: "Carteg Hughes",
+      },
+      {
+        id: 4,
+        text: "Called Optimum and got the address moved from connors lane to 1544 wazee street denver, co. 80202",
+        type: "RENTAL",
+        date: "8/4/2021 10:47 AM",
+        author: "Heather Seabrook",
+      },
+      {
+        id: 5,
+        text: "Optimum\nAcct#07808-628921-02\n203-293-4709\nPin: 2258",
+        type: "RENTAL",
+        date: "3/16/2020 1:59 PM",
+        author: "Mario Sciarretta",
+      },
+    ];
 
-  const [recentNotes, setRecentNotes] = useState<RecentNote[]>([
-    {
-      id: 1,
-      text: "Southern Conn Gas #05-00011476-6574",
-      type: "RENTAL",
-      date: "6/17/2024 10:32 AM",
-      author: "Johan Gonazlez",
-    },
-    {
-      id: 2,
-      text: "Eversource #51124508037",
-      type: "RENTAL",
-      date: "6/17/2024 10:31 AM",
-      author: "Johan Gonazlez",
-    },
-    {
-      id: 3,
-      text: "Ashley Bae (Daughter): (626) 340-7616",
-      type: "RENTAL",
-      date: "6/12/2024 2:31 PM",
-      author: "Carteg Hughes",
-    },
-    {
-      id: 4,
-      text: "Called Optimum and got the address moved from connors lane to 1544 wazee street denver, co. 80202",
-      type: "RENTAL",
-      date: "8/4/2021 10:47 AM",
-      author: "Heather Seabrook",
-    },
-    {
-      id: 5,
-      text: "Optimum\nAcct#07808-628921-02\n203-293-4709\nPin: 2258",
-      type: "RENTAL",
-      date: "3/16/2020 1:59 PM",
-      author: "Mario Sciarretta",
-    },
-  ]);
+    const initialFiles: RecentFile[] = [
+      {
+        id: 1,
+        name: "1 Connors Lane - Maintenance Log.docx",
+        category: "Uncategorized",
+        date: "6/3/2025 2:06 PM",
+        author: "Julia LoSchiavo",
+        type: "docx",
+        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true",
+      },
+      {
+        id: 2,
+        name: "1 Connors Lane Westport, CT 06883 Manage...",
+        subtitle: "Management Agreement",
+        category: "Uncategorized",
+        date: "6/19/2024 3:55 PM",
+        author: "Carter Hughes",
+        type: "pdf",
+        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
+      },
+      {
+        id: 3,
+        name: "1 Connors Lane- Management Contract",
+        category: "Uncategorized",
+        date: "1/7/2020 2:14 PM",
+        author: "Mario Sciarretta",
+        type: "pdf",
+        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
+      },
+    ];
 
-  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([
-    {
-      id: 1,
-      name: "1 Connors Lane - Maintenance Log.docx",
-      category: "Uncategorized",
-      date: "6/3/2025 2:06 PM",
-      author: "Julia LoSchiavo",
-      type: "docx",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true",
-    },
-    {
-      id: 2,
-      name: "1 Connors Lane Westport, CT 06883 Manage...",
-      subtitle: "Management Agreement",
-      category: "Uncategorized",
-      date: "6/19/2024 3:55 PM",
-      author: "Carter Hughes",
-      type: "pdf",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
-    },
-    {
-      id: 3,
-      name: "1 Connors Lane- Management Contract",
-      category: "Uncategorized",
-      date: "1/7/2020 2:14 PM",
-      author: "Mario Sciarretta",
-      type: "pdf",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
-    },
-  ]);
-
-  const handleDeleteNote = (id: number) => {
-    setRecentNotes((prev) => prev.filter((note) => note.id !== id));
-    setSelectedNote(null);
-    setShowViewNoteModal(false);
-  };
+    dispatch({ type: "SET_RECENT_NOTES", notes: initialNotes });
+    dispatch({ type: "SET_RECENT_FILES", files: initialFiles });
+  }, [dispatch]);
 
   const revokeBlobUrl = (url?: string) => {
     if (!url) return;
@@ -164,15 +127,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     }
   };
 
-  const handleDeleteFile = (id: number) => {
-    setRecentFiles((prev) => {
-      const fileToDelete = prev.find((f) => f.id === id);
-      revokeBlobUrl(fileToDelete?.url);
-      return prev.filter((file) => file.id !== id);
-    });
-    setSelectedFile(null);
-    setShowViewFileModal(false);
-  };
+  const selectedNote = state.selection.noteId
+    ? state.lists.recentNotes.find((n) => n.id === state.selection.noteId)
+    : null;
+
+  const selectedFile = state.selection.fileId
+    ? state.lists.recentFiles.find((f) => f.id === state.selection.fileId)
+    : null;
 
   const openViewMaps = () => {
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(`${propertyAddress}, ${propertyLocation}`)}`;
@@ -193,7 +154,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 <SectionActionTemplate
                   icon={<EditIcon width={14} height={14} />}
                   label="Edit"
-                  onClick={() => setShowEditPropertyModal(true)}
+                  onClick={() => dispatch({ type: "OPEN_MODAL", modal: "editProperty" })}
                 />
               </div>
 
@@ -248,7 +209,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   </div>
 
                   <button
-                    onClick={() => setShowPhotoUploadModal(true)}
+                    onClick={() => dispatch({ type: "OPEN_MODAL", modal: "uploadPhoto" })}
                     className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
                   >
                     <img
@@ -273,13 +234,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 fields: [
                   {
                     label: "MANAGEMENT AGREEMENT DATE",
-                    value: managementAgreementDate
-                      ? new Date(managementAgreementDate).toLocaleDateString()
+                    value: state.drafts.customFields.managementAgreementDate
+                      ? new Date(state.drafts.customFields.managementAgreementDate).toLocaleDateString()
                       : "-",
                   },
                   {
                     label: "INSPECTION FREQUENCY",
-                    value: inspectionFrequency,
+                    value: state.drafts.customFields.inspectionFrequency,
                   },
                 ],
               },
@@ -301,7 +262,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 ],
               },
             ]}
-            onEdit={() => setShowEditCustomFieldsModal(true)}
+            onEdit={() => dispatch({ type: "OPEN_MODAL", modal: "editCustomFields" })}
             isLast={false}
           />
 
@@ -314,7 +275,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 fields: [
                   {
                     label: "MONTHLY RATE",
-                    value: monthlyRate,
+                    value: state.drafts.rates.monthlyRate,
                   },
                 ],
               },
@@ -323,45 +284,51 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 fields: [
                   {
                     label: "DEFAULT RATE",
-                    value: defaultRate,
+                    value: state.drafts.rates.defaultRate,
                   },
                   {
                     label: "EMERGENCY RATE",
-                    value: emergencyRate,
+                    value: state.drafts.rates.emergencyRate,
                   },
                 ],
               },
             ]}
-            onEdit={() => setShowEditRatesModal(true)}
+            onEdit={() => dispatch({ type: "OPEN_MODAL", modal: "editRates" })}
             isLast={false}
           />
 
           {/* Recent Notes Section */}
           <NotesTemplate
-            notes={recentNotes}
-            onAdd={() => setShowAddNoteModal(true)}
+            notes={state.lists.recentNotes}
+            onAdd={() => dispatch({ type: "OPEN_MODAL", modal: "addNote" })}
             onEdit={(note) => {
-              setSelectedNote(note);
-              setViewNoteDraft(note.text);
-              setShowViewNoteModal(true);
+              dispatch({ type: "SELECT_NOTE", noteId: note.id });
+              dispatch({ type: "SET_VIEW_NOTE_DRAFT", id: note.id, body: note.text });
+              dispatch({ type: "OPEN_MODAL", modal: "viewNote" });
             }}
-            onDelete={handleDeleteNote}
+            onDelete={(noteId) => dispatch({ type: "DELETE_NOTE", noteId })}
             isLast={false}
             emptyMessage="You don't have any notes for this property right now."
           />
 
           {/* Recent Files Section */}
           <FilesTemplate
-            files={recentFiles}
-            onAdd={() => setShowAddFileModal(true)}
+            files={state.lists.recentFiles}
+            onAdd={() => dispatch({ type: "OPEN_MODAL", modal: "addFile" })}
             onEdit={(file) => {
-              setSelectedFile(file);
-              setShowViewFileModal(true);
+              dispatch({ type: "SELECT_FILE", fileId: file.id });
+              dispatch({ type: "OPEN_MODAL", modal: "viewFile" });
             }}
-            onDelete={handleDeleteFile}
+            onDelete={(fileId) => {
+              const fileToDelete = state.lists.recentFiles.find(
+                (f) => f.id === fileId
+              );
+              revokeBlobUrl(fileToDelete?.url);
+              dispatch({ type: "DELETE_FILE", fileId });
+            }}
             onView={(file) => {
-              setSelectedFile(file);
-              setShowViewFileModal(true);
+              dispatch({ type: "SELECT_FILE", fileId: file.id });
+              dispatch({ type: "OPEN_MODAL", modal: "viewFile" });
             }}
             isLast={true}
             emptyMessage="You don't have any files for this property right now."
@@ -370,34 +337,36 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
         {/* View Note Modal */}
         <ViewPropertyNoteModal
-          open={showViewNoteModal}
+          open={state.activeModal === "viewNote"}
           onOpenChange={(open) => {
-            setShowViewNoteModal(open);
-            if (!open) setSelectedNote(null);
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
-          note={selectedNote}
+          note={selectedNote || null}
           onSaveNote={(id, newText) => {
-            setRecentNotes((prev) =>
-              prev.map((n) =>
-                n.id === id
-                  ? {
-                      ...n,
-                      text: newText,
-                      date: new Date().toLocaleString(),
-                    }
-                  : n,
-              ),
-            );
+            const now = new Date().toLocaleString(undefined, {
+              month: "numeric",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            });
+            dispatch({
+              type: "UPDATE_NOTE",
+              noteId: id,
+              text: newText,
+              date: now,
+            });
           }}
-          onDeleteNote={handleDeleteNote}
+          onDeleteNote={(noteId) => {
+            dispatch({ type: "DELETE_NOTE", noteId });
+          }}
         />
 
         {/* PDF Viewer */}
         <PdfViewerModal
-          open={showViewFileModal}
+          open={state.activeModal === "viewFile"}
           onOpenChange={(open) => {
-            setShowViewFileModal(open);
-            if (!open) setSelectedFile(null);
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
           title={selectedFile?.name || "File Preview"}
           url={selectedFile?.url}
@@ -405,8 +374,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
         {/* Upload Photo Modal */}
         <UploadPhotoModal
-          open={showPhotoUploadModal}
-          onOpenChange={setShowPhotoUploadModal}
+          open={state.activeModal === "uploadPhoto"}
+          onOpenChange={(open) => {
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
+          }}
           onUpload={(file) => {
             console.log("Photo uploaded:", file.name);
           }}
@@ -414,8 +385,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
         {/* Edit Property Modal */}
         <AddPropertyModal
-          open={showEditPropertyModal}
-          onOpenChange={setShowEditPropertyModal}
+          open={state.activeModal === "editProperty"}
+          onOpenChange={(open) => {
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
+          }}
           editData={{
             address: propertyAddress,
             location: propertyLocation,
@@ -440,38 +413,56 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
         {/* Edit Custom Fields Modal */}
         <EditPropertyCustomFieldsModal
-          open={showEditCustomFieldsModal}
-          onOpenChange={setShowEditCustomFieldsModal}
+          open={state.activeModal === "editCustomFields"}
+          onOpenChange={(open) => {
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
+          }}
           initialData={{
-            managementAgreementDate,
-            inspectionFrequency,
+            managementAgreementDate: state.drafts.customFields.managementAgreementDate,
+            inspectionFrequency: state.drafts.customFields.inspectionFrequency,
           }}
           onSave={(data) => {
-            setManagementAgreementDate(data.managementAgreementDate);
-            setInspectionFrequency(data.inspectionFrequency);
+            dispatch({
+              type: "PATCH_CUSTOM_FIELDS",
+              patch: {
+                managementAgreementDate: data.managementAgreementDate,
+                inspectionFrequency: data.inspectionFrequency,
+              },
+            });
+            dispatch({ type: "CLOSE_MODAL" });
           }}
         />
 
         {/* Edit Rates Modal */}
         <EditPropertyRatesModal
-          open={showEditRatesModal}
-          onOpenChange={setShowEditRatesModal}
+          open={state.activeModal === "editRates"}
+          onOpenChange={(open) => {
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
+          }}
           initialData={{
-            monthlyRate,
-            defaultRate,
-            emergencyRate,
+            monthlyRate: state.drafts.rates.monthlyRate,
+            defaultRate: state.drafts.rates.defaultRate,
+            emergencyRate: state.drafts.rates.emergencyRate,
           }}
           onSave={(data) => {
-            setMonthlyRate(data.monthlyRate);
-            setDefaultRate(data.defaultRate);
-            setEmergencyRate(data.emergencyRate);
+            dispatch({
+              type: "PATCH_RATES",
+              patch: {
+                monthlyRate: data.monthlyRate,
+                defaultRate: data.defaultRate,
+                emergencyRate: data.emergencyRate,
+              },
+            });
+            dispatch({ type: "CLOSE_MODAL" });
           }}
         />
 
         {/* Add Note Modal */}
         <AddPropertyNoteModal
-          open={showAddNoteModal}
-          onOpenChange={setShowAddNoteModal}
+          open={state.activeModal === "addNote"}
+          onOpenChange={(open) => {
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
+          }}
           onAddNote={(noteText) => {
             const now = new Date();
             const date = now.toLocaleString(undefined, {
@@ -482,28 +473,30 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               minute: "2-digit",
             });
 
-            setRecentNotes((prev) => {
-              const nextId = prev.length
-                ? Math.max(...prev.map((n) => n.id)) + 1
-                : 1;
-              return [
-                ...prev,
-                {
-                  id: nextId,
-                  text: noteText,
-                  type: "RENTAL",
-                  date,
-                  author: propertyManager,
-                },
-              ];
+            const nextId = state.lists.recentNotes.length
+              ? Math.max(...state.lists.recentNotes.map((n) => n.id)) + 1
+              : 1;
+
+            dispatch({
+              type: "ADD_NOTE",
+              note: {
+                id: nextId,
+                text: noteText,
+                type: "RENTAL",
+                date,
+                author: propertyManager,
+              },
             });
+            dispatch({ type: "CLOSE_MODAL" });
           }}
         />
 
         {/* Add File Modal */}
         <AddPropertyFileModal
-          open={showAddFileModal}
-          onOpenChange={setShowAddFileModal}
+          open={state.activeModal === "addFile"}
+          onOpenChange={(open) => {
+            if (!open) dispatch({ type: "CLOSE_MODAL" });
+          }}
           onAddFile={(file, category) => {
             const blobUrl = URL.createObjectURL(file);
             const now = new Date();
@@ -523,24 +516,24 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
             const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
 
-            setRecentFiles((prev) => {
-              const nextId = prev.length
-                ? Math.max(...prev.map((f) => f.id)) + 1
-                : 1;
-              return [
-                ...prev,
-                {
-                  id: nextId,
-                  name: fileName,
-                  category,
-                  date,
-                  author: propertyManager,
-                  type: ext || "file",
-                  icon,
-                  url: blobUrl,
-                },
-              ];
+            const nextId = state.lists.recentFiles.length
+              ? Math.max(...state.lists.recentFiles.map((f) => f.id)) + 1
+              : 1;
+
+            dispatch({
+              type: "ADD_FILE",
+              file: {
+                id: nextId,
+                name: fileName,
+                category,
+                date,
+                author: propertyManager,
+                type: ext || "file",
+                icon,
+                url: blobUrl,
+              },
             });
+            dispatch({ type: "CLOSE_MODAL" });
           }}
         />
       </div>
