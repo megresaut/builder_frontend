@@ -88,6 +88,7 @@ function PopoverActionsDropdownContent({
               actionRefs.current[index] = el;
             }}
             type="button"
+            role="menuitem"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
