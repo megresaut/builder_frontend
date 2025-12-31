@@ -104,6 +104,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   cellValue = "",
   onCellCommit,
   value,
+  validate = false,
 }) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -112,9 +113,9 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   // Only show required asterisk if explicitly required
   const isRequired = required;
 
-  // Auto-validate required fields: if required and value is empty/falsy, show error
+  // Only validate required fields when validate=true (e.g., on form submission)
   const isEmpty = value === "" || value === null || value === undefined || value === false;
-  const validationError = required && isEmpty && !error ? `${label} is required` : error;
+  const validationError = validate && required && isEmpty && !error ? `${label} is required` : error;
 
   // For cell mode, inject ref and event handlers into child
   const childrenWithCellHandlers = React.Children.map(children, (child) => {
