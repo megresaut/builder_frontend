@@ -66,5 +66,5 @@ export function useVendorFiles(vendorId: number): UseVendorFilesResult {
     refetch();
   }, [vendorId]);
 
-  return { files, loading, error, uploadFile, deleteFile, refetch };
+  return { files, loading, error, uploadFile, deleteFile, updateFile, refetch };
 }
