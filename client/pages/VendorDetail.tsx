@@ -396,15 +396,17 @@ export default function VendorDetail() {
                                       setSelectedNote(note);
                                       setIsViewNoteOpen(true);
                                     }}
-                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#303030] hover:bg-gray-100 rounded transition-colors"
+                                    className="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 transition-colors"
+                                    title="Edit"
                                   >
-                                    Edit
+                                    <EditIcon width={16} height={16} color="#303030" />
                                   </button>
                                   <button
                                     onClick={() => removeNote(note.id)}
-                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#982740] hover:bg-red-50 rounded transition-colors"
+                                    className="flex h-8 w-8 items-center justify-center rounded hover:bg-red-50 transition-colors"
+                                    title="Delete"
                                   >
-                                    Delete
+                                    <DeleteIcon width={16} height={16} color="#982740" />
                                   </button>
                                 </div>
                               </PopoverContent>
@@ -480,15 +482,17 @@ export default function VendorDetail() {
                                       setSelectedFile(file);
                                       setIsViewFileOpen(true);
                                     }}
-                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#303030] hover:bg-gray-100 rounded transition-colors"
+                                    className="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 transition-colors"
+                                    title="Edit"
                                   >
-                                    Edit
+                                    <EditIcon width={16} height={16} color="#303030" />
                                   </button>
                                   <button
                                     onClick={() => deleteFile(file.id)}
-                                    className="w-full text-left px-3 py-2 text-sm font-medium text-[#982740] hover:bg-red-50 rounded transition-colors"
+                                    className="flex h-8 w-8 items-center justify-center rounded hover:bg-red-50 transition-colors"
+                                    title="Delete"
                                   >
-                                    Delete
+                                    <DeleteIcon width={16} height={16} color="#982740" />
                                   </button>
                                 </div>
                               </PopoverContent>
