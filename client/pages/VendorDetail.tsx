@@ -173,7 +173,7 @@ export default function VendorDetail() {
       <PageTemplate>
         <div className="flex flex-col gap-6 w-fit min-w-full">
           <PageHeader
-            title={vendor.name}
+            title={(vendorDraft || vendor).name}
             subtitle={
               <div className="flex items-center gap-3">
                 <div className="text-[#717179] font-medium text-base leading-4">
@@ -189,7 +189,7 @@ export default function VendorDetail() {
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
                 <span className="text-[#717179] font-medium text-base leading-4">
-                  {vendor.category}
+                  {(vendorDraft || vendor).category}
                 </span>
                 <svg
                   width="4"
