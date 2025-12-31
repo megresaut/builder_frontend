@@ -1,4 +1,5 @@
 import type { BaseVendor } from './vendors';
+import { MOCK_VENDORS } from './vendors';
 
 export interface VendorDetail extends BaseVendor {
   category: string;
@@ -7,19 +8,13 @@ export interface VendorDetail extends BaseVendor {
   servicesProvided: string;
 }
 
-export const MOCK_VENDOR_DETAILS: VendorDetail[] = [
-  {
-    id: 1,
-    name: "Dolce Heating & Plumbing",
-    phone: "724.705.2990",
-    email: "staff@avappraisalmgmt.com",
-    notes: "Reliable vendor, quick turnaround",
-    category: "Uncategorized",
-    address: undefined,
-    website: undefined,
-    servicesProvided: "Heating, Plumbing",
-  },
-];
+export const MOCK_VENDOR_DETAILS: VendorDetail[] = MOCK_VENDORS.map((vendor) => ({
+  ...vendor,
+  category: "Uncategorized",
+  address: "123 Main St, City, State 12345",
+  website: `https://${vendor.name.toLowerCase().replace(/\s+/g, "")}.com`,
+  servicesProvided: vendor.servicesProvided.join(", "),
+}));
 
 export async function fetchVendorDetail(vendorId: number): Promise<VendorDetail | null> {
   // Mock: return MOCK_VENDOR_DETAILS.find(...)
