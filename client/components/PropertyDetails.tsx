@@ -223,7 +223,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <div>{rentalOwner}</div>
                     </div>
                   </div>
-                  <div className="flex min-h-[98px] flex-col">
+                  <div className="flex min-h-[33px] flex-col">
                     <div className="text-[#71717A] text-xs leading-[1.33]">
                       PROPERTY MANAGERS
                     </div>
