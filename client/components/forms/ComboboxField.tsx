@@ -145,6 +145,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
         break;
       case "Escape":
         e.preventDefault();
+        e.stopPropagation();
         setOpen(false);
         setSearchTerm("");
         break;
