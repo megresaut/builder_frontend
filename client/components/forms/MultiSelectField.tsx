@@ -284,6 +284,8 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                       setOpen(false);
                     }
                   }}
+                  role="option"
+                  aria-selected={isSelected}
                   type="button"
                   style={{
                     width: "100%",
