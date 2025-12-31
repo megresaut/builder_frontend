@@ -285,6 +285,7 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
 }) => {
   const popoverContext = usePopoverContext();
   const { highlightedIndex } = popoverContext;
+  const optionRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -293,6 +294,13 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
       );
     }
   }, [open, options, popoverContext]);
+
+  // Sync DOM focus with visual highlight when arrow keys navigate
+  useEffect(() => {
+    if (open && optionRefs.current[highlightedIndex]) {
+      optionRefs.current[highlightedIndex]?.focus();
+    }
+  }, [highlightedIndex, open]);
 
   // Set up Enter key handler for selecting from type-ahead results
   useEffect(() => {
