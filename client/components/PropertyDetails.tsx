@@ -16,6 +16,8 @@ import {
   EmptyStateTemplate,
   RecordListTemplate,
   RecordRowTemplate,
+  NotesTemplate,
+  FilesTemplate,
 } from "@/components/templates";
 
 interface PropertyDetailsProps {
