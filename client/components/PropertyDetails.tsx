@@ -9,6 +9,14 @@ import AddPropertyNoteModal from "@/components/AddPropertyNoteModal";
 import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
 import AddPropertyFileModal from "@/components/AddPropertyFileModal";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
+import {
+  SectionRowTemplate,
+  SectionGroupCardTemplate,
+  SectionActionTemplate,
+  EmptyStateTemplate,
+  RecordListTemplate,
+  RecordRowTemplate,
+} from "@/components/templates";
 
 interface PropertyDetailsProps {
   propertyAddress: string;
