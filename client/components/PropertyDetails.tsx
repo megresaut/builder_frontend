@@ -308,55 +308,35 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
 
           {/* Rates Section */}
-          <SectionRowTemplate isLast={false}>
-            <div className="flex min-w-[240px] flex-col flex-1 w-full">
-              <div className="flex w-full items-center justify-between gap-4 flex-wrap whitespace-nowrap">
-                <div className="text-[#303030] text-xl leading-[1.1]">
-                  Rates
-                </div>
-                <SectionActionTemplate
-                  label="Edit"
-                  onClick={() => setShowEditRatesModal(true)}
-                />
-              </div>
-
-              <div className="flex mt-3 w-full flex-col">
-                <div className="flex flex-col w-full">
-                  <div className="text-[#303030] text-base leading-[1.38]">
-                    Management Fee
-                  </div>
-                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
-                    <div className="flex flex-col">
-                      <div>MONTHLY RATE</div>
-                      <div>{monthlyRate}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex mt-5 w-full flex-col">
-                  <div className="text-[#303030] text-base leading-[1.38]">
-                    Field Team Rates
-                  </div>
-                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
-                    <div className="flex flex-col">
-                      <div>DEFAULT RATE</div>
-                      <div>{defaultRate}</div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>EMERGENCY RATE</div>
-                      <div>{emergencyRate}</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowMoreRates(!showMoreRates)}
-                    className="text-[#2463EB] text-sm leading-[1.4] tracking-[-0.28px] mt-3 text-left"
-                  >
-                    {showMoreRates ? "Show less" : "Show more"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </SectionRowTemplate>
+          <DataSectionTemplate
+            title="Rates"
+            subsections={[
+              {
+                title: "Management Fee",
+                fields: [
+                  {
+                    label: "MONTHLY RATE",
+                    value: monthlyRate,
+                  },
+                ],
+              },
+              {
+                title: "Field Team Rates",
+                fields: [
+                  {
+                    label: "DEFAULT RATE",
+                    value: defaultRate,
+                  },
+                  {
+                    label: "EMERGENCY RATE",
+                    value: emergencyRate,
+                  },
+                ],
+              },
+            ]}
+            onEdit={() => setShowEditRatesModal(true)}
+            isLast={false}
+          />
 
           {/* Recent Notes Section */}
           <NotesTemplate
