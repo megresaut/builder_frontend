@@ -32,6 +32,8 @@ export default function PdfViewerModal({
   title,
   url,
 }: PdfViewerModalProps) {
+  const [iframeKey, setIframeKey] = useState(0);
+
   const safeUrl = useMemo(() => {
     if (!url) return undefined;
     const u = url.trim();
@@ -44,7 +46,8 @@ export default function PdfViewerModal({
   useEffect(() => {
     if (!open) return;
     if (!safeUrl) return;
-    // Nothing else to do; kept for future enhancements.
+    // Force iframe re-render when URL changes
+    setIframeKey((prev) => prev + 1);
   }, [open, safeUrl]);
 
   const footerContent = (
