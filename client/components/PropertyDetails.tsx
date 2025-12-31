@@ -8,6 +8,7 @@ import EditPropertyRatesModal from "@/components/EditPropertyRatesModal";
 import AddPropertyNoteModal from "@/components/AddPropertyNoteModal";
 import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
 import AddPropertyFileModal from "@/components/AddPropertyFileModal";
+import { EditIcon } from "@/components/icons";
 import {
   SectionRowTemplate,
   SectionGroupCardTemplate,
