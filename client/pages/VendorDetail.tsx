@@ -82,6 +82,7 @@ export default function VendorDetail() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [fileCategory, setFileCategory] = useState<string>("");
   const [fileDescription, setFileDescription] = useState<string>("");
+  const [fileError, setFileError] = useState<string>("");
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
   const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(null);
