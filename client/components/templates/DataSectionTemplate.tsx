@@ -1,4 +1,5 @@
 import React from "react";
+import { EditIcon } from "@/components/icons";
 import {
   SectionRowTemplate,
   SectionActionTemplate,
