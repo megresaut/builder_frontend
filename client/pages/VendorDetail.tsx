@@ -686,16 +686,18 @@ export default function VendorDetail() {
         edit={true}
         initialVendor={vendorDraft || undefined}
         onEditVendor={(updatedVendor) => {
-          if (vendorDraft) {
-            setVendorDraft({
-              ...vendorDraft,
+          if (vendor) {
+            const updatedVendorData = {
+              ...vendor,
               name: updatedVendor.name,
-              category: updatedVendor.category,
               email: updatedVendor.email,
               phone: updatedVendor.phone,
               website: updatedVendor.website,
               servicesProvided: updatedVendor.servicesProvided,
-            });
+            };
+            // Update main vendor data for display
+            // In a real app, this would call an API to persist changes
+            setVendorDraft(updatedVendorData);
           }
           setIsEditVendorOpen(false);
         }}
