@@ -4,6 +4,8 @@ export interface VendorFile {
   name: string;
   url?: string;
   uploadedAt: string;
+  category?: string;
+  description?: string;
 }
 
 export const MOCK_VENDOR_FILES: VendorFile[] = [];
