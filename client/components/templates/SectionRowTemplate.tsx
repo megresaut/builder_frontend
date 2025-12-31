@@ -8,10 +8,10 @@ interface SectionRowTemplateProps {
 
 /**
  * SectionRowTemplate
- * 
+ *
  * Row template for sections inside SectionGroupCardTemplate.
  * Renders without its own border/radius/shadow.
- * Dividers are handled by parent SectionGroupCardTemplate.
+ * Dividers (border-bottom) are on the inner padded container, not the outer wrapper.
  * Each row contains a header (title + actions) and body content.
  */
 export const SectionRowTemplate: React.FC<SectionRowTemplateProps> = ({
@@ -19,8 +19,10 @@ export const SectionRowTemplate: React.FC<SectionRowTemplateProps> = ({
   isLast = false,
   className = "",
 }) => (
-  <div className={`p-4 flex flex-col ${!isLast ? "border-b border-[#E5E5E5]" : ""} ${className}`}>
-    {children}
+  <div className={className}>
+    <div className={`p-4 flex flex-col ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}>
+      {children}
+    </div>
   </div>
 );
 
