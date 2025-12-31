@@ -11,38 +11,18 @@ export interface KeyValueCell {
 
 interface KeyValueGridProps {
   cells: KeyValueCell[];
-  showDivider?: boolean;
 }
 
 /**
  * KeyValueGrid
- * 
+ *
  * Grid layout for read-only attribute summaries.
  * Displays key-value pairs with responsive wrapping.
  * Supports 4-column layout on desktop, full-width rows for specific cells.
  */
-export const KeyValueGrid: React.FC<KeyValueGridProps> = ({
-  cells,
-  showDivider = true,
-}) => {
+export const KeyValueGrid: React.FC<KeyValueGridProps> = ({ cells }) => {
   return (
     <div className="flex flex-col font-medium">
-      {/* Divider */}
-      {showDivider && (
-        <div className="mt-3 w-full h-px">
-          <svg width="100%" height="1" xmlns="http://www.w3.org/2000/svg">
-            <line
-              x1="0"
-              y1="0"
-              x2="100%"
-              y2="0"
-              stroke="#E5E5E5"
-              strokeWidth="1"
-            />
-          </svg>
-        </div>
-      )}
-
       {/* Grid content */}
       <div className="mt-3 flex flex-col whitespace-nowrap">
         {/* First pass: non-fullwidth cells */}

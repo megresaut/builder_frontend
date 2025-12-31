@@ -271,7 +271,6 @@ export default function VendorDetail() {
                   </div>
 
                   <KeyValueGrid
-                    showDivider={true}
                     cells={[
                       {
                         label: "EMAIL",
