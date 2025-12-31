@@ -290,7 +290,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
       {childrenWithError}
 
       {/* Error message */}
-      {error && (
+      {validationError && (
         <p
           style={{
             fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -301,7 +301,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
             margin: "-4px 0 0 0",
           }}
         >
-          {error}
+          {validationError}
         </p>
       )}
     </div>
