@@ -243,6 +243,10 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
         }}
       >
         <div
+          id="multiselect-listbox"
+          role="listbox"
+          aria-label={label}
+          aria-multiselectable="true"
           style={{
             maxHeight: "280px",
             overflowY: "auto",
