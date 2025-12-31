@@ -176,148 +176,95 @@ export default function AddVendorModal({
         />
       }
     >
-      {edit ? (
-        <FormLayout>
-          <FormSection showDivider={false}>
-            <TextField
-              label="Vendor Name"
-              required
-              value={vendorName}
-              onChange={handleVendorNameChange}
-              placeholder="Vendor Name"
-              error={errors.vendorName}
+      <ModalField spacing="tight">
+        <FieldShell
+          label="Vendor Name"
+          required
+          error={errors.vendorName}
+          htmlFor="vendor-name"
+        >
+          <Input
+            id="vendor-name"
+            type="text"
+            value={vendorName}
+            onChange={handleVendorNameChange}
+            placeholder="Vendor Name"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField spacing="tight">
+        <FieldShell label="Primary Email" htmlFor="primary-email">
+          <Input
+            id="primary-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="vendor@example.com"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField spacing="tight">
+        <FieldShell label="Vendor Phone Number" htmlFor="vendor-phone">
+          <Input
+            id="vendor-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="(123) 456-7890"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField spacing="tight">
+        <FieldShell label="Website" htmlFor="website">
+          <Input
+            id="website"
+            type="url"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="https://example.com"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField spacing="tight">
+        <SelectField
+          label="Services Provided"
+          value={Array.isArray(servicesProvided) ? servicesProvided : (servicesProvided ? [servicesProvided] : [])}
+          onChange={(val) => setServicesProvided(val)}
+          options={[
+            { value: "hvac", label: "HVAC" },
+            { value: "plumbing", label: "Plumbing" },
+            { value: "electrical", label: "Electrical" },
+            { value: "carpentry", label: "Carpentry" },
+            { value: "roofing", label: "Roofing" },
+            { value: "painting", label: "Painting" },
+            { value: "flooring", label: "Flooring" },
+            { value: "landscaping", label: "Landscaping" },
+            { value: "pest-control", label: "Pest Control" },
+            { value: "security-systems", label: "Security Systems" },
+            { value: "appliance-repair", label: "Appliance Repair" },
+            { value: "general-maintenance", label: "General Maintenance" },
+          ]}
+          multiple={true}
+          placeholder="Select services..."
+        />
+      </ModalField>
+
+      {!edit && (
+        <ModalField spacing="tight">
+          <FieldShell label="Notes" htmlFor="notes">
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Insert Vendor Notes"
+              autoGrow
             />
-
-            <TextField
-              label="Category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Vendor category"
-            />
-
-            <TextField
-              label="Primary Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vendor@example.com"
-            />
-
-            <TextField
-              label="Vendor Phone Number"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(123) 456-7890"
-            />
-
-            <TextField
-              label="Website"
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://..."
-            />
-
-            <TextField
-              label="Services Provided"
-              value={servicesProvided}
-              onChange={(e) => setServicesProvided(e.target.value)}
-              placeholder="Services provided"
-            />
-          </FormSection>
-        </FormLayout>
-      ) : (
-        <>
-          <ModalField spacing="tight">
-            <FieldShell
-              label="Vendor Name"
-              required
-              error={errors.vendorName}
-              htmlFor="vendor-name"
-            >
-              <Input
-                id="vendor-name"
-                type="text"
-                value={vendorName}
-                onChange={handleVendorNameChange}
-                placeholder="Vendor Name"
-              />
-            </FieldShell>
-          </ModalField>
-
-          <ModalField spacing="tight">
-            <FieldShell label="Primary Email" htmlFor="primary-email">
-              <Input
-                id="primary-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vendor@example.com"
-              />
-            </FieldShell>
-          </ModalField>
-
-          <ModalField spacing="tight">
-            <FieldShell label="Vendor Phone Number" htmlFor="vendor-phone">
-              <Input
-                id="vendor-phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="(123) 456-7890"
-              />
-            </FieldShell>
-          </ModalField>
-
-          <ModalField spacing="tight">
-            <FieldShell label="Website" htmlFor="website">
-              <Input
-                id="website"
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-              />
-            </FieldShell>
-          </ModalField>
-
-          <ModalField spacing="tight">
-            <SelectField
-              label="Services Provided"
-              value={Array.isArray(servicesProvided) ? servicesProvided : (servicesProvided ? [servicesProvided] : [])}
-              onChange={(val) => setServicesProvided(val)}
-              options={[
-                { value: "hvac", label: "HVAC" },
-                { value: "plumbing", label: "Plumbing" },
-                { value: "electrical", label: "Electrical" },
-                { value: "carpentry", label: "Carpentry" },
-                { value: "roofing", label: "Roofing" },
-                { value: "painting", label: "Painting" },
-                { value: "flooring", label: "Flooring" },
-                { value: "landscaping", label: "Landscaping" },
-                { value: "pest-control", label: "Pest Control" },
-                { value: "security-systems", label: "Security Systems" },
-                { value: "appliance-repair", label: "Appliance Repair" },
-                { value: "general-maintenance", label: "General Maintenance" },
-              ]}
-              multiple={true}
-              placeholder="Select services..."
-            />
-          </ModalField>
-
-          <ModalField spacing="tight">
-            <FieldShell label="Notes" htmlFor="notes">
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Insert Vendor Notes"
-                autoGrow
-              />
-            </FieldShell>
-          </ModalField>
-        </>
+          </FieldShell>
+        </ModalField>
       )}
     </ModalTemplate>
   );
