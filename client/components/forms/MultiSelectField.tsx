@@ -93,6 +93,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
 };
 
 interface MultiSelectFieldContentProps {
+  label: string;
   open: boolean;
   setOpen: (open: boolean) => void;
   fieldId: string;
