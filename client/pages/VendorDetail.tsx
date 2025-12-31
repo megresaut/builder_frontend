@@ -46,7 +46,9 @@ import {
   KeyValueGrid,
   NotesTemplate,
   FilesTemplate,
+  DataSectionTemplate,
   type KeyValueCell,
+  type Subsection,
 } from "@/components/templates";
 
 export default function VendorDetail() {
