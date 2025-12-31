@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FormDialog } from "@/components/FormDialog";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { TextAreaField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
