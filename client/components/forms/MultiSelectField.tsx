@@ -107,6 +107,7 @@ interface MultiSelectFieldContentProps {
 }
 
 const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
+  label,
   open,
   setOpen,
   fieldId,
