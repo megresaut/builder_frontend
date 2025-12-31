@@ -43,6 +43,7 @@ export {
   fetchVendorFiles,
   uploadVendorFile,
   deleteVendorFile,
+  updateVendorFile,
   MOCK_VENDOR_FILES,
   type VendorFile,
 } from './related/files';
