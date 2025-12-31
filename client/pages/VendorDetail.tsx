@@ -741,7 +741,7 @@ export default function VendorDetail() {
             <TextAreaField
               label="Description"
               value={fileDescription}
-              onChange={(e) => setFileDescription(e.target.value)}
+              onChange={setFileDescription}
               placeholder="Enter file description (optional)"
               rows={3}
             />
