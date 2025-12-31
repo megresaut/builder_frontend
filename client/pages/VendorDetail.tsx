@@ -80,11 +80,11 @@ export default function VendorDetail() {
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
 
   // Sync vendorDraft with vendor when vendor data loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (vendor && !vendorDraft) {
       setVendorDraft(vendor);
     }
-  }, [vendor]);
+  }, [vendor, vendorDraft]);
 
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
