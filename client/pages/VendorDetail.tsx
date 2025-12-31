@@ -14,6 +14,7 @@ import {
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { EmailIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import {
   TextField,
