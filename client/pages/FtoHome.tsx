@@ -772,25 +772,15 @@ export default function FtoHome() {
                 );
               case "status":
                 return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          activeTab === "open"
-                            ? getStatusColor(
-                                (row as FieldTeamOrder).approvalStatus ||
-                                  "pending",
-                              )
-                            : getStatusColor((row as SubmissionRecord).status),
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {activeTab === "open"
-                        ? (row as FieldTeamOrder).approvalStatus || "pending"
-                        : (row as SubmissionRecord).status}
-                    </span>
-                  </div>
+                  <StatusBadge
+                    status={
+                      activeTab === "open"
+                        ? ((row as FieldTeamOrder).approvalStatus ||
+                            "pending") as ApprovalStatusType
+                        : (row as SubmissionRecord).status
+                    }
+                    variant="approval-status"
+                  />
                 );
               default:
                 return null;
