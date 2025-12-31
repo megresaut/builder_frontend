@@ -30,7 +30,9 @@ Do not leave unused imports, unused exports, or dead files. If functionality is 
 
 # Icons
 
-Any svg icons I import, add to the icon library and then import from the icon library into the component.
+- Any svg icons I import, add to the icon library and then import from the icon library into the component.
+- Rule: Always import from @/components/icons (your library), never from lucide-react directly in components
+
 
 # State Management
 
@@ -73,3 +75,6 @@ Accept the inferred or known parameters the real endpoint would require.
 Return mock JSON shaped exactly as the UI consumes.
 
 Infer the minimum required parameters from UI usage if docs are unavailable (e.g. propertyId, noteId, fileId) and do not invent extras.
+
+# Design System Read ME 
+- Every so often, update the design system read me so it's updated with recent changes
