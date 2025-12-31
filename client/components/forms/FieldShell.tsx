@@ -135,7 +135,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
               onCellCommit(value);
             }
             // Keep popover open if there's an error; otherwise close
-            if (!error) {
+            if (!validationError) {
               setIsPopoverOpen(false);
             }
           } else if (e.key === "Escape") {
@@ -148,7 +148,7 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   });
 
   const childrenWithError = React.Children.map(children, (child) => {
-    if (React.isValidElement(child) && error) {
+    if (React.isValidElement(child) && validationError) {
       return React.cloneElement(child, {
         "aria-invalid": true,
       } as any);
