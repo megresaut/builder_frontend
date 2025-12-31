@@ -271,19 +271,13 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField spacing="tight">
-        <FieldShell
+        <PhoneNumberField
           label="Vendor Phone Number"
-          htmlFor="vendor-phone"
+          value={phone}
+          onChange={handlePhoneChange}
           error={errors.phone}
-        >
-          <Input
-            id="vendor-phone"
-            type="tel"
-            value={phone}
-            onChange={handlePhoneChange}
-            placeholder="(123) 456-7890"
-          />
-        </FieldShell>
+          placeholder="(123) 456-7890"
+        />
       </ModalField>
 
       <ModalField spacing="tight">
