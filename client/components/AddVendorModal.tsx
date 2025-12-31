@@ -207,10 +207,10 @@ export default function AddVendorModal({
     }
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value);
+  const handlePhoneChange = (value: string) => {
+    setPhone(value);
     if (errors.phone) {
-      const phoneError = validatePhone(e.target.value);
+      const phoneError = validatePhone(value);
       if (!phoneError) {
         setErrors((prev) => {
           const newErrors = { ...prev };
