@@ -242,32 +242,11 @@ export default function VendorDetail() {
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Vendor Information
                     </h2>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setIsFormShowcaseOpen(true)}
-                        className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                        title="View field components showcase"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M11.2 1H2.8C1.81 1 1.009 1.81 1.009 2.8L1 12.2C1 13.19 1.81 14 2.8 14H11.2C12.19 14 13 13.19 13 12.2V2.8C13 1.81 12.19 1 11.2 1ZM11.2 12.2H2.8V2.8H11.2V12.2ZM3.5 5.25H8.75V6.75H3.5V5.25ZM3.5 7.75H10.5V9.25H3.5V7.75Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span>Showcase</span>
-                      </button>
-                      <SectionActionTemplate
-                        icon={<EditIcon width={14} height={14} />}
-                        label="Edit"
-                        onClick={openEditVendor}
-                      />
-                    </div>
+                    <SectionActionTemplate
+                      icon={<EditIcon width={14} height={14} />}
+                      label="Edit"
+                      onClick={openEditVendor}
+                    />
                   </div>
 
                   <KeyValueGrid
