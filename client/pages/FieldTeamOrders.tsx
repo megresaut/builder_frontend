@@ -558,7 +558,6 @@ export default function FieldTeamOrders() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section - Using PageHeader Template */}
         <PageHeader
           title="All Field Team Orders"
           subtitle="All your field team orders, in one place"
@@ -570,171 +569,169 @@ export default function FieldTeamOrders() {
         />
 
         <div className="flex flex-col gap-6">
-          {/* Field Team Orders Table - Using GlobalTable Component */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-500">Loading field team orders...</div>
             </div>
           ) : (
-          <GlobalTable
-            columns={columns}
-            data={filteredOrders}
-            rowKey="id"
-            showSearchBar={true}
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
-            renderCell={(order, columnKey) => {
-              if (columnKey === "priority") {
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          order.priority === "low"
-                            ? "#059669"
-                            : order.priority === "normal"
-                              ? "#2463eb"
-                              : "#d97706",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize truncate">
-                      {order.priority}
+            <GlobalTable
+              columns={columns}
+              data={filteredOrders}
+              rowKey="id"
+              showSearchBar={true}
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              renderCell={(order, columnKey) => {
+                if (columnKey === "priority") {
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor:
+                            order.priority === "low"
+                              ? "#059669"
+                              : order.priority === "normal"
+                                ? "#2463eb"
+                                : "#d97706",
+                        }}
+                      />
+                      <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                        {order.priority}
+                      </span>
+                    </div>
+                  );
+                }
+                if (columnKey === "property") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.property}
                     </span>
-                  </div>
-                );
-              }
-              if (columnKey === "property") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.property}
-                  </span>
-                );
-              }
-              if (columnKey === "unit") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.unit || "-"}
-                  </span>
-                );
-              }
-              if (columnKey === "description") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.description}
-                  </span>
-                );
-              }
-              if (columnKey === "dueDate") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.dueDate}
-                  </span>
-                );
-              }
-              if (columnKey === "fieldTeam") {
-                return (
-                  <div className="flex items-center gap-2">
-                    {order.fieldTeam.map((member, idx) => (
-                      <div key={idx} className="relative group">
-                        <div
-                          className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                          title={member.name}
-                        >
-                          {member.initials}
+                  );
+                }
+                if (columnKey === "unit") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.unit || "-"}
+                    </span>
+                  );
+                }
+                if (columnKey === "description") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.description}
+                    </span>
+                  );
+                }
+                if (columnKey === "dueDate") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.dueDate}
+                    </span>
+                  );
+                }
+                if (columnKey === "fieldTeam") {
+                  return (
+                    <div className="flex items-center gap-2">
+                      {order.fieldTeam.map((member, idx) => (
+                        <div key={idx} className="relative group">
+                          <div
+                            className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                            title={member.name}
+                          >
+                            {member.initials}
+                          </div>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            {member.name}
+                          </div>
                         </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          {member.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
+                      ))}
+                    </div>
+                  );
+                }
+                if (columnKey === "status") {
+                  return getFTOStatusBadge(order.status);
+                }
+                if (columnKey === "timesheetStatus") {
+                  return getTimesheetStatusBadge(order.timesheetStatus);
+                }
+                if (columnKey === "amount") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm">
+                      ${order.amount}
+                    </span>
+                  );
+                }
+                return null;
+              }}
+              sortingHook={{
+                handleSortClick,
+                getSortIndicator,
+                getSortedData,
+              }}
+              columnManagementHook={{
+                columnOrder,
+                visibleColumns,
+                draggedColumn,
+                dropTargetColumn,
+                dropPosition,
+                columnMenuPos,
+                columnButtonRef,
+                toggleColumnVisibility,
+                handleColumnDragStart,
+                handleColumnDragOver,
+                handleColumnDragLeave,
+                handleColumnDrop,
+              }}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
+              showPageSizeDropdown={showPageSizeDropdown}
+              onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+              openMenuId={openMenuId}
+              onOpenMenuIdChange={setOpenMenuId}
+              title="All Field Team Orders"
+              headerActions={
+                <button
+                  ref={columnButtonRef}
+                  onClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    setShowColumnModal((prev) => !prev);
+                  }}
+                  className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                >
+                  <DotsIcon width={18} height={18} color="#303030" />
+                </button>
               }
-              if (columnKey === "status") {
-                return getFTOStatusBadge(order.status);
-              }
-              if (columnKey === "timesheetStatus") {
-                return getTimesheetStatusBadge(order.timesheetStatus);
-              }
-              if (columnKey === "amount") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    ${order.amount}
-                  </span>
-                );
-              }
-              return null;
-            }}
-            sortingHook={{
-              handleSortClick,
-              getSortIndicator,
-              getSortedData,
-            }}
-            columnManagementHook={{
-              columnOrder,
-              visibleColumns,
-              draggedColumn,
-              dropTargetColumn,
-              dropPosition,
-              columnMenuPos,
-              columnButtonRef,
-              toggleColumnVisibility,
-              handleColumnDragStart,
-              handleColumnDragOver,
-              handleColumnDragLeave,
-              handleColumnDrop,
-            }}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={setItemsPerPage}
-            showPageSizeDropdown={showPageSizeDropdown}
-            onShowPageSizeDropdownChange={setShowPageSizeDropdown}
-            openMenuId={openMenuId}
-            onOpenMenuIdChange={setOpenMenuId}
-            title="All Field Team Orders"
-            headerActions={
-              <button
-                ref={columnButtonRef}
-                onClick={() => {
-                  setShowPageSizeDropdown(false);
-                  setOpenMenuId(null);
-                  setShowColumnModal((prev) => !prev);
-                }}
-                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              >
-                <DotsIcon width={18} height={18} color="#303030" />
-              </button>
-            }
-            actions={[
-              {
-                label: "Approve",
-                icon: <ApproveIcon width={16} height={16} />,
-                onClick: handleApproveOrder,
-              },
-              {
-                label: "Edit",
-                icon: <EditIcon width={18} height={18} color="#525252" />,
-                onClick: handleEditOrder,
-              },
-              {
-                label: "Delete",
-                icon: <DeleteIcon width={18} height={18} color="#982740" />,
-                onClick: handleDeleteOrder,
-              },
-            ]}
-            onRowClick={(order) => {
-              navigate(`/tasks/${order.taskId}/fieldteam`);
-            }}
-            showColumnModal={showColumnModal}
-            onShowColumnModalChange={setShowColumnModal}
-          />
+              actions={[
+                {
+                  label: "Approve",
+                  icon: <ApproveIcon width={16} height={16} />,
+                  onClick: handleApproveOrder,
+                },
+                {
+                  label: "Edit",
+                  icon: <EditIcon width={18} height={18} color="#525252" />,
+                  onClick: handleEditOrder,
+                },
+                {
+                  label: "Delete",
+                  icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                  onClick: handleDeleteOrder,
+                },
+              ]}
+              onRowClick={(order) => {
+                navigate(`/tasks/${order.taskId}/fieldteam`);
+              }}
+              showColumnModal={showColumnModal}
+              onShowColumnModalChange={setShowColumnModal}
+            />
           )}
         </div>
       </div>
 
-      {/* Create/Update FTO Modal */}
       <CreateFTOModal
         open={showFTOModal}
         onOpenChange={(open) => {
@@ -753,19 +750,29 @@ export default function FieldTeamOrders() {
             : undefined
         }
         onFTOCreated={(ftoData) => {
-          const newId = Math.max(...orders.map(o => o.id), 0) + 1;
-          const fieldTeamArray = ftoData.selectedAssignees.map((assignee: any) => ({
-            initials: assignee.initials || assignee.value?.substring(0, 2).toUpperCase() || "?",
-            color: assignee.color || "bg-blue-500",
-            name: assignee.name || assignee.label || assignee.value || "",
-          }));
+          const newId = Math.max(...orders.map((o) => o.id), 0) + 1;
+          const fieldTeamArray = ftoData.selectedAssignees.map(
+            (assignee: any) => ({
+              initials:
+                assignee.initials ||
+                assignee.value?.substring(0, 2).toUpperCase() ||
+                "?",
+              color: assignee.color || "bg-blue-500",
+              name: assignee.name || assignee.label || assignee.value || "",
+            })
+          );
           const newFTO: FieldTeamOrder = {
             id: newId,
             taskId: newId,
             property: ftoData.property,
             unit: ftoData.unit,
             description: ftoData.ftoName || ftoData.description,
-            dueDate: ftoData.dueDate?.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || '',
+            dueDate:
+              ftoData.dueDate?.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              }) || "",
             priority: ftoData.priority as "low" | "normal" | "high",
             fieldTeam: fieldTeamArray,
             status: "pending-approval",
@@ -776,7 +783,6 @@ export default function FieldTeamOrders() {
         }}
       />
 
-      {/* Column Filter Modal */}
       <ColumnFilterModal
         isOpen={showColumnModal}
         position={columnMenuPos}
