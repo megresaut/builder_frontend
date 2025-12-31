@@ -281,25 +281,10 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                   }}
                   onClick={() => toggleItem(option)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      toggleItem(option);
-                    } else if (e.key === "Escape") {
+                    if (e.key === "Escape") {
                       e.preventDefault();
                       e.stopPropagation();
                       setOpen(false);
-                    } else if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      popoverContext.setHighlightedIndex((prev) =>
-                        prev < popoverContext.filteredItems.length - 1
-                          ? prev + 1
-                          : prev,
-                      );
-                    } else if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      popoverContext.setHighlightedIndex((prev) =>
-                        prev > 0 ? prev - 1 : 0,
-                      );
                     }
                   }}
                   role="option"
