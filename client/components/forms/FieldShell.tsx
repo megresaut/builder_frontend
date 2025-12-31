@@ -17,6 +17,7 @@ interface FieldShellProps {
   mode?: "form" | "cell";
   cellValue?: string;
   onCellCommit?: (value: any) => void;
+  value?: string | number | boolean | null;
 }
 
 /**
