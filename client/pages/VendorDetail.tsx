@@ -166,11 +166,9 @@ export default function VendorDetail() {
 
   const handleAddFile = async () => {
     if (uploadedFiles.length === 0) {
-      setFileError("File is required");
       return;
     }
 
-    setFileError("");
     const fileObj = uploadedFiles[0];
 
     if (isEditingFile && selectedFile) {
