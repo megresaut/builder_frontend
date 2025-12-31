@@ -2,13 +2,14 @@ import React from "react";
 
 type FTOStatusType = "pending-approval" | "dispatched" | "approved";
 type TimesheetStatusType = "awaiting-submission" | "submitted" | "rejected" | "approved";
+type ApprovalStatusType = "pending" | "approved" | "rejected";
 type LegacyStatusType = "Paid" | "Pending" | "Pending Approval" | "Partially Paid" | "Overdue" | "Draft" | "active" | "inactive" | "Cancelled";
 
-type StatusType = FTOStatusType | TimesheetStatusType | LegacyStatusType;
+type StatusType = FTOStatusType | TimesheetStatusType | ApprovalStatusType | LegacyStatusType;
 
 interface StatusBadgeProps {
   status: StatusType;
-  variant?: "fto-status" | "timesheet-status" | "legacy";
+  variant?: "fto-status" | "timesheet-status" | "approval-status" | "legacy";
 }
 
 const FTO_STATUS_CONFIG: Record<FTOStatusType, { label: string; color: string }> = {
@@ -22,6 +23,12 @@ const TIMESHEET_STATUS_CONFIG: Record<TimesheetStatusType, { label: string; colo
   submitted: { label: "Submitted", color: "#991B1B" },
   rejected: { label: "Rejected", color: "#DC2626" },
   approved: { label: "Approved", color: "#065F46" },
+};
+
+const APPROVAL_STATUS_CONFIG: Record<ApprovalStatusType, { label: string; color: string }> = {
+  pending: { label: "Pending", color: "#D97706" },
+  approved: { label: "Approved", color: "#059669" },
+  rejected: { label: "Rejected", color: "#DC2626" },
 };
 
 const LEGACY_STATUS_CONFIG: Record<LegacyStatusType, { label: string; color: string }> = {
