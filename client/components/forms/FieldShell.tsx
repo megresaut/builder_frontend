@@ -36,9 +36,8 @@ interface FieldShellProps {
  * - Cell mode: Compact inline editing with popover
  *
  * Behavior:
- * - If `error` is set, the field is automatically treated as required
- *   (shows asterisk) even if `required={false}`
- * - This ensures validation errors are visually paired with the required indicator
+ * - Required asterisk only appears if `required={true}` is explicitly set
+ * - Validation errors show on non-required fields without the asterisk
  * - In cell mode, validation error shows only inside popover, not in cell
  *
  * @param label - Field label text (always required)
