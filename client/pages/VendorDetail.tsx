@@ -45,6 +45,8 @@ import {
   RecordListTemplate,
   RecordRowTemplate,
   KeyValueGrid,
+  NotesTemplate,
+  FilesTemplate,
   type KeyValueCell,
 } from "@/components/templates";
 
