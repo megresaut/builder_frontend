@@ -56,7 +56,11 @@ export const DataSectionTemplate: React.FC<DataSectionTemplateProps> = ({
         <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
           {title}
         </h2>
-        <SectionActionTemplate label={editLabel} onClick={onEdit} />
+        <SectionActionTemplate
+          icon={<EditIcon width={14} height={14} />}
+          label={editLabel}
+          onClick={onEdit}
+        />
       </div>
 
       <div className="flex mt-3 w-full flex-col">
