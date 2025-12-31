@@ -177,17 +177,6 @@ export default function PdfViewerModal({
                 borderRadius: "4px",
               }}
             />
-          ) : isProbablyPdfUrl(safeUrl, title) ? (
-            <embed
-              key={iframeKey}
-              src={safeUrl}
-              type="application/pdf"
-              style={{
-                width: "100%",
-                height: "100%",
-                border: "none",
-              }}
-            />
           ) : (
             <iframe
               key={iframeKey}
@@ -198,6 +187,8 @@ export default function PdfViewerModal({
                 height: "100%",
                 border: "none",
               }}
+              sandbox="allow-same-origin"
+              allow="fullscreen"
             />
           )}
         </div>
