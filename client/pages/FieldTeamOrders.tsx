@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import PageHeader from "@/components/PageHeader";
@@ -41,6 +41,28 @@ interface FieldTeamOrder {
   unit?: string;
   fieldTeamAssignee?: string;
   task?: string;
+}
+
+interface APIFTOResponse {
+  id: number;
+  name: string;
+  description: string;
+  property_id: number;
+  property_name: string;
+  property_address: string;
+  task_id?: number;
+  field_team_member_ids: number[];
+  pm_assignee_ids: number[];
+  status: string;
+  priority: string;
+  due_date: string;
+  approval_status: string;
+  form_submission_status: "none" | "partial" | "complete";
+  is_visible_to_client: boolean;
+  hours_decimal: number;
+  total_amount: number;
+  created_at: string;
+  updated_at?: string;
 }
 
 const getRandomTimesheetStatus = ():
