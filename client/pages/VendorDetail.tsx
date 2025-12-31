@@ -246,25 +246,25 @@ export default function VendorDetail() {
                     cells={[
                       {
                         label: "EMAIL",
-                        value: vendor.email,
-                        icon: vendor.email ? <EmailIcon width={14} height={14} /> : undefined,
-                        isLink: vendor.email ? true : false,
+                        value: (vendorDraft || vendor).email,
+                        icon: (vendorDraft || vendor).email ? <EmailIcon width={14} height={14} /> : undefined,
+                        isLink: (vendorDraft || vendor).email ? true : false,
                       },
                       {
                         label: "PHONE",
-                        value: vendor.phone,
+                        value: (vendorDraft || vendor).phone,
                       },
                       {
                         label: "ADDRESS",
-                        value: vendor.address,
+                        value: (vendorDraft || vendor).address,
                       },
                       {
                         label: "WEBSITE",
-                        value: vendor.website,
+                        value: (vendorDraft || vendor).website,
                       },
                       {
                         label: "SERVICES PROVIDED",
-                        value: vendor.servicesProvided,
+                        value: (vendorDraft || vendor).servicesProvided,
                         fullWidth: true,
                       },
                     ]}
