@@ -291,7 +291,9 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         break;
       case "Escape":
         e.preventDefault();
+        e.stopPropagation();
         setOpen(false);
+        triggerRef.current?.focus();
         break;
       default:
         break;
