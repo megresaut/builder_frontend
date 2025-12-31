@@ -104,8 +104,8 @@ export const FieldShell: React.FC<FieldShellProps> = ({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
-  // Auto-infer required if error is present
-  const isRequired = required || !!error;
+  // Only show required asterisk if explicitly required
+  const isRequired = required;
 
   // For cell mode, inject ref and event handlers into child
   const childrenWithCellHandlers = React.Children.map(children, (child) => {
