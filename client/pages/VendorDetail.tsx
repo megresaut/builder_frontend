@@ -466,11 +466,12 @@ export default function VendorDetail() {
                               rowKey="id"
                               actions={[
                                 {
-                                  label: "View",
+                                  label: "Edit",
                                   icon: <EditIcon width={18} height={18} color="#303030" />,
                                   onClick: () => {
                                     setSelectedFile(file);
-                                    setIsViewFileOpen(true);
+                                    setIsEditingFile(true);
+                                    setIsAddFileOpen(true);
                                   },
                                 },
                                 {
