@@ -571,6 +571,11 @@ export default function FieldTeamOrders() {
 
         <div className="flex flex-col gap-6">
           {/* Field Team Orders Table - Using GlobalTable Component */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-gray-500">Loading field team orders...</div>
+            </div>
+          ) : (
           <GlobalTable
             columns={columns}
             data={filteredOrders}
@@ -725,6 +730,7 @@ export default function FieldTeamOrders() {
             showColumnModal={showColumnModal}
             onShowColumnModalChange={setShowColumnModal}
           />
+          )}
         </div>
       </div>
 
