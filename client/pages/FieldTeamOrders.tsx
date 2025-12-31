@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import PageHeader from "@/components/PageHeader";
+import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
