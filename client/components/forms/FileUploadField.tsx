@@ -36,6 +36,7 @@ interface FileUploadFieldProps {
  * - Customizable accepted file types
  * - Disabled state
  * - Error highlighting
+ * - Optional single-file variant with dropzone toggle and filename editing
  *
  * @param label - Field label (required)
  * @param required - Show required asterisk
@@ -46,11 +47,13 @@ interface FileUploadFieldProps {
  * @param onFilesAdded - Callback when files are added
  * @param onFileRemoved - Callback when file is removed
  * @param onViewFile - Callback when View button is clicked
+ * @param onFileRenamed - Callback when file is renamed (single variant only)
  * @param disabled - Disable upload
  * @param accept - Accepted file types (e.g., "image/*,.pdf")
  * @param maxFiles - Maximum number of files (default: 10)
  * @param maxSize - Maximum file size in bytes (default: 10MB)
  * @param placeholder - Custom placeholder text
+ * @param variant - "default" for multiple files, "single" for single file with dropzone toggle
  *
  * Example:
  * ```tsx
@@ -63,6 +66,18 @@ interface FileUploadFieldProps {
  *   accept=".pdf,.doc,.docx,.jpg,.png"
  *   maxFiles={5}
  *   maxSize={5 * 1024 * 1024} // 5MB
+ * />
+ *
+ * // Single file variant with editable names
+ * <FileUploadField
+ *   label="Document"
+ *   variant="single"
+ *   files={files}
+ *   onFilesAdded={(newFiles) => setFiles(newFiles)}
+ *   onFileRemoved={(fileId) => setFiles([])}
+ *   onFileRenamed={(fileId, newName) => {
+ *     setFiles(files.map(f => f.id === fileId ? { ...f, name: newName } : f))
+ *   }}
  * />
  * ```
  */
