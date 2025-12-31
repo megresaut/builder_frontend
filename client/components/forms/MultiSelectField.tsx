@@ -158,6 +158,9 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
           id={fieldId}
           disabled={disabled}
           type="button"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls="multiselect-listbox"
           style={{
             borderColor: error ? "#dc2626" : "var(--color-border-light)",
             borderWidth: "1px",
