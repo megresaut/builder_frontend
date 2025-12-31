@@ -5,9 +5,9 @@ import PdfViewerModal from "@/components/PdfViewerModal";
 import UploadPhotoModal from "@/components/UploadPhotoModal";
 import EditPropertyCustomFieldsModal from "@/components/EditPropertyCustomFieldsModal";
 import EditPropertyRatesModal from "@/components/EditPropertyRatesModal";
-import AddPropertyNoteModal from "@/components/AddPropertyNoteModal";
 import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
-import AddPropertyFileModal from "@/components/AddPropertyFileModal";
+import AddVendorNoteModal from "@/components/AddVendorNoteModal";
+import AddVendorFileModal from "@/components/AddVendorFileModal";
 import { EditIcon } from "@/components/icons";
 import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
 import {
