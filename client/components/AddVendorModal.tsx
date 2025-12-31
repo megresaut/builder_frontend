@@ -192,6 +192,34 @@ export default function AddVendorModal({
     }
   };
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (errors.email) {
+      const emailError = validateEmail(e.target.value);
+      if (!emailError) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.email;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(e.target.value);
+    if (errors.phone) {
+      const phoneError = validatePhone(e.target.value);
+      if (!phoneError) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.phone;
+          return newErrors;
+        });
+      }
+    }
+  };
+
   return (
     <ModalTemplate
       open={open}
