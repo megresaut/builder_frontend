@@ -9,7 +9,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { StatusBadge } from "./Utilities";
+import { StatusBadge } from "@/components/StatusBadge";
 import { EditIcon, DeleteIcon } from "@/components/icons";
 
 interface Assignee {

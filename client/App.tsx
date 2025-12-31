@@ -22,7 +22,6 @@ import ShellLayout from "./layout/ShellLayout";
 import FtoShellLayout from "./layout/FtoShellLayout";
 import { TabContext } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
-import Utilities from "./pages/Utilities";
 import PropertyDetail from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
@@ -121,14 +120,6 @@ export default function App() {
                   element={
                     <ShellLayout>
                       <RecordBill />
-                    </ShellLayout>
-                  }
-                />
-                <Route
-                  path="/utilities"
-                  element={
-                    <ShellLayout>
-                      <Utilities />
                     </ShellLayout>
                   }
                 />

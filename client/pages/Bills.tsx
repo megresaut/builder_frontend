@@ -11,6 +11,7 @@ import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
 import { SubPageHeaderV2 } from "@/components/SubPageHeaderV2";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   CalendarIcon,
   ClockIcon,
