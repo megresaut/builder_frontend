@@ -20,3 +20,11 @@ Make sure to check if you need to delete old files whenever you create new files
 # icons
 
 Any icons that i add, add to the icon library and store as a template icon
+
+Pages may not set padding directly
+
+Tables must use GlobalTable
+
+Fields must go through FieldShell
+
+Modals must use ModalTemplate
