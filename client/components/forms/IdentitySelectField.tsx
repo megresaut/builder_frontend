@@ -324,6 +324,9 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
           type="button"
           id={fieldId}
           disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls="identity-listbox"
           style={{
             borderColor: error
               ? "#ef4444"
