@@ -162,6 +162,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
     >
       <Popover open={open} onOpenChange={setOpen}>
         <IdentitySelectFieldContent
+          label={label}
           open={open}
           setOpen={setOpen}
           error={error}
