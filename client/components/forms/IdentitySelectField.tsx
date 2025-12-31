@@ -267,6 +267,7 @@ const renderOption = (option: IdentityOption, isSelected: boolean) => {
 };
 
 const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
+  label,
   open,
   setOpen,
   error,
