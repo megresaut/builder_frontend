@@ -11,7 +11,6 @@ import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
-import { FormShowcaseModal } from "@/components/FormShowcaseModal";
 import AddVendorModal from "@/components/AddVendorModal";
 import { FormDialog } from "@/components/FormDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -84,7 +83,6 @@ export default function VendorDetail() {
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
-  const [isFormShowcaseOpen, setIsFormShowcaseOpen] = useState(false);
 
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
@@ -750,11 +748,6 @@ export default function VendorDetail() {
         }
         confirmLabel={isInactive ? "Activate" : "Inactivate"}
         onConfirm={handleConfirmInactivate}
-      />
-
-      <FormShowcaseModal
-        open={isFormShowcaseOpen}
-        onOpenChange={setIsFormShowcaseOpen}
       />
 
       <VendorActionsModal
