@@ -107,6 +107,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
       error={error}
       disabled={disabled}
       htmlFor={id}
+      value={files.length > 0 ? files.length : ""}
     >
       <AttachmentUploader
         files={files}
