@@ -579,7 +579,7 @@ export default function VendorDetail() {
       </ModalTemplate>
 
       {/* Add Custom Field Dialog */}
-      <FormDialog
+      <ModalTemplate
         open={isAddCustomFieldOpen}
         onOpenChange={(open) => {
           setIsAddCustomFieldOpen(open);
@@ -589,17 +589,23 @@ export default function VendorDetail() {
           }
         }}
         title="Add Custom Field"
-        onSubmit={handleAddCustomField}
-        onCancel={() => {
-          setCustomFieldName("");
-          setCustomFieldValue("");
-        }}
-        submitLabel="Save"
-        isValid={
-          customFieldName.trim().length > 0 &&
-          customFieldValue.trim().length > 0
-        }
         size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setCustomFieldName("");
+              setCustomFieldValue("");
+              setIsAddCustomFieldOpen(false);
+            }}
+            onConfirm={handleAddCustomField}
+            cancelLabel="Cancel"
+            confirmLabel="Save"
+            confirmDisabled={
+              customFieldName.trim().length === 0 ||
+              customFieldValue.trim().length === 0
+            }
+          />
+        }
       >
         <FormLayout>
           <FormSection showDivider={false}>
@@ -618,7 +624,7 @@ export default function VendorDetail() {
             />
           </FormSection>
         </FormLayout>
-      </FormDialog>
+      </ModalTemplate>
 
       {/* Add/Edit File Modal */}
       <AddVendorFileModal
