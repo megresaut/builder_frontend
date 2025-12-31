@@ -10,7 +10,7 @@ import AddVendorModal from "@/components/AddVendorModal";
 import { FormDialog } from "@/components/FormDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
-import { EmailIcon, EditIcon, DotsIcon } from "@/components/icons";
+import { EmailIcon, EditIcon, DotsIcon, DeleteIcon } from "@/components/icons";
 import {
   TextField,
   TextAreaField,
