@@ -6,7 +6,11 @@ import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
 import AddVendorModal from "@/components/AddVendorModal";
-import { FormDialog } from "@/components/FormDialog";
+import {
+  ModalTemplate,
+  ModalButtons,
+  ModalField,
+} from "@/components/ui/ModalTemplate";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
