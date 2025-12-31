@@ -314,6 +314,9 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         ref={triggerRef}
         id={fieldId}
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls="select-listbox"
         className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
           error
             ? "border-red-600"
