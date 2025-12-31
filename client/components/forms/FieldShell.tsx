@@ -43,15 +43,16 @@ interface FieldShellProps {
  *
  * @param label - Field label text (always required)
  * @param children - Input component (Input, Select, DatePicker, etc.)
- * @param required - Show red asterisk (default: false, auto-inferred from error)
+ * @param required - Show red asterisk and auto-validate (default: false)
  * @param description - Helper text below label
- * @param error - Error message (displayed in red in form mode; in popover in cell mode)
+ * @param error - Error message (displayed in red in form mode; in popover in cell mode). If not provided and required=true, auto-validates based on value
  * @param disabled - Disable field and dim styling (default: false)
  * @param htmlFor - HTML "for" attribute linking label to input
  * @param className - Optional wrapper class override
  * @param mode - "form" (default) or "cell" for table cell editing
  * @param cellValue - Display value for cell mode (shown when popover is closed)
  * @param onCellCommit - Callback when value is committed in cell mode (blur/Enter)
+ * @param value - Field value for automatic required field validation
  *
  * Example (form mode):
  * ```tsx
