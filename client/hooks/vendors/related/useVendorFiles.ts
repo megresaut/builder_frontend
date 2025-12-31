@@ -10,7 +10,7 @@ interface UseVendorFilesResult {
   files: VendorFile[];
   loading: boolean;
   error: Error | null;
-  uploadFile: (file: File) => Promise<void>;
+  uploadFile: (file: File, category?: string, description?: string) => Promise<void>;
   deleteFile: (fileId: number) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -33,9 +33,9 @@ export function useVendorFiles(vendorId: number): UseVendorFilesResult {
     }
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, category?: string, description?: string) => {
     try {
-      const newFile = await uploadVendorFile(vendorId, file);
+      const newFile = await uploadVendorFile(vendorId, file, category, description);
       setFiles([...files, newFile]);
     } catch (err) {
       setError(err as Error);
