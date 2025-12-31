@@ -15,6 +15,11 @@ import { SelectField } from "@/components/forms/SelectField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 interface AddVendorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
