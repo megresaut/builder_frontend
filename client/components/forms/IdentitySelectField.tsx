@@ -461,6 +461,8 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                       triggerRef.current?.focus();
                     }
                   }}
+                  role="option"
+                  aria-selected={isSelected}
                   type="button"
                   style={{
                     width: "100%",
