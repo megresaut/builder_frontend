@@ -764,6 +764,7 @@ export default function VendorDetail() {
                 onFilesAdded={(newFiles) => {
                   if (newFiles.length > 0) {
                     setUploadedFiles([newFiles[0]]);
+                    setValidateFileForm(false);
                   }
                 }}
                 onFileRemoved={(fileId) => {
