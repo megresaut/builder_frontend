@@ -452,19 +452,7 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                       >
                         {file.name}
                       </p>
-                      <p
-                        style={{
-                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                          fontSize: "12px",
-                          fontWeight: 400,
-                          color: "var(--color-text-muted)",
-                          margin: 0,
-                          marginTop: "2px",
-                        }}
-                      >
-                        {formatFileSize(file.size)}
-                      </p>
-                    </>
+                        </>
                   )}
                 </div>
               </div>
