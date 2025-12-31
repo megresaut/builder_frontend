@@ -473,6 +473,7 @@ export default function VendorDetail() {
                         setUploadedFiles([]);
                         setFileCategory("");
                         setFileDescription("");
+                        setFileError("");
                         setIsAddFileOpen(true);
                       }}
                     />
