@@ -13,6 +13,7 @@ interface AttachmentUploaderProps {
   onFilesAdded?: (files: UploadedFile[]) => void;
   onFileRemoved?: (fileId: string) => void;
   onViewFile?: (file: UploadedFile) => void;
+  onFileRenamed?: (fileId: string, newName: string) => void;
   files?: UploadedFile[];
   accept?: string;
   maxFiles?: number;
@@ -20,6 +21,7 @@ interface AttachmentUploaderProps {
   disabled?: boolean;
   error?: boolean;
   placeholder?: string;
+  variant?: "default" | "single";
 }
 
 /**
