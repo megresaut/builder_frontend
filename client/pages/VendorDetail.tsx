@@ -480,14 +480,15 @@ export default function VendorDetail() {
                           leftSlot={
                             <div className="flex-1">
                               {file.url ? (
-                                <a
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline"
+                                <button
+                                  onClick={() => {
+                                    setSelectedFile(file);
+                                    setIsViewFileOpen(true);
+                                  }}
+                                  className="text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline bg-none border-none cursor-pointer p-0 text-left"
                                 >
                                   {file.name}
-                                </a>
+                                </button>
                               ) : (
                                 <div className="text-[#303030] text-sm font-normal leading-[1.29]">
                                   {file.name}
