@@ -358,38 +358,143 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                   style={{ color: "var(--color-text-muted)", flexShrink: 0 }}
                 />
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <p
-                    style={{
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                      fontSize: "14px",
-                      fontWeight: 400,
-                      color: "var(--color-text-primary)",
-                      margin: 0,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {file.name}
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                      fontSize: "12px",
-                      fontWeight: 400,
-                      color: "var(--color-text-muted)",
-                      margin: 0,
-                      marginTop: "2px",
-                    }}
-                  >
-                    {formatFileSize(file.size)}
-                  </p>
+                  {editingFileId === file.id ? (
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      <input
+                        type="text"
+                        value={editingFileName}
+                        onChange={(e) => setEditingFileName(e.target.value)}
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleSaveFileName(file.id);
+                          } else if (e.key === "Escape") {
+                            handleCancelEditingFileName();
+                          }
+                        }}
+                        style={{
+                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          color: "var(--color-text-primary)",
+                          padding: "6px 8px",
+                          border: "1px solid var(--color-button-primary)",
+                          borderRadius: "4px",
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      />
+                      <button
+                        onClick={() => handleSaveFileName(file.id)}
+                        style={{
+                          background: "var(--color-button-primary)",
+                          border: "none",
+                          color: "white",
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                          transition: "opacity 0.2s",
+                        }}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.8")}
+                        onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEditingFileName}
+                        style={{
+                          background: "none",
+                          border: "1px solid var(--color-border-light)",
+                          color: "var(--color-text-primary)",
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                          transition: "opacity 0.2s",
+                        }}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
+                        onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p
+                        onClick={onFileRenamed ? () => handleStartEditingFileName(file) : undefined}
+                        style={{
+                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          color: "var(--color-text-primary)",
+                          margin: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          cursor: onFileRenamed ? "pointer" : "default",
+                          transition: "opacity 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (onFileRenamed) {
+                            (e.currentTarget as HTMLParagraphElement).style.opacity = "0.7";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (onFileRenamed) {
+                            (e.currentTarget as HTMLParagraphElement).style.opacity = "1";
+                          }
+                        }}
+                      >
+                        {file.name}
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          fontSize: "12px",
+                          fontWeight: 400,
+                          color: "var(--color-text-muted)",
+                          margin: 0,
+                          marginTop: "2px",
+                        }}
+                      >
+                        {formatFileSize(file.size)}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0, marginLeft: "12px" }}>
-                {isViewableFile(file) && onViewFile && (
+              {editingFileId !== file.id && (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0, marginLeft: "12px" }}>
+                  {isViewableFile(file) && onViewFile && (
+                    <button
+                      onClick={() => onViewFile(file)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--color-button-primary)",
+                        flexShrink: 0,
+                        transition: "opacity 0.2s",
+                      }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+                      aria-label={`View ${file.name}`}
+                      title="View document"
+                    >
+                      <Eye width={18} height={18} />
+                    </button>
+                  )}
                   <button
-                    onClick={() => onViewFile(file)}
+                    onClick={() => handleRemoveFile(file.id)}
                     style={{
                       background: "none",
                       border: "none",
@@ -398,40 +503,19 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "var(--color-button-primary)",
+                      color: "var(--color-text-muted)",
                       flexShrink: 0,
                       transition: "opacity 0.2s",
                     }}
                     onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
                     onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
-                    aria-label={`View ${file.name}`}
-                    title="View document"
+                    aria-label={`Remove ${file.name}`}
+                    title="Remove file"
                   >
-                    <Eye width={18} height={18} />
+                    <X width={18} height={18} />
                   </button>
-                )}
-                <button
-                  onClick={() => handleRemoveFile(file.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "var(--color-text-muted)",
-                    flexShrink: 0,
-                    transition: "opacity 0.2s",
-                  }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.7")}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
-                  aria-label={`Remove ${file.name}`}
-                  title="Remove file"
-                >
-                  <X width={18} height={18} />
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
