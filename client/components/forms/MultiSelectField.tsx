@@ -281,7 +281,10 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
                   }}
                   onClick={() => toggleItem(option)}
                   onKeyDown={(e) => {
-                    if (e.key === "Escape") {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleItem(option);
+                    } else if (e.key === "Escape") {
                       e.preventDefault();
                       e.stopPropagation();
                       setOpen(false);
