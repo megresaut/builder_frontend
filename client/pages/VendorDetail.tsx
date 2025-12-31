@@ -78,6 +78,8 @@ export default function VendorDetail() {
   const [isViewFileOpen, setIsViewFileOpen] = useState(false);
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [fileCategory, setFileCategory] = useState<string>("");
+  const [fileDescription, setFileDescription] = useState<string>("");
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
   const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(null);
@@ -154,6 +156,8 @@ export default function VendorDetail() {
     }
 
     setUploadedFiles([]);
+    setFileCategory("");
+    setFileDescription("");
     setIsAddFileOpen(false);
   };
 
@@ -661,17 +665,23 @@ export default function VendorDetail() {
           setIsAddFileOpen(open);
           if (!open) {
             setUploadedFiles([]);
+            setFileCategory("");
+            setFileDescription("");
           }
         }}
         title="Add File"
         size="sm"
         onClose={() => {
           setUploadedFiles([]);
+          setFileCategory("");
+          setFileDescription("");
         }}
         footer={
           <ModalButtons
             onCancel={() => {
               setUploadedFiles([]);
+              setFileCategory("");
+              setFileDescription("");
               setIsAddFileOpen(false);
             }}
             onConfirm={handleAddFile}
@@ -681,33 +691,61 @@ export default function VendorDetail() {
           />
         }
       >
-        <ModalField spacing="tight">
-          <FileUploadField
-            label="File"
-            description="Upload PDF documents"
-            files={uploadedFiles}
-            onFilesAdded={(newFiles) => {
-              if (newFiles.length > 0) {
-                setUploadedFiles([newFiles[0]]);
-              }
-            }}
-            onFileRemoved={(fileId) => {
-              setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
-            }}
-            onViewFile={(file) => {
-              setSelectedFile({
-                id: Number(file.id),
-                name: file.name,
-                url: file.file ? URL.createObjectURL(file.file) : undefined,
-                uploadedAt: new Date().toLocaleDateString(),
-              });
-              setIsViewFileOpen(true);
-            }}
-            accept=".pdf"
-            maxFiles={1}
-            maxSize={10 * 1024 * 1024}
-          />
-        </ModalField>
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <ModalField spacing="tight">
+              <FileUploadField
+                label="File"
+                description="Upload PDF documents"
+                files={uploadedFiles}
+                onFilesAdded={(newFiles) => {
+                  if (newFiles.length > 0) {
+                    setUploadedFiles([newFiles[0]]);
+                  }
+                }}
+                onFileRemoved={(fileId) => {
+                  setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+                }}
+                onViewFile={(file) => {
+                  setSelectedFile({
+                    id: Number(file.id),
+                    name: file.name,
+                    url: file.file ? URL.createObjectURL(file.file) : undefined,
+                    uploadedAt: new Date().toLocaleDateString(),
+                  });
+                  setIsViewFileOpen(true);
+                }}
+                accept=".pdf"
+                maxFiles={1}
+                maxSize={10 * 1024 * 1024}
+              />
+            </ModalField>
+
+            <SelectField
+              label="Category"
+              value={fileCategory}
+              onChange={(value) => setFileCategory(value as string)}
+              options={[
+                { label: "Invoice", value: "Invoice" },
+                { label: "Contract", value: "Contract" },
+                { label: "License", value: "License" },
+                { label: "Insurance", value: "Insurance" },
+                { label: "Certificate", value: "Certificate" },
+                { label: "Agreement", value: "Agreement" },
+                { label: "Other", value: "Other" },
+              ]}
+              placeholder="Select a category"
+            />
+
+            <TextAreaField
+              label="Description"
+              value={fileDescription}
+              onChange={(e) => setFileDescription(e.target.value)}
+              placeholder="Enter file description (optional)"
+              rows={3}
+            />
+          </FormSection>
+        </FormLayout>
       </ModalTemplate>
 
       {/* Edit Vendor Dialog */}
