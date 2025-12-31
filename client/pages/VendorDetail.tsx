@@ -133,14 +133,14 @@ export default function VendorDetail() {
     setIsAddEditNoteOpen(true);
   };
 
-  const saveNote = async () => {
-    const text = noteDraft.trim();
-    if (!text) return;
+  const saveNote = async (text: string) => {
+    const trimmedText = text.trim();
+    if (!trimmedText) return;
 
     if (editingNoteId === null) {
-      await addNote(text);
+      await addNote(trimmedText);
     } else {
-      await editNote(editingNoteId, text);
+      await editNote(editingNoteId, trimmedText);
     }
 
     setIsAddEditNoteOpen(false);
