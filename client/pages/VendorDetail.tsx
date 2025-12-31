@@ -755,6 +755,7 @@ export default function VendorDetail() {
               <FileUploadField
                 label="File"
                 required={true}
+                description=""
                 files={uploadedFiles}
                 onFilesAdded={(newFiles) => {
                   if (newFiles.length > 0) {
