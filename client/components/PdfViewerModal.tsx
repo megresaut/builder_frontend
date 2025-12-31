@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
-import * as pdfjsLib from "pdfjs-dist";
 
 type PdfViewerModalProps = {
   open: boolean;
