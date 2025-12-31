@@ -467,8 +467,8 @@ export default function VendorDetail() {
         url={selectedFile?.url}
       />
 
-      {/* Add/Edit Note Dialog */}
-      <FormDialog
+      {/* Add/Edit Note Modal */}
+      <AddVendorNoteModal
         open={isAddEditNoteOpen}
         onOpenChange={(open) => {
           setIsAddEditNoteOpen(open);
@@ -477,27 +477,10 @@ export default function VendorDetail() {
             setNoteDraft("");
           }
         }}
-        title={editingNoteId === null ? "Add Note" : "Edit Note"}
+        initialText={noteDraft}
+        isEditMode={editingNoteId !== null}
         onSubmit={saveNote}
-        onCancel={() => {
-          setEditingNoteId(null);
-          setNoteDraft("");
-        }}
-        submitLabel="Save Note"
-        isValid={noteDraft.trim().length > 0}
-        size="sm"
-      >
-        <FormLayout>
-          <FormSection showDivider={false}>
-            <TextAreaField
-              label="Note"
-              value={noteDraft}
-              onChange={(e) => setNoteDraft(e.target.value)}
-              placeholder="Enter your note here..."
-            />
-          </FormSection>
-        </FormLayout>
-      </FormDialog>
+      />
 
       {/* View Note Dialog */}
       <FormDialog
