@@ -429,6 +429,8 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                   onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   data-selected={isSelected ? "true" : "false"}
                   data-highlighted={isHighlighted ? "true" : "false"}
+                  role="option"
+                  aria-selected={isSelected}
                   className="w-full px-3 py-2 text-left text-sm text-[var(--color-text-primary)] flex items-center gap-2"
                   type="button"
                   style={{
