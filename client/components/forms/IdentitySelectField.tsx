@@ -442,7 +442,18 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
               return (
                 <button
                   key={option.id}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
                   onClick={() => toggleItem(option.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOpen(false);
+                      triggerRef.current?.focus();
+                    }
+                  }}
                   type="button"
                   style={{
                     width: "100%",
