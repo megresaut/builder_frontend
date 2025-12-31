@@ -161,6 +161,7 @@ interface SelectFieldContentProps {
 }
 
 const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
+  label,
   open,
   setOpen,
   triggerRef,
