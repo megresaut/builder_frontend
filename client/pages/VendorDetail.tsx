@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
