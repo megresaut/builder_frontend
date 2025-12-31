@@ -11,7 +11,7 @@ interface UseVendorFilesResult {
   files: VendorFile[];
   loading: boolean;
   error: Error | null;
-  uploadFile: (file: File, category?: string, description?: string) => Promise<void>;
+  uploadFile: (file: File, category?: string, description?: string, fileName?: string) => Promise<void>;
   deleteFile: (fileId: number) => Promise<void>;
   updateFile: (fileId: number, updates: Partial<Pick<VendorFile, 'name' | 'category' | 'description'>>) => Promise<void>;
   refetch: () => Promise<void>;
