@@ -329,63 +329,6 @@ const transformAPIToFieldTeamOrder = (
   });
 };
 
-const getFTOStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; dotColor: string }> = {
-    "pending-approval": { label: "New", dotColor: "#1E40AF" },
-    dispatched: { label: "Dispatched", dotColor: "#B45309" },
-    approved: { label: "Completed", dotColor: "#166534" },
-  };
-
-  const config = statusConfig[status] || statusConfig["pending-approval"];
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: config.dotColor,
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ fontSize: "14px", color: config.dotColor }}>
-        {config.label}
-      </span>
-    </div>
-  );
-};
-
-const getTimesheetStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; dotColor: string }> = {
-    "awaiting-submission": {
-      label: "Awaiting Submission",
-      dotColor: "#3730A3",
-    },
-    submitted: { label: "Submitted", dotColor: "#991B1B" },
-    rejected: { label: "Rejected", dotColor: "#DC2626" },
-    approved: { label: "Approved", dotColor: "#065F46" },
-  };
-
-  const config = statusConfig[status] || statusConfig["awaiting-submission"];
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: config.dotColor,
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ fontSize: "14px", color: config.dotColor }}>
-        {config.label}
-      </span>
-    </div>
-  );
-};
 
 export default function FieldTeamOrders() {
   const navigate = useNavigate();
