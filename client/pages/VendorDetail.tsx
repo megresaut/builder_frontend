@@ -167,6 +167,7 @@ export default function VendorDetail() {
 
   const handleAddFile = async () => {
     if (uploadedFiles.length === 0) {
+      setValidateFileForm(true);
       return;
     }
 
