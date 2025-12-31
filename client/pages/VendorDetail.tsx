@@ -107,7 +107,8 @@ export default function VendorDetail() {
           type: "application/pdf",
         },
       ]);
-      // TODO: Set fileCategory and fileDescription from file metadata if available
+      setFileCategory(selectedFile.category || "");
+      setFileDescription(selectedFile.description || "");
     }
   }, [isEditingFile, selectedFile]);
 
