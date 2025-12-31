@@ -12,11 +12,13 @@ interface FileUploadFieldProps {
   onFilesAdded?: (files: UploadedFile[]) => void;
   onFileRemoved?: (fileId: string) => void;
   onViewFile?: (file: UploadedFile) => void;
+  onFileRenamed?: (fileId: string, newName: string) => void;
   disabled?: boolean;
   accept?: string;
   maxFiles?: number;
   maxSize?: number;
   placeholder?: string;
+  variant?: "default" | "single";
 }
 
 /**
