@@ -120,8 +120,7 @@ export default function VendorDetail() {
   };
 
   const openEditVendor = () => {
-    if (vendor) {
-      setVendorDraft(vendor);
+    if (vendorDraft) {
       setIsEditVendorOpen(true);
     }
   };
