@@ -185,6 +185,7 @@ export const IdentitySelectField: React.FC<IdentitySelectFieldProps> = ({
 };
 
 interface IdentitySelectFieldContentProps {
+  label: string;
   open: boolean;
   setOpen: (open: boolean) => void;
   error?: string;
