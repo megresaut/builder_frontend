@@ -247,18 +247,6 @@ export default function AddVendorModal({
           </ModalField>
 
           <ModalField spacing="tight">
-            <FieldShell label="Category" htmlFor="category">
-              <Input
-                id="category"
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g., Contractor, Service Provider"
-              />
-            </FieldShell>
-          </ModalField>
-
-          <ModalField spacing="tight">
             <FieldShell label="Primary Email" htmlFor="primary-email">
               <Input
                 id="primary-email"
