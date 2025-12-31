@@ -458,7 +458,14 @@ export default function VendorDetail() {
                     </h2>
                     <SectionActionTemplate
                       label="Add"
-                      onClick={() => setIsAddFileOpen(true)}
+                      onClick={() => {
+                        setIsEditingFile(false);
+                        setSelectedFile(null);
+                        setUploadedFiles([]);
+                        setFileCategory("");
+                        setFileDescription("");
+                        setIsAddFileOpen(true);
+                      }}
                     />
                   </div>
 
