@@ -186,14 +186,16 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           {/* Property Details Section */}
           <SectionRowTemplate isLast={false}>
             <div className="flex flex-col w-full font-medium">
-              <PageHeader
-                title="Property Details"
-                actionButton={{
-                  label: "Edit",
-                  onClick: () => setShowEditPropertyModal(true),
-                }}
-                moreOptions={{}}
-              />
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <PageHeader
+                  title="Property Details"
+                />
+                <SectionActionTemplate
+                  icon={<EditIcon width={14} height={14} />}
+                  label="Edit"
+                  onClick={() => setShowEditPropertyModal(true)}
+                />
+              </div>
 
               <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
                 <img
