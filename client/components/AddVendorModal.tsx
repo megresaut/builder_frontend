@@ -58,7 +58,11 @@ export default function AddVendorModal({
   const [website, setWebsite] = useState("");
   const [servicesProvided, setServicesProvided] = useState<string | string[]>("");
   const [notes, setNotes] = useState("");
-  const [errors, setErrors] = useState<{ vendorName?: string }>({});
+  const [errors, setErrors] = useState<{
+    vendorName?: string;
+    email?: string;
+    phone?: string;
+  }>({});
 
   const availableServices = [
     { value: "hvac", label: "HVAC" },
