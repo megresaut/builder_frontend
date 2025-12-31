@@ -188,7 +188,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 loading="lazy"
                 srcSet={`${propertyImage}&width=100 100w, ${propertyImage}&width=200 200w, ${propertyImage}&width=400 400w`}
                 src={propertyImage}
-                className="rounded-lg min-w-[240px] w-[251px] aspect-[1.57] object-cover"
+                className="rounded-lg min-w-[240px] w-[273px] aspect-[1.57] object-cover"
                 alt="Property"
               />
               <div className="flex min-w-[240px] min-h-[160px] flex-col justify-center flex-1">
