@@ -266,7 +266,17 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
               return (
                 <button
                   key={option.id}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
                   onClick={() => toggleItem(option)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOpen(false);
+                    }
+                  }}
                   type="button"
                   style={{
                     width: "100%",
