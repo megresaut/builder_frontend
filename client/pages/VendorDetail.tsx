@@ -55,7 +55,7 @@ export default function VendorDetail() {
   const { vendor, loading: vendorLoading, error: vendorError } = useVendorDetail(id);
   const { notes, addNote, removeNote, editNote } = useVendorNotes(id);
   const { insurance, addInsurance } = useVendorInsurance(id);
-  const { files, uploadFile, deleteFile } = useVendorFiles(id);
+  const { files, uploadFile, deleteFile, updateFile } = useVendorFiles(id);
   const { fields, addField, removeField } = useVendorCustomFields(id);
 
   // Local state for UI
