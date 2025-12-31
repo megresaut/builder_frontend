@@ -594,10 +594,10 @@ export default function FieldTeamOrders() {
                   );
                 }
                 if (columnKey === "status") {
-                  return getFTOStatusBadge(order.status);
+                  return <StatusBadge status={order.status} variant="fto-status" />;
                 }
                 if (columnKey === "timesheetStatus") {
-                  return getTimesheetStatusBadge(order.timesheetStatus);
+                  return <StatusBadge status={order.timesheetStatus} variant="timesheet-status" />;
                 }
                 if (columnKey === "amount") {
                   return (
