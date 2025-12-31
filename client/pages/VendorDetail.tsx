@@ -480,21 +480,27 @@ export default function VendorDetail() {
       />
 
       {/* View Note Dialog */}
-      <FormDialog
+      <ModalTemplate
         open={isViewNoteOpen}
         onOpenChange={(open) => {
           setIsViewNoteOpen(open);
           if (!open) setSelectedNote(null);
         }}
         title="Note Details"
-        onSubmit={() => {
-          if (selectedNote) {
-            openEditNote(selectedNote);
-            setIsViewNoteOpen(false);
-          }
-        }}
-        submitLabel="Edit"
         size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setIsViewNoteOpen(false)}
+            onConfirm={() => {
+              if (selectedNote) {
+                openEditNote(selectedNote);
+                setIsViewNoteOpen(false);
+              }
+            }}
+            cancelLabel="Close"
+            confirmLabel="Edit"
+          />
+        }
       >
         {selectedNote ? (
           <FormLayout>
@@ -512,7 +518,7 @@ export default function VendorDetail() {
             </FormSection>
           </FormLayout>
         ) : null}
-      </FormDialog>
+      </ModalTemplate>
 
       {/* Add Insurance Dialog */}
       <FormDialog
