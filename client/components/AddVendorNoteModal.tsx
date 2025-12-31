@@ -42,7 +42,7 @@ export const AddVendorNoteModal: React.FC<AddVendorNoteModalProps> = ({
   };
 
   return (
-    <FormDialog
+    <ModalTemplate
       open={open}
       onOpenChange={(openState) => {
         if (!openState) {
@@ -51,11 +51,16 @@ export const AddVendorNoteModal: React.FC<AddVendorNoteModalProps> = ({
         onOpenChange(openState);
       }}
       title={title || (isEditMode ? "Edit Note" : "Add Note")}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      submitLabel={submitLabel}
-      isValid={noteDraft.trim().length > 0}
       size="sm"
+      footer={
+        <ModalButtons
+          onCancel={handleCancel}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={submitLabel}
+          confirmDisabled={noteDraft.trim().length === 0}
+        />
+      }
     >
       <FormLayout>
         <FormSection showDivider={false}>
@@ -68,7 +73,7 @@ export const AddVendorNoteModal: React.FC<AddVendorNoteModalProps> = ({
           />
         </FormSection>
       </FormLayout>
-    </FormDialog>
+    </ModalTemplate>
   );
 };
 
