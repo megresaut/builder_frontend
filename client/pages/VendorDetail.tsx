@@ -182,7 +182,12 @@ export default function VendorDetail() {
     } else {
       // Create new file
       if (fileObj?.file) {
-        await uploadFile(fileObj.file, fileCategory || undefined, fileDescription || undefined);
+        await uploadFile(
+          fileObj.file,
+          fileCategory || undefined,
+          fileDescription || undefined,
+          fileObj.name,
+        );
       }
     }
 
