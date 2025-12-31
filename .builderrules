@@ -48,10 +48,6 @@ Page-level state and handlers should live in a separate hook, similar to useProp
 
 Custom hooks may manage state, side effects, and orchestration. Components should only render UI and forward events.
 
-# Types
-
-Shared data types (e.g. RecentNote, RecentFile) must live in code/client/types/ and be imported, not defined locally.
-
 # Naming Conventions
 
 Name hooks with useXState or useXController.
