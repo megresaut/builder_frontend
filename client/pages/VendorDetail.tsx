@@ -168,13 +168,13 @@ export default function VendorDetail() {
     setIsAddInsuranceOpen(false);
   };
 
-  const handleAddFile = async () => {
-    if (uploadedFiles.length === 0) {
+  const handleAddFile = async (files: UploadedFile[], category: string, description: string) => {
+    if (files.length === 0) {
       setValidateFileForm(true);
       return;
     }
 
-    const fileObj = uploadedFiles[0];
+    const fileObj = files[0];
 
     if (isEditingFile && selectedFile) {
       // Update existing file
@@ -183,8 +183,8 @@ export default function VendorDetail() {
       > = {
         name: fileObj.name,
       };
-      if (fileCategory) updates.category = fileCategory;
-      if (fileDescription) updates.description = fileDescription;
+      if (category) updates.category = category;
+      if (description) updates.description = description;
 
       await updateFile(selectedFile.id, updates);
     } else {
@@ -192,8 +192,8 @@ export default function VendorDetail() {
       if (fileObj?.file) {
         await uploadFile(
           fileObj.file,
-          fileCategory || undefined,
-          fileDescription || undefined,
+          category || undefined,
+          description || undefined,
           fileObj.name,
         );
       }
