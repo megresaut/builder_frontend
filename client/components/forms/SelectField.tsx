@@ -114,6 +114,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     >
       <Popover open={open} onOpenChange={setOpen}>
         <SelectFieldContent
+          label={label}
           open={open}
           setOpen={setOpen}
           triggerRef={triggerRef}
