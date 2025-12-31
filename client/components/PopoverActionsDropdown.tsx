@@ -84,12 +84,22 @@ function PopoverActionsDropdownContent({
         return (
           <button
             key={index}
+            ref={(el) => {
+              actionRefs.current[index] = el;
+            }}
             type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               popover.setOpen(false);
               action.onClick(row);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                popover.setOpen(false);
+              }
             }}
             onMouseEnter={() => popover.setHighlightedIndex(index)}
             data-highlighted={isHighlighted ? "true" : "false"}
