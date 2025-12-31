@@ -723,6 +723,7 @@ export default function VendorDetail() {
             setUploadedFiles([]);
             setFileCategory("");
             setFileDescription("");
+            setValidateFileForm(false);
             setIsEditingFile(false);
             setSelectedFile(null);
           }
