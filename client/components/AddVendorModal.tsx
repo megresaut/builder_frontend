@@ -97,7 +97,7 @@ export default function AddVendorModal({
         setEmail("");
         setPhone("");
         setWebsite("");
-        setServicesProvided("");
+        setServicesProvided([]);
         setNotes("");
       }
       setErrors({});
