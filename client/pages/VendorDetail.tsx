@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
@@ -9,8 +8,9 @@ import VendorActionsModal from "@/components/VendorActionsModal";
 import AddVendorModal from "@/components/AddVendorModal";
 import { FormDialog } from "@/components/FormDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
-import { EmailIcon, EditIcon, DotsIcon, DeleteIcon } from "@/components/icons";
+import { EmailIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import {
   TextField,
   TextAreaField,
