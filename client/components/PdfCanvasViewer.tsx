@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 type PdfCanvasViewerProps = {
   url: string;
@@ -24,10 +25,7 @@ let pdfJsPromise: Promise<PdfJsModule> | null = null;
 const loadPdfJs = () => {
   if (!pdfJsPromise) {
     pdfJsPromise = import("pdfjs-dist/build/pdf.mjs").then((mod) => {
-      mod.GlobalWorkerOptions.workerSrc = new URL(
-        "pdfjs-dist/build/pdf.worker.min.mjs",
-        import.meta.url,
-      ).toString();
+      mod.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
       return mod;
     });
   }
@@ -196,7 +194,7 @@ export function PdfCanvasViewer({ url, title }: PdfCanvasViewerProps) {
           textAlign: "center",
         }}
       >
-        Loading preview
+        Loading preview…
       </div>
     );
   }
@@ -218,7 +216,7 @@ export function PdfCanvasViewer({ url, title }: PdfCanvasViewerProps) {
       >
         <div>
           <div style={{ marginBottom: "12px" }}>
-            PDF preview couldnt be rendered.
+            PDF preview couldn’t be rendered.
           </div>
           {errorMessage ? (
             <div style={{ marginBottom: "12px", color: "#A1A1AA" }}>
