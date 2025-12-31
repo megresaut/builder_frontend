@@ -245,7 +245,11 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
               : isDragging
                 ? "var(--color-button-primary)"
                 : "var(--color-border-light)",
-            backgroundColor: isDragging ? "#f0f9ff" : "rgba(255, 255, 255, 1)",
+            backgroundColor: error
+              ? "#fef2f2"
+              : isDragging
+                ? "#f0f9ff"
+                : "rgba(255, 255, 255, 1)",
             borderWidth: error ? "2px" : "1px",
             borderStyle: "dashed",
             borderRadius: "8px",
