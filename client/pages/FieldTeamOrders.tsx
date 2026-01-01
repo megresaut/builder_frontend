@@ -590,7 +590,7 @@ export default function FieldTeamOrders() {
 
   const handleApproveOrder = useCallback(
     (order: FieldTeamOrder) => {
-      navigate(`/fto/approve/${order.id}`, {
+      navigate(`/field-team-orders/approve/${order.id}`, {
         state: {
           ftoName: order.description,
           property: order.property,

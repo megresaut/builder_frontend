@@ -51,6 +51,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       id,
       disabled = false,
       readOnly = false,
+      onChange,
       ...inputProps
     },
     ref,
@@ -60,6 +61,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       (label
         ? label.toLowerCase().replace(/\s+/g, "-")
         : `field-${Math.random().toString(36).substr(2, 9)}`);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (readOnly) return;
+      if (onChange && typeof onChange === "function") {
+        onChange(e);
+      }
+    };
 
     return (
       <FieldShell
@@ -76,6 +84,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           disabled={disabled}
           readOnly={readOnly}
           {...inputProps}
+          onChange={handleChange}
         />
       </FieldShell>
     );

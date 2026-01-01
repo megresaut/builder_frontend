@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 interface ComboboxOption {
   value: string;
@@ -26,12 +31,13 @@ interface ComboboxFieldProps {
 /**
  * ComboboxField - Searchable combobox field with FieldShell wrapper
  *
- * Features:
+ * Uses Popover primitive which includes:
+ * - Automatic scroll locking when open
+ * - 150px proximity-based auto-close
  * - Search input inside dropdown for filtering options
  * - Selected state indicator with checkmark
  * - Min/max dropdown height with scrollable content
  * - Arrow key navigation, typeahead search, Enter/Escape support
- * - Clear error messaging
  *
  * Keyboard Interactions:
  * - Click or Space/Enter: Open dropdown
@@ -83,9 +89,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const triggerRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
@@ -113,39 +117,10 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
     }
   }, [open]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    if (!open) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open]);
-
-  const handleTriggerClick = () => {
-    setOpen(!open);
-  };
-
-  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (disabled) return;
-
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      setOpen(true);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setOpen(false);
-    }
+  const handleSelect = (optionValue: string) => {
+    onChange?.(optionValue === value ? "" : optionValue);
+    setOpen(false);
+    setSearchTerm("");
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -178,12 +153,6 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
     }
   };
 
-  const handleSelect = (optionValue: string) => {
-    onChange?.(optionValue === value ? "" : optionValue);
-    setOpen(false);
-    setSearchTerm("");
-  };
-
   return (
     <FieldShell
       label={label}
@@ -193,65 +162,59 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <div ref={containerRef} style={{ position: "relative" }}>
-        {/* Trigger Button */}
-        <button
-          ref={triggerRef}
-          id={fieldId}
-          disabled={disabled}
-          className={cn(
-            "h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal",
-            "transition-colors flex items-center justify-between",
-            "disabled:cursor-not-allowed disabled:opacity-60",
-            error
-              ? "border-red-600"
-              : open
-                ? "border-black"
-                : "border-[var(--color-border-light)]",
-          )}
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            lineHeight: 1.43,
-            cursor: disabled ? "not-allowed" : "pointer",
-          }}
-          onClick={handleTriggerClick}
-          onKeyDown={handleTriggerKeyDown}
-          type="button"
-        >
-          <span
-            className="overflow-hidden text-ellipsis whitespace-nowrap"
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            id={fieldId}
+            disabled={disabled}
+            className={cn(
+              "h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal",
+              "transition-colors flex items-center justify-between",
+              "disabled:cursor-not-allowed disabled:opacity-60",
+              error
+                ? "border-red-600"
+                : open
+                  ? "border-black"
+                  : "border-[var(--color-border-light)]",
+            )}
             style={{
-              color: selectedOption ? "var(--color-text-primary)" : "#303030",
-              textAlign: "left",
-              flex: 1,
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              lineHeight: 1.43,
+              cursor: disabled ? "not-allowed" : "pointer",
             }}
+            type="button"
           >
-            {selectedLabel}
-          </span>
-          <ChevronsUpDown
-            className="ml-2 h-4 w-4 shrink-0 flex-none"
-            style={{ color: "#303030" }}
-          />
-        </button>
+            <span
+              className="overflow-hidden text-ellipsis whitespace-nowrap"
+              style={{
+                color: selectedOption ? "var(--color-text-primary)" : "#303030",
+                textAlign: "left",
+                flex: 1,
+              }}
+            >
+              {selectedLabel}
+            </span>
+            <ChevronsUpDown
+              className="ml-2 h-4 w-4 shrink-0 flex-none"
+              style={{ color: "#303030" }}
+            />
+          </button>
+        </PopoverTrigger>
 
-        {/* Dropdown Content */}
-        {open && (
+        <PopoverContent
+          align="start"
+          className="w-[var(--radix-popover-trigger-width)] p-0"
+          style={{
+            width: "var(--radix-popover-trigger-width)",
+          }}
+        >
           <div
             style={{
-              position: "absolute",
-              top: "100%",
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              marginTop: "8px",
-              backgroundColor: "white",
-              border: "1px solid var(--color-border-light)",
-              borderRadius: "8px",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "280px",
             }}
           >
-            {/* Search Input */}
             <div
               style={{
                 display: "flex",
@@ -259,6 +222,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
                 gap: "8px",
                 padding: "8px 12px",
                 borderBottom: "1px solid var(--color-border-light)",
+                flexShrink: 0,
               }}
             >
               <Search className="h-4 w-4" style={{ color: "#717179" }} />
@@ -283,31 +247,31 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
               />
             </div>
 
-            {/* Options List */}
-            {filteredOptions.length === 0 ? (
-              <div
-                style={{
-                  padding: "16px 8px",
-                  textAlign: "center",
-                  color: "var(--color-text-muted)",
-                  fontSize: "14px",
-                  minHeight: "100px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {emptyMessage}
-              </div>
-            ) : (
-              <div
-                style={{
-                  maxHeight: "280px",
-                  minHeight: "auto",
-                  overflowY: "auto",
-                }}
-              >
-                {filteredOptions.map((option, index) => (
+            <div
+              style={{
+                maxHeight: "240px",
+                overflowY: "auto",
+                overflowX: "hidden",
+                flexShrink: 1,
+              }}
+            >
+              {filteredOptions.length === 0 ? (
+                <div
+                  style={{
+                    padding: "16px 8px",
+                    textAlign: "center",
+                    color: "var(--color-text-muted)",
+                    fontSize: "14px",
+                    minHeight: "100px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {emptyMessage}
+                </div>
+              ) : (
+                filteredOptions.map((option, index) => (
                   <button
                     key={option.value}
                     type="button"
@@ -342,27 +306,12 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
                     )}
                     <span>{option.label}</span>
                   </button>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
-        )}
-
-        {/* Overlay for click-outside detection */}
-        {open && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 40,
-            }}
-            onClick={() => setOpen(false)}
-          />
-        )}
-      </div>
+        </PopoverContent>
+      </Popover>
     </FieldShell>
   );
 };

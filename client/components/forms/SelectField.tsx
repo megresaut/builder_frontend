@@ -1,12 +1,15 @@
-import React, { useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  usePopoverContext,
 } from "@/components/ui/popover";
+import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 import { cn } from "@/lib/utils";
 import { FieldShell } from "./FieldShell";
+import { useEffect, useRef, useState } from "react";
 
 interface SelectOption {
   value: string;
@@ -25,68 +28,21 @@ interface SelectFieldProps {
   placeholder?: string;
   options: SelectOption[];
   multiple?: boolean;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
 }
 
 /**
  * SelectField - Select dropdown field with FieldShell wrapper
  *
- * Composed of FieldShell + Popover primitive for consistent select field styling.
- * Handles option lists for status, priority, and other enums.
- * Supports both single-select and multi-select modes.
- *
- * Uses Popover primitive which includes:
- * - Automatic collision detection and side flipping
- * - Real-time repositioning on scroll/resize
- * - Modal-aware z-index stacking
- * - Consistent A11y attributes
- * - Proper scroll support with overflowY: auto
+ * Uses Popover primitive with type-ahead search
  *
  * Keyboard Interactions:
  * - Enter/Space: Open dropdown (when closed) or select highlighted option
  * - ArrowDown: Navigate to next option (opens dropdown if closed)
  * - ArrowUp: Navigate to previous option
- * - Escape: Close dropdown and clear search
- * - Type character(s): Search options by label (clears after 500ms of inactivity)
- *
- * @param label - Field label (required)
- * @param required - Show required asterisk
- * @param description - Helper text
- * @param error - Error message
- * @param id - HTML id attribute (used in label's "for")
- * @param value - Selected value (string for single-select, string[] for multi-select)
- * @param onChange - Change handler (receives selected value string or string[])
- * @param disabled - Disable field
- * @param placeholder - Placeholder text shown when no selection
- * @param options - Array of {value, label} options
- * @param multiple - Enable multi-select mode (default: false)
- *
- * Example (Single-select):
- * ```tsx
- * <SelectField
- *   label="Status"
- *   required
- *   value={status}
- *   onChange={setStatus}
- *   error={errors.status}
- *   placeholder="Select a status"
- *   options={[
- *     { value: "pending", label: "Pending" },
- *     { value: "completed", label: "Completed" },
- *   ]}
- * />
- * ```
- *
- * Example (Multi-select):
- * ```tsx
- * <SelectField
- *   label="Categories"
- *   value={selectedCategories}
- *   onChange={setSelectedCategories}
- *   placeholder="Select categories"
- *   options={[...]}
- *   multiple
- * />
- * ```
+ * - Escape: Close dropdown
+ * - Type character(s): Search options by label (auto-filters)
  */
 export const SelectField: React.FC<SelectFieldProps> = ({
   label,
@@ -100,15 +56,31 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   placeholder = "Select an option",
   options,
   multiple = false,
+  onCreateNew,
+  createNewLabel = "Create New",
 }) => {
   const [open, setOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const [searchText, setSearchText] = React.useState("");
-  const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  console.log("SelectField options:", options);
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
-  // Determine if we're in multi-select mode
+  usePopoverAutoClose({
+    open,
+    onOpenChange: setOpen,
+    triggerRef: triggerRef as React.RefObject<HTMLElement>,
+    contentRef: contentRef as React.RefObject<HTMLElement>,
+  });
+
+  useGlobalActionsScrollLock(open, {
+    allowRefs: [
+      triggerRef as React.RefObject<HTMLElement>,
+      contentRef as React.RefObject<HTMLElement>,
+    ],
+  });
+
   const isMultiple = multiple;
   const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
   const selectedValue = !isMultiple
@@ -117,7 +89,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       : ""
     : "";
 
-  // Get selected option objects
   const selectedOptions = isMultiple
     ? options.filter((opt) => selectedValues.includes(opt.value))
     : selectedValue
@@ -134,140 +105,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     ? selectedValues.length === 0
     : !selectedValue;
 
-  // Filter options based on search text
-  const filteredOptions = searchText
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(searchText.toLowerCase()),
-      )
-    : options;
-
-  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (disabled) return;
-
-    switch (e.key) {
-      case "Enter":
-      case " ":
-        e.preventDefault();
-        setOpen(true);
-        setHighlightedIndex(0);
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        if (!open) {
-          setOpen(true);
-          setHighlightedIndex(0);
-        } else {
-          setHighlightedIndex((prev) =>
-            prev < filteredOptions.length - 1 ? prev + 1 : prev,
-          );
-        }
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        if (open) {
-          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        }
-        break;
-      case "Escape":
-        e.preventDefault();
-        setOpen(false);
-        setSearchText("");
-        break;
-      default:
-        // Typeahead search
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-          e.preventDefault();
-          if (!open) {
-            setOpen(true);
-          }
-
-          const newSearchText = searchText + e.key;
-          setSearchText(newSearchText);
-          setHighlightedIndex(0);
-
-          // Clear search after 500ms of inactivity
-          if (searchTimeout) clearTimeout(searchTimeout);
-          setSearchTimeout(
-            setTimeout(() => {
-              setSearchText("");
-            }, 500),
-          );
-        }
-        break;
-    }
-  };
-
-  const handleOptionSelect = (optionValue: string) => {
-    if (isMultiple) {
-      const newValues = selectedValues.includes(optionValue)
-        ? selectedValues.filter((v) => v !== optionValue)
-        : [...selectedValues, optionValue];
-      onChange?.(newValues);
-      // Keep dropdown open in multi-select mode
-    } else {
-      onChange?.(optionValue);
-      setOpen(false);
-      setSearchText("");
-    }
-  };
-
-  const handleOptionKeyDown = (e: React.KeyboardEvent, optionIndex: number) => {
-    switch (e.key) {
-      case "Enter":
-      case " ":
-        e.preventDefault();
-        handleOptionSelect(filteredOptions[optionIndex].value);
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev < filteredOptions.length - 1 ? prev + 1 : prev,
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        break;
-      case "Escape":
-        e.preventDefault();
-        setOpen(false);
-        setSearchText("");
-        break;
-      default:
-        break;
-    }
-  };
-
-  // When dropdown is open, also handle Enter on trigger to select highlighted option
-  const handleTriggerKeyDownWhenOpen = (
-    e: React.KeyboardEvent<HTMLElement>,
-  ) => {
-    if (!open) {
-      handleTriggerKeyDown(e);
-      return;
-    }
-
-    switch (e.key) {
-      case "Enter":
-        e.preventDefault();
-        if (filteredOptions.length > 0) {
-          handleOptionSelect(filteredOptions[highlightedIndex].value);
-        }
-        break;
-      default:
-        handleTriggerKeyDown(e);
-        break;
-    }
-  };
-
-  const removeItem = (itemValue: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isMultiple) {
-      const newValues = selectedValues.filter((v) => v !== itemValue);
-      onChange?.(newValues);
-    }
-  };
-
   return (
     <FieldShell
       label={label}
@@ -278,184 +115,348 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       htmlFor={fieldId}
     >
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          id={fieldId}
+        <SelectFieldContent
+          open={open}
+          setOpen={setOpen}
+          triggerRef={triggerRef}
+          contentRef={contentRef}
+          fieldId={fieldId}
           disabled={disabled}
-          className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-            error
-              ? "border-red-600"
-              : open
-                ? "border-black"
-                : "border-[var(--color-border-light)]"
-          }`}
-          style={{
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            lineHeight: 1.43,
-            minHeight: "44px",
-            height: "auto",
-            display: "flex",
-            alignItems: "center",
-            flexWrap: isMultiple ? "wrap" : "nowrap",
-            gap: isMultiple ? "6px" : "8px",
-            padding:
-              isMultiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
-          }}
-          onKeyDown={handleTriggerKeyDownWhenOpen}
-        >
-          <div className="flex items-center gap-2 flex-wrap flex-1">
-            {isMultiple && selectedValues.length > 0 ? (
-              selectedOptions.map((opt) => (
-                <div
-                  key={opt.value}
-                  className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
-                  style={{
-                    fontSize: "12px",
-                  }}
-                >
-                  <span style={{ color: "var(--color-text-primary)" }}>
-                    {opt.label}
-                  </span>
-                  <div
-                    role="button"
-                    onClick={(e) => removeItem(opt.value, e)}
-                    className="hover:opacity-70 transition-opacity cursor-pointer"
-                    tabIndex={-1}
-                  >
-                    <X className="w-3 h-3 text-[#2463EB]" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              <span
-                style={{
-                  color: isShowingPlaceholder
-                    ? "#303030"
-                    : "var(--color-text-primary)",
-                  fontSize: "14px",
-                }}
-              >
-                {displayLabel}
-              </span>
-            )}
-          </div>
-          <ChevronDown
-            className="h-4 w-4 shrink-0 flex-none"
-            style={{ color: "#303030" }}
-          />
-        </PopoverTrigger>
-
-        <PopoverContent
-          className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
-          align="start"
-          syncTriggerWidth={true}
-        >
-          {isMultiple && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 12px",
-                borderBottom: "1px solid var(--color-border-light)",
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={handleTriggerKeyDown}
-                style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  padding: 0,
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "14px",
-                  color: "var(--color-text-primary)",
-                  backgroundColor: "transparent",
-                }}
-              />
-            </div>
-          )}
-          <div
-            style={{
-              padding: "4px 0",
-              maxHeight: "300px",
-              overflowY: "auto",
-              overflowX: "hidden",
-              overscrollBehavior: "contain",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {filteredOptions.length === 0 ? (
-              <div
-                style={{
-                  padding: "8px 12px",
-                  color: "var(--color-text-muted)",
-                  fontSize: "14px",
-                }}
-              >
-                {searchText ? "No matching options" : "No options"}
-              </div>
-            ) : (
-              filteredOptions.map((option, index) => {
-                const isSelected = isMultiple
-                  ? selectedValues.includes(option.value)
-                  : selectedValue === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    onClick={() => handleOptionSelect(option.value)}
-                    onKeyDown={(e) => handleOptionKeyDown(e, index)}
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      textAlign: "left",
-                      backgroundColor: isSelected
-                        ? "rgba(36, 99, 235, 0.15)"
-                        : highlightedIndex === index
-                          ? "rgba(36, 99, 235, 0.08)"
-                          : "transparent",
-                      color: "var(--color-text-primary)",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      fontFamily:
-                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      transition: "background-color 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      setHighlightedIndex(index);
-                      (
-                        e.currentTarget as HTMLButtonElement
-                      ).style.backgroundColor = isSelected
-                        ? "rgba(36, 99, 235, 0.15)"
-                        : "rgba(36, 99, 235, 0.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (
-                        e.currentTarget as HTMLButtonElement
-                      ).style.backgroundColor = isSelected
-                        ? "rgba(36, 99, 235, 0.15)"
-                        : "transparent";
-                    }}
-                  >
-                    {isSelected && <Check className="h-4 w-4 text-blue-600" />}
-                    {!isSelected && <div className="h-4 w-4" />}
-                    {option.label}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </PopoverContent>
+          error={error}
+          isShowingPlaceholder={isShowingPlaceholder}
+          displayLabel={displayLabel}
+          value={value}
+          onChange={onChange}
+          options={options}
+          selectedValues={selectedValues}
+          selectedValue={selectedValue}
+          selectedOptions={selectedOptions}
+          multiple={isMultiple}
+          onCreateNew={onCreateNew}
+          createNewLabel={createNewLabel}
+        />
       </Popover>
     </FieldShell>
+  );
+};
+
+interface SelectFieldContentProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  contentRef: React.RefObject<HTMLDivElement>;
+  fieldId: string;
+  disabled: boolean;
+  error?: string;
+  isShowingPlaceholder: boolean;
+  displayLabel: string | undefined;
+  value?: string | string[];
+  onChange?: (value: string | string[]) => void;
+  options: SelectOption[];
+  selectedValues: string[];
+  selectedValue: string;
+  selectedOptions: SelectOption[];
+  multiple: boolean;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
+}
+
+const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
+  open,
+  setOpen,
+  triggerRef,
+  contentRef,
+  fieldId,
+  disabled,
+  error,
+  isShowingPlaceholder,
+  displayLabel,
+  value,
+  onChange,
+  options,
+  selectedValues,
+  selectedValue,
+  selectedOptions,
+  multiple,
+  onCreateNew,
+  createNewLabel = "Create New",
+}) => {
+  const popoverContext = usePopoverContext();
+  const { highlightedIndex } = popoverContext;
+
+  // Register options with Popover for typeahead search and highlight first option
+  useEffect(() => {
+    if (open) {
+      popoverContext.setSearchableItems(
+        options.map((opt) => ({ value: opt.value, label: opt.label })),
+      );
+      // Highlight first option when dropdown opens
+      popoverContext.setHighlightedIndex(0);
+    }
+  }, [open, options, popoverContext]);
+
+  // Set up Enter key handler for selecting from type-ahead results
+  useEffect(() => {
+    if (open && popoverContext.onEnterSelect) {
+      popoverContext.onEnterSelect((item) => {
+        if (item) {
+          const option = options.find((opt) => opt.value === item.value);
+          if (option) {
+            if (multiple) {
+              const newValues = selectedValues.includes(option.value)
+                ? selectedValues.filter((v) => v !== option.value)
+                : [...selectedValues, option.value];
+              onChange?.(newValues);
+            } else {
+              onChange?.(option.value);
+              setOpen(false);
+            }
+          }
+        }
+      });
+    }
+  }, [
+    open,
+    popoverContext,
+    options,
+    multiple,
+    selectedValues,
+    onChange,
+    setOpen,
+  ]);
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (disabled) return;
+
+    switch (e.key) {
+      case "Enter":
+      case " ":
+        if (!open) {
+          e.preventDefault();
+          setOpen(true);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+      case "ArrowDown":
+      case "ArrowUp":
+        if (!open) {
+          e.preventDefault();
+          setOpen(true);
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleOptionSelect = (optionValue: string) => {
+    if (multiple) {
+      const newValues = selectedValues.includes(optionValue)
+        ? selectedValues.filter((v) => v !== optionValue)
+        : [...selectedValues, optionValue];
+      onChange?.(newValues);
+    } else {
+      onChange?.(optionValue);
+      setOpen(false);
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, index: number) => {
+    switch (e.key) {
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (popoverContext.filteredItems[index]) {
+          handleOptionSelect(popoverContext.filteredItems[index].value);
+        }
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        popoverContext.setHighlightedIndex((prev) =>
+          prev < popoverContext.filteredItems.length - 1 ? prev + 1 : prev,
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        popoverContext.setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const removeItem = (itemValue: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (multiple) {
+      const newValues = selectedValues.filter((v) => v !== itemValue);
+      onChange?.(newValues);
+    }
+  };
+
+  return (
+    <>
+      <PopoverTrigger
+        ref={triggerRef}
+        id={fieldId}
+        disabled={disabled}
+        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+          error
+            ? "border-red-600"
+            : open
+              ? "border-black"
+              : "border-[var(--color-border-light)]"
+        }`}
+        style={{
+          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          lineHeight: 1.43,
+          minHeight: "44px",
+          height: "auto",
+          display: "flex",
+          alignItems: "center",
+          flexWrap: multiple ? "wrap" : "nowrap",
+          gap: multiple ? "6px" : "8px",
+          padding:
+            multiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
+        }}
+        onKeyDown={handleTriggerKeyDown}
+      >
+        <div className="flex items-center gap-2 flex-wrap flex-1">
+          {multiple && selectedValues.length > 0 ? (
+            selectedOptions.map((opt) => (
+              <div
+                key={opt.value}
+                className="flex items-center gap-1.5 bg-white rounded-full border border-[#2463EB] px-2 py-1 whitespace-nowrap"
+                style={{
+                  fontSize: "12px",
+                }}
+              >
+                <span style={{ color: "var(--color-text-primary)" }}>
+                  {opt.label}
+                </span>
+                <div
+                  role="button"
+                  onClick={(e) => removeItem(opt.value, e)}
+                  className="hover:opacity-70 transition-opacity cursor-pointer"
+                  tabIndex={-1}
+                >
+                  <X className="w-3 h-3 text-[#2463EB]" />
+                </div>
+              </div>
+            ))
+          ) : (
+            <span
+              style={{
+                color: isShowingPlaceholder
+                  ? "#303030"
+                  : "var(--color-text-primary)",
+                fontSize: "14px",
+              }}
+            >
+              {displayLabel}
+            </span>
+          )}
+        </div>
+        <ChevronDown
+          className="h-4 w-4 shrink-0 flex-none"
+          style={{ color: "#303030" }}
+        />
+      </PopoverTrigger>
+
+      <PopoverContent
+        ref={contentRef}
+        className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
+        align="start"
+        syncTriggerWidth={true}
+      >
+        <div
+          style={{
+            padding: "4px 0",
+            maxHeight: "300px",
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {popoverContext.filteredItems.length === 0 ? (
+            <div
+              style={{
+                padding: "8px 12px",
+                color: "var(--color-text-muted)",
+                fontSize: "14px",
+              }}
+            >
+              {popoverContext.filteredItems.length === 0 && options.length > 0
+                ? "No matching options"
+                : "No options"}
+            </div>
+          ) : (
+            popoverContext.filteredItems.map((item, index) => {
+              const option = options.find((opt) => opt.value === item.value);
+              if (!option) return null;
+              const isSelected = multiple
+                ? selectedValues.includes(option.value)
+                : selectedValue === option.value;
+              const isHighlighted = highlightedIndex === index;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => handleOptionSelect(option.value)}
+                  onKeyDown={(e) => handleOptionKeyDown(e, index)}
+                  data-selected={isSelected ? "true" : "false"}
+                  data-highlighted={isHighlighted ? "true" : "false"}
+                  className="w-full px-3 py-2 text-left text-sm text-[var(--color-text-primary)] flex items-center gap-2"
+                  type="button"
+                  style={{
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                  onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
+                >
+                  {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                  {!isSelected && <div className="h-4 w-4" />}
+                  {option.label}
+                </button>
+              );
+            })
+          )}
+        </div>
+        {onCreateNew && (
+          <div
+            style={{
+              borderTop: "1px solid var(--color-border-light)",
+              padding: "8px 0",
+            }}
+          >
+            <button
+              onClick={() => {
+                onCreateNew();
+                setOpen(false);
+              }}
+              className="w-full px-3 py-2 text-left text-sm text-[#2463EB] hover:bg-blue-50 transition-colors flex items-center gap-2"
+              style={{
+                border: "none",
+                cursor: "pointer",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontWeight: "500",
+              }}
+            >
+              <span>+ {createNewLabel}</span>
+            </button>
+          </div>
+        )}
+      </PopoverContent>
+    </>
   );
 };
 

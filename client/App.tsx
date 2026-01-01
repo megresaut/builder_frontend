@@ -34,6 +34,7 @@ import { TermsOfService } from "./pages/TermsOfService";
 import FtoShellLayout from "./layout/FTOShellLayout";
 import FTOHome from "./pages/FTOHome";
 import FtoSubmissionForm from "./pages/FtoSubmissionForm";
+import ApproveFtoPage from "./pages/ApproveFtoPage";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +120,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <FieldTeamOrders />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/field-team-orders/approve/:ftoId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <ApproveFtoPage />
                       </ShellLayout>
                     </RequireAuth>
                   }
