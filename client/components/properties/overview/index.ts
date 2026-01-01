@@ -29,6 +29,3 @@ export { default as AddPropertyNoteModal } from "./AddPropertyNoteModal";
 export { default as AddPropertyFileModal } from "./AddPropertyFileModal";
 export { default as UploadPhotoModal } from "./UploadPhotoModal";
 export { default as ViewPropertyNoteModal } from "./ViewPropertyNoteModal";
-
-// Re-export types if needed
-export type { EditCustomFieldsInlineProps } from "./EditCustomFieldsInline";
