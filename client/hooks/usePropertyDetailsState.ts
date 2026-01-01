@@ -40,10 +40,6 @@ interface State {
     fileId: number | null;
   };
   drafts: {
-    viewNote: {
-      id: number | null;
-      body: string;
-    };
     customFields: {
       managementAgreementDate: string;
       inspectionFrequency: string;
