@@ -310,15 +310,21 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     fields: [
                       {
                         label: "HVAC START",
-                        value: "-",
+                        value: state.drafts.customFields.hvacStart
+                          ? new Date(state.drafts.customFields.hvacStart).toLocaleDateString()
+                          : "-",
                       },
                       {
                         label: "HVAC END",
-                        value: "-",
+                        value: state.drafts.customFields.hvacEnd
+                          ? new Date(state.drafts.customFields.hvacEnd).toLocaleDateString()
+                          : "-",
                       },
                       {
                         label: "LANDSCAPING START",
-                        value: "-",
+                        value: state.drafts.customFields.landscapingStart
+                          ? new Date(state.drafts.customFields.landscapingStart).toLocaleDateString()
+                          : "-",
                       },
                     ],
                   },
