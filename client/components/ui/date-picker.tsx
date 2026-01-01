@@ -221,6 +221,7 @@ export const DatePicker = ({
         />
 
         <Dropdown.Content
+          ref={calendarRef}
           closeOnOutsideClick={true}
           closeOnEscape={true}
           className={styles.calendar}
