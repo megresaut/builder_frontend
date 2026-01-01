@@ -245,14 +245,19 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   managementAgreementDate: state.drafts.customFields.managementAgreementDate,
                   inspectionFrequency: state.drafts.customFields.inspectionFrequency,
                 }}
-                onSave={(data) => {
+                managementAgreementDate={state.drafts.customFields.managementAgreementDate}
+                inspectionFrequency={state.drafts.customFields.inspectionFrequency}
+                onManagementAgreementDateChange={(value) => {
                   dispatch({
                     type: "PATCH_CUSTOM_FIELDS",
-                    patch: data,
+                    patch: { managementAgreementDate: value || "" },
                   });
                 }}
-                onCancel={() => {
-                  dispatch({ type: "EXIT_EDIT_MODE" });
+                onInspectionFrequencyChange={(value) => {
+                  dispatch({
+                    type: "PATCH_CUSTOM_FIELDS",
+                    patch: { inspectionFrequency: value },
+                  });
                 }}
               />
             }
