@@ -23,4 +23,6 @@ export { CompactInput } from "./CompactInput";
 export { CompactCurrencyInput, type CompactCurrencyInputProps } from "./CompactCurrencyInput";
 export { CompactDateField } from "./CompactDateField";
 export { CompactSelectField, type CompactSelectFieldProps } from "./CompactSelectField";
+export { CompactDateFieldBase } from "./CompactDateFieldBase";
+export { CompactSelectFieldBase } from "./CompactSelectFieldBase";
 export { RadioGroupField, type RadioGroupFieldProps, type RadioOption } from "./RadioGroupField";
