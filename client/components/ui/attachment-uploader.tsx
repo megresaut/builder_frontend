@@ -7,6 +7,14 @@ export interface UploadedFile {
   size: number;
   type: string;
   file?: File;
+
+  // Backend-stored file (PDFs, etc.)
+  storage_path?: string;
+  sha256?: string;
+
+  // UI state
+  uploading?: boolean;
+  error?: string;
 }
 
 interface AttachmentUploaderProps {

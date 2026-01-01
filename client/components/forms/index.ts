@@ -45,3 +45,5 @@ export { FileUploadField } from "./FileUploadField";
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";
 export { FormSection } from "@/components/ui/form-section";
+
+export { ComboboxFieldWithCustomInput } from "./ComboboxFieldWithCustomInput";

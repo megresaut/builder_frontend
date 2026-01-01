@@ -30,6 +30,11 @@ import { Welcome } from "./pages/Welcome";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
 
+// FTO
+import FtoShellLayout from "./layout/FTOShellLayout";
+import FTOHome from "./pages/FTOHome";
+import FtoSubmissionForm from "./pages/FtoSubmissionForm";
+
 const queryClient = new QueryClient();
 
 interface TabMetadata {
@@ -38,20 +43,17 @@ interface TabMetadata {
   route?: string;
 }
 
-const RequireAuth = () => {
+// Simple auth gate (unchanged behavior)
+const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem("avm_token");
-  return token ? <Outlet /> : <Navigate to="/login" replace />;
+  return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
-
-const ProtectedShell = () => (
-  <ShellLayout>
-    <Outlet />
-  </ShellLayout>
-);
 
 export default function App() {
   const [selectedTab, setSelectedTab] = useState<string>("properties");
-  const [tabMetadata, setTabMetadataState] = useState<Record<string, TabMetadata>>({
+  const [tabMetadata, setTabMetadataState] = useState<
+    Record<string, TabMetadata>
+  >({
     properties: { label: "Properties", route: "/all-properties" },
     portfolio: { label: "Portfolio", sectionId: "portfolio" },
     screening: { label: "Screening", sectionId: "screening" },
@@ -81,57 +83,253 @@ export default function App() {
           >
             <BrowserRouter>
               <Routes>
-                {/* -------- PUBLIC ROUTES (NO AUTH) -------- */}
+                {/* ---------- PUBLIC ROUTES ---------- */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-of-service" element={<TermsOfService />} />
 
-                {/* -------- PROTECTED ROUTES -------- */}
-                <Route element={<RequireAuth />}>
-                  {/* ALL authenticated pages use ShellLayout */}
-                  <Route element={<ProtectedShell />}>
-                    <Route path="/" element={<AllTasks />} />
-                    <Route path="/all-tasks" element={<AllTasks />} />
-                    <Route path="/field-team-orders" element={<FieldTeamOrders />} />
-                    <Route path="/work-orders" element={<MaintenanceWorkOrders />} />
-                    <Route path="/bills" element={<Bills />} />
-                    <Route path="/all-properties" element={<AllProperties />} />
+                {/* ---------- MAIN APP (ShellLayout) ---------- */}
+                <Route
+                  path="/"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AllTasks />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    <Route path="/utilities" element={<Utilities />} />
-                    <Route path="/utilities/view-bill" element={<RecordBill />} />
+                <Route
+                  path="/all-tasks"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AllTasks />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    <Route path="/property/:propertyId" element={<PropertyDetail />} />
-                    <Route
-                      path="/property/:propertyId/:tab"
-                      element={<PropertyDetail />}
-                    />
-                    <Route
-                      path="/property/:propertyId/bills/record"
-                      element={<RecordBill />}
-                    />
+                <Route
+                  path="/field-team-orders"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <FieldTeamOrders />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    <Route path="/bills/record" element={<RecordBill />} />
+                <Route
+                  path="/work-orders"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <MaintenanceWorkOrders />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    <Route path="/recurring-tasks" element={<RecurringTasks />} />
-                    <Route path="/vendors" element={<Vendors />} />
+                <Route
+                  path="/bills"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Bills />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    <Route
-                      path="/tasks/:taskId/:tab/:workOrderId"
-                      element={<TaskSummary />}
-                    />
-                    <Route path="/tasks/:taskId/:tab" element={<TaskSummary />} />
-                    <Route path="/tasks/:taskId" element={<TaskSummary />} />
+                <Route
+                  path="/bills/record"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <RecordBill />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    <Route path="/blank" element={<BlankPage />} />
+                <Route
+                  path="/utilities"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Utilities />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
-                    {/* Catch-all for protected routes */}
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
+                <Route
+                  path="/utilities/view-bill"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <RecordBill />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/all-properties"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AllProperties />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/property/:propertyId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <PropertyDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/property/:propertyId/:tab"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <PropertyDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/property/:propertyId/bills/record"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <RecordBill />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/recurring-tasks"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <RecurringTasks />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/vendors"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Vendors />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/vendors/:vendorId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <VendorDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/tasks/:taskId/:tab/:workOrderId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <TaskSummary />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/tasks/:taskId/:tab"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <TaskSummary />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/tasks/:taskId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <TaskSummary />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/blank"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <BlankPage />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                {/* ---------- FTO APP (FTOShellLayout) ---------- */}
+                <Route
+                  path="/fto"
+                  element={
+                    <RequireAuth>
+                      <FtoShellLayout>
+                        <FTOHome />
+                      </FtoShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/fto/submission"
+                  element={
+                    <RequireAuth>
+                      <FtoShellLayout>
+                        <Outlet />
+                      </FtoShellLayout>
+                    </RequireAuth>
+                  }
+                >
+                  {/* Create */}
+                  <Route index element={<FtoSubmissionForm />} />
+
+                  {/* Edit / View */}
+                  <Route path=":submissionId" element={<FtoSubmissionForm />} />
                 </Route>
 
-                {/* Catch-all for routes not matched anywhere */}
+                {/* ---------- FALLBACK ---------- */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
