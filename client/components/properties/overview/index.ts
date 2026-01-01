@@ -21,6 +21,7 @@
 // Inline edit components
 export { InlineEditWrapper } from "./InlineEditWrapper";
 export { EditCustomFieldsInline } from "./EditCustomFieldsInline";
+export { EditRatesInline } from "./EditRatesInline";
 
 // Modals
 export { default as EditPropertyCustomFieldsModal } from "./EditPropertyCustomFieldsModal";
