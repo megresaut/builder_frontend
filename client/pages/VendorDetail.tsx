@@ -6,8 +6,8 @@ import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
 import AddVendorModal from "@/components/AddVendorModal";
-import AddVendorNoteModal from "@/components/AddVendorNoteModal";
-import AddVendorFileModal from "@/components/AddVendorFileModal";
+import AddNoteModal from "@/components/AddNoteModal";
+import AddFileModal from "@/components/AddFileModal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
@@ -62,7 +62,6 @@ export default function VendorDetail() {
   const [isInactive, setIsInactive] = useState(false);
   const [selectedNote, setSelectedNote] = useState<VendorNote | null>(null);
   const [isAddEditNoteOpen, setIsAddEditNoteOpen] = useState(false);
-  const [noteDraft, setNoteDraft] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
@@ -79,10 +78,6 @@ export default function VendorDetail() {
   const [isViewFileOpen, setIsViewFileOpen] = useState(false);
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
   const [isEditingFile, setIsEditingFile] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [fileCategory, setFileCategory] = useState<string>("");
-  const [fileDescription, setFileDescription] = useState<string>("");
-  const [validateFileForm, setValidateFileForm] = useState(false);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
   const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(null);
@@ -97,20 +92,6 @@ export default function VendorDetail() {
     }
   }, [vendor]);
 
-  // Populate form fields when editing a file
-  useEffect(() => {
-    if (isEditingFile && selectedFile && isAddFileOpen) {
-      const uploadedFile: UploadedFile = {
-        id: String(selectedFile.id),
-        name: selectedFile.name,
-        size: 0,
-        type: "application/pdf",
-      };
-      setUploadedFiles([uploadedFile]);
-      setFileCategory(selectedFile.category || "");
-      setFileDescription(selectedFile.description || "");
-    }
-  }, [isEditingFile, selectedFile, isAddFileOpen]);
 
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
@@ -120,13 +101,11 @@ export default function VendorDetail() {
 
   const openAddNote = () => {
     setEditingNoteId(null);
-    setNoteDraft("");
     setIsAddEditNoteOpen(true);
   };
 
   const openEditNote = (note: VendorNote) => {
     setEditingNoteId(note.id);
-    setNoteDraft(note.text);
     setIsAddEditNoteOpen(true);
   };
 
@@ -142,7 +121,6 @@ export default function VendorDetail() {
 
     setIsAddEditNoteOpen(false);
     setEditingNoteId(null);
-    setNoteDraft("");
   };
 
   const openEditVendor = () => {
@@ -167,7 +145,6 @@ export default function VendorDetail() {
 
   const handleAddFile = async (files: UploadedFile[], category: string, description: string) => {
     if (files.length === 0) {
-      setValidateFileForm(true);
       return;
     }
 
@@ -196,9 +173,6 @@ export default function VendorDetail() {
       }
     }
 
-    setUploadedFiles([]);
-    setFileCategory("");
-    setFileDescription("");
     setIsEditingFile(false);
     setSelectedFile(null);
     setIsAddFileOpen(false);
@@ -428,10 +402,6 @@ export default function VendorDetail() {
                   onAdd={() => {
                     setIsEditingFile(false);
                     setSelectedFile(null);
-                    setUploadedFiles([]);
-                    setFileCategory("");
-                    setFileDescription("");
-                    setValidateFileForm(false);
                     setIsAddFileOpen(true);
                   }}
                   onEdit={(file) => {
@@ -465,16 +435,15 @@ export default function VendorDetail() {
       />
 
       {/* Add/Edit Note Modal */}
-      <AddVendorNoteModal
+      <AddNoteModal
         open={isAddEditNoteOpen}
         onOpenChange={(open) => {
           setIsAddEditNoteOpen(open);
           if (!open) {
             setEditingNoteId(null);
-            setNoteDraft("");
           }
         }}
-        initialText={noteDraft}
+        initialText={editingNoteId !== null ? (selectedNote?.text || "") : ""}
         isEditMode={editingNoteId !== null}
         onSubmit={saveNote}
       />
@@ -627,22 +596,17 @@ export default function VendorDetail() {
       </ModalTemplate>
 
       {/* Add/Edit File Modal */}
-      <AddVendorFileModal
+      <AddFileModal
         open={isAddFileOpen}
         onOpenChange={(open) => {
           setIsAddFileOpen(open);
           if (!open) {
-            setUploadedFiles([]);
-            setFileCategory("");
-            setFileDescription("");
-            setValidateFileForm(false);
             setIsEditingFile(false);
             setSelectedFile(null);
           }
         }}
-        initialFiles={uploadedFiles}
-        initialCategory={fileCategory}
-        initialDescription={fileDescription}
+        initialCategory={isEditingFile && selectedFile ? selectedFile.category || "" : ""}
+        initialDescription={isEditingFile && selectedFile ? selectedFile.description || "" : ""}
         isEditMode={isEditingFile}
         onSubmit={handleAddFile}
       />
