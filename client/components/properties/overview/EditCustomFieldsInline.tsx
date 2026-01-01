@@ -225,19 +225,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               HVAC Start
             </label>
-            <div
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              <CompactDateField
-                label=""
-                value={null}
-                onChange={() => {}}
-                placeholder="MM/DD/YYYY"
-                disabled
-              />
-            </div>
+            <CompactDateFieldBase
+              value={null}
+              onChange={() => {}}
+              placeholder="MM/DD/YYYY"
+              disabled
+            />
           </div>
 
           {/* HVAC End Field */}
@@ -262,19 +255,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               HVAC End
             </label>
-            <div
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              <CompactDateField
-                label=""
-                value={null}
-                onChange={() => {}}
-                placeholder="MM/DD/YYYY"
-                disabled
-              />
-            </div>
+            <CompactDateFieldBase
+              value={null}
+              onChange={() => {}}
+              placeholder="MM/DD/YYYY"
+              disabled
+            />
           </div>
 
           {/* Landscaping Start Field */}
@@ -299,19 +285,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               Landscaping Start
             </label>
-            <div
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              <CompactDateField
-                label=""
-                value={null}
-                onChange={() => {}}
-                placeholder="MM/DD/YYYY"
-                disabled
-              />
-            </div>
+            <CompactDateFieldBase
+              value={null}
+              onChange={() => {}}
+              placeholder="MM/DD/YYYY"
+              disabled
+            />
           </div>
         </div>
       </div>
