@@ -150,7 +150,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 };
 
 interface SelectFieldContentProps {
-  label: string;
+  label?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
   triggerRef: React.RefObject<HTMLButtonElement>;
