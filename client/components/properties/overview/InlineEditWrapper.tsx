@@ -135,14 +135,6 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
           justifyContent: "flex-end",
           gap: "10px",
           marginTop: "8px",
-          marginLeft: "-16px",
-          marginRight: "-16px",
-          marginBottom: "-16px",
-          paddingLeft: "16px",
-          paddingRight: "16px",
-          paddingTop: "8px",
-          paddingBottom: "16px",
-          borderTop: "1px solid rgba(229, 229, 229, 1)",
         }}
       >
         {/* Cancel button */}
