@@ -8,11 +8,20 @@ export interface EditCustomFieldsInlineProps {
   initialData: {
     managementAgreementDate?: string;
     inspectionFrequency?: string;
+    hvacStart?: string | null;
+    hvacEnd?: string | null;
+    landscapingStart?: string | null;
   };
   managementAgreementDate?: string;
   inspectionFrequency?: string;
+  hvacStart?: string | null;
+  hvacEnd?: string | null;
+  landscapingStart?: string | null;
   onManagementAgreementDateChange?: (value: string | null) => void;
   onInspectionFrequencyChange?: (value: string) => void;
+  onHvacStartChange?: (value: string | null) => void;
+  onHvacEndChange?: (value: string | null) => void;
+  onLandscapingStartChange?: (value: string | null) => void;
 }
 
 /**
@@ -40,8 +49,14 @@ export const EditCustomFieldsInline: React.FC<
   initialData,
   managementAgreementDate,
   inspectionFrequency,
+  hvacStart,
+  hvacEnd,
+  landscapingStart,
   onManagementAgreementDateChange,
   onInspectionFrequencyChange,
+  onHvacStartChange,
+  onHvacEndChange,
+  onLandscapingStartChange,
 }) => {
   const [localDate, setLocalDate] = useState<string | null>(
     managementAgreementDate || initialData?.managementAgreementDate || null
@@ -49,11 +64,23 @@ export const EditCustomFieldsInline: React.FC<
   const [localFrequency, setLocalFrequency] = useState<string>(
     inspectionFrequency || initialData?.inspectionFrequency || "Monthly"
   );
+  const [localHvacStart, setLocalHvacStart] = useState<string | null>(
+    hvacStart !== undefined ? hvacStart : initialData?.hvacStart || null
+  );
+  const [localHvacEnd, setLocalHvacEnd] = useState<string | null>(
+    hvacEnd !== undefined ? hvacEnd : initialData?.hvacEnd || null
+  );
+  const [localLandscapingStart, setLocalLandscapingStart] = useState<
+    string | null
+  >(landscapingStart !== undefined ? landscapingStart : initialData?.landscapingStart || null);
 
   useEffect(() => {
     if (initialData) {
       setLocalDate(initialData.managementAgreementDate || null);
       setLocalFrequency(initialData.inspectionFrequency || "Monthly");
+      setLocalHvacStart(initialData.hvacStart || null);
+      setLocalHvacEnd(initialData.hvacEnd || null);
+      setLocalLandscapingStart(initialData.landscapingStart || null);
     }
   }, [initialData]);
 
@@ -65,6 +92,21 @@ export const EditCustomFieldsInline: React.FC<
   const handleFrequencyChange = (value: string) => {
     setLocalFrequency(value);
     onInspectionFrequencyChange?.(value);
+  };
+
+  const handleHvacStartChange = (value: string | null) => {
+    setLocalHvacStart(value);
+    onHvacStartChange?.(value);
+  };
+
+  const handleHvacEndChange = (value: string | null) => {
+    setLocalHvacEnd(value);
+    onHvacEndChange?.(value);
+  };
+
+  const handleLandscapingStartChange = (value: string | null) => {
+    setLocalLandscapingStart(value);
+    onLandscapingStartChange?.(value);
   };
 
   return (
