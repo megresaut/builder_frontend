@@ -62,6 +62,8 @@ interface State {
 type Action =
   | { type: "OPEN_MODAL"; modal: Exclude<Modal, null> }
   | { type: "CLOSE_MODAL" }
+  | { type: "ENTER_EDIT_MODE"; section: "customFields" | "rates" }
+  | { type: "EXIT_EDIT_MODE" }
   | { type: "SELECT_NOTE"; noteId: number | null }
   | { type: "SELECT_FILE"; fileId: number | null }
   | { type: "SET_VIEW_NOTE_DRAFT"; id: number | null; body: string }
