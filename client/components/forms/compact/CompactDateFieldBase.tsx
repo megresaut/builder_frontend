@@ -24,7 +24,7 @@ interface CompactDateFieldBaseProps {
  * @param readOnly - Read-only mode
  */
 const CompactDateFieldBase = React.forwardRef<
-  HTMLInputElement,
+  HTMLDivElement,
   CompactDateFieldBaseProps
 >(({
   disabled = false,
@@ -57,13 +57,31 @@ const CompactDateFieldBase = React.forwardRef<
   };
 
   return (
-    <DatePicker
+    <div
       ref={ref}
-      value={dateValue}
-      onChange={handleDateChange}
-      disabled={disabled || readOnly}
-      placeholder={placeholder}
-    />
+      style={{
+        width: "100%",
+      }}
+    >
+      <style>
+        {`
+          [data-compact-date-picker] .ra-dropdown-trigger {
+            height: 32px !important;
+            padding: 6px 12px !important;
+            font-size: 14px !important;
+            padding-right: 2.5rem !important;
+          }
+        `}
+      </style>
+      <div data-compact-date-picker>
+        <DatePicker
+          value={dateValue}
+          onChange={handleDateChange}
+          disabled={disabled || readOnly}
+          placeholder={placeholder}
+        />
+      </div>
+    </div>
   );
 });
 
