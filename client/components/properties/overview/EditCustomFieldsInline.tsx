@@ -4,7 +4,7 @@ import {
   CompactSelectField,
 } from "@/components/forms/compact";
 
-interface EditCustomFieldsInlineProps {
+export interface EditCustomFieldsInlineProps {
   initialData: {
     managementAgreementDate?: string;
     inspectionFrequency?: string;
