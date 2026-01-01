@@ -228,46 +228,75 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             </div>
           </SectionRowTemplate>
 
-          {/* Custom Fields Section */}
-          <DataSectionTemplate
-            title="Custom Fields"
-            subsections={[
-              {
-                title: "Agreement",
-                fields: [
-                  {
-                    label: "MANAGEMENT AGREEMENT DATE",
-                    value: state.drafts.customFields.managementAgreementDate
-                      ? new Date(state.drafts.customFields.managementAgreementDate).toLocaleDateString()
-                      : "-",
-                  },
-                  {
-                    label: "INSPECTION FREQUENCY",
-                    value: state.drafts.customFields.inspectionFrequency,
-                  },
-                ],
-              },
-              {
-                title: "Vendor Agreement",
-                fields: [
-                  {
-                    label: "HVAC START",
-                    value: "-",
-                  },
-                  {
-                    label: "HVAC END",
-                    value: "-",
-                  },
-                  {
-                    label: "LANDSCAPING START",
-                    value: "-",
-                  },
-                ],
-              },
-            ]}
-            onEdit={() => dispatch({ type: "OPEN_MODAL", modal: "editCustomFields" })}
-            isLast={false}
-          />
+          {/* Custom Fields Section - Inline Edit */}
+          <InlineEditWrapper
+            mode={state.editingSection === "customFields" ? "edit" : "view"}
+            editTitle="Set the custom field values for this property"
+            showCloseButton={true}
+            onSave={() => {
+              dispatch({ type: "EXIT_EDIT_MODE" });
+            }}
+            onCancel={() => {
+              dispatch({ type: "EXIT_EDIT_MODE" });
+            }}
+            editChildren={
+              <EditCustomFieldsInline
+                initialData={{
+                  managementAgreementDate: state.drafts.customFields.managementAgreementDate,
+                  inspectionFrequency: state.drafts.customFields.inspectionFrequency,
+                }}
+                onSave={(data) => {
+                  dispatch({
+                    type: "PATCH_CUSTOM_FIELDS",
+                    patch: data,
+                  });
+                }}
+                onCancel={() => {
+                  dispatch({ type: "EXIT_EDIT_MODE" });
+                }}
+              />
+            }
+          >
+            <DataSectionTemplate
+              title="Custom Fields"
+              subsections={[
+                {
+                  title: "Agreement",
+                  fields: [
+                    {
+                      label: "MANAGEMENT AGREEMENT DATE",
+                      value: state.drafts.customFields.managementAgreementDate
+                        ? new Date(state.drafts.customFields.managementAgreementDate).toLocaleDateString()
+                        : "-",
+                    },
+                    {
+                      label: "INSPECTION FREQUENCY",
+                      value: state.drafts.customFields.inspectionFrequency,
+                    },
+                  ],
+                },
+                {
+                  title: "Vendor Agreement",
+                  fields: [
+                    {
+                      label: "HVAC START",
+                      value: "-",
+                    },
+                    {
+                      label: "HVAC END",
+                      value: "-",
+                    },
+                    {
+                      label: "LANDSCAPING START",
+                      value: "-",
+                    },
+                  ],
+                },
+              ]}
+              onEdit={() => dispatch({ type: "ENTER_EDIT_MODE", section: "customFields" })}
+              isLast={false}
+            />
+          </InlineEditWrapper>
 
           {/* Rates Section */}
           <DataSectionTemplate
