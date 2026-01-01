@@ -232,9 +232,7 @@ export default function ApproveFTOPage() {
   };
 
   const addHourRow = () => {
-    const newId = String(
-      Math.max(...hourRows.map((r) => parseInt(r.id)), 0) + 1,
-    );
+    const newId = `hour-new-${Date.now()}`;
     setHourRows([
       ...hourRows,
       {
@@ -252,9 +250,7 @@ export default function ApproveFTOPage() {
   };
 
   const addExpenseRow = () => {
-    const newId = String(
-      Math.max(...expenseRows.map((r) => parseInt(r.id)), 0) + 1,
-    );
+    const newId = `expense-new-${Date.now()}`;
     setExpenseRows([
       ...expenseRows,
       {
