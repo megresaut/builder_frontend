@@ -52,7 +52,6 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        padding: "16px",
         backgroundColor: "rgba(255, 255, 255, 1)",
         border: "1px solid rgba(218, 218, 218, 1)",
         borderRadius: "8px",
