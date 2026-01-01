@@ -94,6 +94,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         author: "Julia LoSchiavo",
         type: "docx",
         icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true",
+        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0",
       },
       {
         id: 2,
@@ -104,6 +105,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         author: "Carter Hughes",
         type: "pdf",
         icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
+        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
       },
       {
         id: 3,
@@ -113,6 +115,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         author: "Mario Sciarretta",
         type: "pdf",
         icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
+        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
       },
     ];
 
