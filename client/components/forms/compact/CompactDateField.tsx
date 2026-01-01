@@ -122,39 +122,13 @@ const CompactDatePickerWrapper = React.forwardRef<
   }
 >(({ value, onChange, disabled, placeholder, error }, ref) => {
   return (
-    <div
-      style={{
-        position: "relative",
-      }}
-    >
-      <DatePicker
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        placeholder={placeholder}
-        error={error}
-      />
-      <style>{`
-        .react-datepicker__input {
-          height: 32px !important;
-          padding: 6px 12px !important;
-          font-size: 14px !important;
-          font-weight: 400 !important;
-          letter-spacing: -0.28px !important;
-          line-height: 1.4 !important;
-          border-radius: 8px !important;
-          border: 1px solid var(--color-border-light) !important;
-          font-family: Geist, -apple-system, Roboto, Helvetica, sans-serif !important;
-          color: var(--color-text-primary) !important;
-          box-sizing: border-box !important;
-        }
-        .react-datepicker__input:focus {
-          border-color: #000000 !important;
-          outline: none !important;
-        }
-        ${error ? `.react-datepicker__input { border-color: #ef4444 !important; border-width: 2px !important; }` : ""}
-      `}</style>
-    </div>
+    <DatePicker
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      placeholder={placeholder}
+      error={error}
+    />
   );
 });
 
