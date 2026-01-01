@@ -133,7 +133,11 @@ const initialState: State = {
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "OPEN_MODAL":
-      return { ...state, activeModal: action.modal };
+      return {
+        ...state,
+        activeModal: action.modal,
+        editingSection: null, // Close inline editor when opening modal
+      };
 
     case "CLOSE_MODAL":
       return {
@@ -149,6 +153,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         editingSection: action.section,
+        activeModal: null, // Close any open modal when entering edit mode
       };
 
     case "EXIT_EDIT_MODE":
