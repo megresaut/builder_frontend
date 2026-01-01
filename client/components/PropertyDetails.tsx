@@ -7,7 +7,6 @@ import AddVendorFileModal from "@/components/AddVendorFileModal";
 import {
   UploadPhotoModal,
   EditPropertyRatesModal,
-  ViewPropertyNoteModal,
   InlineEditWrapper,
   EditCustomFieldsInline,
   EditRatesInline,
@@ -422,8 +421,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             onAdd={() => dispatch({ type: "OPEN_MODAL", modal: "addNote" })}
             onEdit={(note) => {
               dispatch({ type: "SELECT_NOTE", noteId: note.id });
-              dispatch({ type: "SET_VIEW_NOTE_DRAFT", id: note.id, body: note.text });
-              dispatch({ type: "OPEN_MODAL", modal: "viewNote" });
+              dispatch({ type: "OPEN_MODAL", modal: "editNote" });
             }}
             onDelete={(noteId) => dispatch({ type: "DELETE_NOTE", noteId })}
             isLast={false}
@@ -436,7 +434,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             onAdd={() => dispatch({ type: "OPEN_MODAL", modal: "addFile" })}
             onEdit={(file) => {
               dispatch({ type: "SELECT_FILE", fileId: file.id });
-              dispatch({ type: "OPEN_MODAL", modal: "viewFile" });
+              dispatch({ type: "OPEN_MODAL", modal: "editFile" });
             }}
             onDelete={(fileId) => {
               const fileToDelete = state.lists.recentFiles.find(
@@ -454,34 +452,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
         </SectionGroupCardTemplate>
 
-        {/* View Note Modal */}
-        <ViewPropertyNoteModal
-          open={state.activeModal === "viewNote"}
-          onOpenChange={(open) => {
-            if (!open) dispatch({ type: "CLOSE_MODAL" });
-          }}
-          note={selectedNote || null}
-          onSaveNote={(id, newText) => {
-            const now = new Date().toLocaleString(undefined, {
-              month: "numeric",
-              day: "numeric",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            });
-            dispatch({
-              type: "UPDATE_NOTE",
-              noteId: id,
-              text: newText,
-              date: now,
-            });
-          }}
-          onDeleteNote={(noteId) => {
-            dispatch({ type: "DELETE_NOTE", noteId });
-          }}
-        />
-
-        {/* PDF Viewer */}
+        {/* View File Modal */}
         <PdfViewerModal
           open={state.activeModal === "viewFile"}
           onOpenChange={(open) => {
@@ -554,12 +525,16 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           }}
         />
 
-        {/* Add Note Modal */}
+        {/* Add/Edit Note Modal */}
         <AddVendorNoteModal
-          open={state.activeModal === "addNote"}
+          open={state.activeModal === "addNote" || state.activeModal === "editNote"}
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
+          isEditMode={state.activeModal === "editNote"}
+          initialText={selectedNote?.text || ""}
+          title={state.activeModal === "editNote" ? "Edit Note" : "Add Note"}
+          submitLabel={state.activeModal === "editNote" ? "Update" : "Add"}
           onSubmit={(noteText) => {
             const now = new Date();
             const date = now.toLocaleString(undefined, {
@@ -570,66 +545,90 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               minute: "2-digit",
             });
 
-            const nextId = state.lists.recentNotes.length
-              ? Math.max(...state.lists.recentNotes.map((n) => n.id)) + 1
-              : 1;
-
-            dispatch({
-              type: "ADD_NOTE",
-              note: {
-                id: nextId,
+            if (state.activeModal === "editNote" && selectedNote) {
+              dispatch({
+                type: "UPDATE_NOTE",
+                noteId: selectedNote.id,
                 text: noteText,
-                type: "RENTAL",
                 date,
-                author: propertyManager,
-              },
-            });
+              });
+            } else {
+              const nextId = state.lists.recentNotes.length
+                ? Math.max(...state.lists.recentNotes.map((n) => n.id)) + 1
+                : 1;
+
+              dispatch({
+                type: "ADD_NOTE",
+                note: {
+                  id: nextId,
+                  text: noteText,
+                  type: "RENTAL",
+                  date,
+                  author: propertyManager,
+                },
+              });
+            }
             dispatch({ type: "CLOSE_MODAL" });
           }}
         />
 
-        {/* Add File Modal */}
+        {/* Add/Edit File Modal */}
         <AddVendorFileModal
-          open={state.activeModal === "addFile"}
+          open={state.activeModal === "addFile" || state.activeModal === "editFile"}
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
+          isEditMode={state.activeModal === "editFile"}
+          initialCategory={selectedFile?.category || ""}
+          initialDescription={selectedFile?.description || ""}
+          title={state.activeModal === "editFile" ? "Edit File" : "Add File"}
+          submitLabel={state.activeModal === "editFile" ? "Update" : "Add"}
           onSubmit={(uploadedFiles, category, description) => {
-            const blobUrl = URL.createObjectURL(uploadedFiles[0].file!);
-            const now = new Date();
-            const date = now.toLocaleString(undefined, {
-              month: "numeric",
-              day: "numeric",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            });
-
-            const fileName = uploadedFiles[0].name;
-            const ext = fileName.split(".").pop()?.toLowerCase() || "";
-            const docIcon =
-              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-            const pdfIcon =
-              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-            const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-
-            const nextId = state.lists.recentFiles.length
-              ? Math.max(...state.lists.recentFiles.map((f) => f.id)) + 1
-              : 1;
-
-            dispatch({
-              type: "ADD_FILE",
-              file: {
-                id: nextId,
-                name: fileName,
+            if (state.activeModal === "editFile" && selectedFile) {
+              dispatch({
+                type: "UPDATE_FILE",
+                fileId: selectedFile.id,
                 category,
-                date,
-                author: propertyManager,
-                type: ext || "file",
-                icon,
-                url: blobUrl,
-              },
-            });
+                description,
+              });
+            } else {
+              const blobUrl = URL.createObjectURL(uploadedFiles[0].file!);
+              const now = new Date();
+              const date = now.toLocaleString(undefined, {
+                month: "numeric",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              });
+
+              const fileName = uploadedFiles[0].name;
+              const ext = fileName.split(".").pop()?.toLowerCase() || "";
+              const docIcon =
+                "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+              const pdfIcon =
+                "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+              const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+
+              const nextId = state.lists.recentFiles.length
+                ? Math.max(...state.lists.recentFiles.map((f) => f.id)) + 1
+                : 1;
+
+              dispatch({
+                type: "ADD_FILE",
+                file: {
+                  id: nextId,
+                  name: fileName,
+                  category,
+                  date,
+                  author: propertyManager,
+                  type: ext || "file",
+                  icon,
+                  url: blobUrl,
+                  description,
+                },
+              });
+            }
             dispatch({ type: "CLOSE_MODAL" });
           }}
         />
