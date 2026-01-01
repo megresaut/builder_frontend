@@ -99,6 +99,7 @@ type Action =
 
 const initialState: State = {
   activeModal: null,
+  editingSection: null,
   selection: {
     noteId: null,
     fileId: null,
