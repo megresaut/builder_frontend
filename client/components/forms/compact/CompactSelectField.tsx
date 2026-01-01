@@ -15,7 +15,7 @@ interface SelectOption {
   label: string;
 }
 
-interface CompactSelectFieldProps {
+export interface CompactSelectFieldProps {
   label: string;
   required?: boolean;
   description?: string;
