@@ -1,5 +1,5 @@
 const API_BASE = "/api";
-// const API_BASE = "http://localhost:8080";   
+// const API_BASE = "http://localhost:8080";
 
 export async function fetchJSON(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;

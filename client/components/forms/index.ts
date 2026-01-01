@@ -18,6 +18,7 @@
 
 // Base wrapper
 export { FieldShell } from "./FieldShell";
+export { FieldCellShell } from "./FieldCellShell";
 
 // Field components (FieldShell + input)
 export { TextField } from "./TextField";
@@ -30,6 +31,7 @@ export { DateTimeField } from "./DateTimeField";
 export { PercentField } from "./PercentField";
 export { SelectField } from "./SelectField";
 export { ComboboxField } from "./ComboboxField";
+export { ComboboxFieldWithCustomInput } from "./ComboboxFieldWithCustomInput";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
 export { EmailField } from "./EmailField";
 export { PhoneNumberField } from "./PhoneNumberField";
@@ -41,6 +43,14 @@ export {
 export { SensitiveInputField } from "./SensitiveInputField";
 export { ReadOnlyTextField } from "./ReadOnlyTextField";
 export { FileUploadField } from "./FileUploadField";
+
+// Cell field components (for table cells)
+export { SelectFieldCell } from "./SelectFieldCell";
+export { DateFieldCell } from "./DateFieldCell";
+export { NumberFieldCell } from "./NumberFieldCell";
+export { CurrencyFieldCell } from "./CurrencyFieldCell";
+export { TextFieldCell } from "./TextFieldCell";
+export { VendorFieldCell } from "./VendorFieldCell";
 
 // Layout components
 export { FieldRow, FieldRowItem } from "@/components/ui/field-row";

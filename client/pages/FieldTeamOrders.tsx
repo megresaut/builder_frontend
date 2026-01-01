@@ -1,1121 +1,810 @@
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import CreateFTOModal from "@/components/CreateFTOModal";
-import FTOApprovalModal from "@/components/FTOApprovalModal";
+import PageHeader from "@/components/PageHeader";
+import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
+import GlobalTable from "@/components/GlobalTable";
+import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
-
-
-export function StatusBadge({ status }: { status: string }) {
-  // Normalize
-  const s = status?.toLowerCase();
-
-  let label = "";
-  let color = "";
-  let icon = null;
-
-  switch (s) {
-    case "new":
-      label = "New";
-      color = "bg-blue-50 text-blue-700 border-blue-200";
-      icon = (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="12" r="4" />
-        </svg>
-      );
-      break;
-
-    case "dispatched":
-      label = "Dispatched";
-      color = "bg-purple-50 text-purple-700 border-purple-200";
-      icon = (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M12 3v18M3 12h18" />
-        </svg>
-      );
-      break;
-
-    case "in_progress":
-      label = "In Progress";
-      color = "bg-yellow-50 text-yellow-700 border-yellow-200";
-      icon = (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M12 6v6l4 2" />
-          <circle cx="12" cy="12" r="10" />
-        </svg>
-      );
-      break;
-
-    case "completed":
-      label = "Completed";
-      color = "bg-green-50 text-green-700 border-green-200";
-      icon = (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      );
-      break;
-
-    case "cancelled":
-      label = "Cancelled";
-      color = "bg-red-50 text-red-700 border-red-200";
-      icon = (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      );
-      break;
-
-    default:
-      label = s || "Unknown";
-      color = "bg-gray-100 text-gray-700 border-gray-300";
-      icon = (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="12" r="10" />
-        </svg>
-      );
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${color}`}
-    >
-      {icon}
-      {label}
-    </span>
-  );
-}
-
-
+import {
+  EditIcon,
+  DeleteIcon,
+  ApproveIcon,
+  PlusIcon,
+  BuildingIcon,
+  NoteIcon,
+  CalendarIcon,
+  DotsIcon,
+  DocumentIcon,
+  DollarIcon,
+  UserIcon,
+  FlagIcon,
+} from "@/components/icons";
 
 interface FieldTeamOrder {
   id: number;
+  taskId: number;
+  property: string;
+  description: string;
+  dueDate: string;
+  priority: "low" | "normal" | "high";
+  fieldTeam: Array<{ initials: string; color: string; name: string }>;
+  status: "dispatched" | "approved" | "pending-approval";
+  timesheetStatus:
+    | "awaiting-submission"
+    | "submitted"
+    | "rejected"
+    | "approved";
+  amount: number;
+  unit?: string;
+  fieldTeamAssignee?: string;
+  task?: string;
   name: string;
-  description: string | null;
-  property_address: string;
-  due_date: string | null;
-  status: string;
-  priority: string;
-  total_amount: number;
-
-  // NEW FROM BACKEND
-  field_team_member_ids: number[];
   pm_assignee_ids: number[];
 }
 
-interface FieldTeamUser {
+interface APIFTOResponse {
   id: number;
   name: string;
-  initials: string;
-  color: string; // optional but you already store it in backend
+  description: string;
+  property_id: number;
+  property_name: string;
+  property_address: string;
+  task_id?: number;
+  field_team_member_ids: number[];
+  pm_assignee_ids: number[];
+  status: string;
+  priority: string;
+  due_date: string;
+  approval_status: string;
+  form_submission_status: "none" | "partial" | "complete";
+  is_visible_to_client: boolean;
+  hours_decimal: number;
+  total_amount: number;
+  created_at: string;
+  updated_at?: string;
 }
-
-
-const ActionButton = ({
-  order,
-  openMenuId,
-  setOpenMenuId,
-  setEditingFTOId,
-  setShowFTOModal,
-  setShowApprovalModal,
-  setApprovingOrder,
-}: {
-  order: FieldTeamOrder;
-  openMenuId: number | null;
-  setOpenMenuId: (id: number | null) => void;
-  setEditingFTOId: (id: number | null) => void;
-  setShowFTOModal: (open: boolean) => void;
-  setShowApprovalModal: (open: boolean) => void;
-  setApprovingOrder: (order: FieldTeamOrder | null) => void;
-}) => {
-  const orderId = order.id;
-  const showMenu = openMenuId === orderId;
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateMenuPos = () => {
-      if (showMenu && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-
-        setMenuPos({
-          top: rect.bottom + 8,
-          left: rect.right - 145,
-        });
-      }
-
-      if (showMenu) {
-        animationFrameId = requestAnimationFrame(updateMenuPos);
-      }
-    };
-
-    if (showMenu) {
-      updateMenuPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showMenu]);
-
-  return (
-    <>
-      <button
-        ref={buttonRef}
-        onClick={() => setOpenMenuId(showMenu ? null : orderId)}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="1" />
-          <circle cx="19" cy="12" r="1" />
-          <circle cx="5" cy="12" r="1" />
-        </svg>
-      </button>
-
-      {showMenu &&
-        createPortal(
-          <div
-            className="bg-white flex flex-col justify-center items-start gap-4 p-4"
-            style={{
-              width: "145px",
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              position: "fixed",
-              top: menuPos.top + "px",
-              left: menuPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setOpenMenuId(null)}
-          >
-            <button
-              onClick={() => {
-                setApprovingOrder(order);
-                setShowApprovalModal(true);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Approve
-              </span>
-              <img
-                loading="lazy"
-                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b13c8f79f0bbe495c159d6f52432780ef6582cfb?placeholderIfAbsent=true"
-                className="w-4 h-4"
-                alt=""
-              />
-            </button>
-            <button
-              onClick={() => {
-                setOpenMenuId(null);
-                setEditingFTOId(orderId);
-                setShowFTOModal(true);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Edit
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                console.log("Delete clicked for order", orderId);
-                setOpenMenuId(null);
-              }}
-              className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
-            >
-              <span
-                className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                }}
-              >
-                Delete
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                  stroke="#982740"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>,
-          document.body,
-        )}
-    </>
-  );
+const normalizeFTOStatus = (status: string) => {
+  if (status === "completed") return "approved";
+  if (status === "new") return "pending-approval";
+  return status;
 };
 
+
+// Mock user database - simulates GET /users/{id}
+const mockUsers: Record<number, { id: number; name: string }> = {
+  1: { id: 1, name: "Christopher Harris" },
+  2: { id: 2, name: "Cassandra Smith" },
+  3: { id: 3, name: "David Chen" },
+  4: { id: 4, name: "Emma Rodriguez" },
+  5: { id: 5, name: "James Wilson" },
+};
+
+// Helper to generate initials from name
+const getInitials = (name: string): string => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
+};
+
+// Helper to resolve field team members (replaces real GET /users/{id} call)
+const resolveFieldTeamMembers = (
+  memberIds: number[]
+): Array<{ initials: string; color: string; name: string }> => {
+  return memberIds.map((id) => {
+    const user = mockUsers[id] || { id, name: "Unknown User" };
+    return {
+      initials: getInitials(user.name),
+      color: "bg-blue-500",
+      name: user.name,
+    };
+  });
+};
+
+// Map form_submission_status to timesheetStatus
+const mapFormSubmissionToTimesheetStatus = (
+  formStatus: "none" | "partial" | "complete"
+): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
+  switch (formStatus) {
+    case "none":
+      return "awaiting-submission";
+    case "partial":
+      return "submitted";
+    case "complete":
+      return "approved";
+    default:
+      return "awaiting-submission";
+  }
+};
+
+const mockFetchFTOs = async (params: {
+  field_team_member_id: number;
+  status?: string;
+  limit?: number;
+}): Promise<APIFTOResponse[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  const mockData: APIFTOResponse[] = [
+    {
+      id: 1,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "high",
+      due_date: "2025-10-02T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "none",
+      is_visible_to_client: true,
+      hours_decimal: 8.5,
+      total_amount: 420,
+      created_at: "2025-09-20T10:00:00Z",
+      updated_at: "2025-09-25T14:30:00Z",
+    },
+    {
+      id: 2,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "approved",
+      priority: "normal",
+      due_date: "2025-09-29T00:00:00Z",
+      approval_status: "approved",
+      form_submission_status: "complete",
+      is_visible_to_client: true,
+      hours_decimal: 6.0,
+      total_amount: 95,
+      created_at: "2025-09-18T09:15:00Z",
+      updated_at: "2025-09-26T11:00:00Z",
+    },
+    {
+      id: 3,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "pending-approval",
+      priority: "low",
+      due_date: "2025-09-10T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "partial",
+      is_visible_to_client: true,
+      hours_decimal: 4.5,
+      total_amount: 95,
+      created_at: "2025-09-08T08:00:00Z",
+      updated_at: "2025-09-24T16:45:00Z",
+    },
+    {
+      id: 4,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "high",
+      due_date: "2025-09-06T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "none",
+      is_visible_to_client: true,
+      hours_decimal: 7.0,
+      total_amount: 112,
+      created_at: "2025-09-05T07:30:00Z",
+      updated_at: "2025-09-23T13:20:00Z",
+    },
+    {
+      id: 5,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "normal",
+      due_date: "2025-09-05T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "complete",
+      is_visible_to_client: true,
+      hours_decimal: 5.5,
+      total_amount: 93,
+      created_at: "2025-09-03T06:00:00Z",
+      updated_at: "2025-09-22T15:10:00Z",
+    },
+    {
+      id: 6,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "low",
+      due_date: "2025-09-04T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "none",
+      is_visible_to_client: true,
+      hours_decimal: 4.0,
+      total_amount: 75,
+      created_at: "2025-09-02T05:45:00Z",
+      updated_at: "2025-09-21T12:00:00Z",
+    },
+    {
+      id: 7,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [3, 4],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "high",
+      due_date: "2025-09-04T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "partial",
+      is_visible_to_client: true,
+      hours_decimal: 6.5,
+      total_amount: 101,
+      created_at: "2025-09-01T04:30:00Z",
+      updated_at: "2025-09-20T14:15:00Z",
+    },
+    {
+      id: 8,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "normal",
+      due_date: "2025-09-03T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "none",
+      is_visible_to_client: true,
+      hours_decimal: 8.0,
+      total_amount: 124,
+      created_at: "2025-08-31T03:15:00Z",
+      updated_at: "2025-09-19T11:30:00Z",
+    },
+    {
+      id: 9,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [5],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "low",
+      due_date: "2025-09-01T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "complete",
+      is_visible_to_client: true,
+      hours_decimal: 3.5,
+      total_amount: 67,
+      created_at: "2025-08-30T02:00:00Z",
+      updated_at: "2025-09-18T09:45:00Z",
+    },
+    {
+      id: 10,
+      name: "Door Repair",
+      description: "Doors Need To Be Repaired",
+      property_id: 1,
+      property_name: "22 Indian Chase Dr",
+      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
+      task_id: 6,
+      field_team_member_ids: [1, 2],
+      pm_assignee_ids: [101, 102],
+      status: "dispatched",
+      priority: "high",
+      due_date: "2025-09-01T00:00:00Z",
+      approval_status: "pending",
+      form_submission_status: "none",
+      is_visible_to_client: true,
+      hours_decimal: 7.5,
+      total_amount: 118,
+      created_at: "2025-08-29T01:30:00Z",
+      updated_at: "2025-09-17T10:20:00Z",
+    },
+  ];
+
+  if (params.status) {
+    return mockData.filter((fto) => fto.status === params.status);
+  }
+
+  return mockData.slice(0, params.limit || 100);
+};
+
+const transformAPIToFieldTeamOrder = (
+  apiData: APIFTOResponse[],
+  usersById: Record<number, { id: number; name: string }>
+): FieldTeamOrder[] => {
+  return apiData.map((fto) => {
+    const dateObj = new Date(fto.due_date);
+    const dueDate = dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+    const timesheetStatus = mapFormSubmissionToTimesheetStatus(
+      fto.form_submission_status
+    );
+
+    return {
+      id: fto.id,
+      pm_assignee_ids: fto.pm_assignee_ids ?? [],
+      taskId: fto.task_id || fto.id,
+      name: fto.name,
+      property: fto.property_name,
+      description: fto.description,
+      dueDate,
+      priority: (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
+      fieldTeam: fto.field_team_member_ids.map((id) => {
+        const user = usersById[id];
+        return {
+          initials: user ? getInitials(user.name) : "?",
+          name: user ? user.name : "Unknown User",
+          color: "bg-blue-500",
+        };
+      }),      
+      status: normalizeFTOStatus(fto.status) as
+        | "dispatched"
+        | "approved"
+        | "pending-approval",
+      timesheetStatus,
+      amount: fto.total_amount,
+      unit: "Unit",
+    };
+  });
+};
+
+
 export default function FieldTeamOrders() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [showFTOModal, setShowFTOModal] = useState(false);
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState<FieldTeamOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
   const [editingFTOId, setEditingFTOId] = useState<number | null>(null);
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const dropdownMenuRef = useRef<HTMLDivElement>(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
-  const [fieldTeamUsers, setFieldTeamUsers] = useState<Record<number, FieldTeamUser>>({});
-// ADD THESE TWO LINES:
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const [approvingOrder, setApprovingOrder] = useState<FieldTeamOrder | null>(null);
+  const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
+  const [searchValue, setSearchValue] = usePageState("searchValue", "");
 
-  useEffect(() => {
-    fetchJSON("/maintenance/ftos")    
-      .then((data) => setFieldTeamOrders(data))
-      .catch((err) => console.error("Failed to load FTOs:", err));
-  }, []);  
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateDropdownPos = () => {
-      if (showPageSizeDropdown && dropdownButtonRef.current) {
-        const rect = dropdownButtonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showPageSizeDropdown) {
-        animationFrameId = requestAnimationFrame(updateDropdownPos);
-      }
-    };
-
-    if (showPageSizeDropdown) {
-      updateDropdownPos();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showPageSizeDropdown]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        showPageSizeDropdown &&
-        dropdownMenuRef.current &&
-        dropdownButtonRef.current
-      ) {
-        const isClickOutside =
-          !dropdownMenuRef.current.contains(event.target as Node) &&
-          !dropdownButtonRef.current.contains(event.target as Node);
-
-        if (isClickOutside) {
-          setShowPageSizeDropdown(false);
-        }
-      }
-    };
-
-    if (showPageSizeDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }
-  }, [showPageSizeDropdown]);
-
-
-  // Load field team users with debugging
-  useEffect(() => {
-    fetch("/api/users/field-team")
-      .then(async (res) => {
-        const raw = await res.text();      // <-- read raw body first
-        console.log("RAW /users/field-team RESPONSE:", raw);
-
-        try {
-          const users = JSON.parse(raw);   // <-- safely attempt JSON parse
-          const map: Record<number, FieldTeamUser> = {};
-          users.forEach((u: any) => {
-            map[u.id] = {
-              id: u.id,
-              name: u.name,
-              initials: u.initials || (u.name ? u.name.split(" ").map(w => w[0]).join("").toUpperCase() : "?"),
-              color: u.color || "#2463eb",
-            };
-          });
-
-          console.log("PARSED USERS:", map);
-          setFieldTeamUsers(map);
-        } catch (err) {
-          console.error("❌ JSON parse error for /users/field-team:", err);
-        }
+  async function fetchUsersByIds(
+    ids: number[]
+  ): Promise<Record<number, { id: number; name: string }>> {
+    const uniqueIds = Array.from(new Set(ids));
+  
+    const users = await Promise.all(
+      uniqueIds.map(async (id) => {
+        const user = await fetchJSON(`/users/${id}`);
+        return user;
       })
-      .catch((err) =>
-        console.error("❌ Network error loading field team users:", err)
-      );
+    );
+  
+    return users.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<number, { id: number; name: string }>);
+  }
+  
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const raw = await fetchJSON(
+          `/maintenance/ftos?limit=100`
+        );
+        
+        const apiData: APIFTOResponse[] = Array.isArray(raw)
+          ? raw
+          : raw?.data ?? raw?.items ?? raw?.results ?? [];
+        
+        // collect all field team IDs
+        const allFieldTeamIds = apiData.flatMap(
+          (fto) => fto.field_team_member_ids ?? []
+        );
+        
+        // fetch users
+        const usersById = await fetchUsersByIds(allFieldTeamIds);
+        
+        // transform
+        const transformedOrders = transformAPIToFieldTeamOrder(
+          apiData,
+          usersById
+        );
+        
+        setOrders(transformedOrders);
+        
+      } catch (error) {
+        console.error("Error fetching FTOs:", error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
   }, []);
 
+  const filteredOrders = orders.filter((order) => {
+    const searchLower = searchValue.toLowerCase();
+    return (
+      order.name.toLowerCase().includes(searchLower) ||
+      order.property.toLowerCase().includes(searchLower) ||
+      order.description.toLowerCase().includes(searchLower) ||
+      order.dueDate.toLowerCase().includes(searchLower) ||
+      order.status.toLowerCase().includes(searchLower) ||
+      order.priority.toLowerCase().includes(searchLower) ||
+      order.fieldTeam.some((member) =>
+        member.name.toLowerCase().includes(searchLower)
+      )
+    );
+  });
+
+  const { handleSortClick, getSortIndicator, getSortedData } =
+    useSortingTable(filteredOrders);
+  const {
+    columnOrder,
+    visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+  } = useColumnManagement([
+    "priority",
+    "property",
+    "unit",
+    "name",
+    "dueDate",
+    "fieldTeam",
+    "status",
+    "timesheetStatus",
+    "amount",
+  ]);
+
+  const columns = [
+    {
+      key: "priority",
+      label: "Priority",
+      icon: <FlagIcon width={16} height={16} />,
+    },
+    {
+      key: "property",
+      label: "Property",
+      icon: <BuildingIcon width={16} height={16} />,
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
+          style={{ width: "14px", height: "14px" }}
+          alt=""
+        />
+      ),
+    },
+    {
+      key: "name",
+      label: "FTO Name",
+      icon: <NoteIcon width={16} height={16} />,
+    },
+    {
+      key: "dueDate",
+      label: "Due Date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    {
+      key: "fieldTeam",
+      label: "Field Team",
+      icon: <UserIcon width={16} height={16} />,
+    },
+    {
+      key: "status",
+      label: "FTO Status",
+      icon: <ApproveIcon width={16} height={16} />,
+    },
+    {
+      key: "timesheetStatus",
+      label: "Timesheet Status",
+      icon: <ApproveIcon width={16} height={16} />,
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      icon: <DollarIcon width={16} height={16} />,
+    },
+  ];
+
+  const handleDeleteOrder = useCallback(
+    (order: FieldTeamOrder) => {
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+    },
+    []
+  );
+
+  const handleEditOrder = useCallback(
+    (order: FieldTeamOrder) => {
+      setEditingFTOId(order.id);
+      setShowFTOModal(true);
+    },
+    []
+  );
+  
 
 
-  const totalOrders = fieldTeamOrders.length;
-  const totalPages = Math.ceil(totalOrders / itemsPerPage);
-
-  const getPaginationNumbers = () => {
-    const pages: (number | string)[] = [];
-
-    if (totalPages <= 1) {
-      return [1];
-    }
-
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-      return pages;
-    }
-
-    // For totalPages > 7, show exactly 7 consecutive pages without ellipsis
-    const windowSize = 7;
-    let start = Math.max(1, currentPage - 2);
-    let end = start + windowSize - 1;
-
-    // Adjust if we're near the end to keep showing 7 pages
-    if (end > totalPages) {
-      end = totalPages;
-      start = Math.max(1, end - windowSize + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  };
+  const handleApproveOrder = useCallback(
+    (order: FieldTeamOrder) => {
+      navigate(`/field-team-orders/approve/${order.id}`, {
+        state: {
+          ftoName: order.description,
+          property: order.property,
+          unit: order.unit ?? "",
+          fieldTeamAssignee:
+            order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
+          task: order.task ?? "",
+          description: order.description,
+        },
+      });
+    },
+    [navigate]
+  );
 
   return (
-    <div
-      className="min-h-screen bg-white p-4 md:p-6 lg:p-8"
-      style={{
-        borderLeftWidth: "1px",
-        borderLeftColor: "rgb(210, 209, 207)",
-        paddingBottom: "150px",
-      }}
-    >
-      <div className="max-w-full mx-auto flex flex-col gap-6">
-        {/* Header Section */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              All Field Team Orders
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p
-                className="text-[#717179] font-medium text-base leading-4"
-                style={{ marginTop: "-4px" }}
-              >
-                All your field team orders, in one place
-              </p>
-            </div>
-          </div>
-
-          {/* Create FTO Button */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {setEditingFTOId(null);setShowFTOModal(true)}}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 4.16667V15.8333M4.16667 10H15.8333"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-white font-medium text-base leading-normal">
-                Create FTO
-              </span>
-            </button>
-          </div>
-        </div>
+    <PageTemplate>
+      <div className="flex flex-col gap-6 w-fit min-w-full">
+        <PageHeader
+          title="All Field Team Orders"
+          subtitle="All your field team orders, in one place"
+          action={{
+            label: "Create FTO",
+            onClick: () => setShowFTOModal(true),
+            icon: <PlusIcon width={20} height={20} />,
+          }}
+        />
 
         <div className="flex flex-col gap-6">
-          {/* Field Team Orders Table */}
-          <div className="w-full border border-gray-200 bg-white rounded-lg overflow-hidden">
-            {/* Table Header */}
-            <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
-              <div className="flex items-center gap-4">
-                <h2 className="text-[#303030] font-medium text-[22px] leading-6">
-                  All Field Team Orders
-                </h2>
-                <div className="flex items-center gap-2 h-6">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1.16699 8.16667C1.16699 8.16667 1.23776 8.66206 3.28802 10.7123C5.33827 12.7626 8.66238 12.7626 10.7126 10.7123C11.439 9.9859 11.9081 9.09958 12.1198 8.16667M1.16699 8.16667V11.6667M1.16699 8.16667H4.66699M12.8337 5.83333C12.8337 5.83333 12.7629 5.33794 10.7126 3.28769C8.66238 1.23744 5.33827 1.23744 3.28802 3.28769C2.56161 4.0141 2.09256 4.90042 1.88089 5.83333M12.8337 5.83333V2.33333M12.8337 5.83333H9.33366"
-                      stroke="#8B8D8D"
-                      strokeWidth="1.3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="text-[#8B8D8D] font-medium text-sm leading-[15px]">
-                    Updated 2 minutes ago
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z"
-                      stroke="#303030"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
-                  />
-                </div>
-                <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
-                  <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
-                    Filter
-                  </span>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M4.5 6.75L9 11.25L13.5 6.75"
-                      stroke="#303030"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-gray-500">Loading field team orders...</div>
             </div>
-
-            {/* Table Content */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 h-12">
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                          <path d="M10 6h4" />
-                          <path d="M10 10h4" />
-                          <path d="M10 14h4" />
-                          <path d="M10 18h4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Property
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle
-                            cx="7.5"
-                            cy="7.5"
-                            r=".5"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Description
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M8 2v4" />
-                          <path d="M16 2v4" />
-                          <rect width="18" height="18" x="3" y="4" rx="2" />
-                          <path d="M3 10h18" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Due Date
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Field Team
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-                          <circle
-                            cx="7.5"
-                            cy="7.5"
-                            r=".5"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Status
-                        </span>
-                      </div>
-                    </th>
-                    <th className="px-3 py-3 text-left border-r border-gray-200 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <line x1="4" x2="20" y1="9" y2="9" />
-                          <line x1="4" x2="20" y1="15" y2="15" />
-                          <line x1="10" x2="8" y1="3" y2="21" />
-                          <line x1="16" x2="14" y1="3" y2="21" />
-                        </svg>
-                        <span className="font-medium text-sm text-gray-700">
-                          Amount
-                        </span>
-                      </div>
-                    </th>
-                    <th
-                      className="sticky right-0 px-2 py-3 text-center border-gray-200 w-20"
-                      style={{
-                        borderLeftWidth: "2px",
-                        borderLeftColor: "rgb(210,209,207)",
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <span className="font-medium text-sm text-gray-700">
-                        Actions
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fieldTeamOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors h-12"
-                    >
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.property_address}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.name}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {order.due_date
-                            ? new Date(order.due_date).toLocaleDateString()
-                            : "--"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {order.field_team_member_ids.length > 0 ? (
-                            <div className="flex items-center gap-2">
-                              {order.field_team_member_ids.map((id) => {
-                                const user = fieldTeamUsers[id];
-                                if (!user) {
-                                  return (
-                                    <div
-                                      key={id}
-                                      className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-semibold"
-                                    >
-                                      ?
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div
-                                    key={id}
-                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold border border-gray-300"
-                                    style={{ backgroundColor: user.color }}
-                                    title={user.name}
-                                  >
-                                    {user.initials}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div className="text-gray-400 text-sm">—</div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* STATUS */}
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <StatusBadge status={order.status as any} />
-                      </td>
-
-                      {/* AMOUNT */}
-                      <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          ${order.total_amount.toFixed(2)}
-                        </span>
-                      </td>
-
-                      {/* ACTIONS */}
-                      <td
-                        className="sticky right-0 px-2 py-3 border-gray-200 w-20 flex items-center justify-center"
-                        style={{
-                          borderLeftWidth: "1px",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <ActionButton
-                          order={order}
-                          openMenuId={openMenuId}
-                          setOpenMenuId={setOpenMenuId}
-                          setEditingFTOId={setEditingFTOId}
-                          setShowFTOModal={setShowFTOModal}
-                          setShowApprovalModal={setShowApprovalModal}
-                          setApprovingOrder={setApprovingOrder}
-                        />  
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Footer */}
-            <div
-              className="flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
-              style={{ position: "relative", zIndex: 1, overflow: "visible" }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-gray-700 text-sm font-medium">
-                  Showing
-                </span>
-                <div
-                  className="relative"
-                  style={{ position: "relative", zIndex: 10 }}
-                >
-                  <button
-                    ref={dropdownButtonRef}
-                    onClick={() =>
-                      setShowPageSizeDropdown(!showPageSizeDropdown)
-                    }
-                    className="flex items-center justify-center gap-2 h-10 px-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors text-gray-900 font-medium text-sm relative"
-                    style={{
-                      borderColor: "rgb(218, 218, 218)",
-                      borderWidth: "0.909091px",
-                      boxShadow:
-                        "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                    }}
-                  >
-                    <div className="text-gray-900 font-medium text-sm">
-                      {itemsPerPage}
-                    </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                </div>
-                <span className="text-gray-700 text-sm font-medium">
-                  of 225
-                </span>
-              </div>
-              <div
-                className="flex items-center rounded-lg border bg-white overflow-hidden"
-                style={{
-                  borderColor: "rgb(218, 218, 218)",
-                  borderWidth: "0.909091px",
-                  boxShadow:
-                    "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-                }}
-              >
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-                    currentPage === 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50",
-                  )}
-                  style={{
-                    borderRightWidth: "0.909091px",
-                    borderRightColor: "rgb(229, 229, 229)",
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={
-                      currentPage === 1 ? "rgb(163, 163, 163)" : "currentColor"
-                    }
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m12 19-7-7 7-7" />
-                    <path d="M19 12H5" />
-                  </svg>
-                  <div
-                    className={cn(
-                      "font-medium text-sm",
-                      currentPage === 1 ? "text-gray-400" : "text-gray-700",
-                    )}
-                  >
-                    Previous
-                  </div>
-                </button>
-                {getPaginationNumbers().map((page, idx) => {
-                  if (page === "...") {
-                    return (
-                      <button
-                        key={`ellipsis-${idx}`}
-                        disabled
-                        className="flex items-center justify-center h-10 min-w-10 opacity-50 cursor-not-allowed"
-                        style={{
-                          borderRightWidth: "0.909091px",
-                          borderRightColor: "rgb(229, 229, 229)",
-                          backgroundColor: "rgba(0, 0, 0, 0)",
-                        }}
-                      >
-                        <div className="text-gray-500 font-medium text-sm">
-                          ...
-                        </div>
-                      </button>
-                    );
-                  }
-
+          ) : (
+            <GlobalTable
+              columns={columns}
+              data={filteredOrders}
+              rowKey="id"
+              showSearchBar={true}
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              renderCell={(order, columnKey) => {
+                if (columnKey === "priority") {
                   return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page as number)}
-                      className={cn(
-                        "flex items-center justify-center h-10 min-w-10 transition-colors",
-                        currentPage === page
-                          ? "hover:bg-gray-50"
-                          : "hover:bg-gray-50",
-                      )}
-                      style={{
-                        borderRightWidth: "0.909091px",
-                        borderRightColor: "rgb(229, 229, 229)",
-                        backgroundColor:
-                          currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
-                      }}
-                    >
+                    <div className="flex items-center gap-2">
                       <div
-                        className={cn(
-                          "font-medium text-sm",
-                          currentPage === page
-                            ? "text-gray-900 font-bold"
-                            : "text-gray-500",
-                        )}
-                      >
-                        {page}
-                      </div>
-                    </button>
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor:
+                            order.priority === "low"
+                              ? "#059669"
+                              : order.priority === "normal"
+                                ? "#2463eb"
+                                : "#d97706",
+                        }}
+                      />
+                      <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                        {order.priority}
+                      </span>
+                    </div>
                   );
-                })}
+                }
+                if (columnKey === "property") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.property}
+                    </span>
+                  );
+                }
+                if (columnKey === "unit") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.unit || "-"}
+                    </span>
+                  );
+                }
+                if (columnKey === "name") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.name}
+                    </span>
+                  );
+                }
+                if (columnKey === "dueDate") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {order.dueDate}
+                    </span>
+                  );
+                }
+                if (columnKey === "fieldTeam") {
+                  return (
+                    <div className="flex items-center gap-2">
+                      {order.fieldTeam.map((member, idx) => (
+                        <div key={idx} className="relative group">
+                          <div
+                            className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                            title={member.name}
+                          >
+                            {member.initials}
+                          </div>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            {member.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                if (columnKey === "status") {
+                  return <StatusBadge status={order.status} variant="fto-status" />;
+                }
+                if (columnKey === "timesheetStatus") {
+                  return <StatusBadge status={order.timesheetStatus} variant="timesheet-status" />;
+                }
+                if (columnKey === "amount") {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm">
+                      ${order.amount}
+                    </span>
+                  );
+                }
+                return null;
+              }}
+              sortingHook={{
+                handleSortClick,
+                getSortIndicator,
+                getSortedData,
+              }}
+              columnManagementHook={{
+                columnOrder,
+                visibleColumns,
+                draggedColumn,
+                dropTargetColumn,
+                dropPosition,
+                columnMenuPos,
+                columnButtonRef,
+                toggleColumnVisibility,
+                handleColumnDragStart,
+                handleColumnDragOver,
+                handleColumnDragLeave,
+                handleColumnDrop,
+              }}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
+              showPageSizeDropdown={showPageSizeDropdown}
+              onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+              openMenuId={openMenuId}
+              onOpenMenuIdChange={setOpenMenuId}
+              title="All Field Team Orders"
+              headerActions={
                 <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 h-10 px-3 transition-colors hover:bg-gray-50",
-                  )}
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0)",
+                  ref={columnButtonRef}
+                  onClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    setShowColumnModal((prev) => !prev);
                   }}
+                  className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 >
-                  <div className={cn("font-medium text-sm text-gray-700")}>
-                    Next
-                  </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={
-                      currentPage === totalPages
-                        ? "rgb(163, 163, 163)"
-                        : "currentColor"
-                    }
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
+                  <DotsIcon width={18} height={18} color="#303030" />
                 </button>
-              </div>
-            </div>
-          </div>
+              }
+              actions={[
+                {
+                  label: "Approve",
+                  icon: <ApproveIcon width={16} height={16} />,
+                  onClick: handleApproveOrder,
+                },
+                {
+                  label: "Edit",
+                  icon: <EditIcon width={18} height={18} color="#525252" />,
+                  onClick: handleEditOrder,
+                },
+                {
+                  label: "Delete",
+                  icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                  onClick: handleDeleteOrder,
+                },
+              ]}
+              onRowClick={(order) => {
+                navigate(`/tasks/${order.taskId}/fieldteam`);
+              }}
+              showColumnModal={showColumnModal}
+              onShowColumnModalChange={setShowColumnModal}
+            />
+          )}
         </div>
       </div>
-      {/* Dropdown Menu - Rendered via Portal at body level */}
-      {showPageSizeDropdown &&
-        createPortal(
-          <div
-            ref={dropdownMenuRef}
-            className="bg-white overflow-hidden"
-            style={{
-              border: "0.5px solid #DADADA",
-              borderRadius: "8px",
-              boxShadow:
-                "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-              zIndex: 99999,
-              minWidth: "56px",
-              width: "56px",
-              position: "fixed",
-              top: dropdownPos.top + "px",
-              left: dropdownPos.left + "px",
-              pointerEvents: "auto",
-            }}
-            onMouseLeave={() => setShowPageSizeDropdown(false)}
-          >
-            {[10, 25, 50].map((size, index) => (
-              <button
-                key={size}
-                onClick={() => {
-                  setItemsPerPage(size);
-                  setCurrentPage(1);
-                  setShowPageSizeDropdown(false);
-                }}
-                className={cn(
-                  "w-full px-4 py-3 text-center text-base transition-colors whitespace-nowrap",
-                  itemsPerPage === size
-                    ? "bg-gray-50 font-medium text-gray-900"
-                    : "text-[#303030] hover:bg-gray-50",
-                )}
-                style={{
-                  fontFamily:
-                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                  fontSize: "16px",
-                  lineHeight: "140%",
-                  letterSpacing: "-0.32px",
-                  borderRadius: index === 2 ? "0 0 8px 8px" : "0",
-                }}
-              >
-                {size}
-              </button>
-            ))}
-          </div>,
-          document.body,
-        )}
-
-      {/* Create/Update FTO Modal */}
-      {/* Create/Update FTO Modal */}
-      <CreateFTOModal 
-        open={showFTOModal} 
-        onOpenChange={setShowFTOModal} 
-        editingFTOId={editingFTOId}
-      />
-
-      {/* FTO Approval Modal */}
-      <FTOApprovalModal
-        open={showApprovalModal}
+      <CreateFTOModal
+        open={showFTOModal}
         onOpenChange={(open) => {
-          setShowApprovalModal(open);
-          if (!open) {
-            setApprovingOrder(null);
-          }
+          setShowFTOModal(open);
+          if (!open) setEditingFTOId(null);
         }}
-        editingOrder={approvingOrder}
-        property={approvingOrder?.property_address || ""}
-        unit={approvingOrder?.name || ""}
-        fieldTeamAssignee={
-          approvingOrder?.field_team_member_ids?.[0] 
-            ? fieldTeamUsers[approvingOrder.field_team_member_ids[0]]?.name || "Unassigned"
-            : "Unassigned"
-        }
+        editingFTO={editingFTOId ? orders.find((o) => o.id === editingFTOId) : null}
       />
-    </div>
+
+
+
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={columns.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
+      />
+    </PageTemplate>
   );
 }

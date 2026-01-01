@@ -2,6 +2,14 @@ import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
+import {
+  PropertiesIcon,
+  BillsIcon,
+  WorkOrdersIcon,
+  PinIcon,
+  ChevronDownIcon,
+  CloseIcon,
+} from "@/components/icons";
 
 interface SidebarItem {
   id: string;
@@ -13,9 +21,10 @@ interface SidebarItem {
 
 interface SidebarProps {
   forceCollapse?: boolean;
+  mode?: "default" | "fto";
 }
 
-export default function Sidebar({ forceCollapse = false }: SidebarProps) {
+export default function Sidebar({ forceCollapse = false, mode = "default" }: SidebarProps) {
   const SIDEBAR_PINNED_KEY = "sidebar-pinned-state";
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -34,6 +43,9 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
   const { favorites, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Determine if we're in FTO mode based on current route or prop
+  const isFtoMode = mode === "fto" || location.pathname.startsWith("/fto");
 
   // Persist sidebar pinned state to localStorage
   useEffect(() => {
@@ -57,6 +69,10 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
   // Determine which section is currently active based on the pathname
   const getActiveSection = (): string | null => {
     const path = location.pathname;
+    if (isFtoMode) {
+      if (path === "/fto" || path === "/fto/") return "fto-home";
+      return null;
+    }
     if (path === "/all-properties" || path === "/") return "properties";
     if (path === "/bills") return "accounting";
     if (
@@ -78,9 +94,72 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
     return isHoveredItem ? item.iconDark : item.iconLight;
   };
 
-  const navigationItems: SidebarItem[] = [
-    {
-      id: "properties",
+  const navigationItems: SidebarItem[] = isFtoMode
+    ? [
+        {
+          id: "fto-home",
+          label: "Home",
+          iconLight: (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2.5 10L10 3.33333L17.5 10V16.6667C17.5 17.0346 17.3594 17.3871 17.1094 17.6371C16.8594 17.8871 16.5069 18.0277 16.1389 18.0277H3.86111C3.49312 18.0277 3.14063 17.8871 2.89063 17.6371C2.64063 17.3871 2.5 17.0346 2.5 16.6667V10Z"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M7.5 18V11.6667H12.5V18"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+          iconDark: (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2.5 10L10 3.33333L17.5 10V16.6667C17.5 17.0346 17.3594 17.3871 17.1094 17.6371C16.8594 17.8871 16.5069 18.0277 16.1389 18.0277H3.86111C3.49312 18.0277 3.14063 17.8871 2.89063 17.6371C2.64063 17.3871 2.5 17.0346 2.5 16.6667V10Z"
+                fill="#303030"
+              />
+              <path
+                d="M7.5 18V11.6667H12.5V18"
+                fill="#303030"
+              />
+              <path
+                d="M2.5 10L10 3.33333L17.5 10V16.6667C17.5 17.0346 17.3594 17.3871 17.1094 17.6371C16.8594 17.8871 16.5069 18.0277 16.1389 18.0277H3.86111C3.49312 18.0277 3.14063 17.8871 2.89063 17.6371C2.64063 17.3871 2.5 17.0346 2.5 16.6667V10Z"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M7.5 18V11.6667H12.5V18"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+        },
+      ]
+    : [
+        {
+          id: "properties",
       label: "Properties",
       iconLight: (
         <svg
@@ -212,13 +291,14 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
       ),
       hasSubmenu: true,
     },
-  ];
+      ];
 
   const submenuMap: Record<
     string,
     Array<{ label: string; path?: string; sectionId?: string }>
   > = {
     dashboard: [],
+    "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
     properties: [
       {
         label: "All Properties",
@@ -381,24 +461,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                 title={forceCollapse ? "Sidebar is locked on this page" : (isPinned ? "Unpin sidebar" : "Pin sidebar")}
                 disabled={forceCollapse}
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {isPinned ? (
-                    <>
-                      <path d="M4 7h16M9 4v4M15 4v4M6 11v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9M9 14h6M9 18h6" />
-                    </>
-                  ) : (
-                    <path d="M10.5 1.5H3.75A2.25 2.25 0 0 0 1.5 3.75V20.25A2.25 2.25 0 0 0 3.75 22.5H20.25A2.25 2.25 0 0 0 22.5 20.25V13.5M16.5 6L8.25 14.25M8.25 6L16.5 14.25" />
-                  )}
-                </svg>
+                <PinIcon width={20} height={20} isPinned={isPinned} />
               </button>
             </div>
           </div>
@@ -409,132 +472,151 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                 className="flex flex-col gap-1.5"
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                {navigationItems.map((item) => (
-                  <div
-                    key={item.id}
-                    onMouseEnter={() => setHoveredItem(item.id)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                  >
-                    <button
-                      className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
-                      style={{ minHeight: "38px" }}
-                    >
-                      <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+                {navigationItems.map((item) => {
+                  // For FTO mode, use direct links instead of submenus
+                  if (isFtoMode) {
+                    const submenu = submenuMap[item.id] || [];
+                    const firstPath = submenu[0]?.path || "#";
+                    return (
+                      <Link
+                        key={item.id}
+                        to={firstPath}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                        style={{ minHeight: "38px" }}
+                        onMouseEnter={() => setHoveredItem(item.id)}
+                        onMouseLeave={() => setHoveredItem(null)}
+                        onClick={() => {
+                          const firstItem = submenu[0];
+                          if (firstItem) {
+                            handleNavigation(
+                              firstItem.label,
+                              firstItem.sectionId,
+                              firstItem.path,
+                            );
+                          }
+                        }}
+                      >
                         <span className="flex items-center justify-center flex-shrink-0">
                           {getIcon(item)}
                         </span>
                         <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
                           {item.label}
                         </span>
-                      </div>
-                      {item.hasSubmenu && hoveredItem === item.id && (
-                        <svg
-                          className="w-4 h-4 text-gray-900"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 9l6 6 6-6"
-                          />
-                        </svg>
-                      )}
-                    </button>
+                      </Link>
+                    );
+                  }
 
-                    {item.hasSubmenu && hoveredItem === item.id && (
-                      <div className="ml-6 mt-1 flex flex-col gap-0">
-                        {(submenuMap[item.id] || []).map((subitem, idx) => (
-                          <Link
-                            key={idx}
-                            to={subitem.path!}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap"
-                            onClick={() => {
-                              handleNavigation(
-                                subitem.label,
-                                subitem.sectionId,
-                                subitem.path,
-                              );
-                              setIsHovered(false);
-                              setActiveDropdown(null);
-                            }}
-                          >
-                            <div className="flex items-center h-full">
-                              <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                            </div>
-                            <span className="text-sm">{subitem.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div
-                className="h-px bg-gray-300"
-                style={{ marginTop: "16px" }}
-              ></div>
-
-              <div
-                className="flex flex-col"
-                style={{ marginTop: "16px", gap: "4px" }}
-              >
-                <div
-                  className="flex items-center justify-between px-3"
-                  style={{ minHeight: "36px" }}
-                >
-                  <span className="text-sm font-medium text-gray-700">
-                    Favorites
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button className="p-0 text-gray-600 hover:text-gray-900" />
-                  </div>
-                </div>
-                {favorites.length === 0 ? (
-                  <div
-                    className="px-3 py-2 text-sm text-gray-500"
-                    style={{ minHeight: "38px" }}
-                  >
-                    Click the star icon on any page to add favorites
-                  </div>
-                ) : (
-                  favorites.map((item, idx) => (
+                  // Default mode: render with submenus
+                  return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
-                      style={{ minHeight: "38px" }}
+                      onMouseEnter={() => setHoveredItem(item.id)}
+                      onMouseLeave={() => setHoveredItem(null)}
                     >
                       <button
-                        onClick={() => navigate(item.path)}
-                        className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
+                        className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                        style={{ minHeight: "38px" }}
                       >
-                        {item.label}
+                        <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+                          <span className="flex items-center justify-center flex-shrink-0">
+                            {getIcon(item)}
+                          </span>
+                          <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
+                            {item.label}
+                          </span>
+                        </div>
+                        {item.hasSubmenu && hoveredItem === item.id && (
+                          <ChevronDownIcon className="w-4 h-4 text-gray-900" />
+                        )}
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFavorite(item.id);
-                        }}
-                        className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </button>
+
+                      {item.hasSubmenu && hoveredItem === item.id && (
+                        <div className="ml-6 mt-1 flex flex-col gap-0">
+                          {(submenuMap[item.id] || []).map((subitem, idx) => (
+                            <Link
+                              key={idx}
+                              to={subitem.path!}
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap"
+                              onClick={() => {
+                                handleNavigation(
+                                  subitem.label,
+                                  subitem.sectionId,
+                                  subitem.path,
+                                );
+                                setIsHovered(false);
+                                setActiveDropdown(null);
+                              }}
+                            >
+                              <div className="flex items-center h-full">
+                                <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                              </div>
+                              <span className="text-sm">{subitem.label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))
-                )}
+                  );
+                })}
               </div>
+
+              {!isFtoMode && (
+                <>
+                  <div
+                    className="h-px bg-gray-300"
+                    style={{ marginTop: "16px" }}
+                  ></div>
+
+                  <div
+                    className="flex flex-col"
+                    style={{ marginTop: "16px", gap: "4px" }}
+                  >
+                    <div
+                      className="flex items-center justify-between px-3"
+                      style={{ minHeight: "36px" }}
+                    >
+                      <span className="text-sm font-medium text-gray-700">
+                        Favorites
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button className="p-0 text-gray-600 hover:text-gray-900" />
+                      </div>
+                    </div>
+                    {favorites.length === 0 ? (
+                      <div
+                        className="px-3 py-2 text-sm text-gray-500"
+                        style={{ minHeight: "38px" }}
+                      >
+                        Click the star icon on any page to add favorites
+                      </div>
+                    ) : (
+                      favorites.map((item, idx) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
+                          style={{ minHeight: "38px" }}
+                        >
+                          <button
+                            onClick={() => navigate(item.path)}
+                            className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
+                          >
+                            {item.label}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFavorite(item.id);
+                            }}
+                            className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                          >
+                            <CloseIcon width={16} height={16} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -752,19 +834,7 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                         </span>
                       </div>
                       {item.hasSubmenu && hoveredItem === item.id && (
-                        <svg
-                          className="w-4 h-4 text-gray-900"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 9l6 6 6-6"
-                          />
-                        </svg>
+                        <ChevronDownIcon className="w-4 h-4 text-gray-900" />
                       )}
                     </button>
 
@@ -797,65 +867,60 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
                 ))}
               </div>
 
-              <div
-                className="h-px bg-gray-300"
-                style={{ marginTop: "16px" }}
-              ></div>
-
-              <div
-                className="flex flex-col"
-                style={{ marginTop: "16px", gap: "4px" }}
-              >
-                <div
-                  className="flex items-center justify-between px-3"
-                  style={{ minHeight: "36px" }}
-                >
-                  <span className="text-sm font-medium text-gray-700">
-                    Favorites
-                  </span>
-                </div>
-                {favorites.length === 0 ? (
+              {!isFtoMode && (
+                <>
                   <div
-                    className="px-3 py-2 text-sm text-gray-500"
-                    style={{ minHeight: "38px" }}
+                    className="h-px bg-gray-300"
+                    style={{ marginTop: "16px" }}
+                  ></div>
+
+                  <div
+                    className="flex flex-col"
+                    style={{ marginTop: "16px", gap: "4px" }}
                   >
-                    Click the star icon on any page to add favorites
-                  </div>
-                ) : (
-                  favorites.map((item, idx) => (
                     <div
-                      key={item.id}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
-                      style={{ minHeight: "38px" }}
+                      className="flex items-center justify-between px-3"
+                      style={{ minHeight: "36px" }}
                     >
-                      <button
-                        onClick={() => navigate(item.path)}
-                        className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
-                      >
-                        {item.label}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFavorite(item.id);
-                        }}
-                        className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </button>
+                      <span className="text-sm font-medium text-gray-700">
+                        Favorites
+                      </span>
                     </div>
-                  ))
-                )}
-              </div>
+                    {favorites.length === 0 ? (
+                      <div
+                        className="px-3 py-2 text-sm text-gray-500"
+                        style={{ minHeight: "38px" }}
+                      >
+                        Click the star icon on any page to add favorites
+                      </div>
+                    ) : (
+                      favorites.map((item, idx) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
+                          style={{ minHeight: "38px" }}
+                        >
+                          <button
+                            onClick={() => navigate(item.path)}
+                            className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
+                          >
+                            {item.label}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFavorite(item.id);
+                            }}
+                            className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                          >
+                            <CloseIcon width={16} height={16} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -984,140 +1049,180 @@ export default function Sidebar({ forceCollapse = false }: SidebarProps) {
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="flex flex-col">
           <div className="flex flex-col gap-1.5">
-            {navigationItems.map((item) => (
-              <div
-                key={item.id}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <button
-                  className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
-                  style={{ minHeight: "38px" }}
-                >
-                  <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+            {navigationItems.map((item) => {
+              // For FTO mode, use direct links instead of submenus
+              if (isFtoMode) {
+                const submenu = submenuMap[item.id] || [];
+                const firstPath = submenu[0]?.path || "#";
+                return (
+                  <Link
+                    key={item.id}
+                    to={firstPath}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                    style={{ minHeight: "38px" }}
+                    onMouseEnter={() => setHoveredItem(item.id)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    onClick={() => {
+                      const firstItem = submenu[0];
+                      if (firstItem) {
+                        handleNavigation(
+                          firstItem.label,
+                          firstItem.sectionId,
+                          firstItem.path,
+                        );
+                      }
+                    }}
+                  >
                     <span className="flex items-center justify-center flex-shrink-0">
                       {getIcon(item)}
                     </span>
                     <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
                       {item.label}
                     </span>
-                  </div>
-                  {item.hasSubmenu && hoveredItem === item.id && (
-                    <svg
-                      className="w-4 h-4 text-gray-900"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 9l6 6 6-6"
-                      />
-                    </svg>
-                  )}
-                </button>
+                  </Link>
+                );
+              }
 
-                {item.hasSubmenu && hoveredItem === item.id && (
-                  <div className="ml-6 mt-1 flex flex-col gap-0">
-                    {(submenuMap[item.id] || []).map((subitem, idx) => (
-                      <Link
-                        key={idx}
-                        to={subitem.path!}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap"
-                        onClick={() =>
-                          handleNavigation(
-                            subitem.label,
-                            subitem.sectionId,
-                            subitem.path,
-                          )
-                        }
-                      >
-                        <div className="flex items-center h-full">
-                          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                        </div>
-                        <span className="text-sm">{subitem.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="h-px bg-gray-300" style={{ marginTop: "16px" }}></div>
-
-          <div
-            className="flex flex-col"
-            style={{ marginTop: "16px", gap: "4px" }}
-          >
-            <div
-              className="flex items-center justify-between px-3"
-              style={{ minHeight: "36px" }}
-            >
-              <span className="text-sm font-medium text-gray-700">
-                Favorites
-              </span>
-              <div className="flex items-center gap-2">
-                <button className="p-0 text-gray-600 hover:text-gray-900">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="1" />
-                    <circle cx="19" cy="12" r="1" />
-                    <circle cx="5" cy="12" r="1" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            {favorites.length === 0 ? (
-              <div
-                className="px-3 py-2 text-sm text-gray-500"
-                style={{ minHeight: "38px" }}
-              >
-                Click the star icon on any page to add favorites
-              </div>
-            ) : (
-              favorites.map((item, idx) => (
+              // Default mode: render with submenus
+              return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
-                  style={{ minHeight: "38px" }}
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
                 >
                   <button
-                    onClick={() => navigate(item.path)}
-                    className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
+                    style={{ minHeight: "38px" }}
                   >
-                    {item.label}
+                    <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+                      <span className="flex items-center justify-center flex-shrink-0">
+                        {getIcon(item)}
+                      </span>
+                      <span className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
+                        {item.label}
+                      </span>
+                    </div>
+                    {item.hasSubmenu && hoveredItem === item.id && (
+                      <svg
+                        className="w-4 h-4 text-gray-900"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 9l6 6 6-6"
+                        />
+                      </svg>
+                    )}
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFavorite(item.id);
-                    }}
-                    className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </button>
+
+                  {item.hasSubmenu && hoveredItem === item.id && (
+                    <div className="ml-6 mt-1 flex flex-col gap-0">
+                      {(submenuMap[item.id] || []).map((subitem, idx) => (
+                        <Link
+                          key={idx}
+                          to={subitem.path!}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white transition-colors text-gray-600 text-sm h-10 whitespace-nowrap"
+                          onClick={() =>
+                            handleNavigation(
+                              subitem.label,
+                              subitem.sectionId,
+                              subitem.path,
+                            )
+                          }
+                        >
+                          <div className="flex items-center h-full">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+                          </div>
+                          <span className="text-sm">{subitem.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))
-            )}
+              );
+            })}
           </div>
+
+          {!isFtoMode && (
+            <>
+              <div className="h-px bg-gray-300" style={{ marginTop: "16px" }}></div>
+
+              <div
+                className="flex flex-col"
+                style={{ marginTop: "16px", gap: "4px" }}
+              >
+                <div
+                  className="flex items-center justify-between px-3"
+                  style={{ minHeight: "36px" }}
+                >
+                  <span className="text-sm font-medium text-gray-700">
+                    Favorites
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button className="p-0 text-gray-600 hover:text-gray-900">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <circle cx="12" cy="12" r="1" />
+                        <circle cx="19" cy="12" r="1" />
+                        <circle cx="5" cy="12" r="1" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                {favorites.length === 0 ? (
+                  <div
+                    className="px-3 py-2 text-sm text-gray-500"
+                    style={{ minHeight: "38px" }}
+                  >
+                    Click the star icon on any page to add favorites
+                  </div>
+                ) : (
+                  favorites.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700 text-base"
+                      style={{ minHeight: "38px" }}
+                    >
+                      <button
+                        onClick={() => navigate(item.path)}
+                        className="flex-1 text-left truncate bg-transparent border-none p-0 hover:opacity-80 cursor-pointer"
+                      >
+                        {item.label}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFavorite(item.id);
+                        }}
+                        className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 

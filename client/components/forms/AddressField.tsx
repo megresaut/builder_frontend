@@ -5,6 +5,8 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
+import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 import { FieldShell } from "./FieldShell";
 
 export interface AddressValue {
@@ -158,6 +160,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
   };
 
   const stateButtonRef = React.useRef<HTMLButtonElement>(null);
+  const stateContentRef = React.useRef<HTMLDivElement>(null);
   const [stateButtonWidth, setStateButtonWidth] = React.useState(0);
 
   React.useEffect(() => {
@@ -165,6 +168,20 @@ export const AddressField: React.FC<AddressFieldProps> = ({
       setStateButtonWidth(stateButtonRef.current.offsetWidth);
     }
   }, []);
+
+  usePopoverAutoClose({
+    open: stateOpen,
+    onOpenChange: setStateOpen,
+    triggerRef: stateButtonRef as React.RefObject<HTMLElement>,
+    contentRef: stateContentRef as React.RefObject<HTMLElement>,
+  });
+
+  useGlobalActionsScrollLock(stateOpen, {
+    allowRefs: [
+      stateButtonRef as React.RefObject<HTMLElement>,
+      stateContentRef as React.RefObject<HTMLElement>,
+    ],
+  });
 
   const StatePopover = useMemo(
     () => (
@@ -203,6 +220,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
         </PopoverTrigger>
 
         <PopoverContent
+          ref={stateContentRef}
           align="start"
           side="bottom"
           sideOffset={4}
@@ -268,6 +286,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({
       value.state,
       error,
       stateButtonWidth,
+      stateContentRef,
     ],
   );
 

@@ -57,6 +57,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       id,
       disabled = false,
       step = "1",
+      className,
       ...inputProps
     },
     ref,
@@ -78,6 +79,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           type="number"
           disabled={disabled}
           step={step}
+          className="text-sm md:text-sm"
           {...inputProps}
         />
       </FieldShell>

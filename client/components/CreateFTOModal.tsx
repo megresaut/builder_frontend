@@ -24,12 +24,7 @@ import { fetchJSON } from "../api/fetchJSON"; // same helper used in FTOModal
 interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingFTOId: number | null;
-  editData?: {
-    dueDate: string;
-    priority: string;
-    timesheetStatus: string;
-  };
+  editingFTO: any | null;
 }
 
 const API_BASE = "/api";     
@@ -55,8 +50,7 @@ interface Assignee {
 export default function CreateFTOModal({
   open,
   onOpenChange,
-  editingFTOId,
-  editData,
+  editingFTO,
 }: CreateFTOModalProps) {
   // --- dropdown data loaded from API ---
   const [tasks, setTasks] = useState<SimpleTask[]>([]);
@@ -68,6 +62,7 @@ export default function CreateFTOModal({
   // --- local UI state ---
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
+  const [status, setStatus] = useState<"new" | "dispatched" | "completed" | "cancelled">("new");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -143,14 +138,7 @@ export default function CreateFTOModal({
     [p.address_line1, p.city, p.state].filter(Boolean).join(", ") ||
     `Property #${p.id}`;
 
-  // --------- POSITIONING PORTAL POPOVERS ----------
-  useEffect(() => {
-    if (editData) {
-      setDueDate(editData.dueDate);
-      setPriority(editData.priority.toLowerCase());
-      setTimesheetStatus(editData.timesheetStatus);
-    }
-  }, [editData]);
+
 
   useEffect(() => {
     let animationFrameId: number;
@@ -331,12 +319,12 @@ export default function CreateFTOModal({
   // RESET fields when entering CREATE MODE
   useEffect(() => {
     if (!open) return; // modal must be open
-    if (editingFTOId !== null) return; // skip reset in edit mode
+    if (editingFTO !== null) return; // skip reset in edit mode
 
     setTaskName("");
     setDescription("");
     setPriority("normal");
-    setTimesheetStatus("outstanding");
+    setStatus("new");
 
     setDueDate("");
     setSelectedDate(null);
@@ -349,63 +337,36 @@ export default function CreateFTOModal({
     setSelectedProperty(null);
     setSelectedTask(null);
     setAssociatedTaskLabel(null);
-  }, [open, editingFTOId]);
+  }, [open, editingFTO]);
 
   // Load existing FTO when editing (kept for edit mode)
   useEffect(() => {
-    if (!open || editingFTOId === null) return;
+    if (!open || !editingFTO) return;
 
-    setLoading(true);
+    // ✅ FIXED: correct field mapping
+    setTaskName(editingFTO.name ?? "");
+    setDescription(editingFTO.description ?? "");
 
-    fetch(`${API_BASE}/maintenance/ftos/${editingFTOId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setTaskName(data.name || "");
-        setDescription(data.description || "");
-        setPriority((data.priority || "normal").toLowerCase());
+    setPriority(editingFTO.priority ?? "normal");
 
-        if (data.property_id) {
-          setSelectedProperty(String(data.property_id));
-        }
+    setDueDate(editingFTO.dueDate ?? "");
+    setSelectedDate(
+      editingFTO.dueDate ? new Date(editingFTO.dueDate) : null
+    );
 
-        if (data.task_name) {
-          setAssociatedTaskLabel(data.task_name);
-        } else {
-          setAssociatedTaskLabel(null);
-        }
+    setSelectedAssignees(
+      (editingFTO.fieldTeam ?? []).map((m: any, idx: number) => ({
+        id: idx,
+        name: m.name,
+        initials: m.initials,
+      }))
+    );
 
-        if (data.due_date) {
-          const d = new Date(data.due_date);
-          setDueDate(
-            `${String(d.getMonth() + 1).padStart(2, "0")}/${String(
-              d.getDate(),
-            ).padStart(2, "0")}/${d.getFullYear()}`,
-          );
-          setSelectedDate(d);
-          setCalendarMonth(d);
-        } else {
-          setDueDate("");
-        }
+    setStatus(editingFTO.status ?? "new");
+  }, [open, editingFTO]);
 
-        if (data.field_team_member_id && data.field_team_member_name) {
-          const initials = data.field_team_member_name
-            .split(" ")
-            .map((w: string) => w[0])
-            .join("")
-            .toUpperCase();
-
-          setSelectedAssignees([
-            {
-              id: Number(data.field_team_member_id),  
-              name: data.field_team_member_name,
-              initials,
-            },
-          ]);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [open, editingFTOId]);
-
+  
+  
   // --- helpers mimicking old FTOModal date logic ---
   const buildDateWithTodayTimeFromMMDDYYYY = (
     value: string,
@@ -453,11 +414,11 @@ export default function CreateFTOModal({
       description: descTrimmed,
       priority: priority.toLowerCase(), 
       due_date: dueISO,
-      form_submission_status: mapTimesheetStatusToDB(timesheetStatus),
+      status: status,
     };
 
     // CREATE ONLY: property + task
-    if (editingFTOId === null) {
+    if (!editingFTO) {
       payload.property_id = Number(selectedProperty);
       if (selectedTask) {
         payload.task_id = Number(selectedTask);
@@ -473,13 +434,13 @@ export default function CreateFTOModal({
     payload.pm_assignee_ids = selectedPmAssignees.map(pm => Number(pm.id));
     
     try {
-      if (editingFTOId === null) {
+      if (!editingFTO) {
         await fetchJSON("/maintenance/ftos", {
           method: "POST",
           body: JSON.stringify(payload),
         });
       } else {
-        await fetchJSON(`/maintenance/ftos/${editingFTOId}`, {
+        await fetchJSON(`/maintenance/ftos/${editingFTO.id}`, {
           method: "PATCH",
           body: JSON.stringify(payload),
         });
@@ -572,6 +533,70 @@ export default function CreateFTOModal({
     );
   };
 
+  useEffect(() => {
+    if (!open || !editingFTO) return;
+    if (pmAssignees.length === 0) return;
+  
+    const hydratedPMs = pmAssignees.filter(pm =>
+      editingFTO.pm_assignee_ids?.includes(pm.id)
+    );
+  
+    setSelectedPmAssignees(hydratedPMs);
+  }, [open, editingFTO, pmAssignees]);
+  
+
+  const getStatusColors = (s: string) => {
+    switch (s) {
+      case "new":
+        return { bg: "#dbe9fe", text: "#2463EB" };       // blue
+      case "dispatched":
+        return { bg: "#fef3c7", text: "#d97706" };       // amber
+      case "completed":
+        return { bg: "#d1fae5", text: "#059669" };       // green
+      case "cancelled":
+        return { bg: "#fee2e2", text: "#dc2626" };       // red
+      default:
+        return { bg: "#e5e7eb", text: "#374151" };
+    }
+  };
+  
+
+  const getStatusUI = (status: string) => {
+    switch (status) {
+      case "new":
+        return {
+          label: "New",
+          bg: "#DBE9FE",     // blue-100
+          text: "#2463EB",   // blue-600
+        };
+      case "dispatched":
+        return {
+          label: "Dispatched",
+          bg: "#FEF3C7",     // amber-100
+          text: "#D97706",   // amber-600
+        };
+      case "completed":
+        return {
+          label: "Completed",
+          bg: "#D1FAE5",     // green-100
+          text: "#059669",   // green-600
+        };
+      case "cancelled":
+        return {
+          label: "Cancelled",
+          bg: "#FEE2E2",     // red-100
+          text: "#DC2626",   // red-600
+        };
+      default:
+        return {
+          label: "New",
+          bg: "#E5E7EB",
+          text: "#374151",
+        };
+    }
+  };
+  
+
   const getTimesheetStatusLabel = () => {
     const labels: Record<string, string> = {
       outstanding: "Outstanding",
@@ -618,7 +643,7 @@ export default function CreateFTOModal({
       <DialogContent className="max-w-[694px] p-0 gap-0 font-['Geist',sans-serif]">
         <div className="flex flex-col gap-4 px-8 py-8 bg-white rounded-2xl">
           <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[1.25]">
-            Create/Update Field Team Order
+            {editingFTO ? "Update Field Team Order" : "Create Field Team Order"}
           </DialogTitle>
 
           {/* Property, Unit, and Associated Task Row */}
@@ -627,22 +652,42 @@ export default function CreateFTOModal({
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Property <span className="text-red-600">*</span>
               </label>
-              <Select
-                value={selectedProperty || ""}
-                onValueChange={setSelectedProperty}
-                disabled={editingFTOId !== null}
-              >
-                <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <SelectValue placeholder="Select Property" />
-                </SelectTrigger>
-                <SelectContent>
-                  {properties.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {renderPropertyLabel(p)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {editingFTO ? (
+                  // 🔒 UPDATE MODE — show property name, read-only
+                  <Input
+                    value={editingFTO.property}
+                    disabled
+                    className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5] text-[#303030]"
+                  />
+                ) : (
+                  // ✏️ CREATE MODE — selectable
+                  <Select
+                    value={selectedProperty || ""}
+                    onValueChange={setSelectedProperty}
+                  >
+                    <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
+                      <SelectValue placeholder="Select Property" />
+                    </SelectTrigger>
+                    <SelectContent
+                        className="
+                          z-[100000]
+                          bg-white
+                          border border-[#e5e5e5]
+                          rounded-lg
+                          shadow-lg
+                          min-w-[var(--radix-select-trigger-width)]
+                          max-h-[280px]
+                          overflow-y-auto
+                        "
+                    >
+                        {properties.map((p) => (
+                          <SelectItem key={p.id} value={String(p.id)}>
+                            {renderPropertyLabel(p)}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
             </div>
 
             {/* Unit (smaller) – still static for now */}
@@ -650,7 +695,7 @@ export default function CreateFTOModal({
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Unit
               </label>
-              <Select disabled={editingFTOId !== null}>
+              <Select disabled={editingFTO !== null}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
                   <SelectValue
                     placeholder="Unit"
@@ -665,19 +710,19 @@ export default function CreateFTOModal({
             </div>
 
             {/* Associated Task Dropdown */}
-            <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+            {/* <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 Associated Task
               </label>
               <Select
                 value={
-                  editingFTOId !== null ? associatedTaskLabel || "" : selectedTask || ""
+                  editingFTO !== null ? associatedTaskLabel || "" : selectedTask || ""
                 }
                 onValueChange={setSelectedTask}
-                disabled={editingFTOId !== null || !selectedProperty}
+                disabled={editingFTO !== null || !selectedProperty}
               >
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  {editingFTOId !== null && associatedTaskLabel ? (
+                  {editingFTO !== null && associatedTaskLabel ? (
                     <span className="text-[#303030]">{associatedTaskLabel}</span>
                   ) : (
                     <SelectValue placeholder="Select Task" />
@@ -697,7 +742,7 @@ export default function CreateFTOModal({
                   )}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
           </div>
 
 
@@ -733,7 +778,18 @@ export default function CreateFTOModal({
                     </span>
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                    className="
+                      z-[100000]
+                      bg-white
+                      border border-[#e5e5e5]
+                      rounded-lg
+                      shadow-lg
+                      min-w-[var(--radix-select-trigger-width)]
+                      max-h-[280px]
+                      overflow-y-auto
+                    "
+                  >
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -878,7 +934,7 @@ export default function CreateFTOModal({
               </div>
             </div>
 
-            {/* --- PM Assignees (Multi-Select) --- */}
+            {/* --- PM Assignees (same structure as Field Team Members) --- */}
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
                 PM Assignees
@@ -886,25 +942,26 @@ export default function CreateFTOModal({
 
               <div className="relative">
                 <button
+                  type="button"
                   ref={pmButtonRef}
                   onClick={() => setShowPmDropdown(!showPmDropdown)}
-                  className="h-11 rounded-lg border border-[#e5e5e5] w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-50 transition-colors"
+                  className="h-11 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5]
+                            w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1.5 flex-wrap flex-1">
                     {selectedPmAssignees.length === 0 ? (
-                      <span className="text-[#A1A1A9] text-sm">Select PMs</span>
+                      <span className="text-[#a1a1a9] text-sm">Select PMs</span>
                     ) : (
-                      selectedPmAssignees.map(pm => (
+                      selectedPmAssignees.map((pm) => (
                         <div
                           key={pm.id}
-                          className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5"
+                          className="flex items-center gap-1 bg-white rounded-full border border-[#2463eb] px-2 py-0.5"
                         >
-                          <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
+                          <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463eb]">
                             <span className="text-white font-semibold text-[8px]">
                               {pm.initials}
                             </span>
                           </div>
-
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -912,7 +969,7 @@ export default function CreateFTOModal({
                             }}
                             className="hover:opacity-70"
                           >
-                            <X className="w-3 h-3 text-[#2463EB]" />
+                            <X className="w-3 h-3 text-[#2463eb]" />
                           </button>
                         </div>
                       ))
@@ -944,15 +1001,18 @@ export default function CreateFTOModal({
                         border: "0.5px solid #DADADA",
                         borderRadius: "8px",
                         boxShadow:
-                          "0 38px 11px rgba(0,0,0,0.00), 0 24px 10px rgba(0,0,0,0.01), 0 14px 8px rgba(0,0,0,0.04)",
+                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
                         zIndex: 99999,
                         position: "fixed",
-                        top: pmDropdownPos.top,
-                        left: pmDropdownPos.left,
+                        top: pmDropdownPos.top + "px",
+                        left: pmDropdownPos.left + "px",
+                        pointerEvents: "auto",
                       }}
                     >
-                      {pmAssignees.map(pm => {
-                        const isSelected = selectedPmAssignees.some(a => a.id === pm.id);
+                      {pmAssignees.map((pm) => {
+                        const isSelected = selectedPmAssignees.some(
+                          (a) => a.id === pm.id
+                        );
 
                         return (
                           <button
@@ -966,11 +1026,19 @@ export default function CreateFTOModal({
                                   {pm.initials}
                                 </span>
                               </div>
-                              <span className="text-[#303030] text-sm">{pm.name}</span>
+                              <span className="text-[#303030] font-normal text-sm">
+                                {pm.name}
+                              </span>
                             </div>
 
                             {isSelected && (
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
                                 <path
                                   d="M13.5 3L6 10.5L2.5 7"
                                   stroke="#2463EB"
@@ -986,9 +1054,9 @@ export default function CreateFTOModal({
                     </div>,
                     document.body
                   )}
-
               </div>
             </div>
+
 
 
           </div>
@@ -1126,32 +1194,46 @@ export default function CreateFTOModal({
             {/* --- Timesheet Status (now next to Field Team Members) --- */}
             <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
               <label className="text-[#303030] font-medium text-sm leading-[1.43]">
-                Timesheet Status
+                Status
               </label>
 
-              <Select value={timesheetStatus} onValueChange={setTimesheetStatus}>
+              <Select value={status} onValueChange={(value) => setStatus(value as "new" | "dispatched" | "completed" | "cancelled")}>
                 <SelectTrigger className="h-11 rounded-lg bg-[#f7f7f7] border-[#e5e5e5]">
-                  <div
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
-                    style={{ backgroundColor: getTimesheetStatusBgColor() }}
-                  >
-                    {getTimesheetStatusIcon()}
-                    <span
-                      className="text-sm tracking-[-0.32px] leading-[1.4]"
-                      style={{
-                        color: getTimesheetStatusTextColor(),
-                        marginTop: "1px",
-                      }}
-                    >
-                      {getTimesheetStatusLabel()}
-                    </span>
-                  </div>
+                  {(() => {
+                    const ui = getStatusUI(status);
+
+                    return (
+                      <div
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-2xl"
+                        style={{ backgroundColor: ui.bg }}
+                      >
+                        <span
+                          className="text-sm tracking-[-0.32px] leading-[1.4]"
+                          style={{ color: ui.text }}
+                        >
+                          {ui.label}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </SelectTrigger>
 
-                <SelectContent>
-                  <SelectItem value="outstanding">Outstanding</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
+                <SelectContent
+                  className="
+                    z-[100000]
+                    bg-white
+                    border border-[#e5e5e5]
+                    rounded-lg
+                    shadow-lg
+                    min-w-[var(--radix-select-trigger-width)]
+                    max-h-[280px]
+                    overflow-y-auto
+                  "
+                >
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="dispatched">Dispatched</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1179,7 +1261,7 @@ export default function CreateFTOModal({
             disabled={optionsLoading || loading}
           >
             <span className="text-white font-medium text-base">
-              {editingFTOId === null
+              {!editingFTO
                 ? "Create Field Team Order"
                 : "Update Field Team Order"}
             </span>
