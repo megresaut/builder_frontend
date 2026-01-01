@@ -174,5 +174,3 @@ export const CompactSelectFieldBase = React.forwardRef<
 });
 
 CompactSelectFieldBase.displayName = "CompactSelectFieldBase";
-
-export { CompactSelectFieldBase };
