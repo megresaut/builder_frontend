@@ -229,8 +229,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           </SectionRowTemplate>
 
           {/* Custom Fields Section - Inline Edit */}
-          <SectionRowTemplate isLast={false}>
-            <InlineEditWrapper
+          <InlineEditWrapper
               mode={state.editingSection === "customFields" ? "edit" : "view"}
               editTitle="Set the custom field values for this property"
               showCloseButton={true}
@@ -332,8 +331,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 onEdit={() => dispatch({ type: "ENTER_EDIT_MODE", section: "customFields" })}
                 isLast={false}
               />
-            </InlineEditWrapper>
-          </SectionRowTemplate>
+          </InlineEditWrapper>
 
           {/* Rates Section */}
           <DataSectionTemplate
