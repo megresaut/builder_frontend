@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  CompactDateFieldBase,
-  CompactSelectFieldBase,
-} from "@/components/forms/compact";
+import { DateField } from "@/components/forms/DateField";
+import { SelectField } from "@/components/forms/SelectField";
 
 export interface EditCustomFieldsInlineProps {
   initialData: {
@@ -32,7 +30,8 @@ export interface EditCustomFieldsInlineProps {
  *
  * Features:
  * - Matches view mode layout exactly (horizontal field grid with gap-14)
- * - Uses compact field variants (32px height, 6px padding)
+ * - Uses standard DateField and SelectField with compact=true variant
+ * - Full popover functionality and keyboard navigation
  * - Typography matches view mode (same label sizes/styles)
  * - Two sections: Agreement and Vendor Agreement
  * - Fields laid out horizontally in grid pattern, not stacked vertically
@@ -170,11 +169,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               Management Agreement Date
             </label>
-            <CompactDateFieldBase
+            <DateField
               value={localDate}
               onChange={handleDateChange}
               returnFormat="ISO"
               placeholder="MM/DD/YYYY"
+              compact
             />
           </div>
 
@@ -200,7 +200,7 @@ export const EditCustomFieldsInline: React.FC<
             >
               Inspection Frequency
             </label>
-            <CompactSelectFieldBase
+            <SelectField
               value={localFrequency}
               onChange={handleFrequencyChange}
               options={[
@@ -210,6 +210,7 @@ export const EditCustomFieldsInline: React.FC<
                 { value: "Bi-Monthly", label: "Bi-Monthly" },
               ]}
               placeholder="Select frequency"
+              compact
             />
           </div>
         </div>
@@ -267,11 +268,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               HVAC Start
             </label>
-            <CompactDateFieldBase
+            <DateField
               value={localHvacStart}
               onChange={handleHvacStartChange}
               returnFormat="ISO"
               placeholder="MM/DD/YYYY"
+              compact
             />
           </div>
 
@@ -297,11 +299,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               HVAC End
             </label>
-            <CompactDateFieldBase
+            <DateField
               value={localHvacEnd}
               onChange={handleHvacEndChange}
               returnFormat="ISO"
               placeholder="MM/DD/YYYY"
+              compact
             />
           </div>
 
@@ -327,11 +330,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               Landscaping Start
             </label>
-            <CompactDateFieldBase
+            <DateField
               value={localLandscapingStart}
               onChange={handleLandscapingStartChange}
               returnFormat="ISO"
               placeholder="MM/DD/YYYY"
+              compact
             />
           </div>
         </div>
