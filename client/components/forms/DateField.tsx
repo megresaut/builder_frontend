@@ -83,6 +83,8 @@ const DateField: React.FC<DateFieldProps> = ({
   readOnly = false,
   compact = false,
 }) => {
+  // Ensure placeholder is lowercase
+  const normalizedPlaceholder = placeholder.toLowerCase();
   const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "date-field");
 
   // Convert value to Date object for DatePicker
@@ -131,7 +133,7 @@ const DateField: React.FC<DateFieldProps> = ({
         value={dateValue}
         onChange={handleDateChange}
         disabled={disabled}
-        placeholder={placeholder}
+        placeholder={normalizedPlaceholder}
         error={!!dateError}
       />
     );
@@ -150,7 +152,7 @@ const DateField: React.FC<DateFieldProps> = ({
         value={dateValue}
         onChange={handleDateChange}
         disabled={disabled}
-        placeholder={placeholder}
+        placeholder={normalizedPlaceholder}
         error={!!dateError}
       />
     </FieldShell>
