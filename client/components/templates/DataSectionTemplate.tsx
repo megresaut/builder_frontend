@@ -22,6 +22,7 @@ interface DataSectionTemplateProps {
   onEdit: () => void;
   isLast?: boolean;
   editLabel?: string;
+  wrapInSectionRow?: boolean;
 }
 
 /**
@@ -49,9 +50,10 @@ export const DataSectionTemplate: React.FC<DataSectionTemplateProps> = ({
   onEdit,
   isLast = true,
   editLabel = "Edit",
+  wrapInSectionRow = true,
 }) => {
-  return (
-    <SectionRowTemplate isLast={isLast}>
+  const content = (
+    <>
       <div className="flex w-full items-center justify-between gap-4 flex-wrap">
         <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
           {title}
@@ -90,8 +92,14 @@ export const DataSectionTemplate: React.FC<DataSectionTemplateProps> = ({
           </div>
         ))}
       </div>
-    </SectionRowTemplate>
+    </>
   );
+
+  if (!wrapInSectionRow) {
+    return content;
+  }
+
+  return <SectionRowTemplate isLast={isLast}>{content}</SectionRowTemplate>;
 };
 
 export default DataSectionTemplate;
