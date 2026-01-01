@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
-import { DatePicker } from "@/components/ui/date-picker";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CompactInput } from "@/components/forms/compact";
+  CompactDateFieldBase,
+  CompactSelectFieldBase,
+} from "@/components/forms/compact";
 
 export interface EditCustomFieldsInlineProps {
   initialData: {
