@@ -443,28 +443,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           }}
         />
 
-        {/* Edit Custom Fields Modal */}
-        <EditPropertyCustomFieldsModal
-          open={state.activeModal === "editCustomFields"}
-          onOpenChange={(open) => {
-            if (!open) dispatch({ type: "CLOSE_MODAL" });
-          }}
-          initialData={{
-            managementAgreementDate: state.drafts.customFields.managementAgreementDate,
-            inspectionFrequency: state.drafts.customFields.inspectionFrequency,
-          }}
-          onSave={(data) => {
-            dispatch({
-              type: "PATCH_CUSTOM_FIELDS",
-              patch: {
-                managementAgreementDate: data.managementAgreementDate,
-                inspectionFrequency: data.inspectionFrequency,
-              },
-            });
-            dispatch({ type: "CLOSE_MODAL" });
-          }}
-        />
-
         {/* Edit Rates Modal */}
         <EditPropertyRatesModal
           open={state.activeModal === "editRates"}
