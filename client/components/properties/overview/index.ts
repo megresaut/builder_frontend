@@ -10,10 +10,7 @@
  *   EditCustomFieldsInline,
  *   EditPropertyCustomFieldsModal,
  *   EditPropertyRatesModal,
- *   AddPropertyNoteModal,
- *   AddPropertyFileModal,
  *   UploadPhotoModal,
- *   ViewPropertyNoteModal,
  * } from "@/components/properties/overview";
  * ```
  */
@@ -26,7 +23,4 @@ export { EditRatesInline } from "./EditRatesInline";
 // Modals
 export { default as EditPropertyCustomFieldsModal } from "./EditPropertyCustomFieldsModal";
 export { default as EditPropertyRatesModal } from "./EditPropertyRatesModal";
-export { default as AddPropertyNoteModal } from "./AddPropertyNoteModal";
-export { default as AddPropertyFileModal } from "./AddPropertyFileModal";
 export { default as UploadPhotoModal } from "./UploadPhotoModal";
-export { default as ViewPropertyNoteModal } from "./ViewPropertyNoteModal";
