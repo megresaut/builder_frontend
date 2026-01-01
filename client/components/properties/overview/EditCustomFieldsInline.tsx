@@ -128,19 +128,12 @@ export const EditCustomFieldsInline: React.FC<
             >
               Management Agreement Date
             </label>
-            <div
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              <CompactDateField
-                label=""
-                value={localDate}
-                onChange={handleDateChange}
-                returnFormat="ISO"
-                placeholder="MM/DD/YYYY"
-              />
-            </div>
+            <CompactDateFieldBase
+              value={localDate}
+              onChange={handleDateChange}
+              returnFormat="ISO"
+              placeholder="MM/DD/YYYY"
+            />
           </div>
 
           {/* Inspection Frequency Field */}
@@ -165,24 +158,17 @@ export const EditCustomFieldsInline: React.FC<
             >
               Inspection Frequency
             </label>
-            <div
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              <CompactSelectField
-                label=""
-                value={localFrequency}
-                onChange={handleFrequencyChange}
-                options={[
-                  { value: "Weekly", label: "Weekly" },
-                  { value: "Biweekly", label: "Biweekly" },
-                  { value: "Monthly", label: "Monthly" },
-                  { value: "Bi-Monthly", label: "Bi-Monthly" },
-                ]}
-                placeholder="Select frequency"
-              />
-            </div>
+            <CompactSelectFieldBase
+              value={localFrequency}
+              onChange={handleFrequencyChange}
+              options={[
+                { value: "Weekly", label: "Weekly" },
+                { value: "Biweekly", label: "Biweekly" },
+                { value: "Monthly", label: "Monthly" },
+                { value: "Bi-Monthly", label: "Bi-Monthly" },
+              ]}
+              placeholder="Select frequency"
+            />
           </div>
         </div>
       </div>
