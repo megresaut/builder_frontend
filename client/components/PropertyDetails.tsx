@@ -10,6 +10,7 @@ import {
   ViewPropertyNoteModal,
   InlineEditWrapper,
   EditCustomFieldsInline,
+  EditRatesInline,
 } from "@/components/properties/overview";
 import { EditIcon } from "@/components/icons";
 import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
@@ -336,36 +337,81 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             </InlineEditWrapper>
           </SectionRowTemplate>
 
-          {/* Rates Section */}
-          <DataSectionTemplate
-            title="Rates"
-            subsections={[
-              {
-                title: "Management Fee",
-                fields: [
+          {/* Rates Section - Inline Edit */}
+          <SectionRowTemplate isLast={false}>
+            <InlineEditWrapper
+              mode={state.editingSection === "rates" ? "edit" : "view"}
+              editTitle="Set the rates for this property"
+              showCloseButton={true}
+              onSave={() => {
+                dispatch({ type: "EXIT_EDIT_MODE" });
+              }}
+              onCancel={() => {
+                dispatch({ type: "EXIT_EDIT_MODE" });
+              }}
+              editChildren={
+                <EditRatesInline
+                  initialData={{
+                    monthlyRate: state.drafts.rates.monthlyRate,
+                    defaultRate: state.drafts.rates.defaultRate,
+                    emergencyRate: state.drafts.rates.emergencyRate,
+                  }}
+                  monthlyRate={state.drafts.rates.monthlyRate}
+                  defaultRate={state.drafts.rates.defaultRate}
+                  emergencyRate={state.drafts.rates.emergencyRate}
+                  onMonthlyRateChange={(value) => {
+                    dispatch({
+                      type: "PATCH_RATES",
+                      patch: { monthlyRate: value },
+                    });
+                  }}
+                  onDefaultRateChange={(value) => {
+                    dispatch({
+                      type: "PATCH_RATES",
+                      patch: { defaultRate: value },
+                    });
+                  }}
+                  onEmergencyRateChange={(value) => {
+                    dispatch({
+                      type: "PATCH_RATES",
+                      patch: { emergencyRate: value },
+                    });
+                  }}
+                />
+              }
+            >
+              <DataSectionTemplate
+                wrapInSectionRow={false}
+                title="Rates"
+                subsections={[
                   {
-                    label: "MONTHLY RATE",
-                    value: state.drafts.rates.monthlyRate,
-                  },
-                ],
-              },
-              {
-                title: "Field Team Rates",
-                fields: [
-                  {
-                    label: "DEFAULT RATE",
-                    value: state.drafts.rates.defaultRate,
+                    title: "Management Fee",
+                    fields: [
+                      {
+                        label: "MONTHLY RATE",
+                        value: state.drafts.rates.monthlyRate,
+                      },
+                    ],
                   },
                   {
-                    label: "EMERGENCY RATE",
-                    value: state.drafts.rates.emergencyRate,
+                    title: "Field Team Rates",
+                    fields: [
+                      {
+                        label: "DEFAULT RATE",
+                        value: state.drafts.rates.defaultRate,
+                      },
+                      {
+                        label: "EMERGENCY RATE",
+                        value: state.drafts.rates.emergencyRate,
+                      },
+                    ],
                   },
-                ],
-              },
-            ]}
-            onEdit={() => dispatch({ type: "OPEN_MODAL", modal: "editRates" })}
-            isLast={false}
-          />
+                ]}
+                onEdit={() => dispatch({ type: "ENTER_EDIT_MODE", section: "rates" })}
+                isLast={false}
+              />
+            </InlineEditWrapper>
+          </SectionRowTemplate>
 
           {/* Recent Notes Section */}
           <NotesTemplate
