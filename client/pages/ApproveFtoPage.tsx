@@ -18,7 +18,8 @@ import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { mockFetchSubmissionsByFto, type ExpenseLine } from "@/data/fto/submissions";
+import { useParams } from "react-router-dom";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface HourRow {
   id: string;
@@ -30,6 +31,7 @@ interface HourRow {
   amount: string;
   upcharge: string;
   assignee: string;
+  assigneeId: number;
 }
 
 interface ExpenseRow {
@@ -42,6 +44,7 @@ interface ExpenseRow {
   amount: string;
   upcharge: string;
   assignee: string;
+  assigneeId: number;
 }
 
 interface ApproveFTOPageProps {
@@ -54,6 +57,125 @@ interface ApproveFTOPageProps {
   dueDate?: string;
   priority?: string;
 }
+
+interface ExpenseLine {
+  date_of_work: string;
+  vendor_name: string;
+  note?: string;
+  is_avm_expense: boolean;
+  amount_cents: number;
+}
+
+
+interface BackendSubmission {
+  ID: number;
+  FTOID: number;
+  FieldTeamMemberID: number;
+  MaterialsJSON: string | null;
+  HoursJSON: {
+    date_of_work: string;
+    hours_decimal: number;
+    note?: string;
+    no_charge: boolean;
+    emergency: boolean;
+    amount_cents?: number;
+  }[];
+}
+
+const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]> => {
+  const res = await fetch(
+    // `http://localhost:8080/maintenance/submissions/by-fto?fto_id=${ftoId}`,
+    `/api/maintenance/submissions/by-fto?fto_id=${ftoId}`,
+    {
+      headers: { Accept: "application/json" },
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch submissions");
+  }
+
+  return res.json();
+};
+
+
+const parseMoneyToCents = (value: string): number => {
+  const num = parseFloat(value.replace(/[^0-9.-]+/g, ""));
+  return isNaN(num) ? 0 : Math.round(num * 100);
+};
+
+const buildHoursJSON = (hourRows: HourRow[]) => {
+  return hourRows.map((row, index) => ({
+    date_of_work: row.date,
+    hours_decimal: parseFloat(row.hours) || 0,
+    note: row.note || "",
+    no_charge: row.noFee,
+    emergency: row.emergency,
+    hour_index: index,
+  }));
+};
+
+const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
+  return expenseRows.map((row, index) => ({
+    date_of_work: row.date,
+    vendor_name: row.vendor,
+    note: row.receiptNote || "",
+    is_avm_expense: row.chargeType === "avm",
+    amount_cents: parseMoneyToCents(row.amount),
+    material_index: index,
+  }));
+};
+
+
+const patchSubmission = async (
+  submissionId: number,
+  payload: {
+    hours_json?: any[];
+    materials_json?: any[];
+  }
+) => {
+  console.group(`[PATCH submission ${submissionId}]`);
+  console.log("payload object:", payload);
+  console.log("payload JSON:", JSON.stringify(payload, null, 2));
+  console.groupEnd();
+
+  const res = await fetch(
+    // `http://localhost:8080/maintenance/submissions/${submissionId}`,
+    `/api/maintenance/submissions/${submissionId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to patch submission");
+  }
+};
+
+
+
+const extractSubmissionIds = (rows: { id: string }[]): number[] => {
+  const ids = new Set<number>();
+
+  rows.forEach((r) => {
+    const parts = r.id.split("-");
+    if (parts.length >= 3) {
+      const maybeId = Number(parts[1]);
+      if (!isNaN(maybeId)) {
+        ids.add(maybeId);
+      }
+    }
+  });
+
+  return Array.from(ids);
+};
+
 
 const mockVendors = ["Elite HVAC", "ABC Plumbing", "Green Lawn Services"];
 const mockTasks = ["HVAC Inspection", "Plumbing Repair", "Door Lock Repair"];
@@ -69,46 +191,92 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
+// const parseDueDate = (dateStr: string | undefined): Date | null => {
+//   if (!dateStr) return null;
+
+//   let date: Date | null = null;
+
+//   // Try parsing as standard Date first
+//   const parsedDate = new Date(dateStr);
+//   if (!isNaN(parsedDate.getTime())) {
+//     date = parsedDate;
+//   } else if (typeof dateStr === "string") {
+//     // Try parsing format like "Dec 10, 2025"
+//     try {
+//       const parts = dateStr.split(" ");
+//       if (parts.length >= 2) {
+//         const monthStr = parts[0];
+//         const dayStr = parts[1].replace(",", "");
+//         const yearStr = parts[2];
+//         const parsedFromFormat = new Date(`${monthStr} ${dayStr}, ${yearStr}`);
+//         if (!isNaN(parsedFromFormat.getTime())) {
+//           date = parsedFromFormat;
+//         }
+//       }
+//     } catch (e) {
+//       // Fallback: date remains null
+//     }
+//   }
+
+//   return date;
+// };
+
 const parseDueDate = (dateStr: string | undefined): Date | null => {
   if (!dateStr) return null;
 
-  let date: Date | null = null;
-
-  // Try parsing as standard Date first
-  const parsedDate = new Date(dateStr);
-  if (!isNaN(parsedDate.getTime())) {
-    date = parsedDate;
-  } else if (typeof dateStr === "string") {
-    // Try parsing format like "Dec 10, 2025"
-    try {
-      const parts = dateStr.split(" ");
-      if (parts.length >= 2) {
-        const monthStr = parts[0];
-        const dayStr = parts[1].replace(",", "");
-        const yearStr = parts[2];
-        const parsedFromFormat = new Date(`${monthStr} ${dayStr}, ${yearStr}`);
-        if (!isNaN(parsedFromFormat.getTime())) {
-          date = parsedFromFormat;
-        }
-      }
-    } catch (e) {
-      // Fallback: date remains null
-    }
-  }
-
-  return date;
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? null : date;
 };
+
+const approveSubmission = async (submissionId: number) => {
+  const res = await fetch(
+    // `http://localhost:8080/maintenance/submissions/${submissionId}/approve`,
+    `/api/maintenance/submissions/${submissionId}/approve`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to approve submission");
+  }
+};
+
+const rejectSubmission = async (submissionId: number) => {
+  const res = await fetch(
+    // `http://localhost:8080/maintenance/submissions/${submissionId}/reject`,
+    `/api/maintenance/submissions/${submissionId}/reject`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to reject submission");
+  }
+};
+
 
 export default function ApproveFTOPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  // const { id } = useParams<{ id?: string }>();
   const state = (location.state || {}) as ApproveFTOPageProps;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfViewer = usePdfViewer();
 
-  // FTO ID passed via navigation state (required to fetch submissions)
-  const ftoId = (location.state as any)?.ftoId || 1; // Default to 1 if not provided
+  // const ftoId = id ? Number(id) : null;
 
+  const { ftoId } = useParams<{ ftoId?: string }>();
+  const ftoIdNum = ftoId ? Number(ftoId) : null;
   // FTO Details - populated from props or state
   const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
@@ -131,7 +299,38 @@ export default function ApproveFTOPage() {
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false); // Default: PDF viewer collapsed
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
+  const [assigneeById, setAssigneeById] = useState<Record<number, string>>({});
 
+
+  useEffect(() => {
+    async function loadAssignees() {
+      try {
+        const data = await fetchJSON("/users/field-team");
+  
+        const map: Record<number, string> = {};
+        data.forEach((u: any) => {
+          map[Number(u.id)] = u.name || u.email;
+        });
+  
+        setAssigneeById(map);
+      } catch (err) {
+        console.error("Failed to load field team members:", err);
+      }
+    }
+  
+    loadAssignees();
+  }, []);
+
+  const assigneeOptions = useMemo(
+    () =>
+      Object.entries(assigneeById).map(([id, name]) => ({
+        value: Number(id),
+        label: name,
+      })),
+    [assigneeById]
+  );
+  
+  
   /**
    * Load submissions from mock API and populate hours/expenses tables
    */
@@ -139,14 +338,15 @@ export default function ApproveFTOPage() {
     const loadSubmissions = async () => {
       try {
         setIsLoadingSubmissions(true);
-        const submissions = await mockFetchSubmissionsByFto(ftoId);
+        const submissions = await fetchSubmissionsByFto(ftoId);
 
-        if (submissions.length === 0) {
+        if (!Array.isArray(submissions) || submissions.length === 0) {
           setHourRows([]);
           setExpenseRows([]);
           setIsLoadingSubmissions(false);
           return;
         }
+        
 
         // Flatten all hour lines from all submissions into HourRow[]
         const allHourLines: HourRow[] = [];
@@ -157,14 +357,15 @@ export default function ApproveFTOPage() {
           submission.HoursJSON.forEach((hourLine, index) => {
             allHourLines.push({
               id: `hour-${submission.ID}-${index}`,
-              date: hourLine.date_of_work,
+              date: formatDate(new Date(hourLine.date_of_work)),
               hours: hourLine.hours_decimal.toString(),
               note: hourLine.note || "",
               noFee: hourLine.no_charge,
               emergency: hourLine.emergency,
-              amount: "$0", // Will be populated by user
+              amount: `$${(hourLine.amount_cents / 100).toFixed(2)}`, // Will be populated by user
               upcharge: "$0", // Will be populated by user
-              assignee: mockAssignees[0], // Default to first assignee or use FieldTeamMemberID mapping
+              assignee: assigneeById[submission.FieldTeamMemberID] || "", // Default to first assignee or use FieldTeamMemberID mapping
+              assigneeId: submission.FieldTeamMemberID,
             });
           });
 
@@ -176,14 +377,15 @@ export default function ApproveFTOPage() {
               expenses.forEach((expense, index) => {
                 allExpenseLines.push({
                   id: `expense-${submission.ID}-${index}`,
-                  date: expense.date_of_work,
+                  date: formatDate(new Date(expense.date_of_work)),
                   vendor: expense.vendor_name,
                   receiptNote: expense.note || "",
                   avmExpense: expense.is_avm_expense,
                   chargeType: expense.is_avm_expense ? "avm" : "personal",
                   amount: `$${(expense.amount_cents / 100).toFixed(2)}`,
                   upcharge: "$0", // Will be populated by user
-                  assignee: mockAssignees[0], // Default assignee
+                  assignee: assigneeById[submission.FieldTeamMemberID] || "", // Default assignee
+                  assigneeId: submission.FieldTeamMemberID,
                 });
               });
             } catch (e) {
@@ -244,6 +446,7 @@ export default function ApproveFTOPage() {
         amount: "$0",
         upcharge: "$0",
         assignee: "",
+        assigneeId: 0,
       },
     ]);
   };
@@ -262,6 +465,7 @@ export default function ApproveFTOPage() {
         amount: "$0",
         upcharge: "$0",
         assignee: "",
+        assigneeId: 0,
       },
     ]);
   };
@@ -276,48 +480,79 @@ export default function ApproveFTOPage() {
   );
   const grandTotal = hoursTotal + expensesTotal;
 
-  const handleApprove = () => {
-    setAttemptedSubmit(true);
-
-    // Check if all required fields are filled
-    const hoursValid = hourRows.every(
-      (row) =>
-        row.date.trim() &&
-        row.hours.trim() &&
-        row.assignee.trim() &&
-        row.amount &&
-        row.amount !== "$0",
-    );
-
-    const expensesValid = expenseRows.every(
-      (row) =>
-        row.date.trim() &&
-        row.vendor.trim() &&
-        row.amount &&
-        row.amount !== "$0",
-    );
-
-    if (!hoursValid || !expensesValid) {
-      return; // Don't navigate if validation fails
+  const handleApprove = async () => {
+    try {
+      setAttemptedSubmit(true);
+  
+      const submissionIds = extractSubmissionIds([
+        ...hourRows,
+        ...expenseRows,
+      ]);
+  
+      if (submissionIds.length === 0) {
+        throw new Error("No submissions found to approve");
+      }
+  
+      const hoursJSON = buildHoursJSON(hourRows);
+      const materialsJSON = buildMaterialsJSON(expenseRows);
+  
+      // 1️⃣ PATCH all submissions
+      for (const submissionId of submissionIds) {
+        await patchSubmission(submissionId, {
+          hours_json: hoursJSON,
+          materials_json: materialsJSON,
+        });
+      }
+  
+      console.log("All PATCH calls successful");
+  
+      // 2️⃣ APPROVE all submissions
+      for (const submissionId of submissionIds) {
+        await approveSubmission(submissionId);
+      }
+  
+      console.log("All submissions approved");
+  
+      navigate(-1);
+    } catch (err) {
+      console.error("Approve failed:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to approve submission"
+      );
     }
-
-    console.log("FTO Approved", {
-      ftoName,
-      property,
-      unit,
-      fieldTeamAssignee,
-      task,
-      description,
-      hours: hourRows,
-      expenses: expenseRows,
-    });
-    navigate(-1);
   };
+  
 
-  const handleReject = () => {
-    console.log("FTO Rejected");
-    navigate(-1);
+  const handleReject = async () => {
+    try {
+      const submissionIds = extractSubmissionIds([
+        ...hourRows,
+        ...expenseRows,
+      ]);
+  
+      if (submissionIds.length === 0) {
+        throw new Error("No submissions found to reject");
+      }
+  
+      for (const submissionId of submissionIds) {
+        await rejectSubmission(submissionId);
+      }
+  
+      console.log("All submissions rejected");
+  
+      navigate(-1);
+    } catch (err) {
+      console.error("Reject failed:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to reject submission"
+      );
+    }
   };
+  
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.currentTarget.files;
@@ -620,14 +855,12 @@ export default function ApproveFTOPage() {
         {/* Right Column (scroll container) */}
         <div
           style={{
-            height: "100%",
+            flex: 1,
             minHeight: 0,
-            overflowY: "auto",
-            overflowX: "auto",
             padding: "24px 32px",
           }}
         >
-          <div style={{ minWidth: "fit-content" }}>
+          <div style={{ minWidth: "100%" }}>
               {/* FTO Details Section */}
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {/* FTO Details Header */}
@@ -697,7 +930,7 @@ export default function ApproveFTOPage() {
                     <div className="flex-1">
                       <DateField
                         label="Due Date"
-                        value={dueDate}
+                        value={dueDate ? formatDate(dueDate) : ""}
                         onChange={() => {}}
                         disabled={true}
                       />
@@ -740,7 +973,7 @@ export default function ApproveFTOPage() {
                       <div className="font-semibold">Hours</div>
                       <div
                         className="h-px bg-gray-200 mt-5"
-                        style={{ width: "790px" }}
+                        style={{ width: "84.3%" }}
                       />
                     </div>
                   </div>
@@ -750,15 +983,15 @@ export default function ApproveFTOPage() {
                     className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
                     style={{
                       overflowX: "auto",
-                      width: "100%",
+                      width: "84.3%",
                     }}
                   >
                     <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
                       {/* Table Header */}
-                      <div className="flex items-center" style={{ minWidth: "fit-content" }}>
+                      <div className="flex items-center w-full">
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ width: "150px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date <span className="text-red-600">*</span>
@@ -774,7 +1007,7 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "260px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ minWidth: "200px", maxWidth: "260px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Note
@@ -812,14 +1045,14 @@ export default function ApproveFTOPage() {
                             Amount <span className="text-red-600">*</span>
                           </span>
                         </div>
-                        <div
+                        {/* <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                           style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Upcharge
                           </span>
-                        </div>
+                        </div> */}
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                           style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
@@ -842,7 +1075,7 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "140px",
+                              width: "150px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
@@ -886,7 +1119,7 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              minWidth: "180px",
+                              minWidth: "200px",
                               maxWidth: "260px",
                               whiteSpace: "normal",
                               overflowWrap: "anywhere",
@@ -928,14 +1161,14 @@ export default function ApproveFTOPage() {
                             title={row.assignee}
                           >
                             <SelectFieldCell
-                              value={row.assignee}
+                              value={row.assigneeId.toString()}
                               onChange={(value) =>
-                                updateHourRow(row.id, "assignee", value)
+                                updateHourRow(row.id, "assigneeId", Number(value))
                               }
                               placeholder="Select assignee..."
-                              options={mockAssignees.map((a) => ({
-                                value: a,
-                                label: a,
+                              options={assigneeOptions.map((option) => ({
+                                value: option.value.toString(),
+                                label: option.label,
                               }))}
                             />
                           </div>
@@ -996,9 +1229,9 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Upcharge Cell - Currency */}
-                          <div
+                          {/* <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
+                            style={{style={{ width: "790px" }}
                               width: "140px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
@@ -1015,7 +1248,7 @@ export default function ApproveFTOPage() {
                               disabled={row.noFee}
                               placeholder="$0"
                             />
-                          </div>
+                          </div> */}
 
                           {/* Total Cell - Display only */}
                           <div
@@ -1092,7 +1325,7 @@ export default function ApproveFTOPage() {
                       <div className="flex items-center" style={{ minWidth: "fit-content" }}>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ width: "180px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date <span className="text-red-600">*</span>
@@ -1168,7 +1401,7 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "140px",
+                              width: "180px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
@@ -1258,14 +1491,14 @@ export default function ApproveFTOPage() {
                             title={row.assignee}
                           >
                             <SelectFieldCell
-                              value={row.assignee}
+                              value={row.assigneeId.toString()}
                               onChange={(value) =>
-                                updateExpenseRow(row.id, "assignee", value)
+                                updateExpenseRow(row.id, "assigneeId", Number(value))
                               }
                               placeholder="Select assignee..."
-                              options={mockAssignees.map((a) => ({
-                                value: a,
-                                label: a,
+                              options={assigneeOptions.map((option) => ({
+                                value: option.value.toString(),
+                                label: option.label,
                               }))}
                             />
                           </div>
@@ -1466,13 +1699,16 @@ export default function ApproveFTOPage() {
       </div>
 
       {/* Sticky Footer */}
+      {/* Fixed Footer */}
       <div
         style={{
-          position: "sticky",
+          position: "fixed",
           bottom: 0,
+          left: 0,
+          right: 0,
           background: "white",
           padding: "16px 32px",
-          zIndex: 10,
+          zIndex: 100,
           borderTop: "1.33333px solid #d2d1cf",
           boxShadow: "rgba(0, 0, 0, 0.05) 0px -2px 8px 0px",
         }}
