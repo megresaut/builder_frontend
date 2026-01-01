@@ -599,6 +599,8 @@ export default function FieldTeamOrders() {
             order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
           task: order.task ?? "",
           description: order.description,
+          dueDate: order.dueDate,
+          priority: order.priority,
         },
       });
     },
