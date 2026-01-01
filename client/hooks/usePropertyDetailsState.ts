@@ -140,6 +140,18 @@ function reducer(state: State, action: Action): State {
         },
       };
 
+    case "ENTER_EDIT_MODE":
+      return {
+        ...state,
+        editingSection: action.section,
+      };
+
+    case "EXIT_EDIT_MODE":
+      return {
+        ...state,
+        editingSection: null,
+      };
+
     case "SELECT_NOTE":
       return {
         ...state,
