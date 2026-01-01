@@ -52,10 +52,12 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
         display: "flex",
         flexDirection: "column",
         width: "100%",
+        padding: "16px",
         backgroundColor: "rgba(255, 255, 255, 1)",
         border: "1px solid rgba(218, 218, 218, 1)",
         borderRadius: "8px",
         gap: "16px",
+        boxSizing: "border-box",
       }}
     >
       {/* Optional title bar */}
@@ -94,6 +96,7 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
+                marginRight: "-2px",
               }}
               aria-label="Close edit mode"
             >
@@ -132,6 +135,14 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
           justifyContent: "flex-end",
           gap: "10px",
           marginTop: "8px",
+          marginLeft: "-16px",
+          marginRight: "-16px",
+          marginBottom: "-16px",
+          paddingLeft: "16px",
+          paddingRight: "16px",
+          paddingTop: "8px",
+          paddingBottom: "16px",
+          borderTop: "1px solid rgba(229, 229, 229, 1)",
         }}
       >
         {/* Cancel button */}
