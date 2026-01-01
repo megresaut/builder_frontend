@@ -3,7 +3,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { FieldShell } from "./FieldShell";
 
 interface DateFieldProps {
-  label: string;
+  label?: string;
   required?: boolean;
   description?: string;
   error?: string;
@@ -14,6 +14,7 @@ interface DateFieldProps {
   placeholder?: string;
   returnFormat?: "Date" | "ISO";
   readOnly?: boolean;
+  compact?: boolean;
 }
 
 /**
@@ -80,8 +81,9 @@ const DateField: React.FC<DateFieldProps> = ({
   placeholder = "mm/dd/yyyy",
   returnFormat = "Date",
   readOnly = false,
+  compact = false,
 }) => {
-  const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+  const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "date-field");
 
   // Convert value to Date object for DatePicker
   const dateValue = React.useMemo(() => {
@@ -121,6 +123,19 @@ const DateField: React.FC<DateFieldProps> = ({
       onChange?.(newDate);
     }
   };
+
+  // Compact mode: render input only without FieldShell wrapper
+  if (compact) {
+    return (
+      <DatePicker
+        value={dateValue}
+        onChange={handleDateChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        error={!!dateError}
+      />
+    );
+  }
 
   return (
     <FieldShell
