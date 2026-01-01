@@ -54,8 +54,9 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
         width: "100%",
         padding: "16px",
         backgroundColor: "rgba(255, 255, 255, 1)",
-        border: "1px solid rgba(218, 218, 218, 1)",
+        border: "1px solid rgba(229, 229, 229, 1)",
         borderRadius: "8px",
+        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.03)",
         gap: "16px",
         boxSizing: "border-box",
       }}
