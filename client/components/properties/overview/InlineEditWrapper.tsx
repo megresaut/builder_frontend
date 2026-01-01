@@ -46,18 +46,20 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
   }
 
   // Edit mode
+  // Note: padding is handled by parent SectionRowTemplate (p-4 / 16px)
+  // So we don't add padding here to avoid misalignment
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        padding: "16px",
         backgroundColor: "rgba(255, 255, 255, 1)",
         border: "1px solid rgba(229, 229, 229, 1)",
         borderRadius: "8px",
         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)",
         gap: "16px",
+        padding: "16px",
         boxSizing: "border-box",
       }}
     >
