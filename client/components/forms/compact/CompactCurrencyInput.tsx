@@ -1,6 +1,6 @@
 import React, { forwardRef, useState, useCallback } from "react";
 
-interface CompactCurrencyInputProps
+export interface CompactCurrencyInputProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
     "type" | "value" | "onChange"
