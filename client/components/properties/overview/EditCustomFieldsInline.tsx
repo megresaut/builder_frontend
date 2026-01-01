@@ -268,10 +268,10 @@ export const EditCustomFieldsInline: React.FC<
               HVAC Start
             </label>
             <CompactDateFieldBase
-              value={null}
-              onChange={() => {}}
+              value={localHvacStart}
+              onChange={handleHvacStartChange}
+              returnFormat="ISO"
               placeholder="MM/DD/YYYY"
-              disabled
             />
           </div>
 
@@ -298,10 +298,10 @@ export const EditCustomFieldsInline: React.FC<
               HVAC End
             </label>
             <CompactDateFieldBase
-              value={null}
-              onChange={() => {}}
+              value={localHvacEnd}
+              onChange={handleHvacEndChange}
+              returnFormat="ISO"
               placeholder="MM/DD/YYYY"
-              disabled
             />
           </div>
 
@@ -328,10 +328,10 @@ export const EditCustomFieldsInline: React.FC<
               Landscaping Start
             </label>
             <CompactDateFieldBase
-              value={null}
-              onChange={() => {}}
+              value={localLandscapingStart}
+              onChange={handleLandscapingStartChange}
+              returnFormat="ISO"
               placeholder="MM/DD/YYYY"
-              disabled
             />
           </div>
         </div>
