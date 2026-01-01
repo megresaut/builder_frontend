@@ -5,7 +5,7 @@ async function uploadPdf(file: File): Promise<{
     const formData = new FormData();
     formData.append("file", file);
   
-    const res = await fetch("http://localhost:8080/vendors/bills/upload-pdf", {
+    const res = await fetch("/api/vendors/bills/upload-pdf", {
       method: "POST",
       credentials: "include",
       body: formData,

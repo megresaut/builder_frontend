@@ -1441,7 +1441,7 @@ export default function FtoSubmissionForm() {
                                         formData.append("file", file.file!);
 
                                         const res = await fetch(
-                                          "http://localhost:8080/vendors/bills/upload-pdf",
+                                          "/api/vendors/bills/upload-pdf",
                                           {
                                             method: "POST",
                                             credentials: "include",
@@ -1500,7 +1500,7 @@ export default function FtoSubmissionForm() {
                             if (file.storage_path) {
                               (async () => {
                                 const res = await fetch(
-                                  `http://localhost:8080/files?key=${encodeURIComponent(
+                                  `/api/files?key=${encodeURIComponent(
                                     file.storage_path
                                   )}`,
                                   { credentials: "include" }
