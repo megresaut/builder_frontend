@@ -114,10 +114,6 @@ const initialState: State = {
     fileId: null,
   },
   drafts: {
-    viewNote: {
-      id: null,
-      body: "",
-    },
     customFields: {
       managementAgreementDate: "",
       inspectionFrequency: "Monthly",
@@ -150,10 +146,6 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         activeModal: null,
-        drafts: {
-          ...state.drafts,
-          viewNote: { id: null, body: "" },
-        },
       };
 
     case "ENTER_EDIT_MODE":
