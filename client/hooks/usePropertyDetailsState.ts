@@ -33,6 +33,7 @@ export interface RecentFile {
 
 interface State {
   activeModal: Modal;
+  editingSection: "customFields" | "rates" | null;
   selection: {
     noteId: number | null;
     fileId: number | null;
