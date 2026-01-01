@@ -18,6 +18,8 @@ import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { mockFetchSubmissionsByFto, type ExpenseLine } from "@/data/fto/submissions";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 interface HourRow {
   id: string;
@@ -75,6 +77,10 @@ export default function ApproveFTOPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfViewer = usePdfViewer();
 
+  // FTO ID passed via navigation state (required to fetch submissions)
+  const ftoId = (location.state as any)?.ftoId || 1; // Default to 1 if not provided
+
+  // FTO Details - populated from props or state
   const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
   const [unit, setUnit] = useState(state.unit || "");
@@ -83,34 +89,12 @@ export default function ApproveFTOPage() {
   );
   const [task, setTask] = useState(state.task || "");
   const [description, setDescription] = useState(state.description || "");
+  const [dueDate, setDueDate] = useState<Date | null>(parseDueDate(state.dueDate));
+  const [priority, setPriority] = useState(state.priority || "normal");
 
-  const [hourRows, setHourRows] = useState<HourRow[]>([
-    {
-      id: "1",
-      date: formatDate(new Date()),
-      hours: "",
-      note: "",
-      noFee: false,
-      emergency: false,
-      amount: "$0",
-      upcharge: "$0",
-      assignee: "",
-    },
-  ]);
-
-  const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([
-    {
-      id: "1",
-      date: formatDate(new Date()),
-      vendor: "",
-      receiptNote: "",
-      avmExpense: false,
-      chargeType: "personal",
-      amount: "$0",
-      upcharge: "$0",
-      assignee: "",
-    },
-  ]);
+  // Table rows - will be populated from mock API
+  const [hourRows, setHourRows] = useState<HourRow[]>([]);
+  const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
 
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ name: string; size: number; file: File }>
