@@ -9,11 +9,10 @@ export interface EditCustomFieldsInlineProps {
     managementAgreementDate?: string;
     inspectionFrequency?: string;
   };
-  onSave: (data: {
-    managementAgreementDate: string;
-    inspectionFrequency: string;
-  }) => void;
-  onCancel: () => void;
+  managementAgreementDate?: string;
+  inspectionFrequency?: string;
+  onManagementAgreementDateChange?: (value: string | null) => void;
+  onInspectionFrequencyChange?: (value: string) => void;
 }
 
 /**
@@ -30,29 +29,42 @@ export interface EditCustomFieldsInlineProps {
  * - NO ModalTemplate wrapper (stays inline within InlineEditWrapper)
  *
  * @param initialData - Pre-populated field values
- * @param onSave - Callback with validated data
- * @param onCancel - Callback to cancel editing
+ * @param managementAgreementDate - Controlled value
+ * @param inspectionFrequency - Controlled value
+ * @param onManagementAgreementDateChange - Change handler for date
+ * @param onInspectionFrequencyChange - Change handler for frequency
  */
 export const EditCustomFieldsInline: React.FC<
   EditCustomFieldsInlineProps
-> = ({ initialData, onSave, onCancel }) => {
-  const [managementAgreementDate, setManagementAgreementDate] = useState<
-    string | null
-  >(null);
-  const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
+> = ({
+  initialData,
+  managementAgreementDate,
+  inspectionFrequency,
+  onManagementAgreementDateChange,
+  onInspectionFrequencyChange,
+}) => {
+  const [localDate, setLocalDate] = useState<string | null>(
+    managementAgreementDate || initialData?.managementAgreementDate || null
+  );
+  const [localFrequency, setLocalFrequency] = useState<string>(
+    inspectionFrequency || initialData?.inspectionFrequency || "Monthly"
+  );
 
   useEffect(() => {
     if (initialData) {
-      setManagementAgreementDate(initialData.managementAgreementDate || null);
-      setInspectionFrequency(initialData.inspectionFrequency || "Monthly");
+      setLocalDate(initialData.managementAgreementDate || null);
+      setLocalFrequency(initialData.inspectionFrequency || "Monthly");
     }
   }, [initialData]);
 
-  const handleSave = () => {
-    onSave({
-      managementAgreementDate: managementAgreementDate || "",
-      inspectionFrequency,
-    });
+  const handleDateChange = (value: string | null) => {
+    setLocalDate(value);
+    onManagementAgreementDateChange?.(value);
+  };
+
+  const handleFrequencyChange = (value: string) => {
+    setLocalFrequency(value);
+    onInspectionFrequencyChange?.(value);
   };
 
   return (
@@ -90,14 +102,8 @@ export const EditCustomFieldsInline: React.FC<
         {/* Management Agreement Date */}
         <CompactDateField
           label="Management Agreement Date"
-          value={managementAgreementDate}
-          onChange={(value) =>
-            setManagementAgreementDate(
-              typeof value === "string"
-                ? value
-                : value?.toISOString().split("T")[0] || null
-            )
-          }
+          value={localDate}
+          onChange={handleDateChange}
           returnFormat="ISO"
           placeholder="MM/DD/YYYY"
         />
@@ -105,8 +111,8 @@ export const EditCustomFieldsInline: React.FC<
         {/* Inspection Frequency */}
         <CompactSelectField
           label="Inspection Frequency"
-          value={inspectionFrequency}
-          onChange={(value) => setInspectionFrequency(value)}
+          value={localFrequency}
+          onChange={handleFrequencyChange}
           options={[
             { value: "Weekly", label: "Weekly" },
             { value: "Biweekly", label: "Biweekly" },
