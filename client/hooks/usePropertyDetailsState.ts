@@ -7,7 +7,8 @@ type Modal =
   | "editRates"
   | "addNote"
   | "addFile"
-  | "viewNote"
+  | "editNote"
+  | "editFile"
   | "viewFile";
 
 export interface RecentNote {
@@ -69,7 +70,6 @@ type Action =
   | { type: "EXIT_EDIT_MODE" }
   | { type: "SELECT_NOTE"; noteId: number | null }
   | { type: "SELECT_FILE"; fileId: number | null }
-  | { type: "SET_VIEW_NOTE_DRAFT"; id: number | null; body: string }
   | {
       type: "PATCH_CUSTOM_FIELDS";
       patch: Partial<State["drafts"]["customFields"]>;
@@ -98,6 +98,12 @@ type Action =
   | {
       type: "ADD_FILE";
       file: RecentFile;
+    }
+  | {
+      type: "UPDATE_FILE";
+      fileId: number;
+      category: string;
+      description?: string;
     };
 
 const initialState: State = {
@@ -173,15 +179,6 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         selection: { ...state.selection, fileId: action.fileId },
-      };
-
-    case "SET_VIEW_NOTE_DRAFT":
-      return {
-        ...state,
-        drafts: {
-          ...state.drafts,
-          viewNote: { id: action.id, body: action.body },
-        },
       };
 
     case "PATCH_CUSTOM_FIELDS":
@@ -272,6 +269,19 @@ function reducer(state: State, action: Action): State {
         lists: {
           ...state.lists,
           recentFiles: [...state.lists.recentFiles, action.file],
+        },
+      };
+
+    case "UPDATE_FILE":
+      return {
+        ...state,
+        lists: {
+          ...state.lists,
+          recentFiles: state.lists.recentFiles.map((f) =>
+            f.id === action.fileId
+              ? { ...f, category: action.category, description: action.description || f.description }
+              : f
+          ),
         },
       };
 
