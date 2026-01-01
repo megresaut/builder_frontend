@@ -18,7 +18,6 @@ import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { useState, useRef, useEffect } from "react";
 import { mockFetchSubmissionsByFto, type ExpenseLine } from "@/data/fto/submissions";
 
 interface HourRow {
