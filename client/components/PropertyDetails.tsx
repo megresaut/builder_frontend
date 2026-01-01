@@ -2,12 +2,15 @@ import React, { useEffect } from "react";
 import PageHeader from "@/components/PageHeader";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import UploadPhotoModal from "@/components/UploadPhotoModal";
-import EditPropertyCustomFieldsModal from "@/components/EditPropertyCustomFieldsModal";
-import EditPropertyRatesModal from "@/components/EditPropertyRatesModal";
-import ViewPropertyNoteModal from "@/components/ViewPropertyNoteModal";
 import AddVendorNoteModal from "@/components/AddVendorNoteModal";
 import AddVendorFileModal from "@/components/AddVendorFileModal";
+import {
+  UploadPhotoModal,
+  EditPropertyRatesModal,
+  ViewPropertyNoteModal,
+  InlineEditWrapper,
+  EditCustomFieldsInline,
+} from "@/components/properties/overview";
 import { EditIcon } from "@/components/icons";
 import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
 import {
