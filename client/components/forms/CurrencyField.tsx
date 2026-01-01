@@ -4,7 +4,7 @@ import { FieldShell } from "./FieldShell";
 
 interface CurrencyFieldProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
-  label: string;
+  label?: string;
   required?: boolean;
   description?: string;
   error?: string;
@@ -16,6 +16,7 @@ interface CurrencyFieldProps
   decimalPlaces?: number;
   allowNegative?: boolean;
   readOnly?: boolean;
+  compact?: boolean;
 }
 
 /**
@@ -66,11 +67,32 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
       decimalPlaces = 2,
       allowNegative = false,
       readOnly = false,
+      compact = false,
       ...inputProps
     },
     ref,
   ) => {
-    const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+    const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "currency-field");
+
+    // Compact mode: render input only without FieldShell wrapper
+    if (compact) {
+      return (
+        <CurrencyInput
+          ref={ref}
+          id={fieldId}
+          disabled={disabled}
+          readOnly={readOnly}
+          error={!!error}
+          value={value}
+          onChange={onChange}
+          showCurrencySymbol={showCurrencySymbol}
+          currencySymbol={currencySymbol}
+          decimalPlaces={decimalPlaces}
+          allowNegative={allowNegative}
+          {...inputProps}
+        />
+      );
+    }
 
     return (
       <FieldShell
