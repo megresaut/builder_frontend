@@ -583,6 +583,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           initialDescription={selectedFile?.description || ""}
           title={state.activeModal === "editFile" ? "Edit File" : "Add File"}
           submitLabel={state.activeModal === "editFile" ? "Update" : "Add"}
+          acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
           onSubmit={(uploadedFiles, category, description) => {
             if (state.activeModal === "editFile" && selectedFile) {
               dispatch({
