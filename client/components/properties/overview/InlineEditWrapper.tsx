@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 interface InlineEditWrapperProps {
   mode: "view" | "edit";
@@ -135,79 +136,20 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
         }}
       >
         {/* Cancel button */}
-        <button
+        <Button
+          variant="outline"
           onClick={onCancel}
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(251, 251, 251, 1)",
-            boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
-            borderColor: "rgba(218, 218, 218, 1)",
-            borderStyle: "solid",
-            borderWidth: "1px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            paddingLeft: "12px",
-            paddingRight: "12px",
-            paddingTop: "7px",
-            paddingBottom: "7px",
-            minHeight: "36px",
-            color: "rgba(48, 48, 48, 1)",
-            fontWeight: 400,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            justifyContent: "center",
-            cursor: "pointer",
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
-            whiteSpace: "nowrap",
-            transition: "opacity 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
           Cancel
-        </button>
+        </Button>
 
-        {/* Save button */}
-        <button
+        {/* Save button - use primary variant from Button component */}
+        <Button
+          variant="default"
           onClick={onSave}
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "var(--color-button-primary)",
-            boxShadow:
-              "0px 0px 0px 1px var(--color-button-primary-shadow)",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            paddingLeft: "12px",
-            paddingRight: "12px",
-            paddingTop: "8px",
-            paddingBottom: "8px",
-            minHeight: "36px",
-            color: "rgba(255, 255, 255, 1)",
-            fontWeight: 500,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            justifyContent: "center",
-            cursor: "pointer",
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
-            whiteSpace: "nowrap",
-            border: "none",
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--color-button-primary-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--color-button-primary)")
-          }
         >
           Save
-        </button>
+        </Button>
       </div>
     </div>
   );
