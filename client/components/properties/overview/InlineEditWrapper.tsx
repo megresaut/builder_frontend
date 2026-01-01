@@ -46,8 +46,8 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
   }
 
   // Edit mode
-  // Note: padding is handled by parent SectionRowTemplate (p-4 / 16px)
-  // So we don't add padding here to avoid misalignment
+  // SectionRowTemplate parent applies p-4 padding. The card sits inside that padding area.
+  // Card content is padded internally with 16px.
   return (
     <div
       style={{
@@ -136,7 +136,7 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          gap: "6px",
+          gap: "2.5px",
           marginTop: "8px",
         }}
       >
