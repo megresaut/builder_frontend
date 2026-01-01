@@ -101,39 +101,7 @@ export default function ApproveFTOPage() {
   >([]);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false); // Default: PDF viewer collapsed
-
-  const parseDueDate = (dateStr: string | undefined): Date | null => {
-    if (!dateStr) return null;
-
-    let date: Date | null = null;
-
-    // Try parsing as standard Date first
-    const parsedDate = new Date(dateStr);
-    if (!isNaN(parsedDate.getTime())) {
-      date = parsedDate;
-    } else if (typeof dateStr === "string") {
-      // Try parsing format like "Dec 10, 2025"
-      try {
-        const parts = dateStr.split(" ");
-        if (parts.length >= 2) {
-          const monthStr = parts[0];
-          const dayStr = parts[1].replace(",", "");
-          const yearStr = parts[2];
-          const parsedFromFormat = new Date(`${monthStr} ${dayStr}, ${yearStr}`);
-          if (!isNaN(parsedFromFormat.getTime())) {
-            date = parsedFromFormat;
-          }
-        }
-      } catch (e) {
-        // Fallback: date remains null
-      }
-    }
-
-    return date;
-  };
-
-  const [dueDate, setDueDate] = useState<Date | null>(parseDueDate(state.dueDate));
-  const [priority, setPriority] = useState(state.priority || "normal");
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
 
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
