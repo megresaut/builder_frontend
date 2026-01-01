@@ -130,14 +130,14 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
         {editChildren}
       </div>
 
-      {/* Bottom buttons - styled to match ModalButtons */}
+      {/* Bottom buttons - styled to match ModalButtons (gap-2.5 = 10px) */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          gap: "2.5px",
-          marginTop: "8px",
+          gap: "10px",
+          marginTop: "28px",
         }}
       >
         {/* Cancel button - matches ModalButtons cancel */}
