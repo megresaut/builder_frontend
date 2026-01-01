@@ -1,5 +1,5 @@
 import React from "react";
-import { DatePicker } from "@/components/ui/date-picker";
+import { CompactInput } from "./CompactInput";
 
 interface CompactDateFieldBaseProps {
   value?: Date | string | null;
@@ -11,10 +11,10 @@ interface CompactDateFieldBaseProps {
 }
 
 /**
- * CompactDateFieldBase - Date picker without FieldShell wrapper
+ * CompactDateFieldBase - Date input without FieldShell wrapper
  *
- * Raw DatePicker component with compact styling (32px height, 6px padding).
- * No label or field shell, ideal for custom layouts.
+ * Simple text input with 32px height and 6px padding for compact inline editing.
+ * Users can type date as MM/DD/YYYY or use date picker.
  *
  * @param value - Selected date (Date object or ISO string "YYYY-MM-DD")
  * @param onChange - Change handler
@@ -24,7 +24,7 @@ interface CompactDateFieldBaseProps {
  * @param readOnly - Read-only mode
  */
 const CompactDateFieldBase = React.forwardRef<
-  HTMLDivElement,
+  HTMLInputElement,
   CompactDateFieldBaseProps
 >(({
   disabled = false,
@@ -34,54 +34,57 @@ const CompactDateFieldBase = React.forwardRef<
   returnFormat = "Date",
   readOnly = false,
 }, ref) => {
-  const dateValue = React.useMemo(() => {
-    if (!value) return null;
-    if (value instanceof Date) return value;
+  // Format value for display
+  const displayValue = React.useMemo(() => {
+    if (!value) return "";
+    if (value instanceof Date) {
+      return value.toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
+    }
     if (typeof value === "string") {
       const [year, month, day] = value.split("-").map(Number);
       if (year && month && day) {
-        return new Date(year, month - 1, day);
+        return `${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}/${year}`;
       }
     }
-    return null;
+    return "";
   }, [value]);
 
-  const handleDateChange = (newDate: Date | null) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
     if (readOnly) return;
-    if (returnFormat === "ISO" && newDate) {
-      const isoString = newDate.toISOString().split("T")[0];
-      onChange?.(isoString);
-    } else {
-      onChange?.(newDate);
+
+    // Parse MM/DD/YYYY format
+    const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+    const match = inputValue.match(dateRegex);
+
+    if (match) {
+      const [, month, day, year] = match;
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      if (returnFormat === "ISO") {
+        const isoString = date.toISOString().split("T")[0];
+        onChange?.(isoString);
+      } else {
+        onChange?.(date);
+      }
+    } else if (inputValue === "") {
+      onChange?.(null);
     }
   };
 
   return (
-    <div
+    <CompactInput
       ref={ref}
-      style={{
-        width: "100%",
-      }}
-    >
-      <style>
-        {`
-          [data-compact-date-picker] .ra-dropdown-trigger {
-            height: 32px !important;
-            padding: 6px 12px !important;
-            font-size: 14px !important;
-            padding-right: 2.5rem !important;
-          }
-        `}
-      </style>
-      <div data-compact-date-picker>
-        <DatePicker
-          value={dateValue}
-          onChange={handleDateChange}
-          disabled={disabled || readOnly}
-          placeholder={placeholder}
-        />
-      </div>
-    </div>
+      type="text"
+      value={displayValue}
+      onChange={handleChange}
+      disabled={disabled || readOnly}
+      placeholder={placeholder}
+    />
   );
 });
 
