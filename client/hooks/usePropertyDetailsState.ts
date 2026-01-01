@@ -28,6 +28,7 @@ export interface RecentFile {
   type: string;
   icon: string;
   url?: string;
+  description?: string;
 }
 
 interface State {
