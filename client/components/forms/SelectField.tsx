@@ -17,7 +17,7 @@ interface SelectOption {
 }
 
 interface SelectFieldProps {
-  label: string;
+  label?: string;
   required?: boolean;
   description?: string;
   error?: string;
@@ -30,6 +30,7 @@ interface SelectFieldProps {
   multiple?: boolean;
   onCreateNew?: () => void;
   createNewLabel?: string;
+  compact?: boolean;
 }
 
 /**
@@ -58,12 +59,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   multiple = false,
   onCreateNew,
   createNewLabel = "Create New",
+  compact = false,
 }) => {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+  const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "select-field");
 
   usePopoverAutoClose({
     open,
