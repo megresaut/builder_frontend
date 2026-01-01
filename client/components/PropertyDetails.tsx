@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import PageHeader from "@/components/PageHeader";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import AddVendorNoteModal from "@/components/AddVendorNoteModal";
-import AddVendorFileModal from "@/components/AddVendorFileModal";
+import AddNoteModal from "@/components/AddNoteModal";
+import AddFileModal from "@/components/AddFileModal";
 import {
   UploadPhotoModal,
   EditPropertyRatesModal,
@@ -526,15 +526,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         />
 
         {/* Add/Edit Note Modal */}
-        <AddVendorNoteModal
+        <AddNoteModal
           open={state.activeModal === "addNote" || state.activeModal === "editNote"}
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
           }}
           isEditMode={state.activeModal === "editNote"}
           initialText={selectedNote?.text || ""}
-          title={state.activeModal === "editNote" ? "Edit Note" : "Add Note"}
-          submitLabel={state.activeModal === "editNote" ? "Update" : "Add"}
           onSubmit={(noteText) => {
             const now = new Date();
             const date = now.toLocaleString(undefined, {
@@ -573,7 +571,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         />
 
         {/* Add/Edit File Modal */}
-        <AddVendorFileModal
+        <AddFileModal
           open={state.activeModal === "addFile" || state.activeModal === "editFile"}
           onOpenChange={(open) => {
             if (!open) dispatch({ type: "CLOSE_MODAL" });
@@ -581,8 +579,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           isEditMode={state.activeModal === "editFile"}
           initialCategory={selectedFile?.category || ""}
           initialDescription={selectedFile?.description || ""}
-          title={state.activeModal === "editFile" ? "Edit File" : "Add File"}
-          submitLabel={state.activeModal === "editFile" ? "Update" : "Add"}
           acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
           onSubmit={(uploadedFiles, category, description) => {
             if (state.activeModal === "editFile" && selectedFile) {
