@@ -26,6 +26,7 @@ export const DatePicker = ({
 }: DatePickerProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState<string>(
     value ? format(value, "MM/dd/yyyy") : "",
   );
@@ -35,8 +36,41 @@ export const DatePicker = ({
 
   // Apply scroll freeze when calendar is open
   useGlobalActionsScrollLock(showCalendar, {
-    allowRefs: [inputRef, dropdownRef],
+    allowRefs: [inputRef, dropdownRef, calendarRef],
   });
+
+  // Distance-based closing (150px threshold) - same as Popover
+  useEffect(() => {
+    if (!showCalendar || !calendarRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const calendar = calendarRef.current;
+      if (!calendar) return;
+
+      const calendarRect = calendar.getBoundingClientRect();
+
+      const distX = Math.max(
+        calendarRect.left - e.clientX,
+        e.clientX - calendarRect.right,
+        0,
+      );
+      const distY = Math.max(
+        calendarRect.top - e.clientY,
+        e.clientY - calendarRect.bottom,
+        0,
+      );
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      if (distance > 150) {
+        setShowCalendar(false);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [showCalendar]);
 
   // Format input as user types (mm/dd/yyyy)
   const formatDateInput = (input: string): string => {
