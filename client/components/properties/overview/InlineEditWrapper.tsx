@@ -1,5 +1,4 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 
 interface InlineEditWrapperProps {
   mode: "view" | "edit";
@@ -21,8 +20,9 @@ interface InlineEditWrapperProps {
  * - Conditional view/edit mode rendering
  * - Maintains exact padding from section (p-4 / 16px)
  * - White background, border, rounded corners
- * - Bottom-right aligned Save/Cancel buttons with 10px gap
+ * - Bottom-right aligned Save/Cancel buttons with 6px gap (matching ModalButtons)
  * - Optional title bar with close X button
+ * - Button styling matches ModalTemplate.ModalButtons exactly
  *
  * @param mode - "view" or "edit" mode
  * @param onSave - Save button handler
@@ -128,31 +128,86 @@ export const InlineEditWrapper: React.FC<InlineEditWrapperProps> = ({
         {editChildren}
       </div>
 
-      {/* Bottom buttons */}
+      {/* Bottom buttons - styled to match ModalButtons */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          gap: "10px",
+          gap: "6px",
           marginTop: "8px",
         }}
       >
-        {/* Cancel button */}
-        <Button
-          variant="outline"
+        {/* Cancel button - matches ModalButtons cancel */}
+        <button
           onClick={onCancel}
+          style={{
+            borderRadius: "8px",
+            backgroundColor: "rgba(251, 251, 251, 1)",
+            boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+            borderColor: "rgba(218, 218, 218, 1)",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            paddingLeft: "12px",
+            paddingRight: "12px",
+            paddingTop: "8px",
+            paddingBottom: "8px",
+            minHeight: "36px",
+            color: "rgba(48, 48, 48, 1)",
+            fontWeight: 400,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            justifyContent: "center",
+            cursor: "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            whiteSpace: "nowrap",
+          }}
         >
           Cancel
-        </Button>
+        </button>
 
-        {/* Save button - use primary variant from Button component */}
-        <Button
-          variant="default"
+        {/* Save button - matches ModalButtons confirm */}
+        <button
           onClick={onSave}
+          style={{
+            borderRadius: "8px",
+            backgroundColor: "var(--color-button-primary)",
+            border: "1px solid rgba(255, 255, 255, 1)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            paddingLeft: "12px",
+            paddingRight: "12px",
+            paddingTop: "8px",
+            paddingBottom: "8px",
+            minHeight: "36px",
+            color: "rgba(255, 255, 255, 1)",
+            fontWeight: 500,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            justifyContent: "center",
+            cursor: "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            whiteSpace: "nowrap",
+            boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+            transition: "background-color 0.2s",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "var(--color-button-primary-hover)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "var(--color-button-primary)")
+          }
         >
           Save
-        </Button>
+        </button>
       </div>
     </div>
   );
