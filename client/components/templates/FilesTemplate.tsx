@@ -76,7 +76,7 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
                     </div>
                   )}
                   <div className="text-[#71717A] text-xs mt-1">
-                    {file.uploadedAt}
+                    {file.uploadedAt || (file as any).date}
                   </div>
                   {(file.category || file.description) && (
                     <div className="text-[#71717A] text-xs mt-2 space-y-1">
