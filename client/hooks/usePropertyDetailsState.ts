@@ -45,6 +45,9 @@ interface State {
     customFields: {
       managementAgreementDate: string;
       inspectionFrequency: string;
+      hvacStart: string | null;
+      hvacEnd: string | null;
+      landscapingStart: string | null;
     };
     rates: {
       monthlyRate: string;
@@ -111,6 +114,9 @@ const initialState: State = {
     customFields: {
       managementAgreementDate: "",
       inspectionFrequency: "Monthly",
+      hvacStart: null,
+      hvacEnd: null,
+      landscapingStart: null,
     },
     rates: {
       monthlyRate: "$700.00 / month",
