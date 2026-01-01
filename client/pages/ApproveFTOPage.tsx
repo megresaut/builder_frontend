@@ -133,6 +133,79 @@ export default function ApproveFTOPage() {
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false); // Default: PDF viewer collapsed
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
 
+  /**
+   * Load submissions from mock API and populate hours/expenses tables
+   */
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      try {
+        setIsLoadingSubmissions(true);
+        const submissions = await mockFetchSubmissionsByFto(ftoId);
+
+        if (submissions.length === 0) {
+          setHourRows([]);
+          setExpenseRows([]);
+          setIsLoadingSubmissions(false);
+          return;
+        }
+
+        // Flatten all hour lines from all submissions into HourRow[]
+        const allHourLines: HourRow[] = [];
+        const allExpenseLines: ExpenseRow[] = [];
+
+        submissions.forEach((submission) => {
+          // Map HoursJSON to HourRow[]
+          submission.HoursJSON.forEach((hourLine, index) => {
+            allHourLines.push({
+              id: `hour-${submission.ID}-${index}`,
+              date: hourLine.date_of_work,
+              hours: hourLine.hours_decimal.toString(),
+              note: hourLine.note || "",
+              noFee: hourLine.no_charge,
+              emergency: hourLine.emergency,
+              amount: "$0", // Will be populated by user
+              upcharge: "$0", // Will be populated by user
+              assignee: mockAssignees[0], // Default to first assignee or use FieldTeamMemberID mapping
+            });
+          });
+
+          // Decode MaterialsJSON and map to ExpenseRow[]
+          if (submission.MaterialsJSON) {
+            try {
+              const decodedJson = atob(submission.MaterialsJSON);
+              const expenses: ExpenseLine[] = JSON.parse(decodedJson);
+              expenses.forEach((expense, index) => {
+                allExpenseLines.push({
+                  id: `expense-${submission.ID}-${index}`,
+                  date: expense.date_of_work,
+                  vendor: expense.vendor_name,
+                  receiptNote: expense.note || "",
+                  avmExpense: expense.is_avm_expense,
+                  chargeType: expense.is_avm_expense ? "avm" : "personal",
+                  amount: `$${(expense.amount_cents / 100).toFixed(2)}`,
+                  upcharge: "$0", // Will be populated by user
+                  assignee: mockAssignees[0], // Default assignee
+                });
+              });
+            } catch (e) {
+              console.warn("Failed to decode MaterialsJSON:", e);
+            }
+          }
+        });
+
+        setHourRows(allHourLines);
+        setExpenseRows(allExpenseLines);
+      } catch (error) {
+        console.error("Failed to load submissions:", error);
+        setHourRows([]);
+        setExpenseRows([]);
+      } finally {
+        setIsLoadingSubmissions(false);
+      }
+    };
+
+    loadSubmissions();
+  }, [ftoId]);
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
