@@ -245,9 +245,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   initialData={{
                     managementAgreementDate: state.drafts.customFields.managementAgreementDate,
                     inspectionFrequency: state.drafts.customFields.inspectionFrequency,
+                    hvacStart: state.drafts.customFields.hvacStart,
+                    hvacEnd: state.drafts.customFields.hvacEnd,
+                    landscapingStart: state.drafts.customFields.landscapingStart,
                   }}
                   managementAgreementDate={state.drafts.customFields.managementAgreementDate}
                   inspectionFrequency={state.drafts.customFields.inspectionFrequency}
+                  hvacStart={state.drafts.customFields.hvacStart}
+                  hvacEnd={state.drafts.customFields.hvacEnd}
+                  landscapingStart={state.drafts.customFields.landscapingStart}
                   onManagementAgreementDateChange={(value) => {
                     dispatch({
                       type: "PATCH_CUSTOM_FIELDS",
@@ -258,6 +264,24 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                     dispatch({
                       type: "PATCH_CUSTOM_FIELDS",
                       patch: { inspectionFrequency: value },
+                    });
+                  }}
+                  onHvacStartChange={(value) => {
+                    dispatch({
+                      type: "PATCH_CUSTOM_FIELDS",
+                      patch: { hvacStart: value },
+                    });
+                  }}
+                  onHvacEndChange={(value) => {
+                    dispatch({
+                      type: "PATCH_CUSTOM_FIELDS",
+                      patch: { hvacEnd: value },
+                    });
+                  }}
+                  onLandscapingStartChange={(value) => {
+                    dispatch({
+                      type: "PATCH_CUSTOM_FIELDS",
+                      patch: { landscapingStart: value },
                     });
                   }}
                 />
