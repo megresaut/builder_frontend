@@ -4,7 +4,6 @@ type Modal =
   | null
   | "uploadPhoto"
   | "editProperty"
-  | "editCustomFields"
   | "editRates"
   | "addNote"
   | "addFile"
