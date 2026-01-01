@@ -2,12 +2,12 @@ import React from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FieldShell } from "../FieldShell";
 
-interface RadioOption {
+export interface RadioOption {
   value: string;
   label: string;
 }
 
-interface RadioGroupFieldProps {
+export interface RadioGroupFieldProps {
   label: string;
   description?: string;
   value: string;
