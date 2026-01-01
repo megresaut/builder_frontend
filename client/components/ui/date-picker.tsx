@@ -26,12 +26,18 @@ export const DatePicker = ({
   className = "",
 }: DatePickerProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState<string>(
     value ? format(value, "MM/dd/yyyy") : "",
   );
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(value || new Date());
   const [isFirstFocus, setIsFirstFocus] = useState(true);
+
+  // Apply scroll freeze when calendar is open
+  useGlobalActionsScrollLock(showCalendar, {
+    allowRefs: [inputRef, dropdownRef],
+  });
 
   // Format input as user types (mm/dd/yyyy)
   const formatDateInput = (input: string): string => {
@@ -154,7 +160,7 @@ export const DatePicker = ({
       offset={8}
       syncTriggerWidth={false}
     >
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <Dropdown.Trigger
           ref={inputRef}
           type="text"
