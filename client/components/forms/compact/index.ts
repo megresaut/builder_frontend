@@ -20,11 +20,7 @@
  */
 
 export { CompactInput } from "./CompactInput";
-export { CompactCurrencyInput } from "./CompactCurrencyInput";
+export { CompactCurrencyInput, type CompactCurrencyInputProps } from "./CompactCurrencyInput";
 export { CompactDateField } from "./CompactDateField";
-export { CompactSelectField } from "./CompactSelectField";
-export { RadioGroupField } from "./RadioGroupField";
-
-export type { CompactCurrencyInputProps } from "./CompactCurrencyInput";
-export type { CompactSelectFieldProps } from "./CompactSelectField";
-export type { RadioGroupFieldProps } from "./RadioGroupField";
+export { CompactSelectField, type CompactSelectFieldProps } from "./CompactSelectField";
+export { RadioGroupField, type RadioGroupFieldProps, type RadioOption } from "./RadioGroupField";
