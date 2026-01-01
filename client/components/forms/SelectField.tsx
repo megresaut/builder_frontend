@@ -105,6 +105,36 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     ? selectedValues.length === 0
     : !selectedValue;
 
+  const popoverContent = (
+    <Popover open={open} onOpenChange={setOpen}>
+      <SelectFieldContent
+        label={label || ""}
+        open={open}
+        setOpen={setOpen}
+        triggerRef={triggerRef}
+        contentRef={contentRef}
+        fieldId={fieldId}
+        disabled={disabled}
+        error={error}
+        isShowingPlaceholder={isShowingPlaceholder}
+        displayLabel={displayLabel}
+        value={value}
+        onChange={onChange}
+        options={options}
+        selectedValues={selectedValues}
+        selectedValue={selectedValue}
+        selectedOptions={selectedOptions}
+        multiple={isMultiple}
+        onCreateNew={onCreateNew}
+        createNewLabel={createNewLabel}
+      />
+    </Popover>
+  );
+
+  if (compact) {
+    return popoverContent;
+  }
+
   return (
     <FieldShell
       label={label}
@@ -114,29 +144,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Popover open={open} onOpenChange={setOpen}>
-        <SelectFieldContent
-          label={label}
-          open={open}
-          setOpen={setOpen}
-          triggerRef={triggerRef}
-          contentRef={contentRef}
-          fieldId={fieldId}
-          disabled={disabled}
-          error={error}
-          isShowingPlaceholder={isShowingPlaceholder}
-          displayLabel={displayLabel}
-          value={value}
-          onChange={onChange}
-          options={options}
-          selectedValues={selectedValues}
-          selectedValue={selectedValue}
-          selectedOptions={selectedOptions}
-          multiple={isMultiple}
-          onCreateNew={onCreateNew}
-          createNewLabel={createNewLabel}
-        />
-      </Popover>
+      {popoverContent}
     </FieldShell>
   );
 };
