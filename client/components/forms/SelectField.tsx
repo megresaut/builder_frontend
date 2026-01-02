@@ -44,6 +44,21 @@ interface SelectFieldProps {
  * - ArrowUp: Navigate to previous option
  * - Escape: Close dropdown
  * - Type character(s): Search options by label (auto-filters)
+ *
+ * @param compact - When true, renders without FieldShell wrapper (32px height, 6px padding) for inline editing
+ */
+
+/**
+ * SelectField - Select dropdown field with FieldShell wrapper
+ *
+ * Uses Popover primitive with type-ahead search
+ *
+ * Keyboard Interactions:
+ * - Enter/Space: Open dropdown (when closed) or select highlighted option
+ * - ArrowDown: Navigate to next option (opens dropdown if closed)
+ * - ArrowUp: Navigate to previous option
+ * - Escape: Close dropdown
+ * - Type character(s): Search options by label (auto-filters)
  */
 export const SelectField: React.FC<SelectFieldProps> = ({
   label,
