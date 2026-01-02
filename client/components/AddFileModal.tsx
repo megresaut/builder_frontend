@@ -147,6 +147,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
               maxFiles={1}
               maxSize={maxSize}
               variant="single"
+              disableRemove={isEditMode}
             />
           </ModalField>
 
