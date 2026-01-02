@@ -128,6 +128,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
                 letterSpacing: "-0.24px",
                 fontFamily:
                   "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                whiteSpace: "nowrap",
               }}
             >
               Monthly Rate
@@ -191,6 +192,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
                 letterSpacing: "-0.24px",
                 fontFamily:
                   "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                whiteSpace: "nowrap",
               }}
             >
               Default Rate
@@ -222,6 +224,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
                 letterSpacing: "-0.24px",
                 fontFamily:
                   "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                whiteSpace: "nowrap",
               }}
             >
               Emergency Rate
