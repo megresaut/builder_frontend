@@ -11,6 +11,7 @@ import {
   TextAreaField,
 } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import PdfViewerModal from "@/components/PdfViewerModal";
 
 interface AddFileModalProps {
   open: boolean;
@@ -53,6 +54,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
   const [fileCategory, setFileCategory] = useState(initialCategory);
   const [fileDescription, setFileDescription] = useState(initialDescription);
   const [validateFileForm, setValidateFileForm] = useState(false);
+  const [viewingFile, setViewingFile] = useState<UploadedFile | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -131,6 +133,9 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                   uploadedFiles.filter((f) => f.id !== fileId),
                 );
               }}
+              onViewFile={(file) => {
+                setViewingFile(file);
+              }}
               onFileRenamed={(fileId, newName) => {
                 setUploadedFiles(
                   uploadedFiles.map((f) =>
@@ -162,6 +167,16 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
           />
         </FormSection>
       </FormLayout>
+
+      {/* File Preview Modal */}
+      <PdfViewerModal
+        open={viewingFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewingFile(null);
+        }}
+        title={viewingFile?.name || "File Preview"}
+        url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : undefined}
+      />
     </ModalTemplate>
   );
 };
