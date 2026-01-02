@@ -48,6 +48,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       decimalPlaces = 2,
       allowNegative = false,
       disabled = false,
+      compact = false,
       ...rest
     },
     ref,
