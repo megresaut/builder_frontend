@@ -166,6 +166,7 @@ export const EditCustomFieldsInline: React.FC<
                 letterSpacing: "-0.24px",
                 fontFamily:
                   "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                whiteSpace: "nowrap",
               }}
             >
               Management Agreement Date
