@@ -39,6 +39,7 @@ interface CurrencyFieldProps
  * @param decimalPlaces - Number of decimal places (default: 2)
  * @param allowNegative - Allow negative values (default: false)
  * @param disabled - Disable field
+ * @param compact - When true, renders without FieldShell wrapper (32px height, 6px padding) for inline editing
  *
  * Example:
  * ```tsx
