@@ -25,6 +25,9 @@ import {
 } from "@/components/properties/overview";
 import { EditIcon } from "@/components/icons";
 import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { useState } from "react";
 import {
   SectionRowTemplate,
   SectionGroupCardTemplate,
@@ -301,6 +304,8 @@ function Overview({
       }
     }
   };
+
+  const [viewingNote, setViewingNote] = useState<RecentNote | null>(null);
 
   const selectedNote = state.selection.noteId
     ? state.lists.recentNotes.find((n) => n.id === state.selection.noteId)
@@ -590,8 +595,8 @@ function Overview({
               notes={state.lists.recentNotes}
               onAdd={() => dispatch({ type: "OPEN_MODAL", modal: "addNote" })}
               onEdit={(note) => {
-                dispatch({ type: "SELECT_NOTE", noteId: note.id });
-                dispatch({ type: "OPEN_MODAL", modal: "editNote" });
+                setViewingNote(note);
+                dispatch({ type: "OPEN_MODAL", modal: "viewNote" });
               }}
               onDelete={(noteId) => dispatch({ type: "DELETE_NOTE", noteId })}
               isLast={false}
@@ -739,6 +744,53 @@ function Overview({
               dispatch({ type: "CLOSE_MODAL" });
             }}
           />
+
+          {/* View Note Modal */}
+          <ModalTemplate
+            open={state.activeModal === "viewNote"}
+            onOpenChange={(open) => {
+              if (!open) {
+                dispatch({ type: "CLOSE_MODAL" });
+                setViewingNote(null);
+              }
+            }}
+            title="Note Details"
+            size="sm"
+            footer={
+              <ModalButtons
+                onCancel={() => {
+                  dispatch({ type: "CLOSE_MODAL" });
+                  setViewingNote(null);
+                }}
+                onConfirm={() => {
+                  if (viewingNote) {
+                    dispatch({ type: "SELECT_NOTE", noteId: viewingNote.id });
+                    dispatch({ type: "OPEN_MODAL", modal: "editNote" });
+                    setViewingNote(null);
+                  }
+                }}
+                cancelLabel="Close"
+                confirmLabel="Edit"
+              />
+            }
+          >
+            {viewingNote ? (
+              <FormLayout>
+                <FormSection showDivider={false}>
+                  <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">
+                    {viewingNote.text}
+                  </div>
+                  <div className="text-sm text-[#71717A]">
+                    <span className="font-medium">Author:</span>{" "}
+                    {viewingNote.author}
+                  </div>
+                  <div className="text-sm text-[#71717A]">
+                    <span className="font-medium">Date:</span> {viewingNote.date}
+                  </div>
+                </FormSection>
+              </FormLayout>
+            ) : null}
+          </ModalTemplate>
 
           {/* Add/Edit File Modal */}
           <AddFileModal
