@@ -175,7 +175,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
           if (!open) setViewingFile(null);
         }}
         title={viewingFile?.name || "File Preview"}
-        url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : undefined}
+        url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : (viewingFile as any)?.url}
       />
     </ModalTemplate>
   );
