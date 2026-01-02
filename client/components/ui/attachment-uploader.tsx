@@ -23,6 +23,7 @@ interface AttachmentUploaderProps {
   error?: boolean;
   placeholder?: string;
   variant?: "default" | "single";
+  disableRemove?: boolean;
 }
 
 /**
@@ -98,6 +99,7 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   error = false,
   placeholder = "Drag and drop files here, or click to browse",
   variant = "default",
+  disableRemove = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
@@ -539,33 +541,35 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                       <Eye width={18} height={18} />
                     </button>
                   )}
-                  <button
-                    onClick={() => handleRemoveFile(file.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "var(--color-text-muted)",
-                      flexShrink: 0,
-                      transition: "opacity 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLButtonElement).style.opacity =
-                        "0.7")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLButtonElement).style.opacity =
-                        "1")
-                    }
-                    aria-label={`Remove ${file.name}`}
-                    title="Remove file"
-                  >
-                    <X width={18} height={18} />
-                  </button>
+                  {!disableRemove && (
+                    <button
+                      onClick={() => handleRemoveFile(file.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--color-text-muted)",
+                        flexShrink: 0,
+                        transition: "opacity 0.2s",
+                      }}
+                      onMouseEnter={(e) =>
+                        ((e.currentTarget as HTMLButtonElement).style.opacity =
+                          "0.7")
+                      }
+                      onMouseLeave={(e) =>
+                        ((e.currentTarget as HTMLButtonElement).style.opacity =
+                          "1")
+                      }
+                      aria-label={`Remove ${file.name}`}
+                      title="Remove file"
+                    >
+                      <X width={18} height={18} />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
