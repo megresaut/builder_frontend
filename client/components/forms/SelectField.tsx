@@ -142,6 +142,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         multiple={isMultiple}
         onCreateNew={onCreateNew}
         createNewLabel={createNewLabel}
+        compact={compact}
       />
     </Popover>
   );
