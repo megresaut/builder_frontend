@@ -175,7 +175,7 @@ export const EditCustomFieldsInline: React.FC<
               value={localDate}
               onChange={handleDateChange}
               returnFormat="ISO"
-              placeholder="MM/DD/YYYY"
+              placeholder="mm/dd/yyyy"
               compact
             />
           </div>
@@ -278,7 +278,7 @@ export const EditCustomFieldsInline: React.FC<
               value={localHvacStart}
               onChange={handleHvacStartChange}
               returnFormat="ISO"
-              placeholder="MM/DD/YYYY"
+              placeholder="mm/dd/yyyy"
               compact
             />
           </div>
@@ -311,7 +311,7 @@ export const EditCustomFieldsInline: React.FC<
               value={localHvacEnd}
               onChange={handleHvacEndChange}
               returnFormat="ISO"
-              placeholder="MM/DD/YYYY"
+              placeholder="mm/dd/yyyy"
               compact
             />
           </div>
@@ -344,7 +344,7 @@ export const EditCustomFieldsInline: React.FC<
               value={localLandscapingStart}
               onChange={handleLandscapingStartChange}
               returnFormat="ISO"
-              placeholder="MM/DD/YYYY"
+              placeholder="mm/dd/yyyy"
               compact
             />
           </div>
