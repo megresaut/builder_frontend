@@ -135,6 +135,7 @@ const DateField: React.FC<DateFieldProps> = ({
         disabled={disabled}
         placeholder={normalizedPlaceholder}
         error={!!dateError}
+        compact
       />
     );
   }
