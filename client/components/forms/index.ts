@@ -4,6 +4,18 @@
  * This file provides a central export point for all standardized form field components.
  * All fields use FieldShell for consistent styling and behavior.
  *
+ * Compact Mode:
+ * Most field components support a `compact` prop for inline editing contexts.
+ * When compact={true}, the field renders without FieldShell wrapper:
+ * - Height: 32px (vs standard 44px)
+ * - Padding: 6px 12px (vs standard 8px 12px)
+ *
+ * Example:
+ * ```tsx
+ * <TextField label="Name" /> // Standard mode with label
+ * <TextField value="John" compact /> // Compact mode without label
+ * ```
+ *
  * Usage:
  * ```tsx
  * import {
