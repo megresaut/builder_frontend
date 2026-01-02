@@ -62,7 +62,7 @@ export default function CreateFTOModal({
   // --- local UI state ---
   const [priority, setPriority] = useState("normal");
   const [timesheetStatus, setTimesheetStatus] = useState("outstanding");
-  const [status, setStatus] = useState<"new" | "dispatched" | "completed" | "cancelled">("new");
+  const [status, setStatus] = useState<"new" | "dispatched" | "completed" | "cancelled">("dispatched");
   const [dueDate, setDueDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -324,7 +324,7 @@ export default function CreateFTOModal({
     setTaskName("");
     setDescription("");
     setPriority("normal");
-    setStatus("new");
+    setStatus("dispatched");
 
     setDueDate("");
     setSelectedDate(null);
@@ -342,29 +342,38 @@ export default function CreateFTOModal({
   // Load existing FTO when editing (kept for edit mode)
   useEffect(() => {
     if (!open || !editingFTO) return;
-
-    // ✅ FIXED: correct field mapping
+  
+    // scalar fields (safe)
     setTaskName(editingFTO.name ?? "");
     setDescription(editingFTO.description ?? "");
-
     setPriority(editingFTO.priority ?? "normal");
-
+  
     setDueDate(editingFTO.dueDate ?? "");
     setSelectedDate(
       editingFTO.dueDate ? new Date(editingFTO.dueDate) : null
     );
-
-    setSelectedAssignees(
-      (editingFTO.fieldTeam ?? []).map((m: any, idx: number) => ({
-        id: idx,
-        name: m.name,
-        initials: m.initials,
-      }))
-    );
-
+  
     setStatus(editingFTO.status ?? "new");
+  
+    // 🚨 DO NOT touch assignees here unless hydrated data exists
+    if (editingFTO.fieldTeam?.length) {
+      setSelectedAssignees(editingFTO.fieldTeam);
+    }
+  
   }, [open, editingFTO]);
 
+  
+  useEffect(() => {
+  if (!open || !editingFTO) return;
+  if (!editingFTO.field_team_member_ids?.length) return;
+  if (availableAssignees.length === 0) return;
+
+  const hydrated = availableAssignees.filter(a =>
+    editingFTO.field_team_member_ids.includes(a.id)
+  );
+
+  setSelectedAssignees(hydrated);
+}, [open, editingFTO, availableAssignees]);
   
   
   // --- helpers mimicking old FTOModal date logic ---
@@ -589,9 +598,9 @@ export default function CreateFTOModal({
         };
       default:
         return {
-          label: "New",
-          bg: "#E5E7EB",
-          text: "#374151",
+          label: "Dispatched",
+          bg: "#FEF3C7",     // amber-100
+          text: "#D97706",   // amber-600
         };
     }
   };
