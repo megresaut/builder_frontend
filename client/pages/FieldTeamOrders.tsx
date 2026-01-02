@@ -110,13 +110,15 @@ const resolveFieldTeamMembers = (
 
 // Map form_submission_status to timesheetStatus
 const mapFormSubmissionToTimesheetStatus = (
-  formStatus: "none" | "partial" | "complete"
+  formStatus: "none" | "partial" | "complete" | "rejected"
 ): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
   switch (formStatus) {
     case "none":
       return "awaiting-submission";
     case "partial":
       return "submitted";
+    case "rejected":
+      return "rejected";
     case "complete":
       return "approved";
     default:
