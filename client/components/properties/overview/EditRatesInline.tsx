@@ -37,21 +37,28 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
   onDefaultRateChange,
   onEmergencyRateChange,
 }) => {
-  const [localMonthlyRate, setLocalMonthlyRate] = useState<string>(
-    monthlyRate || initialData?.monthlyRate || "$0"
+  // Parse string values to numbers for storage
+  const parseRateValue = (val?: string): number => {
+    if (!val) return 0;
+    const numStr = typeof val === "string" ? val.replace(/[^0-9.]/g, "") : val;
+    return parseFloat(numStr) || 0;
+  };
+
+  const [localMonthlyRate, setLocalMonthlyRate] = useState<number>(
+    parseRateValue(monthlyRate || initialData?.monthlyRate)
   );
-  const [localDefaultRate, setLocalDefaultRate] = useState<string>(
-    defaultRate || initialData?.defaultRate || "$0"
+  const [localDefaultRate, setLocalDefaultRate] = useState<number>(
+    parseRateValue(defaultRate || initialData?.defaultRate)
   );
-  const [localEmergencyRate, setLocalEmergencyRate] = useState<string>(
-    emergencyRate || initialData?.emergencyRate || "$0"
+  const [localEmergencyRate, setLocalEmergencyRate] = useState<number>(
+    parseRateValue(emergencyRate || initialData?.emergencyRate)
   );
 
   useEffect(() => {
     if (initialData) {
-      setLocalMonthlyRate(initialData.monthlyRate || "$0");
-      setLocalDefaultRate(initialData.defaultRate || "$0");
-      setLocalEmergencyRate(initialData.emergencyRate || "$0");
+      setLocalMonthlyRate(parseRateValue(initialData.monthlyRate));
+      setLocalDefaultRate(parseRateValue(initialData.defaultRate));
+      setLocalEmergencyRate(parseRateValue(initialData.emergencyRate));
     }
   }, [initialData]);
 
