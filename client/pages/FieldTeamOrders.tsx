@@ -365,9 +365,14 @@ const transformAPIToFieldTeamOrder = (
       day: "numeric",
     });
 
-    const timesheetStatus = mapFormSubmissionToTimesheetStatus(
-      fto.form_submission_status
-    );
+    const timesheetStatus =
+    fto.approval_status === "rejected"
+      ? "rejected"
+      : fto.approval_status === "approved"
+        ? "approved"
+        : mapFormSubmissionToTimesheetStatus(fto.form_submission_status);
+  
+  
 
     return {
       id: fto.id,

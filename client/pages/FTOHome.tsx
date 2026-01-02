@@ -40,6 +40,7 @@ interface FieldTeamOrder {
   approvalStatus?: "approved" | "pending" | "rejected" | null;
   pmAssigneeIds?: number[];
   pmAssigneeNames?: string[];
+  fieldTeamMemberIds: number[];
 }
 
 interface SubmissionRecord {
@@ -252,6 +253,7 @@ const transformAPIData = (apiData: any[]): FieldTeamOrder[] => {
     // 👇 NEW
     pmAssigneeIds: fto.pm_assignee_ids ?? [],
     pmAssigneeNames: fto.pm_assignee_names ?? [],
+    fieldTeamMemberIds: fto.field_team_member_ids ?? [],
 
     createdBy: "", // no longer used for PM display
     formSubmissionStatus: fto.form_submission_status,
@@ -287,6 +289,7 @@ export default function FtoHome() {
   const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isViewFTOModalOpen, setIsViewFTOModalOpen] = useState(false);
 
@@ -303,6 +306,8 @@ export default function FtoHome() {
     status?: string;
     property?: string;
     unit?: string;
+    field_team_member_ids: number[];
+    pm_assignee_ids: number[];
   };
 
   const [viewingFTO, setViewingFTO] = useState<ViewTaskData | null>(null);
@@ -324,6 +329,8 @@ export default function FtoHome() {
     const isSubmission = "dateOfWork" in row;
 
     const viewData: ViewTaskData = {
+      field_team_member_ids: (row as FieldTeamOrder).fieldTeamMemberIds,
+      pm_assignee_ids: (row as FieldTeamOrder).pmAssigneeIds,
       name: row.name,
       description: row.description,
       property: row.property,
@@ -342,31 +349,8 @@ export default function FtoHome() {
 
     // setViewingFTO(viewData);
     // setIsViewFTOModalOpen(true);
-
-    const openViewTaskModal = (row: FieldTeamOrder | SubmissionRecord) => {
-      const isSubmission = "dateOfWork" in row;
-    
-      const viewData: ViewTaskData = {
-        name: row.name,
-        description: row.description,
-        property: row.property,
-        unit: row.unit,
-        priority: row.priority,
-        ...(isSubmission
-          ? {
-              dateOfWork: (row as SubmissionRecord).dateOfWork,
-              status: toFtoStatus((row as SubmissionRecord).status),
-            }
-          : {
-              dueDate: (row as FieldTeamOrder).dueDate,
-              status: toFtoStatus((row as FieldTeamOrder).approvalStatus),
-            }),
-      };
-    
-      setEditingFTO(viewData); // 👈 key
-      setShowFTOModal(true);
-    };
-    openViewTaskModal(row);
+    setEditingFTO(viewData);
+    setShowFTOModal(true);
   };
 
   const tabs = [
