@@ -23,6 +23,7 @@ interface FileUploadFieldProps {
   placeholder?: string;
   variant?: "default" | "single";
   validate?: boolean;
+  disableRemove?: boolean;
 }
 
 /**
@@ -103,6 +104,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   placeholder = "Drag and drop files here, or click to browse",
   variant = "default",
   validate = false,
+  disableRemove = false,
 }) => {
   return (
     <FieldShell
@@ -128,6 +130,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         error={!!error}
         placeholder={placeholder}
         variant={variant}
+        disableRemove={disableRemove}
       />
     </FieldShell>
   );
