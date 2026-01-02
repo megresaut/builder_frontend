@@ -29,11 +29,11 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setNoteDraft(initialText);
+      setNoteDraft(initialText || "");
     } else {
       setNoteDraft("");
     }
-  }, [open, initialText]);
+  }, [open]);
 
   const handleSave = () => {
     const text = noteDraft.trim();
