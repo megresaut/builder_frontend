@@ -7,6 +7,7 @@ export interface UploadedFile {
   size: number;
   type: string;
   file?: File;
+  url?: string;
 }
 
 interface AttachmentUploaderProps {
