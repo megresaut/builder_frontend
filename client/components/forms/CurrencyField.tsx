@@ -116,6 +116,7 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
           currencySymbol={currencySymbol}
           decimalPlaces={decimalPlaces}
           allowNegative={allowNegative}
+          compact={false}
           {...inputProps}
         />
       </FieldShell>
