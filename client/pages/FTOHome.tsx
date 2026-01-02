@@ -290,6 +290,10 @@ export default function FtoHome() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isViewFTOModalOpen, setIsViewFTOModalOpen] = useState(false);
 
+
+  const [showFTOModal, setShowFTOModal] = useState(false);
+  const [editingFTO, setEditingFTO] = useState<ViewTaskData | null>(null);
+
   type ViewTaskData = {
     name: string;
     description: string;
@@ -336,8 +340,33 @@ export default function FtoHome() {
           }),
     };
 
-    setViewingFTO(viewData);
-    setIsViewFTOModalOpen(true);
+    // setViewingFTO(viewData);
+    // setIsViewFTOModalOpen(true);
+
+    const openViewTaskModal = (row: FieldTeamOrder | SubmissionRecord) => {
+      const isSubmission = "dateOfWork" in row;
+    
+      const viewData: ViewTaskData = {
+        name: row.name,
+        description: row.description,
+        property: row.property,
+        unit: row.unit,
+        priority: row.priority,
+        ...(isSubmission
+          ? {
+              dateOfWork: (row as SubmissionRecord).dateOfWork,
+              status: toFtoStatus((row as SubmissionRecord).status),
+            }
+          : {
+              dueDate: (row as FieldTeamOrder).dueDate,
+              status: toFtoStatus((row as FieldTeamOrder).approvalStatus),
+            }),
+      };
+    
+      setEditingFTO(viewData); // 👈 key
+      setShowFTOModal(true);
+    };
+    openViewTaskModal(row);
   };
 
   const tabs = [
@@ -733,11 +762,14 @@ export default function FtoHome() {
         </div>
 
         <CreateFTOModal
-          open={isViewFTOModalOpen}
-          onOpenChange={setIsViewFTOModalOpen}
-          isViewOnly={true}
-          viewData={viewingFTO ?? undefined}
+          open={showFTOModal}
+          onOpenChange={(open) => {
+            setShowFTOModal(open);
+            if (!open) setEditingFTO(null);
+          }}
+          editingFTO={editingFTO}
         />
+
       </PageTemplate>
     );
   }
@@ -1062,11 +1094,14 @@ export default function FtoHome() {
         />
 
         <CreateFTOModal
-          open={isViewFTOModalOpen}
-          onOpenChange={setIsViewFTOModalOpen}
-          isViewOnly={true}
-          viewData={viewingFTO ?? undefined}
+          open={showFTOModal}
+          onOpenChange={(open) => {
+            setShowFTOModal(open);
+            if (!open) setEditingFTO(null);
+          }}
+          editingFTO={editingFTO}
         />
+
       </div>
     </PageTemplate>
   );
