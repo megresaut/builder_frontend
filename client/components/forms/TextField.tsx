@@ -29,6 +29,7 @@ interface TextFieldProps
  * @param readOnly - Read-only mode (shows value but not interactive, no validation errors)
  * @param onChange - Change handler
  * @param value - Field value
+ * @param compact - When true, renders without FieldShell wrapper (32px height, 6px padding) for inline editing
  *
  * Example:
  * ```tsx
@@ -52,6 +53,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       id,
       disabled = false,
       readOnly = false,
+      compact = false,
       onChange,
       ...inputProps
     },
@@ -69,6 +71,21 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         onChange(e);
       }
     };
+
+    // Compact mode: render input only without FieldShell wrapper
+    if (compact) {
+      return (
+        <Input
+          ref={ref}
+          id={fieldId}
+          disabled={disabled}
+          readOnly={readOnly}
+          {...inputProps}
+          onChange={handleChange}
+          compact
+        />
+      );
+    }
 
     return (
       <FieldShell
