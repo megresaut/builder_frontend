@@ -348,7 +348,9 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls="select-listbox"
-        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`w-full rounded-lg border bg-white text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+          compact ? "px-3 py-0" : "px-3 py-2"
+        } ${
           error
             ? "border-red-600"
             : open
@@ -358,14 +360,20 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
           lineHeight: 1.43,
-          minHeight: "44px",
+          minHeight: compact ? "32px" : "44px",
           height: "auto",
           display: "flex",
           alignItems: "center",
           flexWrap: multiple ? "wrap" : "nowrap",
           gap: multiple ? "6px" : "8px",
           padding:
-            multiple && selectedValues.length > 0 ? "8px 12px" : "8px 12px",
+            compact && multiple && selectedValues.length > 0
+              ? "4px 6px"
+              : compact
+                ? "6px 12px"
+                : multiple && selectedValues.length > 0
+                  ? "8px 12px"
+                  : "8px 12px",
         }}
         onKeyDown={handleTriggerKeyDown}
       >
