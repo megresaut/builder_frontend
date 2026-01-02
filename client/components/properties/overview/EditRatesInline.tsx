@@ -151,7 +151,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
               Monthly Rate
             </label>
             <CurrencyField
-              value={typeof localMonthlyRate === "string" ? parseFloat(localMonthlyRate.replace(/[^0-9.]/g, "")) : localMonthlyRate}
+              value={localMonthlyRate}
               onChange={handleMonthlyRateChange}
               placeholder="$0.00"
               compact
