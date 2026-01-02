@@ -27,7 +27,6 @@ import { EditIcon } from "@/components/icons";
 import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
-import { useState } from "react";
 import {
   SectionRowTemplate,
   SectionGroupCardTemplate,
