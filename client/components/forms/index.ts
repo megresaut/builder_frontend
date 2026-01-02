@@ -43,6 +43,7 @@ export {
 export { SensitiveInputField } from "./SensitiveInputField";
 export { ReadOnlyTextField } from "./ReadOnlyTextField";
 export { FileUploadField } from "./FileUploadField";
+export { RadioGroupField, type RadioGroupFieldProps, type RadioOption } from "./RadioGroupField";
 
 // Cell field components (for table cells)
 export { SelectFieldCell } from "./SelectFieldCell";
