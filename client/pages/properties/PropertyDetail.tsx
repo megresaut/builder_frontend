@@ -798,9 +798,9 @@ function Overview({
               if (!open) dispatch({ type: "CLOSE_MODAL" });
             }}
             isEditMode={state.activeModal === "editFile"}
-            initialFiles={selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "" }] : []}
-            initialCategory={selectedFile?.category || ""}
-            initialDescription={selectedFile?.description || ""}
+            initialFiles={state.activeModal === "editFile" && selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "" }] : []}
+            initialCategory={state.activeModal === "editFile" && selectedFile ? selectedFile.category || "" : ""}
+            initialDescription={state.activeModal === "editFile" && selectedFile ? selectedFile.description || "" : ""}
             acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
             onSubmit={(uploadedFiles, category, description) => {
               if (state.activeModal === "editFile" && selectedFile) {
