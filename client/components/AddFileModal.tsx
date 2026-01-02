@@ -56,9 +56,9 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setUploadedFiles(initialFiles);
-      setFileCategory(initialCategory);
-      setFileDescription(initialDescription);
+      setUploadedFiles(Array.isArray(initialFiles) ? initialFiles : []);
+      setFileCategory(initialCategory || "");
+      setFileDescription(initialDescription || "");
       setValidateFileForm(false);
     } else {
       setUploadedFiles([]);
@@ -66,7 +66,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
       setFileDescription("");
       setValidateFileForm(false);
     }
-  }, [open, initialFiles, initialCategory, initialDescription]);
+  }, [open]);
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) {
