@@ -71,7 +71,7 @@ export default function EditPropertyCustomFieldsModal({
               )
             }
             returnFormat="ISO"
-            placeholder="MM/DD/YYYY"
+            placeholder="mm/dd/yyyy"
           />
           <SelectField
             label="Inspection Frequency"

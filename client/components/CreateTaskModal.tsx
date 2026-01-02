@@ -242,7 +242,7 @@ export default function CreateTaskModal({
               value={dueDate}
               onChange={setDueDate}
               error={errorMessages.dueDate}
-              placeholder="MM/DD/YYYY"
+              placeholder="mm/dd/yyyy"
               options={[
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },

@@ -541,7 +541,7 @@ export default function VendorDetail() {
               label="Expiration Date"
               value={insuranceExpirationDate}
               onChange={(e) => setInsuranceExpirationDate(e.target.value)}
-              placeholder="MM/DD/YYYY"
+              placeholder="mm/dd/yyyy"
             />
           </FormSection>
         </FormLayout>

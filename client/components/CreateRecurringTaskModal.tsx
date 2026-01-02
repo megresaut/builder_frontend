@@ -193,13 +193,13 @@ export default function CreateRecurringTaskModal({
             value={startDate}
             onChange={setStartDate}
             error={errors.startDate}
-            placeholder="MM/DD/YYYY"
+            placeholder="mm/dd/yyyy"
           />
           <DateField
             label="End Date"
             value={endDate}
             onChange={setEndDate}
-            placeholder="MM/DD/YYYY"
+            placeholder="mm/dd/yyyy"
           />
         </FormSection>
 
