@@ -204,7 +204,7 @@ export const DatePicker = ({
           onChange={(e: any) => handleInputChange(e.target.value)}
           onFocus={handleInputFocus}
           disabled={disabled}
-          className={`${styles.input} ${error ? styles.inputError : ""} ${showCalendar ? "border-black" : ""} ${className}`}
+          className={`${styles.input} ${error ? styles.inputError : ""} ${showCalendar ? "border-black" : ""} ${compact ? "h-8 px-3 py-1" : ""} ${className}`}
           style={showCalendar ? { borderColor: "#000000" } : undefined}
         />
         <Calendar
