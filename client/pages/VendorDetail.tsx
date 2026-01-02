@@ -605,6 +605,7 @@ export default function VendorDetail() {
             setSelectedFile(null);
           }
         }}
+        initialFiles={isEditingFile && selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "" }] : []}
         initialCategory={isEditingFile && selectedFile ? selectedFile.category || "" : ""}
         initialDescription={isEditingFile && selectedFile ? selectedFile.description || "" : ""}
         isEditMode={isEditingFile}

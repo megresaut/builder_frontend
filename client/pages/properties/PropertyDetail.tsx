@@ -798,6 +798,7 @@ function Overview({
               if (!open) dispatch({ type: "CLOSE_MODAL" });
             }}
             isEditMode={state.activeModal === "editFile"}
+            initialFiles={selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "" }] : []}
             initialCategory={selectedFile?.category || ""}
             initialDescription={selectedFile?.description || ""}
             acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
