@@ -42,9 +42,7 @@ export interface EditCustomFieldsInlineProps {
  * @param onManagementAgreementDateChange - Change handler for date
  * @param onInspectionFrequencyChange - Change handler for frequency
  */
-export const EditCustomFieldsInline: React.FC<
-  EditCustomFieldsInlineProps
-> = ({
+export const EditCustomFieldsInline: React.FC<EditCustomFieldsInlineProps> = ({
   initialData,
   managementAgreementDate,
   inspectionFrequency,
@@ -58,20 +56,24 @@ export const EditCustomFieldsInline: React.FC<
   onLandscapingStartChange,
 }) => {
   const [localDate, setLocalDate] = useState<string | null>(
-    managementAgreementDate || initialData?.managementAgreementDate || null
+    managementAgreementDate || initialData?.managementAgreementDate || null,
   );
   const [localFrequency, setLocalFrequency] = useState<string>(
-    inspectionFrequency || initialData?.inspectionFrequency || "Monthly"
+    inspectionFrequency || initialData?.inspectionFrequency || "Monthly",
   );
   const [localHvacStart, setLocalHvacStart] = useState<string | null>(
-    hvacStart !== undefined ? hvacStart : initialData?.hvacStart || null
+    hvacStart !== undefined ? hvacStart : initialData?.hvacStart || null,
   );
   const [localHvacEnd, setLocalHvacEnd] = useState<string | null>(
-    hvacEnd !== undefined ? hvacEnd : initialData?.hvacEnd || null
+    hvacEnd !== undefined ? hvacEnd : initialData?.hvacEnd || null,
   );
   const [localLandscapingStart, setLocalLandscapingStart] = useState<
     string | null
-  >(landscapingStart !== undefined ? landscapingStart : initialData?.landscapingStart || null);
+  >(
+    landscapingStart !== undefined
+      ? landscapingStart
+      : initialData?.landscapingStart || null,
+  );
 
   useEffect(() => {
     if (initialData) {
@@ -131,8 +133,7 @@ export const EditCustomFieldsInline: React.FC<
             fontWeight: 500,
             color: "rgba(48, 48, 48, 1)",
             lineHeight: 1.38,
-            fontFamily:
-              "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             marginBottom: "12px",
           }}
         >
@@ -234,8 +235,7 @@ export const EditCustomFieldsInline: React.FC<
             fontWeight: 500,
             color: "rgba(48, 48, 48, 1)",
             lineHeight: 1.38,
-            fontFamily:
-              "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
             marginBottom: "12px",
           }}
         >

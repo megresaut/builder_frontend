@@ -92,7 +92,6 @@ export default function VendorDetail() {
     }
   }, [vendor]);
 
-
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
     onAction: () => setIsInactive((v) => !v),
@@ -143,7 +142,11 @@ export default function VendorDetail() {
     setIsAddInsuranceOpen(false);
   };
 
-  const handleAddFile = async (files: UploadedFile[], category: string, description: string) => {
+  const handleAddFile = async (
+    files: UploadedFile[],
+    category: string,
+    description: string,
+  ) => {
     if (files.length === 0) {
       return;
     }
@@ -443,7 +446,7 @@ export default function VendorDetail() {
             setEditingNoteId(null);
           }
         }}
-        initialText={editingNoteId !== null ? (selectedNote?.text || "") : ""}
+        initialText={editingNoteId !== null ? selectedNote?.text || "" : ""}
         isEditMode={editingNoteId !== null}
         onSubmit={saveNote}
       />
@@ -605,9 +608,25 @@ export default function VendorDetail() {
             setSelectedFile(null);
           }
         }}
-        initialFiles={isEditingFile && selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "", url: selectedFile.url }] : []}
-        initialCategory={isEditingFile && selectedFile ? selectedFile.category || "" : ""}
-        initialDescription={isEditingFile && selectedFile ? selectedFile.description || "" : ""}
+        initialFiles={
+          isEditingFile && selectedFile
+            ? [
+                {
+                  id: String(selectedFile.id),
+                  name: selectedFile.name,
+                  size: 0,
+                  type: selectedFile.type || "",
+                  url: selectedFile.url,
+                },
+              ]
+            : []
+        }
+        initialCategory={
+          isEditingFile && selectedFile ? selectedFile.category || "" : ""
+        }
+        initialDescription={
+          isEditingFile && selectedFile ? selectedFile.description || "" : ""
+        }
         isEditMode={isEditingFile}
         onSubmit={handleAddFile}
       />

@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ModalTemplate,
-  ModalButtons,
-} from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import {
   TextField,
@@ -45,7 +42,9 @@ export default function CreateRecurringTaskModal({
   const [repeat, setRepeat] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<
+    MultiSelectOption[]
+  >([]);
   const [priority, setPriority] = useState("normal");
   const [category, setCategory] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -124,7 +123,9 @@ export default function CreateRecurringTaskModal({
           onCancel={() => onOpenChange(false)}
           onConfirm={handleSubmit}
           cancelLabel="Cancel"
-          confirmLabel={editData ? "Update Recurring Task" : "Create Recurring Task"}
+          confirmLabel={
+            editData ? "Update Recurring Task" : "Create Recurring Task"
+          }
         />
       }
     >

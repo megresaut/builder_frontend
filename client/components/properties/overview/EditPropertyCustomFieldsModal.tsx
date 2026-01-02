@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ModalTemplate,
-  ModalButtons,
-} from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { DateField, SelectField } from "@/components/forms";
 
@@ -67,7 +64,9 @@ export default function EditPropertyCustomFieldsModal({
             value={managementAgreementDate}
             onChange={(value) =>
               setManagementAgreementDate(
-                typeof value === "string" ? value : value?.toISOString().split("T")[0] || null
+                typeof value === "string"
+                  ? value
+                  : value?.toISOString().split("T")[0] || null,
               )
             }
             returnFormat="ISO"

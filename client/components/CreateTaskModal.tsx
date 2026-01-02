@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ModalTemplate,
-  ModalButtons,
-} from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   FormLayout,
   FormSection,
@@ -15,7 +12,6 @@ import {
   MultiSelectField,
   type MultiSelectOption,
 } from "@/components/forms";
-
 
 interface CreateTaskModalProps {
   open: boolean;
@@ -45,7 +41,9 @@ export default function CreateTaskModal({
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
-  const [selectedAssignees, setSelectedAssignees] = useState<MultiSelectOption[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<
+    MultiSelectOption[]
+  >([]);
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<{
@@ -139,7 +137,6 @@ export default function CreateTaskModal({
     }
   }, [open, editData]);
 
-
   return (
     <ModalTemplate
       open={open}
@@ -167,7 +164,10 @@ export default function CreateTaskModal({
                 setProperty(value);
                 if (errors.property && value.trim()) {
                   setErrors((prev) => ({ ...prev, property: false }));
-                  setErrorMessages((prev) => ({ ...prev, property: undefined }));
+                  setErrorMessages((prev) => ({
+                    ...prev,
+                    property: undefined,
+                  }));
                 }
               }}
               error={errorMessages.property}
@@ -229,7 +229,10 @@ export default function CreateTaskModal({
                 setSelectedAssignees(newAssignees);
                 if (errors.selectedAssignees && newAssignees.length > 0) {
                   setErrors((prev) => ({ ...prev, selectedAssignees: false }));
-                  setErrorMessages((prev) => ({ ...prev, selectedAssignees: undefined }));
+                  setErrorMessages((prev) => ({
+                    ...prev,
+                    selectedAssignees: undefined,
+                  }));
                 }
               }}
               error={errorMessages.selectedAssignees}
