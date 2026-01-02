@@ -13,6 +13,7 @@ interface DatePickerProps {
   disabled?: boolean;
   error?: boolean;
   className?: string;
+  compact?: boolean;
 }
 
 export const DatePicker = ({
@@ -23,6 +24,7 @@ export const DatePicker = ({
   disabled = false,
   error = false,
   className = "",
+  compact = false,
 }: DatePickerProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
