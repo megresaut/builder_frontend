@@ -360,17 +360,16 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
           lineHeight: 1.43,
-          minHeight: compact ? "32px" : "44px",
-          height: "auto",
+          height: compact ? "32px" : "44px",
           display: "flex",
           alignItems: "center",
           flexWrap: multiple ? "wrap" : "nowrap",
           gap: multiple ? "6px" : "8px",
           padding:
             compact && multiple && selectedValues.length > 0
-              ? "4px 6px"
+              ? "2px 6px"
               : compact
-                ? "6px 12px"
+                ? "4px 12px"
                 : multiple && selectedValues.length > 0
                   ? "8px 12px"
                   : "8px 12px",
