@@ -13,6 +13,7 @@ interface CurrencyInputProps
   currencySymbol?: string;
   decimalPlaces?: number;
   allowNegative?: boolean;
+  compact?: boolean;
 }
 
 /**
