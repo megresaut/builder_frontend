@@ -10,6 +10,7 @@ interface TextFieldProps
   error?: string;
   id?: string;
   readOnly?: boolean;
+  compact?: boolean;
 }
 
 /**
