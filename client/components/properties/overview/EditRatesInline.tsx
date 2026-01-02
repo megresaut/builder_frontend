@@ -68,23 +68,20 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
 
   const handleMonthlyRateChange = (value: number | string) => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
-    const formatted = formatCurrencyDisplay(numValue);
-    setLocalMonthlyRate(formatted);
-    onMonthlyRateChange?.(formatted);
+    setLocalMonthlyRate(numValue);
+    onMonthlyRateChange?.(formatCurrencyDisplay(numValue));
   };
 
   const handleDefaultRateChange = (value: number | string) => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
-    const formatted = formatCurrencyDisplay(numValue);
-    setLocalDefaultRate(formatted);
-    onDefaultRateChange?.(formatted);
+    setLocalDefaultRate(numValue);
+    onDefaultRateChange?.(formatCurrencyDisplay(numValue));
   };
 
   const handleEmergencyRateChange = (value: number | string) => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
-    const formatted = formatCurrencyDisplay(numValue);
-    setLocalEmergencyRate(formatted);
-    onEmergencyRateChange?.(formatted);
+    setLocalEmergencyRate(numValue);
+    onEmergencyRateChange?.(formatCurrencyDisplay(numValue));
   };
 
   return (
