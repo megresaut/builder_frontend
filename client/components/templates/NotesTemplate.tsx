@@ -53,7 +53,7 @@ export const NotesTemplate: React.FC<NotesTemplateProps> = ({
         <EmptyStateTemplate message={emptyMessage} />
       ) : (
         <RecordListTemplate>
-          {notes.map((note, idx) => (
+          {[...notes].reverse().map((note, idx) => (
             <RecordRowTemplate
               key={note.id}
               isLast={idx === notes.length - 1}

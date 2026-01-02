@@ -57,7 +57,7 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
         <EmptyStateTemplate message={emptyMessage} />
       ) : (
         <RecordListTemplate>
-          {files.map((file, idx) => (
+          {[...files].reverse().map((file, idx) => (
             <RecordRowTemplate
               key={file.id}
               isLast={idx === files.length - 1}
