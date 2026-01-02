@@ -115,7 +115,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
               display: "flex",
               flexDirection: "column",
               gap: "4px",
-              maxWidth: "180px",
+              width: "180px",
             }}
           >
             <label
@@ -179,7 +179,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
               display: "flex",
               flexDirection: "column",
               gap: "4px",
-              maxWidth: "180px",
+              width: "180px",
             }}
           >
             <label
@@ -211,7 +211,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
               display: "flex",
               flexDirection: "column",
               gap: "4px",
-              maxWidth: "180px",
+              width: "180px",
             }}
           >
             <label
