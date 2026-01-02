@@ -178,8 +178,7 @@ export const EditRatesInline: React.FC<EditRatesInlineProps> = ({
               display: "flex",
               flexDirection: "column",
               gap: "4px",
-              flex: 1,
-              maxWidth: "300px",
+              maxWidth: "180px",
             }}
           >
             <label
