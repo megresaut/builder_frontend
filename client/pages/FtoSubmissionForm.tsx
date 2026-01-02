@@ -1135,12 +1135,11 @@ export default function FtoSubmissionForm() {
                           placeholder="Notes For Hour Entry"
                           value={entry.note}
                           onChange={(e) => {
-                            if (isApproved) return;
                             updateHourEntry(entry.id, "note", e.target.value);
                           }}
                           autoGrow
-                          disabled={isApproved}
                         />
+
                       </div>
                     )}
                   </div>
@@ -1441,7 +1440,7 @@ export default function FtoSubmissionForm() {
                                         formData.append("file", file.file!);
 
                                         const res = await fetch(
-                                          "/api/vendors/bills/upload-pdf",
+                                          "/api/vendors/bills/upload-pdf",  
                                           {
                                             method: "POST",
                                             credentials: "include",
