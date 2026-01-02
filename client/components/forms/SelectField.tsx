@@ -205,7 +205,7 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
       // Highlight first option when dropdown opens
       popoverContext.setHighlightedIndex(0);
     }
-  }, [open, options, popoverContext]);
+  }, [open, options, popoverContext.setSearchableItems, popoverContext.setHighlightedIndex]);
 
   // Sync DOM focus with visual highlight when arrow keys navigate
   useEffect(() => {
