@@ -185,6 +185,7 @@ interface SelectFieldContentProps {
   multiple: boolean;
   onCreateNew?: () => void;
   createNewLabel?: string;
+  compact?: boolean;
 }
 
 const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
