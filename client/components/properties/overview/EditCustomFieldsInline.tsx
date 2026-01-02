@@ -153,7 +153,7 @@ export const EditCustomFieldsInline: React.FC<
               display: "flex",
               flexDirection: "column",
               gap: "4px",
-              maxWidth: "180px",
+              width: "180px",
             }}
           >
             <label
