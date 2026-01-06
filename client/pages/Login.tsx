@@ -77,6 +77,9 @@ export const Login = () => {
 
       localStorage.setItem("avm_user_id", String(userId));
       console.log("USER ID:", localStorage.getItem("avm_user_id"));
+      console.log("ROLE:", localStorage.getItem("avm_role"));
+      console.log("DECODED JWT PAYLOAD:", decoded);
+      console.log("JWT KEYS:", decoded ? Object.keys(decoded) : null);
   
       // Navigate to main app
       if (result.role === "field_team_member") {
