@@ -48,6 +48,14 @@ interface ViewBillState {
   lineItems?: LineItem[];
 }
 
+interface BillAttachment {
+  StoragePath: string;
+  FileName: string;
+  ContentType: string;
+  SizeBytes: number;
+}
+
+
 const mockVendors: Vendor[] = [
   {
     id: 1,
@@ -219,6 +227,98 @@ const buildReadOnlyBillFromState = (stateBill?: ViewBillState) => {
   };
 };
 
+const normalizeApprovedBill = (bill: any) => ({
+  Draft: {
+    InvoiceNumber: bill.invoice_number,
+    StatementDate: bill.statement_date,
+    DueDate: bill.due_date,
+    Memo: bill.memo,
+  },
+
+  VendorID: bill.vendor_id,
+
+  LineItems: (bill.line_items || []).map((li: any, idx: number) => ({
+    LineID: li.line_id ?? idx + 1,
+    PropertyID: li.property_id,
+    Unit: li.unit || "",
+    WorkOrderRef: li.work_order_ref || "",
+    Description: li.description || "",
+    GLAccountID: li.gl_account_id,
+    GLAccountName: li.gl_account_name,
+    AmountCents: li.amount_cents,
+  })),
+});
+
+
+const loadAttachmentIntoViewer = async (
+  a: BillAttachment,
+  setUploadedFiles: React.Dispatch<
+    React.SetStateAction<Array<{ name: string; size: number; file: File }>>
+  >
+) => {
+  try {
+    const storagePath = a.StoragePath.startsWith("http")
+      ? a.StoragePath
+      : `/api${a.StoragePath}`;
+
+    const res = await fetch(storagePath, {
+      credentials: "include",
+    });
+
+    const blob = await res.blob();
+
+    // ✅ FORCE PDF TYPE WHEN BACKEND RETURNS OCTET-STREAM
+    const inferredType =
+      a.ContentType === "application/octet-stream" &&
+      a.FileName.toLowerCase().endsWith(".pdf")
+        ? "application/pdf"
+        : a.ContentType || "application/pdf";
+
+    const file = new File([blob], a.FileName, {
+      type: inferredType,
+    });
+
+    // Required for iframe viewer
+    (file as any).preview = URL.createObjectURL(
+      inferredType === "application/pdf"
+        ? file
+        : new Blob([blob], { type: "application/pdf" })
+    );
+
+    setUploadedFiles([
+      {
+        name: a.FileName,
+        size: a.SizeBytes,
+        file,
+      },
+    ]);
+  } catch (err) {
+    console.error("Failed to load attachment PDF", err);
+  }
+};
+
+
+const middleTruncate = (
+  name: string,
+  maxLength = 48
+): string => {
+  if (name.length <= maxLength) return name;
+
+  const extMatch = name.match(/(\.[^.]+)$/);
+  const ext = extMatch ? extMatch[1] : "";
+  const base = ext ? name.slice(0, -ext.length) : name;
+
+  const keep = Math.floor((maxLength - ext.length - 3) / 2);
+
+  return (
+    base.slice(0, keep) +
+    "…" +
+    base.slice(-keep) +
+    ext
+  );
+};
+
+
 export const RecordBill = () => {
   const [searchParams] = useSearchParams();
   // const billId = searchParams.get("billId");
@@ -344,6 +444,23 @@ export const RecordBill = () => {
 >([]);
 
 
+  const [vendorSearch, setVendorSearch] = useState("");
+  const filteredVendors = vendors.filter((v) =>
+    v.name.toLowerCase().includes(vendorSearch.toLowerCase())
+  );
+
+
+  const [propertySearch, setPropertySearch] = useState("");
+  const [glSearch, setGlSearch] = useState("");
+  const filteredProperties = properties.filter((p) =>
+    p.name.toLowerCase().includes(propertySearch.toLowerCase())
+  );
+  
+  const filteredGLAccounts = glAccountOptions.filter((gl) =>
+    gl.name.toLowerCase().includes(glSearch.toLowerCase())
+  );
+  
+
   useEffect(() => {
     const normalized = glAccounts.map((gl: any) => ({
       id: parseInt(gl.Id, 10),
@@ -419,22 +536,51 @@ export const RecordBill = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // useEffect(() => {
+  //   if (billId === null) return;
+  
+  //   async function load() {
+  //     try {
+  //       const data = await fetchJSON(`/vendors/bill-drafts/${billId}`);
+  //       setDraft(data);
+  //     } catch (err) {
+  //       console.error("Failed to load bill draft", err);
+  //     }
+  //   }
+  
+  //   load();
+  // }, [billId]);
+  
+
+
   useEffect(() => {
-    if (billId === null) return;
+    if (!billId) return;
   
     async function load() {
       try {
-        const data = await fetchJSON(`/vendors/bill-drafts/${billId}`);
-        setDraft(data);
+        // -----------------------------
+        // APPROVED vendor bill (read-only)
+        // -----------------------------
+        if (isReadOnly) {
+          const bill = await fetchJSON(`/utilities/bills/${billId}`);
+          setDraft({ ApprovedBill: bill });
+          return;
+        }
+  
+        // -----------------------------
+        // DRAFT vendor bill (editable)
+        // -----------------------------
+        const draft = await fetchJSON(`/vendors/bill-drafts/${billId}`);
+        setDraft(draft);
+  
       } catch (err) {
-        console.error("Failed to load bill draft", err);
+        console.error("Failed to load bill", err);
       }
     }
   
     load();
-  }, [billId]);
+  }, [billId, isReadOnly]);
   
-
   useEffect(() => {
     async function loadDropdowns() {
       try {
@@ -477,24 +623,91 @@ export const RecordBill = () => {
   
   
   
+
+  // useEffect(() => {
+  //   if (!draft || vendors.length === 0) return;
+  
+  //   const vendorId = draft.VendorID;
+  //   if (!vendorId) {
+  //     setSelectedVendor(null);
+  //     return;
+  //   }
+  
+  //   const matchedVendor = vendors.find(
+  //     (v) => v.id === vendorId
+  //   );
+  
+  //   setSelectedVendor(matchedVendor || null);
+  // }, [draft, vendors]);
+
+  useEffect(() => {
+    if (!draft) return;
+  
+    const bill = draft.ApprovedBill;
+    const vendorId = bill?.vendor_id ?? draft.VendorID;
+    const vendorName = bill?.vendor_name;
+  
+    if (!vendorId) {
+      setSelectedVendor(null);
+      return;
+    }
+  
+    // 1️⃣ Prefer real vendor from dropdown list
+    const matchedVendor = vendors.find(v => v.id === vendorId);
+    if (matchedVendor) {
+      setSelectedVendor(matchedVendor);
+      return;
+    }
+  
+    // 2️⃣ Fallback: inject vendor from bill payload
+    if (vendorName) {
+      setSelectedVendor({
+        id: vendorId,
+        name: vendorName,
+        phone: "",
+        email: "",
+        notes: "",
+      });
+      return;
+    }
+  
+    // 3️⃣ Final fallback (should almost never happen)
+    setSelectedVendor({
+      id: vendorId,
+      name: `Vendor #${vendorId}`,
+      phone: "",
+      email: "",
+      notes: "",
+    });
+  }, [draft, vendors]);
+  
+  
   
   useEffect(() => {
     if (!draft) return;
   
-    const d = draft.Draft;   // <-- nested DB draft record
-    const items = draft.LineItems || [];
+    // -----------------------------------
+    // Approved bill normalization
+    // -----------------------------------
+    const normalized =
+      draft.ApprovedBill
+        ? normalizeApprovedBill(draft.ApprovedBill)
+        : draft;
+  
+    const d = normalized.Draft;
+    const items = normalized.LineItems || [];
   
     //
     // ---------------------------
     // Vendor
     // ---------------------------
     //
-    if (draft.VendorID) {
-      const vendor = mockVendors.find(v => v.id === draft.VendorID);
-      setSelectedVendor(vendor || null);
-    } else {
-      setSelectedVendor(null);
-    }
+    // if (draft.VendorID) {
+    //   const vendor = mockVendors.find(v => v.id === draft.VendorID);
+    //   setSelectedVendor(vendor || null);
+    // } else {
+    //   setSelectedVendor(null);
+    // }
   
     //
     // ---------------------------
@@ -559,37 +772,37 @@ export const RecordBill = () => {
     // ---------------------------
     // Attachments
     // ---------------------------
-    //
-    if (Array.isArray(draft.Attachments) && draft.Attachments.length > 0) {
-      const a = draft.Attachments[0];
-    
-      const loadPdf = async () => {
-        try {
-          const res = await fetch(a.StoragePath);
-          const blob = await res.blob();
-    
-          const file = new File([blob], a.FileName, {
-            type: a.ContentType || "application/pdf",
-          });
-    
-          // ⭐ Attach preview URL directly ONTO the file object
-          // (TS won't complain and your uploader will use it)
-          (file as any).preview = URL.createObjectURL(file);
-    
-          setUploadedFiles([
-            {
-              name: a.FileName,
-              size: a.SizeBytes,
-              file,  // now includes file.preview
-            },
-          ]);
-        } catch (err) {
-          console.error("Failed to load attachment PDF", err);
+
+    (async () => {
+      try {
+        // ============================
+        // APPROVED BILL (read-only)
+        // ============================
+        if (draft.ApprovedBill && billId) {
+          const attachment: BillAttachment | null = await fetchJSON(
+            `/utilities/bills/${billId}/attachment`
+          ).catch(() => null);
+          
+          if (attachment?.StoragePath) {
+            await loadAttachmentIntoViewer(attachment, setUploadedFiles);
+          }
+        
+          return;
         }
-      };
-    
-      loadPdf();
-    }
+        
+
+        // ============================
+        // DRAFT BILL (existing behavior)
+        // ============================
+        const attachments = normalized.Attachments || [];
+        if (attachments.length > 0) {
+          await loadAttachmentIntoViewer(attachments[0], setUploadedFiles);
+        }
+      } catch (err) {
+        console.error("Failed loading bill attachment", err);
+      }
+    })();
+
     
   
   }, [draft]);
@@ -784,6 +997,12 @@ export const RecordBill = () => {
   
     const patchPayload = buildPatchPayload();
   
+    for (const li of patchPayload.line_items) {
+      if (!li.property_id || !li.gl_account_id) {
+        alert("Each line item must have a Property and GL Account before approving.");
+        return;
+      }
+    }
     // --------------------------
     // 1. Validate required fields
     // --------------------------
@@ -825,6 +1044,12 @@ export const RecordBill = () => {
           body: JSON.stringify(patchPayload),
         });
   
+
+        const firstPropertyId = patchPayload.line_items[0]?.property_id;
+
+        if (!firstPropertyId) {
+          throw new Error("Approve failed: missing property_id");
+        }
         // 2️⃣ Approve the draft
         const approvePayload = {
           pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? null,
@@ -834,17 +1059,19 @@ export const RecordBill = () => {
           statement_date: patchPayload.statement_date,
           due_date: patchPayload.due_date,
           memo: patchPayload.memo,
+          property_id: Number(firstPropertyId),
   
           line_items: patchPayload.line_items.map((li) => ({
             line_id: li.line_id,
-            property_id: li.property_id ?? null,
-            unit: li.unit || "",
-            // work_order_ref: li.work_order_ref || "",
-            gl_account_id: li.gl_account_id || "",
-            gl_account_name: li.gl_account_name || "",
+            property_id: Number(li.property_id),      // 🔒 never null
+            unit: "",
+          
+            gl_account_id: li.gl_account_id,           // 🔒 already validated
+            gl_account_name: li.gl_account_name,
+          
             description: li.description || "",
-            amount_cents: Number(li.amount_cents) || 0,
-          })),
+            amount_cents: Number(li.amount_cents),
+          })),          
         };
   
         const approveRes = await fetchJSON(
@@ -977,11 +1204,14 @@ export const RecordBill = () => {
   useEffect(() => {
     if (isReadOnly && uploadedFiles.length === 1 && !viewingFileUrl) {
       const file = uploadedFiles[0].file;
-      const url = URL.createObjectURL(file);
-      setViewingFileUrl(url);
-      setViewingFileIndex(0);
+      const preview = (file as any).preview;
+      if (preview) {
+        setViewingFileUrl(preview);
+        setViewingFileIndex(0);
+      }
     }
   }, [isReadOnly, uploadedFiles, viewingFileUrl]);
+  
 
   // const handleUpdateLineItem = (id: number, field: string, value: string) => {
   //   setLineItems((prev) =>
@@ -1132,9 +1362,16 @@ export const RecordBill = () => {
   
 
   const handleRemoveFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => {
+      const file = prev[index]?.file;
+      const preview = (file as any)?.preview;
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
-
+  
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -1145,25 +1382,26 @@ export const RecordBill = () => {
 
   const handleViewFile = (file: File) => {
     const index = uploadedFiles.findIndex((f) => f.file === file);
-    const url = URL.createObjectURL(file);
-    setViewingFileUrl(url);
+    const preview = (file as any).preview;
+    if (!preview) return;
+  
+    setViewingFileUrl(preview);
     setViewingFileIndex(index);
   };
-
+  
   const closeViewer = () => {
-    if (viewingFileUrl) {
-      URL.revokeObjectURL(viewingFileUrl);
-    }
     setViewingFileUrl(null);
     setViewingFileIndex(null);
   };
+  
 
   const handleDownloadFile = () => {
     if (viewingFileIndex !== null && uploadedFiles[viewingFileIndex]) {
       const file = uploadedFiles[viewingFileIndex];
-      const url = URL.createObjectURL(file.file);
+      const preview = (file.file as any).preview;
+      if (!preview) return;
       const a = document.createElement("a");
-      a.href = url;
+      a.href = preview;
       a.download =
         file.name +
         (file.name.endsWith(".pdf") ||
@@ -1174,7 +1412,7 @@ export const RecordBill = () => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(preview);
     }
   };
 
@@ -1222,34 +1460,39 @@ export const RecordBill = () => {
 
   const buildLineItemPayload = () => {
     return lineItems.map((item) => {
-      // 1. Convert property name → id
-      const property_id =
-      item.property && !isNaN(Number(item.property))
-        ? Number(item.property)
-        : null;
+      // 🔒 property_id MUST be a number
+      const property_id = Number(item.property);
   
-      // 2. Convert GL account string → id + name
+      // 🔒 GL account MUST exist
       const gl = glAccountOptions.find(
         (g) => g.id.toString() === item.glAccount
       );
   
+      if (!property_id || !gl) {
+        throw new Error("Invalid line item: property or GL account missing");
+      }
+  
       return {
         line_id: item.id,
-        property_id: property_id,
-        unit: "", // always empty for now
+        property_id,               // number ONLY
+        unit: "",
   
-        // work_order_ref: item.workOrder ? item.workOrder.toString() : "",
+        gl_account_id: gl.id.toString(),
+        gl_account_name: gl.name,   // string, not ""
   
-        gl_account_id: gl?.id?.toString() ?? "",
-        gl_account_name: gl?.name ?? "",
-  
-        description: item.description,
+        description: item.description || "",
         amount_cents: toCents(item.total),
       };
     });
   };
+  
 
   const buildPatchPayload = () => {
+    const firstPropertyId = lineItems[0]?.property;
+
+    if (!firstPropertyId) {
+      throw new Error("Patch failed: missing property_id");
+    }
     console.log("LINE ITEM PROPERTY LOOKUP", {
       lineItems,
       propertyMap,
@@ -1260,7 +1503,7 @@ export const RecordBill = () => {
     });
     return {
       vendor_id: selectedVendor ? selectedVendor.id : null,
-      property_id: null, // not per-line — backend ignores this for line items
+      property_id: Number(firstPropertyId), // not per-line — backend ignores this for line items
       invoice_number: referenceNumber || null,
       statement_date: invoiceDate ? invoiceDate.toISOString() : null,
       due_date: dueDate ? dueDate.toISOString() : null,
@@ -1386,7 +1629,7 @@ minHeight: 0,
                         {uploadedFiles.map((file, index) => (
                           <div
                             key={index}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
+                            className="grid grid-cols-[1fr_auto] items-center p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
                           >
                             <div className="flex items-center gap-3 flex-1">
                               <svg
@@ -1402,9 +1645,12 @@ minHeight: 0,
                                   d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                                 />
                               </svg>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm text-[#303030] truncate">
-                                  {file.name}{" "}
+                              <div className="flex-1 min-w-0 overflow-hidden">
+                                <div
+                                  className="text-sm text-[#303030] whitespace-nowrap"
+                                  title={file.name}
+                                >
+                                  {middleTruncate(file.name, 48)}{" "}
                                   <span className="text-[#A1A1A9]">
                                     ({formatFileSize(file.size)})
                                   </span>
@@ -1572,8 +1818,10 @@ minHeight: 0,
                 <div className="flex-1 overflow-auto w-full">
                   <iframe
                     src={viewingFileUrl}
-                    className="w-full h-full border-0"
-                    title="Document Preview"
+                    style={{
+                      width: "100%",
+                      height: "600px",
+                    }}
                   />
                 </div>
               </div>
@@ -1687,12 +1935,16 @@ minHeight: 0,
                             if (!isReadOnly) {
                               const vendor = vendors.find(v => v.id.toString() === vendorId);
                               setSelectedVendor(vendor || null);
+                              setVendorSearch(""); // ✅ reset search on select
                               setFormErrors(prev => {
                                 const next = new Set(prev);
                                 next.delete("vendor");
                                 return next;
                               });
                             }
+                          }}
+                          onOpenChange={(open) => {
+                            if (!open) setVendorSearch(""); // ✅ reset on close
                           }}
                           disabled={isReadOnly}
                         >
@@ -1706,14 +1958,37 @@ minHeight: 0,
                             <SelectValue placeholder="Select vendor..." />
                           </SelectTrigger>
                           <SelectContent
-                            className="bg-white border border-[#E5E7EB] shadow-md"
-                            >
-                            {vendors.map(v => (
-                              <SelectItem key={v.id} value={v.id.toString()}>
-                                {v.name}
-                              </SelectItem>
-                            ))}
+                              className="bg-white border border-[#E5E7EB] shadow-md p-0"
+                          >
+                            {/* Search input */}
+                            <div className="p-2 border-b border-[#E5E7EB]">
+                              <input
+                                autoFocus
+                                placeholder="Type to search…"
+                                value={vendorSearch}
+                                onChange={(e) => setVendorSearch(e.target.value)}
+                                onKeyDown={(e) => e.stopPropagation()} // ⛔ prevent Select keyboard hijack
+                                className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                              />
+                            </div>
+
+                            {/* Scrollable list */}
+                            <div className="max-h-[240px] overflow-y-auto">
+                              {filteredVendors.length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-400">
+                                  No vendors found
+                                </div>
+                              )}
+
+                              {filteredVendors.map((v) => (
+                                <SelectItem key={v.id} value={v.id.toString()}>
+                                  {v.name}
+                                </SelectItem>
+                              ))}
+                            </div>
                           </SelectContent>
+                          
+
 
                         </Select>
                       </div>
@@ -1890,20 +2165,52 @@ minHeight: 0,
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.property}px` }}
                             >
-                              <SelectFieldCell
+                              <Select
                                 value={item.property}
-                                onChange={(value) => {
-                                  if (!isReadOnly) {
-                                    handleUpdateLineItem(item.id, "property", value);
-                                  }
-                                }}
-                                placeholder="Select a Property"
-                                options={properties.map((prop) => ({
-                                  value: prop.id.toString(),
-                                  label: prop.name,
-                                }))}
                                 disabled={isReadOnly}
-                              />
+                                onValueChange={(value) => {
+                                  handleUpdateLineItem(item.id, "property", value);
+                                  setPropertySearch(""); // reset on select
+                                }}
+                                onOpenChange={(open) => {
+                                  if (!open) setPropertySearch("");
+                                }}
+                              >
+                                <SelectTrigger
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent"
+                                >
+                                  <SelectValue placeholder="Select a Property" />
+                                </SelectTrigger>
+
+                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                  {/* Search */}
+                                  <div className="p-2 border-b border-[#E5E7EB]">
+                                    <input
+                                      autoFocus
+                                      placeholder="Type to search…"
+                                      value={propertySearch}
+                                      onChange={(e) => setPropertySearch(e.target.value)}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                    />
+                                  </div>
+
+                                  {/* List */}
+                                  <div className="max-h-[240px] overflow-y-auto">
+                                    {filteredProperties.length === 0 && (
+                                      <div className="px-3 py-2 text-sm text-gray-400">
+                                        No properties found
+                                      </div>
+                                    )}
+
+                                    {filteredProperties.map((prop) => (
+                                      <SelectItem key={prop.id} value={prop.id.toString()}>
+                                        {prop.name}
+                                      </SelectItem>
+                                    ))}
+                                  </div>
+                                </SelectContent>
+                              </Select>
                             </div>
 
                             {/* Unit */}
@@ -2006,25 +2313,56 @@ minHeight: 0,
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.glAccount}px` }}
                             >
-                              <SelectFieldCell
+                              <Select
                                 value={item.glAccount}
-                                onChange={(value) => {
+                                disabled={isReadOnly}
+                                onValueChange={(value) => {
                                   if (!isReadOnly) {
-                                    handleUpdateLineItem(
-                                      item.id,
-                                      "glAccount",
-                                      value,
-                                    );
+                                    handleUpdateLineItem(item.id, "glAccount", value);
+                                    setGlSearch(""); // reset on select
                                   }
                                 }}
-                                placeholder="Select an Account"
-                                options={glAccountOptions.map((gl) => ({
-                                  value: gl.id.toString(),
-                                  label: gl.name,
-                                }))}
-                                disabled={isReadOnly}
-                              />
+                                onOpenChange={(open) => {
+                                  if (!open) setGlSearch(""); // reset on close
+                                }}
+                              >
+                                <SelectTrigger
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent"
+                                >
+                                  <SelectValue placeholder="Select an Account" />
+                                </SelectTrigger>
+
+                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                  {/* Search */}
+                                  <div className="p-2 border-b border-[#E5E7EB]">
+                                    <input
+                                      autoFocus
+                                      placeholder="Type to search…"
+                                      value={glSearch}
+                                      onChange={(e) => setGlSearch(e.target.value)}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                    />
+                                  </div>
+
+                                  {/* Scrollable list */}
+                                  <div className="max-h-[240px] overflow-y-auto">
+                                    {filteredGLAccounts.length === 0 && (
+                                      <div className="px-3 py-2 text-sm text-gray-400">
+                                        No accounts found
+                                      </div>
+                                    )}
+
+                                    {filteredGLAccounts.map((gl) => (
+                                      <SelectItem key={gl.id} value={gl.id.toString()}>
+                                        {gl.name}
+                                      </SelectItem>
+                                    ))}
+                                  </div>
+                                </SelectContent>
+                              </Select>
                             </div>
+
 
                             {/* Total */}
                             <div

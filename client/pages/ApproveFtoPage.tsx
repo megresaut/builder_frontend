@@ -20,6 +20,7 @@ import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useParams } from "react-router-dom";
 import { fetchJSON } from "@/api/fetchJSON";
+import { cn } from "@/lib/utils";
 
 interface HourRow {
   id: string;
@@ -45,6 +46,9 @@ interface ExpenseRow {
   upcharge: string;
   assignee: string;
   assigneeId: number;
+  submissionId: number;
+  materialIndex: number;
+  attachmentIds: number[];
 }
 
 interface ApproveFTOPageProps {
@@ -64,6 +68,7 @@ interface ExpenseLine {
   note?: string;
   is_avm_expense: boolean;
   amount_cents: number;
+  expense_type?: "personal-expense" | "avm-expense" | "client-expense";
 }
 
 
@@ -82,10 +87,61 @@ interface BackendSubmission {
   }[];
 }
 
+interface Attachment {
+  id: number;
+  file_name: string;
+  storage_path: string;
+}
+
+interface AttachmentSummary {
+  id: number;
+  file_name: string;
+  submission_id: number;
+  material_index: number;
+}
+
+
+const fetchAttachmentsForExpense = async (
+  submissionId: number,
+  materialIndex: number,
+): Promise<Attachment[]> => {
+  const res = await fetch(
+    `/api/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
+    {
+      headers: { Accept: "application/json" },
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to load attachments");
+  }
+
+  return res.json();
+};
+
+const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]> => {
+  const res = await fetch(
+    `/api/maintenance/attachments/by-fto?fto_id=${ftoId}`,
+    { headers: { Accept: "application/json" } }
+  );
+
+  if (!res.ok) throw new Error("Failed to load attachments (by fto)");
+
+  const raw = await res.json();
+
+  return raw.map((a: any) => ({
+    id: a.ID,
+    file_name: a.FileName,
+    submission_id: a.SubmissionID,
+    material_index: a.MaterialIndex,
+  }));
+};
+
+
 const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]> => {
   const res = await fetch(
-    // `http://localhost:8080/maintenance/submissions/by-fto?fto_id=${ftoId}`,
     `/api/maintenance/submissions/by-fto?fto_id=${ftoId}`,
+    // `/api/maintenance/submissions/by-fto?fto_id=${ftoId}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -122,8 +178,23 @@ const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
     note: row.receiptNote || "",
     is_avm_expense: row.chargeType === "avm",
     amount_cents: parseMoneyToCents(row.amount),
-    material_index: index,
+    material_index: row.materialIndex,
   }));
+};
+
+
+const buildAttachmentIndex = (
+  list: AttachmentSummary[],
+): Record<string, number[]> => {
+  const map: Record<string, number[]> = {};
+
+  for (const att of list) {
+    const key = `${att.submission_id}-${att.material_index}`;
+    if (!map[key]) map[key] = [];
+    map[key].push(att.id);
+  }
+
+  return map;
 };
 
 
@@ -140,8 +211,8 @@ const patchSubmission = async (
   console.groupEnd();
 
   const res = await fetch(
-    // `http://localhost:8080/maintenance/submissions/${submissionId}`,
     `/api/maintenance/submissions/${submissionId}`,
+    // `/api/maintenance/submissions/${submissionId}`,
     {
       method: "PATCH",
       headers: {
@@ -191,6 +262,31 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
+
+const formatVendorName = (raw: string): string => {
+  if (!raw) return "";
+
+  return raw
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const expenseTypeToChargeType = (
+  expenseType?: string,
+): "personal" | "avm" | "client" => {
+  switch (expenseType) {
+    case "avm-expense":
+      return "avm";
+    case "client-expense":
+      return "client";
+    case "personal-expense":
+    default:
+      return "personal";
+  }
+};
+
+
 // const parseDueDate = (dateStr: string | undefined): Date | null => {
 //   if (!dateStr) return null;
 
@@ -230,8 +326,8 @@ const parseDueDate = (dateStr: string | undefined): Date | null => {
 
 const approveSubmission = async (submissionId: number) => {
   const res = await fetch(
-    // `http://localhost:8080/maintenance/submissions/${submissionId}/approve`,
     `/api/maintenance/submissions/${submissionId}/approve`,
+    // `/api/maintenance/submissions/${submissionId}/approve`,
     {
       method: "POST",
       headers: {
@@ -248,8 +344,8 @@ const approveSubmission = async (submissionId: number) => {
 
 const rejectSubmission = async (submissionId: number) => {
   const res = await fetch(
-    // `http://localhost:8080/maintenance/submissions/${submissionId}/reject`,
     `/api/maintenance/submissions/${submissionId}/reject`,
+    // `/api/maintenance/submissions/${submissionId}/reject`,
     {
       method: "POST",
       headers: {
@@ -300,7 +396,13 @@ export default function ApproveFTOPage() {
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false); // Default: PDF viewer collapsed
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
   const [assigneeById, setAssigneeById] = useState<Record<number, string>>({});
+  const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
+  // const [attachmentsByKey, setAttachmentsByKey] = useState<Record<string, AttachmentSummary[]>>({});
 
+
+
+  // const makeAttachmentKey = (submissionId: number, materialIndex: number) =>
+  //   `${submissionId}-${materialIndex}`;
 
   useEffect(() => {
     async function loadAssignees() {
@@ -338,15 +440,21 @@ export default function ApproveFTOPage() {
     const loadSubmissions = async () => {
       try {
         setIsLoadingSubmissions(true);
-        const submissions = await fetchSubmissionsByFto(ftoId);
-
-        if (!Array.isArray(submissions) || submissions.length === 0) {
+        const submissions = await fetchSubmissionsByFto(ftoIdNum);
+        const attachments = await fetchAttachmentsByFto(ftoIdNum);
+        const attachmentIndex = buildAttachmentIndex(attachments);
+        // 🚨 HANDLE null / empty explicitly
+        if (!submissions || !Array.isArray(submissions) || submissions.length === 0) {
+          setHasNoSubmissions(true);
           setHourRows([]);
           setExpenseRows([]);
           setIsLoadingSubmissions(false);
           return;
         }
-        
+
+        // otherwise, submissions exist
+        setHasNoSubmissions(false);
+                
 
         // Flatten all hour lines from all submissions into HourRow[]
         const allHourLines: HourRow[] = [];
@@ -374,20 +482,30 @@ export default function ApproveFTOPage() {
             try {
               const decodedJson = atob(submission.MaterialsJSON);
               const expenses: ExpenseLine[] = JSON.parse(decodedJson);
+
               expenses.forEach((expense, index) => {
+                const key = `${submission.ID}-${index}`;
+              
                 allExpenseLines.push({
                   id: `expense-${submission.ID}-${index}`,
+                  submissionId: submission.ID,
+                  materialIndex: index,
+              
+                  attachmentIds: attachmentIndex[key] ?? [],
+              
                   date: formatDate(new Date(expense.date_of_work)),
-                  vendor: expense.vendor_name,
+                  vendor: formatVendorName(expense.vendor_name),
                   receiptNote: expense.note || "",
                   avmExpense: expense.is_avm_expense,
-                  chargeType: expense.is_avm_expense ? "avm" : "personal",
+                  chargeType: expenseTypeToChargeType(expense.expense_type),
                   amount: `$${(expense.amount_cents / 100).toFixed(2)}`,
-                  upcharge: "$0", // Will be populated by user
-                  assignee: assigneeById[submission.FieldTeamMemberID] || "", // Default assignee
+                  upcharge: "$0",
+                  assignee: assigneeById[submission.FieldTeamMemberID] || "",
                   assigneeId: submission.FieldTeamMemberID,
                 });
               });
+              
+              
             } catch (e) {
               console.warn("Failed to decode MaterialsJSON:", e);
             }
@@ -407,6 +525,31 @@ export default function ApproveFTOPage() {
 
     loadSubmissions();
   }, [ftoId]);
+
+  // useEffect(() => {
+  //   const loadAttachments = async () => {
+  //     if (!ftoIdNum) return;
+  
+  //     try {
+  //       const list = await fetchAttachmentsByFto(ftoIdNum);
+  
+  //       const map: Record<string, AttachmentSummary[]> = {};
+  //       for (const att of list) {
+  //         const key = makeAttachmentKey(att.submission_id, att.material_index);
+  //         if (!map[key]) map[key] = [];
+  //         map[key].push(att);
+  //       }
+  
+  //       setAttachmentsByKey(map);
+  //     } catch (err) {
+  //       console.error("Failed to load attachments by FTO:", err);
+  //       setAttachmentsByKey({});
+  //     }
+  //   };
+  
+  //   loadAttachments();
+  // }, [ftoIdNum]);
+  
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
@@ -466,6 +609,9 @@ export default function ApproveFTOPage() {
         upcharge: "$0",
         assignee: "",
         assigneeId: 0,
+        submissionId: 0,
+        materialIndex: 0,
+        attachmentIds: [],
       },
     ]);
   };
@@ -609,6 +755,23 @@ export default function ApproveFTOPage() {
     }
     return !(value && String(value).trim());
   };
+
+  const handleViewExpenseAttachments = (row: ExpenseRow) => {
+    if (!row.attachmentIds || row.attachmentIds.length === 0) {
+      alert("No attachments for this expense");
+      return;
+    }
+  
+    const attachmentId = row.attachmentIds[0];
+  
+    pdfViewer.openPdf(
+      `/api/maintenance/attachments/${attachmentId}`,
+      "Receipt"
+    );
+  };
+  
+  
+  
 
   return (
     <div
@@ -861,6 +1024,43 @@ export default function ApproveFTOPage() {
           }}
         >
           <div style={{ minWidth: "100%" }}>
+          {hasNoSubmissions && (
+            <div
+              className="
+                mb-8
+                rounded-lg
+                border border-amber-300
+                bg-amber-50
+                px-4 py-3
+                text-sm
+                text-amber-900
+                flex items-start gap-2
+              "
+            >
+              <svg
+                className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.451 11.478c.75 1.334-.213 2.99-1.742 2.99H3.548c-1.53 0-2.492-1.656-1.743-2.99L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V7a.75.75 0 011.5 0v4.25A.75.75 0 0110 12z"
+                  clipRule="evenodd"
+                />
+              </svg>
+
+              <div>
+                <div className="font-medium">
+                  No submissions recorded yet
+                </div>
+                <div className="mt-1 text-amber-800">
+                  The field team hasn’t submitted any hours or expenses for this order yet.
+                  You can review the order details now and approve once submissions are added.
+                </div>
+              </div>
+            </div>
+          )}
+
               {/* FTO Details Section */}
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {/* FTO Details Header */}
@@ -1667,19 +1867,43 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Actions Cell */}
-                          <div className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
+                          <div
+                            className="flex items-center justify-center gap-2 px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{
+                              width: "80px",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
+                            }}
+                          >
+                            {/* 👁 View Attachment */}
+                            <button
+                              disabled={!row.attachmentIds || row.attachmentIds.length === 0}
+                              onClick={() => handleViewExpenseAttachments(row)}
+                              className={cn(
+                                "transition-colors",
+                                row.attachmentIds.length === 0
+                                  ? "text-gray-300 cursor-not-allowed"
+                                  : "text-[#525252] hover:text-[#303030]"
+                              )}
+                              title={
+                                row.submissionId === 0
+                                  ? "Attachments available after submission"
+                                  : "View receipt"
+                              }
+                            >
+                              <EyeIcon width={16} height={16} color="currentColor" />
+                            </button>
+
+                            {/* 🗑 Delete */}
                             <button
                               onClick={() => deleteExpenseRow(row.id)}
                               className="text-[#525252] hover:text-[#303030] transition-colors"
                               title="Delete row"
                             >
-                              <DeleteIcon
-                                width={16}
-                                height={16}
-                                color="currentColor"
-                              />
+                              <DeleteIcon width={16} height={16} color="currentColor" />
                             </button>
                           </div>
+
                         </div>
                       ))}
                     </div>
@@ -1695,6 +1919,7 @@ export default function ApproveFTOPage() {
                 </div>
               </div>
           </div>
+          
         </div>
       </div>
 

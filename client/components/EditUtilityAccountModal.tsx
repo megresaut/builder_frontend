@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { fetchJSON } from "@/api/fetchJSON";
 
 // interface EditUtilityAccountModalProps {
 //   open: boolean;
@@ -42,6 +43,13 @@ interface EditUtilityAccountModalProps {
     password: string;
   } | null;
 }
+
+
+type ProviderDTO = {
+  id: number;
+  display_name: string;
+};
+
 
 export default function EditUtilityAccountModal({
   open,
@@ -91,13 +99,17 @@ export default function EditUtilityAccountModal({
 
   const handleSave = async () => {
     const payload: {
+      provider_id?: number;
       username?: string;
       password?: string;
       active?: boolean;
       account_number?: string;
       service_address?: string;
     } = {};
-  
+    
+    if (isAddMode) {
+      payload.provider_id = providerId as number;
+    }
     // Only send fields that make sense
     payload.username = username;
     payload.account_number = accountNumber;
@@ -112,10 +124,54 @@ export default function EditUtilityAccountModal({
     await onSave(payload);
     onOpenChange(false);
   };
+
+  const [providers, setProviders] = useState<ProviderDTO[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(false);
+
+  // IMPORTANT: switch provider → providerId
+  const [providerId, setProviderId] = useState<number | "">(
+    mode === "edit" && editData ? Number(editData.provider) : ""
+  );
+
+
+  useEffect(() => {
+    let cancelled = false;
+  
+    (async () => {
+      try {
+        setLoadingProviders(true);
+        const data = await fetchJSON("/providers");
+        if (!cancelled) {
+          setProviders(data);
+        }
+      } catch (err) {
+        console.error("Failed to load providers", err);
+      } finally {
+        if (!cancelled) {
+          setLoadingProviders(false);
+        }
+      }
+    })();
+  
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  
+
+  useEffect(() => {
+    if (mode === "edit" && editData && providers.length) {
+      const match = providers.find(
+        (p) => p.display_name === editData.provider
+      );
+      if (match) setProviderId(match.id);
+    }
+  }, [providers, mode, editData]);
+  
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[694px] p-8 gap-0 rounded-2xl">
+      <DialogContent className="bg-white max-w-[694px] p-8 gap-0 rounded-2xl">
         <DialogTitle className="text-[#303030] text-2xl font-semibold leading-[1.25] mb-4">
           {title}
         </DialogTitle>
@@ -126,19 +182,30 @@ export default function EditUtilityAccountModal({
             <label className="text-[#303030] text-sm font-medium leading-[1.43]">
               Utility Provider <span className="text-red-600">*</span>
             </label>
-            <Select value={provider} onValueChange={setProvider} disabled={mode === "edit"}>
-              <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2 text-base text-[#303030] font-normal tracking-[-0.32px] leading-[1.4] data-[state=open]:text-[#303030]">
-                <SelectValue placeholder="Select Provider">
-                  {provider && provider}
-                </SelectValue>
+            <Select
+              value={providerId === "" ? "" : String(providerId)}
+              onValueChange={(val) =>
+                setProviderId(val ? Number(val) : "")
+              }
+              disabled={mode === "edit" || loadingProviders}
+            >
+              <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-2">
+                <SelectValue
+                  placeholder={
+                    loadingProviders ? "Loading providers…" : "Select Provider"
+                  }
+                />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="National Grid">National Grid</SelectItem>
-                <SelectItem value="ConEd">ConEd</SelectItem>
-                <SelectItem value="Greenwich Water">Greenwich Water</SelectItem>
-                <SelectItem value="Optium">Optium</SelectItem>
+
+              <SelectContent className="z-[1000] bg-white">
+                {providers.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.display_name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+
           </div>
           {/* Service Address */}
           <div className="flex flex-col gap-2">
@@ -146,6 +213,7 @@ export default function EditUtilityAccountModal({
               Service Address <span className="text-red-600">*</span>
             </label>
             <Input
+              autoFocus
               value={serviceAddress}
               onChange={(e) => setServiceAddress(e.target.value)}
               placeholder="Input Service Address"

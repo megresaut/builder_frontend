@@ -145,29 +145,25 @@ const prettifyImportError = (msg: string | null | undefined): string => {
 // Poll a utilities job until it is succeeded/failed or times out
 const pollJobStatus = async (
   jobId: number,
-  timeoutMs = 60000,
   intervalMs = 2000,
 ): Promise<UtilityJobStatusDTO> => {
-  const start = Date.now();
-
-  // eslint-disable-next-line no-constant-condition
   while (true) {
-    const job = await fetchJSON(
-      `/utilities/jobs/${jobId}`,
-    );
+    const job = await fetchJSON(`/utilities/jobs/${jobId}`);
 
-    if (job.status === "succeeded" || job.status === "failed") {
-      return job;
-    }
-
-    if (Date.now() - start > timeoutMs) {
-      // Timed out; return the last seen status
+    if (
+      job.status === "succeeded" ||
+      job.status === "pushed" ||
+      job.status === "skipped" ||
+      job.status === "failed" ||
+      job.status === "push_failed"
+    ) {
       return job;
     }
 
     await delay(intervalMs);
   }
 };
+
 
 // Poll a batch until it's done
 const pollBatchStatus = async (
@@ -886,10 +882,8 @@ const handleBatchImport = async () => {
     setBatchImporting(true);
     setError(null);
     setBatchErrors([]);
-    setBatchId(null);
-    setBatchJobs({});
 
-    // 1) Start batch
+    // 1) Enqueue batch (job factory ONLY)
     const resp = await fetchJSON(`/utilities/import/batch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -901,162 +895,98 @@ const handleBatchImport = async () => {
       }),
     });
 
-    const id = resp.batch_id;
-    setBatchId(id);
-    setBatchJobs(resp.jobs || {});
+    // Normalize jobs into accountId → jobId map
+    const jobs: Record<number, number> = {};
 
-    Object.entries(resp.jobs as Record<string, number>).forEach(([accountIdStr, jobId]) => {
-      const accountId = Number(accountIdStr);
-      const numericJobId = Number(jobId);
-      console.log("Polling for account:", accountId, "job:", numericJobId);
-
-      pollJobStatus(numericJobId).then(job => {
-        const status = job.status;
-        console.log("Job status for account", accountId, "=", status);
-      
-        // FAILED STATES
-        if (status === "failed" || status === "push_failed") {
-          const pretty = prettifyImportError(job.message);
-      
-          setAccountImportStatus(prev => ({
-            ...prev,
-            [accountId]: { state: "failed", message: pretty }
-          }));
-      
-          setBatchErrors(prev => [
-            ...prev,
-            {
-              accountId,
-              provider: safeAccounts.find(a => a.id === accountId)?.provider_name ?? "Unknown",
-              message: pretty
-            }
-          ]);
-      
-          return;
-        }
-      
-        // NON TERMINAL → importing
-        if (status === "queued" || status === "running") {
-          setAccountImportStatus(prev => ({
-            ...prev,
-            [accountId]: { state: "importing" }
-          }));
-          return;
-        }
-      
-        // SUCCESS STATES → imported
-        if (status === "succeeded" || status === "pushed" || status === "skipped") {
-          setAccountImportStatus(prev => ({
-            ...prev,
-            [accountId]: { state: "imported" }
-          }));
-          return;
-        }
-      });
-      
-      
-    });
-    
-
-    // Mark all accounts as importing
-    Object.keys(resp.jobs).forEach((acctIdStr) => {
-      const acctId = Number(acctIdStr);
-      setAccountImportStatus((prev) => ({
-        ...prev,
-        [acctId]: { state: "importing" }
-      }));
-    });
-
-    // 2) Poll batch
-    await pollBatchStatus(id);
-
-    // 3) Collect failures
-    const failures: {
-      accountId: number;
-      provider: string;
-      message: string;
-    }[] = [];
-
-    for (const [accountIdStr, jobId] of Object.entries(resp.jobs || {})) {
-      const accountId = Number(accountIdStr);
-      const jobStatus = await fetchJSON(`/utilities/jobs/${jobId}`);
-    
-      // FAILED
-      if (jobStatus.status === "failed") {
-        const pretty = prettifyImportError(jobStatus.message);
-    
-        setAccountImportStatus(prev => ({
-          ...prev,
-          [accountId]: { state: "failed", message: pretty },
-        }));
-    
-        failures.push({
-          accountId,
-          provider: safeAccounts.find((a: any) => a.id === accountId)?.provider_name || "Unknown",
-          message: pretty,
-        });
-    
-        continue;
+    if (Array.isArray(resp.jobs)) {
+      for (const j of resp.jobs) {
+        jobs[j.account_id] = j.job_id;
       }
-    
-      // SUCCESS
+    } else {
+      Object.entries(resp.jobs).forEach(([k, v]) => {
+        jobs[Number(k)] = Number(v);
+      });
+    }
+
+    let remaining = Object.keys(jobs).length;
+
+    Object.entries(jobs).forEach(([accountIdStr, jobId]) => {
+      const accountId = Number(accountIdStr);
+
+      // optimistic UI
       setAccountImportStatus(prev => ({
         ...prev,
-        [accountId]: { state: "imported" },
+        [accountId]: { state: "importing" },
       }));
-    }
-    
 
-    setBatchErrors(failures);
+      // persist for reload safety
+      const stored = loadStoredJobs();
+      stored[accountId] = {
+        jobId,
+        startedAt: Date.now(),
+      };
+      saveStoredJobs(stored);
 
-    // 4) Refresh
-    if (propertyId) {
-      await queryClient.invalidateQueries({
-        queryKey: ["utility-bills", propertyId],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["utility-accounts", propertyId],
-      });
-    }
+      // 🔁 poll the SAME endpoint as single import
+      pollJobStatus(jobId)
+        .then(job => {
+          if (job.status === "failed" || job.status === "push_failed") {
+            const pretty = prettifyImportError(job.message);
 
-    // failures.forEach(f => {
-    //   setAccountImportStatus(prev => ({
-    //     ...prev,
-    //     [f.accountId]: { state: "failed", message: f.message }
-    //   }));
-    // });
-    
-    // // success statuses
-    // Object.keys(resp.jobs).forEach(accountIdStr => {
-    //   const accountId = Number(accountIdStr);
-    //   if (!failures.find(f => f.accountId === accountId)) {
-    //     setAccountImportStatus(prev => ({
-    //       ...prev,
-    //       [accountId]: { state: "imported" }
-    //     }));
-    //   }
-    // });
-    
-    if (failures.length > 0) {
-      setError(`Some accounts failed (${failures.length}). See details in the table.`);
-    } else {
-      setError(null);
-    }
-    
+            setAccountImportStatus(prev => ({
+              ...prev,
+              [accountId]: { state: "failed", message: pretty },
+            }));
 
+            setBatchErrors(prev => [
+              ...prev,
+              {
+                accountId,
+                provider:
+                  safeAccounts.find(a => a.id === accountId)?.provider_name ??
+                  "Unknown",
+                message: pretty,
+              },
+            ]);
+          } else {
+            setAccountImportStatus(prev => ({
+              ...prev,
+              [accountId]: { state: "imported" },
+            }));
+          }
+        })
+        .finally(async () => {
+          removeStoredJob(accountId);
+          remaining -= 1;
 
+          // When ALL jobs finish → refresh once
+          if (remaining === 0) {
+            if (propertyId) {
+              await queryClient.invalidateQueries({
+                queryKey: ["utility-bills", propertyId],
+              });
+              await queryClient.invalidateQueries({
+                queryKey: ["utility-accounts", propertyId],
+              });
+            }
+
+            setBatchImporting(false);
+          }
+        });
+    });
   } catch (err: any) {
+    setBatchImporting(false);
     setError(
       err?.message && typeof err.message === "string"
         ? err.message
         : "Batch import failed unexpectedly.",
     );
-  } finally {
-    setBatchImporting(false);
   }
 };
 
-const [showCreateModal, setShowCreateModal] = useState(false);
+
+
+// const [showCreateModal, setShowCreateModal] = useState(false);
 
 // ======================================================================
 // UI ENHANCEMENTS FROM BUILDER-SYNC (ADDED BELOW, DO NOT REPLACE ANY LOGIC)
@@ -1445,8 +1375,12 @@ useEffect(() => {
               </svg>
             </button>
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-[#fbfbfb] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-100 transition-colors"
+              onClick={() => {
+                setEditingUtilityAccount(null);     // no prefill
+                setUtilityModalMode("add");         // 👈 ADD MODE
+                setIsEditUtilityModalOpen(true);
+              }}
+              className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border ..."
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -2037,7 +1971,7 @@ useEffect(() => {
                       openMenuId={openBillsMenuId}
                       setOpenMenuId={setOpenBillsMenuId}
                       onView={() => {
-                        window.open(`${API_BASE}/utilities/bills/${bill.id}`, "_blank");
+                        window.open(`${API_BASE}/utilities/pdf/bills/${bill.id}`, "_blank");
                       }}
                     />
                   </td>
@@ -2225,7 +2159,7 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      {showCreateModal && propertyId && (
+      {/* {showCreateModal && propertyId && (
         <CreateAccountModal
           propertyId={Number(propertyId)}
           propertyAddress={propertyAddress}
@@ -2237,7 +2171,7 @@ useEffect(() => {
             setShowCreateModal(false);
           }}
         />
-      )}
+      )} */}
 
       {/* Bills Page Size Dropdown (UI enhancement from builder-sync) */}
       {showBillsPageSizeDropdown &&

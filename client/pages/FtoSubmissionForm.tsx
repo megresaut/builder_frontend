@@ -28,6 +28,10 @@ import {
 } from "@/data/fto/properties";
 import { VENDORS } from "@/data/fto/vendors";
 import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
+import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
+
+
 interface HourEntry {
   id: string;
   isExpanded: boolean;
@@ -319,6 +323,7 @@ export default function FtoSubmissionForm() {
 
   const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
   const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (didApplyPrefillRef.current) return;
@@ -593,7 +598,7 @@ export default function FtoSubmissionForm() {
   
       const params = new URLSearchParams({
         property_id: String(Number(propertyId)),
-        field_team_member_id: "2",
+        field_team_member_id: String(userId),
         status: "dispatched",
       });
   
@@ -786,7 +791,7 @@ export default function FtoSubmissionForm() {
 
 
   const submitDailyWork = async () => {
-    const techId = 2; // TODO: replace with auth user
+    const techId = userId; // TODO: replace with auth user
   
     const hours = hourEntries.map((h) => ({
       fto_id: Number(h.taskId), // taskId === FTO id (by design)
@@ -814,6 +819,8 @@ export default function FtoSubmissionForm() {
       amount: Number(e.amount),
       is_avm_expense: false,
       note: e.note,
+      expense_type: e.chargeType,        // string | null
+      vendor_name: e.vendorId,           // string | null (id or custom input)
       attachments: e.files
         .filter((f) => f.storage_path)
         .map((f) => ({
@@ -1429,48 +1436,56 @@ export default function FtoSubmissionForm() {
                           label="Attachments"
                           files={entry.files}
 
-                          onFilesAdded={
-                            isApproved
-                              ? undefined
-                              : async (newFiles) => {
-                                  const uploadedFiles = await Promise.all(
-                                    newFiles.map(async (file) => {
-                                      try {
-                                        const formData = new FormData();
-                                        formData.append("file", file.file!);
-
-                                        const res = await fetch(
-                                          "/api/vendors/bills/upload-pdf",  
-                                          {
-                                            method: "POST",
-                                            credentials: "include",
-                                            body: formData,
-                                          }
-                                        );
-
-                                        if (!res.ok) throw new Error("Upload failed");
-
-                                        const data = await res.json();
-
-                                        return {
-                                          ...file,
-                                          uploading: false,
-                                          storage_path: data.pdf_object_key,
-                                          sha256: data.sha256_pdf,
-                                        };
-                                      } catch {
-                                        return { ...file, error: "Upload failed" };
-                                      }
-                                    })
-                                  );
-
-                                  updateExpenseEntry(entry.id, "files", [
-                                    ...entry.files,
-                                    ...uploadedFiles,
-                                  ]);
+                          onFilesAdded={async (newFiles) => {
+                            const uploadedFiles = await Promise.all(
+                              newFiles.map(async (item) => {
+                                if (!item.file) {
+                                  return { ...item, error: "Missing file" };
                                 }
-                          }
-
+                          
+                                try {
+                                  const pdfFile = await convertFiletoPdf(item.file);
+                                  console.log("pdfFile size", pdfFile.size, "type", pdfFile.type);
+                          
+                                  const formData = new FormData();
+                                  formData.append("file", pdfFile, pdfFile.name);
+                          
+                                  const res = await fetch(
+                                    "/api/vendors/bills/upload-pdf",
+                                    {
+                                      method: "POST",
+                                      credentials: "include",
+                                      body: formData,
+                                    }
+                                  );
+                          
+                                  if (!res.ok) {
+                                    throw new Error(`Upload failed (${res.status})`);
+                                  }
+                          
+                                  const data = await res.json();
+                          
+                                  return {
+                                    ...item,
+                                    name: pdfFile.name,
+                                    file: pdfFile,
+                                    uploading: false,
+                                    storage_path: data.pdf_object_key,
+                                    sha256: data.sha256_pdf,
+                                  };
+                                } catch (err) {
+                                  console.error("Upload error:", err);
+                                  return { ...item, error: "Upload failed" };
+                                }
+                              })
+                            );
+                          
+                            updateExpenseEntry(entry.id, "files", [
+                              ...entry.files,
+                              ...uploadedFiles,
+                            ]);
+                          }}
+                          
                           onFileRemoved={
                             isApproved
                               ? undefined
@@ -1483,19 +1498,19 @@ export default function FtoSubmissionForm() {
                           }
 
                           onViewFile={(file) => {
+                            console.log(file.file.size, file.file.type);
                             if (file.file) {
-                              const reader = new FileReader();
-                              reader.onload = (e) => {
-                                setPdfViewer({
-                                  isOpen: true,
-                                  url: e.target?.result as string,
-                                  title: file.name,
-                                });
-                              };
-                              reader.readAsDataURL(file.file);
+                              const url = URL.createObjectURL(file.file);
+                            
+                              setPdfViewer({
+                                isOpen: true,
+                                url,
+                                title: file.name,
+                              });
+                            
                               return;
                             }
-
+                            
                             if (file.storage_path) {
                               (async () => {
                                 const res = await fetch(

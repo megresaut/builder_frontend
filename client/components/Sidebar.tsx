@@ -310,26 +310,26 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     leases: [],
     accounting: [{ label: "Bills", path: "/bills", sectionId: "bills" }],
     maintenance: [
-      {
-        label: "All Tasks",
-        path: "/all-tasks",
-        sectionId: "all-tasks",
-      },
-      {
-        label: "Recurring Tasks",
-        path: "/recurring-tasks",
-        sectionId: "recurring-tasks",
-      },
+      // {
+      //   label: "All Tasks",
+      //   path: "/all-tasks",
+      //   sectionId: "all-tasks",
+      // },
+      // {
+      //   label: "Recurring Tasks",
+      //   path: "/recurring-tasks",
+      //   sectionId: "recurring-tasks",
+      // },
       {
         label: "Field Team Orders",
         path: "/field-team-orders",
         sectionId: "field-team-orders",
       },
-      {
-        label: "Work Orders",
-        path: "/work-orders",
-        sectionId: "work-orders",
-      },
+      // {
+      //   label: "Work Orders",
+      //   path: "/work-orders",
+      //   sectionId: "work-orders",
+      // },
       {
         label: "Vendors",
         path: "/vendors",

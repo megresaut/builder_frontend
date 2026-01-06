@@ -14,7 +14,7 @@ import {
   PageHeader,
   type PageHeaderAction,
   type PageHeaderTab,
-} from "@/components/PageHeader";
+} from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
 
 interface Bill {
@@ -38,6 +38,8 @@ interface Bill {
   importedAt: number;   // created_at
   exportedAt?: number;  // for approved bills
   importStatus?: string;
+
+  isUtility?: boolean;
 }
 
 function generateVendorColor(name: string) {
@@ -57,12 +59,9 @@ function mapUtilityRowToBill(row: any): Bill {
 
   return {
     id: row.id,
-
     vendor: row.source_name || "—",
     vendorColor: generateVendorColor(row.source_name || ""),
-
     property: row.property_name || "—",
-
     statementDate: row.statement_date
       ? new Date(row.statement_date).toLocaleDateString("en-US", {
           month: "short",
@@ -70,7 +69,6 @@ function mapUtilityRowToBill(row: any): Bill {
           year: "numeric",
         })
       : "—",
-
     dueDate: row.due_date
       ? new Date(row.due_date).toLocaleDateString("en-US", {
           month: "short",
@@ -78,22 +76,16 @@ function mapUtilityRowToBill(row: any): Bill {
           year: "numeric",
         })
       : "—",
-
     status: row.push_status === "pushed" ? "pushed" : "push-failed",
-
     memo: row.memo || "",
-
-    // ✅ backend-derived reference number
     invoiceNumber: row.reference_number || "",
-
     amount: (row.amount_cents ?? 0) / 100,
-
     glAccount: "",
-
-    // ✅ real timestamps from backend
     importedAt: createdAtMs,
-    exportedAt:
-      row.push_status === "pushed" ? createdAtMs : undefined,
+    exportedAt: row.push_status === "pushed" ? createdAtMs : undefined,
+
+    // ⭐ this is the key
+    isUtility: Boolean(row.provider_id),
   };
 }
 
@@ -1208,6 +1200,10 @@ export default function Bills() {
                         </svg>
                       ),
                       onClick: (bill: Bill) => {
+                        if (bill.isUtility) {
+                          window.open(`/api/utilities/pdf/bills/${bill.id}`, "_blank");
+                          return;
+                        }
                         navigate(
                           `/bills/record?readOnly=true&billId=${bill.id}`,
                           {
@@ -1219,12 +1215,32 @@ export default function Bills() {
                   ]
             }
             onRowClick={(bill) => {
-              const isApproved = selectedTab === "approved";
-              const path = isApproved
-                ? `/bills/record?readOnly=true&billId=${bill.id}`
-                : `/bills/record?billId=${bill.id}`;
-              navigate(path, { state: { bill: buildBillState(bill) } });
+              // ✅ Approved bills
+              if (selectedTab === "approved") {
+                // Utility / provider-backed bills → PDF (same as View Bill)
+                if (bill.isUtility) {
+                  window.open(
+                    `/api/utilities/pdf/bills/${bill.id}`,
+                    "_blank"
+                  );
+                  return;
+                }
+            
+                // Non-utility approved bills → RecordBill (read-only)
+                navigate(
+                  `/bills/record?readOnly=true&billId=${bill.id}`,
+                  { state: { bill: buildBillState(bill) } }
+                );
+                return;
+              }
+            
+              // 📝 Draft bills → always editable RecordBill
+              navigate(
+                `/bills/record?billId=${bill.id}`,
+                { state: { bill: buildBillState(bill) } }
+              );
             }}
+            
             showColumnModal={showColumnModal}
             onShowColumnModalChange={setShowColumnModal}
           />

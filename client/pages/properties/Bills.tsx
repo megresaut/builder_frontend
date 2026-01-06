@@ -33,6 +33,9 @@ interface Bill {
   importedAt: number;
   exportedAt?: number;
   importStatus?: string;
+  pushStatus?: "pushed" | "push-failed" | string;
+  createdAt?: number; // epoch ms
+  isUtility?: boolean;
 }
 
 
@@ -79,6 +82,46 @@ function formatDate(dateStr: string | null | undefined) {
     return "";
   }
 }
+
+function getLastExportedDisplay(
+  pushStatus?: string,
+  createdAt?: number
+) {
+  if (pushStatus !== "pushed") {
+    return {
+      label: "Export failed",
+      className: "text-red-600",
+    };
+  }
+
+  if (!createdAt) {
+    return {
+      label: "—",
+      className: "text-gray-400",
+    };
+  }
+
+  return {
+    label: formatRelativeTime(createdAt),
+    className: "text-gray-900",
+  };
+}
+
+
+function parseValidTimestamp(dateStr?: string): number | undefined {
+  if (!dateStr) return undefined;
+
+  const date = new Date(dateStr);
+
+  // Invalid date
+  if (isNaN(date.getTime())) return undefined;
+
+  // 🚨 Guard against Go zero time (year 0001)
+  if (date.getUTCFullYear() < 2000) return undefined;
+
+  return date.getTime();
+}
+
 
 const ActionButton = ({
   billId,
@@ -452,25 +495,33 @@ export const Bills: React.FC<BillsProps> = ({
         const safeData = Array.isArray(data) ? data : [];
         const mapped = safeData.map((b: any) => ({
           id: b.id,
+        
           vendor: b.vendor_name || b.provider_name || b.source_name || "Unknown",
           vendorColor: pickColor(
             b.vendor_name || b.provider_name || b.source_name || "Unknown"
           ),
+        
           property: b.property_name ?? "",
+        
           statementDate: formatDate(b.statement_date),
           dueDate: formatDate(b.due_date),
-          status: (b.push_status || "pushed") as "pushed" | "push-failed",
+        
+          pushStatus: b.push_status,
+          createdAt: parseValidTimestamp(b.created_at),
+        
           memo: b.memo ?? "",
           invoiceNumber: b.invoice_number ?? "",
           amount: (b.amount_cents ?? 0) / 100,
           glAccount: "",
-          importedAt: b.created_at
-            ? new Date(b.created_at).getTime()
-            : Date.now(),
+        
+          // ⭐ ADD THIS
+          isUtility: !!b.provider_id,
         }));
+        
+        
   
-        setApprovedBillsList(mapped);     // ⭐ ONLY approved bills here
-        setDraftBillsList([]);            // ⭐ EMPTY drafts for now
+        setApprovedBillsList(mapped as Bill[]);     // ⭐ ONLY approved bills here
+        setDraftBillsList([]);    // ⭐ EMPTY drafts for now
       })
       .catch((err) => console.error("Failed to load bills:", err));
   }, [propertyId]);
@@ -1060,13 +1111,7 @@ export const Bills: React.FC<BillsProps> = ({
 
             <button
               onClick={() => {
-                const billId = Date.now();
-                if (propertyId) {
-                  // navigate(`/property/${propertyId}/bills/record?billId=${billId}`);
-                  navigate(`/bills/record?billId=${billId}`);
-                } else {
-                  navigate(`/bills/record?billId=${billId}`);
-                }
+                navigate("/bills/record");
               }}
               className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
             >
@@ -1093,7 +1138,7 @@ export const Bills: React.FC<BillsProps> = ({
         </div>
 
         {/* Bills Table Container */}
-        {selectedTab === "approved" && (
+        {selectedTab === "approved" && approvedBillsList.length !== 0 && (
           <GlobalTable
             columns={billsColumnManagement.columnOrder
               .filter((key) => key !== "status")
@@ -1119,13 +1164,25 @@ export const Bills: React.FC<BillsProps> = ({
                   </svg>
                 ),
                 onClick: (bill: Bill) => {
+                  // 🧾 Utility bill → open PDF
+                  if (bill.isUtility) {
+                    window.open(
+                      `/api/utilities/pdf/bills/${bill.id}`,
+                      "_blank"
+                    );                
+                    return;
+                  }
+                
+                  // 🧾 Vendor/manual bill → existing record view
                   const basePath = propertyId
                     ? `/property/${propertyId}/bills/record?readOnly=true`
                     : "/bills/record?readOnly=true";
+                
                   navigate(`${basePath}&billId=${bill.id}`, {
                     state: { bill: buildBillState(bill) },
                   });
                 },
+                
               },
             ]}
             renderCell={(bill: Bill, columnKey: string) => {
@@ -1151,12 +1208,18 @@ export const Bills: React.FC<BillsProps> = ({
                       {bill.dueDate}
                     </span>
                   );
-                case "exportedAt":
+                case "exportedAt": {
+                  const result = getLastExportedDisplay(
+                    bill.pushStatus,
+                    bill.createdAt
+                  );
+                
                   return (
-                    <span className="text-gray-900 font-normal text-sm">
-                      {formatRelativeTime(bill.exportedAt ?? approvedTimestamp)}
+                    <span className={cn("font-normal text-sm", result.className)}>
+                      {result.label}
                     </span>
                   );
+                }
                 case "memo":
                   return (
                     <span className="text-gray-900 font-normal text-sm truncate">
@@ -1197,6 +1260,26 @@ export const Bills: React.FC<BillsProps> = ({
             onOpenMenuIdChange={setOpenMenuId}
           />
         )}
+
+        {selectedTab === "approved" && approvedBillsList.length === 0 && (
+          <div className="w-full flex flex-col justify-center items-center py-24 gap-4 text-center">
+            <div className="text-lg font-medium text-[#303030]">
+              No bills for this property yet
+            </div>
+
+            <p className="text-sm text-gray-500 max-w-md">
+              Bills will appear here once they’ve been recorded or assigned to this property.
+            </p>
+
+            <button
+              onClick={() => navigate("/bills")}
+              className="mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-[#303030]"
+            >
+              View All Bills
+            </button>
+          </div>
+        )}
+
 
         {/* Draft Bills Empty Message */}
         {selectedTab === "drafts" && draftBillsList.length === 0 && (

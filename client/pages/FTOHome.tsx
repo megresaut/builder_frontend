@@ -26,6 +26,7 @@ import {
   EyeIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
 
 interface FieldTeamOrder {
   id: number;
@@ -73,162 +74,6 @@ interface FetchFTOsParams {
   field_team_member_id: number;
   status?: string;
 }
-
-// Mock API function that simulates GET /maintenance/ftos
-const mockFetchFTOs = async (
-  params: FetchFTOsParams,
-): Promise<APIFieldTeamOrder[]> => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  const mockData: APIFieldTeamOrder[] = [
-    {
-      id: 1,
-      name: "HVAC Inspection",
-      description: "Annual HVAC system inspection",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit A",
-      priority: "high",
-      due_date: "Dec 10, 2025",
-      form_submission_status: "none",
-      created_by: "John Smith",
-    },
-    {
-      id: 2,
-      name: "Plumbing Repair",
-      description: "Fix leaky faucet in kitchen",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit B",
-      priority: "normal",
-      due_date: "Dec 12, 2025",
-      form_submission_status: "none",
-      created_by: "Jane Doe",
-    },
-    {
-      id: 3,
-      name: "Electrical Repair",
-      description: "Replace faulty outlet",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit C",
-      priority: "normal",
-      due_date: "Dec 5, 2025",
-      form_submission_status: "submitted",
-      created_by: "John Smith",
-    },
-    {
-      id: 4,
-      name: "Window Replacement",
-      description: "Replace damaged window frame",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit D",
-      priority: "high",
-      due_date: "Dec 15, 2025",
-      form_submission_status: "none",
-      created_by: "Mike Johnson",
-    },
-    {
-      id: 5,
-      name: "Roof Inspection",
-      description: "Complete roof condition assessment",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit E",
-      priority: "high",
-      due_date: "Dec 18, 2025",
-      form_submission_status: "none",
-      created_by: "Sarah Williams",
-    },
-    {
-      id: 6,
-      name: "Door Lock Repair",
-      description: "Fix faulty front door lock mechanism",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit F",
-      priority: "normal",
-      due_date: "Dec 20, 2025",
-      form_submission_status: "none",
-      created_by: "James Brown",
-    },
-    {
-      id: 7,
-      name: "Carpet Cleaning",
-      description: "Deep clean common area carpets",
-      property_name: "22 Indian Chase Dr",
-      unit: "Common Area",
-      priority: "low",
-      due_date: "Dec 22, 2025",
-      form_submission_status: "none",
-      created_by: "Emily Davis",
-    },
-    {
-      id: 8,
-      name: "Bathroom Tile Repair",
-      description: "Replace damaged tiles in Unit B bathroom",
-      property_name: "22 Indian Chase Dr",
-      unit: "Unit B",
-      priority: "normal",
-      due_date: "Dec 25, 2025",
-      form_submission_status: "none",
-      created_by: "Michael Chen",
-    },
-  ];
-
-  // Filter by status if provided
-  if (params.status) {
-    return mockData.filter(
-      (order) => order.form_submission_status === params.status,
-    );
-  }
-
-  return mockData;
-};
-
-// Mock submission history data
-const mockSubmissionHistory: SubmissionRecord[] = [
-  {
-    id: 1,
-    name: "HVAC Inspection",
-    description: "Annual HVAC system inspection",
-    dateOfWork: "Dec 10, 2025",
-    property: "22 Indian Chase Dr",
-    unit: "Unit A",
-    createdBy: "John Smith",
-    status: "approved",
-    priority: "high",
-  },
-  {
-    id: 3,
-    name: "Electrical Repair",
-    description: "Replace faulty outlet",
-    dateOfWork: "Dec 8, 2025",
-    property: "22 Indian Chase Dr",
-    unit: "Unit C",
-    createdBy: "John Smith",
-    status: "approved",
-    priority: "normal",
-  },
-  {
-    id: 2,
-    name: "Plumbing Repair",
-    description: "Fix leaky faucet in kitchen",
-    dateOfWork: "Dec 6, 2025",
-    property: "22 Indian Chase Dr",
-    unit: "Unit B",
-    createdBy: "Jane Doe",
-    status: "rejected",
-    priority: "normal",
-  },
-  {
-    id: 5,
-    name: "Door Lock Repair",
-    description: "Fix faulty front door lock mechanism",
-    dateOfWork: "Dec 20, 2025",
-    property: "22 Indian Chase Dr",
-    unit: "Unit F",
-    createdBy: "James Brown",
-    status: "pending",
-    priority: "normal",
-  },
-];
 
 
 const getInitials = (name: string) => {
@@ -297,6 +142,7 @@ export default function FtoHome() {
   const [showFTOModal, setShowFTOModal] = useState(false);
   const [editingFTO, setEditingFTO] = useState<ViewTaskData | null>(null);
 
+
   type ViewTaskData = {
     name: string;
     description: string;
@@ -311,6 +157,8 @@ export default function FtoHome() {
   };
 
   const [viewingFTO, setViewingFTO] = useState<ViewTaskData | null>(null);
+
+  
 
   const toFtoStatus = (status: string | undefined) => {
     switch (status) {
@@ -430,8 +278,11 @@ export default function FtoHome() {
   // }, []);
 
 
+  const { userId } = useAuth();
+
   useEffect(() => {
     const fetchAll = async () => {
+      if (!userId) return;
       if (isFetchingRef.current) return; // 🔒 hard lock
       isFetchingRef.current = true;
   
@@ -440,7 +291,7 @@ export default function FtoHome() {
       try {
         // 1️⃣ Fetch OPEN FTOs FIRST
         const ftoResponse = await fetchJSON(
-          `/maintenance/ftos?field_team_member_id=2`,
+          `/maintenance/ftos?field_team_member_id=${userId}`,
         );
   
         const openFTOs = ftoResponse.filter(
@@ -451,7 +302,7 @@ export default function FtoHome() {
   
         // 2️⃣ THEN fetch submission history
         const submissionsResponse = await fetchJSON(
-          `/maintenance/submissions/all-for-tech?tech_id=2`,
+          `/maintenance/submissions/all-for-tech?tech_id=${userId}`,
         );
   
         const sorted = [...submissionsResponse].sort(
@@ -471,7 +322,7 @@ export default function FtoHome() {
     };
   
     fetchAll();
-  }, []);
+  }, [userId]);
   
 
   
