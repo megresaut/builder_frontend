@@ -11,7 +11,9 @@ import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import CreateWorkOrderModal from "@/components/CreateWorkOrderModal";
 import CreateFTOModal from "@/components/CreateFTOModal";
-
+import { useParams } from "react-router-dom";
+import { getInitials } from "@/utils/getInitials";
+import { fetchJSON } from "@/api/fetchJSON";
 interface Assignee {
   id: number;
   name: string;
@@ -67,7 +69,81 @@ interface FieldTeamOrder {
     | "rejected"
     | "approved";
   amount: number;
+  name: string;
+  pm_assignee_ids?: number[];
+  field_team_member_ids?: number[];
 }
+
+
+interface APIFTO {
+  id: number;
+  task_id: number;
+  description: string;
+  due_date: string;
+  priority: "low" | "normal" | "high";
+  status: "dispatched" | "approved" | "pending-approval";
+  amount_cents: number;
+  field_team_members: Array<{
+    id: number;
+    name: string;
+  }>;
+  name: string;
+}
+
+const transformAPIToFieldTeamOrders = (
+  rows: any[],
+  userMap: Record<number, { name: string; initials: string }>
+): FieldTeamOrder[] => {
+  return rows.map((row) => ({
+    id: row.id,
+    taskId: row.task_id ?? 0,
+    property: row.property_name ?? "",
+    description: row.description,
+    dueDate: row.due_date ? toDateOnly(row.due_date) : "",
+    priority: row.priority,
+    status: row.status,
+    timesheetStatus: "awaiting-submission",
+    amount: row.total_amount ?? 0,
+    name: row.name,
+
+    fieldTeam: (row.field_team_member_ids || [])
+    .map((id: number) => {
+      const u = userMap[id];
+      if (!u) return null;
+  
+      return {
+        name: u.name,
+        initials: u.initials,
+        color: "bg-[#2463EB]",
+      };
+    })
+    .filter(Boolean),
+  
+
+    field_team_member_ids: row.field_team_member_ids ?? [],
+    pm_assignee_ids: row.pm_assignee_ids ?? [],
+  }));
+
+};
+
+const ComingSoonPlaceholder = ({
+  title,
+  description = "This feature is under active development.",
+}: {
+  title: string;
+  description?: string;
+}) => {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[320px] gap-3 rounded-xl border border-dashed border-[#DADADA] bg-[#FAFAFA] text-center">
+      <div className="text-3xl">🚧</div>
+      <div className="text-lg font-medium text-[#09090B]">{title}</div>
+      <div className="text-sm text-[#6B7280] max-w-sm">
+        {description}
+      </div>
+    </div>
+  );
+};
+
 
 // Mock data for property-specific tables
 const mockPropertyTasks: Task[] = [
@@ -187,6 +263,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     status: "dispatched",
     timesheetStatus: getRandomTimesheetStatus(),
     amount: 420,
+    name: "Emergency Water Damage",
   },
   {
     id: 2,
@@ -201,6 +278,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     status: "approved",
     timesheetStatus: getRandomTimesheetStatus(),
     amount: 2500,
+    name: "HVAC Installation",
   },
 ];
 
@@ -208,7 +286,14 @@ interface MaintenanceProps {
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
+  propertyId: number;
 }
+
+
+const toDateOnly = (iso: string) => {
+  if (!iso) return "";
+  return iso.split("T")[0];
+};
 
 const getFTOStatusBadge = (status: string) => {
   const statusConfig: Record<string, { label: string; dotColor: string }> = {
@@ -614,6 +699,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     null,
   );
 
+  const { propertyId: propertyIdParam } = useParams();
+  const propertyId = Number(propertyIdParam);
+
+
   // State for tasks data
   const [tasksList, setTasksList] = useState<Task[]>(mockPropertyTasks);
   const [recurringTasksList, setRecurringTasksList] = useState<RecurringTask[]>(
@@ -622,9 +711,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [workOrdersList, setWorkOrdersList] = useState<WorkOrder[]>(
     mockPropertyWorkOrders,
   );
-  const [fieldTeamOrdersList, setFieldTeamOrdersList] = useState<FieldTeamOrder[]>(
-    mockPropertyFieldTeamOrders,
-  );
+  const [fieldTeamOrdersList, setFieldTeamOrdersList] = useState<FieldTeamOrder[]>([]);
+  const [fieldTeamLoading, setFieldTeamLoading] = useState(false);
+  
 
   // Column management hooks for each table
   const tasksColumnManagement = useColumnManagement([
@@ -776,6 +865,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     if (fieldteamPage < 1) setFieldteamPage(1);
   }, [fieldteamPage, fieldteamTotalPages, setFieldteamPage]);
 
+
+  
   const tasksCanGoPrev = tasksPage > 1;
   const tasksCanGoNext = tasksPage < tasksTotalPages;
   const recurringCanGoPrev = recurringPage > 1;
@@ -784,6 +875,91 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const workordersCanGoNext = workordersPage < workordersTotalPages;
   const fieldteamCanGoPrev = fieldteamPage > 1;
   const fieldteamCanGoNext = fieldteamPage < fieldteamTotalPages;
+
+  const [fieldTeamUsers, setFieldTeamUsers] = useState<
+    Record<number, { name: string; initials: string }>
+  >({});
+
+
+  const handleApproveFTO = useCallback(
+    (order: FieldTeamOrder) => {
+      navigate(`/field-team-orders/approve/${order.id}`, {
+        state: {
+          ftoName: order.name,
+          property: order.property,
+          unit: "",
+          fieldTeamAssignee: order.fieldTeam?.[0]?.name ?? "",
+          task: order.name,
+          description: order.description,
+          dueDate: order.dueDate,
+          priority: order.priority,
+        },
+      });
+    },
+    [navigate]
+  );
+
+
+  const handleDeleteFTO = useCallback(
+    async (order: FieldTeamOrder) => {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${order.name}"?\nThis cannot be undone.`
+      );
+      if (!confirmed) return;
+  
+      try {
+        const res = await fetch(
+          `/api/maintenance/ftos?id=${order.id}`,
+          {
+            method: "DELETE",
+          }
+        );
+  
+        if (!res.ok) {
+          throw new Error("Failed to delete field team order");
+        }
+  
+        // Optimistically remove from UI
+        setFieldTeamOrdersList((prev) =>
+          prev.filter((o) => o.id !== order.id)
+        );
+      } catch (err) {
+        console.error("Delete FTO failed", err);
+        alert("Failed to delete Field Team Order. Please try again.");
+      }
+    },
+    []
+  );
+  
+  useEffect(() => {
+    if (activeTab !== "fieldteam") return;
+  
+    const fetchFieldTeamOrders = async () => {
+      setFieldTeamLoading(true);
+      try {
+        const res = await fetch(
+          `/api/maintenance/ftos?property_id=${encodeURIComponent(propertyId)}`  
+        );
+  
+        if (!res.ok) {
+          throw new Error("Failed to load field team orders");
+        }
+  
+        const data: APIFTO[] = await res.json();
+  
+        const transformed = transformAPIToFieldTeamOrders(data, fieldTeamUsers);
+        console.log("Transformed FTOs:", transformed);
+        setFieldTeamOrdersList(transformed);
+      } catch (err) {
+        console.error("Failed to fetch field team orders", err);
+        setFieldTeamOrdersList([]);
+      } finally {
+        setFieldTeamLoading(false);
+      }
+    };
+  
+    fetchFieldTeamOrders();
+  }, [activeTab, propertyAddress, fieldTeamUsers]);
 
   // Modal states
   const [showApprovalModal, setShowApprovalModal] = usePageState<boolean>(
@@ -808,11 +984,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "showCreateFTOModal",
     false,
   );
-  const [editFTOData, setEditFTOData] = usePageState<{
-    dueDate: string;
-    priority: string;
-    ftoStatus?: string;
-  } | null>("editFTOData", null);
+  const [editingFTOId, setEditingFTOId] = usePageState<number | null>(
+    "editingFTOId",
+    null
+  );
 
   // Update dropdown position for tasks
   useEffect(() => {
@@ -836,6 +1011,37 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     };
   }, [tasksShowDropdown]);
 
+  useEffect(() => {
+    if (activeTab !== "fieldteam") return;
+  
+    let cancelled = false;
+  
+    async function loadFieldTeamUsers() {
+      try {
+        const data = await fetchJSON("/users/field-team");
+  
+        if (cancelled) return;
+  
+        const map: Record<number, { name: string; initials: string }> = {};
+        for (const u of data) {
+          map[Number(u.id)] = {
+            name: u.name || u.email,
+            initials: getInitials(u.name || u.email),
+          };
+        }
+  
+        setFieldTeamUsers(map);
+      } catch (err) {
+        console.error("Failed to load field team users", err);
+      }
+    }
+  
+    loadFieldTeamUsers();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
+  
   // Update dropdown position for recurring
   useEffect(() => {
     let animationFrameId: number;
@@ -946,6 +1152,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     return "bg-gray-100 text-gray-700";
   };
 
+
+  
   return (
     <div className="flex flex-col gap-6">
       {/* Navigation and Action Button */}
@@ -972,18 +1180,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         </div>
 
         {/* Add Button - Dynamic based on active tab */}
+        {activeTab === "fieldteam" && (
         <button
           onClick={() => {
-            if (activeTab === "tasks") {
-              setShowCreateTaskModal(true);
-            } else if (activeTab === "recurring") {
-              setShowCreateRecurringTaskModal(true);
-            } else if (activeTab === "workorders") {
-              setShowCreateWorkOrderModal(true);
-            } else if (activeTab === "fieldteam") {
-              setEditFTOData(null);
-              setShowCreateFTOModal(true);
-            }
+            setEditingFTOId(null);
+            setShowCreateFTOModal(true);
           }}
           className="flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg border border-white bg-[#013764] text-white font-medium text-base overflow-hidden transition-colors hover:bg-[#002D5A]"
           style={{ boxShadow: "0px 0px 0px 1px #002D5A" }}
@@ -994,555 +1195,46 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             alt=""
             className="w-5 h-5 object-contain"
           />
-          <span>
-            {activeTab === "tasks" && "Add Task"}
-            {activeTab === "recurring" && "Add Recurring Task"}
-            {activeTab === "workorders" && "Add Work Order"}
-            {activeTab === "fieldteam" && "Create FTO"}
-          </span>
+          <span>Create FTO</span>
         </button>
+      )}
+
       </div>
 
       {/* Tasks Table */}
       {activeTab === "tasks" && (
-        <GlobalTable
-          columns={[
-            { key: "priority", label: "Priority", icon: tasksColumnConfig.priority.icon },
-            { key: "status", label: "Status", icon: tasksColumnConfig.status.icon },
-            { key: "title", label: "Task", icon: tasksColumnConfig.title.icon },
-            { key: "due", label: "Due", icon: tasksColumnConfig.due.icon },
-            { key: "assignees", label: "Assignees", icon: tasksColumnConfig.assignees.icon },
-          ]}
-          data={tasksList}
-          rowKey="id"
-          actions={[
-            {
-              label: "Edit",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                    stroke="#525252"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (task: Task) => {
-                navigate(`/tasks/${task.id}`);
-              },
-            },
-            {
-              label: "Delete",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                    stroke="#982740"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (task: Task) => {
-                setTasksList((prev) => prev.filter((t) => t.id !== task.id));
-              },
-            },
-          ]}
-          renderCell={(task: Task, columnKey: string) => {
-            switch (columnKey) {
-              case "priority":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          task.priority === "High"
-                            ? "#D97706"
-                            : task.priority === "Low"
-                              ? "#059669"
-                              : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {task.priority}
-                    </span>
-                  </div>
-                );
-              case "status":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          task.status === "Completed"
-                            ? "#059669"
-                            : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {task.status}
-                    </span>
-                  </div>
-                );
-              case "title":
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {task.title}
-                  </span>
-                );
-              case "due":
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {task.due}
-                  </span>
-                );
-              case "assignees":
-                return (
-                  <div className="flex items-center gap-2">
-                    {task.assignees.map((assignee) => (
-                      <div key={assignee.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              default:
-                return null;
-            }
-          }}
-          sortingHook={{
-            handleSortClick: handleTasksSortClick,
-            getSortIndicator: getTasksSortIndicator,
-            getSortedData: getTasksSortedData,
-          }}
-          columnManagementHook={tasksColumnManagement}
-          currentPage={tasksPage}
-          onPageChange={setTasksPage}
-          itemsPerPage={tasksItemsPerPage}
-          onItemsPerPageChange={setTasksItemsPerPage}
-          showPageSizeDropdown={tasksShowDropdown}
-          onShowPageSizeDropdownChange={setTasksShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+        <ComingSoonPlaceholder
           title="Tasks"
-          showColumnModal={tasksColumnManagement.showColumnModal}
-          onShowColumnModalChange={tasksColumnManagement.setShowColumnModal}
-          headerActions={
-            <button
-              ref={tasksColumnManagement.columnButtonRef}
-              onClick={() => {
-                setTasksShowDropdown(false);
-                setOpenMenuId(null);
-                tasksColumnManagement.setShowColumnModal((prev) => !prev);
-              }}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
-            </button>
-          }
+          description="Task tracking and assignment is coming soon."
         />
       )}
+
 
       {/* Recurring Tasks Table */}
       {activeTab === "recurring" && (
-        <GlobalTable
-          columns={[
-            { key: "priority", label: "Priority", icon: recurringTasksColumnConfig.priority.icon },
-            { key: "task", label: "Task", icon: recurringTasksColumnConfig.task.icon },
-            { key: "nextDate", label: "Next Date", icon: recurringTasksColumnConfig.nextDate.icon },
-            { key: "category", label: "Category", icon: recurringTasksColumnConfig.category.icon },
-            { key: "assignees", label: "Assignees", icon: recurringTasksColumnConfig.assignees.icon },
-            { key: "status", label: "Status", icon: recurringTasksColumnConfig.status.icon },
-          ]}
-          data={recurringTasksList}
-          rowKey="id"
-          actions={[
-            {
-              label: "Edit",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                    stroke="#525252"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (task: RecurringTask) => {
-                setEditingRecurringTask(task);
-                setShowCreateRecurringTaskModal(true);
-              },
-            },
-            {
-              label: "Delete",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                    stroke="#982740"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (task: RecurringTask) => {
-                setRecurringTasksList((prev) => prev.filter((t) => t.id !== task.id));
-              },
-            },
-          ]}
-          renderCell={(task: RecurringTask, columnKey: string) => {
-            switch (columnKey) {
-              case "priority":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          task.priority === "low"
-                            ? "#059669"
-                            : task.priority === "normal"
-                              ? "#2463eb"
-                              : "#d97706",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {task.priority}
-                    </span>
-                  </div>
-                );
-              case "task":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {task.task}
-                  </span>
-                );
-              case "nextDate":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {task.nextDate}
-                  </span>
-                );
-              case "category":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {task.category}
-                  </span>
-                );
-              case "assignees":
-                return (
-                  <div className="flex items-center gap-2">
-                    {task.assignees.map((assignee) => (
-                      <div key={assignee.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              case "status":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          task.status === "active" ? "#059669" : "#999999",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {task.status}
-                    </span>
-                  </div>
-                );
-              default:
-                return null;
-            }
-          }}
-          sortingHook={{
-            handleSortClick: handleRecurringSortClick,
-            getSortIndicator: getRecurringSortIndicator,
-            getSortedData: getRecurringSortedData,
-          }}
-          columnManagementHook={recurringColumnManagement}
-          currentPage={recurringPage}
-          onPageChange={setRecurringPage}
-          itemsPerPage={recurringItemsPerPage}
-          onItemsPerPageChange={setRecurringItemsPerPage}
-          showPageSizeDropdown={recurringShowDropdown}
-          onShowPageSizeDropdownChange={setRecurringShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+        <ComingSoonPlaceholder
           title="Recurring Tasks"
-          showColumnModal={recurringColumnManagement.showColumnModal}
-          onShowColumnModalChange={recurringColumnManagement.setShowColumnModal}
-          headerActions={
-            <button
-              ref={recurringColumnManagement.columnButtonRef}
-              onClick={() => {
-                setRecurringShowDropdown(false);
-                setOpenMenuId(null);
-                recurringColumnManagement.setShowColumnModal((prev) => !prev);
-              }}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
-            </button>
-          }
+          description="Automated recurring maintenance is on the way."
         />
       )}
+
 
       {/* Work Orders Table */}
       {activeTab === "workorders" && (
-        <GlobalTable
-          columns={[
-            { key: "priority", label: "Priority", icon: workOrdersColumnConfig.priority.icon },
-            { key: "status", label: "Status", icon: workOrdersColumnConfig.status.icon },
-            { key: "task", label: "Task", icon: workOrdersColumnConfig.task.icon },
-            { key: "dueDate", label: "Due Date", icon: workOrdersColumnConfig.dueDate.icon },
-            { key: "assignees", label: "Assignees", icon: workOrdersColumnConfig.assignees.icon },
-            { key: "billStatus", label: "Bill Status", icon: workOrdersColumnConfig.billStatus.icon },
-            { key: "billTotal", label: "Bill Total", icon: workOrdersColumnConfig.billTotal.icon },
-          ]}
-          data={workOrdersList}
-          rowKey="id"
-          actions={[
-            {
-              label: "Edit",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                    stroke="#525252"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (workOrder: WorkOrder) => {
-                navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
-              },
-            },
-            {
-              label: "Delete",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                    stroke="#982740"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (workOrder: WorkOrder) => {
-                setWorkOrdersList((prev) => prev.filter((wo) => wo.id !== workOrder.id));
-              },
-            },
-          ]}
-          renderCell={(workOrder: WorkOrder, columnKey: string) => {
-            switch (columnKey) {
-              case "priority":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.priority === "low"
-                            ? "#059669"
-                            : workOrder.priority === "normal"
-                              ? "#2463eb"
-                              : "#d97706",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.priority}
-                    </span>
-                  </div>
-                );
-              case "status":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.status === "In progress" ? "#2463eb" : "#059669",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.status}
-                    </span>
-                  </div>
-                );
-              case "task":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {workOrder.task}
-                  </span>
-                );
-              case "dueDate":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {workOrder.dueDate}
-                  </span>
-                );
-              case "billStatus":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.billStatus === "Paid"
-                            ? "#059669"
-                            : workOrder.billStatus === "Unpaid"
-                              ? "#DC2626"
-                              : "#D97706",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.billStatus}
-                    </span>
-                  </div>
-                );
-              case "billTotal":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {workOrder.billTotal}
-                  </span>
-                );
-              case "assignees":
-                return (
-                  <div className="flex items-center gap-2">
-                    {workOrder.assignees.map((assignee) => (
-                      <div key={assignee.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              default:
-                return null;
-            }
-          }}
-          sortingHook={{
-            handleSortClick: handleWorkOrdersSortClick,
-            getSortIndicator: getWorkOrdersSortIndicator,
-            getSortedData: getWorkOrdersSortedData,
-          }}
-          columnManagementHook={workordersColumnManagement}
-          currentPage={workordersPage}
-          onPageChange={setWorkordersPage}
-          itemsPerPage={workordersItemsPerPage}
-          onItemsPerPageChange={setWorkordersItemsPerPage}
-          showPageSizeDropdown={workordersShowDropdown}
-          onShowPageSizeDropdownChange={setWorkordersShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+        <ComingSoonPlaceholder
           title="Work Orders"
-          showColumnModal={workordersColumnManagement.showColumnModal}
-          onShowColumnModalChange={workordersColumnManagement.setShowColumnModal}
-          headerActions={
-            <button
-              ref={workordersColumnManagement.columnButtonRef}
-              onClick={() => {
-                setWorkordersShowDropdown(false);
-                setOpenMenuId(null);
-                workordersColumnManagement.setShowColumnModal((prev) => !prev);
-              }}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
-            </button>
-          }
+          description="Work order management is under active development."
         />
       )}
 
+
       {/* Field Team Orders Table */}
       {activeTab === "fieldteam" && (
+        fieldTeamLoading ? (
+          <div className="flex items-center justify-center py-12 text-gray-500">
+            Loading field team orders…
+          </div>
+        ) : (
         <GlobalTable
           columns={[
             { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
@@ -1576,8 +1268,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </svg>
               ),
               onClick: (order: FieldTeamOrder) => {
-                setSelectedFTOId(order.id);
-                setShowApprovalModal(true);
+                handleApproveFTO(order);
               },
             },
             {
@@ -1600,13 +1291,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 </svg>
               ),
               onClick: (order: FieldTeamOrder) => {
-                setEditFTOData({
-                  dueDate: order.dueDate,
-                  priority: "normal",
-                  ftoStatus: order.status,
-                });
+                setEditingFTOId(order.id);
                 setShowCreateFTOModal(true);
-              },
+              },              
             },
             {
               label: "Delete",
@@ -1627,10 +1314,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   />
                 </svg>
               ),
-              onClick: (order: FieldTeamOrder) => {
-                setFieldTeamOrdersList((prev) => prev.filter((o) => o.id !== order.id));
-              },
+              onClick: handleDeleteFTO,
             },
+            
           ]}
           renderCell={(order: FieldTeamOrder, columnKey: string) => {
             switch (columnKey) {
@@ -1662,9 +1348,15 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               case "dueDate":
                 return (
                   <span className="text-gray-900 font-normal text-sm">
-                    {order.dueDate}
+                    {order.dueDate
+                      ? new Date(order.dueDate + "T00:00:00").toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "—"}
                   </span>
-                );
+                );   
               case "fieldTeam":
                 return (
                   <div className="flex items-center gap-2">
@@ -1735,35 +1427,15 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </button>
           }
         />
+        )
       )}
 
-      {/* FTO Approval Modal */}
-      <FTOApprovalModal
-        open={showApprovalModal}
-        onOpenChange={(open) => {
-          setShowApprovalModal(open);
-          if (!open) {
-            setSelectedFTOId(null);
-          }
-        }}
-        editingOrder={mockPropertyFieldTeamOrders.find(
-          (o) => o.id === selectedFTOId,
-        )}
-        property={
-          mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)
-            ?.property
-        }
-        fieldTeamAssignee={
-          mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)
-            ?.fieldTeam[0]?.name
-        }
-      />
 
       {/* Create Task Modal */}
-      <CreateTaskModal
+      {/* <CreateTaskModal
         open={showCreateTaskModal}
         onOpenChange={setShowCreateTaskModal}
-      />
+      /> */}
 
       {/* Create Recurring Task Modal */}
       <CreateRecurringTaskModal
@@ -1798,11 +1470,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         onOpenChange={(open) => {
           setShowCreateFTOModal(open);
           if (!open) {
-            setEditFTOData(null);
+            setEditingFTOId(null);
           }
         }}
-        editData={editFTOData || undefined}
+        editingFTO={
+          editingFTOId
+            ? fieldTeamOrdersList.find((o) => o.id === editingFTOId) ?? null
+            : null
+        }
       />
+
 
       {/* Tasks Column Filter Modal */}
       <ColumnFilterModal

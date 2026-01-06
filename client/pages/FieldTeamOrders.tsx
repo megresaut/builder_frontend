@@ -32,7 +32,14 @@ interface FieldTeamOrder {
   description: string;
   dueDate: string;
   priority: "low" | "normal" | "high";
-  fieldTeam: Array<{ initials: string; color: string; name: string }>;
+  fieldTeam: Array<{
+    id: number;
+    initials: string;
+    name: string;
+    color: string;
+  }>;
+  
+  field_team_member_ids: number[];
   status: "dispatched" | "approved" | "pending-approval";
   timesheetStatus:
     | "awaiting-submission"
@@ -386,11 +393,12 @@ const transformAPIToFieldTeamOrder = (
       fieldTeam: fto.field_team_member_ids.map((id) => {
         const user = usersById[id];
         return {
+          id, // 👈 ADD THIS
           initials: user ? getInitials(user.name) : "?",
           name: user ? user.name : "Unknown User",
           color: "bg-blue-500",
         };
-      }),      
+      }),
       status: normalizeFTOStatus(fto.status) as
         | "dispatched"
         | "approved"
@@ -398,6 +406,7 @@ const transformAPIToFieldTeamOrder = (
       timesheetStatus,
       amount: fto.total_amount,
       unit: "Unit",
+      field_team_member_ids: fto.field_team_member_ids ?? [],
     };
   });
 };
@@ -585,14 +594,19 @@ export default function FieldTeamOrders() {
     []
   );
 
+
+  const openEditFTO = useCallback((order: FieldTeamOrder) => {
+    setEditingFTOId(order.id);
+    setShowFTOModal(true);
+  }, []);
+  
+
   const handleEditOrder = useCallback(
     (order: FieldTeamOrder) => {
-      setEditingFTOId(order.id);
-      setShowFTOModal(true);
+      openEditFTO(order);
     },
-    []
+    [openEditFTO]
   );
-  
 
 
   const handleApproveOrder = useCallback(
@@ -782,7 +796,7 @@ export default function FieldTeamOrders() {
                 },
               ]}
               onRowClick={(order) => {
-                navigate(`/tasks/${order.taskId}/fieldteam`);
+                openEditFTO(order);
               }}
               showColumnModal={showColumnModal}
               onShowColumnModalChange={setShowColumnModal}

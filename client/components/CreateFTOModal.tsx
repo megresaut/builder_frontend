@@ -20,6 +20,7 @@ import {
   getDay,
 } from "date-fns";
 import { fetchJSON } from "../api/fetchJSON"; // same helper used in FTOModal
+import { getInitials } from "../utils/getInitials";
 
 interface CreateFTOModalProps {
   open: boolean;
@@ -95,6 +96,10 @@ export default function CreateFTOModal({
   const [showPmDropdown, setShowPmDropdown] = useState(false);
   const [pmDropdownPos, setPmDropdownPos] = useState({ top: 0, left: 0 });
   const pmButtonRef = useRef<HTMLButtonElement>(null);
+
+  const [propertySearch, setPropertySearch] = useState("");
+
+  
 
   // --------- LOAD DROPDOWN OPTIONS (tasks + properties) ----------
   useEffect(() => {
@@ -226,7 +231,7 @@ export default function CreateFTOModal({
         const mapped = data.map((u: any) => ({
           id: Number(u.id),
           name: u.name || u.email,
-          initials: (u.name || u.email).slice(0, 2).toUpperCase(),
+          initials: getInitials(u.name || u.email),
         }));
   
         setAvailableAssignees(mapped);
@@ -249,7 +254,7 @@ export default function CreateFTOModal({
         const mapped = data.map((u: any) => ({
           id: Number(u.id),
           name: u.name || u.email,
-          initials: (u.name || u.email).slice(0, 2).toUpperCase(),
+          initials: getInitials(u.name || u.email),
         }));
   
         setPmAssignees(mapped);
@@ -348,32 +353,47 @@ export default function CreateFTOModal({
     setDescription(editingFTO.description ?? "");
     setPriority(editingFTO.priority ?? "normal");
   
-    setDueDate(editingFTO.dueDate ?? "");
-    setSelectedDate(
-      editingFTO.dueDate ? new Date(editingFTO.dueDate) : null
-    );
+    // setDueDate(editingFTO.dueDate ?? "");
+    // setSelectedDate(
+    //   editingFTO.dueDate ? new Date(editingFTO.dueDate) : null
+    // );
+
+      // ✅ FIX: convert YYYY-MM-DD → MM/DD/YYYY
+    if (editingFTO.dueDate) {
+      const parsed = parse(editingFTO.dueDate, "yyyy-MM-dd", new Date());
+      if (isValid(parsed)) {
+        setDueDate(format(parsed, "MM/dd/yyyy"));
+        setSelectedDate(parsed);
+        setCalendarMonth(parsed);
+      }
+    }
   
     setStatus(editingFTO.status ?? "new");
   
     // 🚨 DO NOT touch assignees here unless hydrated data exists
-    if (editingFTO.fieldTeam?.length) {
-      setSelectedAssignees(editingFTO.fieldTeam);
-    }
+    // if (editingFTO.fieldTeam?.length) {
+    //   setSelectedAssignees(editingFTO.fieldTeam);
+    // }
   
   }, [open, editingFTO]);
 
-  
   useEffect(() => {
-  if (!open || !editingFTO) return;
-  if (!editingFTO.field_team_member_ids?.length) return;
-  if (availableAssignees.length === 0) return;
-
-  const hydrated = availableAssignees.filter(a =>
-    editingFTO.field_team_member_ids.includes(a.id)
-  );
-
-  setSelectedAssignees(hydrated);
-}, [open, editingFTO, availableAssignees]);
+    if (!open) return;
+    if (!editingFTO) return;
+    if (!Array.isArray(editingFTO.field_team_member_ids)) return;
+    if (availableAssignees.length === 0) return;
+  
+    const hydrated = availableAssignees.filter(a =>
+      editingFTO.field_team_member_ids.includes(a.id)
+    );
+  
+    setSelectedAssignees(hydrated);
+  }, [
+    open,
+    editingFTO?.id,              // 👈 important: rerun when switching FTOs
+    availableAssignees.length,   // 👈 guarantees re-run after fetch
+  ]);
+  
   
   
   // --- helpers mimicking old FTOModal date logic ---
@@ -678,23 +698,59 @@ export default function CreateFTOModal({
                       <SelectValue placeholder="Select Property" />
                     </SelectTrigger>
                     <SelectContent
-                        className="
-                          z-[100000]
-                          bg-white
-                          border border-[#e5e5e5]
-                          rounded-lg
-                          shadow-lg
-                          min-w-[var(--radix-select-trigger-width)]
-                          max-h-[280px]
-                          overflow-y-auto
-                        "
+                      side="bottom"
+                      align="start"
+                      sideOffset={4}
+                      avoidCollisions={false}
+                      className="
+                        z-[100000]
+                        bg-white
+                        border border-[#e5e5e5]
+                        rounded-lg
+                        shadow-lg
+                        w-[var(--radix-select-trigger-width)]
+                        max-w-[var(--radix-select-trigger-width)]
+                        max-h-[320px]
+                        overflow-y-auto
+                        [scrollbar-gutter:stable]
+                        box-border
+                      "
                     >
-                        {properties.map((p) => (
+                      {/* 🔍 Search input */}
+                      <div className="p-2 sticky top-0 bg-white z-10 border-b border-[#e5e5e5]">
+                        <Input
+                          placeholder="Search properties..."
+                          value={propertySearch}
+                          onChange={(e) => setPropertySearch(e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+
+                      {/* Filtered results */}
+                      {properties
+                        .filter((p) =>
+                          renderPropertyLabel(p)
+                            .toLowerCase()
+                            .includes(propertySearch.toLowerCase())
+                        )
+                        .map((p) => (
                           <SelectItem key={p.id} value={String(p.id)}>
                             {renderPropertyLabel(p)}
                           </SelectItem>
                         ))}
+
+                      {/* Empty state */}
+                      {properties.filter((p) =>
+                        renderPropertyLabel(p)
+                          .toLowerCase()
+                          .includes(propertySearch.toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No properties found
+                        </div>
+                      )}
                     </SelectContent>
+
                   </Select>
                 )}
             </div>

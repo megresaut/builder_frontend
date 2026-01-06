@@ -152,6 +152,25 @@ export const Vendors: React.FC<VendorsProps> = ({
   };
 
 
+  const ComingSoonPlaceholder = ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[360px] gap-3 rounded-xl border border-dashed border-[#DADADA] bg-[#FAFAFA] text-center">
+        <div className="text-3xl">🚧</div>
+        <div className="text-lg font-medium text-[#09090B]">{title}</div>
+        <div className="text-sm text-[#6B7280] max-w-md">
+          {description}
+        </div>
+      </div>
+    );
+  };
+  
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header Section */}
@@ -185,7 +204,7 @@ export const Vendors: React.FC<VendorsProps> = ({
         </div>
       </div>
 
-      <GlobalTable
+      {/* <GlobalTable
         columns={[
           { key: "name", label: "Name", icon: columnConfig.name.icon },
           { key: "phone", label: "Phone", icon: columnConfig.phone.icon },
@@ -323,6 +342,12 @@ export const Vendors: React.FC<VendorsProps> = ({
             </svg>
           </button>
         }
+      /> */}
+
+
+      <ComingSoonPlaceholder
+        title="Vendor Management Coming Soon"
+        description="Vendor records, assignments, and property-level service tracking are currently under development."
       />
 
       {/* Add Vendor Modal */}

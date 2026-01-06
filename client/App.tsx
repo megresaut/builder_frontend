@@ -45,10 +45,28 @@ interface TabMetadata {
 }
 
 // Simple auth gate (unchanged behavior)
-const RequireAuth = ({ children }: { children: React.ReactNode }) => {
+const RequireAuth = ({
+  children,
+  allowedRoles,
+}: {
+  children: React.ReactNode;
+  allowedRoles?: string[];
+}) => {
   const token = localStorage.getItem("avm_token");
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  const role = localStorage.getItem("avm_role");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(role || "")) {
+    // Logged in but wrong role
+    return <Navigate to="/all-properties" replace />;
+  }
+
+  return <>{children}</>;
 };
+
 
 export default function App() {
   const [selectedTab, setSelectedTab] = useState<string>("properties");
@@ -316,13 +334,14 @@ export default function App() {
                 <Route
                   path="/fto"
                   element={
-                    <RequireAuth>
+                    <RequireAuth allowedRoles={["field_team_member"]}>
                       <FtoShellLayout>
                         <FTOHome />
                       </FtoShellLayout>
                     </RequireAuth>
                   }
                 />
+
 
                 <Route
                   path="/fto/submission"

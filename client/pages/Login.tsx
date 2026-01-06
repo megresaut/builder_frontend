@@ -2,6 +2,17 @@ import { loginRequest } from "@/api/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
+export function decodeJwt(token: string): any {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+
 export const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -51,9 +62,29 @@ export const Login = () => {
       // Save token
       localStorage.setItem("avm_token", result.token);
       localStorage.setItem("avm_role", result.role);
+
+      // ✅ extract user id from token
+      const decoded = decodeJwt(result.token);
+
+      const userId =
+        decoded?.user_id ??
+        decoded?.id ??
+        decoded?.sub;
+
+      if (!userId) {
+        throw new Error("No user id found in token");
+      }
+
+      localStorage.setItem("avm_user_id", String(userId));
+      console.log("USER ID:", localStorage.getItem("avm_user_id"));
   
       // Navigate to main app
-      navigate("/all-properties");
+      if (result.role === "field_team_member") {
+        navigate("/fto", { replace: true });
+      } else {
+        navigate("/all-properties", { replace: true });
+      }
+      console.log("LOGIN RESULT:", result);
     } catch (err: any) {
       setErrors({ password: "Invalid email or password" });
     } finally {
