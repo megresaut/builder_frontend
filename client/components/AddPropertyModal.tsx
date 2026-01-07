@@ -134,7 +134,7 @@ export default function AddPropertyModal({
   const [zipCode, setZipCode] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [selectedManagers, setSelectedManagers] = useState<Manager[]>([]);
-  const [rentalOwner, setRentalOwner] = useState("");
+  const [rentalOwners, setRentalOwners] = useState<string[]>([]);
   const [hourlyRate, setHourlyRate] = useState(0);
   const [emergencyHourlyRate, setEmergencyHourlyRate] = useState(0);
   const [managementFee, setManagementFee] = useState(0);
