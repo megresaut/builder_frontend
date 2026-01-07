@@ -406,6 +406,8 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                   ? "#303030"
                   : "var(--color-text-primary)",
                 fontSize: "14px",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
               }}
             >
               {displayLabel}
