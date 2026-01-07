@@ -348,14 +348,14 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls="select-listbox"
-        className={`w-full rounded-lg border bg-white text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`w-full rounded-lg bg-white text-sm font-normal transition-colors flex items-center justify-between cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
           compact ? "px-3 py-0" : "px-3 py-2"
         } ${
           error
-            ? "border-red-600"
+            ? "border-2 border-red-500"
             : open
-              ? "border-black"
-              : "border-[var(--color-border-light)]"
+              ? "border-2 border-black"
+              : "border border-[var(--color-border-light)]"
         }`}
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
