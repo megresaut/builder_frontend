@@ -155,8 +155,8 @@ export default function CreateFTOModal({
     if (!dueDate) {
       newErrors.dueDate = "Due Date is required";
     }
-    if (selectedFieldTeamMembers.length === 0) {
-      newErrors.selectedFieldTeamMembers = "Field Team Members is required";
+    if (!description.trim()) {
+      newErrors.description = "Description is required";
     }
     if (!ftoStatus.trim()) {
       newErrors.ftoStatus = "Status is required";
