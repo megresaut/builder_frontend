@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
-import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { ModalTemplate, ModalButtons, FieldRow, FieldRowItem } from "@/components/ui/ModalTemplate";
 import {
   TextField,
   SelectField,
@@ -9,6 +8,12 @@ import {
   MultiSelectField,
 } from "@/components/forms";
 import { AVAILABLE_ASSIGNEES } from "@/data/fto";
+
+export interface MultiSelectOption {
+  id: string;
+  label: string;
+  initials?: string;
+}
 
 interface CreateFTOModalProps {
   open: boolean;
@@ -38,6 +43,8 @@ interface CreateFTOModalProps {
     dueDate: Date | null;
     priority: string;
     selectedAssignees: any[];
+    selectedFieldTeamMembers: MultiSelectOption[];
+    ftoStatus: string;
   }) => void;
 }
 
@@ -52,14 +59,12 @@ export default function CreateFTOModal({
 }: CreateFTOModalProps) {
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
-  const [selectedTask, setSelectedTask] = useState("");
   const [ftoName, setFtoName] = useState("");
   const [priority, setPriority] = useState("normal");
-  const [ftoStatus, setFtoStatus] = useState("pending-approval");
+  const [ftoStatus, setFtoStatus] = useState("Dispatched");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<
-    MultiSelectOption[]
-  >([]);
+  const [selectedPMAssignees, setSelectedPMAssignees] = useState<MultiSelectOption[]>([]);
+  const [selectedFieldTeamMembers, setSelectedFieldTeamMembers] = useState<MultiSelectOption[]>([]);
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -67,12 +72,12 @@ export default function CreateFTOModal({
     if (!open) {
       setProperty("");
       setUnit("");
-      setSelectedTask("");
       setFtoName("");
       setPriority("normal");
-      setFtoStatus("pending-approval");
+      setFtoStatus("Dispatched");
       setDueDate(null);
-      setSelectedAssignees([]);
+      setSelectedPMAssignees([]);
+      setSelectedFieldTeamMembers([]);
       setDescription("");
       setErrors({});
     }
@@ -90,12 +95,10 @@ export default function CreateFTOModal({
       if (dateStr) {
         let date: Date | null = null;
 
-        // Try parsing as standard Date first
         const parsedDate = new Date(dateStr);
         if (!isNaN(parsedDate.getTime())) {
           date = parsedDate;
         } else if (typeof dateStr === "string") {
-          // Try parsing format like "Dec 10, 2025"
           try {
             const parts = dateStr.split(" ");
             if (parts.length >= 2) {
@@ -116,11 +119,11 @@ export default function CreateFTOModal({
       }
 
       if ("status" in viewData) {
-        setFtoStatus(viewData.status || "pending-approval");
+        setFtoStatus(viewData.status || "Dispatched");
       }
     } else if (editData) {
       setPriority(editData.priority.toLowerCase());
-      setFtoStatus(editData.ftoStatus || "pending-approval");
+      setFtoStatus(editData.ftoStatus || "Dispatched");
       if (editData.dueDate) {
         const date = new Date(editData.dueDate);
         setDueDate(date);
@@ -128,16 +131,15 @@ export default function CreateFTOModal({
     }
   }, [editData, viewData, isViewOnly, open]);
 
-  // Auto-update FTO Status when assignees are added/removed
   useEffect(() => {
     if (isViewOnly) return;
 
-    if (selectedAssignees.length > 0 && ftoStatus === "pending-approval") {
-      setFtoStatus("dispatched");
-    } else if (selectedAssignees.length === 0 && ftoStatus === "dispatched") {
-      setFtoStatus("pending-approval");
+    if (selectedFieldTeamMembers.length > 0 && ftoStatus === "New") {
+      setFtoStatus("Dispatched");
+    } else if (selectedFieldTeamMembers.length === 0 && ftoStatus === "Dispatched") {
+      setFtoStatus("New");
     }
-  }, [selectedAssignees, isViewOnly, ftoStatus]);
+  }, [selectedFieldTeamMembers, isViewOnly, ftoStatus]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -153,8 +155,11 @@ export default function CreateFTOModal({
     if (!dueDate) {
       newErrors.dueDate = "Due Date is required";
     }
+    if (selectedFieldTeamMembers.length === 0) {
+      newErrors.selectedFieldTeamMembers = "Field Team Members is required";
+    }
     if (!ftoStatus.trim()) {
-      newErrors.ftoStatus = "FTO Status is required";
+      newErrors.ftoStatus = "Status is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -162,17 +167,6 @@ export default function CreateFTOModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", {
-        property,
-        unit,
-        selectedTask,
-        ftoName,
-        priority,
-        ftoStatus,
-        dueDate,
-        selectedAssignees,
-        description,
-      });
       onFTOCreated?.({
         property,
         unit,
@@ -180,7 +174,9 @@ export default function CreateFTOModal({
         description,
         dueDate,
         priority,
-        selectedAssignees,
+        selectedAssignees: selectedPMAssignees,
+        selectedFieldTeamMembers,
+        ftoStatus,
       });
       onOpenChange(false);
     }
@@ -202,25 +198,23 @@ export default function CreateFTOModal({
           />
         }
       >
-        <FormLayout>
-          <FormSection showDivider={false}>
-            <TextField
-              label="Task"
-              required
-              value={ftoName}
-              onChange={setFtoName}
-              error={errors.ftoName}
-              placeholder="Type Task Name"
-            />
-            <TextAreaField
-              label="Description"
-              value={description}
-              onChange={setDescription}
-              placeholder="Insert Description Here"
-              rows={6}
-            />
-          </FormSection>
-        </FormLayout>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <TextField
+            label="Task"
+            required
+            value={ftoName}
+            onChange={setFtoName}
+            error={errors.ftoName}
+            placeholder="Type Task Name"
+          />
+          <TextAreaField
+            label="Description"
+            value={description}
+            onChange={setDescription}
+            placeholder="Insert Description Here"
+            rows={6}
+          />
+        </div>
       </ModalTemplate>
     );
   }
@@ -229,7 +223,7 @@ export default function CreateFTOModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={isViewOnly ? "View Task" : editData ? "Edit FTO" : "Create FTO"}
+      title={isViewOnly ? "View Field Team Order" : editData ? "Edit Field Team Order" : "Create Field Team Order"}
       size="lg"
       footer={
         isViewOnly ? (
@@ -268,124 +262,141 @@ export default function CreateFTOModal({
             onCancel={() => onOpenChange(false)}
             onConfirm={handleSubmit}
             cancelLabel="Cancel"
-            confirmLabel={editData ? "Update FTO" : "Create FTO"}
+            confirmLabel={editData ? "Update Field Team Order" : "Create Field Team Order"}
           />
         )
       }
     >
-      <FormLayout>
-        <FormSection showDivider={false}>
-          {isViewOnly ? (
-            <>
-              <TextField
-                label="Property"
-                value={property}
-                onChange={() => {}}
-                disabled={true}
-              />
-              <TextField
-                label="Unit"
-                value={unit}
-                onChange={() => {}}
-                disabled={true}
-              />
-            </>
-          ) : (
-            <>
-              <SelectField
-                label="Property"
-                required
-                value={property}
-                onChange={setProperty}
-                error={errors.property}
-                placeholder="Select Property"
-                options={[
-                  { value: "property1", label: "22 Indian Chase Dr" },
-                  { value: "property2", label: "Property 2" },
-                ]}
-              />
-              <SelectField
-                label="Unit"
-                value={unit}
-                onChange={setUnit}
-                placeholder="Select Unit If Applicable"
-                options={[
-                  { value: "unit1", label: "Unit 1" },
-                  { value: "unit2", label: "Unit 2" },
-                ]}
-              />
-            </>
-          )}
-        </FormSection>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {/* Row 1: Property | Unit */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <SelectField
+              label="Property"
+              required
+              value={property}
+              onChange={setProperty}
+              error={errors.property}
+              placeholder="Select Property"
+              options={[
+                { value: "property1", label: "22 Indian Chase Dr" },
+                { value: "property2", label: "Property 2" },
+              ]}
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+          <FieldRowItem>
+            <SelectField
+              label="Unit"
+              value={unit}
+              onChange={setUnit}
+              placeholder="Unit"
+              options={[
+                { value: "unit1", label: "Unit 1" },
+                { value: "unit2", label: "Unit 2" },
+              ]}
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+        </FieldRow>
 
-        <FormSection title="FTO Details">
-          <TextField
-            label="FTO Name"
-            required
-            value={ftoName}
-            onChange={setFtoName}
-            error={errors.ftoName}
-            placeholder="Type FTO Name"
-            disabled={isViewOnly}
-          />
-          <SelectField
-            label="Priority"
-            required
-            value={priority}
-            onChange={setPriority}
-            error={errors.priority}
-            options={[
-              { value: "low", label: "Low" },
-              { value: "normal", label: "Normal" },
-              { value: "high", label: "High" },
-            ]}
-            disabled={isViewOnly}
-          />
-          <DateField
-            label="Due Date"
-            required
-            value={dueDate}
-            onChange={setDueDate}
-            error={errors.dueDate}
-            placeholder="mm/dd/yyyy"
-            disabled={isViewOnly}
-          />
-          <MultiSelectField
-            label="Assignees"
-            value={selectedAssignees}
-            onChange={setSelectedAssignees}
-            error={errors.selectedAssignees}
-            placeholder="Select Assignees"
-            options={AVAILABLE_ASSIGNEES}
-            disabled={isViewOnly}
-          />
-        </FormSection>
+        {/* Row 2: FTO Name | Priority */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <TextField
+              label="FTO Name"
+              required
+              value={ftoName}
+              onChange={setFtoName}
+              error={errors.ftoName}
+              placeholder="Type Task Name"
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+          <FieldRowItem>
+            <SelectField
+              label="Priority"
+              required
+              value={priority}
+              onChange={setPriority}
+              error={errors.priority}
+              options={[
+                { value: "low", label: "Low" },
+                { value: "normal", label: "Normal" },
+                { value: "high", label: "High" },
+              ]}
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+        </FieldRow>
 
-        <FormSection title="Status & Details">
-          <SelectField
-            label="FTO Status"
-            required
-            value={ftoStatus}
-            onChange={setFtoStatus}
-            error={errors.ftoStatus}
-            options={[
-              { value: "pending-approval", label: "New" },
-              { value: "dispatched", label: "Dispatched" },
-              { value: "completed", label: "Completed" },
-              { value: "cancelled", label: "Cancelled" },
-            ]}
-            disabled={isViewOnly}
-          />
-          <TextAreaField
-            label="Description"
-            value={description}
-            onChange={setDescription}
-            placeholder="Insert Description Here"
-            rows={6}
-            disabled={isViewOnly}
-          />
-        </FormSection>
-      </FormLayout>
+        {/* Row 3: Due Date | PM Assignees */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <DateField
+              label="Due Date"
+              required
+              value={dueDate}
+              onChange={setDueDate}
+              error={errors.dueDate}
+              placeholder="mm/dd/yyyy"
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+          <FieldRowItem>
+            <MultiSelectField
+              label="PM Assignees"
+              value={selectedPMAssignees}
+              onChange={setSelectedPMAssignees}
+              placeholder="Select PMs"
+              options={AVAILABLE_ASSIGNEES}
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+        </FieldRow>
+
+        {/* Row 4: Field Team Members | Status */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <MultiSelectField
+              label="Field Team Members"
+              required
+              value={selectedFieldTeamMembers}
+              onChange={setSelectedFieldTeamMembers}
+              error={errors.selectedFieldTeamMembers}
+              placeholder="Select"
+              options={AVAILABLE_ASSIGNEES}
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+          <FieldRowItem>
+            <SelectField
+              label="Status"
+              required
+              value={ftoStatus}
+              onChange={setFtoStatus}
+              error={errors.ftoStatus}
+              options={[
+                { value: "New", label: "New" },
+                { value: "Dispatched", label: "Dispatched" },
+                { value: "Completed", label: "Completed" },
+                { value: "Cancelled", label: "Cancelled" },
+              ]}
+              disabled={isViewOnly}
+            />
+          </FieldRowItem>
+        </FieldRow>
+
+        {/* Row 5: Description (full width) */}
+        <TextAreaField
+          label="Description"
+          value={description}
+          onChange={setDescription}
+          placeholder="Insert Description Here"
+          rows={6}
+          disabled={isViewOnly}
+        />
+      </div>
     </ModalTemplate>
   );
 }
