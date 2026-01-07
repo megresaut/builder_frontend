@@ -296,7 +296,7 @@ export default function CreateFTOModal({
                 { value: "unit1", label: "Unit 1 - Primary Commercial Space with Complete Office Infrastructure and Conference Facilities" },
                 { value: "unit2", label: "Unit 2" },
               ]}
-              disabled={isViewOnly}
+              disabled={isViewOnly || !property}
             />
           </div>
         </div>
