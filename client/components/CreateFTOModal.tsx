@@ -188,7 +188,7 @@ export default function CreateFTOModal({
         open={open}
         onOpenChange={onOpenChange}
         title="Create Task"
-        size="lg"
+        size="sm"
         footer={
           <ModalButtons
             onCancel={() => onOpenChange(false)}
