@@ -178,6 +178,21 @@ export default function AddPropertyModal({
   const handleSave = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!streetAddress) {
+      newErrors.streetAddress = "Street address is required";
+    }
+    if (!unit) {
+      newErrors.unit = "Unit is required";
+    }
+    if (!city) {
+      newErrors.city = "City is required";
+    }
+    if (!state) {
+      newErrors.state = "State is required";
+    }
+    if (!zipCode) {
+      newErrors.zipCode = "Zip code is required";
+    }
     if (!propertyType) {
       newErrors.propertyType = "Property type is required";
     }
@@ -197,6 +212,7 @@ export default function AddPropertyModal({
     console.log({
       country,
       streetAddress,
+      unit,
       city,
       state,
       zipCode,
