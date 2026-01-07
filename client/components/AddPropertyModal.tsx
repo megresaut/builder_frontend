@@ -216,7 +216,7 @@ export default function AddPropertyModal({
       zipCode,
       propertyType,
       selectedManagers,
-      rentalOwner,
+      rentalOwners,
       hourlyRate,
       emergencyHourlyRate,
       managementFee,
