@@ -103,7 +103,7 @@ export const TextAreaField = forwardRef<
         disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
-        <div style={{ position: "relative" }}>
+        <>
           <Textarea
             ref={ref}
             id={fieldId}
@@ -129,7 +129,7 @@ export const TextAreaField = forwardRef<
               {charCountText}
             </div>
           )}
-        </div>
+        </>
       </FieldShell>
     );
   },
