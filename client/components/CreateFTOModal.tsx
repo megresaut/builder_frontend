@@ -224,7 +224,7 @@ export default function CreateFTOModal({
       open={open}
       onOpenChange={onOpenChange}
       title={isViewOnly ? "View Field Team Order" : editData ? "Edit Field Team Order" : "Create Field Team Order"}
-      size="lg"
+      size="sm"
       footer={
         isViewOnly ? (
           <button
