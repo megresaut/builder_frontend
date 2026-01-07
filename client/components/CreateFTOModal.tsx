@@ -293,7 +293,7 @@ export default function CreateFTOModal({
               onChange={setUnit}
               placeholder="Unit"
               options={[
-                { value: "unit1", label: "Unit 1" },
+                { value: "unit1", label: "Unit 1 - Primary Commercial Space with Complete Office Infrastructure and Conference Facilities" },
                 { value: "unit2", label: "Unit 2" },
               ]}
               disabled={isViewOnly}
