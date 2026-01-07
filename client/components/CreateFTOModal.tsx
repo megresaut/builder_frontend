@@ -50,20 +50,20 @@ interface CreateFTOModalProps {
   editingFTO?: EditingFTO | null;
 }
 
-// Mock Data
-const MOCK_PROPERTIES: MockProperty[] = [
+// Mock Data (shaped like real API responses)
+const MOCK_PROPERTIES: SimpleProperty[] = [
   { id: 1, name: "(C) 1 Mayflower Parkway" },
   { id: 2, name: "22 Indian Chase Dr" },
   { id: 3, name: "Property 3" },
 ];
 
-const MOCK_TASKS_BY_PROPERTY: Record<number, MockTask[]> = {
+const MOCK_TASKS_BY_PROPERTY: Record<number, SimpleTask[]> = {
   1: [{ id: 10, name: "HVAC Repair" }],
   2: [{ id: 20, name: "Electrical Inspection" }],
   3: [],
 };
 
-const MOCK_USERS: MockUser[] = [
+const MOCK_ASSIGNEES: Assignee[] = [
   { id: 1, name: "Alex Morgan" },
   { id: 2, name: "Jamie Chen" },
 ];
