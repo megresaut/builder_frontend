@@ -264,7 +264,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
           borderWidth: error ? "2px" : "1px",
           padding: compact ? "4px 12px" : "8px 12px",
           height: compact ? "32px" : "44px",
-          fontSize: compact ? "14px" : "16px",
+          fontSize: "14px",
           fontWeight: 400,
           letterSpacing: compact ? "-0.28px" : "-0.32px",
           lineHeight: 1.4,
