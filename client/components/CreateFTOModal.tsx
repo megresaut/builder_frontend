@@ -12,158 +12,169 @@ import {
   DateField,
   MultiSelectField,
 } from "@/components/forms";
-import { AVAILABLE_ASSIGNEES } from "@/data/fto";
 
-export interface MultiSelectOption {
-  id: string;
-  label: string;
-  initials?: string;
+import type { MultiSelectOption } from "@/components/forms";
+
+// Mock data types
+interface MockProperty {
+  id: number;
+  name: string;
+}
+
+interface MockTask {
+  id: number;
+  name: string;
+}
+
+interface MockUser {
+  id: number;
+  name: string;
+}
+
+interface MockFTO {
+  id: number;
+  name: string;
+  description: string;
+  priority: "low" | "normal" | "high";
+  status: "new" | "dispatched" | "completed" | "cancelled";
+  due_date: string;
+  property_id: number;
+  property_name: string;
+  task_id?: number;
+  field_team_member_ids: number[];
+  pm_assignee_ids: number[];
 }
 
 interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editData?: {
-    dueDate: string;
-    priority: string;
-    ftoStatus?: string;
-  };
-  viewData?: {
-    name: string;
-    description: string;
-    dueDate?: string;
-    dateOfWork?: string;
-    priority?: string;
-    status?: string;
-    property?: string;
-    unit?: string;
-  };
-  isSimple?: boolean;
-  isViewOnly?: boolean;
-  onFTOCreated?: (ftoData: {
-    property: string;
-    unit: string;
-    ftoName: string;
-    description: string;
-    dueDate: Date | null;
-    priority: string;
-    selectedAssignees: any[];
-    selectedFieldTeamMembers: MultiSelectOption[];
-    ftoStatus: string;
-  }) => void;
+  editingFTO?: MockFTO | null;
 }
+
+// Mock Data
+const MOCK_PROPERTIES: MockProperty[] = [
+  { id: 1, name: "(C) 1 Mayflower Parkway" },
+  { id: 2, name: "22 Indian Chase Dr" },
+  { id: 3, name: "Property 3" },
+];
+
+const MOCK_TASKS_BY_PROPERTY: Record<number, MockTask[]> = {
+  1: [{ id: 10, name: "HVAC Repair" }],
+  2: [{ id: 20, name: "Electrical Inspection" }],
+  3: [],
+};
+
+const MOCK_USERS: MockUser[] = [
+  { id: 1, name: "Alex Morgan" },
+  { id: 2, name: "Jamie Chen" },
+];
 
 export default function CreateFTOModal({
   open,
   onOpenChange,
-  editData,
-  viewData,
-  isSimple = false,
-  isViewOnly = false,
-  onFTOCreated,
+  editingFTO,
 }: CreateFTOModalProps) {
-  const [property, setProperty] = useState("");
-  const [unit, setUnit] = useState("");
+  // Form state - using IDs instead of objects
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
+    null
+  );
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [ftoName, setFtoName] = useState("");
   const [priority, setPriority] = useState("normal");
-  const [ftoStatus, setFtoStatus] = useState("Dispatched");
+  const [status, setStatus] = useState("new");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [selectedPMAssignees, setSelectedPMAssignees] = useState<
-    MultiSelectOption[]
-  >([]);
-  const [selectedFieldTeamMembers, setSelectedFieldTeamMembers] = useState<
-    MultiSelectOption[]
-  >([]);
+  const [pmAssigneeIds, setPmAssigneeIds] = useState<number[]>([]);
+  const [fieldTeamMemberIds, setFieldTeamMemberIds] = useState<number[]>([]);
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Reset form when modal closes
   useEffect(() => {
     if (!open) {
-      setProperty("");
-      setUnit("");
+      setSelectedPropertyId(null);
+      setSelectedTaskId(null);
       setFtoName("");
       setPriority("normal");
-      setFtoStatus("Dispatched");
+      setStatus("new");
       setDueDate(null);
-      setSelectedPMAssignees([]);
-      setSelectedFieldTeamMembers([]);
+      setPmAssigneeIds([]);
+      setFieldTeamMemberIds([]);
       setDescription("");
       setErrors({});
     }
   }, [open]);
 
+  // Hydrate form from editingFTO when provided
   useEffect(() => {
-    if (isViewOnly && viewData) {
-      setFtoName(viewData.name || "");
-      setDescription(viewData.description || "");
-      setPriority(viewData.priority?.toLowerCase() || "normal");
-      setProperty(viewData.property || "");
-      setUnit(viewData.unit || "");
+    if (editingFTO && open) {
+      setFtoName(editingFTO.name);
+      setDescription(editingFTO.description);
+      setPriority(editingFTO.priority);
+      setStatus(editingFTO.status);
+      setSelectedPropertyId(editingFTO.property_id);
+      setSelectedTaskId(editingFTO.task_id || null);
+      setPmAssigneeIds(editingFTO.pm_assignee_ids);
+      setFieldTeamMemberIds(editingFTO.field_team_member_ids);
 
-      const dateStr = viewData.dueDate || viewData.dateOfWork;
-      if (dateStr) {
-        let date: Date | null = null;
-
-        const parsedDate = new Date(dateStr);
-        if (!isNaN(parsedDate.getTime())) {
-          date = parsedDate;
-        } else if (typeof dateStr === "string") {
-          try {
-            const parts = dateStr.split(" ");
-            if (parts.length >= 2) {
-              const monthStr = parts[0];
-              const dayStr = parts[1].replace(",", "");
-              const yearStr = parts[2];
-              const parsedFromFormat = new Date(
-                `${monthStr} ${dayStr}, ${yearStr}`,
-              );
-              if (!isNaN(parsedFromFormat.getTime())) {
-                date = parsedFromFormat;
-              }
-            }
-          } catch (e) {
-            // Fallback: date remains null
-          }
-        }
-
-        setDueDate(date);
-      }
-
-      if ("status" in viewData) {
-        setFtoStatus(viewData.status || "Dispatched");
-      }
-    } else if (editData) {
-      setPriority(editData.priority.toLowerCase());
-      setFtoStatus(editData.ftoStatus || "Dispatched");
-      if (editData.dueDate) {
-        const date = new Date(editData.dueDate);
-        setDueDate(date);
+      // Parse ISO date string
+      if (editingFTO.due_date) {
+        setDueDate(new Date(editingFTO.due_date));
       }
     }
-  }, [editData, viewData, isViewOnly, open]);
+  }, [editingFTO, open]);
 
+  // Status auto-logic: sync with field team members
   useEffect(() => {
-    if (isViewOnly) return;
-
-    if (selectedFieldTeamMembers.length > 0 && ftoStatus === "New") {
-      setFtoStatus("Dispatched");
-    } else if (
-      selectedFieldTeamMembers.length === 0 &&
-      ftoStatus === "Dispatched"
-    ) {
-      setFtoStatus("New");
+    if (fieldTeamMemberIds.length > 0 && status === "new") {
+      setStatus("dispatched");
+    } else if (fieldTeamMemberIds.length === 0 && status === "dispatched") {
+      setStatus("new");
     }
-  }, [selectedFieldTeamMembers, isViewOnly, ftoStatus]);
+  }, [fieldTeamMemberIds, status]);
 
+  // Get available tasks for selected property
+  const availableTasks = selectedPropertyId
+    ? MOCK_TASKS_BY_PROPERTY[selectedPropertyId] || []
+    : [];
+
+  // Build property options
+  const propertyOptions = MOCK_PROPERTIES.map((p) => ({
+    value: String(p.id),
+    label: p.name,
+  }));
+
+  // Build task options
+  const taskOptions = availableTasks.map((t) => ({
+    value: String(t.id),
+    label: t.name,
+  }));
+
+  // Build assignee options
+  const assigneeOptions: MultiSelectOption[] = MOCK_USERS.map((u) => ({
+    id: String(u.id),
+    label: u.name,
+  }));
+
+  // Get selected assignees as MultiSelectOption
+  const selectedPmAssignees = assigneeOptions.filter((opt) =>
+    pmAssigneeIds.includes(Number(opt.id))
+  );
+
+  const selectedFieldTeamMembers = assigneeOptions.filter((opt) =>
+    fieldTeamMemberIds.includes(Number(opt.id))
+  );
+
+  // Validation
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!property.trim()) {
+
+    if (!selectedPropertyId) {
       newErrors.property = "Property is required";
     }
     if (!ftoName.trim()) {
       newErrors.ftoName = "FTO Name is required";
     }
-    if (!priority.trim()) {
+    if (!priority) {
       newErrors.priority = "Priority is required";
     }
     if (!dueDate) {
@@ -172,127 +183,61 @@ export default function CreateFTOModal({
     if (!description.trim()) {
       newErrors.description = "Description is required";
     }
-    if (!ftoStatus.trim()) {
-      newErrors.ftoStatus = "Status is required";
-    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      onFTOCreated?.({
-        property,
-        unit,
-        ftoName,
-        description,
-        dueDate,
-        priority,
-        selectedAssignees: selectedPMAssignees,
-        selectedFieldTeamMembers,
-        ftoStatus,
-      });
-      onOpenChange(false);
-    }
+  // Format ISO date string
+  const formatISODate = (date: Date): string => {
+    return date.toISOString().split("T")[0];
   };
 
-  if (isSimple) {
-    return (
-      <ModalTemplate
-        open={open}
-        onOpenChange={onOpenChange}
-        title="Create Task"
-        size="md"
-        footer={
-          <ModalButtons
-            onCancel={() => onOpenChange(false)}
-            onConfirm={handleSubmit}
-            cancelLabel="Cancel"
-            confirmLabel="Create Task"
-          />
-        }
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <TextField
-            label="Task"
-            required
-            value={ftoName}
-            onChange={(e) => setFtoName(e.target.value)}
-            error={errors.ftoName}
-            placeholder="Type Task Name"
-          />
-          <TextAreaField
-            label="Description"
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            error={errors.description}
-            placeholder="Insert Description Here"
-            rows={6}
-          />
-        </div>
-      </ModalTemplate>
-    );
-  }
+  // Submit
+  const handleSubmit = () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    const payload = {
+      name: ftoName,
+      description,
+      priority,
+      status,
+      due_date: formatISODate(dueDate!),
+      property_id: selectedPropertyId,
+      task_id: selectedTaskId || undefined,
+      field_team_member_ids: fieldTeamMemberIds,
+      pm_assignee_ids: pmAssigneeIds,
+    };
+
+    console.log("[API] POST /field-team-orders", payload);
+
+    onOpenChange(false);
+  };
+
+  // Determine if in edit mode
+  const isEditing = !!editingFTO;
 
   return (
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={
-        isViewOnly
-          ? "View Field Team Order"
-          : editData
-            ? "Edit Field Team Order"
-            : "Create Field Team Order"
-      }
+      title={isEditing ? "Edit Field Team Order" : "Create Field Team Order"}
       size="md"
       footer={
-        isViewOnly ? (
-          <button
-            onClick={() => onOpenChange(false)}
-            style={{
-              borderRadius: "8px",
-              backgroundColor: "rgba(251, 251, 251, 1)",
-              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
-              borderColor: "rgba(218, 218, 218, 1)",
-              borderStyle: "solid",
-              borderWidth: "1px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              paddingLeft: "12px",
-              paddingRight: "12px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
-              minHeight: "36px",
-              color: "rgba(48, 48, 48, 1)",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              justifyContent: "center",
-              cursor: "pointer",
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              fontSize: "16px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Close
-          </button>
-        ) : (
-          <ModalButtons
-            onCancel={() => onOpenChange(false)}
-            onConfirm={handleSubmit}
-            cancelLabel="Cancel"
-            confirmLabel={
-              editData ? "Update Field Team Order" : "Create Field Team Order"
-            }
-          />
-        )
+        <ModalButtons
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={
+            isEditing ? "Update Field Team Order" : "Create Field Team Order"
+          }
+        />
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {/* Row 1: Property | Unit */}
+        {/* Row 1: Property | Task */}
         <div
           style={{
             display: "grid",
@@ -305,37 +250,28 @@ export default function CreateFTOModal({
             <SelectField
               label="Property"
               required
-              value={property}
-              onChange={setProperty}
+              value={String(selectedPropertyId || "")}
+              onChange={(value) => {
+                const id = value ? Number(value) : null;
+                setSelectedPropertyId(id);
+                setSelectedTaskId(null);
+              }}
               error={errors.property}
               placeholder="Select Property"
-              options={[
-                {
-                  value: "property1",
-                  label:
-                    "(C) 1 Mayflower Parkway Westport, CT 06880 - Comprehensive Commercial Property Management and Development Services",
-                },
-                { value: "property2", label: "22 Indian Chase Dr" },
-                { value: "property3", label: "Property 3" },
-              ]}
-              disabled={isViewOnly}
+              options={propertyOptions}
+              disabled={isEditing}
             />
           </div>
           <div>
             <SelectField
-              label="Unit"
-              value={unit}
-              onChange={setUnit}
-              placeholder="Unit"
-              options={[
-                {
-                  value: "unit1",
-                  label:
-                    "Unit 1 - Primary Commercial Space with Complete Office Infrastructure and Conference Facilities",
-                },
-                { value: "unit2", label: "Unit 2" },
-              ]}
-              disabled={isViewOnly || !property}
+              label="Task"
+              value={String(selectedTaskId || "")}
+              onChange={(value) => {
+                setSelectedTaskId(value ? Number(value) : null);
+              }}
+              placeholder="Task"
+              options={taskOptions}
+              disabled={isEditing || !selectedPropertyId}
             />
           </div>
         </div>
@@ -350,7 +286,6 @@ export default function CreateFTOModal({
               onChange={(e) => setFtoName(e.target.value)}
               error={errors.ftoName}
               placeholder="Type Task Name"
-              disabled={isViewOnly}
             />
           </FieldRowItem>
           <FieldRowItem>
@@ -365,7 +300,6 @@ export default function CreateFTOModal({
                 { value: "normal", label: "Normal" },
                 { value: "high", label: "High" },
               ]}
-              disabled={isViewOnly}
             />
           </FieldRowItem>
         </FieldRow>
@@ -380,17 +314,17 @@ export default function CreateFTOModal({
               onChange={setDueDate}
               error={errors.dueDate}
               placeholder="mm/dd/yyyy"
-              disabled={isViewOnly}
             />
           </FieldRowItem>
           <FieldRowItem>
             <MultiSelectField
               label="PM Assignees"
-              value={selectedPMAssignees}
-              onChange={setSelectedPMAssignees}
+              value={selectedPmAssignees}
+              onChange={(options) => {
+                setPmAssigneeIds(options.map((opt) => Number(opt.id)));
+              }}
               placeholder="Select PMs"
-              options={AVAILABLE_ASSIGNEES}
-              disabled={isViewOnly}
+              options={assigneeOptions}
               required={false}
             />
           </FieldRowItem>
@@ -402,10 +336,11 @@ export default function CreateFTOModal({
             <MultiSelectField
               label="Field Team Members"
               value={selectedFieldTeamMembers}
-              onChange={setSelectedFieldTeamMembers}
+              onChange={(options) => {
+                setFieldTeamMemberIds(options.map((opt) => Number(opt.id)));
+              }}
               placeholder="Select"
-              options={AVAILABLE_ASSIGNEES}
-              disabled={isViewOnly}
+              options={assigneeOptions}
               required={false}
             />
           </FieldRowItem>
@@ -413,16 +348,15 @@ export default function CreateFTOModal({
             <SelectField
               label="Status"
               required
-              value={ftoStatus}
-              onChange={setFtoStatus}
-              error={errors.ftoStatus}
+              value={status}
+              onChange={setStatus}
+              error={errors.status}
               options={[
-                { value: "New", label: "New" },
-                { value: "Dispatched", label: "Dispatched" },
-                { value: "Completed", label: "Completed" },
-                { value: "Cancelled", label: "Cancelled" },
+                { value: "new", label: "New" },
+                { value: "dispatched", label: "Dispatched" },
+                { value: "completed", label: "Completed" },
+                { value: "cancelled", label: "Cancelled" },
               ]}
-              disabled={isViewOnly}
             />
           </FieldRowItem>
         </FieldRow>
@@ -436,7 +370,6 @@ export default function CreateFTOModal({
           error={errors.description}
           placeholder="Insert Description Here"
           rows={6}
-          disabled={isViewOnly}
         />
       </div>
     </ModalTemplate>
