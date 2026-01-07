@@ -45,6 +45,7 @@ export { SelectField } from "./SelectField";
 export { ComboboxField } from "./ComboboxField";
 export { ComboboxFieldWithCustomInput } from "./ComboboxFieldWithCustomInput";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";
+export { MultiInputField } from "./MultiInputField";
 export { EmailField } from "./EmailField";
 export { PhoneNumberField } from "./PhoneNumberField";
 export { AddressField, type AddressValue } from "./AddressField";
