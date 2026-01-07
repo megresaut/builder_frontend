@@ -424,6 +424,13 @@ export default function AddPropertyModal({
 
         {/* Basics Section */}
         <FormSection title="Basics">
+          <TextField
+            label="Property Name"
+            value={propertyName}
+            onChange={(e) => setPropertyName(e.target.value)}
+            placeholder="Property Name"
+          />
+
           <FieldRow columns={2}>
             <FieldRowItem>
               <SelectField
