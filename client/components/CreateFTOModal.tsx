@@ -149,7 +149,7 @@ export default function CreateFTOModal({
   }));
 
   // Build assignee options
-  const assigneeOptions: MultiSelectOption[] = MOCK_USERS.map((u) => ({
+  const assigneeOptions: MultiSelectOption[] = MOCK_ASSIGNEES.map((u) => ({
     id: String(u.id),
     label: u.name,
   }));
