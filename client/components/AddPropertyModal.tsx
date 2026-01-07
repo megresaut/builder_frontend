@@ -31,6 +31,7 @@ interface AddPropertyModalProps {
     status: "active" | "inactive";
     managers: Manager[];
     rentalOwner?: string;
+    unit?: string;
   };
 }
 
