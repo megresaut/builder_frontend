@@ -164,7 +164,12 @@ const MultiInputFieldContent: React.FC<MultiInputFieldContentProps> = ({
           }}
         >
           {value.length === 0 ? (
-            <span style={{ color: "var(--color-text-secondary)" }}>
+            <span
+              style={{
+                color: "#303030",
+                fontSize: "14px",
+              }}
+            >
               {placeholder}
             </span>
           ) : (
