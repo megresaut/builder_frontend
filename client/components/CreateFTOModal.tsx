@@ -362,13 +362,12 @@ export default function CreateFTOModal({
           <FieldRowItem>
             <MultiSelectField
               label="Field Team Members"
-              required
               value={selectedFieldTeamMembers}
               onChange={setSelectedFieldTeamMembers}
-              error={errors.selectedFieldTeamMembers}
               placeholder="Select"
               options={AVAILABLE_ASSIGNEES}
               disabled={isViewOnly}
+              required={false}
             />
           </FieldRowItem>
           <FieldRowItem>
