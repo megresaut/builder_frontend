@@ -254,38 +254,56 @@ export default function AddPropertyModal({
             options={COUNTRIES}
           />
 
-          <TextField
-            label="Street Address"
-            value={streetAddress}
-            onChange={(e) => setStreetAddress(e.target.value)}
-            placeholder="Street Address"
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", width: "100%" }}>
+            <TextField
+              label="Street Address"
+              required
+              value={streetAddress}
+              onChange={(e) => setStreetAddress(e.target.value)}
+              placeholder="Street Address"
+              error={errors.streetAddress}
+            />
+            <TextField
+              label="Unit"
+              required
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder="Unit"
+              error={errors.unit}
+            />
+          </div>
 
           <FieldRow columns={3}>
             <FieldRowItem>
               <TextField
                 label="City"
+                required
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="City"
+                error={errors.city}
               />
             </FieldRowItem>
             <FieldRowItem>
               <SelectField
                 label="State"
+                required
                 value={state}
                 onChange={setState}
                 placeholder="Select state"
                 options={US_STATES.map((s) => ({ value: s, label: s }))}
+                error={errors.state}
               />
             </FieldRowItem>
             <FieldRowItem>
               <TextField
                 label="Zip Code"
+                required
                 value={zipCode}
                 onChange={(e) => handleZipCodeChange(e.target.value)}
                 placeholder="Zip Code"
                 maxLength={5}
+                error={errors.zipCode}
               />
             </FieldRowItem>
           </FieldRow>
