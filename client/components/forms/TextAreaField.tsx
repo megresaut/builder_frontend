@@ -103,7 +103,7 @@ export const TextAreaField = forwardRef<
         disabled={disabled || readOnly}
         htmlFor={fieldId}
       >
-        <>
+        <div>
           <Textarea
             ref={ref}
             id={fieldId}
@@ -113,6 +113,7 @@ export const TextAreaField = forwardRef<
             value={value}
             maxLength={maxLength}
             onChange={handleChange}
+            aria-invalid={!readOnly && error ? "true" : "false"}
             {...textareaProps}
           />
           {showCharCount && (
@@ -129,7 +130,7 @@ export const TextAreaField = forwardRef<
               {charCountText}
             </div>
           )}
-        </>
+        </div>
       </FieldShell>
     );
   },
