@@ -15,23 +15,23 @@ import {
 
 import type { MultiSelectOption } from "@/components/forms";
 
-// Mock data types
-interface MockProperty {
+// Mock data types (shaped like real API data)
+interface SimpleProperty {
   id: number;
   name: string;
 }
 
-interface MockTask {
+interface SimpleTask {
   id: number;
   name: string;
 }
 
-interface MockUser {
+interface Assignee {
   id: number;
   name: string;
 }
 
-interface MockFTO {
+interface EditingFTO {
   id: number;
   name: string;
   description: string;
@@ -39,7 +39,6 @@ interface MockFTO {
   status: "new" | "dispatched" | "completed" | "cancelled";
   due_date: string;
   property_id: number;
-  property_name: string;
   task_id?: number;
   field_team_member_ids: number[];
   pm_assignee_ids: number[];
