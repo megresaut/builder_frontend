@@ -9,6 +9,7 @@ import {
   SelectField,
   CurrencyField,
   MultiSelectField,
+  MultiInputField,
   FieldRow,
   FieldRowItem,
   type MultiSelectOption,
