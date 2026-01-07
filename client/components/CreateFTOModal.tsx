@@ -392,7 +392,7 @@ export default function CreateFTOModal({
         <TextAreaField
           label="Description"
           value={description}
-          onChange={setDescription}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="Insert Description Here"
           rows={6}
           disabled={isViewOnly}
