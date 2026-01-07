@@ -270,9 +270,6 @@ export default function AddPropertyModal({
     if (!streetAddress) {
       newErrors.streetAddress = "Street address is required";
     }
-    if (!unit) {
-      newErrors.unit = "Unit is required";
-    }
     if (!city) {
       newErrors.city = "City is required";
     }
@@ -296,12 +293,14 @@ export default function AddPropertyModal({
 
     // Build payload matching backend contract
     const payload = {
+      name: propertyName,
+      buildium_property_id: buildiumPropertyId,
       address_line1: streetAddress,
       address_line2: unit,
       city,
       state,
       postal_code: zipCode,
-      property_type: propertyType,
+      property_type: PropertyTypeToEnum[propertyType] || propertyType,
       active: status === "active",
       management_fee_cents: managementFee > 0 ? Math.round(managementFee * 100) : null,
       hourly_rate_cents: hourlyRate > 0 ? Math.round(hourlyRate * 100) : null,
