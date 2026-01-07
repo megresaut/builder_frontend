@@ -308,7 +308,7 @@ export default function CreateFTOModal({
               label="FTO Name"
               required
               value={ftoName}
-              onChange={setFtoName}
+              onChange={(e) => setFtoName(e.target.value)}
               error={errors.ftoName}
               placeholder="Type Task Name"
               disabled={isViewOnly}
