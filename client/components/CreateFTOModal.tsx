@@ -352,6 +352,7 @@ export default function CreateFTOModal({
               placeholder="Select PMs"
               options={AVAILABLE_ASSIGNEES}
               disabled={isViewOnly}
+              required={false}
             />
           </FieldRowItem>
         </FieldRow>
