@@ -80,7 +80,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const fieldId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "select-field");
+  const fieldId =
+    id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "select-field");
 
   usePopoverAutoClose({
     open,
@@ -223,7 +224,12 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
       // Highlight first option when dropdown opens
       popoverContext.setHighlightedIndex(0);
     }
-  }, [open, options, popoverContext.setSearchableItems, popoverContext.setHighlightedIndex]);
+  }, [
+    open,
+    options,
+    popoverContext.setSearchableItems,
+    popoverContext.setHighlightedIndex,
+  ]);
 
   // Sync DOM focus with visual highlight when arrow keys navigate
   useEffect(() => {

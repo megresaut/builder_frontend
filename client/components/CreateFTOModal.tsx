@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { ModalTemplate, ModalButtons, FieldRow, FieldRowItem } from "@/components/ui/ModalTemplate";
+import {
+  ModalTemplate,
+  ModalButtons,
+  FieldRow,
+  FieldRowItem,
+} from "@/components/ui/ModalTemplate";
 import {
   TextField,
   SelectField,
@@ -63,8 +68,12 @@ export default function CreateFTOModal({
   const [priority, setPriority] = useState("normal");
   const [ftoStatus, setFtoStatus] = useState("Dispatched");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [selectedPMAssignees, setSelectedPMAssignees] = useState<MultiSelectOption[]>([]);
-  const [selectedFieldTeamMembers, setSelectedFieldTeamMembers] = useState<MultiSelectOption[]>([]);
+  const [selectedPMAssignees, setSelectedPMAssignees] = useState<
+    MultiSelectOption[]
+  >([]);
+  const [selectedFieldTeamMembers, setSelectedFieldTeamMembers] = useState<
+    MultiSelectOption[]
+  >([]);
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -105,7 +114,9 @@ export default function CreateFTOModal({
               const monthStr = parts[0];
               const dayStr = parts[1].replace(",", "");
               const yearStr = parts[2];
-              const parsedFromFormat = new Date(`${monthStr} ${dayStr}, ${yearStr}`);
+              const parsedFromFormat = new Date(
+                `${monthStr} ${dayStr}, ${yearStr}`,
+              );
               if (!isNaN(parsedFromFormat.getTime())) {
                 date = parsedFromFormat;
               }
@@ -136,7 +147,10 @@ export default function CreateFTOModal({
 
     if (selectedFieldTeamMembers.length > 0 && ftoStatus === "New") {
       setFtoStatus("Dispatched");
-    } else if (selectedFieldTeamMembers.length === 0 && ftoStatus === "Dispatched") {
+    } else if (
+      selectedFieldTeamMembers.length === 0 &&
+      ftoStatus === "Dispatched"
+    ) {
       setFtoStatus("New");
     }
   }, [selectedFieldTeamMembers, isViewOnly, ftoStatus]);
@@ -225,7 +239,13 @@ export default function CreateFTOModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={isViewOnly ? "View Field Team Order" : editData ? "Edit Field Team Order" : "Create Field Team Order"}
+      title={
+        isViewOnly
+          ? "View Field Team Order"
+          : editData
+            ? "Edit Field Team Order"
+            : "Create Field Team Order"
+      }
       size="md"
       footer={
         isViewOnly ? (
@@ -264,14 +284,23 @@ export default function CreateFTOModal({
             onCancel={() => onOpenChange(false)}
             onConfirm={handleSubmit}
             cancelLabel="Cancel"
-            confirmLabel={editData ? "Update Field Team Order" : "Create Field Team Order"}
+            confirmLabel={
+              editData ? "Update Field Team Order" : "Create Field Team Order"
+            }
           />
         )
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {/* Row 1: Property | Unit */}
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", width: "100%" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr",
+            gap: "12px",
+            width: "100%",
+          }}
+        >
           <div>
             <SelectField
               label="Property"
@@ -281,7 +310,11 @@ export default function CreateFTOModal({
               error={errors.property}
               placeholder="Select Property"
               options={[
-                { value: "property1", label: "(C) 1 Mayflower Parkway Westport, CT 06880 - Comprehensive Commercial Property Management and Development Services" },
+                {
+                  value: "property1",
+                  label:
+                    "(C) 1 Mayflower Parkway Westport, CT 06880 - Comprehensive Commercial Property Management and Development Services",
+                },
                 { value: "property2", label: "22 Indian Chase Dr" },
                 { value: "property3", label: "Property 3" },
               ]}
@@ -295,7 +328,11 @@ export default function CreateFTOModal({
               onChange={setUnit}
               placeholder="Unit"
               options={[
-                { value: "unit1", label: "Unit 1 - Primary Commercial Space with Complete Office Infrastructure and Conference Facilities" },
+                {
+                  value: "unit1",
+                  label:
+                    "Unit 1 - Primary Commercial Space with Complete Office Infrastructure and Conference Facilities",
+                },
                 { value: "unit2", label: "Unit 2" },
               ]}
               disabled={isViewOnly || !property}
