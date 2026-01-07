@@ -269,8 +269,8 @@ export default function CreateFTOModal({
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {/* Row 1: Property | Unit */}
-        <FieldRow columns={2}>
-          <FieldRowItem>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", width: "100%" }}>
+          <div>
             <SelectField
               label="Property"
               required
@@ -284,8 +284,8 @@ export default function CreateFTOModal({
               ]}
               disabled={isViewOnly}
             />
-          </FieldRowItem>
-          <FieldRowItem>
+          </div>
+          <div>
             <SelectField
               label="Unit"
               value={unit}
@@ -297,8 +297,8 @@ export default function CreateFTOModal({
               ]}
               disabled={isViewOnly}
             />
-          </FieldRowItem>
-        </FieldRow>
+          </div>
+        </div>
 
         {/* Row 2: FTO Name | Priority */}
         <FieldRow columns={2}>
