@@ -199,9 +199,6 @@ export default function AddPropertyModal({
     if (selectedManagers.length === 0) {
       newErrors.managers = "At least one manager is required";
     }
-    if (managementFee === 0) {
-      newErrors.managementFee = "Management fee is required";
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
