@@ -343,11 +343,13 @@ export default function AddPropertyModal({
             </FieldRowItem>
           </FieldRow>
 
-          <TextField
-            label="Rental Owner"
-            value={rentalOwner}
-            onChange={(e) => setRentalOwner(e.target.value)}
-            placeholder="Rental Owner"
+          <MultiInputField
+            label="Rental Owners"
+            value={rentalOwners}
+            onChange={setRentalOwners}
+            placeholder="No rental owners added"
+            addButtonLabel="Add Owner"
+            addPlaceholder="Enter owner name"
           />
         </FormSection>
 
