@@ -216,13 +216,21 @@ const MultiInputFieldContent: React.FC<MultiInputFieldContentProps> = ({
             onClick={handleAddItem}
             style={{
               padding: "8px 12px",
-              backgroundColor: "#0066cc",
+              backgroundColor: "#013764",
               color: "white",
-              borderRadius: "4px",
-              border: "none",
+              borderRadius: "8px",
+              border: "1px solid white",
               fontSize: "14px",
               fontWeight: 500,
               cursor: "pointer",
+              boxShadow: "0 0 0 1px #002D5A",
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#003a73";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#013764";
             }}
           >
             {addButtonLabel}
