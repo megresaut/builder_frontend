@@ -217,6 +217,8 @@ export default function AddPropertyModal({
   // Reset and populate form when modal opens/closes
   useEffect(() => {
     if (!open) {
+      setPropertyName("");
+      setBuildiumPropertyId("");
       setStreetAddress("");
       setUnit("");
       setCity("");
@@ -232,12 +234,15 @@ export default function AddPropertyModal({
       setErrors({});
     } else if (editData) {
       // Populate form from edit data using backend contract
+      setPropertyName(editData.name);
+      setBuildiumPropertyId(editData.buildium_property_id);
       setStreetAddress(editData.address_line1);
       setUnit(editData.address_line2);
       setCity(editData.city);
       setState(editData.state);
       setZipCode(editData.postal_code);
-      setPropertyType(editData.property_type);
+      // Map backend enum to UI value
+      setPropertyType(EnumToPropertyType[editData.property_type] || "");
       setSelectedManagerIds(editData.manager_ids);
       setStatus(editData.active ? "active" : "inactive");
 
