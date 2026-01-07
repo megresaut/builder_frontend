@@ -180,6 +180,8 @@ export default function AddPropertyModal({
   const [loadingManagers, setLoadingManagers] = useState(false);
 
   // Form state
+  const [propertyName, setPropertyName] = useState("");
+  const [buildiumPropertyId, setBuildiumPropertyId] = useState("");
   const [country, setCountry] = useState("united-states");
   const [streetAddress, setStreetAddress] = useState("");
   const [unit, setUnit] = useState("");
