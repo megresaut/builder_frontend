@@ -145,7 +145,7 @@ const MultiInputFieldContent: React.FC<MultiInputFieldContentProps> = ({
           disabled={disabled}
           style={{
             display: "flex",
-            alignItems: "flex-start",
+            alignItems: "center",
             flexWrap: "wrap",
             gap: "8px",
             padding: "8px 12px",
