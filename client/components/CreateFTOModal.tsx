@@ -203,14 +203,14 @@ export default function CreateFTOModal({
             label="Task"
             required
             value={ftoName}
-            onChange={setFtoName}
+            onChange={(e) => setFtoName(e.target.value)}
             error={errors.ftoName}
             placeholder="Type Task Name"
           />
           <TextAreaField
             label="Description"
             value={description}
-            onChange={setDescription}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Insert Description Here"
             rows={6}
           />
