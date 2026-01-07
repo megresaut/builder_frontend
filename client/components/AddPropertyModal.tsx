@@ -39,6 +39,24 @@ interface PropertyEditData {
   manager_names: string[];
 }
 
+// Property type enum mapping utilities
+// Maps between backend enum values and UI display values
+const PropertyTypeToEnum: Record<string, string> = {
+  concierge: "concierge",
+  rental: "rental",
+  commercial: "commercial",
+  or: "or",
+  hoa: "hoa",
+};
+
+const EnumToPropertyType: Record<string, string> = {
+  concierge: "concierge",
+  rental: "rental",
+  commercial: "commercial",
+  or: "or",
+  hoa: "hoa",
+};
+
 interface AddPropertyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
