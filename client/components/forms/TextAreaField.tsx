@@ -113,7 +113,7 @@ export const TextAreaField = forwardRef<
             value={value}
             maxLength={maxLength}
             onChange={handleChange}
-            aria-invalid={!readOnly && error ? "true" : "false"}
+            aria-invalid={!readOnly && error ? true : false}
             {...textareaProps}
           />
           {showCharCount && (
