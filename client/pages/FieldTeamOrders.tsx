@@ -596,6 +596,7 @@ export default function FieldTeamOrders() {
 
 
   const openEditFTO = useCallback((order: FieldTeamOrder) => {
+    console.log("🟦 Editing FTO payload sent to modal:", order);
     setEditingFTOId(order.id);
     setShowFTOModal(true);
   }, []);
@@ -812,9 +813,6 @@ export default function FieldTeamOrders() {
         }}
         editingFTO={editingFTOId ? orders.find((o) => o.id === editingFTOId) : null}
       />
-
-
-
       <ColumnFilterModal
         isOpen={showColumnModal}
         position={columnMenuPos}
