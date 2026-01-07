@@ -375,11 +375,9 @@ export default function AddPropertyModal({
             <FieldRowItem>
               <CurrencyField
                 label="Management Fee"
-                required
                 value={managementFee}
                 onChange={setManagementFee}
                 placeholder="0.00"
-                error={errors.managementFee}
               />
             </FieldRowItem>
             <FieldRowItem>
