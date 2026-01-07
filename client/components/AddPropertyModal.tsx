@@ -151,7 +151,7 @@ export default function AddPropertyModal({
       setZipCode("");
       setPropertyType("");
       setSelectedManagers([]);
-      setRentalOwner("");
+      setRentalOwners([]);
       setHourlyRate(0);
       setEmergencyHourlyRate(0);
       setManagementFee(0);
@@ -167,7 +167,7 @@ export default function AddPropertyModal({
       setPropertyType(editData.type.toLowerCase());
       setSelectedManagers(editData.managers);
       setStatus(editData.status);
-      setRentalOwner(editData.rentalOwner || "");
+      setRentalOwners(editData.rentalOwners || []);
     }
   }, [open, editData]);
 
