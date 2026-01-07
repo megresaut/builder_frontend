@@ -209,7 +209,7 @@ export default function CreateFTOModal({
 
 
   // Get selected assignees as MultiSelectOption
-  const selectedPmAssignees = assigneeOptions.filter((opt) =>
+  const selectedPmAssignees = pmAssigneeOptions.filter((opt) =>
     pmAssigneeIds.includes(Number(opt.id))
   );
 
@@ -409,7 +409,7 @@ export default function CreateFTOModal({
                 setPmAssigneeIds(options.map((opt) => Number(opt.id)));
               }}
               placeholder="Select PMs"
-              options={assigneeOptions}
+              options={pmAssigneeOptions}
               required={false}
             />
           </FieldRowItem>
