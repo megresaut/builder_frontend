@@ -279,8 +279,9 @@ export default function CreateFTOModal({
               error={errors.property}
               placeholder="Select Property"
               options={[
-                { value: "property1", label: "22 Indian Chase Dr" },
-                { value: "property2", label: "Property 2" },
+                { value: "property1", label: "(C) 1 Mayflower Parkway Westport, CT 06880" },
+                { value: "property2", label: "22 Indian Chase Dr" },
+                { value: "property3", label: "Property 3" },
               ]}
               disabled={isViewOnly}
             />
