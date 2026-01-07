@@ -391,8 +391,10 @@ export default function CreateFTOModal({
         {/* Row 5: Description (full width) */}
         <TextAreaField
           label="Description"
+          required
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          error={errors.description}
           placeholder="Insert Description Here"
           rows={6}
           disabled={isViewOnly}
