@@ -57,7 +57,10 @@ export const Login = () => {
     setErrors({});
   
     try {
-      const result = await loginRequest(formData.email, formData.password);
+      const normalizedEmail = formData.email.trim().toLowerCase();
+
+      const result = await loginRequest(normalizedEmail, formData.password);
+
   
       // Save token
       localStorage.setItem("avm_token", result.token);

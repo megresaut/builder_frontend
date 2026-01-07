@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  usePopoverContext,
 } from "@/components/ui/popover";
 import { FieldShell } from "./FieldShell";
 
@@ -28,9 +27,7 @@ interface MultiSelectFieldProps {
 }
 
 /**
- * MultiSelectField - Multi-select dropdown field with FieldShell wrapper
- *
- * Uses Popover primitive with type-ahead search
+ * MultiSelectField – stable, crash-free multiselect
  */
 export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
   label,
@@ -47,7 +44,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
   const [open, setOpen] = useState(false);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
-  // Deduplicate value array to prevent duplicate key warnings
+  // Deduplicate selected values
   const uniqueValue = Array.from(
     new Map(value.map((item) => [item.id, item])).values(),
   );
@@ -75,238 +72,134 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
       htmlFor={fieldId}
     >
       <Popover open={open} onOpenChange={setOpen}>
-        <MultiSelectFieldContent
-          open={open}
-          setOpen={setOpen}
-          fieldId={fieldId}
-          disabled={disabled}
-          error={error}
-          placeholder={placeholder}
-          uniqueValue={uniqueValue}
-          removeItem={removeItem}
-          options={options}
-          toggleItem={toggleItem}
-        />
-      </Popover>
-    </FieldShell>
-  );
-};
+        <PopoverTrigger asChild>
+          <button
+            id={fieldId}
+            disabled={disabled}
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            style={{
+              borderColor: error ? "#ef4444" : "var(--color-border-light)",
+              borderWidth: error ? "2px" : "1px",
+              minHeight: "44px",
+              borderRadius: "8px",
+              backgroundColor: "white",
+              padding: "8px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
+              width: "100%",
+              cursor: disabled ? "not-allowed" : "pointer",
+              fontSize: "16px",
+              borderStyle: "solid",
+              opacity: disabled ? 0.6 : 1,
+              justifyContent: "space-between",
+            }}
+          >
+            <div className="flex items-center gap-1.5 flex-wrap flex-1">
+              {uniqueValue.length === 0 ? (
+                <span style={{ color: "var(--color-text-placeholder)", fontSize: "14px" }}>
+                  {placeholder}
+                </span>
+              ) : (
+                uniqueValue.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5"
+                  >
+                    {item.initials && (
+                      <div className="flex w-[18px] h-[18px] items-center justify-center rounded-full bg-[#2463EB]">
+                        <span className="text-white text-[8px] font-semibold">
+                          {item.initials}
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-[12px]">{item.label}</span>
+                    <X
+                      className="w-3 h-3 text-[#2463EB] cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeItem(item.id);
+                      }}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </PopoverTrigger>
 
-interface MultiSelectFieldContentProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  fieldId: string;
-  disabled: boolean;
-  error?: string;
-  placeholder: string;
-  uniqueValue: MultiSelectOption[];
-  removeItem: (itemId: string) => void;
-  options: MultiSelectOption[];
-  toggleItem: (item: MultiSelectOption) => void;
-}
-
-const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
-  open,
-  setOpen,
-  fieldId,
-  disabled,
-  error,
-  placeholder,
-  uniqueValue,
-  removeItem,
-  options,
-  toggleItem,
-}) => {
-  const popoverContext = usePopoverContext();
-  const { highlightedIndex } = popoverContext;
-
-  // Register options with Popover for typeahead search
-  useEffect(() => {
-    if (open) {
-      popoverContext.setSearchableItems(
-        options.map((opt) => ({ value: opt.id, label: opt.label })),
-      );
-    }
-  }, [open, options, popoverContext]);
-
-  // Set up Enter key handler for selecting from type-ahead results
-  useEffect(() => {
-    if (open && popoverContext.onEnterSelect) {
-      popoverContext.onEnterSelect((item) => {
-        if (item) {
-          const option = options.find((opt) => opt.id === item.value);
-          if (option) {
-            toggleItem(option);
-          }
-        }
-      });
-    }
-  }, [open, popoverContext, options, toggleItem]);
-
-  return (
-    <>
-      <PopoverTrigger asChild>
-        <button
-          id={fieldId}
-          disabled={disabled}
-          type="button"
-          style={{
-            borderColor: error ? "#dc2626" : "var(--color-border-light)",
-            borderWidth: "1px",
-            minHeight: "44px",
-            height: "auto",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            padding: "8px 12px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexWrap: "wrap",
-            width: "100%",
-            cursor: disabled ? "not-allowed" : "pointer",
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
-            borderStyle: "solid",
-            opacity: disabled ? 0.6 : 1,
-            justifyContent: "space-between",
-          }}
-        >
-          <div className="flex items-center gap-1.5 flex-wrap flex-1">
-            {uniqueValue.length === 0 ? (
-              <span
+        <PopoverContent align="start" className="w-auto p-0">
+          <div
+            role="listbox"
+            aria-multiselectable="true"
+            style={{
+              maxHeight: "280px",
+              overflowY: "auto",
+              padding: "4px 0",
+              minWidth: "200px",
+            }}
+          >
+            {options.length === 0 ? (
+              <div
                 style={{
-                  color: "var(--color-text-placeholder)",
+                  padding: "8px 12px",
                   fontSize: "14px",
+                  color: "var(--color-text-muted)",
                 }}
               >
-                {placeholder}
-              </span>
+                No options
+              </div>
             ) : (
-              uniqueValue.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5 whitespace-nowrap"
-                >
-                  {item.initials && (
-                    <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
-                      <span className="text-white font-semibold text-[8px]">
-                        {item.initials}
-                      </span>
-                    </div>
-                  )}
-                  <span
+              options.map((option) => {
+                const isSelected = uniqueValue.some((v) => v.id === option.id);
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => toggleItem(option)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleItem(option);
+                      } else if (e.key === "Escape") {
+                        setOpen(false);
+                      }
+                    }}
                     style={{
-                      fontSize: "12px",
-                      color: "var(--color-text-primary)",
+                      width: "100%",
+                      padding: "8px 12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      backgroundColor: isSelected
+                        ? "rgba(36, 99, 235, 0.1)"
+                        : "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      textAlign: "left",
                     }}
                   >
-                    {item.label}
-                  </span>
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeItem(item.id);
-                    }}
-                    className="hover:opacity-70 transition-opacity cursor-pointer"
-                    role="button"
-                    tabIndex={-1}
-                  >
-                    <X className="w-3 h-3 text-[#2463EB]" />
-                  </div>
-                </div>
-              ))
+                    {isSelected ? (
+                      <Check className="h-4 w-4 text-blue-600" />
+                    ) : (
+                      <div className="h-4 w-4" />
+                    )}
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })
             )}
           </div>
-          <ChevronDown
-            className="h-4 w-4 flex-shrink-0"
-            style={{ color: "#303030" }}
-          />
-        </button>
-      </PopoverTrigger>
-
-      <PopoverContent
-        align="start"
-        className="w-auto p-0"
-        style={{
-          minWidth: "200px",
-        }}
-      >
-        <div
-          style={{
-            maxHeight: "280px",
-            overflowY: "auto",
-            padding: "4px 0",
-          }}
-        >
-          {popoverContext.filteredItems.length === 0 ? (
-            <div
-              style={{
-                padding: "8px 12px",
-                color: "var(--color-text-muted)",
-                fontSize: "14px",
-              }}
-            >
-              {popoverContext.filteredItems.length === 0 && options.length > 0
-                ? "No matching options"
-                : "No options"}
-            </div>
-          ) : (
-            popoverContext.filteredItems.map((item, index) => {
-              const option = options.find((opt) => opt.id === item.value);
-              if (!option) return null;
-              const isSelected = uniqueValue.some((v) => v.id === option.id);
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => toggleItem(option)}
-                  type="button"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    backgroundColor: isSelected
-                      ? "rgba(36, 99, 235, 0.1)"
-                      : highlightedIndex === index
-                        ? "rgba(36, 99, 235, 0.08)"
-                        : "transparent",
-                    color: "var(--color-text-primary)",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontFamily:
-                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "background-color 0.15s",
-                  }}
-                  onMouseEnter={() => {
-                    popoverContext.setHighlightedIndex(index);
-                  }}
-                  onMouseLeave={() => {
-                    // Don't reset on mouse leave, keep arrow nav state
-                  }}
-                >
-                  {isSelected ? (
-                    <Check className="h-4 w-4 text-blue-600" />
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
-                  {option.initials && (
-                    <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463EB]">
-                      <span className="text-white font-semibold text-[10px]">
-                        {option.initials}
-                      </span>
-                    </div>
-                  )}
-                  <span>{option.label}</span>
-                </button>
-              );
-            })
-          )}
-        </div>
-      </PopoverContent>
-    </>
+        </PopoverContent>
+      </Popover>
+    </FieldShell>
   );
 };
 

@@ -263,7 +263,7 @@ export default function AllProperties() {
           address: p.address_line1,
           location: `${p.city}, ${p.state}`,
           manager: p.manager_names?.join(", ") ?? "",
-          type: EnumToPropertyType[p.property_type] ?? p.property_type,
+          type: p.property_type,
           buildingId: p.buildium_property_id,
           status: p.active ? "active" : "inactive",
         }));
@@ -304,7 +304,7 @@ export default function AllProperties() {
     try {
       const full = await fetchJSON(`/properties/${property.id}`);
   
-      setEditingProperty({
+      const payload = {
         id: full.id,
         name: full.name,
         address_line1: full.address_line1,
@@ -312,7 +312,7 @@ export default function AllProperties() {
         city: full.city,
         state: full.state,
         postal_code: full.postal_code,
-        property_type: full.property_type,   
+        property_type: full.property_type.toLowerCase(),
         buildium_property_id: full.buildium_property_id,
         active: full.active,
         manager_ids: full.manager_ids,
@@ -320,14 +320,19 @@ export default function AllProperties() {
         hourly_rate_cents: full.hourly_rate_cents,
         emergency_hourly_rate_cents: full.emergency_hourly_rate_cents,
         management_fee_cents: full.management_fee_cents,
-      });
+      };
   
+      // 🔍 DEBUG: print payload going into modal
+      console.log("[EditProperty → Modal payload]", payload);
+  
+      setEditingProperty(payload);
       setIsAddPropertyModalOpen(true);
     } catch (err) {
       console.error(err);
       alert("Failed to load property.");
     }
   };
+  
   
 
   useEffect(() => {
@@ -682,7 +687,7 @@ export default function AllProperties() {
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {property.type}
+                          {EnumToPropertyType[property.type] ?? property.type}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
