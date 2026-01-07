@@ -144,6 +144,7 @@ export default function AddPropertyModal({
   useEffect(() => {
     if (!open) {
       setStreetAddress("");
+      setUnit("");
       setCity("");
       setState("CT");
       setZipCode("");
@@ -158,6 +159,7 @@ export default function AddPropertyModal({
     } else if (editData) {
       // Populate form with edit data
       setStreetAddress(editData.address.split(",")[0]);
+      setUnit(editData.unit || "");
       const locationParts = editData.location.split(",").map((p) => p.trim());
       if (locationParts.length >= 1) setCity(locationParts[0]);
       if (locationParts.length >= 2) setState(locationParts[1]);
