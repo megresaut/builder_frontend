@@ -47,7 +47,7 @@ interface EditingFTO {
 interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingFTO?: MockFTO | null;
+  editingFTO?: EditingFTO | null;
 }
 
 // Mock Data
