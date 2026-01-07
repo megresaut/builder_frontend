@@ -127,6 +127,7 @@ export default function AddPropertyModal({
 }: AddPropertyModalProps) {
   const [country, setCountry] = useState("united-states");
   const [streetAddress, setStreetAddress] = useState("");
+  const [unit, setUnit] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("CT");
   const [zipCode, setZipCode] = useState("");
