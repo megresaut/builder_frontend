@@ -140,7 +140,7 @@ export default function AddUnitModal({
       return;
     }
 
-    const fullAddress = `${street}, ${city}, ${state} ${zipCode}`;
+    const fullAddress = `${addressValue.street}, ${addressValue.city}, ${addressValue.state} ${addressValue.zipCode}`;
     const payload = {
       unit_number: unitNumber,
       address: fullAddress,
