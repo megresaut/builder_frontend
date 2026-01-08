@@ -82,6 +82,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   propertyUnits,
 }) => {
   const [unitsList, setUnitsList] = useState<Unit[]>(mockUnits);
+
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -89,11 +90,13 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     false,
   );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+
   const [isAddUnitModalOpen, setIsAddUnitModalOpen] = usePageState(
     "isAddUnitModalOpen",
     false,
   );
   const [editingUnit, setEditingUnit] = usePageState<Unit | null>("editingUnit", null);
+
   const [showDeleteConfirm, setShowDeleteConfirm] = usePageState<number | null>(
     "showDeleteConfirm",
     null,
@@ -107,6 +110,8 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const selectedUnitId = searchParams.get("unit")
     ? Number.parseInt(searchParams.get("unit")!, 10)
     : null;
+
+  const selectedUnit = selectedUnitId ? unitsList.find((u) => u.id === selectedUnitId) : null;
 
   const { state: unitState, dispatch: unitDispatch } = usePropertyDetailsState();
 
@@ -180,8 +185,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     [],
   );
 
-  const selectedUnit = selectedUnitId ? unitsList.find((u) => u.id === selectedUnitId) : null;
-
   const revokeBlobUrl = (url?: string) => {
     if (!url) return;
     if (url.startsWith("blob:")) {
@@ -194,6 +197,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   };
 
   const [viewingNote, setViewingNote] = useState<RecentNote | null>(null);
+  const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
   const selectedNote = unitState.selection.noteId
     ? unitState.lists.recentNotes.find((n) => n.id === unitState.selection.noteId)
@@ -203,11 +207,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     ? unitState.lists.recentFiles.find((f) => f.id === unitState.selection.fileId)
     : null;
 
+  const closeViewNoteModal = () => {
+    setIsViewNoteOpen(false);
+    setViewingNote(null);
+  };
+
   const closeUnitDetailModals = () => {
     unitDispatch({ type: "CLOSE_MODAL" });
     unitDispatch({ type: "SELECT_NOTE", noteId: null });
     unitDispatch({ type: "SELECT_FILE", fileId: null });
-    setViewingNote(null);
+    closeViewNoteModal();
   };
 
   const closeTableOverlays = () => {
@@ -229,12 +238,42 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     setIsAddUnitModalOpen(true);
   };
 
-  const openUnitDetailModal = (modal: Exclude<Parameters<typeof unitDispatch>[0], never> extends never
-    ? never
-    : any) => {
+  const openAddNoteModal = () => {
     closeTableOverlays();
     closeUnitFormModal();
-    unitDispatch({ type: "OPEN_MODAL", modal });
+    closeViewNoteModal();
+    unitDispatch({ type: "OPEN_MODAL", modal: "addNote" });
+  };
+
+  const openAddFileModal = () => {
+    closeTableOverlays();
+    closeUnitFormModal();
+    closeViewNoteModal();
+    unitDispatch({ type: "OPEN_MODAL", modal: "addFile" });
+  };
+
+  const openViewFileModal = (fileId: number) => {
+    closeTableOverlays();
+    closeUnitFormModal();
+    closeViewNoteModal();
+    unitDispatch({ type: "SELECT_FILE", fileId });
+    unitDispatch({ type: "OPEN_MODAL", modal: "viewFile" });
+  };
+
+  const openEditFileModal = (fileId: number) => {
+    closeTableOverlays();
+    closeUnitFormModal();
+    closeViewNoteModal();
+    unitDispatch({ type: "SELECT_FILE", fileId });
+    unitDispatch({ type: "OPEN_MODAL", modal: "editFile" });
+  };
+
+  const openViewNoteModal = (note: RecentNote) => {
+    closeTableOverlays();
+    closeUnitFormModal();
+    unitDispatch({ type: "CLOSE_MODAL" });
+    setViewingNote(note);
+    setIsViewNoteOpen(true);
   };
 
   const handleOpenAddModal = () => {
@@ -285,13 +324,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
       setOpenMenuId(null);
       columnManagement.setShowColumnModal(false);
     }
-  }, [selectedUnitId, selectedUnit, columnManagement]);
+  }, [selectedUnit, selectedUnitId, columnManagement]);
 
   useEffect(() => {
-    if (!selectedUnitId) {
+    if (selectedUnitId && !selectedUnit) {
+      closeTableOverlays();
       closeUnitDetailModals();
+      closeUnitFormModal();
+      navigate(location.pathname, { replace: true });
     }
-  }, [selectedUnitId]);
+  }, [selectedUnitId, selectedUnit, location.pathname]);
 
   return (
     <>
@@ -355,16 +397,12 @@ export const UnitsList: React.FC<UnitsListProps> = ({
 
               <NotesTemplate
                 notes={unitState.lists.recentNotes}
-                onAdd={() => openUnitDetailModal("addNote")}
-                onEdit={(note) => {
-                  closeTableOverlays();
-                  closeUnitFormModal();
-                  setViewingNote(note);
-                  unitDispatch({ type: "OPEN_MODAL", modal: "viewNote" as any });
-                }}
+                onAdd={openAddNoteModal}
+                onEdit={openViewNoteModal}
                 onDelete={(noteId) => {
                   closeTableOverlays();
                   closeUnitFormModal();
+                  closeViewNoteModal();
                   unitDispatch({ type: "DELETE_NOTE", noteId });
                 }}
                 isLast={false}
@@ -373,26 +411,17 @@ export const UnitsList: React.FC<UnitsListProps> = ({
 
               <FilesTemplate
                 files={unitState.lists.recentFiles}
-                onAdd={() => openUnitDetailModal("addFile")}
-                onEdit={(file) => {
-                  closeTableOverlays();
-                  closeUnitFormModal();
-                  unitDispatch({ type: "SELECT_FILE", fileId: file.id });
-                  unitDispatch({ type: "OPEN_MODAL", modal: "editFile" });
-                }}
+                onAdd={openAddFileModal}
+                onEdit={(file) => openEditFileModal(file.id)}
                 onDelete={(fileId) => {
                   closeTableOverlays();
                   closeUnitFormModal();
+                  closeViewNoteModal();
                   const fileToDelete = unitState.lists.recentFiles.find((f) => f.id === fileId);
                   revokeBlobUrl(fileToDelete?.url);
                   unitDispatch({ type: "DELETE_FILE", fileId });
                 }}
-                onView={(file) => {
-                  closeTableOverlays();
-                  closeUnitFormModal();
-                  unitDispatch({ type: "SELECT_FILE", fileId: file.id });
-                  unitDispatch({ type: "OPEN_MODAL", modal: "viewFile" });
-                }}
+                onView={(file) => openViewFileModal(file.id)}
                 isLast={true}
                 emptyMessage="You don't have any files for this unit right now."
               />
@@ -588,26 +617,23 @@ export const UnitsList: React.FC<UnitsListProps> = ({
       />
 
       <ModalTemplate
-        open={unitState.activeModal === ("viewNote" as any)}
+        open={isViewNoteOpen}
         onOpenChange={(open) => {
-          if (!open) {
-            unitDispatch({ type: "CLOSE_MODAL" });
-            setViewingNote(null);
-          }
+          setIsViewNoteOpen(open);
+          if (!open) setViewingNote(null);
         }}
         title="Note Details"
         size="sm"
         footer={
           <ModalButtons
             onCancel={() => {
-              unitDispatch({ type: "CLOSE_MODAL" });
-              setViewingNote(null);
+              closeViewNoteModal();
             }}
             onConfirm={() => {
               if (viewingNote) {
+                closeViewNoteModal();
                 unitDispatch({ type: "SELECT_NOTE", noteId: viewingNote.id });
                 unitDispatch({ type: "OPEN_MODAL", modal: "editNote" });
-                setViewingNote(null);
               }
             }}
             cancelLabel="Close"
