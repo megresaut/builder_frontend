@@ -238,6 +238,10 @@ export const UnitsList: React.FC<UnitsListProps> = ({
 
   // Show unit overview when a unit is selected
   if (selectedUnit) {
+    // Reset table-related state when switching to overview
+    setShowPageSizeDropdown(false);
+    setOpenMenuId(null);
+
     return (
       <>
         <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
