@@ -141,14 +141,6 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/property/:propertyId/unit/:unitId"
-                  element={
-                    <ShellLayout>
-                      <UnitOverview />
-                    </ShellLayout>
-                  }
-                />
-                <Route
                   path="/property/:propertyId/:tab"
                   element={
                     <ShellLayout>
