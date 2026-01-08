@@ -256,12 +256,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 <div className="flex flex-col w-full font-medium">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <PageHeader title="Unit Details" />
-                    <button
-                      onClick={() => setSelectedUnitId(null)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-50 text-[#303030] font-medium text-sm transition-colors"
-                    >
-                      ✕ Back to Units
-                    </button>
                   </div>
 
                   <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
