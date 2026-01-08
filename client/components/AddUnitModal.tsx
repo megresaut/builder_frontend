@@ -73,10 +73,12 @@ export default function AddUnitModal({
 
   // Form state
   const [unitNumber, setUnitNumber] = useState("");
-  const [street, setStreet] = useState(defaultAddress.street);
-  const [city, setCity] = useState(defaultAddress.city);
-  const [state, setState] = useState(defaultAddress.state);
-  const [zipCode, setZipCode] = useState(defaultAddress.zip);
+  const [addressValue, setAddressValue] = useState<AddressValue>({
+    street: defaultAddress.street,
+    city: defaultAddress.city,
+    state: defaultAddress.state,
+    zipCode: defaultAddress.zip,
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset form when modal opens/closes
