@@ -10,6 +10,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
 
   const getBreadcrumbItems = () => {
     const path = location.pathname;
+    const searchParams = new URLSearchParams(location.search);
     const items: BreadcrumbItem[] = [];
 
     if (path === "/fto") {
