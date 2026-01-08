@@ -661,32 +661,38 @@ export const UnitsList: React.FC<UnitsListProps> = ({
       />
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-            <h3 className="text-lg font-semibold text-[#303030] mb-2">
-              Delete Unit
-            </h3>
-            <p className="text-sm text-[#717179] mb-6">
+      <ModalTemplate
+        open={showDeleteConfirm !== null}
+        onOpenChange={(open) => {
+          if (!open) setShowDeleteConfirm(null);
+        }}
+        title="Delete Unit"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setShowDeleteConfirm(null)}
+            onConfirm={confirmDelete}
+            cancelLabel="Cancel"
+            confirmLabel="Delete"
+          />
+        }
+      >
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <p
+              style={{
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontSize: "14px",
+                color: "rgba(48, 48, 48, 1)",
+                fontWeight: 400,
+                lineHeight: 1.43,
+              }}
+            >
               Are you sure you want to delete this unit? This action cannot be undone.
             </p>
-            <div className="flex gap-2.5 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-3 py-2 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-50 text-[#303030] font-medium text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-3 py-2 rounded-lg bg-[#982740] hover:bg-[#7a1f31] text-white font-medium text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
     </div>
   );
 };
