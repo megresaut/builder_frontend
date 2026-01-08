@@ -665,21 +665,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
         }
       />
 
-      {/* Add Unit Modal */}
-      <AddUnitModal
-        open={isAddUnitModalOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditingUnit(null);
-          }
-          setIsAddUnitModalOpen(open);
-        }}
-        editData={editingUnit || undefined}
-        onSubmit={handleAddUnit}
-        propertyAddress={propertyAddress}
-        propertyId={propertyId ? parseInt(propertyId) : 1}
-      />
-
       {/* Column Filter Modal */}
       <ColumnFilterModal
         isOpen={columnManagement.showColumnModal}
