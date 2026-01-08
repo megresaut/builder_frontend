@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { TextField, AddressField, type AddressValue } from "@/components/forms";
@@ -69,7 +69,7 @@ export default function AddUnitModal({
   propertyId,
 }: AddUnitModalProps) {
   const isEditMode = Boolean(editData);
-  const defaultAddress = parsePropertyAddress(propertyAddress);
+  const defaultAddress = useMemo(() => parsePropertyAddress(propertyAddress), [propertyAddress]);
 
   // Form state
   const [unitNumber, setUnitNumber] = useState("");
