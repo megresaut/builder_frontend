@@ -240,16 +240,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   if (selectedUnit) {
     return (
       <>
-        <div className="flex flex-col gap-6 mb-6">
-          <button
-            onClick={() => setSelectedUnitId(null)}
-            className="flex items-center gap-2 text-sm text-[#2463EB] hover:text-[#1a4ba0] transition-colors font-medium"
-          >
-            <ArrowBackIcon width={18} height={18} />
-            Back to Units
-          </button>
-        </div>
-
         <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
           <div className="flex flex-col w-full min-w-[240px]">
             <SectionGroupCardTemplate>
