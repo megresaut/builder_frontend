@@ -61,6 +61,9 @@ const mockUnits: Unit[] = [
   },
 ];
 
+const unitImage =
+  "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true";
+
 export const UnitsList: React.FC<UnitsListProps> = ({
   propertyAddress,
   propertyType,
