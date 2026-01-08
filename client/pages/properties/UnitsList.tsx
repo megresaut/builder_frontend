@@ -236,12 +236,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     ? unitState.lists.recentFiles.find((f) => f.id === unitState.selection.fileId)
     : null;
 
+  // Close any open dropdowns when switching to unit overview
+  useEffect(() => {
+    if (selectedUnit) {
+      setShowPageSizeDropdown(false);
+      setOpenMenuId(null);
+    }
+  }, [selectedUnit, setShowPageSizeDropdown, setOpenMenuId]);
+
   // Show unit overview when a unit is selected
   if (selectedUnit) {
-    // Reset table-related state when switching to overview
-    setShowPageSizeDropdown(false);
-    setOpenMenuId(null);
-
     return (
       <>
         <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
