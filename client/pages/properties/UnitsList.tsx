@@ -244,6 +244,20 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     }
   }, [selectedUnitId]);
 
+  // Handle breadcrumb navigation back to units list
+  useEffect(() => {
+    const handleBreadcrumbClick = (e: any) => {
+      // Check if a breadcrumb "Units" link is clicked
+      const breadcrumb = document.querySelector('[data-test="units-breadcrumb"]');
+      if (breadcrumb && e.target === breadcrumb) {
+        setSelectedUnitId(null);
+      }
+    };
+
+    document.addEventListener("click", handleBreadcrumbClick);
+    return () => document.removeEventListener("click", handleBreadcrumbClick);
+  }, [setSelectedUnitId]);
+
   // Show unit overview when a unit is selected
   if (selectedUnit) {
     return (
