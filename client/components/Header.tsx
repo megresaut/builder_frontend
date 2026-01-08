@@ -33,7 +33,10 @@ interface HeaderProps {
   showTabs?: boolean;
 }
 
-export default function Header({ forceCollapse = false, showTabs = true }: HeaderProps) {
+export default function Header({
+  forceCollapse = false,
+  showTabs = true,
+}: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
@@ -43,12 +46,21 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
     const cleanPath = path.split("?")[0];
 
     // Properties section
-    if (cleanPath === "/all-properties" || cleanPath === "/" || cleanPath.includes("/property/")) {
+    if (
+      cleanPath === "/all-properties" ||
+      cleanPath === "/" ||
+      cleanPath.includes("/property/")
+    ) {
       return "all-properties";
     }
 
     // Accounting section
-    if (cleanPath === "/bills" || cleanPath.includes("/bills/record") || cleanPath === "/record-bill" || cleanPath === "/utilities/view-bill") {
+    if (
+      cleanPath === "/bills" ||
+      cleanPath.includes("/bills/record") ||
+      cleanPath === "/record-bill" ||
+      cleanPath === "/utilities/view-bill"
+    ) {
       return "bills";
     }
 
@@ -69,18 +81,20 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
   };
 
   // Helper function to map section ID to the corresponding default tab ID
-  const getDefaultTabIdForSection = (sectionId: string | undefined): string | undefined => {
+  const getDefaultTabIdForSection = (
+    sectionId: string | undefined,
+  ): string | undefined => {
     if (!sectionId) return undefined;
 
     // Map sectionIds to existing default tab IDs
     const sectionToTabMap: Record<string, string> = {
       "all-properties": "properties",
-      "bills": "bills",
+      bills: "bills",
       "all-tasks": "field-team-orders", // Use field-team-orders as the main maintenance tab
       "recurring-tasks": "field-team-orders",
       "field-team-orders": "field-team-orders",
       "work-orders": "work-orders",
-      "vendors": "field-team-orders",
+      vendors: "field-team-orders",
     };
 
     return sectionToTabMap[sectionId];
@@ -162,7 +176,8 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
           "10": "22 Indian Chase Dr",
         };
 
-        const propertyAddress = propertyAddresses[propertyId] || `Property ${propertyId}`;
+        const propertyAddress =
+          propertyAddresses[propertyId] || `Property ${propertyId}`;
         const label = propertyAddress;
 
         if (tab && tab !== "Overview") {
@@ -378,7 +393,9 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
   const [isFullscreen, setIsFullscreenState] = useState(false);
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
   const [dropTargetTabId, setDropTargetTabId] = useState<string | null>(null);
-  const [dropPosition, setDropPosition] = useState<"before" | "after">("before");
+  const [dropPosition, setDropPosition] = useState<"before" | "after">(
+    "before",
+  );
   const tabContext = useContext(TabContext);
 
   // Load fullscreen state from localStorage on mount
@@ -484,7 +501,13 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
       history: newHistory,
       historyIndex: newHistoryIndex,
     });
-  }, [location.pathname, location.search, selectedTab, tabMetadata, setTabMetadata]);
+  }, [
+    location.pathname,
+    location.search,
+    selectedTab,
+    tabMetadata,
+    setTabMetadata,
+  ]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
@@ -889,8 +912,12 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
 
     // Get the open tabs in order
     const openTabsArray = tabs.filter((tab) => openTabs.has(tab.id));
-    const draggedIndex = openTabsArray.findIndex((tab) => tab.id === draggedTabId);
-    const targetIndex = openTabsArray.findIndex((tab) => tab.id === targetTabId);
+    const draggedIndex = openTabsArray.findIndex(
+      (tab) => tab.id === draggedTabId,
+    );
+    const targetIndex = openTabsArray.findIndex(
+      (tab) => tab.id === targetTabId,
+    );
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedTabId(null);
@@ -912,13 +939,15 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
       // Insert at correct position based on dropPosition
       let insertIndex: number;
       if (dropPosition === "before") {
-        insertIndex = draggedTabIndexInAll < targetTabIndexInAll
-          ? targetTabIndexInAll - 1
-          : targetTabIndexInAll;
+        insertIndex =
+          draggedTabIndexInAll < targetTabIndexInAll
+            ? targetTabIndexInAll - 1
+            : targetTabIndexInAll;
       } else {
-        insertIndex = draggedTabIndexInAll < targetTabIndexInAll
-          ? targetTabIndexInAll
-          : targetTabIndexInAll + 1;
+        insertIndex =
+          draggedTabIndexInAll < targetTabIndexInAll
+            ? targetTabIndexInAll
+            : targetTabIndexInAll + 1;
       }
       newTabs.splice(insertIndex, 0, draggedTabObj);
 
@@ -972,107 +1001,119 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
         >
           {!isFullscreen && (
             <div className="flex items-center gap-3 flex-1 min-w-0 h-10">
-            {/* Navigation Buttons */}
-            <button
-              onClick={handleBackInTab}
-              className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
-              aria-label="Go back"
-            >
-              <ArrowBackIcon width={20} height={20} />
-            </button>
-            <button
-              onClick={handleForwardInTab}
-              className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
-              aria-label="Go forward"
-            >
-              <ArrowForwardIcon width={20} height={20} />
-            </button>
+              {/* Navigation Buttons */}
+              <button
+                onClick={handleBackInTab}
+                className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                aria-label="Go back"
+              >
+                <ArrowBackIcon width={20} height={20} />
+              </button>
+              <button
+                onClick={handleForwardInTab}
+                className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                aria-label="Go forward"
+              >
+                <ArrowForwardIcon width={20} height={20} />
+              </button>
 
-            {/* Breadcrumb - Hidden on small screens */}
-            <Breadcrumbs items={breadcrumbItems} />
-          </div>
+              {/* Breadcrumb - Hidden on small screens */}
+              <Breadcrumbs items={breadcrumbItems} />
+            </div>
           )}
           {isFullscreen && <div className="flex-1" />}
 
           {/* Search and Actions */}
           {!isFullscreen && (
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Search Bar */}
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-28">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <SearchIcon width={18} height={18} className="text-gray-700 flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500 min-w-0"
-                />
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Search Bar */}
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-28">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <SearchIcon
+                    width={18}
+                    height={18}
+                    className="text-gray-700 flex-shrink-0"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500 min-w-0"
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
+                  <CommandIcon width={14} height={14} />
+                  <span>S</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
-                <CommandIcon width={14} height={14} />
-                <span>S</span>
-              </div>
-            </div>
 
-            {/* Favorites/Star Button */}
-            {showTabs && (
+              {/* Favorites/Star Button */}
+              {showTabs && (
+                <button
+                  onClick={handleFavoriteClick}
+                  className={`h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
+                    isCurrentPageFavorite
+                      ? "border-yellow-400 bg-yellow-50"
+                      : "border-gray-300 bg-transparent"
+                  }`}
+                  style={{ lineHeight: "24px" }}
+                >
+                  <StarIcon
+                    width={18}
+                    height={18}
+                    className={
+                      isCurrentPageFavorite
+                        ? "text-yellow-500"
+                        : "text-gray-700"
+                    }
+                  />
+                </button>
+              )}
+
+              {/* Notification Button */}
+              <button className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
+                <BellIcon width={18} height={18} className="text-gray-700" />
+              </button>
+
+              {/* Fullscreen Toggle Button */}
               <button
-                onClick={handleFavoriteClick}
-                className={`h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
-                  isCurrentPageFavorite
-                    ? "border-yellow-400 bg-yellow-50"
-                    : "border-gray-300 bg-transparent"
-                }`}
-                style={{ lineHeight: "24px" }}
+                onClick={toggleFullscreen}
+                className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative"
+                title={isFullscreen ? "Expand" : "Minimize"}
               >
-                <StarIcon
+                <ExpandCollapseIcon
                   width={18}
                   height={18}
-                  className={isCurrentPageFavorite ? "text-yellow-500" : "text-gray-700"}
+                  className="text-gray-700"
                 />
               </button>
-            )}
-
-            {/* Notification Button */}
-            <button className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
-              <BellIcon width={18} height={18} className="text-gray-700" />
-            </button>
-
-            {/* Fullscreen Toggle Button */}
+            </div>
+          )}
+          {isFullscreen && (
             <button
               onClick={toggleFullscreen}
-              className="h-10 w-10 p-0 flex items-center justify-center hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative"
-              title={isFullscreen ? "Expand" : "Minimize"}
+              className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0"
+              style={{
+                position: "fixed",
+                top: "16px",
+                right: "16px",
+                zIndex: 50,
+              }}
+              title="Expand"
             >
-              <ExpandCollapseIcon width={18} height={18} className="text-gray-700" />
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-700"
+              >
+                <path d="m18 15-6-6-6 6" />
+              </svg>
             </button>
-          </div>
-        )}
-        {isFullscreen && (
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0"
-            style={{
-              position: "fixed",
-              top: "16px",
-              right: "16px",
-              zIndex: 50,
-            }}
-            title="Expand"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-gray-700"
-            >
-              <path d="m18 15-6-6-6 6" />
-            </svg>
-          </button>
           )}
         </div>
       )}

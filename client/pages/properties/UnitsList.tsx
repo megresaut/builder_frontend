@@ -1,17 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import AddUnitModal from "@/components/AddUnitModal";
-import { BuildingIcon, DeleteIcon, EditIcon, PinIcon, PlusIcon, UserIcon } from "@/components/icons";
+import {
+  BuildingIcon,
+  DeleteIcon,
+  EditIcon,
+  PinIcon,
+  PlusIcon,
+  UserIcon,
+} from "@/components/icons";
 import PageHeader from "@/components/PageHeader";
 import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import { usePropertyDetailsState, type RecentFile, type RecentNote } from "@/hooks/usePropertyDetailsState";
+import {
+  usePropertyDetailsState,
+  type RecentFile,
+  type RecentNote,
+} from "@/hooks/usePropertyDetailsState";
 import {
   FilesTemplate,
   NotesTemplate,
@@ -89,13 +105,19 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     "showPageSizeDropdown",
     false,
   );
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>("openMenuId", null);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
 
   const [isAddUnitModalOpen, setIsAddUnitModalOpen] = usePageState(
     "isAddUnitModalOpen",
     false,
   );
-  const [editingUnit, setEditingUnit] = usePageState<Unit | null>("editingUnit", null);
+  const [editingUnit, setEditingUnit] = usePageState<Unit | null>(
+    "editingUnit",
+    null,
+  );
 
   const [showDeleteConfirm, setShowDeleteConfirm] = usePageState<number | null>(
     "showDeleteConfirm",
@@ -111,9 +133,12 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     ? Number.parseInt(searchParams.get("unit")!, 10)
     : null;
 
-  const selectedUnit = selectedUnitId ? unitsList.find((u) => u.id === selectedUnitId) : null;
+  const selectedUnit = selectedUnitId
+    ? unitsList.find((u) => u.id === selectedUnitId)
+    : null;
 
-  const { state: unitState, dispatch: unitDispatch } = usePropertyDetailsState();
+  const { state: unitState, dispatch: unitDispatch } =
+    usePropertyDetailsState();
 
   useEffect(() => {
     const initialNotes: RecentNote[] = [
@@ -165,25 +190,30 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     `units-${propertyId}`,
   );
 
-  const columnManagement = useColumnManagement(["unitNumber", "address", "tenants"]);
+  const columnManagement = useColumnManagement([
+    "unitNumber",
+    "address",
+    "tenants",
+  ]);
 
-  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = useMemo(
-    () => ({
-      unitNumber: {
-        label: "Unit",
-        icon: <BuildingIcon width={16} height={16} color="#525252" />,
-      },
-      address: {
-        label: "Address",
-        icon: <PinIcon width={16} height={16} color="#525252" />,
-      },
-      tenants: {
-        label: "Tenants",
-        icon: <UserIcon width={16} height={16} color="#525252" />,
-      },
-    }),
-    [],
-  );
+  const columnConfig: Record<string, { label: string; icon: React.ReactNode }> =
+    useMemo(
+      () => ({
+        unitNumber: {
+          label: "Unit",
+          icon: <BuildingIcon width={16} height={16} color="#525252" />,
+        },
+        address: {
+          label: "Address",
+          icon: <PinIcon width={16} height={16} color="#525252" />,
+        },
+        tenants: {
+          label: "Tenants",
+          icon: <UserIcon width={16} height={16} color="#525252" />,
+        },
+      }),
+      [],
+    );
 
   const revokeBlobUrl = (url?: string) => {
     if (!url) return;
@@ -200,11 +230,15 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
   const selectedNote = unitState.selection.noteId
-    ? unitState.lists.recentNotes.find((n) => n.id === unitState.selection.noteId)
+    ? unitState.lists.recentNotes.find(
+        (n) => n.id === unitState.selection.noteId,
+      )
     : null;
 
   const selectedFile = unitState.selection.fileId
-    ? unitState.lists.recentFiles.find((f) => f.id === unitState.selection.fileId)
+    ? unitState.lists.recentFiles.find(
+        (f) => f.id === unitState.selection.fileId,
+      )
     : null;
 
   const closeViewNoteModal = () => {
@@ -296,7 +330,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
 
   const handleAddUnit = (newUnit: Unit) => {
     if (editingUnit) {
-      setUnitsList((prev) => prev.map((u) => (u.id === newUnit.id ? newUnit : u)));
+      setUnitsList((prev) =>
+        prev.map((u) => (u.id === newUnit.id ? newUnit : u)),
+      );
     } else {
       setUnitsList((prev) => [...prev, newUnit]);
     }
@@ -370,7 +406,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                     />
                     <div className="flex min-w-[240px] min-h-[160px] flex-col justify-center flex-1">
                       <div className="flex flex-col w-full max-w-[423px]">
-                        <div className="text-[#71717A] text-xs leading-[1.33]">ADDRESS</div>
+                        <div className="text-[#71717A] text-xs leading-[1.33]">
+                          ADDRESS
+                        </div>
                         <div className="text-[#303030] text-base leading-[1.13] mt-1">
                           <div>
                             {selectedUnit.address} - {selectedUnit.unitNumber}
@@ -380,12 +418,18 @@ export const UnitsList: React.FC<UnitsListProps> = ({
 
                       <div className="flex mt-5 w-full items-start gap-14 flex-1">
                         <div className="flex flex-col">
-                          <div className="text-[#71717A] text-xs leading-[1.33]">TENANTS</div>
+                          <div className="text-[#71717A] text-xs leading-[1.33]">
+                            TENANTS
+                          </div>
                           <div className="flex flex-col self-start mt-1 gap-1 text-base text-[#303030] leading-[1.13]">
                             {selectedUnit.tenants.length > 0 ? (
-                              selectedUnit.tenants.map((tenant, idx) => <div key={idx}>{tenant}</div>)
+                              selectedUnit.tenants.map((tenant, idx) => (
+                                <div key={idx}>{tenant}</div>
+                              ))
                             ) : (
-                              <span className="text-[#A0A0A0]">No tenants assigned</span>
+                              <span className="text-[#A0A0A0]">
+                                No tenants assigned
+                              </span>
                             )}
                           </div>
                         </div>
@@ -417,7 +461,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                   closeTableOverlays();
                   closeUnitFormModal();
                   closeViewNoteModal();
-                  const fileToDelete = unitState.lists.recentFiles.find((f) => f.id === fileId);
+                  const fileToDelete = unitState.lists.recentFiles.find(
+                    (f) => f.id === fileId,
+                  );
                   revokeBlobUrl(fileToDelete?.url);
                   unitDispatch({ type: "DELETE_FILE", fileId });
                 }}
@@ -431,13 +477,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
           <>
             <div className="flex items-center gap-10 justify-between flex-wrap">
               <div className="flex flex-col gap-1 min-w-[240px]">
-                <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">Units</h1>
+                <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+                  Units
+                </h1>
                 <div className="flex items-center gap-3 mt-1">
                   <p
                     className="text-[#717179] font-medium text-base leading-4"
                     style={{ marginTop: "-4px" }}
                   >
-                    {unitsList.length} unit{unitsList.length !== 1 ? "s" : ""} for {propertyAddress}
+                    {unitsList.length} unit{unitsList.length !== 1 ? "s" : ""}{" "}
+                    for {propertyAddress}
                   </p>
                 </div>
               </div>
@@ -448,16 +497,30 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                   className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
                 >
                   <PlusIcon width={20} height={20} className="text-white" />
-                  <span className="text-white font-medium text-base leading-normal">Add unit</span>
+                  <span className="text-white font-medium text-base leading-normal">
+                    Add unit
+                  </span>
                 </button>
               </div>
             </div>
 
             <GlobalTable
               columns={[
-                { key: "unitNumber", label: "Unit", icon: columnConfig.unitNumber.icon },
-                { key: "address", label: "Address", icon: columnConfig.address.icon },
-                { key: "tenants", label: "Tenants", icon: columnConfig.tenants.icon },
+                {
+                  key: "unitNumber",
+                  label: "Unit",
+                  icon: columnConfig.unitNumber.icon,
+                },
+                {
+                  key: "address",
+                  label: "Address",
+                  icon: columnConfig.address.icon,
+                },
+                {
+                  key: "tenants",
+                  label: "Tenants",
+                  icon: columnConfig.tenants.icon,
+                },
               ]}
               data={unitsList}
               rowKey="id"
@@ -504,7 +567,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                             </span>
                           ))
                         ) : (
-                          <span className="text-gray-500 text-sm">No tenants</span>
+                          <span className="text-gray-500 text-sm">
+                            No tenants
+                          </span>
                         )}
                       </div>
                     );
@@ -573,7 +638,10 @@ export const UnitsList: React.FC<UnitsListProps> = ({
       />
 
       <AddNoteModal
-        open={unitState.activeModal === "addNote" || unitState.activeModal === "editNote"}
+        open={
+          unitState.activeModal === "addNote" ||
+          unitState.activeModal === "editNote"
+        }
         onOpenChange={(open) => {
           if (!open) unitDispatch({ type: "CLOSE_MODAL" });
         }}
@@ -648,7 +716,8 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 {viewingNote.text}
               </div>
               <div className="text-sm text-[#71717A]">
-                <span className="font-medium">Author:</span> {viewingNote.author}
+                <span className="font-medium">Author:</span>{" "}
+                {viewingNote.author}
               </div>
               <div className="text-sm text-[#71717A]">
                 <span className="font-medium">Date:</span> {viewingNote.date}
@@ -659,7 +728,10 @@ export const UnitsList: React.FC<UnitsListProps> = ({
       </ModalTemplate>
 
       <AddFileModal
-        open={unitState.activeModal === "addFile" || unitState.activeModal === "editFile"}
+        open={
+          unitState.activeModal === "addFile" ||
+          unitState.activeModal === "editFile"
+        }
         onOpenChange={(open) => {
           if (!open) unitDispatch({ type: "CLOSE_MODAL" });
         }}
@@ -678,7 +750,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
             : []
         }
         initialCategory={
-          unitState.activeModal === "editFile" && selectedFile ? selectedFile.category || "" : ""
+          unitState.activeModal === "editFile" && selectedFile
+            ? selectedFile.category || ""
+            : ""
         }
         initialDescription={
           unitState.activeModal === "editFile" && selectedFile
@@ -782,7 +856,8 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 lineHeight: 1.4,
                 justifyContent: "center",
                 cursor: "pointer",
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontSize: "16px",
                 whiteSpace: "nowrap",
               }}
@@ -809,14 +884,19 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 lineHeight: 1.4,
                 justifyContent: "center",
                 cursor: "pointer",
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontSize: "16px",
                 whiteSpace: "nowrap",
                 boxShadow: "0px 0px 0px 1px rgba(152, 39, 64, 0.5)",
                 transition: "background-color 0.2s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#7a1f31")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#982740")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#7a1f31")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#982740")
+              }
             >
               Delete
             </button>
@@ -827,14 +907,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
           <FormSection showDivider={false}>
             <p
               style={{
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontSize: "14px",
                 color: "rgba(48, 48, 48, 1)",
                 fontWeight: 400,
                 lineHeight: 1.43,
               }}
             >
-              Are you sure you want to delete this unit? This action cannot be undone.
+              Are you sure you want to delete this unit? This action cannot be
+              undone.
             </p>
           </FormSection>
         </FormLayout>

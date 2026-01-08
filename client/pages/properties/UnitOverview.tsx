@@ -4,7 +4,11 @@ import PageHeader from "@/components/PageHeader";
 import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
+import {
+  usePropertyDetailsState,
+  type RecentNote,
+  type RecentFile,
+} from "@/hooks/usePropertyDetailsState";
 import {
   SectionRowTemplate,
   SectionGroupCardTemplate,
@@ -168,7 +172,9 @@ export default function UnitOverview() {
                               <div key={idx}>{tenant}</div>
                             ))
                           ) : (
-                            <span className="text-[#A0A0A0]">No tenants assigned</span>
+                            <span className="text-[#A0A0A0]">
+                              No tenants assigned
+                            </span>
                           )}
                         </div>
                       </div>
@@ -201,7 +207,7 @@ export default function UnitOverview() {
               }}
               onDelete={(fileId) => {
                 const fileToDelete = state.lists.recentFiles.find(
-                  (f) => f.id === fileId
+                  (f) => f.id === fileId,
                 );
                 revokeBlobUrl(fileToDelete?.url);
                 dispatch({ type: "DELETE_FILE", fileId });
@@ -227,7 +233,10 @@ export default function UnitOverview() {
 
           {/* Add/Edit Note Modal */}
           <AddNoteModal
-            open={state.activeModal === "addNote" || state.activeModal === "editNote"}
+            open={
+              state.activeModal === "addNote" ||
+              state.activeModal === "editNote"
+            }
             onOpenChange={(open) => {
               if (!open) dispatch({ type: "CLOSE_MODAL" });
             }}
@@ -306,10 +315,12 @@ export default function UnitOverview() {
                     {viewingNote.text}
                   </div>
                   <div className="text-sm text-[#71717A]">
-                    <span className="font-medium">Author:</span> {viewingNote.author}
+                    <span className="font-medium">Author:</span>{" "}
+                    {viewingNote.author}
                   </div>
                   <div className="text-sm text-[#71717A]">
-                    <span className="font-medium">Date:</span> {viewingNote.date}
+                    <span className="font-medium">Date:</span>{" "}
+                    {viewingNote.date}
                   </div>
                 </FormSection>
               </FormLayout>
@@ -318,14 +329,37 @@ export default function UnitOverview() {
 
           {/* Add/Edit File Modal */}
           <AddFileModal
-            open={state.activeModal === "addFile" || state.activeModal === "editFile"}
+            open={
+              state.activeModal === "addFile" ||
+              state.activeModal === "editFile"
+            }
             onOpenChange={(open) => {
               if (!open) dispatch({ type: "CLOSE_MODAL" });
             }}
             isEditMode={state.activeModal === "editFile"}
-            initialFiles={state.activeModal === "editFile" && selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "", url: selectedFile.url }] : []}
-            initialCategory={state.activeModal === "editFile" && selectedFile ? selectedFile.category || "" : ""}
-            initialDescription={state.activeModal === "editFile" && selectedFile ? selectedFile.description || "" : ""}
+            initialFiles={
+              state.activeModal === "editFile" && selectedFile
+                ? [
+                    {
+                      id: String(selectedFile.id),
+                      name: selectedFile.name,
+                      size: 0,
+                      type: selectedFile.type || "",
+                      url: selectedFile.url,
+                    },
+                  ]
+                : []
+            }
+            initialCategory={
+              state.activeModal === "editFile" && selectedFile
+                ? selectedFile.category || ""
+                : ""
+            }
+            initialDescription={
+              state.activeModal === "editFile" && selectedFile
+                ? selectedFile.description || ""
+                : ""
+            }
             acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
             onSubmit={(uploadedFiles, category, description) => {
               if (state.activeModal === "editFile" && selectedFile) {
@@ -352,7 +386,8 @@ export default function UnitOverview() {
                   "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
                 const pdfIcon =
                   "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-                const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+                const icon =
+                  ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
 
                 const nextId = state.lists.recentFiles.length
                   ? Math.max(...state.lists.recentFiles.map((f) => f.id)) + 1

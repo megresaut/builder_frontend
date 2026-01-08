@@ -25,7 +25,11 @@ import {
   EditRatesInline,
 } from "@/components/properties/overview";
 import { EditIcon } from "@/components/icons";
-import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
+import {
+  usePropertyDetailsState,
+  type RecentNote,
+  type RecentFile,
+} from "@/hooks/usePropertyDetailsState";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
@@ -329,13 +333,13 @@ function Overview({
             <SectionRowTemplate isLast={false}>
               <div className="flex flex-col w-full font-medium">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <PageHeader
-                    title="Property Details"
-                  />
+                  <PageHeader title="Property Details" />
                   <SectionActionTemplate
                     icon={<EditIcon width={14} height={14} />}
                     label="Edit"
-                    onClick={() => dispatch({ type: "OPEN_MODAL", modal: "editProperty" })}
+                    onClick={() =>
+                      dispatch({ type: "OPEN_MODAL", modal: "editProperty" })
+                    }
                   />
                 </div>
 
@@ -390,7 +394,9 @@ function Overview({
                     </div>
 
                     <button
-                      onClick={() => dispatch({ type: "OPEN_MODAL", modal: "uploadPhoto" })}
+                      onClick={() =>
+                        dispatch({ type: "OPEN_MODAL", modal: "uploadPhoto" })
+                      }
                       className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
                     >
                       <img
@@ -421,17 +427,26 @@ function Overview({
                 editChildren={
                   <EditCustomFieldsInline
                     initialData={{
-                      managementAgreementDate: state.drafts.customFields.managementAgreementDate,
-                      inspectionFrequency: state.drafts.customFields.inspectionFrequency,
+                      managementAgreementDate:
+                        state.drafts.customFields.managementAgreementDate,
+                      inspectionFrequency:
+                        state.drafts.customFields.inspectionFrequency,
                       hvacStart: state.drafts.customFields.hvacStart,
                       hvacEnd: state.drafts.customFields.hvacEnd,
-                      landscapingStart: state.drafts.customFields.landscapingStart,
+                      landscapingStart:
+                        state.drafts.customFields.landscapingStart,
                     }}
-                    managementAgreementDate={state.drafts.customFields.managementAgreementDate}
-                    inspectionFrequency={state.drafts.customFields.inspectionFrequency}
+                    managementAgreementDate={
+                      state.drafts.customFields.managementAgreementDate
+                    }
+                    inspectionFrequency={
+                      state.drafts.customFields.inspectionFrequency
+                    }
                     hvacStart={state.drafts.customFields.hvacStart}
                     hvacEnd={state.drafts.customFields.hvacEnd}
-                    landscapingStart={state.drafts.customFields.landscapingStart}
+                    landscapingStart={
+                      state.drafts.customFields.landscapingStart
+                    }
                     onManagementAgreementDateChange={(value) => {
                       dispatch({
                         type: "PATCH_CUSTOM_FIELDS",
@@ -474,8 +489,11 @@ function Overview({
                       fields: [
                         {
                           label: "MANAGEMENT AGREEMENT DATE",
-                          value: state.drafts.customFields.managementAgreementDate
-                            ? new Date(state.drafts.customFields.managementAgreementDate).toLocaleDateString()
+                          value: state.drafts.customFields
+                            .managementAgreementDate
+                            ? new Date(
+                                state.drafts.customFields.managementAgreementDate,
+                              ).toLocaleDateString()
                             : "-",
                         },
                         {
@@ -490,25 +508,36 @@ function Overview({
                         {
                           label: "HVAC START",
                           value: state.drafts.customFields.hvacStart
-                            ? new Date(state.drafts.customFields.hvacStart).toLocaleDateString()
+                            ? new Date(
+                                state.drafts.customFields.hvacStart,
+                              ).toLocaleDateString()
                             : "-",
                         },
                         {
                           label: "HVAC END",
                           value: state.drafts.customFields.hvacEnd
-                            ? new Date(state.drafts.customFields.hvacEnd).toLocaleDateString()
+                            ? new Date(
+                                state.drafts.customFields.hvacEnd,
+                              ).toLocaleDateString()
                             : "-",
                         },
                         {
                           label: "LANDSCAPING START",
                           value: state.drafts.customFields.landscapingStart
-                            ? new Date(state.drafts.customFields.landscapingStart).toLocaleDateString()
+                            ? new Date(
+                                state.drafts.customFields.landscapingStart,
+                              ).toLocaleDateString()
                             : "-",
                         },
                       ],
                     },
                   ]}
-                  onEdit={() => dispatch({ type: "ENTER_EDIT_MODE", section: "customFields" })}
+                  onEdit={() =>
+                    dispatch({
+                      type: "ENTER_EDIT_MODE",
+                      section: "customFields",
+                    })
+                  }
                   isLast={false}
                 />
               </InlineEditWrapper>
@@ -584,7 +613,9 @@ function Overview({
                       ],
                     },
                   ]}
-                  onEdit={() => dispatch({ type: "ENTER_EDIT_MODE", section: "rates" })}
+                  onEdit={() =>
+                    dispatch({ type: "ENTER_EDIT_MODE", section: "rates" })
+                  }
                   isLast={false}
                 />
               </InlineEditWrapper>
@@ -613,7 +644,7 @@ function Overview({
               }}
               onDelete={(fileId) => {
                 const fileToDelete = state.lists.recentFiles.find(
-                  (f) => f.id === fileId
+                  (f) => f.id === fileId,
                 );
                 revokeBlobUrl(fileToDelete?.url);
                 dispatch({ type: "DELETE_FILE", fileId });
@@ -664,12 +695,13 @@ function Overview({
                 {
                   id: "pm",
                   name: propertyManager,
-                  initials: propertyManager
-                    ?.split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((p) => p[0]?.toUpperCase())
-                    .join("") || "",
+                  initials:
+                    propertyManager
+                      ?.split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((p) => p[0]?.toUpperCase())
+                      .join("") || "",
                 },
               ],
               rentalOwner,
@@ -702,7 +734,10 @@ function Overview({
 
           {/* Add/Edit Note Modal */}
           <AddNoteModal
-            open={state.activeModal === "addNote" || state.activeModal === "editNote"}
+            open={
+              state.activeModal === "addNote" ||
+              state.activeModal === "editNote"
+            }
             onOpenChange={(open) => {
               if (!open) dispatch({ type: "CLOSE_MODAL" });
             }}
@@ -785,7 +820,8 @@ function Overview({
                     {viewingNote.author}
                   </div>
                   <div className="text-sm text-[#71717A]">
-                    <span className="font-medium">Date:</span> {viewingNote.date}
+                    <span className="font-medium">Date:</span>{" "}
+                    {viewingNote.date}
                   </div>
                 </FormSection>
               </FormLayout>
@@ -794,14 +830,37 @@ function Overview({
 
           {/* Add/Edit File Modal */}
           <AddFileModal
-            open={state.activeModal === "addFile" || state.activeModal === "editFile"}
+            open={
+              state.activeModal === "addFile" ||
+              state.activeModal === "editFile"
+            }
             onOpenChange={(open) => {
               if (!open) dispatch({ type: "CLOSE_MODAL" });
             }}
             isEditMode={state.activeModal === "editFile"}
-            initialFiles={state.activeModal === "editFile" && selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "", url: selectedFile.url }] : []}
-            initialCategory={state.activeModal === "editFile" && selectedFile ? selectedFile.category || "" : ""}
-            initialDescription={state.activeModal === "editFile" && selectedFile ? selectedFile.description || "" : ""}
+            initialFiles={
+              state.activeModal === "editFile" && selectedFile
+                ? [
+                    {
+                      id: String(selectedFile.id),
+                      name: selectedFile.name,
+                      size: 0,
+                      type: selectedFile.type || "",
+                      url: selectedFile.url,
+                    },
+                  ]
+                : []
+            }
+            initialCategory={
+              state.activeModal === "editFile" && selectedFile
+                ? selectedFile.category || ""
+                : ""
+            }
+            initialDescription={
+              state.activeModal === "editFile" && selectedFile
+                ? selectedFile.description || ""
+                : ""
+            }
             acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
             onSubmit={(uploadedFiles, category, description) => {
               if (state.activeModal === "editFile" && selectedFile) {
@@ -828,7 +887,8 @@ function Overview({
                   "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
                 const pdfIcon =
                   "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-                const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+                const icon =
+                  ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
 
                 const nextId = state.lists.recentFiles.length
                   ? Math.max(...state.lists.recentFiles.map((f) => f.id)) + 1

@@ -25,7 +25,7 @@ const parsePropertyAddress = (address: string) => {
   // Parse address like "22 Indian Chase Dr, Greenwich, CT 06831"
   const parts = address.split(",").map((p) => p.trim());
   const street = parts[0] || "";
-  
+
   let city = "";
   let state = "";
   let zip = "";
@@ -69,7 +69,10 @@ export default function AddUnitModal({
   propertyId,
 }: AddUnitModalProps) {
   const isEditMode = Boolean(editData);
-  const defaultAddress = useMemo(() => parsePropertyAddress(propertyAddress), [propertyAddress]);
+  const defaultAddress = useMemo(
+    () => parsePropertyAddress(propertyAddress),
+    [propertyAddress],
+  );
 
   // Form state
   const [unitNumber, setUnitNumber] = useState("");
@@ -232,7 +235,9 @@ export default function AddUnitModal({
             required
             value={addressValue}
             onChange={setAddressValue}
-            error={errors.street || errors.city || errors.state || errors.zipCode}
+            error={
+              errors.street || errors.city || errors.state || errors.zipCode
+            }
             showLabel={false}
           />
         </FormSection>
