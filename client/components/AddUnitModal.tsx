@@ -208,8 +208,7 @@ export default function AddUnitModal({
             value={unitNumber}
             onChange={(e) => setUnitNumber(e.target.value)}
             required
-            error={Boolean(errors.unitNumber)}
-            errorMessage={errors.unitNumber}
+            error={errors.unitNumber}
             placeholder="e.g., 1A, Suite 100"
           />
         </FormSection>
