@@ -177,7 +177,7 @@ export default function AddUnitModal({
       open={open}
       onOpenChange={onOpenChange}
       title={isEditMode ? "Edit Unit" : "Add Unit"}
-      size="sm"
+      size="md"
       footer={
         <ModalButtons
           onCancel={() => onOpenChange(false)}
@@ -215,59 +215,14 @@ export default function AddUnitModal({
         </FormSection>
 
         {/* Street Address Section */}
-        <FormSection showDivider={true}>
-          <div
-            style={{
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              fontSize: "20px",
-              color: "rgba(48, 48, 48, 1)",
-              fontWeight: 600,
-              lineHeight: 1.3,
-              marginBottom: "12px",
-            }}
-          >
-            Street Address
-          </div>
-
-          <TextField
+        <FormSection showDivider={false}>
+          <AddressField
             label="Street Address"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
             required
-            error={Boolean(errors.street)}
-            errorMessage={errors.street}
-          />
-
-          <FieldRow columns={2}>
-            <FieldRowItem>
-              <TextField
-                label="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                required
-                error={Boolean(errors.city)}
-                errorMessage={errors.city}
-              />
-            </FieldRowItem>
-            <FieldRowItem>
-              <TextField
-                label="State"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                required
-                error={Boolean(errors.state)}
-                errorMessage={errors.state}
-              />
-            </FieldRowItem>
-          </FieldRow>
-
-          <TextField
-            label="ZIP Code"
-            value={zipCode}
-            onChange={(e) => setZipCode(e.target.value)}
-            required
-            error={Boolean(errors.zipCode)}
-            errorMessage={errors.zipCode}
+            value={addressValue}
+            onChange={setAddressValue}
+            error={Boolean(errors.street || errors.city || errors.state || errors.zipCode)}
+            showLabel={true}
           />
         </FormSection>
       </FormLayout>
