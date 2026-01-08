@@ -215,13 +215,25 @@ export default function AddUnitModal({
 
         {/* Street Address Section */}
         <FormSection showDivider={false}>
+          <div
+            style={{
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "20px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 600,
+              lineHeight: 1.3,
+              marginBottom: "12px",
+            }}
+          >
+            Street Address
+          </div>
           <AddressField
             label="Street Address"
             required
             value={addressValue}
             onChange={setAddressValue}
             error={errors.street || errors.city || errors.state || errors.zipCode}
-            showLabel={true}
+            showLabel={false}
           />
         </FormSection>
       </FormLayout>
