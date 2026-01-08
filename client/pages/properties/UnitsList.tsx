@@ -543,7 +543,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
               className="text-[#717179] font-medium text-base leading-4"
               style={{ marginTop: "-4px" }}
             >
-              All units for {propertyAddress}
+              {unitsList.length} unit{unitsList.length !== 1 ? "s" : ""} for {propertyAddress}
             </p>
           </div>
         </div>
