@@ -7,7 +7,15 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import AddUnitModal from "@/components/AddUnitModal";
-import { EditIcon, DeleteIcon, BuildingIcon, PinIcon, UserIcon, PlusIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, BuildingIcon, PinIcon, UserIcon, PlusIcon, ArrowBackIcon } from "@/components/icons";
+import PageHeader from "@/components/PageHeader";
+import AddNoteModal from "@/components/AddNoteModal";
+import AddFileModal from "@/components/AddFileModal";
+import PdfViewerModal from "@/components/PdfViewerModal";
+import { usePropertyDetailsState, type RecentNote, type RecentFile } from "@/hooks/usePropertyDetailsState";
+import { SectionRowTemplate, SectionGroupCardTemplate, NotesTemplate, FilesTemplate } from "@/components/templates";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
 interface Unit {
   id: number;
