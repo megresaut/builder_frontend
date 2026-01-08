@@ -11,6 +11,7 @@ import { Vendors } from "./Vendors";
 import { Bills } from "./Bills";
 import { Notes } from "./Notes";
 import { Invoicing } from "./Invoicing";
+import UnitOverview from "./UnitOverview";
 import PageHeader from "@/components/PageHeader";
 import AddPropertyModal from "@/components/AddPropertyModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
