@@ -526,7 +526,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
             onClick={handleOpenAddModal}
             className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
           >
-            <PlusIcon width={20} height={20} color="white" />
+            <PlusIcon width={20} height={20} className="text-white" />
             <span className="text-white font-medium text-base leading-normal">
               Add unit
             </span>
