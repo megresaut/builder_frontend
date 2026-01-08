@@ -7,7 +7,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import AddUnitModal from "@/components/AddUnitModal";
-import { EditIcon, DeleteIcon, HomeIcon, MapPinIcon, UsersIcon, PlusIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, BuildingIcon, PinIcon, UserIcon, PlusIcon } from "@/components/icons";
 
 interface Unit {
   id: number;
