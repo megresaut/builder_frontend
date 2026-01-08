@@ -118,16 +118,16 @@ export default function AddUnitModal({
     if (!unitNumber.trim()) {
       newErrors.unitNumber = "Unit number is required";
     }
-    if (!street.trim()) {
+    if (!addressValue.street.trim()) {
       newErrors.street = "Street address is required";
     }
-    if (!city.trim()) {
+    if (!addressValue.city.trim()) {
       newErrors.city = "City is required";
     }
-    if (!state.trim()) {
+    if (!addressValue.state.trim()) {
       newErrors.state = "State is required";
     }
-    if (!zipCode.trim()) {
+    if (!addressValue.zipCode.trim()) {
       newErrors.zipCode = "ZIP code is required";
     }
 
