@@ -128,10 +128,6 @@ export const AddressField: React.FC<AddressFieldProps> = ({
     onChange({ ...value, street: newStreet });
   };
 
-  const handleStreet2Change = (newStreet2: string) => {
-    onChange({ ...value, street2: newStreet2 });
-  };
-
   const handleCityChange = (newCity: string) => {
     onChange({ ...value, city: newCity });
   };
@@ -312,17 +308,6 @@ export const AddressField: React.FC<AddressFieldProps> = ({
         onFocus={handleInputFocus}
         onBlur={handleInputBlur}
         placeholder="Street Address"
-        disabled={disabled}
-        style={inputBaseStyle}
-      />
-
-      <input
-        type="text"
-        value={value.street2 || ""}
-        onChange={(e) => handleStreet2Change(e.target.value)}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
-        placeholder="Street Address 2 (Apt, Suite, etc.)"
         disabled={disabled}
         style={inputBaseStyle}
       />
