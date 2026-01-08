@@ -244,18 +244,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     }
   }, [selectedUnitId]);
 
-  // Handle breadcrumb navigation back to units list
+  // Handle navigation: if currently viewing unit overview and page path changes, reset unit view
   useEffect(() => {
-    const handleBreadcrumbClick = (e: any) => {
-      // Check if a breadcrumb "Units" link is clicked
-      const breadcrumb = document.querySelector('[data-test="units-breadcrumb"]');
-      if (breadcrumb && e.target === breadcrumb) {
-        setSelectedUnitId(null);
-      }
+    // If selectedUnitId is set but we navigate away (via breadcrumb or URL change),
+    // we should reset by checking if user is still on Units tab
+    const handlePopState = () => {
+      setSelectedUnitId(null);
     };
 
-    document.addEventListener("click", handleBreadcrumbClick);
-    return () => document.removeEventListener("click", handleBreadcrumbClick);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [setSelectedUnitId]);
 
   // Show unit overview when a unit is selected
