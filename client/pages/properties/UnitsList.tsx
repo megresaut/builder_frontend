@@ -241,6 +241,18 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     }
   }, [selectedUnitId]);
 
+  // Handle browser back button to close unit overview
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedUnitId) {
+        setSelectedUnitId(null);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [selectedUnitId]);
+
   // Show unit overview when a unit is selected
   if (selectedUnit) {
     return (
