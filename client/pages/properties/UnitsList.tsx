@@ -772,6 +772,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
           </FormSection>
         </FormLayout>
       </ModalTemplate>
+
+      {/* Add/Edit Unit Modal */}
+      {unitModal}
     </div>
   );
 };
