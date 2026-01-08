@@ -114,6 +114,20 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
 
         if (tab && tab !== "Overview") {
           items.push({ label: tab });
+
+          if (tab === "Units") {
+            const unitId = searchParams.get("unit");
+            if (unitId) {
+              const unitLabels: Record<string, string> = {
+                "1": "Unit 1A",
+                "2": "Unit 1B",
+                "3": "Unit 2A",
+                "4": "Unit 2B",
+                "5": "Unit 3A",
+              };
+              items.push({ label: unitLabels[unitId] || `Unit ${unitId}` });
+            }
+          }
         }
       }
     } else if (path === "/all-properties") {
