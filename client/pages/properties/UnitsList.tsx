@@ -211,6 +211,298 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     setEditingUnit(null);
   };
 
+  const selectedUnit = selectedUnitId
+    ? unitsList.find((u) => u.id === selectedUnitId)
+    : null;
+
+  const revokeBlobUrl = (url?: string) => {
+    if (!url) return;
+    if (url.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const [viewingNote, setViewingNote] = useState<RecentNote | null>(null);
+
+  const selectedNote = unitState.selection.noteId
+    ? unitState.lists.recentNotes.find((n) => n.id === unitState.selection.noteId)
+    : null;
+
+  const selectedFile = unitState.selection.fileId
+    ? unitState.lists.recentFiles.find((f) => f.id === unitState.selection.fileId)
+    : null;
+
+  // Show unit overview when a unit is selected
+  if (selectedUnit) {
+    return (
+      <>
+        <div className="flex flex-col gap-6 mb-6">
+          <button
+            onClick={() => setSelectedUnitId(null)}
+            className="flex items-center gap-2 text-sm text-[#2463EB] hover:text-[#1a4ba0] transition-colors font-medium"
+          >
+            <ArrowBackIcon width={18} height={18} />
+            Back to Units
+          </button>
+        </div>
+
+        <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
+          <div className="flex flex-col w-full min-w-[240px]">
+            <SectionGroupCardTemplate>
+              {/* Unit Details Section */}
+              <SectionRowTemplate isLast={false}>
+                <div className="flex flex-col w-full font-medium">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <PageHeader title="Unit Details" />
+                  </div>
+
+                  <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
+                    <img
+                      loading="lazy"
+                      srcSet={`${unitImage}&width=100 100w, ${unitImage}&width=200 200w, ${unitImage}&width=400 400w`}
+                      src={unitImage}
+                      className="rounded-lg min-w-[240px] w-[273px] aspect-[1.57] object-cover"
+                      alt="Unit"
+                    />
+                    <div className="flex min-w-[240px] min-h-[160px] flex-col justify-center flex-1">
+                      <div className="flex flex-col w-full max-w-[423px]">
+                        <div className="text-[#71717A] text-xs leading-[1.33]">
+                          ADDRESS
+                        </div>
+                        <div className="text-[#303030] text-base leading-[1.13] mt-1">
+                          <div>{selectedUnit.address} - {selectedUnit.unitNumber}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex mt-5 w-full items-start gap-14 flex-1">
+                        <div className="flex flex-col">
+                          <div className="text-[#71717A] text-xs leading-[1.33]">
+                            TENANTS
+                          </div>
+                          <div className="flex flex-col self-start mt-1 gap-1 text-base text-[#303030] leading-[1.13]">
+                            {selectedUnit.tenants.length > 0 ? (
+                              selectedUnit.tenants.map((tenant, idx) => (
+                                <div key={idx}>{tenant}</div>
+                              ))
+                            ) : (
+                              <span className="text-[#A0A0A0]">No tenants assigned</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </SectionRowTemplate>
+
+              {/* Recent Notes Section */}
+              <NotesTemplate
+                notes={unitState.lists.recentNotes}
+                onAdd={() => unitDispatch({ type: "OPEN_MODAL", modal: "addNote" })}
+                onEdit={(note) => {
+                  setViewingNote(note);
+                  unitDispatch({ type: "OPEN_MODAL", modal: "viewNote" });
+                }}
+                onDelete={(noteId) => unitDispatch({ type: "DELETE_NOTE", noteId })}
+                isLast={false}
+                emptyMessage="You don't have any notes for this unit right now."
+              />
+
+              {/* Recent Files Section */}
+              <FilesTemplate
+                files={unitState.lists.recentFiles}
+                onAdd={() => unitDispatch({ type: "OPEN_MODAL", modal: "addFile" })}
+                onEdit={(file) => {
+                  unitDispatch({ type: "SELECT_FILE", fileId: file.id });
+                  unitDispatch({ type: "OPEN_MODAL", modal: "editFile" });
+                }}
+                onDelete={(fileId) => {
+                  const fileToDelete = unitState.lists.recentFiles.find(
+                    (f) => f.id === fileId
+                  );
+                  revokeBlobUrl(fileToDelete?.url);
+                  unitDispatch({ type: "DELETE_FILE", fileId });
+                }}
+                onView={(file) => {
+                  unitDispatch({ type: "SELECT_FILE", fileId: file.id });
+                  unitDispatch({ type: "OPEN_MODAL", modal: "viewFile" });
+                }}
+                isLast={true}
+                emptyMessage="You don't have any files for this unit right now."
+              />
+            </SectionGroupCardTemplate>
+
+            {/* View File Modal */}
+            <PdfViewerModal
+              open={unitState.activeModal === "viewFile"}
+              onOpenChange={(open) => {
+                if (!open) unitDispatch({ type: "CLOSE_MODAL" });
+              }}
+              title={selectedFile?.name || "File Preview"}
+              url={selectedFile?.url}
+            />
+
+            {/* Add/Edit Note Modal */}
+            <AddNoteModal
+              open={unitState.activeModal === "addNote" || unitState.activeModal === "editNote"}
+              onOpenChange={(open) => {
+                if (!open) unitDispatch({ type: "CLOSE_MODAL" });
+              }}
+              isEditMode={unitState.activeModal === "editNote"}
+              initialText={selectedNote?.text || ""}
+              onSubmit={(noteText) => {
+                const now = new Date();
+                const date = now.toLocaleString(undefined, {
+                  month: "numeric",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                });
+
+                if (unitState.activeModal === "editNote" && selectedNote) {
+                  unitDispatch({
+                    type: "UPDATE_NOTE",
+                    noteId: selectedNote.id,
+                    text: noteText,
+                    date,
+                  });
+                } else {
+                  const nextId = unitState.lists.recentNotes.length
+                    ? Math.max(...unitState.lists.recentNotes.map((n) => n.id)) + 1
+                    : 1;
+
+                  unitDispatch({
+                    type: "ADD_NOTE",
+                    note: {
+                      id: nextId,
+                      text: noteText,
+                      type: "RENTAL",
+                      date,
+                      author: "Current User",
+                    },
+                  });
+                }
+                unitDispatch({ type: "CLOSE_MODAL" });
+              }}
+            />
+
+            {/* View Note Modal */}
+            <ModalTemplate
+              open={unitState.activeModal === "viewNote"}
+              onOpenChange={(open) => {
+                if (!open) {
+                  unitDispatch({ type: "CLOSE_MODAL" });
+                  setViewingNote(null);
+                }
+              }}
+              title="Note Details"
+              size="sm"
+              footer={
+                <ModalButtons
+                  onCancel={() => {
+                    unitDispatch({ type: "CLOSE_MODAL" });
+                    setViewingNote(null);
+                  }}
+                  onConfirm={() => {
+                    if (viewingNote) {
+                      unitDispatch({ type: "SELECT_NOTE", noteId: viewingNote.id });
+                      unitDispatch({ type: "OPEN_MODAL", modal: "editNote" });
+                      setViewingNote(null);
+                    }
+                  }}
+                  cancelLabel="Close"
+                  confirmLabel="Edit"
+                />
+              }
+            >
+              {viewingNote ? (
+                <FormLayout>
+                  <FormSection showDivider={false}>
+                    <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">
+                      {viewingNote.text}
+                    </div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Author:</span> {viewingNote.author}
+                    </div>
+                    <div className="text-sm text-[#71717A]">
+                      <span className="font-medium">Date:</span> {viewingNote.date}
+                    </div>
+                  </FormSection>
+                </FormLayout>
+              ) : null}
+            </ModalTemplate>
+
+            {/* Add/Edit File Modal */}
+            <AddFileModal
+              open={unitState.activeModal === "addFile" || unitState.activeModal === "editFile"}
+              onOpenChange={(open) => {
+                if (!open) unitDispatch({ type: "CLOSE_MODAL" });
+              }}
+              isEditMode={unitState.activeModal === "editFile"}
+              initialFiles={unitState.activeModal === "editFile" && selectedFile ? [{ id: String(selectedFile.id), name: selectedFile.name, size: 0, type: selectedFile.type || "", url: selectedFile.url }] : []}
+              initialCategory={unitState.activeModal === "editFile" && selectedFile ? selectedFile.category || "" : ""}
+              initialDescription={unitState.activeModal === "editFile" && selectedFile ? selectedFile.description || "" : ""}
+              acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+              onSubmit={(uploadedFiles, category, description) => {
+                if (unitState.activeModal === "editFile" && selectedFile) {
+                  unitDispatch({
+                    type: "UPDATE_FILE",
+                    fileId: selectedFile.id,
+                    category,
+                    description,
+                  });
+                } else {
+                  const blobUrl = URL.createObjectURL(uploadedFiles[0].file!);
+                  const now = new Date();
+                  const date = now.toLocaleString(undefined, {
+                    month: "numeric",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  });
+
+                  const fileName = uploadedFiles[0].name;
+                  const ext = fileName.split(".").pop()?.toLowerCase() || "";
+                  const docIcon =
+                    "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+                  const pdfIcon =
+                    "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+                  const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
+
+                  const nextId = unitState.lists.recentFiles.length
+                    ? Math.max(...unitState.lists.recentFiles.map((f) => f.id)) + 1
+                    : 1;
+
+                  unitDispatch({
+                    type: "ADD_FILE",
+                    file: {
+                      id: nextId,
+                      name: fileName,
+                      category,
+                      date,
+                      author: "Current User",
+                      type: ext || "file",
+                      icon,
+                      url: blobUrl,
+                      description,
+                    },
+                  });
+                }
+                unitDispatch({ type: "CLOSE_MODAL" });
+              }}
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header Section */}
