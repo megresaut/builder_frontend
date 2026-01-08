@@ -379,7 +379,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
           {/* Custom Fields and Rates Section */}
           <div className="flex mt-5 w-full items-start gap-5 font-medium flex-wrap">
-            <div className="flex min-w-[240px] flex-col flex-1">
+            {/* <div className="flex min-w-[240px] flex-col flex-1">
               <div className="flex w-full items-center justify-between gap-4 flex-wrap">
                 <div className="text-[#303030] text-xl leading-[1.1]">
                   Custom Fields
@@ -449,7 +449,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   </button>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex min-w-[240px] flex-col flex-1">
               <div className="flex w-full items-center justify-between gap-4 flex-wrap whitespace-nowrap">
