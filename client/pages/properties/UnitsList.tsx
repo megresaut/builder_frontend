@@ -253,6 +253,15 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 <div className="flex flex-col w-full font-medium">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <PageHeader title="Unit Details" />
+                    <button
+                      onClick={() => {
+                        setEditingUnit(selectedUnit);
+                        setIsAddUnitModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1357D5] bg-white hover:bg-blue-50 text-[#1357D5] font-medium text-sm transition-colors"
+                    >
+                      ✎ Edit Unit
+                    </button>
                   </div>
 
                   <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
