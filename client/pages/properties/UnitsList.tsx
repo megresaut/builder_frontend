@@ -105,11 +105,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
 
-  // Reset unit selection on component mount or if breadcrumb navigation occurs
-  useEffect(() => {
-    setSelectedUnitId(null);
-  }, []);
-
   // Initialize notes and files for unit overview
   const { state: unitState, dispatch: unitDispatch } = usePropertyDetailsState();
 
