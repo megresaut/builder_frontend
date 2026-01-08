@@ -23,7 +23,6 @@ import FtoShellLayout from "./layout/FtoShellLayout";
 import { TabContext } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
 import PropertyDetail from "./pages/properties/PropertyDetail";
-import UnitOverview from "./pages/properties/UnitOverview";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
 import { Auth } from "./pages/Auth";
