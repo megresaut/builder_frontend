@@ -394,21 +394,6 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
   const handleBackInTab = () => {
     if (!selectedTab) return;
 
-    // Property detail pages should always go back to the All Properties list.
-    if (location.pathname.startsWith("/property/")) {
-      const metadata = tabMetadata[selectedTab];
-      setTabMetadata(selectedTab, {
-        ...metadata,
-        label: "All Properties",
-        route: "/all-properties",
-        sectionId: getSectionIdFromPath("/all-properties"),
-        history: ["/all-properties"],
-        historyIndex: 0,
-      });
-      navigate("/all-properties");
-      return;
-    }
-
     const metadata = tabMetadata[selectedTab];
     const currentIndex = metadata?.historyIndex ?? -1;
     const history = metadata?.history || [];
