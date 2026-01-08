@@ -268,9 +268,10 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                         setEditingUnit(selectedUnit);
                         setIsAddUnitModalOpen(true);
                       }}
-                      className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-white font-medium text-base leading-normal"
+                      className="flex items-center gap-2 text-[#1357D5] font-medium text-base hover:underline transition-colors bg-none border-none cursor-pointer p-0"
                     >
-                      ✎ Edit Unit
+                      <EditIcon width={18} height={18} color="#1357D5" />
+                      Edit Unit
                     </button>
                   </div>
 
