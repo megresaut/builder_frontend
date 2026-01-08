@@ -512,6 +512,21 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 unitDispatch({ type: "CLOSE_MODAL" });
               }}
             />
+
+          {/* Add Unit Modal - rendered within unit detail view */}
+          <AddUnitModal
+            open={isAddUnitModalOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                setEditingUnit(null);
+              }
+              setIsAddUnitModalOpen(open);
+            }}
+            editData={editingUnit || undefined}
+            onSubmit={handleAddUnit}
+            propertyAddress={propertyAddress}
+            propertyId={propertyId ? parseInt(propertyId) : 1}
+          />
           </div>
         </div>
       </>
