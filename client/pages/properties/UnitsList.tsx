@@ -100,9 +100,61 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     "showDeleteConfirm",
     null,
   );
+  const [selectedUnitId, setSelectedUnitId] = usePageState<number | null>(
+    "selectedUnitId",
+    null,
+  );
 
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
+
+  // Initialize notes and files for unit overview
+  const { state: unitState, dispatch: unitDispatch } = usePropertyDetailsState();
+
+  useEffect(() => {
+    const initialNotes: RecentNote[] = [
+      {
+        id: 1,
+        text: "Tenant lease renewal coming up in 3 months",
+        type: "RENTAL",
+        date: "6/17/2024 10:32 AM",
+        author: "Johan Gonazlez",
+      },
+      {
+        id: 2,
+        text: "Scheduled maintenance for HVAC unit",
+        type: "RENTAL",
+        date: "6/12/2024 2:31 PM",
+        author: "Carteg Hughes",
+      },
+    ];
+
+    const initialFiles: RecentFile[] = [
+      {
+        id: 1,
+        name: "Unit Lease Agreement.pdf",
+        category: "Lease Documents",
+        date: "6/3/2025 2:06 PM",
+        author: "Julia LoSchiavo",
+        type: "pdf",
+        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
+        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
+      },
+      {
+        id: 2,
+        name: "Unit Move-in Inspection.docx",
+        category: "Inspections",
+        date: "5/19/2024 3:55 PM",
+        author: "Carter Hughes",
+        type: "docx",
+        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true",
+        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0",
+      },
+    ];
+
+    unitDispatch({ type: "SET_RECENT_NOTES", notes: initialNotes });
+    unitDispatch({ type: "SET_RECENT_FILES", files: initialFiles });
+  }, [unitDispatch]);
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
     unitsList,
