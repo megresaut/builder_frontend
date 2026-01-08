@@ -242,7 +242,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
       setShowPageSizeDropdown(false);
       setOpenMenuId(null);
     }
-  }, [selectedUnit, setShowPageSizeDropdown, setOpenMenuId]);
+  }, [selectedUnitId]);
 
   // Show unit overview when a unit is selected
   if (selectedUnit) {
