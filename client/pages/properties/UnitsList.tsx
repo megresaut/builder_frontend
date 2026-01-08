@@ -103,15 +103,15 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const columnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
     unitNumber: {
       label: "Unit",
-      icon: <HomeIcon width={16} height={16} color="#525252" />,
+      icon: <BuildingIcon width={16} height={16} color="#525252" />,
     },
     address: {
       label: "Address",
-      icon: <MapPinIcon width={16} height={16} color="#525252" />,
+      icon: <PinIcon width={16} height={16} color="#525252" />,
     },
     tenants: {
       label: "Tenants",
-      icon: <UsersIcon width={16} height={16} color="#525252" />,
+      icon: <UserIcon width={16} height={16} color="#525252" />,
     },
   };
 
