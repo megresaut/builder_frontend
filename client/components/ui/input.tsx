@@ -7,7 +7,11 @@ interface InputProps extends React.ComponentProps<"input"> {
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, "aria-invalid": ariaInvalid, compact = false, ...props }, ref) => {
+  ({ className, type, "aria-invalid": ariaInvalid, compact = false, ...rest }, ref) => {
+    // Defensive: prevent accidental non-DOM props from reaching the native input
+    const { errorMessage: _errorMessage, errormessage: _errormessage, ...props } =
+      rest as any;
+
     return (
       <input
         type={type}
