@@ -220,7 +220,7 @@ export default function AddUnitModal({
             required
             value={addressValue}
             onChange={setAddressValue}
-            error={Boolean(errors.street || errors.city || errors.state || errors.zipCode)}
+            error={errors.street || errors.city || errors.state || errors.zipCode}
             showLabel={true}
           />
         </FormSection>
