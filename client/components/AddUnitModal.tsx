@@ -85,25 +85,30 @@ export default function AddUnitModal({
   useEffect(() => {
     if (!open) {
       setUnitNumber("");
-      setStreet(defaultAddress.street);
-      setCity(defaultAddress.city);
-      setState(defaultAddress.state);
-      setZipCode(defaultAddress.zip);
+      setAddressValue({
+        street: defaultAddress.street,
+        city: defaultAddress.city,
+        state: defaultAddress.state,
+        zipCode: defaultAddress.zip,
+      });
       setErrors({});
     } else if (editData) {
       // Populate form from edit data
       setUnitNumber(editData.unitNumber);
       // Parse the unit-specific address
       const parts = editData.address.split(",").map((p) => p.trim());
-      setStreet(parts[0] || defaultAddress.street);
-      if (parts.length >= 2) {
-        setCity(parts[1] || defaultAddress.city);
-      }
+      const street = parts[0] || defaultAddress.street;
+      const city = parts[1] || defaultAddress.city;
+      let state = defaultAddress.state;
+      let zip = defaultAddress.zip;
+
       if (parts.length >= 3) {
         const stateZip = parts[2].split(" ");
-        setState(stateZip[0] || defaultAddress.state);
-        setZipCode(stateZip[1] || defaultAddress.zip);
+        state = stateZip[0] || defaultAddress.state;
+        zip = stateZip[1] || defaultAddress.zip;
       }
+
+      setAddressValue({ street, city, state, zipCode: zip });
     }
   }, [open, editData, defaultAddress]);
 
