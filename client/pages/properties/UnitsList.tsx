@@ -550,7 +550,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
             label: "View Unit",
             icon: <EditIcon width={18} height={18} color="#525252" />,
             onClick: (unit: Unit) => {
-              navigate(`/property/${propertyId}/unit/${unit.id}`);
+              setSelectedUnitId(unit.id);
             },
           },
           {
