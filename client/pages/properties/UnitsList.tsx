@@ -614,7 +614,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
         showColumnModal={columnManagement.showColumnModal}
         onShowColumnModalChange={columnManagement.setShowColumnModal}
         onRowClick={(unit: Unit) => {
-          navigate(`/property/${propertyId}/unit/${unit.id}`);
+          setSelectedUnitId(unit.id);
         }}
         headerActions={
           <button
