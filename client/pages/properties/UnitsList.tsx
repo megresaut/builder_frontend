@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -100,10 +100,11 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     "showDeleteConfirm",
     null,
   );
-  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
-
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const selectedUnitId = searchParams.get("unit") ? parseInt(searchParams.get("unit")!, 10) : null;
 
   // Initialize notes and files for unit overview
   const { state: unitState, dispatch: unitDispatch } = usePropertyDetailsState();
@@ -209,13 +210,11 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   };
 
   const selectUnit = (unit: Unit) => {
-    setSelectedUnitId(unit.id);
-    // Push state to browser history so back button works
-    window.history.pushState({ unitId: unit.id }, "", window.location.href);
+    navigate(`${location.pathname}?unit=${unit.id}`);
   };
 
   const deselectUnit = () => {
-    setSelectedUnitId(null);
+    navigate(location.pathname);
   };
 
   const selectedUnit = selectedUnitId
@@ -251,17 +250,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     }
   }, [selectedUnitId]);
 
-  // Handle browser back button to close unit overview
-  useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      if (!e.state || !e.state.unitId) {
-        deselectUnit();
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
 
   // Show unit overview when a unit is selected
   if (selectedUnit) {
