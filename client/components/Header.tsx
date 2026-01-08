@@ -40,25 +40,27 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
 
   // Helper function to determine the section ID based on the current pathname
   const getSectionIdFromPath = (path: string): string | undefined => {
+    const cleanPath = path.split("?")[0];
+
     // Properties section
-    if (path === "/all-properties" || path === "/" || path.includes("/property/")) {
+    if (cleanPath === "/all-properties" || cleanPath === "/" || cleanPath.includes("/property/")) {
       return "all-properties";
     }
 
     // Accounting section
-    if (path === "/bills" || path.includes("/bills/record") || path === "/record-bill" || path === "/utilities/view-bill") {
+    if (cleanPath === "/bills" || cleanPath.includes("/bills/record") || cleanPath === "/record-bill" || cleanPath === "/utilities/view-bill") {
       return "bills";
     }
 
     // Maintenance section (includes all maintenance subsections)
     if (
-      path === "/all-tasks" ||
-      path.includes("/tasks/") ||
-      path === "/recurring-tasks" ||
-      path === "/field-team-orders" ||
-      path === "/work-orders" ||
-      path === "/vendors" ||
-      path.includes("/vendors/")
+      cleanPath === "/all-tasks" ||
+      cleanPath.includes("/tasks/") ||
+      cleanPath === "/recurring-tasks" ||
+      cleanPath === "/field-team-orders" ||
+      cleanPath === "/work-orders" ||
+      cleanPath === "/vendors" ||
+      cleanPath.includes("/vendors/")
     ) {
       return "all-tasks"; // Use "all-tasks" as the main maintenance section icon
     }
@@ -456,7 +458,7 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
 
     const sectionId = getSectionIdFromPath(location.pathname);
     const metadata = tabMetadata[selectedTab];
-    const currentRoute = location.pathname;
+    const currentRoute = `${location.pathname}${location.search}`;
 
     // Only update if the route actually changed
     if (metadata?.route === currentRoute) return;
@@ -482,7 +484,7 @@ export default function Header({ forceCollapse = false, showTabs = true }: Heade
       history: newHistory,
       historyIndex: newHistoryIndex,
     });
-  }, [location.pathname, selectedTab, tabMetadata, setTabMetadata]);
+  }, [location.pathname, location.search, selectedTab, tabMetadata, setTabMetadata]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
