@@ -268,7 +268,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                         setEditingUnit(selectedUnit);
                         setIsAddUnitModalOpen(true);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1357D5] bg-white hover:bg-blue-50 text-[#1357D5] font-medium text-sm transition-colors"
+                      className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-white font-medium text-base leading-normal"
                     >
                       ✎ Edit Unit
                     </button>
