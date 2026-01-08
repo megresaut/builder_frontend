@@ -208,6 +208,16 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     setEditingUnit(null);
   };
 
+  const selectUnit = (unit: Unit) => {
+    setSelectedUnitId(unit.id);
+    // Push state to browser history so back button works
+    window.history.pushState({ unitId: unit.id }, "", window.location.href);
+  };
+
+  const deselectUnit = () => {
+    setSelectedUnitId(null);
+  };
+
   const selectedUnit = selectedUnitId
     ? unitsList.find((u) => u.id === selectedUnitId)
     : null;
