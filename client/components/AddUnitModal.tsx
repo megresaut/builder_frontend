@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ModalTemplate, ModalButtons, ModalSection } from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { TextField, AddressField, type AddressValue } from "@/components/forms";
 
