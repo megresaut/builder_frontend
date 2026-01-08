@@ -100,10 +100,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     "showDeleteConfirm",
     null,
   );
-  const [selectedUnitId, setSelectedUnitId] = usePageState<number | null>(
-    "selectedUnitId",
-    null,
-  );
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
 
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
