@@ -244,18 +244,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     }
   }, [selectedUnitId]);
 
-  // Handle navigation: if currently viewing unit overview and page path changes, reset unit view
-  useEffect(() => {
-    // If selectedUnitId is set but we navigate away (via breadcrumb or URL change),
-    // we should reset by checking if user is still on Units tab
-    const handlePopState = () => {
-      setSelectedUnitId(null);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [setSelectedUnitId]);
-
   // Show unit overview when a unit is selected
   if (selectedUnit) {
     return (
