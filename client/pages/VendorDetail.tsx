@@ -112,6 +112,38 @@ let mockNotesStorage: Record<number, VendorNote[]> = {
 
 let mockFilesStorage: Record<number, VendorFile[]> = {};
 
+let mockInsuranceStorage: Record<number, VendorInsurance[]> = {
+  1: [
+    {
+      id: 1,
+      provider: "State Farm",
+      policyNumber: "SF-123456789",
+      expirationDate: "12/31/2025",
+    },
+    {
+      id: 2,
+      provider: "Allstate",
+      policyNumber: "AS-987654321",
+      expirationDate: "06/30/2026",
+    },
+  ],
+};
+
+let mockCustomFieldsStorage: Record<number, VendorCustomField[]> = {
+  1: [
+    {
+      id: 1,
+      name: "License Number",
+      value: "LIC-2024-001",
+    },
+    {
+      id: 2,
+      name: "Certification",
+      value: "EPA Certified",
+    },
+  ],
+};
+
 // ============================================================================
 // Mock API Functions (can be replaced with real fetch calls)
 // ============================================================================
