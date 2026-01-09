@@ -2,6 +2,7 @@
 export {
   fetchVendors,
   fetchVendor,
+  mockFetchVendors,
   MOCK_VENDORS,
   type BaseVendor,
 } from "./vendors/vendors";
