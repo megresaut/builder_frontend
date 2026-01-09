@@ -301,21 +301,21 @@ export default function CreateTaskModal({
       </ModalTemplate>
 
       <PdfViewerModal
-      open={fileUpload.isViewFileOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          fileUpload.closeViewFile();
-        }
-      }}
-      title={fileUpload.selectedFileForView?.name || "File Preview"}
-      url={fileUpload.selectedFileForView?.url}
-      onRenameClick={() => fileUpload.startRenaming(fileUpload.selectedFileForView!)}
-      isRenaming={fileUpload.isRenamingFile}
-      renamingFileName={fileUpload.renamingFileName}
-      onRenamingFileNameChange={fileUpload.updateRenamingFileName}
-      onSaveFileName={fileUpload.saveFileName}
-      onCancelRenaming={fileUpload.cancelRenaming}
-    />
+        open={fileUpload.isViewFileOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            fileUpload.closeViewFile();
+          }
+        }}
+        title={fileUpload.selectedFileForView?.name || "File Preview"}
+        url={fileUpload.selectedFileForView?.url}
+        onRenameClick={() => fileUpload.startRenaming(fileUpload.selectedFileForView!)}
+        isRenaming={fileUpload.isRenamingFile}
+        renamingFileName={fileUpload.renamingFileName}
+        onRenamingFileNameChange={fileUpload.updateRenamingFileName}
+        onSaveFileName={fileUpload.saveFileName}
+        onCancelRenaming={fileUpload.cancelRenaming}
+      />
     </>
   );
 }
