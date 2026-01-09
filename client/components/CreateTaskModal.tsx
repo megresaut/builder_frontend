@@ -157,8 +157,8 @@ export default function CreateTaskModal({
           />
         }
       >
-      <FormLayout>
-        <FormSection title="Task Details" showDivider={true}>
+        <FormLayout>
+          <FormSection title="Task Details" showDivider={true}>
           {/* Task Name - Full Width, First Field */}
           <TextField
             label="Task Name"
