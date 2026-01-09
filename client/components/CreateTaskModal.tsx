@@ -291,9 +291,9 @@ export default function CreateTaskModal({
               options={AVAILABLE_COLLABORATORS}
             />
           </FormFieldRow>
-        </FormSection>
-      </FormLayout>
-    </ModalTemplate>
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
 
       <PdfViewerModal
         open={isViewFileOpen}
