@@ -360,12 +360,12 @@ export default function AllTasks() {
       key: "unit",
       label: "Unit",
       icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/740b0728672435a7240e4fa940b3c63bfd7d09c1?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3.5 1C3.5 0.724 3.724 0.5 4 0.5H12C12.276 0.5 12.5 0.724 12.5 1V15C12.5 15.276 12.276 15.5 12 15.5H4C3.724 15.5 3.5 15.276 3.5 15V1Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+          <path d="M6 4H10" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+          <path d="M6 7H10" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+          <path d="M6 10H10" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+        </svg>
       ),
     },
     {
