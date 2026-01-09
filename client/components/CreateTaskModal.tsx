@@ -11,8 +11,10 @@ import {
   SelectField,
   MultiSelectField,
   DateField,
+  FileUploadField,
   type MultiSelectOption,
 } from "@/components/forms";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
 
 interface CreateTaskModalProps {
   open: boolean;
