@@ -232,15 +232,12 @@ export default function CreateTaskModal({
                 { value: "high", label: "High" },
               ]}
             />
-            <SelectField
+            <DateField
               label="Due Date"
               value={dueDate}
               onChange={setDueDate}
               placeholder="mm/dd/yyyy"
-              options={[
-                { value: "today", label: "Today" },
-                { value: "tomorrow", label: "Tomorrow" },
-              ]}
+              returnFormat="Date"
             />
             <SelectField
               label="Status"
