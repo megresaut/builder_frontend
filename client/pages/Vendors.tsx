@@ -9,9 +9,101 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { useVendors } from "@/hooks/vendors";
-import { EditIcon, DeleteIcon, UserIcon, PhoneIcon, EmailIcon, ListIcon, NoteIcon, PlusIcon } from "@/components/icons";
+import {
+  EditIcon,
+  DeleteIcon,
+  UserIcon,
+  PhoneIcon,
+  EmailIcon,
+  ListIcon,
+  NoteIcon,
+  PlusIcon,
+} from "@/components/icons";
 import type { BaseVendor } from "@/data/vendors";
 
+// Mock vendor data
+const MOCK_VENDORS: BaseVendor[] = [
+  {
+    id: 1,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Reliable vendor, quick turnaround",
+    servicesProvided: ["HVAC", "Plumbing"],
+  },
+  {
+    id: 2,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Good quality work",
+    servicesProvided: ["Carpentry", "Drywall"],
+  },
+  {
+    id: 3,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Preferred for electrical work",
+    servicesProvided: ["Electrical", "Lighting"],
+  },
+  {
+    id: 4,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "",
+    servicesProvided: ["Roofing"],
+  },
+  {
+    id: 5,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Great communication",
+    servicesProvided: ["Painting", "Flooring"],
+  },
+  {
+    id: 6,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Specializes in plumbing",
+    servicesProvided: ["Plumbing", "Drainage"],
+  },
+  {
+    id: 7,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "",
+    servicesProvided: ["Landscaping", "Lawn Care"],
+  },
+  {
+    id: 8,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Budget-friendly option",
+    servicesProvided: ["General Repairs", "Maintenance"],
+  },
+  {
+    id: 9,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Certified professional",
+    servicesProvided: ["HVAC", "Electrical"],
+  },
+  {
+    id: 10,
+    name: "David Smith",
+    phone: "724.705.2990",
+    email: "mattgzyb21@gmail.com",
+    notes: "Excellent references",
+    servicesProvided: ["Carpentry", "Painting", "Flooring"],
+  },
+];
 
 export default function Vendors() {
   const navigate = useNavigate();
@@ -33,7 +125,7 @@ export default function Vendors() {
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
     vendors,
-    "vendors"
+    "vendors",
   );
   const {
     columnOrder,
@@ -65,12 +157,10 @@ export default function Vendors() {
     servicesProvided: string[];
     notes: string;
   }) => {
-    // Create and add new vendor to mock data
     const newVendor: BaseVendor = {
-      id: Math.max(...vendors.map(v => v.id), 0) + 1,
+      id: Math.max(...vendors.map((v) => v.id), 0) + 1,
       ...vendorData,
     };
-    // Mock implementation: add to vendors array (in real app, would be API call)
     vendors.push(newVendor);
   };
 
@@ -104,24 +194,22 @@ export default function Vendors() {
 
   const handleDeleteVendor = useCallback(
     (vendor: BaseVendor) => {
-      // Mock implementation: remove from vendors array (in real app, would be API call)
       const idx = vendors.findIndex((v) => v.id === vendor.id);
       if (idx >= 0) vendors.splice(idx, 1);
     },
-    [vendors]
+    [vendors],
   );
 
   const handleEditVendor = useCallback(
     (vendor: BaseVendor) => {
       navigate(`/vendors/${vendor.id}`);
     },
-    [navigate]
+    [navigate],
   );
 
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section - Using PageHeader Template */}
         <PageHeader
           title="Vendors"
           subtitle="All your vendors, in one place"
@@ -133,7 +221,6 @@ export default function Vendors() {
         />
 
         <div className="flex flex-col gap-6">
-          {/* Vendors Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns}
             data={vendors}
@@ -221,10 +308,16 @@ export default function Vendors() {
                 }}
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
                 </svg>
               </button>
             }
