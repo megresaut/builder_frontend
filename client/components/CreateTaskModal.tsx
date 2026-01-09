@@ -263,7 +263,12 @@ export default function CreateTaskModal({
               setAttachments(attachments.filter((f) => f.id !== fileId))
             }
             onViewFile={(file) => {
-              setSelectedFileForView(file);
+              // Create blob URL if file doesn't have a URL yet
+              let fileUrl = file.url;
+              if (!fileUrl && file.file) {
+                fileUrl = URL.createObjectURL(file.file);
+              }
+              setSelectedFileForView({ ...file, url: fileUrl });
               setIsViewFileOpen(true);
             }}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
