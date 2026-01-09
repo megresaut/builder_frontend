@@ -580,6 +580,7 @@ export default function AllTasks() {
             setEditingTask(null);
           }
         }}
+        onTaskCreated={handleTaskCreated}
       />
 
       <ColumnFilterModal
