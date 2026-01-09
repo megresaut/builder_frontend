@@ -386,9 +386,21 @@ export default function VendorDetail() {
     (async () => {
       try {
         const fetchedNotes = await mockFetchVendorNotes(id);
-        setNotes(fetchedNotes as VendorNote[]);
+        setNotes(fetchedNotes);
       } catch (err) {
         console.error("Failed to load notes");
+      }
+    })();
+  }, [id]);
+
+  // Load mock files on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedFiles = await mockFetchVendorFiles(id);
+        setMockFiles(fetchedFiles);
+      } catch (err) {
+        console.error("Failed to load files");
       }
     })();
   }, [id]);
