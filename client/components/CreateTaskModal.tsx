@@ -147,7 +147,26 @@ export default function CreateTaskModal({
       // When modal opens with editData, populate it
       if (editData) {
         setTitle(editData.title);
+        setDescription(editData.description || "");
+        setProperty(editData.property || "");
+        setUnit(editData.unit || "");
         setPriority(editData.priority.toLowerCase());
+        setDueDate(editData.dueDate || null);
+        const statusMap: { [key: string]: string } = {
+          "Not Started": "not_started",
+          "In Progress": "in_progress",
+          Completed: "completed",
+        };
+        setStatus(statusMap[editData.status || "Not Started"] || "not_started");
+        if (editData.assignees && editData.assignees.length > 0) {
+          setSelectedAssignees(
+            editData.assignees.map((a) => ({
+              id: String(a.id),
+              label: a.name,
+              initials: a.initials,
+            }))
+          );
+        }
       }
     } else {
       // When modal closes, clear form state and file viewer
