@@ -51,43 +51,103 @@ interface UnitsListProps {
   propertyUnits: number;
 }
 
-const mockUnits: Unit[] = [
-  {
-    id: 1,
-    unitNumber: "1A",
-    address: "113-115 Park Avenue, Suite 100",
-    tenants: ["John Smith", "Sarah Johnson"],
-    propertyId: 1,
-  },
-  {
-    id: 2,
-    unitNumber: "1B",
-    address: "113-115 Park Avenue, Suite 101",
-    tenants: ["Michael Chen"],
-    propertyId: 1,
-  },
-  {
-    id: 3,
-    unitNumber: "2A",
-    address: "113-115 Park Avenue, Suite 200",
-    tenants: ["Emily Rodriguez", "David Harris"],
-    propertyId: 1,
-  },
-  {
-    id: 4,
-    unitNumber: "2B",
-    address: "113-115 Park Avenue, Suite 201",
-    tenants: [],
-    propertyId: 1,
-  },
-  {
-    id: 5,
-    unitNumber: "3A",
-    address: "113-115 Park Avenue, Suite 300",
-    tenants: ["Jennifer Lee"],
-    propertyId: 1,
-  },
-];
+// Mock API response shape
+interface MockUnitApiResponse {
+  id: number;
+  property_id: number;
+  buildium_unit_id: number | null;
+  unit_name: string;
+  address_1: string | null;
+  owners: { name: string }[];
+  created_at: string;
+  updated_at: string;
+}
+
+// Mock API data (simulating GET /properties/{propertyId}/units)
+const MOCK_UNITS_API_DATA: Record<number, MockUnitApiResponse[]> = {
+  1: [
+    {
+      id: 1,
+      property_id: 1,
+      buildium_unit_id: 10001,
+      unit_name: "1A",
+      address_1: "113-115 Park Avenue, Suite 100",
+      owners: [
+        { name: "John Smith" },
+        { name: "Sarah Johnson" },
+      ],
+      created_at: "2024-01-15T08:00:00Z",
+      updated_at: "2024-01-15T08:00:00Z",
+    },
+    {
+      id: 2,
+      property_id: 1,
+      buildium_unit_id: 10002,
+      unit_name: "1B",
+      address_1: "113-115 Park Avenue, Suite 101",
+      owners: [
+        { name: "Michael Chen" },
+      ],
+      created_at: "2024-01-15T08:00:00Z",
+      updated_at: "2024-01-15T08:00:00Z",
+    },
+    {
+      id: 3,
+      property_id: 1,
+      buildium_unit_id: 10003,
+      unit_name: "2A",
+      address_1: "113-115 Park Avenue, Suite 200",
+      owners: [
+        { name: "Emily Rodriguez" },
+        { name: "David Harris" },
+      ],
+      created_at: "2024-01-15T08:00:00Z",
+      updated_at: "2024-01-15T08:00:00Z",
+    },
+    {
+      id: 4,
+      property_id: 1,
+      buildium_unit_id: 10004,
+      unit_name: "2B",
+      address_1: "113-115 Park Avenue, Suite 201",
+      owners: [],
+      created_at: "2024-01-15T08:00:00Z",
+      updated_at: "2024-01-15T08:00:00Z",
+    },
+    {
+      id: 5,
+      property_id: 1,
+      buildium_unit_id: 10005,
+      unit_name: "3A",
+      address_1: "113-115 Park Avenue, Suite 300",
+      owners: [
+        { name: "Jennifer Lee" },
+      ],
+      created_at: "2024-01-15T08:00:00Z",
+      updated_at: "2024-01-15T08:00:00Z",
+    },
+  ],
+};
+
+/**
+ * Mock API: GET /properties/{propertyId}/units
+ * Transforms API response into UI Unit shape
+ */
+async function mockFetchUnitsByProperty(propertyId: number): Promise<Unit[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  const apiData = MOCK_UNITS_API_DATA[propertyId] || [];
+
+  // Transform API response to UI shape
+  return apiData.map((item) => ({
+    id: item.id,
+    unitNumber: item.unit_name,
+    address: item.address_1 || "",
+    tenants: item.owners.map((owner) => owner.name),
+    propertyId: item.property_id,
+  }));
+}
 
 const unitImage =
   "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true";
