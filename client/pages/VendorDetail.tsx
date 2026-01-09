@@ -537,6 +537,16 @@ export default function VendorDetail() {
     }
   }, [vendor]);
 
+  // Update mockFiles after successful upload (for non-editing flow)
+  useEffect(() => {
+    setMockFiles((prev) => {
+      if (mockFiles.length !== prev.length) {
+        return mockFiles;
+      }
+      return prev;
+    });
+  }, []);
+
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
     onAction: () => setIsInactive((v) => !v),
