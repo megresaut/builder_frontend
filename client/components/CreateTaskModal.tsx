@@ -141,7 +141,8 @@ export default function CreateTaskModal({
   }, [open, editData]);
 
   return (
-    <ModalTemplate
+    <>
+      <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
       onClose={handleCancel}
@@ -293,5 +294,18 @@ export default function CreateTaskModal({
         </FormSection>
       </FormLayout>
     </ModalTemplate>
+
+      <PdfViewerModal
+        open={isViewFileOpen}
+        onOpenChange={(open) => {
+          setIsViewFileOpen(open);
+          if (!open) {
+            setSelectedFileForView(null);
+          }
+        }}
+        title={selectedFileForView?.name || "File Preview"}
+        url={selectedFileForView?.url}
+      />
+    </>
   );
 }
