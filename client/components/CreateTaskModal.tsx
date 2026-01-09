@@ -293,12 +293,15 @@ export default function CreateTaskModal({
           <FileUploadField
             label="Attachments"
             files={attachments}
-            onFilesAdded={(newFiles) =>
-              setAttachments([...attachments, ...newFiles])
-            }
-            onFileRemoved={(fileId) =>
-              setAttachments(attachments.filter((f) => f.id !== fileId))
-            }
+            onFilesAdded={(newFiles) => {
+              // Create blob URLs for newly added files
+              const filesWithUrls = newFiles.map((file) => ({
+                ...file,
+                url: file.url || URL.createObjectURL(file.file!),
+              }));
+              setAttachments([...attachments, ...filesWithUrls]);
+            }}
+            onFileRemoved={handleFileRemoved}
             onViewFile={(file) => {
               // Create blob URL if file doesn't have a URL yet
               let fileUrl = file.url;
