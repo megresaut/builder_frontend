@@ -116,33 +116,12 @@ export default function CreateTaskModal({
     onOpenChange(false);
   };
 
-  // Cleanup blob URLs when component unmounts or attachments change
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      attachments.forEach((file) => {
-        if (file.url && file.url.startsWith("blob:")) {
-          try {
-            URL.revokeObjectURL(file.url);
-          } catch {
-            // ignore
-          }
-        }
-      });
+      fileUpload.cleanup();
     };
   }, []);
-
-  // Cleanup blob URLs when files are removed
-  const handleFileRemoved = (fileId: string) => {
-    const fileToRemove = attachments.find((f) => f.id === fileId);
-    if (fileToRemove?.url && fileToRemove.url.startsWith("blob:")) {
-      try {
-        URL.revokeObjectURL(fileToRemove.url);
-      } catch {
-        // ignore
-      }
-    }
-    setAttachments(attachments.filter((f) => f.id !== fileId));
-  };
 
   useEffect(() => {
     if (open) {
@@ -152,16 +131,9 @@ export default function CreateTaskModal({
         setPriority(editData.priority.toLowerCase());
       }
     } else {
-      // When modal closes, clear blob URLs and all form state
-      attachments.forEach((file) => {
-        if (file.url && file.url.startsWith("blob:")) {
-          try {
-            URL.revokeObjectURL(file.url);
-          } catch {
-            // ignore
-          }
-        }
-      });
+      // When modal closes, clear form state and file viewer
+      fileUpload.cleanup();
+      fileUpload.closeViewFile();
       setTitle("");
       setDescription("");
       setProperty("");
@@ -169,7 +141,6 @@ export default function CreateTaskModal({
       setPriority("normal");
       setDueDate(null);
       setStatus("in_progress");
-      setAttachments([]);
       setSelectedAssignees([]);
       setSelectedCollaborators([]);
       setErrors({});
