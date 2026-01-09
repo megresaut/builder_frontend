@@ -90,10 +90,25 @@ export const MOCK_VENDORS: BaseVendor[] = [
   },
 ];
 
+/**
+ * Mock API abstraction: Fetches vendors from mock data.
+ * This function is designed to be a drop-in replacement target.
+ *
+ * To use a real backend API, replace the function body with:
+ * return fetch('/vendors').then(r => r.json());
+ *
+ * No changes to component logic or useVendors hook are required.
+ */
+export async function mockFetchVendors(): Promise<BaseVendor[]> {
+  return Promise.resolve(MOCK_VENDORS);
+}
+
+/**
+ * Main fetch function that consumes the mock/real API abstraction.
+ * This is what the rest of the app uses (via useVendors hook).
+ */
 export async function fetchVendors(): Promise<BaseVendor[]> {
-  // Mock: return MOCK_VENDORS
-  // API: return fetch('/api/vendors').then(r => r.json())
-  return MOCK_VENDORS;
+  return mockFetchVendors();
 }
 
 export async function fetchVendor(vendorId: number): Promise<BaseVendor | null> {
