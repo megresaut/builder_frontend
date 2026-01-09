@@ -112,12 +112,6 @@ export default function CreateTaskModal({
     onOpenChange(false);
   };
 
-  const handleAttachmentsChange = (files: FileList | null) => {
-    if (files) {
-      setAttachments(Array.from(files));
-    }
-  };
-
   useEffect(() => {
     if (open) {
       // When modal opens with editData, populate it
