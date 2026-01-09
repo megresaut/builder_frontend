@@ -168,7 +168,7 @@ export default function Vendors() {
       id: Math.max(...vendors.map((v) => v.id), 0) + 1,
       ...vendorData,
     };
-    vendors.push(newVendor);
+    setVendors((prev) => [...prev, newVendor]);
   };
 
   const columns = [
