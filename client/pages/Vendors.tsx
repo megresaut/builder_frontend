@@ -114,7 +114,7 @@ const MOCK_VENDORS: BaseVendor[] = [
 
 export default function Vendors() {
   const navigate = useNavigate();
-  const { vendors, loading, error } = useVendors();
+  const [vendors, setVendors] = useState<BaseVendor[]>(MOCK_VENDORS);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
