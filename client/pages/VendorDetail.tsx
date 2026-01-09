@@ -63,6 +63,19 @@ interface VendorFile {
   description?: string;
 }
 
+interface VendorInsurance {
+  id: number;
+  provider: string;
+  policyNumber: string;
+  expirationDate: string;
+}
+
+interface VendorCustomField {
+  id: number;
+  name: string;
+  value: string;
+}
+
 // ============================================================================
 // Mock Data Storage (persists during session)
 // ============================================================================
