@@ -254,6 +254,7 @@ export default function CreateTaskModal({
               onChange={setStatus}
               placeholder="Select Status"
               options={[
+                { value: "not_started", label: "Not Started" },
                 { value: "in_progress", label: "In Progress" },
                 { value: "completed", label: "Completed" },
               ]}
