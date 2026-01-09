@@ -29,11 +29,13 @@ interface Task {
   status: string;
   title: string;
   property: string;
+  unit?: string;
   due: string;
   updated: string;
   age: string;
   priority: string;
   assignees: Assignee[];
+  collaborators?: Assignee[];
 }
 
 const tasks: Task[] = [
