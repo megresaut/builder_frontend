@@ -581,6 +581,18 @@ export default function AllTasks() {
           }
         }}
         onTaskCreated={handleTaskCreated}
+        editData={
+          editingTask
+            ? {
+                id: editingTask.id,
+                title: editingTask.title,
+                property: editingTask.property,
+                priority: editingTask.priority,
+                status: editingTask.status,
+                assignees: editingTask.assignees,
+              }
+            : undefined
+        }
       />
 
       <ColumnFilterModal
