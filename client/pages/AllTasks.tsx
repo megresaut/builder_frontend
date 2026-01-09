@@ -368,6 +368,18 @@ export default function AllTasks() {
     []
   );
 
+  const memoizedEditData = useMemo(() => {
+    if (!editingTask) return undefined;
+    return {
+      id: editingTask.id,
+      title: editingTask.title,
+      property: editingTask.property,
+      priority: editingTask.priority,
+      status: editingTask.status,
+      assignees: editingTask.assignees,
+    };
+  }, [editingTask?.id, editingTask?.title, editingTask?.property, editingTask?.priority, editingTask?.status]);
+
   const handleTaskCreated = useCallback(
     (taskData: {
       title: string;
