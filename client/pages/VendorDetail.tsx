@@ -654,9 +654,84 @@ export default function VendorDetail() {
     }
   }, [id]);
 
-  // Keep other hooks for insurance and custom fields
-  const { insurance, addInsurance } = useVendorInsurance(id);
-  const { fields, addField, removeField } = useVendorCustomFields(id);
+  // Mock data state for insurance
+  const [insurance, setInsurance] = useState<VendorInsurance[]>([]);
+
+  // Mock data state for custom fields
+  const [fields, setFields] = useState<VendorCustomField[]>([]);
+
+  // Load mock insurance on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedInsurance = await mockFetchVendorInsurance(id);
+        setInsurance(fetchedInsurance);
+      } catch (err) {
+        console.error("Failed to load insurance");
+      }
+    })();
+  }, [id]);
+
+  // Load mock custom fields on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedFields = await mockFetchVendorCustomFields(id);
+        setFields(fetchedFields);
+      } catch (err) {
+        console.error("Failed to load custom fields");
+      }
+    })();
+  }, [id]);
+
+  // Mock insurance operations
+  const addInsurance = useCallback(
+    async (provider: string, policyNumber: string, expirationDate: string) => {
+      try {
+        const newInsurance = await mockAddVendorInsurance(
+          id,
+          provider,
+          policyNumber,
+          expirationDate,
+        );
+        setInsurance((prev) => [...prev, newInsurance]);
+      } catch (err) {
+        console.error("Failed to add insurance");
+      }
+    },
+    [id],
+  );
+
+  const removeInsurance = useCallback(async (insuranceId: number) => {
+    try {
+      await mockDeleteVendorInsurance(id, insuranceId);
+      setInsurance((prev) => prev.filter((i) => i.id !== insuranceId));
+    } catch (err) {
+      console.error("Failed to delete insurance");
+    }
+  }, [id]);
+
+  // Mock custom field operations
+  const addField = useCallback(
+    async (name: string, value: string) => {
+      try {
+        const newField = await mockAddVendorCustomField(id, name, value);
+        setFields((prev) => [...prev, newField]);
+      } catch (err) {
+        console.error("Failed to add custom field");
+      }
+    },
+    [id],
+  );
+
+  const removeField = useCallback(async (fieldId: number) => {
+    try {
+      await mockDeleteVendorCustomField(id, fieldId);
+      setFields((prev) => prev.filter((f) => f.id !== fieldId));
+    } catch (err) {
+      console.error("Failed to delete custom field");
+    }
+  }, [id]);
 
   // Local state for UI
   const [isInactive, setIsInactive] = useState(false);
