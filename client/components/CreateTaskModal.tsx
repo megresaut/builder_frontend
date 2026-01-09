@@ -108,7 +108,7 @@ export default function CreateTaskModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted", {
+      const taskData = {
         title,
         description,
         property,
@@ -116,10 +116,10 @@ export default function CreateTaskModal({
         priority,
         dueDate,
         status,
-        attachments: fileUpload.files,
-        selectedAssignees,
-        selectedCollaborators,
-      });
+        assignees: selectedAssignees,
+        collaborators: selectedCollaborators,
+      };
+      onTaskCreated?.(taskData);
       onOpenChange(false);
     }
   };
