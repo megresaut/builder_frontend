@@ -16,17 +16,10 @@ import { TextField, SelectField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
-  useVendorDetail,
-  useVendorNotes,
   useVendorInsurance,
   useVendorFiles,
   useVendorCustomFields,
 } from "@/hooks/vendors";
-import type {
-  VendorDetail as VendorDetailType,
-  VendorNote,
-  VendorFile,
-} from "@/data/vendors";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import {
   SectionRowTemplate,
@@ -44,27 +37,76 @@ import {
 } from "@/components/templates";
 
 // ============================================================================
-// Mock API Functions (can be replaced with real fetch calls)
+// Type Definitions (local to this component)
 // ============================================================================
 
-interface MockVendorDetail {
+interface VendorDetail {
   id: number;
   name: string;
   category: string;
-  primary_email: string;
+  email: string;
   phone: string;
   address?: string;
   website?: string;
   servicesProvided?: string | string[];
-  email?: string;
 }
 
-interface MockVendorNote {
+interface VendorNote {
   id: number;
   text: string;
   author: string;
   date: string;
 }
+
+interface VendorFile {
+  id: number;
+  name: string;
+  url?: string;
+  uploadedAt?: string;
+  type?: string;
+  category?: string;
+  description?: string;
+}
+
+// ============================================================================
+// Mock Data Storage (persists during session)
+// ============================================================================
+
+const MOCK_VENDOR_DETAILS: Record<number, VendorDetail> = {
+  1: {
+    id: 1,
+    name: "David Smith",
+    category: "HVAC",
+    email: "david.smith@example.com",
+    phone: "724.705.2990",
+    address: "123 Main St, Pittsburgh, PA 15213",
+    website: "https://davidsmithservices.com",
+    servicesProvided: ["HVAC", "Plumbing", "Maintenance"],
+  },
+};
+
+let mockNotesStorage: Record<number, VendorNote[]> = {
+  1: [
+    {
+      id: 1,
+      text: "Reliable vendor, quick turnaround on HVAC repairs",
+      author: "John Doe",
+      date: "2025-01-08 2:30 PM",
+    },
+    {
+      id: 2,
+      text: "Completed plumbing inspection last week",
+      author: "Jane Smith",
+      date: "2025-01-05 10:15 AM",
+    },
+  ],
+};
+
+let mockFilesStorage: Record<number, VendorFile[]> = {};
+
+// ============================================================================
+// Mock API Functions (can be replaced with real fetch calls)
+// ============================================================================
 
 // Mock vendor detail data
 const MOCK_VENDOR_DETAILS: Record<number, MockVendorDetail> = {
