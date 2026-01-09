@@ -157,22 +157,44 @@ export default function CreateTaskModal({
     >
       <FormLayout>
         <FormSection title="Task Details" showDivider={true}>
+          {/* Task Name - Full Width, First Field */}
+          <TextField
+            label="Task Name"
+            required
+            value={title}
+            onChange={(e) => {
+              const newValue = e.target.value.slice(0, 125);
+              setTitle(newValue);
+              if (errors.title && newValue.trim()) {
+                setErrors((prev) => ({ ...prev, title: false }));
+                setErrorMessages((prev) => ({ ...prev, title: undefined }));
+              }
+            }}
+            error={errorMessages.title}
+            placeholder="Type Task Name"
+            maxLength={125}
+          />
+
+          {/* Description - Full Width */}
+          <TextAreaField
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Insert Description Here"
+          />
+
+          {/* Property + Unit - 2 Columns */}
           <FormFieldRow columns={2}>
             <SelectField
               label="Property"
-              required
               value={property}
               onChange={(value) => {
                 setProperty(value);
-                if (errors.property && value.trim()) {
-                  setErrors((prev) => ({ ...prev, property: false }));
-                  setErrorMessages((prev) => ({
-                    ...prev,
-                    property: undefined,
-                  }));
+                // Clear unit when property changes
+                if (value !== property) {
+                  setUnit("");
                 }
               }}
-              error={errorMessages.property}
               placeholder="Select Property"
               options={[
                 { value: "property1", label: "22 Indian Chase Dr" },
@@ -184,31 +206,22 @@ export default function CreateTaskModal({
               value={unit}
               onChange={setUnit}
               placeholder="Select Unit If Applicable"
-              options={[
-                { value: "unit1", label: "Unit 1" },
-                { value: "unit2", label: "Unit 2" },
-              ]}
+              disabled={!property}
+              options={
+                property
+                  ? [
+                      { value: "unit1", label: "Unit 1" },
+                      { value: "unit2", label: "Unit 2" },
+                    ]
+                  : []
+              }
             />
           </FormFieldRow>
 
-          <FormFieldRow columns={2}>
-            <TextField
-              label="Task Name"
-              required
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (errors.title && e.target.value.trim()) {
-                  setErrors((prev) => ({ ...prev, title: false }));
-                  setErrorMessages((prev) => ({ ...prev, title: undefined }));
-                }
-              }}
-              error={errorMessages.title}
-              placeholder="Type Task Name"
-            />
+          {/* Priority + Due Date + Status - 3 Columns */}
+          <FormFieldRow columns={3}>
             <SelectField
               label="Priority"
-              required
               value={priority}
               onChange={setPriority}
               placeholder="Select Priority"
@@ -218,63 +231,67 @@ export default function CreateTaskModal({
                 { value: "high", label: "High" },
               ]}
             />
-          </FormFieldRow>
-        </FormSection>
-
-        <FormSection title="Assignment" showDivider={true}>
-          <FormFieldRow columns={2}>
-            <MultiSelectField
-              label="Assignees"
-              required
-              value={selectedAssignees}
-              onChange={(newAssignees) => {
-                setSelectedAssignees(newAssignees);
-                if (errors.selectedAssignees && newAssignees.length > 0) {
-                  setErrors((prev) => ({ ...prev, selectedAssignees: false }));
-                  setErrorMessages((prev) => ({
-                    ...prev,
-                    selectedAssignees: undefined,
-                  }));
-                }
-              }}
-              error={errorMessages.selectedAssignees}
-              placeholder="Select assignees"
-              options={AVAILABLE_ASSIGNEES}
-            />
             <SelectField
               label="Due Date"
-              required
               value={dueDate}
               onChange={setDueDate}
-              error={errorMessages.dueDate}
               placeholder="mm/dd/yyyy"
               options={[
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },
               ]}
             />
+            <SelectField
+              label="Status"
+              value={status}
+              onChange={setStatus}
+              placeholder="Select Status"
+              options={[
+                { value: "in_progress", label: "In Progress" },
+                { value: "completed", label: "Completed" },
+              ]}
+            />
           </FormFieldRow>
+
+          {/* Attachments - Full Width */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Attachments
+            </label>
+            <input
+              type="file"
+              multiple
+              onChange={(e) => handleAttachmentsChange(e.target.files)}
+              className="block w-full"
+            />
+            {attachments.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600">
+                  {attachments.length} file(s) selected
+                </p>
+              </div>
+            )}
+          </div>
         </FormSection>
 
-        <FormSection title="Additional Information" showDivider={true}>
-          <SelectField
-            label="Category"
-            value={category}
-            onChange={setCategory}
-            placeholder="Select Category"
-            options={[
-              { value: "maintenance", label: "Maintenance" },
-              { value: "repair", label: "Repair" },
-              { value: "other", label: "Other" },
-            ]}
-          />
-
-          <TextAreaField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Insert Description Here"
-          />
+        <FormSection title="Assignment" showDivider={false}>
+          {/* Assignees + Collaborators - 2 Columns */}
+          <FormFieldRow columns={2}>
+            <MultiSelectField
+              label="Assignees"
+              value={selectedAssignees}
+              onChange={setSelectedAssignees}
+              placeholder="Select assignees"
+              options={AVAILABLE_ASSIGNEES}
+            />
+            <MultiSelectField
+              label="Collaborators"
+              value={selectedCollaborators}
+              onChange={setSelectedCollaborators}
+              placeholder="Select collaborators"
+              options={AVAILABLE_COLLABORATORS}
+            />
+          </FormFieldRow>
         </FormSection>
       </FormLayout>
     </ModalTemplate>
