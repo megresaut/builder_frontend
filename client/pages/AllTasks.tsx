@@ -289,13 +289,26 @@ export default function AllTasks() {
     "status",
     "title",
     "property",
-    "unit",
     "due",
     "updated",
     "age",
     "assignees",
-    "collaborators",
   ]);
+
+  // Add unit and collaborators to columnOrder but not to visibleColumns by default
+  useEffect(() => {
+    if (!columnOrder.includes("unit")) {
+      const newOrder = [
+        ...columnOrder.slice(0, 4),
+        "unit",
+        ...columnOrder.slice(4),
+      ];
+      // Add collaborators after assignees
+      if (!newOrder.includes("collaborators")) {
+        newOrder.push("collaborators");
+      }
+    }
+  }, []);
 
   const columns = [
     {
