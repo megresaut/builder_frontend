@@ -257,6 +257,11 @@ export default function CreateTaskModal({
             onFileRemoved={(fileId) =>
               setAttachments(attachments.filter((f) => f.id !== fileId))
             }
+            onViewFile={(file) => {
+              if (file.url) {
+                window.open(file.url, "_blank");
+              }
+            }}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
             maxFiles={10}
             maxSize={10 * 1024 * 1024}
