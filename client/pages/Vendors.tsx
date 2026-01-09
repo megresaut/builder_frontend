@@ -201,10 +201,9 @@ export default function Vendors() {
 
   const handleDeleteVendor = useCallback(
     (vendor: BaseVendor) => {
-      const idx = vendors.findIndex((v) => v.id === vendor.id);
-      if (idx >= 0) vendors.splice(idx, 1);
+      setVendors((prev) => prev.filter((v) => v.id !== vendor.id));
     },
-    [vendors],
+    [],
   );
 
   const handleEditVendor = useCallback(
