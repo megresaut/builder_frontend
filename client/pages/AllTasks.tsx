@@ -536,6 +536,13 @@ export default function AllTasks() {
                 </span>
               );
             }
+            if (columnKey === "unit") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {task.unit || "—"}
+                </span>
+              );
+            }
             if (columnKey === "due") {
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
