@@ -67,33 +67,19 @@ export default function CreateTaskModal({
 
   const validateForm = (): boolean => {
     const newErrors: {
-      property?: boolean;
       title?: boolean;
-      dueDate?: boolean;
-      selectedAssignees?: boolean;
     } = {};
     const newErrorMessages: {
-      property?: string;
       title?: string;
-      dueDate?: string;
-      selectedAssignees?: string;
     } = {};
 
-    if (!property.trim()) {
-      newErrors.property = true;
-      newErrorMessages.property = "Property is required";
-    }
     if (!title.trim()) {
       newErrors.title = true;
       newErrorMessages.title = "Task name is required";
     }
-    if (!dueDate.trim()) {
-      newErrors.dueDate = true;
-      newErrorMessages.dueDate = "Due date is required";
-    }
-    if (selectedAssignees.length === 0) {
-      newErrors.selectedAssignees = true;
-      newErrorMessages.selectedAssignees = "At least one assignee is required";
+    if (title.trim().length > 125) {
+      newErrors.title = true;
+      newErrorMessages.title = "Task name must be 125 characters or less";
     }
 
     setErrors(newErrors);
@@ -104,14 +90,16 @@ export default function CreateTaskModal({
   const handleSubmit = () => {
     if (validateForm()) {
       console.log("Form submitted", {
+        title,
+        description,
         property,
         unit,
-        title,
         priority,
         dueDate,
+        status,
+        attachments,
         selectedAssignees,
-        category,
-        description,
+        selectedCollaborators,
       });
       onOpenChange(false);
     }
@@ -119,6 +107,12 @@ export default function CreateTaskModal({
 
   const handleCancel = () => {
     onOpenChange(false);
+  };
+
+  const handleAttachmentsChange = (files: FileList | null) => {
+    if (files) {
+      setAttachments(Array.from(files));
+    }
   };
 
   useEffect(() => {
@@ -130,14 +124,16 @@ export default function CreateTaskModal({
       }
     } else {
       // When modal closes, clear all form state and errors
+      setTitle("");
+      setDescription("");
       setProperty("");
       setUnit("");
-      setTitle("");
       setPriority("normal");
       setDueDate("");
+      setStatus("in_progress");
+      setAttachments([]);
       setSelectedAssignees([]);
-      setCategory("");
-      setDescription("");
+      setSelectedCollaborators([]);
       setErrors({});
       setErrorMessages({});
     }
