@@ -104,7 +104,7 @@ export default function CreateTaskModal({
         priority,
         dueDate,
         status,
-        attachments,
+        attachments: fileUpload.files,
         selectedAssignees,
         selectedCollaborators,
       });
