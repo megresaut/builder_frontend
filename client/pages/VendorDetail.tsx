@@ -856,7 +856,7 @@ export default function VendorDetail() {
 
                 {/* Recent Files Section */}
                 <FilesTemplate
-                  files={files}
+                  files={mockFiles}
                   onAdd={() => {
                     setIsEditingFile(false);
                     setSelectedFile(null);
