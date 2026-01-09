@@ -33,9 +33,16 @@ interface CreateTaskModalProps {
     collaborators: MultiSelectOption[];
   }) => void;
   editData?: {
+    id: number;
     title: string;
-    due: string;
+    description?: string;
+    property?: string;
+    unit?: string;
     priority: string;
+    due?: string;
+    status?: string;
+    dueDate?: Date | null;
+    assignees?: Array<{ id: number; name: string; initials: string }>;
   };
 }
 
