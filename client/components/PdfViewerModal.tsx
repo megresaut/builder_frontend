@@ -45,6 +45,12 @@ export default function PdfViewerModal({
   onOpenChange,
   title,
   url,
+  onRenameClick,
+  isRenaming = false,
+  renamingFileName = "",
+  onRenamingFileNameChange,
+  onSaveFileName,
+  onCancelRenaming,
 }: PdfViewerModalProps) {
   const [iframeKey, setIframeKey] = useState(0);
 
