@@ -157,7 +157,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   propertyType,
   propertyUnits,
 }) => {
-  const [unitsList, setUnitsList] = useState<Unit[]>(mockUnits);
+  const [unitsList, setUnitsList] = useState<Unit[]>([]);
 
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
