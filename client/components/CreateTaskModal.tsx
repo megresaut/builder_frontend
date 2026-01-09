@@ -130,7 +130,7 @@ export default function CreateTaskModal({
       setProperty("");
       setUnit("");
       setPriority("normal");
-      setDueDate("");
+      setDueDate(null);
       setStatus("in_progress");
       setAttachments([]);
       setSelectedAssignees([]);
