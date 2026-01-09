@@ -21,6 +21,17 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 interface CreateTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTaskCreated?: (taskData: {
+    title: string;
+    description: string;
+    property: string;
+    unit: string;
+    priority: string;
+    dueDate: Date | null;
+    status: string;
+    assignees: MultiSelectOption[];
+    collaborators: MultiSelectOption[];
+  }) => void;
   editData?: {
     title: string;
     due: string;
