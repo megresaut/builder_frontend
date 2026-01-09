@@ -31,32 +31,38 @@ const AVAILABLE_ASSIGNEES: MultiSelectOption[] = [
   { id: "5", label: "James Wilson", initials: "JW" },
 ];
 
+const AVAILABLE_COLLABORATORS: MultiSelectOption[] = [
+  { id: "1", label: "David Harris", initials: "DH" },
+  { id: "2", label: "Sarah Johnson", initials: "SJ" },
+  { id: "3", label: "Michael Chen", initials: "MC" },
+  { id: "4", label: "Emily Rodriguez", initials: "ER" },
+  { id: "5", label: "James Wilson", initials: "JW" },
+];
+
 export default function CreateTaskModal({
   open,
   onOpenChange,
   editData,
 }: CreateTaskModalProps) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
-  const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState("");
+  const [status, setStatus] = useState("in_progress");
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<
     MultiSelectOption[]
   >([]);
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
+  const [selectedCollaborators, setSelectedCollaborators] = useState<
+    MultiSelectOption[]
+  >([]);
   const [errors, setErrors] = useState<{
-    property?: boolean;
     title?: boolean;
-    dueDate?: boolean;
-    selectedAssignees?: boolean;
   }>({});
   const [errorMessages, setErrorMessages] = useState<{
-    property?: string;
     title?: string;
-    dueDate?: string;
-    selectedAssignees?: string;
   }>({});
 
   const validateForm = (): boolean => {
