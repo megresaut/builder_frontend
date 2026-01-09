@@ -210,11 +210,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
     null,
   );
 
-  const navigate = useNavigate();
-  const { propertyId } = useParams<{ propertyId: string }>();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-
   const selectedUnitId = searchParams.get("unit")
     ? Number.parseInt(searchParams.get("unit")!, 10)
     : null;
