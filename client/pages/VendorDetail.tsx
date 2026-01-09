@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 
 import PageTemplate from "@/layout/PageTemplate";
