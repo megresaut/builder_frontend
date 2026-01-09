@@ -158,6 +158,32 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   propertyUnits,
 }) => {
   const [unitsList, setUnitsList] = useState<Unit[]>([]);
+  const [isLoadingUnits, setIsLoadingUnits] = useState(true);
+
+  const navigate = useNavigate();
+  const { propertyId } = useParams<{ propertyId: string }>();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Fetch units from mock API on mount or when propertyId changes
+  useEffect(() => {
+    const loadUnits = async () => {
+      if (!propertyId) return;
+
+      setIsLoadingUnits(true);
+      try {
+        const units = await mockFetchUnitsByProperty(Number(propertyId));
+        setUnitsList(units);
+      } catch (error) {
+        console.error("Failed to load units:", error);
+        setUnitsList([]);
+      } finally {
+        setIsLoadingUnits(false);
+      }
+    };
+
+    loadUnits();
+  }, [propertyId]);
 
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
