@@ -15,10 +15,6 @@ import { EmailIcon, EditIcon } from "@/components/icons";
 import { TextField, SelectField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
-import {
-  useVendorInsurance,
-  useVendorCustomFields,
-} from "@/hooks/vendors";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import {
   SectionRowTemplate,
