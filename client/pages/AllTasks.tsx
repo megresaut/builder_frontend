@@ -16,6 +16,7 @@ import {
   CalendarIcon,
   ClockIcon,
   DotsIcon,
+  UserIcon,
 } from "@/components/icons";
 
 interface Assignee {
