@@ -56,22 +56,21 @@ export default function CreateTaskModal({
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [status, setStatus] = useState("in_progress");
-  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<
     MultiSelectOption[]
   >([]);
   const [selectedCollaborators, setSelectedCollaborators] = useState<
     MultiSelectOption[]
   >([]);
-  const [selectedFileForView, setSelectedFileForView] =
-    useState<UploadedFile | null>(null);
-  const [isViewFileOpen, setIsViewFileOpen] = useState(false);
   const [errors, setErrors] = useState<{
     title?: boolean;
   }>({});
   const [errorMessages, setErrorMessages] = useState<{
     title?: string;
   }>({});
+
+  // File upload management
+  const fileUpload = useFileUpload();
 
   const validateForm = (): boolean => {
     const newErrors: {
