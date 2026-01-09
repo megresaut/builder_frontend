@@ -143,20 +143,20 @@ export default function CreateTaskModal({
   return (
     <>
       <ModalTemplate
-      open={open}
-      onOpenChange={onOpenChange}
-      onClose={handleCancel}
-      title={editData ? "Edit Task" : "Create Task"}
-      size="lg"
-      footer={
-        <ModalButtons
-          onCancel={handleCancel}
-          onConfirm={handleSubmit}
-          cancelLabel="Cancel"
-          confirmLabel={editData ? "Update Task" : "Create Task"}
-        />
-      }
-    >
+        open={open}
+        onOpenChange={onOpenChange}
+        onClose={handleCancel}
+        title={editData ? "Edit Task" : "Create Task"}
+        size="lg"
+        footer={
+          <ModalButtons
+            onCancel={handleCancel}
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel={editData ? "Update Task" : "Create Task"}
+          />
+        }
+      >
       <FormLayout>
         <FormSection title="Task Details" showDivider={true}>
           {/* Task Name - Full Width, First Field */}
