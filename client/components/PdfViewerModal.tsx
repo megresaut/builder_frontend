@@ -72,79 +72,194 @@ export default function PdfViewerModal({
 
   const footerContent = (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <button
-        type="button"
-        onClick={() => onOpenChange(false)}
-        style={{
-          borderRadius: "8px",
-          backgroundColor: "rgba(251, 251, 251, 1)",
-          boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
-          borderColor: "rgba(218, 218, 218, 1)",
-          borderStyle: "solid",
-          borderWidth: "1px",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          paddingLeft: "12px",
-          paddingRight: "12px",
-          paddingTop: "8px",
-          paddingBottom: "8px",
-          minHeight: "36px",
-          color: "rgba(48, 48, 48, 1)",
-          fontWeight: 400,
-          letterSpacing: "-0.32px",
-          lineHeight: 1.4,
-          justifyContent: "center",
-          cursor: "pointer",
-          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-          fontSize: "16px",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Close
-      </button>
-      {safeUrl ? (
-        <a
-          href={safeUrl}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "var(--color-button-primary)",
-            border: "1px solid rgba(255, 255, 255, 1)",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            paddingLeft: "12px",
-            paddingRight: "12px",
-            paddingTop: "8px",
-            paddingBottom: "8px",
-            minHeight: "36px",
-            color: "rgba(255, 255, 255, 1)",
-            fontWeight: 500,
-            letterSpacing: "-0.32px",
-            lineHeight: 1.4,
-            justifyContent: "center",
-            cursor: "pointer",
-            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-            fontSize: "16px",
-            whiteSpace: "nowrap",
-            boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
-            textDecoration: "none",
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--color-button-primary-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--color-button-primary)")
-          }
-        >
-          Open in new tab
-        </a>
-      ) : null}
+      {isRenaming ? (
+        <>
+          <input
+            type="text"
+            value={renamingFileName}
+            onChange={(e) => onRenamingFileNameChange?.(e.target.value)}
+            autoFocus
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "1px solid rgba(218, 218, 218, 1)",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "14px",
+            }}
+            placeholder="File name"
+          />
+          <button
+            type="button"
+            onClick={onCancelRenaming}
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(251, 251, 251, 1)",
+              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+              borderColor: "rgba(218, 218, 218, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              minHeight: "36px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              justifyContent: "center",
+              cursor: "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onSaveFileName}
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "var(--color-button-primary)",
+              border: "1px solid rgba(255, 255, 255, 1)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              minHeight: "36px",
+              color: "rgba(255, 255, 255, 1)",
+              fontWeight: 500,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              justifyContent: "center",
+              cursor: "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              whiteSpace: "nowrap",
+              boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+            }}
+          >
+            Save
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(251, 251, 251, 1)",
+              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+              borderColor: "rgba(218, 218, 218, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              minHeight: "36px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              justifyContent: "center",
+              cursor: "pointer",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "16px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Close
+          </button>
+          {onRenameClick && (
+            <button
+              type="button"
+              onClick={onRenameClick}
+              style={{
+                borderRadius: "8px",
+                backgroundColor: "rgba(251, 251, 251, 1)",
+                boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+                borderColor: "rgba(218, 218, 218, 1)",
+                borderStyle: "solid",
+                borderWidth: "1px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minHeight: "36px",
+                color: "rgba(48, 48, 48, 1)",
+                fontWeight: 400,
+                letterSpacing: "-0.32px",
+                lineHeight: 1.4,
+                justifyContent: "center",
+                cursor: "pointer",
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontSize: "16px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Rename
+            </button>
+          )}
+          {safeUrl ? (
+            <a
+              href={safeUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                borderRadius: "8px",
+                backgroundColor: "var(--color-button-primary)",
+                border: "1px solid rgba(255, 255, 255, 1)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minHeight: "36px",
+                color: "rgba(255, 255, 255, 1)",
+                fontWeight: 500,
+                letterSpacing: "-0.32px",
+                lineHeight: 1.4,
+                justifyContent: "center",
+                cursor: "pointer",
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontSize: "16px",
+                whiteSpace: "nowrap",
+                boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+                textDecoration: "none",
+                transition: "background-color 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  "var(--color-button-primary-hover)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  "var(--color-button-primary)")
+              }
+            >
+              Open in new tab
+            </a>
+          ) : null}
+        </>
+      )}
     </div>
   );
 
