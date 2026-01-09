@@ -175,7 +175,7 @@ export default function CreateTaskModal({
       setErrors({});
       setErrorMessages({});
     }
-  }, [open, editData, attachments]);
+  }, [open, editData]);
 
   return (
     <>
