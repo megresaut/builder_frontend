@@ -142,7 +142,7 @@ export default function CreateTaskModal({
     };
   }, []);
 
-  // Initialize form when modal opens
+  // Initialize form when modal opens in edit mode
   useEffect(() => {
     if (open && editData) {
       // Populate fields from editData when opening in edit mode
@@ -168,7 +168,7 @@ export default function CreateTaskModal({
         );
       }
     }
-  }, [editData?.id]);
+  }, [open, editData?.id]);
 
   // Clear form when modal closes
   useEffect(() => {
