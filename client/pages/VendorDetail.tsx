@@ -525,7 +525,7 @@ export default function VendorDetail() {
   const [isEditingFile, setIsEditingFile] = useState(false);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
-  const [vendorDraft, setVendorDraft] = useState<VendorDetailType | null>(null);
+  const [vendorDraft, setVendorDraft] = useState<VendorDetail | null>(null);
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
