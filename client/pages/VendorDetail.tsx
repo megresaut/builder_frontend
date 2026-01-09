@@ -108,46 +108,11 @@ let mockFilesStorage: Record<number, VendorFile[]> = {};
 // Mock API Functions (can be replaced with real fetch calls)
 // ============================================================================
 
-// Mock vendor detail data
-const MOCK_VENDOR_DETAILS: Record<number, MockVendorDetail> = {
-  1: {
-    id: 1,
-    name: "David Smith",
-    category: "HVAC",
-    primary_email: "david.smith@example.com",
-    email: "david.smith@example.com",
-    phone: "724.705.2990",
-    address: "123 Main St, Pittsburgh, PA 15213",
-    website: "https://davidsmithservices.com",
-    servicesProvided: ["HVAC", "Plumbing", "Maintenance"],
-  },
-};
-
-// Mock notes storage (persists during session)
-let mockNotesStorage: Record<number, MockVendorNote[]> = {
-  1: [
-    {
-      id: 1,
-      text: "Reliable vendor, quick turnaround on HVAC repairs",
-      author: "John Doe",
-      date: "2025-01-08 2:30 PM",
-    },
-    {
-      id: 2,
-      text: "Completed plumbing inspection last week",
-      author: "Jane Smith",
-      date: "2025-01-05 10:15 AM",
-    },
-  ],
-};
-
 /**
  * Mock API: Fetch vendor detail by ID
  * Real API would be: GET /vendors/{vendor_id}
  */
-async function mockFetchVendorDetail(
-  vendorId: number,
-): Promise<MockVendorDetail | null> {
+async function mockFetchVendorDetail(vendorId: number): Promise<VendorDetail | null> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -158,7 +123,6 @@ async function mockFetchVendorDetail(
       id: vendorId,
       name: `Vendor ${vendorId}`,
       category: "General Services",
-      primary_email: `vendor${vendorId}@example.com`,
       email: `vendor${vendorId}@example.com`,
       phone: "(555) 000-0000",
       address: undefined,
@@ -173,7 +137,7 @@ async function mockFetchVendorDetail(
  * Mock API: Fetch all notes for a vendor
  * Real API would be: GET /vendors/notes/{vendor_id}
  */
-async function mockFetchVendorNotes(vendorId: number): Promise<MockVendorNote[]> {
+async function mockFetchVendorNotes(vendorId: number): Promise<VendorNote[]> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -197,7 +161,7 @@ async function mockFetchVendorNotes(vendorId: number): Promise<MockVendorNote[]>
 async function mockCreateVendorNote(
   vendorId: number,
   text: string,
-): Promise<MockVendorNote> {
+): Promise<VendorNote> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -205,7 +169,7 @@ async function mockCreateVendorNote(
     mockNotesStorage[vendorId] = [];
   }
 
-  const newNote: MockVendorNote = {
+  const newNote: VendorNote = {
     id: Date.now(),
     text,
     author: "Current User",
@@ -231,7 +195,7 @@ async function mockUpdateVendorNote(
   vendorId: number,
   noteId: number,
   text: string,
-): Promise<MockVendorNote | null> {
+): Promise<VendorNote | null> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -270,6 +234,105 @@ async function mockDeleteVendorNote(
     return true;
   }
   return false;
+}
+
+/**
+ * Mock API: Fetch all files for a vendor
+ * Real API would be: GET /vendors/files/{vendor_id}
+ */
+async function mockFetchVendorFiles(vendorId: number): Promise<VendorFile[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Initialize files for vendor if not exist
+  if (!mockFilesStorage[vendorId]) {
+    mockFilesStorage[vendorId] = [];
+  }
+
+  return [...mockFilesStorage[vendorId]];
+}
+
+/**
+ * Mock API: Upload a file for a vendor
+ * Real API would be: POST /vendors/files/{vendor_id}
+ */
+async function mockUploadVendorFile(
+  vendorId: number,
+  file: File,
+  category?: string,
+  description?: string,
+  fileName?: string,
+): Promise<VendorFile> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockFilesStorage[vendorId]) {
+    mockFilesStorage[vendorId] = [];
+  }
+
+  const url = URL.createObjectURL(file);
+  const newFile: VendorFile = {
+    id: Date.now(),
+    name: fileName || file.name,
+    url,
+    uploadedAt: new Date().toLocaleString(),
+    type: file.type,
+    category,
+    description,
+  };
+
+  mockFilesStorage[vendorId].push(newFile);
+  return newFile;
+}
+
+/**
+ * Mock API: Update file metadata
+ * Real API would be: PATCH /vendors/files/{file_id}
+ */
+async function mockUpdateVendorFile(
+  vendorId: number,
+  fileId: number,
+  updates: Partial<Pick<VendorFile, "name" | "category" | "description">>,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockFilesStorage[vendorId]) return;
+
+  const file = mockFilesStorage[vendorId].find((f) => f.id === fileId);
+  if (file) {
+    if (updates.name !== undefined) file.name = updates.name;
+    if (updates.category !== undefined) file.category = updates.category;
+    if (updates.description !== undefined) file.description = updates.description;
+  }
+}
+
+/**
+ * Mock API: Delete a file
+ * Real API would be: DELETE /vendors/files/{file_id}
+ */
+async function mockDeleteVendorFile(
+  vendorId: number,
+  fileId: number,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockFilesStorage[vendorId]) return;
+
+  const file = mockFilesStorage[vendorId].find((f) => f.id === fileId);
+  if (file && file.url) {
+    try {
+      URL.revokeObjectURL(file.url);
+    } catch {
+      // ignore
+    }
+  }
+
+  const idx = mockFilesStorage[vendorId].findIndex((f) => f.id === fileId);
+  if (idx >= 0) {
+    mockFilesStorage[vendorId].splice(idx, 1);
+  }
 }
 
 export default function VendorDetail() {
