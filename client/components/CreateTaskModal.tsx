@@ -58,6 +58,7 @@ const AVAILABLE_COLLABORATORS: MultiSelectOption[] = [
 export default function CreateTaskModal({
   open,
   onOpenChange,
+  onTaskCreated,
   editData,
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
