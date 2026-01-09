@@ -54,7 +54,7 @@ export default function CreateTaskModal({
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [status, setStatus] = useState("in_progress");
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<
     MultiSelectOption[]
   >([]);
