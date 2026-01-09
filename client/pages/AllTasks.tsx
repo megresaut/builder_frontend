@@ -347,6 +347,18 @@ export default function AllTasks() {
       ),
     },
     {
+      key: "unit",
+      label: "Unit",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/740b0728672435a7240e4fa940b3c63bfd7d09c1?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    {
       key: "due",
       label: "Due",
       icon: <CalendarIcon width={16} height={16} />,
