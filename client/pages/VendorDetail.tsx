@@ -433,9 +433,8 @@ export default function VendorDetail() {
     }
   }, [id]);
 
-  // Keep other hooks for insurance, files, custom fields
+  // Keep other hooks for insurance and custom fields
   const { insurance, addInsurance } = useVendorInsurance(id);
-  const { files, uploadFile, deleteFile, updateFile } = useVendorFiles(id);
   const { fields, addField, removeField } = useVendorCustomFields(id);
 
   // Local state for UI
