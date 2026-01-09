@@ -44,6 +44,193 @@ import {
   type Subsection,
 } from "@/components/templates";
 
+// ============================================================================
+// Mock API Functions (can be replaced with real fetch calls)
+// ============================================================================
+
+interface MockVendorDetail {
+  id: number;
+  name: string;
+  category: string;
+  primary_email: string;
+  phone: string;
+  address?: string;
+  website?: string;
+  servicesProvided?: string | string[];
+  email?: string;
+}
+
+interface MockVendorNote {
+  id: number;
+  text: string;
+  author: string;
+  date: string;
+}
+
+// Mock vendor detail data
+const MOCK_VENDOR_DETAILS: Record<number, MockVendorDetail> = {
+  1: {
+    id: 1,
+    name: "David Smith",
+    category: "HVAC",
+    primary_email: "david.smith@example.com",
+    email: "david.smith@example.com",
+    phone: "724.705.2990",
+    address: "123 Main St, Pittsburgh, PA 15213",
+    website: "https://davidsmithservices.com",
+    servicesProvided: ["HVAC", "Plumbing", "Maintenance"],
+  },
+};
+
+// Mock notes storage (persists during session)
+let mockNotesStorage: Record<number, MockVendorNote[]> = {
+  1: [
+    {
+      id: 1,
+      text: "Reliable vendor, quick turnaround on HVAC repairs",
+      author: "John Doe",
+      date: "2025-01-08 2:30 PM",
+    },
+    {
+      id: 2,
+      text: "Completed plumbing inspection last week",
+      author: "Jane Smith",
+      date: "2025-01-05 10:15 AM",
+    },
+  ],
+};
+
+/**
+ * Mock API: Fetch vendor detail by ID
+ * Real API would be: GET /vendors/{vendor_id}
+ */
+async function mockFetchVendorDetail(
+  vendorId: number,
+): Promise<MockVendorDetail | null> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  const detail = MOCK_VENDOR_DETAILS[vendorId];
+  if (!detail) {
+    // Create default detail for any vendor ID
+    return {
+      id: vendorId,
+      name: `Vendor ${vendorId}`,
+      category: "General Services",
+      primary_email: `vendor${vendorId}@example.com`,
+      email: `vendor${vendorId}@example.com`,
+      phone: "(555) 000-0000",
+      address: undefined,
+      website: undefined,
+      servicesProvided: ["General Services"],
+    };
+  }
+  return detail;
+}
+
+/**
+ * Mock API: Fetch all notes for a vendor
+ * Real API would be: GET /vendors/notes/{vendor_id}
+ */
+async function mockFetchVendorNotes(vendorId: number): Promise<MockVendorNote[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Initialize notes for vendor if not exist
+  if (!mockNotesStorage[vendorId]) {
+    mockNotesStorage[vendorId] = [];
+  }
+
+  // Return notes sorted by date (newest first)
+  return [...mockNotesStorage[vendorId]].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA;
+  });
+}
+
+/**
+ * Mock API: Create a new note for a vendor
+ * Real API would be: POST /vendors/notes/{vendor_id}
+ */
+async function mockCreateVendorNote(
+  vendorId: number,
+  text: string,
+): Promise<MockVendorNote> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockNotesStorage[vendorId]) {
+    mockNotesStorage[vendorId] = [];
+  }
+
+  const newNote: MockVendorNote = {
+    id: Date.now(),
+    text,
+    author: "Current User",
+    date: new Date().toLocaleString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: undefined,
+    }),
+  };
+
+  mockNotesStorage[vendorId].push(newNote);
+  return newNote;
+}
+
+/**
+ * Mock API: Update an existing note
+ * Real API would be: PATCH /vendors/notes/{note_id}
+ */
+async function mockUpdateVendorNote(
+  vendorId: number,
+  noteId: number,
+  text: string,
+): Promise<MockVendorNote | null> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockNotesStorage[vendorId]) return null;
+
+  const note = mockNotesStorage[vendorId].find((n) => n.id === noteId);
+  if (note) {
+    note.text = text;
+    note.date = new Date().toLocaleString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+  return note || null;
+}
+
+/**
+ * Mock API: Delete a note
+ * Real API would be: DELETE /vendors/notes/{note_id}
+ */
+async function mockDeleteVendorNote(
+  vendorId: number,
+  noteId: number,
+): Promise<boolean> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockNotesStorage[vendorId]) return false;
+
+  const idx = mockNotesStorage[vendorId].findIndex((n) => n.id === noteId);
+  if (idx >= 0) {
+    mockNotesStorage[vendorId].splice(idx, 1);
+    return true;
+  }
+  return false;
+}
+
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const id = Number(vendorId);
