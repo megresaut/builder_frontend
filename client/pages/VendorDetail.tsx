@@ -11,7 +11,6 @@ import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
-import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { EmailIcon, EditIcon } from "@/components/icons";
 import { TextField, SelectField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
