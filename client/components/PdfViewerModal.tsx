@@ -7,6 +7,12 @@ type PdfViewerModalProps = {
   onOpenChange: (open: boolean) => void;
   title: string;
   url?: string;
+  onRenameClick?: () => void;
+  isRenaming?: boolean;
+  renamingFileName?: string;
+  onRenamingFileNameChange?: (name: string) => void;
+  onSaveFileName?: () => void;
+  onCancelRenaming?: () => void;
 };
 
 const isProbablyPdfUrl = (url: string, filename?: string) => {
