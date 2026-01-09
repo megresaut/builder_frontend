@@ -263,24 +263,13 @@ export default function CreateTaskModal({
           {/* Attachments - Full Width */}
           <FileUploadField
             label="Attachments"
-            files={attachments}
-            onFilesAdded={(newFiles) => {
-              // Create blob URLs for newly added files
-              const filesWithUrls = newFiles.map((file) => ({
-                ...file,
-                url: file.url || URL.createObjectURL(file.file!),
-              }));
-              setAttachments([...attachments, ...filesWithUrls]);
-            }}
-            onFileRemoved={handleFileRemoved}
-            onViewFile={(file) => {
-              // Create blob URL if file doesn't have a URL yet
-              let fileUrl = file.url;
-              if (!fileUrl && file.file) {
-                fileUrl = URL.createObjectURL(file.file);
-              }
-              setSelectedFileForView({ ...file, url: fileUrl });
-              setIsViewFileOpen(true);
+            files={fileUpload.files}
+            onFilesAdded={fileUpload.addFiles}
+            onFileRemoved={fileUpload.removeFile}
+            onViewFile={fileUpload.viewFile}
+            onFileRenamed={(fileId, newName) => {
+              // Update file name in the list
+              // Note: Full rename editing happens in the PDF viewer modal
             }}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
             maxFiles={10}
