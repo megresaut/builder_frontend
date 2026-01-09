@@ -248,24 +248,20 @@ export default function CreateTaskModal({
           </FormFieldRow>
 
           {/* Attachments - Full Width */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Attachments
-            </label>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => handleAttachmentsChange(e.target.files)}
-              className="block w-full"
-            />
-            {attachments.length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-600">
-                  {attachments.length} file(s) selected
-                </p>
-              </div>
-            )}
-          </div>
+          <FileUploadField
+            label="Attachments"
+            files={attachments}
+            onFilesAdded={(newFiles) =>
+              setAttachments([...attachments, ...newFiles])
+            }
+            onFileRemoved={(fileId) =>
+              setAttachments(attachments.filter((f) => f.id !== fileId))
+            }
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+            maxFiles={10}
+            maxSize={10 * 1024 * 1024}
+            placeholder="Drag and drop files here, or click to browse"
+          />
         </FormSection>
 
         <FormSection title="Assignment" showDivider={false}>
