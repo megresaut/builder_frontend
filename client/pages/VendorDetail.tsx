@@ -235,13 +235,98 @@ export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const id = Number(vendorId);
 
-  // Use hooks for data
-  const {
-    vendor,
-    loading: vendorLoading,
-    error: vendorError,
-  } = useVendorDetail(id);
-  const { notes, addNote, removeNote, editNote } = useVendorNotes(id);
+  // Mock data state for vendor detail
+  const [vendor, setVendor] = useState<VendorDetailType | null>(null);
+  const [vendorLoading, setVendorLoading] = useState(true);
+  const [vendorError, setVendorError] = useState<string | null>(null);
+
+  // Mock data state for notes
+  const [notes, setNotes] = useState<VendorNote[]>([]);
+
+  // Load mock vendor detail on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        setVendorLoading(true);
+        setVendorError(null);
+        const detail = await mockFetchVendorDetail(id);
+        if (detail) {
+          // Convert to VendorDetailType shape
+          const vendorData: VendorDetailType = {
+            id: detail.id,
+            name: detail.name,
+            category: detail.category,
+            email: detail.email || detail.primary_email,
+            phone: detail.phone,
+            address: detail.address,
+            website: detail.website,
+            servicesProvided: detail.servicesProvided,
+          };
+          setVendor(vendorData);
+        } else {
+          setVendorError("Vendor not found");
+        }
+      } catch (err) {
+        setVendorError("Failed to load vendor");
+      } finally {
+        setVendorLoading(false);
+      }
+    })();
+  }, [id]);
+
+  // Load mock notes on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedNotes = await mockFetchVendorNotes(id);
+        setNotes(fetchedNotes as VendorNote[]);
+      } catch (err) {
+        console.error("Failed to load notes");
+      }
+    })();
+  }, [id]);
+
+  // Mock note operations
+  const addNote = useCallback(async (text: string) => {
+    try {
+      const newNote = await mockCreateVendorNote(id, text);
+      setNotes((prev) => [newNote as VendorNote, ...prev]);
+    } catch (err) {
+      console.error("Failed to add note");
+    }
+  }, [id]);
+
+  const removeNote = useCallback(async (noteId: number) => {
+    try {
+      await mockDeleteVendorNote(id, noteId);
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    } catch (err) {
+      console.error("Failed to delete note");
+    }
+  }, [id]);
+
+  const editNote = useCallback(async (noteId: number, text: string) => {
+    try {
+      const updated = await mockUpdateVendorNote(id, noteId, text);
+      if (updated) {
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.id === noteId
+              ? {
+                  ...n,
+                  text: updated.text,
+                  date: updated.date,
+                }
+              : n,
+          ),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to edit note");
+    }
+  }, [id]);
+
+  // Keep other hooks for insurance, files, custom fields
   const { insurance, addInsurance } = useVendorInsurance(id);
   const { files, uploadFile, deleteFile, updateFile } = useVendorFiles(id);
   const { fields, addField, removeField } = useVendorCustomFields(id);
