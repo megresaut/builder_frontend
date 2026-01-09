@@ -278,7 +278,7 @@ export default function CreateTaskModal({
           />
         </FormSection>
 
-        <FormSection title="Assignment" showDivider={false}>
+        <FormSection title="Assignment" showDivider={true}>
           {/* Assignees + Collaborators - 2 Columns */}
           <FormFieldRow columns={2}>
             <MultiSelectField
