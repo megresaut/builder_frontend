@@ -375,6 +375,132 @@ async function mockDeleteVendorFile(
   }
 }
 
+/**
+ * Mock API: Fetch all insurance for a vendor
+ * Real API would be: GET /vendors/insurance/{vendor_id}
+ */
+async function mockFetchVendorInsurance(
+  vendorId: number,
+): Promise<VendorInsurance[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockInsuranceStorage[vendorId]) {
+    mockInsuranceStorage[vendorId] = [];
+  }
+
+  return [...mockInsuranceStorage[vendorId]];
+}
+
+/**
+ * Mock API: Add insurance for a vendor
+ * Real API would be: POST /vendors/insurance/{vendor_id}
+ */
+async function mockAddVendorInsurance(
+  vendorId: number,
+  provider: string,
+  policyNumber: string,
+  expirationDate: string,
+): Promise<VendorInsurance> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockInsuranceStorage[vendorId]) {
+    mockInsuranceStorage[vendorId] = [];
+  }
+
+  const newInsurance: VendorInsurance = {
+    id: Date.now(),
+    provider,
+    policyNumber,
+    expirationDate,
+  };
+
+  mockInsuranceStorage[vendorId].push(newInsurance);
+  return newInsurance;
+}
+
+/**
+ * Mock API: Delete insurance
+ * Real API would be: DELETE /vendors/insurance/{insurance_id}
+ */
+async function mockDeleteVendorInsurance(
+  vendorId: number,
+  insuranceId: number,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockInsuranceStorage[vendorId]) return;
+
+  const idx = mockInsuranceStorage[vendorId].findIndex((i) => i.id === insuranceId);
+  if (idx >= 0) {
+    mockInsuranceStorage[vendorId].splice(idx, 1);
+  }
+}
+
+/**
+ * Mock API: Fetch all custom fields for a vendor
+ * Real API would be: GET /vendors/custom-fields/{vendor_id}
+ */
+async function mockFetchVendorCustomFields(
+  vendorId: number,
+): Promise<VendorCustomField[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockCustomFieldsStorage[vendorId]) {
+    mockCustomFieldsStorage[vendorId] = [];
+  }
+
+  return [...mockCustomFieldsStorage[vendorId]];
+}
+
+/**
+ * Mock API: Add custom field for a vendor
+ * Real API would be: POST /vendors/custom-fields/{vendor_id}
+ */
+async function mockAddVendorCustomField(
+  vendorId: number,
+  name: string,
+  value: string,
+): Promise<VendorCustomField> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockCustomFieldsStorage[vendorId]) {
+    mockCustomFieldsStorage[vendorId] = [];
+  }
+
+  const newField: VendorCustomField = {
+    id: Date.now(),
+    name,
+    value,
+  };
+
+  mockCustomFieldsStorage[vendorId].push(newField);
+  return newField;
+}
+
+/**
+ * Mock API: Delete custom field
+ * Real API would be: DELETE /vendors/custom-fields/{field_id}
+ */
+async function mockDeleteVendorCustomField(
+  vendorId: number,
+  fieldId: number,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockCustomFieldsStorage[vendorId]) return;
+
+  const idx = mockCustomFieldsStorage[vendorId].findIndex((f) => f.id === fieldId);
+  if (idx >= 0) {
+    mockCustomFieldsStorage[vendorId].splice(idx, 1);
+  }
+}
+
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const id = Number(vendorId);
