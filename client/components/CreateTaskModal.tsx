@@ -189,7 +189,7 @@ export default function CreateTaskModal({
           <TextAreaField
             label="Description"
             value={description}
-            onChange={setDescription}
+            onChange={(value) => setDescription(value)}
             placeholder="Insert Description Here"
           />
 
