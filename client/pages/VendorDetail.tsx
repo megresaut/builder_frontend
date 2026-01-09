@@ -340,12 +340,15 @@ export default function VendorDetail() {
   const id = Number(vendorId);
 
   // Mock data state for vendor detail
-  const [vendor, setVendor] = useState<VendorDetailType | null>(null);
+  const [vendor, setVendor] = useState<VendorDetail | null>(null);
   const [vendorLoading, setVendorLoading] = useState(true);
   const [vendorError, setVendorError] = useState<string | null>(null);
 
   // Mock data state for notes
   const [notes, setNotes] = useState<VendorNote[]>([]);
+
+  // Mock data state for files
+  const [mockFiles, setMockFiles] = useState<VendorFile[]>([]);
 
   // Load mock vendor detail on mount
   useEffect(() => {
