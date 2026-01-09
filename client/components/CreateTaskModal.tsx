@@ -262,9 +262,8 @@ export default function CreateTaskModal({
               setAttachments(attachments.filter((f) => f.id !== fileId))
             }
             onViewFile={(file) => {
-              if (file.url) {
-                window.open(file.url, "_blank");
-              }
+              setSelectedFileForView(file);
+              setIsViewFileOpen(true);
             }}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
             maxFiles={10}
