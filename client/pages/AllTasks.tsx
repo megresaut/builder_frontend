@@ -289,10 +289,12 @@ export default function AllTasks() {
     "status",
     "title",
     "property",
+    "unit",
     "due",
     "updated",
     "age",
     "assignees",
+    "collaborators",
   ]);
 
   const columns = [
