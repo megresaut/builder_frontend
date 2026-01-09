@@ -62,6 +62,9 @@ export default function CreateTaskModal({
   const [selectedCollaborators, setSelectedCollaborators] = useState<
     MultiSelectOption[]
   >([]);
+  const [selectedFileForView, setSelectedFileForView] =
+    useState<UploadedFile | null>(null);
+  const [isViewFileOpen, setIsViewFileOpen] = useState(false);
   const [errors, setErrors] = useState<{
     title?: boolean;
   }>({});
