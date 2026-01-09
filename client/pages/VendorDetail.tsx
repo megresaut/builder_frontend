@@ -17,7 +17,6 @@ import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   useVendorInsurance,
-  useVendorFiles,
   useVendorCustomFields,
 } from "@/hooks/vendors";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
