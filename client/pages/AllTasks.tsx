@@ -284,30 +284,26 @@ export default function AllTasks() {
     handleColumnDragOver,
     handleColumnDragLeave,
     handleColumnDrop,
+    setVisibleColumns,
   } = useColumnManagement([
     "priority",
     "status",
     "title",
     "property",
+    "unit",
     "due",
     "updated",
     "age",
     "assignees",
+    "collaborators",
   ]);
 
-  // Add unit and collaborators to columnOrder but not to visibleColumns by default
+  // Hide unit and collaborators by default
   useEffect(() => {
-    if (!columnOrder.includes("unit")) {
-      const newOrder = [
-        ...columnOrder.slice(0, 4),
-        "unit",
-        ...columnOrder.slice(4),
-      ];
-      // Add collaborators after assignees
-      if (!newOrder.includes("collaborators")) {
-        newOrder.push("collaborators");
-      }
-    }
+    const newVisible = new Set(visibleColumns);
+    newVisible.delete("unit");
+    newVisible.delete("collaborators");
+    setVisibleColumns(newVisible);
   }, []);
 
   const columns = [
