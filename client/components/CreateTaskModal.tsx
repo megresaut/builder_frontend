@@ -142,34 +142,37 @@ export default function CreateTaskModal({
     };
   }, []);
 
+  // Initialize form when modal opens
   useEffect(() => {
-    if (open) {
-      // When modal opens with editData, populate it
-      if (editData) {
-        setTitle(editData.title);
-        setDescription(editData.description || "");
-        setProperty(editData.property || "");
-        setUnit(editData.unit || "");
-        setPriority(editData.priority.toLowerCase());
-        setDueDate(editData.dueDate || null);
-        const statusMap: { [key: string]: string } = {
-          "Not Started": "not_started",
-          "In Progress": "in_progress",
-          Completed: "completed",
-        };
-        setStatus(statusMap[editData.status || "Not Started"] || "not_started");
-        if (editData.assignees && editData.assignees.length > 0) {
-          setSelectedAssignees(
-            editData.assignees.map((a) => ({
-              id: String(a.id),
-              label: a.name,
-              initials: a.initials,
-            }))
-          );
-        }
+    if (open && editData) {
+      // Populate fields from editData when opening in edit mode
+      setTitle(editData.title);
+      setDescription(editData.description || "");
+      setProperty(editData.property || "");
+      setUnit(editData.unit || "");
+      setPriority(editData.priority.toLowerCase());
+      setDueDate(editData.dueDate || null);
+      const statusMap: { [key: string]: string } = {
+        "Not Started": "not_started",
+        "In Progress": "in_progress",
+        Completed: "completed",
+      };
+      setStatus(statusMap[editData.status || "Not Started"] || "not_started");
+      if (editData.assignees && editData.assignees.length > 0) {
+        setSelectedAssignees(
+          editData.assignees.map((a) => ({
+            id: String(a.id),
+            label: a.name,
+            initials: a.initials,
+          }))
+        );
       }
-    } else {
-      // When modal closes, clear form state and file viewer
+    }
+  }, [editData?.id]);
+
+  // Clear form when modal closes
+  useEffect(() => {
+    if (!open) {
       fileUpload.cleanup();
       fileUpload.closeViewFile();
       setTitle("");
@@ -184,7 +187,7 @@ export default function CreateTaskModal({
       setErrors({});
       setErrorMessages({});
     }
-  }, [open, editData]);
+  }, [open]);
 
   return (
     <>
