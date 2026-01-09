@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
@@ -8,7 +8,6 @@ import AddVendorModal from "@/components/AddVendorModal";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { useVendors } from "@/hooks/vendors";
 import {
   EditIcon,
   DeleteIcon,
@@ -19,7 +18,15 @@ import {
   NoteIcon,
   PlusIcon,
 } from "@/components/icons";
-import type { BaseVendor } from "@/data/vendors";
+
+interface BaseVendor {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  notes: string;
+  servicesProvided: string[];
+}
 
 // Mock vendor data
 const MOCK_VENDORS: BaseVendor[] = [
