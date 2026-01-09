@@ -445,6 +445,60 @@ export default function VendorDetail() {
     }
   }, [id]);
 
+  // Mock file operations
+  const uploadFile = useCallback(
+    async (
+      file: File,
+      category?: string,
+      description?: string,
+      fileName?: string,
+    ) => {
+      try {
+        const newFile = await mockUploadVendorFile(
+          id,
+          file,
+          category,
+          description,
+          fileName,
+        );
+        setMockFiles((prev) => [...prev, newFile]);
+      } catch (err) {
+        console.error("Failed to upload file");
+      }
+    },
+    [id],
+  );
+
+  const updateFile = useCallback(
+    async (fileId: number, updates: Partial<Pick<VendorFile, "name" | "category" | "description">>) => {
+      try {
+        await mockUpdateVendorFile(id, fileId, updates);
+        setMockFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  ...updates,
+                }
+              : f,
+          ),
+        );
+      } catch (err) {
+        console.error("Failed to update file");
+      }
+    },
+    [id],
+  );
+
+  const deleteFile = useCallback(async (fileId: number) => {
+    try {
+      await mockDeleteVendorFile(id, fileId);
+      setMockFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch (err) {
+      console.error("Failed to delete file");
+    }
+  }, [id]);
+
   // Keep other hooks for insurance and custom fields
   const { insurance, addInsurance } = useVendorInsurance(id);
   const { fields, addField, removeField } = useVendorCustomFields(id);
