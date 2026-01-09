@@ -358,18 +358,7 @@ export default function VendorDetail() {
         setVendorError(null);
         const detail = await mockFetchVendorDetail(id);
         if (detail) {
-          // Convert to VendorDetailType shape
-          const vendorData: VendorDetailType = {
-            id: detail.id,
-            name: detail.name,
-            category: detail.category,
-            email: detail.email || detail.primary_email,
-            phone: detail.phone,
-            address: detail.address,
-            website: detail.website,
-            servicesProvided: detail.servicesProvided,
-          };
-          setVendor(vendorData);
+          setVendor(detail);
         } else {
           setVendorError("Vendor not found");
         }
