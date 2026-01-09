@@ -368,6 +368,55 @@ export default function AllTasks() {
     []
   );
 
+  const handleTaskCreated = useCallback(
+    (taskData: {
+      title: string;
+      description: string;
+      property: string;
+      unit: string;
+      priority: string;
+      dueDate: Date | null;
+      status: string;
+      assignees: { id: string; label: string; initials: string }[];
+      collaborators: { id: string; label: string; initials: string }[];
+    }) => {
+      const newTask: Task = {
+        id: Math.max(...tasksList.map((t) => t.id), 0) + 1,
+        title: taskData.title,
+        property: taskData.property || "Unassigned",
+        status:
+          taskData.status === "not_started"
+            ? "Not Started"
+            : taskData.status === "in_progress"
+              ? "In Progress"
+              : "Completed",
+        priority:
+          taskData.priority.charAt(0).toUpperCase() +
+          taskData.priority.slice(1),
+        due: taskData.dueDate
+          ? taskData.dueDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "No Due Date",
+        updated: new Date().toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        age: "0 Days",
+        assignees: taskData.assignees.map((assignee) => ({
+          id: parseInt(assignee.id),
+          name: assignee.label,
+          initials: assignee.initials,
+        })),
+      };
+      setTasksList((prev) => [newTask, ...prev]);
+    },
+    [tasksList]
+  );
+
   const actions = [
     {
       label: "Edit",
