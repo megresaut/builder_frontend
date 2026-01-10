@@ -19,7 +19,7 @@ export interface PeopleSubsectionProps {
 }
 
 interface PeopleCardProps {
-  title: string;
+  title?: string;
   subsections: PeopleSubsectionProps[];
   tabs?: string[];
   defaultTab?: number;
