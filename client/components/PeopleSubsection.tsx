@@ -120,11 +120,17 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                       {person.name}
                     </div>
                   )}
-                  {showRoleLabel && person.roleLabel && (
-                    <div className="text-[#a1a1a9] text-sm mt-1">
-                      {person.roleLabel}
+                  {(showRoleLabel && person.roleLabel) ||
+                  (showPhone && person.phone) ? (
+                    <div className="text-[#a1a1a9] text-sm mt-1 flex items-center gap-2">
+                      {showRoleLabel && person.roleLabel && (
+                        <span>{person.roleLabel}</span>
+                      )}
+                      {showPhone && person.phone && (
+                        <span>{person.phone}</span>
+                      )}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
