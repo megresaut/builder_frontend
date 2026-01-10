@@ -362,7 +362,6 @@ export default function TaskSummary() {
                       ],
                       showRoleLabel: true,
                       showPhone: true,
-                      showSecondaryMetaColumn: true,
                       showDivider: true,
                     },
                     {
@@ -379,7 +378,6 @@ export default function TaskSummary() {
                       ],
                       showRoleLabel: true,
                       showPhone: true,
-                      showSecondaryMetaColumn: true,
                       showDivider: true,
                     },
                   ]}
