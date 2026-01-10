@@ -133,14 +133,6 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                 </div>
               </div>
 
-              {/* Right: Phone or secondary meta (optional) */}
-              {showSecondaryMetaColumn && (
-                <div className="flex flex-col items-end text-right">
-                  {showPhone && person.phone && (
-                    <div className="text-sm text-[#a1a1a9]">{person.phone}</div>
-                  )}
-                </div>
-              )}
             </div>
           ))}
         </div>
