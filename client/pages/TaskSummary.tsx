@@ -1,17 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ChevronDown,
-  Bell,
-  Edit,
-  Upload,
-  Link,
-  Mail,
-  Send,
-  Paperclip,
-  MoreVertical,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Mail } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
@@ -19,6 +8,15 @@ import WorkOrdersTab from "@/components/WorkOrdersTab";
 import FieldTeamOrdersTab from "@/components/FieldTeamOrdersTab";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
+import TaskOverviewCard from "@/components/TaskOverviewCard";
+import TaskLocationCard from "@/components/TaskLocationCard";
+import LinkedTasksCard from "@/components/LinkedTasksCard";
+import TaskUpdatesTimeline from "@/components/TaskUpdatesTimeline";
+import PeopleCard from "@/components/PeopleCard";
+import { NotesTemplate } from "@/components/templates";
+import { FilesTemplate } from "@/components/templates";
+import type { Note } from "@/components/templates";
+import type { File } from "@/components/templates";
 
 export default function TaskSummary() {
   const { taskId, tab, workOrderId } = useParams<{
