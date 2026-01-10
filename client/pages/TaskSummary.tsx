@@ -21,6 +21,8 @@ import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
 export default function TaskSummary() {
   const { taskId, tab, workOrderId } = useParams<{
@@ -59,6 +61,8 @@ export default function TaskSummary() {
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
 
@@ -243,11 +247,12 @@ export default function TaskSummary() {
                   notes={notes}
                   onAdd={() => {
                     setEditingNoteId(null);
+                    setViewingNote(null);
                     setIsAddNoteModalOpen(true);
                   }}
                   onEdit={(note) => {
-                    setEditingNoteId(note.id);
-                    setIsAddNoteModalOpen(true);
+                    setViewingNote(note);
+                    setIsViewNoteOpen(true);
                   }}
                   onDelete={(noteId) =>
                     setNotes(notes.filter((n) => n.id !== noteId))
@@ -428,6 +433,52 @@ export default function TaskSummary() {
         </div>
       </div>
 
+      {/* View Note Modal */}
+      <ModalTemplate
+        open={isViewNoteOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsViewNoteOpen(false);
+            setViewingNote(null);
+          }
+        }}
+        title="Note Details"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setIsViewNoteOpen(false);
+              setViewingNote(null);
+            }}
+            onConfirm={() => {
+              if (viewingNote) {
+                setEditingNoteId(viewingNote.id);
+                setIsViewNoteOpen(false);
+                setIsAddNoteModalOpen(true);
+              }
+            }}
+            cancelLabel="Close"
+            confirmLabel="Edit"
+          />
+        }
+      >
+        {viewingNote ? (
+          <FormLayout>
+            <FormSection showDivider={false}>
+              <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">
+                {viewingNote.text}
+              </div>
+              <div className="text-sm text-[#71717A]">
+                <span className="font-medium">Author:</span> {viewingNote.author}
+              </div>
+              <div className="text-sm text-[#71717A]">
+                <span className="font-medium">Date:</span> {viewingNote.date}
+              </div>
+            </FormSection>
+          </FormLayout>
+        ) : null}
+      </ModalTemplate>
+
       {/* Add/Edit Note Modal */}
       <AddNoteModal
         open={isAddNoteModalOpen}
@@ -454,6 +505,7 @@ export default function TaskSummary() {
             setNotes([newNote, ...notes]);
           }
           setEditingNoteId(null);
+          setViewingNote(null);
           setIsAddNoteModalOpen(false);
         }}
         initialText={editingNote?.text || ""}
