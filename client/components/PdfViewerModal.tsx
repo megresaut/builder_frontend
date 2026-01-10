@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
-import { PdfCanvasViewer } from "@/components/PdfCanvasViewer";
+import { cn } from "@/lib/utils";
 
 type PdfViewerModalProps = {
   open: boolean;
