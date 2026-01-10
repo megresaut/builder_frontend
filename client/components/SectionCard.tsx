@@ -6,6 +6,7 @@ interface SectionCardProps {
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
+  padding?: "default" | "compact" | "none";
 }
 
 /**
