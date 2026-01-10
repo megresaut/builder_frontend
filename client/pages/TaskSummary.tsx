@@ -220,25 +220,29 @@ export default function TaskSummary() {
               />
 
               {/* Notes Section */}
-              <NotesTemplate
-                notes={notes}
-                onAdd={() => console.log("Add note")}
-                onEdit={(note) => console.log("Edit note", note)}
-                onDelete={(noteId) =>
-                  setNotes(notes.filter((n) => n.id !== noteId))
-                }
-              />
+              <SectionCard>
+                <NotesTemplate
+                  notes={notes}
+                  onAdd={() => console.log("Add note")}
+                  onEdit={(note) => console.log("Edit note", note)}
+                  onDelete={(noteId) =>
+                    setNotes(notes.filter((n) => n.id !== noteId))
+                  }
+                />
+              </SectionCard>
 
               {/* Files Section */}
-              <FilesTemplate
-                files={files}
-                onAdd={() => console.log("Add file")}
-                onEdit={(file) => console.log("Edit file", file)}
-                onDelete={(fileId) =>
-                  setFiles(files.filter((f) => f.id !== fileId))
-                }
-                onView={(file) => console.log("View file", file)}
-              />
+              <SectionCard>
+                <FilesTemplate
+                  files={files}
+                  onAdd={() => console.log("Add file")}
+                  onEdit={(file) => console.log("Edit file", file)}
+                  onDelete={(fileId) =>
+                    setFiles(files.filter((f) => f.id !== fileId))
+                  }
+                  onView={(file) => console.log("View file", file)}
+                />
+              </SectionCard>
 
               {/* Linked Tasks Card */}
               <LinkedTasksCard
