@@ -240,8 +240,14 @@ export default function TaskSummary() {
               <SectionCard padding="compact">
                 <NotesTemplate
                   notes={notes}
-                  onAdd={() => console.log("Add note")}
-                  onEdit={(note) => console.log("Edit note", note)}
+                  onAdd={() => {
+                    setEditingNoteId(null);
+                    setIsAddNoteModalOpen(true);
+                  }}
+                  onEdit={(note) => {
+                    setEditingNoteId(note.id);
+                    setIsAddNoteModalOpen(true);
+                  }}
                   onDelete={(noteId) =>
                     setNotes(notes.filter((n) => n.id !== noteId))
                   }
@@ -252,8 +258,14 @@ export default function TaskSummary() {
               <SectionCard padding="compact">
                 <FilesTemplate
                   files={files}
-                  onAdd={() => console.log("Add file")}
-                  onEdit={(file) => console.log("Edit file", file)}
+                  onAdd={() => {
+                    setEditingFileId(null);
+                    setIsAddFileModalOpen(true);
+                  }}
+                  onEdit={(file) => {
+                    setEditingFileId(file.id);
+                    setIsAddFileModalOpen(true);
+                  }}
                   onDelete={(fileId) =>
                     setFiles(files.filter((f) => f.id !== fileId))
                   }
