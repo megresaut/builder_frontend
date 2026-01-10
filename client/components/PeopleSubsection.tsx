@@ -22,7 +22,6 @@ interface PeopleSubsectionProps {
   actionNode?: ReactNode;
   density?: "default" | "compact";
   alignBody?: "left" | "center";
-  showSecondaryMetaColumn?: boolean;
 }
 
 /**
