@@ -79,11 +79,19 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
         </div>
       )}
 
-      {/* Subsections */}
+      {/* Subsections - filter by active tab */}
       <div className="flex flex-col w-full gap-4">
-        {subsections.map((subsection, idx) => (
-          <PeopleSubsection key={idx} {...subsection} />
-        ))}
+        {subsections
+          .filter((subsection) => {
+            if (subsection.tabIndex === undefined) return true;
+            const indices = Array.isArray(subsection.tabIndex)
+              ? subsection.tabIndex
+              : [subsection.tabIndex];
+            return indices.includes(activeTab);
+          })
+          .map((subsection, idx) => (
+            <PeopleSubsection key={idx} {...subsection} activeTab={activeTab} />
+          ))}
       </div>
 
       {/* Footer Actions (optional) */}
