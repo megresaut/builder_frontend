@@ -68,7 +68,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
       setFileDescription("");
       setValidateFileForm(false);
     }
-  }, [open]);
+  }, [open, initialFiles, initialCategory, initialDescription]);
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) {
