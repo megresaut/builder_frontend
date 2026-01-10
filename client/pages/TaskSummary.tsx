@@ -443,8 +443,9 @@ export default function TaskSummary() {
             );
           } else {
             // Add new note
+            const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
             const newNote: Note = {
-              id: Math.max(...notes.map((n) => n.id), 0) + 1,
+              id: maxId + 1,
               text,
               date: new Date().toLocaleString(),
               author: "Current User",
