@@ -105,7 +105,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
       )}
 
       {/* Divider after header (optional) */}
-      {showDivider && mode === "rows" && (
+      {showDivider && mode === "rows" && !shouldHideHeader && (
         <div className="w-full h-px bg-[#e5e5e5] mt-3 mb-3"></div>
       )}
 
