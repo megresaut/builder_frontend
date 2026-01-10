@@ -500,7 +500,7 @@ export default function TaskSummary() {
                   id: editingFile.id.toString(),
                   name: editingFile.name,
                   url: editingFile.url,
-                  file: null,
+                  file: null as any,
                 },
               ]
             : []
