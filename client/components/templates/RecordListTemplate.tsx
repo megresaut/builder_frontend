@@ -13,7 +13,7 @@ interface RecordListTemplateProps {
 export const RecordListTemplate: React.FC<RecordListTemplateProps> = ({
   children,
 }) => (
-  <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
+  <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden bg-white">
     {children}
   </div>
 );
