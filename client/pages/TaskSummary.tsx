@@ -342,6 +342,23 @@ export default function TaskSummary() {
                           initials: "JL",
                           roleLabel: "Staff member",
                           phone: "(203) 927-1280",
+                          type: "staff",
+                        },
+                        {
+                          id: 6,
+                          name: "ABC Plumbing",
+                          initials: "AP",
+                          roleLabel: "Vendor",
+                          phone: "(203) 555-0101",
+                          type: "vendor",
+                        },
+                        {
+                          id: 7,
+                          name: "Michael Thompson",
+                          initials: "MT",
+                          roleLabel: "Field Manager",
+                          phone: "(203) 555-0202",
+                          type: "fieldManager",
                         },
                       ],
                       actionNode: (
@@ -354,6 +371,7 @@ export default function TaskSummary() {
                       showRoleLabel: true,
                       showPhone: true,
                       showDivider: true,
+                      tabIndex: [0, 1, 2],
                     },
                     {
                       label: "Collaborators",
@@ -363,11 +381,13 @@ export default function TaskSummary() {
                           id: 2,
                           name: "Chris Henry",
                           initials: "CH",
+                          type: "staff",
                         },
                         {
                           id: 3,
                           name: "Connor Smith",
                           initials: "CS",
+                          type: "staff",
                         },
                       ],
                       actionNode: (
@@ -379,6 +399,7 @@ export default function TaskSummary() {
                       ),
                       showDivider: true,
                       density: "compact",
+                      tabIndex: [0, 1, 2],
                     },
                   ]}
                 />
