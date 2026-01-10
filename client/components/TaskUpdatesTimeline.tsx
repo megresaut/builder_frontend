@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import SectionCard from "@/components/SectionCard";
-import { DotsIcon } from "@/components/icons";
+import { DotsIcon, PlusIcon, UserIcon } from "@/components/icons";
 
 export interface UpdateItem {
   id: string | number;
@@ -58,10 +58,10 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               <div className="flex flex-col items-center gap-0 w-14 flex-shrink-0">
                 <button
                   onClick={onAddUpdate}
-                  className="flex items-center justify-center w-10 h-10 bg-[#013764] border-2 border-white rounded-full text-white hover:bg-[#014777] transition-colors flex-shrink-0 relative z-10 shadow-sm"
+                  className="flex items-center justify-center w-10 h-10 bg-white border-2 border-[#717179] rounded-full text-[#717179] hover:bg-gray-50 transition-colors flex-shrink-0 relative z-10 shadow-sm"
                   title="Add update"
                 >
-                  <span className="text-lg font-semibold leading-none">+</span>
+                  <PlusIcon width={16} height={16} color="#717179" />
                 </button>
               </div>
 
@@ -82,10 +82,10 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               {/* Timeline Marker */}
               <div className="flex flex-col items-center w-14 flex-shrink-0">
                 <div
-                  className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border-2 border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm flex-shrink-0 relative z-10"
+                  className="flex items-center justify-center w-10 h-10 bg-white border-2 border-[#717179] rounded-full text-[#717179] flex-shrink-0 relative z-10"
                   title={update.author}
                 >
-                  {update.initials || "U"}
+                  <UserIcon width={16} height={16} color="#717179" />
                 </div>
               </div>
 
