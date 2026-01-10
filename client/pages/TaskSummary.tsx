@@ -17,6 +17,7 @@ import PeopleCard from "@/components/PeopleCard";
 import SectionCard from "@/components/SectionCard";
 import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
+import CreateTaskModal from "@/components/CreateTaskModal";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
@@ -66,6 +67,7 @@ export default function TaskSummary() {
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
 
   // Get current note/file being edited for initial values
   const editingNote = editingNoteId
@@ -335,7 +337,7 @@ export default function TaskSummary() {
                     <SectionActionTemplate
                       icon={<EditIcon width={14} height={14} />}
                       label="Edit"
-                      onClick={() => console.log("Edit assignees")}
+                      onClick={() => setIsEditTaskModalOpen(true)}
                     />
                   }
                   subsections={[
