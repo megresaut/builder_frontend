@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
-import { MoreVertical } from "lucide-react";
 import SectionCard from "@/components/SectionCard";
+import { DotsIcon } from "@/components/icons";
 
 export interface UpdateItem {
   id: string | number;
@@ -39,9 +39,8 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
       <div className="relative pl-14">
         {/* Continuous Timeline Rail - extends from first to last marker center */}
         <div
-          className="absolute w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
+          className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
           style={{
-            left: "19px",
             top: "20px",
             bottom: "20px",
             clipPath: "inset(0 0 20px 0)",
@@ -147,7 +146,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                         className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                         title="More options"
                       >
-                        <MoreVertical className="w-4 h-4" />
+                        <DotsIcon width={16} height={16} className="w-4 h-4" />
                       </button>
                     )}
                   </div>
