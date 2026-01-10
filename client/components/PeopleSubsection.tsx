@@ -34,7 +34,7 @@ interface PeopleSubsectionProps {
  *
  * Optional features:
  * - showRoleLabel: Display role/title under name
- * - showPhone: Display phone in secondary column or under name
+ * - showPhone: Display phone next to role label on same line
  * - actionLabel/onAction: Optional action link (e.g., "Edit")
  * - density: "compact" for tighter spacing
  * - showDivider: Add divider between header and body
