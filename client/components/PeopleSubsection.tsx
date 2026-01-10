@@ -23,6 +23,7 @@ interface PeopleSubsectionProps {
   actionNode?: ReactNode;
   density?: "default" | "compact";
   alignBody?: "left" | "center";
+  activeTab?: number;
 }
 
 /**
