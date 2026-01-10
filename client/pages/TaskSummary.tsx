@@ -480,7 +480,7 @@ export default function TaskSummary() {
             );
           } else {
             // Add new file - convert UploadedFile to File
-            const newFiles = uploadedFiles.map((uf) => ({
+            const newFiles: File[] = uploadedFiles.map((uf) => ({
               id: Math.max(...files.map((f) => f.id), 0) + 1,
               name: uf.name,
               url: uf.url,
