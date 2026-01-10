@@ -55,6 +55,20 @@ export default function TaskSummary() {
     },
   ]);
 
+  // Modal states
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
+  const [editingFileId, setEditingFileId] = useState<number | null>(null);
+
+  // Get current note/file being edited for initial values
+  const editingNote = editingNoteId
+    ? notes.find((n) => n.id === editingNoteId)
+    : null;
+  const editingFile = editingFileId
+    ? files.find((f) => f.id === editingFileId)
+    : null;
+
   // Sync activeTab with URL params
   useEffect(() => {
     if (tab) {
