@@ -13,6 +13,7 @@ import TaskLocationCard from "@/components/TaskLocationCard";
 import LinkedTasksCard from "@/components/LinkedTasksCard";
 import TaskUpdatesTimeline from "@/components/TaskUpdatesTimeline";
 import PeopleCard from "@/components/PeopleCard";
+import SectionCard from "@/components/SectionCard";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
