@@ -15,6 +15,7 @@ export interface PeopleSubsectionProps {
   actionNode?: ReactNode;
   density?: "default" | "compact";
   showSecondaryMetaColumn?: boolean;
+  tabIndex?: number | number[];
 }
 
 interface PeopleCardProps {

@@ -8,6 +8,7 @@ export interface Person {
   href?: string;
   roleLabel?: string;
   phone?: string;
+  type?: "staff" | "vendor" | "propertyManager" | "fieldManager";
 }
 
 interface PeopleSubsectionProps {
