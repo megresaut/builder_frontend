@@ -371,7 +371,8 @@ export default function TaskSummary() {
                       showRoleLabel: true,
                       showPhone: true,
                       showDivider: true,
-                      tabIndex: [0, 2],
+                      tabIndex: [0, 1, 2],
+                      hideHeaderOnTab: 1,
                     },
                     {
                       label: "Collaborators",
