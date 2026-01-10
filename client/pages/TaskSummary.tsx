@@ -201,462 +201,79 @@ export default function TaskSummary() {
             <>
               {/* Left Column */}
               <div className="flex flex-col min-w-[240px] flex-1 gap-5">
-                {/* Task Details Card */}
-                <div className="flex flex-col w-full px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
-                  <div className="flex justify-between items-start gap-10 w-full flex-wrap">
-                    <div className="flex flex-col min-w-[240px] flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
-                          Overview
-                        </div>
-                      </div>
-                      <div className="mt-2 text-sm text-[#717179] font-medium">
-                        Created by{" "}
-                        <span className="font-bold text-[#2463eb]">
-                          Julia LoSchiavo
-                        </span>{" "}
-                        for{" "}
-                        <span className="font-bold text-[#2463eb]">
-                          (C) 51 Willowmere Circle, Riverside CT 06878 -1
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">
-                      <span>Created</span>
-                      <span>11/12/2025 9:22 PM</span>
-                      <Edit className="w-4 h-4 ml-2 text-[#2463eb]" />
-                      <span className="text-[#2463eb] font-medium">Edit</span>
-                    </div>
-                  </div>
+                {/* Task Overview Card */}
+              <TaskOverviewCard
+                category="Uncategorized"
+                description="We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower. My wife and I both timed it and we lose hot water in the shower after about 5 min. It also takes about 3-4 min to even heat up."
+                createdBy={{
+                  name: "Julia LoSchiavo",
+                  property: "(C) 51 Willowmere Circle, Riverside CT 06878 -1",
+                }}
+                createdDate="11/12/2025 9:22 PM"
+                stats={[
+                  { label: "TOTAL EXPENSE", value: "$1,450.50" },
+                  { label: "WORK ORDERS", value: "5" },
+                  { label: "FTOs", value: "3" },
+                ]}
+                onEdit={() => console.log("Edit task")}
+              />
 
-                  <div className="flex flex-col mt-5 w-full items-start text-sm text-[#717179]">
-                    <div className="flex items-center gap-1">
-                      <span className="font-semibold">Category:</span>
-                      <span className="font-medium">Uncategorized</span>
-                    </div>
-                  </div>
+              {/* Notes Section */}
+              <NotesTemplate
+                notes={notes}
+                onAdd={() => console.log("Add note")}
+                onEdit={(note) => console.log("Edit note", note)}
+                onDelete={(noteId) =>
+                  setNotes(notes.filter((n) => n.id !== noteId))
+                }
+              />
 
-                  <div className="mt-5 text-sm text-[#717179] font-semibold">
-                    Description:
-                  </div>
-                  <div className="mt-5 text-sm text-[#717179] font-medium leading-4">
-                    We have been experiencing issues with the water heater. At
-                    first we thought the issue was due to us just moving in and
-                    maybe the water heater needed time to heat up after no
-                    tenants. It has been 3 days in a row now that we lose hot
-                    water mid shower. My wife and I both timed it and we lose
-                    hot water in the shower after about 5 min. It also takes
-                    about 3-4 min to even heat up.
-                  </div>
+              {/* Files Section */}
+              <FilesTemplate
+                files={files}
+                onAdd={() => console.log("Add file")}
+                onEdit={(file) => console.log("Edit file", file)}
+                onDelete={(fileId) =>
+                  setFiles(files.filter((f) => f.id !== fileId))
+                }
+                onView={(file) => console.log("View file", file)}
+              />
 
-                  <div className="w-full h-px bg-[#e5e5e5] mt-5"></div>
+              {/* Linked Tasks Card */}
+              <LinkedTasksCard
+                count={3}
+                onLinkTasks={() => console.log("Link tasks")}
+              />
 
-                  <div className="flex items-center gap-8 mt-5 flex-wrap">
-                    <div className="flex flex-col items-center">
-                      <div className="text-sm text-[#717179]">
-                        TOTAL EXPENSE
-                      </div>
-                      <div className="mt-1 text-2xl text-[#303030] font-medium">
-                        $1,450.50
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="text-sm text-[#717179]">WORK ORDERS</div>
-                      <div className="mt-1 text-2xl text-[#303030] font-medium">
-                        5
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="text-sm text-[#717179]">FTOs</div>
-                      <div className="mt-1 text-2xl text-[#303030] font-medium">
-                        3
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notes Section */}
-                <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
-                  <div className="text-base text-[#303030] font-medium">
-                    Notes
-                  </div>
-                  <textarea
-                    placeholder="Add some note here"
-                    className="mt-4 min-h-[81px] w-full px-3 py-2 bg-white border border-[#dadada] rounded-lg text-sm text-[#303030] placeholder:text-[#a1a1a9] resize-none focus:outline-none focus:border-[#2463eb]"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Files Section */}
-                <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
-                  <div className="text-base text-[#303030] font-medium">
-                    Files
-                  </div>
-                  <div className="mt-4 flex flex-col items-center px-52 py-7 bg-white border border-dashed border-[rgba(18,18,18,0.4)] rounded-lg">
-                    <button className="flex items-center gap-2 min-h-[36px] px-3 py-1.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm text-base text-[#303030] tracking-[-0.32px] hover:bg-gray-50 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      Upload
-                    </button>
-                    <div className="mt-3 px-2.5 py-2.5 flex flex-col items-center text-sm text-[#09090b]">
-                      <div>Choose a file or drag & drop it here</div>
-                      <div className="mt-1.5 text-sm">
-                        Maximum 500 MB file size
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* File List */}
-                  <div className="mt-4 flex flex-col w-full">
-                    <div className="flex items-center gap-2 text-sm text-[#09090b] font-['Geist',sans-serif] font-medium">
-                      <span>Files</span>
-                    </div>
-                    <div className="mt-2 flex flex-col gap-2 w-full">
-                      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">
-                              PDF
-                            </span>
-                          </div>
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <div className="text-sm text-[#303030] font-medium truncate">
-                              Lorem Ipsum.PDF
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
-                              <span>PDF</span>
-                              <span>112KB</span>
-                            </div>
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                          >
-                            <path
-                              d="M2 14L14 2M14 14L2 2"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0 w-10 h-10 bg-[#ef4444] rounded flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">
-                              PDF
-                            </span>
-                          </div>
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <div className="text-sm text-[#303030] font-medium truncate">
-                              Lorem Ipsum.PDF
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-[#717179] mt-0.5">
-                              <span>PDF</span>
-                              <span>112KB</span>
-                            </div>
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                          >
-                            <path
-                              d="M2 14L14 2M14 14L2 2"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Linked Tasks Section */}
-                <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
-                  <div className="flex items-center justify-between gap-10 text-base font-medium flex-wrap">
-                    <div className="flex items-center gap-1 text-[#303030]">
-                      <span>Linked tasks</span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="currentColor"
-                      >
-                        <circle cx="8" cy="8" r="6" fill="#e5e5e5" />
-                        <text
-                          x="50%"
-                          y="50%"
-                          dominantBaseline="middle"
-                          textAnchor="middle"
-                          fontSize="10"
-                          fontWeight="600"
-                        >
-                          3
-                        </text>
-                      </svg>
-                    </div>
-                    <button className="flex items-center gap-1 text-[#2463eb] tracking-[-0.32px] hover:underline">
-                      <Link className="w-4 h-4" />
-                      Link tasks
-                    </button>
-                  </div>
-                  <div className="mt-4 flex items-center justify-center min-h-[72px] w-full px-3 py-7 bg-white border border-[#dadada] rounded-lg text-sm text-[#09090b]">
-                    No linked tasks yet
-                  </div>
-                </div>
-
-                {/* Updates Section */}
-                <div className="flex flex-col w-full mt-[18px] px-4 py-4 bg-white border border-[#e5e5e5] rounded-lg shadow-sm">
-                  <div className="text-base text-[#303030] font-['Geist',sans-serif] font-medium mb-4">
-                    Updates
-                  </div>
-                  <div className="flex gap-4">
-                    {/* Timeline Icons */}
-                    <div className="flex flex-col items-center gap-2">
-                      <button className="flex items-center justify-center w-10 h-10 bg-[#013764] border border-white rounded-full text-white hover:bg-[#014777] transition-colors">
-                        <span className="text-lg font-semibold">+</span>
-                      </button>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm"></div>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-[#d1fae5] border border-[#059669] rounded-full text-[#059669] font-semibold text-sm"></div>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-[#dbe9fe] border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm"></div>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-full text-gray-600 font-semibold text-sm"></div>
-                      <div className="w-1 h-12 bg-gray-200"></div>
-                      <div className="flex items-center justify-center w-10 h-10 bg-gray-200 border border-gray-300 rounded-full text-gray-600 font-semibold text-sm"></div>
-                    </div>
-
-                    {/* Update Items */}
-                    <div className="flex flex-col flex-1 gap-3">
-                      <div className="px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif]">
-                        Update task
-                      </div>
-
-                      {/* Update 1 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          JL
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">Julia LoSchiavo</span>{" "}
-                            submitted an{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              8.0 Hour
-                            </span>{" "}
-                            <span>Field Team Submission</span>
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Update 2 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          MK
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">
-                              Meghashyam Krishnasamy
-                            </span>{" "}
-                            updated the priority from{" "}
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-xs text-[#2463eb]">
-                              Normal
-                            </span>{" "}
-                            to{" "}
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">
-                              Low
-                            </span>
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Update 3 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          JL
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">Julia LoSchiavo</span>{" "}
-                            updated status to{" "}
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-xs text-[#059669]">
-                              ✓ Completed
-                            </span>{" "}
-                            for{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              Work Order #1024431
-                            </span>
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Update 4 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          MK
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">
-                              Meghashyam Krishnasamy
-                            </span>{" "}
-                            sent a payment of{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              $1,450.00
-                            </span>{" "}
-                            for{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              Work Order #1024431
-                            </span>
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Update 5 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          JL
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">Julia LoSchiavo</span>{" "}
-                            added a vendor estimate of{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              $1,450.00
-                            </span>{" "}
-                            for{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              Work Order #1024431
-                            </span>
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Update 6 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          JL
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">Julia LoSchiavo</span>{" "}
-                            created a work order for{" "}
-                            <span className="text-[#2463eb] font-medium">
-                              Edgerton Inc.
-                            </span>
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Update 7 */}
-                      <div className="flex items-start gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-base text-[#2463eb] font-semibold flex-shrink-0">
-                          JL
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="text-sm text-[#303030]">
-                            <span className="font-medium">Julia LoSchiavo</span>{" "}
-                            created a new task
-                          </div>
-                          <div className="text-xs text-[#a1a1a9] mt-1">
-                            11/12/2025 9:22 PM
-                          </div>
-                          <div className="mt-3 pt-3 border-t border-[#e5e5e5] space-y-2">
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#d1fae5] rounded text-[#059669]">
-                                ✓ Completed
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#dbe9fe] rounded text-[#2463eb]">
-                                Normal
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-[#303030] font-medium">
-                                Collaborators:
-                              </span>
-                              <div className="flex gap-1">
-                                <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
-                                  JL
-                                </div>
-                                <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
-                                  CH
-                                </div>
-                                <div className="w-6 h-6 bg-white border border-[#2463eb] rounded-full flex items-center justify-center text-[10px] text-[#2463eb] font-semibold">
-                                  CS
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-xs text-[#717179]">
-                              <span className="font-medium">Description:</span>{" "}
-                              We have been experiencing issues with the water
-                              heater. At first we thought the issue was due to
-                              us just moving in and maybe the water heater
-                              needed time to heat up after no tenants. It has
-                              been 3 days in a row now that we lose hot water
-                              mid shower...
-                            </div>
-                          </div>
-                        </div>
-                        <button className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Updates Timeline */}
+              <TaskUpdatesTimeline
+                updates={[
+                  {
+                    id: 1,
+                    initials: "JL",
+                    author: "Julia LoSchiavo",
+                    action: "submitted an",
+                    actionValue: "8.0 Hour Field Team Submission",
+                    timestamp: "11/12/2025 9:22 PM",
+                  },
+                  {
+                    id: 2,
+                    initials: "MK",
+                    author: "Meghashyam Krishnasamy",
+                    action: "updated the priority from Normal to Low",
+                    timestamp: "11/12/2025 9:22 PM",
+                  },
+                  {
+                    id: 3,
+                    initials: "JL",
+                    author: "Julia LoSchiavo",
+                    action: "updated status to ✓ Completed for Work Order #1024431",
+                    timestamp: "11/12/2025 9:22 PM",
+                  },
+                ]}
+                onAddUpdate={() => console.log("Add update")}
+              />
+            </div>
 
               {/* Right Sidebar */}
               <div className="flex flex-col min-w-[240px] w-[376px]">
