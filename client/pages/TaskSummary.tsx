@@ -594,6 +594,20 @@ export default function TaskSummary() {
         title={editingFileId ? "Edit File" : "Add File"}
         submitLabel={editingFileId ? "Update" : "Add"}
       />
+
+      {/* Edit Task Modal */}
+      <CreateTaskModal
+        open={isEditTaskModalOpen}
+        onOpenChange={setIsEditTaskModalOpen}
+        editData={{
+          id: parseInt(taskId || "0"),
+          title: "Edgerton - Quote",
+          description: "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower. My wife and I both timed it and we lose hot water in the shower after about 5 min. It also takes about 3-4 min to even heat up.",
+          property: "(C) 51 Willowmere Circle, Riverside CT 06878 -1",
+          priority: "normal",
+          status: "in_progress",
+        }}
+      />
     </PageTemplate>
   );
 }
