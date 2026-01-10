@@ -44,6 +44,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
             left: "19px",
             top: "20px",
             bottom: "20px",
+            clipPath: "inset(0 0 20px 0)",
             backgroundImage:
               "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
           }}
@@ -53,7 +54,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
         <div className="flex flex-col gap-4">
           {/* Composer Row */}
           {onAddUpdate && (
-            <div className="flex items-stretch gap-3 -ml-14">
+            <div className="flex items-start gap-3 -ml-14">
               {/* Composer Marker */}
               <div className="flex flex-col items-center gap-0 w-14 flex-shrink-0">
                 <button
@@ -78,7 +79,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
 
           {/* Update Items */}
           {updates.map((update, idx) => (
-            <div key={update.id} className="flex items-stretch gap-3 -ml-14">
+            <div key={update.id} className="flex items-start gap-3 -ml-14">
               {/* Timeline Marker */}
               <div className="flex flex-col items-center w-14 flex-shrink-0">
                 <div
