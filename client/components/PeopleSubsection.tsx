@@ -24,6 +24,7 @@ interface PeopleSubsectionProps {
   density?: "default" | "compact";
   alignBody?: "left" | "center";
   activeTab?: number;
+  hideHeaderOnTab?: number | number[];
 }
 
 /**
@@ -55,6 +56,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   alignBody = "left",
   showSecondaryMetaColumn = false,
   activeTab = 0,
+  hideHeaderOnTab,
 }) => {
   const handleAvatarClick = (person: Person) => {
     if (person.href) {
