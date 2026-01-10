@@ -200,7 +200,7 @@ export default function TaskSummary() {
           {activeTab === "summary" && (
             <>
               {/* Left Column */}
-              <div className="flex flex-col min-w-[240px] flex-1">
+              <div className="flex flex-col min-w-[240px] flex-1 gap-5">
                 {/* Task Details Card */}
                 <div className="flex flex-col w-full px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]">
                   <div className="flex justify-between items-start gap-10 w-full flex-wrap">
