@@ -37,10 +37,13 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
     <SectionCard title="Updates">
       {/* Updates List Container - relative so rail can be absolutely positioned */}
       <div className="relative pl-14">
-        {/* Continuous Timeline Rail */}
+        {/* Continuous Timeline Rail - extends from first to last marker center */}
         <div
-          className="absolute left-[19px] top-0 bottom-0 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
+          className="absolute w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
           style={{
+            left: "19px",
+            top: "20px",
+            bottom: "20px",
             backgroundImage:
               "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
           }}
