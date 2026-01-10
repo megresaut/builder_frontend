@@ -312,7 +312,6 @@ export default function TaskSummary() {
                       onAction: () => console.log("Edit assignee"),
                       showRoleLabel: true,
                       showPhone: true,
-                      showSecondaryMetaColumn: true,
                       showDivider: true,
                     },
                     {
