@@ -1,0 +1,112 @@
+import React, { ReactNode } from "react";
+import { Edit } from "lucide-react";
+import SectionCard from "@/components/SectionCard";
+
+interface TaskOverviewCardProps {
+  category?: string;
+  description?: string;
+  stats?: {
+    label: string;
+    value: string;
+  }[];
+  createdBy?: {
+    name: string;
+    property?: string;
+  };
+  createdDate?: string;
+  onEdit?: () => void;
+}
+
+/**
+ * TaskOverviewCard
+ *
+ * Displays task overview with category, description, and key stats.
+ * Composed using SectionCard.
+ */
+export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
+  category,
+  description,
+  stats,
+  createdBy,
+  createdDate,
+  onEdit,
+}) => {
+  return (
+    <SectionCard
+      title="Overview"
+      actions={
+        onEdit && (
+          <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">
+            <span>Created</span>
+            {createdDate && <span>{createdDate}</span>}
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-1 ml-2 text-[#2463eb] hover:underline"
+            >
+              <Edit className="w-4 h-4" />
+              <span className="font-medium">Edit</span>
+            </button>
+          </div>
+        )
+      }
+    >
+      {/* Created By Info */}
+      {createdBy && (
+        <div className="mt-2 text-sm text-[#717179] font-medium">
+          Created by{" "}
+          <span className="font-bold text-[#2463eb]">{createdBy.name}</span>
+          {createdBy.property && (
+            <>
+              {" "}
+              for{" "}
+              <span className="font-bold text-[#2463eb]">
+                {createdBy.property}
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Category */}
+      {category && (
+        <div className="flex flex-col mt-5 w-full items-start text-sm text-[#717179]">
+          <div className="flex items-center gap-1">
+            <span className="font-semibold">Category:</span>
+            <span className="font-medium">{category}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Description */}
+      {description && (
+        <>
+          <div className="mt-5 text-sm text-[#717179] font-semibold">
+            Description:
+          </div>
+          <div className="mt-2 text-sm text-[#717179] font-medium leading-4">
+            {description}
+          </div>
+        </>
+      )}
+
+      {/* Stats */}
+      {stats && stats.length > 0 && (
+        <>
+          <div className="w-full h-px bg-[#e5e5e5] mt-5"></div>
+          <div className="flex items-center gap-8 mt-5 flex-wrap">
+            {stats.map((stat, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div className="text-sm text-[#717179]">{stat.label}</div>
+                <div className="mt-1 text-2xl text-[#303030] font-medium">
+                  {stat.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </SectionCard>
+  );
+};
+
+export default TaskOverviewCard;
