@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
-import { cn } from "@/lib/utils";
 
 type PdfViewerModalProps = {
   open: boolean;
@@ -28,8 +27,10 @@ const isProbablyImageUrl = (url: string, filename?: string) => {
   const clean = url.split("#")[0].split("?")[0];
   const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
 
-  if (imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext)))
+  if (imageExtensions.some((ext) => clean.toLowerCase().endsWith(ext))) {
     return true;
+  }
+
   if (
     filename &&
     imageExtensions.some((ext) => filename.toLowerCase().endsWith(ext))
@@ -53,6 +54,8 @@ export default function PdfViewerModal({
   onCancelRenaming,
 }: PdfViewerModalProps) {
   const [iframeKey, setIframeKey] = useState(0);
+  const [isFrameLoading, setIsFrameLoading] = useState(false);
+  const [frameError, setFrameError] = useState<string | null>(null);
 
   const safeUrl = useMemo(() => {
     if (!url) return undefined;
@@ -60,14 +63,15 @@ export default function PdfViewerModal({
     return u ? u : undefined;
   }, [url]);
 
-  // Detect mobile
   const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
 
   useEffect(() => {
     if (!open) return;
     if (!safeUrl) return;
-    // Force iframe re-render when URL changes
+
     setIframeKey((prev) => prev + 1);
+    setIsFrameLoading(true);
+    setFrameError(null);
   }, [open, safeUrl]);
 
   const footerContent = (
@@ -263,6 +267,9 @@ export default function PdfViewerModal({
     </div>
   );
 
+  const showPdf = !!safeUrl && isProbablyPdfUrl(safeUrl, title);
+  const showImage = !!safeUrl && isProbablyImageUrl(safeUrl, title);
+
   return (
     <ModalTemplate
       open={open}
@@ -287,6 +294,7 @@ export default function PdfViewerModal({
           {footerContent}
         </div>
       )}
+
       {safeUrl ? (
         <div
           style={{
@@ -298,7 +306,7 @@ export default function PdfViewerModal({
             backgroundColor: "white",
           }}
         >
-          {isProbablyImageUrl(safeUrl, title) ? (
+          {showImage ? (
             <div
               style={{
                 width: "100%",
@@ -320,8 +328,81 @@ export default function PdfViewerModal({
                 }}
               />
             </div>
-          ) : isProbablyPdfUrl(safeUrl, title) ? (
-            <PdfCanvasViewer url={safeUrl} title={title} />
+          ) : showPdf ? (
+            <div style={{ position: "relative", width: "100%", height: "100%" }}>
+              {isFrameLoading && !frameError ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#71717A",
+                    fontSize: "14px",
+                    padding: "24px",
+                    textAlign: "center",
+                    background: "white",
+                    zIndex: 1,
+                  }}
+                >
+                  Loading preview…
+                </div>
+              ) : null}
+
+              {frameError ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#71717A",
+                    fontSize: "14px",
+                    padding: "24px",
+                    textAlign: "center",
+                    background: "white",
+                    zIndex: 1,
+                  }}
+                >
+                  <div>
+                    <div style={{ marginBottom: "12px" }}>{frameError}</div>
+                    <a
+                      href={safeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        color: "var(--color-button-primary)",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Open {title}
+                    </a>
+                  </div>
+                </div>
+              ) : null}
+
+              <iframe
+                key={iframeKey}
+                src={safeUrl}
+                title={title}
+                onLoad={() => {
+                  setIsFrameLoading(false);
+                }}
+                onError={() => {
+                  setIsFrameLoading(false);
+                  setFrameError("PDF preview couldn’t be rendered.");
+                }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  display: "block",
+                }}
+              />
+            </div>
           ) : (
             <div
               style={{
