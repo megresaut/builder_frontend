@@ -26,11 +26,19 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   actions,
   children,
   className,
+  padding = "default",
 }) => {
+  const paddingClass = {
+    default: "px-4 py-4",
+    compact: "px-0 py-0",
+    none: "p-0",
+  }[padding];
+
   return (
     <div
       className={cn(
-        "flex flex-col w-full px-4 py-4 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]",
+        "flex flex-col w-full bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]",
+        paddingClass,
         className,
       )}
     >
