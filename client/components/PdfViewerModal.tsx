@@ -14,10 +14,22 @@ type PdfViewerModalProps = {
   onCancelRenaming?: () => void;
 };
 
-const isProbablyPdfUrl = (url: string, filename?: string) => {
+const isProbablyPdfUrl = (url: string | undefined, filename?: string) => {
+  if (!url) {
+    // If no URL, check filename only
+    return filename ? filename.toLowerCase().endsWith(".pdf") : false;
+  }
+
+  // Check if URL looks like a PDF
   const clean = url.split("#")[0].split("?")[0];
   if (clean.toLowerCase().endsWith(".pdf")) return true;
+
+  // Check if filename ends with .pdf
   if (filename && filename.toLowerCase().endsWith(".pdf")) return true;
+
+  // Check for common API patterns with pdf in query params or path
+  if (url.includes(".pdf") || url.toLowerCase().includes("pdf")) return true;
+
   return false;
 };
 
