@@ -20,6 +20,7 @@ interface SectionCardProps {
  * - actions?: Optional action buttons/elements (right-aligned)
  * - children: Card content
  * - className?: Additional Tailwind classes
+ * - padding?: Control padding: "default" (px-4 py-4), "compact" (none), "none" (p-0)
  */
 export const SectionCard: React.FC<SectionCardProps> = ({
   title,
