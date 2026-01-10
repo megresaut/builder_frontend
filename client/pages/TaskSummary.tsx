@@ -14,10 +14,13 @@ import LinkedTasksCard from "@/components/LinkedTasksCard";
 import TaskUpdatesTimeline from "@/components/TaskUpdatesTimeline";
 import PeopleCard from "@/components/PeopleCard";
 import SectionCard from "@/components/SectionCard";
+import AddNoteModal from "@/components/AddNoteModal";
+import AddFileModal from "@/components/AddFileModal";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
 
 export default function TaskSummary() {
   const { taskId, tab, workOrderId } = useParams<{
