@@ -390,6 +390,12 @@ export default function TaskSummary() {
                           initials: "CS",
                           type: "staff",
                         },
+                        {
+                          id: 8,
+                          name: "Sarah Martinez",
+                          initials: "SM",
+                          type: "fieldManager",
+                        },
                       ],
                       showDivider: true,
                       density: "compact",
