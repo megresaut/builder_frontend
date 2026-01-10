@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface SectionCardProps {
-  title: string;
+  title?: string;
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -15,7 +15,7 @@ interface SectionCardProps {
  * Provides consistent styling: padding, border, radius, and header layout.
  *
  * Props:
- * - title: Section heading (left-aligned)
+ * - title?: Optional section heading (left-aligned). Omit to render content only.
  * - actions?: Optional action buttons/elements (right-aligned)
  * - children: Card content
  * - className?: Additional Tailwind classes
@@ -33,14 +33,20 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         className,
       )}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-10 w-full flex-wrap">
-        <div className="text-base text-[#303030] font-medium">{title}</div>
-        {actions && <div className="flex items-center gap-3">{actions}</div>}
-      </div>
+      {/* Header (optional) */}
+      {(title || actions) && (
+        <div className="flex items-center justify-between gap-10 w-full flex-wrap">
+          {title && (
+            <div className="text-base text-[#303030] font-medium">{title}</div>
+          )}
+          {actions && <div className="flex items-center gap-3">{actions}</div>}
+        </div>
+      )}
 
       {/* Content */}
-      <div className="mt-4 w-full">{children}</div>
+      <div className={title || actions ? "mt-4 w-full" : "w-full"}>
+        {children}
+      </div>
     </div>
   );
 };
