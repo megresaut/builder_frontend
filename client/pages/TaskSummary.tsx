@@ -220,7 +220,7 @@ export default function TaskSummary() {
               />
 
               {/* Notes Section */}
-              <SectionCard>
+              <SectionCard padding="compact">
                 <NotesTemplate
                   notes={notes}
                   onAdd={() => console.log("Add note")}
@@ -232,7 +232,7 @@ export default function TaskSummary() {
               </SectionCard>
 
               {/* Files Section */}
-              <SectionCard>
+              <SectionCard padding="compact">
                 <FilesTemplate
                   files={files}
                   onAdd={() => console.log("Add file")}
