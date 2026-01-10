@@ -43,7 +43,7 @@ export const NotesTemplate: React.FC<NotesTemplateProps> = ({
   return (
     <SectionRowTemplate isLast={isLast}>
       <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-        <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
+        <h2 className="text-[#303030] text-base font-medium leading-[1.1]">
           Recent Notes
         </h2>
         <SectionActionTemplate label="Add" onClick={onAdd} />
