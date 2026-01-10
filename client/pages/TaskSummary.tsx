@@ -806,108 +806,110 @@ export default function TaskSummary() {
                   </button>
                 </div>
 
-                {/* Client Communication Section */}
-                <div className="flex flex-col mt-[18px] min-h-[534px]">
-                  <div className="flex flex-col w-full max-w-[376px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between gap-10 px-4 py-4 bg-white border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#303030]">
-                      <div className="font-medium">Client Communication</div>
-                      <div className="flex items-center gap-3">
-                        <button className="flex items-center gap-2 min-h-[28px] px-3 py-0.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm tracking-[-0.32px] hover:bg-gray-50 transition-colors">
-                          English
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                        <MoreVertical className="w-5 h-5" />
-                      </div>
-                    </div>
-
-                    {/* Message List */}
-                    <div className="px-4 space-y-4 mt-4 font-['Geist',sans-serif]">
-                      <div className="flex gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
-                          MT
-                        </div>
-                        <div className="flex flex-col min-w-[240px] flex-1 text-black">
-                          <div className="text-base font-semibold">
-                            Michael Tran
-                          </div>
-                          <div className="mt-2 text-sm leading-4">
-                            I just got back from a hiking trip, and the views
-                            were breathtaking! You should try it.
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
-                          SP
-                        </div>
-                        <div className="flex flex-col min-w-[240px] flex-1 text-black">
-                          <div className="text-base font-semibold">
-                            Sara Patel
-                          </div>
-                          <div className="mt-2 text-sm leading-4">
-                            The new art exhibit at the gallery opens this
-                            weekend. Are you interested in going?
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
-                          DK
-                        </div>
-                        <div className="flex flex-col min-w-[240px] flex-1 text-black">
-                          <div className="text-base font-semibold">
-                            David Kim
-                          </div>
-                          <div className="mt-2 text-sm leading-4">
-                            There's a great concert happening in the park next
-                            week. We should grab some tickets!
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
-                          EJ
-                        </div>
-                        <div className="flex flex-col min-w-[240px] flex-1 text-black">
-                          <div className="text-base font-semibold">
-                            Emma Johnson
-                          </div>
-                          <div className="mt-2 text-sm leading-4">
-                            I found a cute little cafe that serves the best
-                            pastries. Want to check it out together?
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Message Input */}
-                    <div className="flex flex-col mt-4 w-full">
-                      <div className="flex flex-col px-4 py-4 bg-white border-b border-[#e5e5e5]">
-                        <div className="flex min-h-[98px] w-full max-w-[345px] px-5 py-[17px] bg-white border border-[#2463eb] rounded-lg font-['Geist',sans-serif] text-sm text-black leading-4">
-                          <textarea
-                            value={messageText}
-                            onChange={(e) => setMessageText(e.target.value)}
-                            placeholder="I found a cute little cafe that serves the best pastries. Want to check it out together?"
-                            className="flex-1 resize-none focus:outline-none"
-                            rows={3}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between gap-10 mt-2.5 w-full py-px overflow-hidden">
-                          <button className="flex items-center justify-center w-[33px] min-h-[28px] px-2 py-1.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
-                            <Paperclip className="w-[17px] h-[17px]" />
+                {/* Client Communication Section - COMMENTED OUT */}
+                {false && (
+                  <div className="flex flex-col mt-[18px] min-h-[534px]">
+                    <div className="flex flex-col w-full max-w-[376px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden">
+                      <div className="flex items-center justify-between gap-10 px-4 py-4 bg-white border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#303030]">
+                        <div className="font-medium">Client Communication</div>
+                        <div className="flex items-center gap-3">
+                          <button className="flex items-center gap-2 min-h-[28px] px-3 py-0.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm tracking-[-0.32px] hover:bg-gray-50 transition-colors">
+                            English
+                            <ChevronDown className="w-4 h-4" />
                           </button>
-                          <button className="flex items-center gap-1.5 w-[156px] min-h-[28px] px-3 pr-2 py-0.5 bg-[#2463eb] border border-[#dadada] rounded-lg shadow-sm font-['Geist',sans-serif] text-base text-white tracking-[-0.32px] hover:bg-[#1d4ed8] transition-colors">
-                            Send Message
-                            <Send className="w-4 h-4" />
-                          </button>
+                          <MoreVertical className="w-5 h-5" />
+                        </div>
+                      </div>
+
+                      {/* Message List */}
+                      <div className="px-4 space-y-4 mt-4 font-['Geist',sans-serif]">
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                            MT
+                          </div>
+                          <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                            <div className="text-base font-semibold">
+                              Michael Tran
+                            </div>
+                            <div className="mt-2 text-sm leading-4">
+                              I just got back from a hiking trip, and the views
+                              were breathtaking! You should try it.
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                            SP
+                          </div>
+                          <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                            <div className="text-base font-semibold">
+                              Sara Patel
+                            </div>
+                            <div className="mt-2 text-sm leading-4">
+                              The new art exhibit at the gallery opens this
+                              weekend. Are you interested in going?
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                            DK
+                          </div>
+                          <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                            <div className="text-base font-semibold">
+                              David Kim
+                            </div>
+                            <div className="mt-2 text-sm leading-4">
+                              There's a great concert happening in the park next
+                              week. We should grab some tickets!
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-sm text-[#2463eb] font-semibold leading-[0.91] flex-shrink-0">
+                            EJ
+                          </div>
+                          <div className="flex flex-col min-w-[240px] flex-1 text-black">
+                            <div className="text-base font-semibold">
+                              Emma Johnson
+                            </div>
+                            <div className="mt-2 text-sm leading-4">
+                              I found a cute little cafe that serves the best
+                              pastries. Want to check it out together?
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Message Input */}
+                      <div className="flex flex-col mt-4 w-full">
+                        <div className="flex flex-col px-4 py-4 bg-white border-b border-[#e5e5e5]">
+                          <div className="flex min-h-[98px] w-full max-w-[345px] px-5 py-[17px] bg-white border border-[#2463eb] rounded-lg font-['Geist',sans-serif] text-sm text-black leading-4">
+                            <textarea
+                              value={messageText}
+                              onChange={(e) => setMessageText(e.target.value)}
+                              placeholder="I found a cute little cafe that serves the best pastries. Want to check it out together?"
+                              className="flex-1 resize-none focus:outline-none"
+                              rows={3}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-10 mt-2.5 w-full py-px overflow-hidden">
+                            <button className="flex items-center justify-center w-[33px] min-h-[28px] px-2 py-1.5 bg-[#fbfbfb] border border-[#dadada] rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                              <Paperclip className="w-[17px] h-[17px]" />
+                            </button>
+                            <button className="flex items-center gap-1.5 w-[156px] min-h-[28px] px-3 pr-2 py-0.5 bg-[#2463eb] border border-[#dadada] rounded-lg shadow-sm font-['Geist',sans-serif] text-base text-white tracking-[-0.32px] hover:bg-[#1d4ed8] transition-colors">
+                              Send Message
+                              <Send className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </>
           )}
