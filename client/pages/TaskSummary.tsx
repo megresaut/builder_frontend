@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Mail } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import { EditIcon } from "@/components/icons";
+import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
 import WorkOrdersTab from "@/components/WorkOrdersTab";
@@ -343,8 +344,13 @@ export default function TaskSummary() {
                           phone: "(203) 927-1280",
                         },
                       ],
-                      actionLabel: "Edit",
-                      onAction: () => console.log("Edit assignee"),
+                      actionNode: (
+                        <SectionActionTemplate
+                          icon={<EditIcon width={14} height={14} />}
+                          label="Edit"
+                          onClick={() => console.log("Edit assignee")}
+                        />
+                      ),
                       showRoleLabel: true,
                       showPhone: true,
                       showDivider: true,
@@ -364,24 +370,21 @@ export default function TaskSummary() {
                           initials: "CS",
                         },
                       ],
-                      actionLabel: "Edit",
-                      onAction: () => console.log("Edit collaborators"),
+                      actionNode: (
+                        <SectionActionTemplate
+                          icon={<EditIcon width={14} height={14} />}
+                          label="Edit"
+                          onClick={() => console.log("Edit collaborators")}
+                        />
+                      ),
                       showDivider: true,
                       density: "compact",
-                    },
-                  ]}
-                  footerActions={[
-                    {
-                      label: "Email staff",
-                      onClick: () => console.log("Email staff"),
-                      icon: <Mail className="w-4 h-4" />,
                     },
                   ]}
                 />
 
                 {/* Contacts Card */}
                 <PeopleCard
-                  title="Contacts"
                   subsections={[
                     {
                       label: "Created by",
@@ -414,13 +417,6 @@ export default function TaskSummary() {
                       showRoleLabel: true,
                       showPhone: true,
                       showDivider: true,
-                    },
-                  ]}
-                  footerActions={[
-                    {
-                      label: "Email contacts",
-                      onClick: () => console.log("Email contacts"),
-                      icon: <Mail className="w-4 h-4" />,
                     },
                   ]}
                 />
