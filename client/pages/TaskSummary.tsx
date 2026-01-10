@@ -399,7 +399,7 @@ export default function TaskSummary() {
                       ),
                       showDivider: true,
                       density: "compact",
-                      tabIndex: [0, 1, 2],
+                      tabIndex: [0, 2],
                     },
                   ]}
                 />
