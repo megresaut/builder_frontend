@@ -141,14 +141,18 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
       {mode === "avatars" && (
         <div className="flex items-center gap-2 mt-3">
           {people.map((person, idx) => (
-            <button
-              key={`${person.id}-${idx}`}
-              onClick={() => handleAvatarClick(person)}
-              className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm leading-[0.8] hover:bg-[#f0f4ff] transition-colors flex-shrink-0"
-              title={person.name}
-            >
-              {person.initials}
-            </button>
+            <div key={`${person.id}-${idx}`} className="relative group">
+              <button
+                onClick={() => handleAvatarClick(person)}
+                className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm leading-[0.8] hover:bg-[#f0f4ff] transition-colors flex-shrink-0"
+                title={person.name}
+              >
+                {person.initials}
+              </button>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                {person.name}
+              </div>
+            </div>
           ))}
         </div>
       )}
