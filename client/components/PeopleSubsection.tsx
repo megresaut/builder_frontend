@@ -54,12 +54,28 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   density = "default",
   alignBody = "left",
   showSecondaryMetaColumn = false,
+  activeTab = 0,
 }) => {
   const handleAvatarClick = (person: Person) => {
     if (person.href) {
       window.location.href = person.href;
     }
   };
+
+  const filterPeopleByTab = (peopleList: Person[]) => {
+    if (activeTab === 0) {
+      return peopleList.filter((p) => p.type === "staff" || !p.type);
+    } else if (activeTab === 1) {
+      return peopleList.filter((p) => p.type === "vendor");
+    } else if (activeTab === 2) {
+      return peopleList.filter(
+        (p) => p.type === "propertyManager" || p.type === "fieldManager"
+      );
+    }
+    return peopleList;
+  };
+
+  const filteredPeople = filterPeopleByTab(people);
 
   return (
     <div className="flex flex-col w-full">
