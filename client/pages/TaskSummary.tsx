@@ -138,8 +138,8 @@ export default function TaskSummary() {
           </button>
         </div>
 
-        {/* Notifications Banner */}
-        {activeTab === "summary" && (
+        {/* Notifications Banner - COMMENTED OUT */}
+        {false && activeTab === "summary" && (
           <div className="flex flex-col mt-5 w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
             <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
               <div className="flex items-center gap-2">
