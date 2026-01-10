@@ -32,6 +32,25 @@ export default function TaskSummary() {
     workOrderId ? parseInt(workOrderId) : null,
   );
 
+  // Mock state for notes, files, and updates
+  const [notes, setNotes] = useState<Note[]>([
+    {
+      id: 1,
+      text: "Initial task setup completed",
+      date: "11/12/2025 9:22 PM",
+      author: "Julia LoSchiavo",
+    },
+  ]);
+
+  const [files, setFiles] = useState<File[]>([
+    {
+      id: 1,
+      name: "Lorem Ipsum.PDF",
+      uploadedAt: "11/12/2025 9:22 PM",
+      category: "PDF",
+    },
+  ]);
+
   // Sync activeTab with URL params
   useEffect(() => {
     if (tab) {
@@ -56,7 +75,6 @@ export default function TaskSummary() {
 
     navigate(`/tasks/${taskId}/workorders`);
   };
-  const [messageText, setMessageText] = useState("");
 
   return (
     <PageTemplate>
