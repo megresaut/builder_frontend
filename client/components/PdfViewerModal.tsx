@@ -279,8 +279,9 @@ export default function PdfViewerModal({
     </div>
   );
 
-  const showPdf = !!safeUrl && isProbablyPdfUrl(safeUrl, title);
   const showImage = !!safeUrl && isProbablyImageUrl(safeUrl, title);
+  // Default to PDF for unknown file types, iframe will handle errors
+  const showPdf = !!safeUrl && !showImage;
 
   return (
     <ModalTemplate
