@@ -106,7 +106,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
             "gap-2": density === "compact",
           })}
         >
-          {people.map((person, idx) => (
+          {filteredPeople.map((person, idx) => (
             <div
               key={`${person.id}-${idx}`}
               className="flex items-center justify-between gap-3 flex-wrap"
@@ -158,7 +158,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
 
       {mode === "avatars" && (
         <div className="flex items-center gap-2 mt-3">
-          {people.map((person, idx) => (
+          {filteredPeople.map((person, idx) => (
             <div key={`${person.id}-${idx}`} className="relative group">
               <button
                 onClick={() => handleAvatarClick(person)}
