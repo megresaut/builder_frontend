@@ -331,6 +331,13 @@ export default function TaskSummary() {
                   title="Assignees"
                   tabs={["Staff", "Vendors", "Field Team"]}
                   defaultTab={0}
+                  headerActions={
+                    <SectionActionTemplate
+                      icon={<EditIcon width={14} height={14} />}
+                      label="Edit"
+                      onClick={() => console.log("Edit assignees")}
+                    />
+                  }
                   subsections={[
                     {
                       label: "Assigned to",
@@ -361,13 +368,6 @@ export default function TaskSummary() {
                           type: "fieldManager",
                         },
                       ],
-                      actionNode: (
-                        <SectionActionTemplate
-                          icon={<EditIcon width={14} height={14} />}
-                          label="Edit"
-                          onClick={() => console.log("Edit assignee")}
-                        />
-                      ),
                       showRoleLabel: true,
                       showPhone: true,
                       showDivider: true,
@@ -390,13 +390,6 @@ export default function TaskSummary() {
                           type: "staff",
                         },
                       ],
-                      actionNode: (
-                        <SectionActionTemplate
-                          icon={<EditIcon width={14} height={14} />}
-                          label="Edit"
-                          onClick={() => console.log("Edit collaborators")}
-                        />
-                      ),
                       showDivider: true,
                       density: "compact",
                       tabIndex: [0, 2],
