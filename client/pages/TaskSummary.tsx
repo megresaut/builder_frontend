@@ -426,6 +426,91 @@ export default function TaskSummary() {
           {activeTab === "fieldteam" && <FieldTeamOrdersTab />}
         </div>
       </div>
+
+      {/* Add/Edit Note Modal */}
+      <AddNoteModal
+        open={isAddNoteModalOpen}
+        onOpenChange={setIsAddNoteModalOpen}
+        onSubmit={(text) => {
+          if (editingNoteId) {
+            // Edit existing note
+            setNotes(
+              notes.map((n) =>
+                n.id === editingNoteId
+                  ? { ...n, text, date: new Date().toLocaleString() }
+                  : n,
+              ),
+            );
+          } else {
+            // Add new note
+            const newNote: Note = {
+              id: Math.max(...notes.map((n) => n.id), 0) + 1,
+              text,
+              date: new Date().toLocaleString(),
+              author: "Current User",
+            };
+            setNotes([newNote, ...notes]);
+          }
+          setEditingNoteId(null);
+          setIsAddNoteModalOpen(false);
+        }}
+        initialText={editingNote?.text || ""}
+        isEditMode={!!editingNoteId}
+        title={editingNoteId ? "Edit Note" : "Add Note"}
+        submitLabel={editingNoteId ? "Update" : "Add"}
+      />
+
+      {/* Add/Edit File Modal */}
+      <AddFileModal
+        open={isAddFileModalOpen}
+        onOpenChange={setIsAddFileModalOpen}
+        onSubmit={(uploadedFiles, category, description) => {
+          if (editingFileId) {
+            // Edit existing file
+            setFiles(
+              files.map((f) =>
+                f.id === editingFileId
+                  ? {
+                      ...f,
+                      category: category || f.category,
+                      description,
+                    }
+                  : f,
+              ),
+            );
+          } else {
+            // Add new file - convert UploadedFile to File
+            const newFiles = uploadedFiles.map((uf) => ({
+              id: Math.max(...files.map((f) => f.id), 0) + 1,
+              name: uf.name,
+              url: uf.url,
+              uploadedAt: new Date().toLocaleString(),
+              category,
+              description,
+            }));
+            setFiles([...newFiles, ...files]);
+          }
+          setEditingFileId(null);
+          setIsAddFileModalOpen(false);
+        }}
+        initialFiles={
+          editingFile
+            ? [
+                {
+                  id: editingFile.id.toString(),
+                  name: editingFile.name,
+                  url: editingFile.url,
+                  file: null,
+                },
+              ]
+            : []
+        }
+        initialCategory={editingFile?.category || ""}
+        initialDescription={editingFile?.description || ""}
+        isEditMode={!!editingFileId}
+        title={editingFileId ? "Edit File" : "Add File"}
+        submitLabel={editingFileId ? "Update" : "Add"}
+      />
     </PageTemplate>
   );
 }
