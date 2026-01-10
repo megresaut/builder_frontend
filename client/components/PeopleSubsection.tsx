@@ -79,22 +79,30 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
 
   const filteredPeople = filterPeopleByTab(people);
 
+  const shouldHideHeader = hideHeaderOnTab !== undefined && (
+    Array.isArray(hideHeaderOnTab)
+      ? hideHeaderOnTab.includes(activeTab)
+      : hideHeaderOnTab === activeTab
+  );
+
   return (
     <div className="flex flex-col w-full">
       {/* Header: Label + optional Action */}
-      <div className="flex items-center justify-between gap-4 w-full">
-        <div className="text-sm text-[#303030] font-medium">{label}</div>
-        {actionNode ? (
-          actionNode
-        ) : actionLabel && onAction ? (
-          <button
-            onClick={onAction}
-            className="text-base text-[#2463eb] font-medium tracking-[-0.32px] hover:underline"
-          >
-            {actionLabel}
-          </button>
-        ) : null}
-      </div>
+      {!shouldHideHeader && (
+        <div className="flex items-center justify-between gap-4 w-full">
+          <div className="text-sm text-[#303030] font-medium">{label}</div>
+          {actionNode ? (
+            actionNode
+          ) : actionLabel && onAction ? (
+            <button
+              onClick={onAction}
+              className="text-base text-[#2463eb] font-medium tracking-[-0.32px] hover:underline"
+            >
+              {actionLabel}
+            </button>
+          ) : null}
+        </div>
+      )}
 
       {/* Divider after header (optional) */}
       {showDivider && mode === "rows" && (
