@@ -1208,7 +1208,7 @@ export default function TaskSummary() {
             );
           }
 
-          // Create attachments array with preview support
+          // Create attachments array with preview support and persist file names
           const attachments = Array.isArray((taskData as any).files)
             ? (taskData as any).files
                 .map((file: any) => {
@@ -1234,10 +1234,23 @@ export default function TaskSummary() {
                     name: file.name,
                     url: fileUrl,
                     preview: isImage ? fileUrl : undefined,
+                    id: file.id,
                   };
                 })
                 .filter((file: any) => typeof file?.url === "string" && file.url)
             : undefined;
+
+          // Persist renamed files back to the files array
+          if (attachments && (taskData as any).files) {
+            const updatedFiles = files.map((f) => {
+              const attachment = attachments.find((a: any) => a.id === f.id);
+              if (attachment && attachment.name !== f.name) {
+                return { ...f, name: attachment.name };
+              }
+              return f;
+            });
+            setFiles(updatedFiles);
+          }
 
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
