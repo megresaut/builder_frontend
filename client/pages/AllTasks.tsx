@@ -303,7 +303,7 @@ export default function AllTasks() {
           data={tasksList}
           rowKey="id"
           onRowClick={(task) => {
-            navigate(`/tasks/${task.id}`, {
+            navigate(`/tasks/${task.id}/summary`, {
               state: { task, taskData: task }
             });
           }}
@@ -319,7 +319,7 @@ export default function AllTasks() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/tasks/${task.id}`, {
+                    navigate(`/tasks/${task.id}/summary`, {
                       state: { task, taskData: task }
                     });
                   }}
