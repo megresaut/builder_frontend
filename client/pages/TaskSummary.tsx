@@ -127,7 +127,7 @@ export default function TaskSummary() {
       return [getInitialUpdate()];
     }
 
-    // For existing tasks (like the Edgerton demo), show the full timeline
+    // For existing tasks (like the Edgerton demo), show just the creation update
     return [
       {
         id: 0,
@@ -161,28 +161,6 @@ export default function TaskSummary() {
         ),
         icon: <FlagIcon width={16} height={16} />,
         isInitialCreation: true,
-      },
-      {
-        id: 1,
-        initials: "JL",
-        author: "Julia LoSchiavo",
-        action: "submitted an",
-        actionValue: "8.0 Hour Field Team Submission",
-        timestamp: "11/12/2025 9:22 PM",
-      },
-      {
-        id: 2,
-        initials: "MK",
-        author: "Meghashyam Krishnasamy",
-        action: "updated the priority from Normal to Low",
-        timestamp: "11/12/2025 9:22 PM",
-      },
-      {
-        id: 3,
-        initials: "JL",
-        author: "Julia LoSchiavo",
-        action: "updated status to ✓ Completed for Work Order #1024431",
-        timestamp: "11/12/2025 9:22 PM",
       },
     ];
   };
