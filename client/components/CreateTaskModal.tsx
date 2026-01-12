@@ -72,7 +72,8 @@ export default function CreateTaskModal({
   onTaskCreated,
   editData,
   variant = "compact",
-}: CreateTaskModalProps) {
+  onModalClose,
+}: CreateTaskModalProps & { onModalClose?: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [property, setProperty] = useState("");
@@ -294,8 +295,6 @@ export default function CreateTaskModal({
       setInitialState(null);
       setErrors({});
       setErrorMessages({});
-      // Reset file upload state
-      fileUpload.reset();
     }
   }, [open]);
 
