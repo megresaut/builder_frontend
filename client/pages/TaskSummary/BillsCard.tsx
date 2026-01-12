@@ -89,26 +89,6 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
     []
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Paid":
-        return {
-          border: "#059669",
-          text: "#059669",
-        };
-      case "Unpaid":
-        return {
-          border: "#dc2626",
-          text: "#dc2626",
-        };
-      default:
-        return {
-          border: "#d97706",
-          text: "#d97706",
-        };
-    }
-  };
-
   const handleEnterBill = () => {
     setIsSelectBillModalOpen(true);
     setSelectedBillId("");
