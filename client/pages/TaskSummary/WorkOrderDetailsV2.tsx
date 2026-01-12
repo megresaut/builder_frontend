@@ -494,13 +494,12 @@ export default function WorkOrderDetailsV2({
                   initials: assignee.initials,
                   roleLabel: "Property manager",
                   phone: "",
-                  type: "staff",
                 })),
                 showRoleLabel: true,
                 showPhone: false,
-                showDivider: true,
+                showDivider: false,
                 tabIndex: 1,
-                type: "assignee"
+                hideHeaderOnTab: 1
               },
               {
                 label: "Collaborators",
@@ -511,13 +510,13 @@ export default function WorkOrderDetailsV2({
                   initials: collaborator.initials,
                   roleLabel: "Property manager",
                   phone: "",
-                  type: "staff",
                 })),
                 showRoleLabel: true,
                 showPhone: false,
-                showDivider: true,
+                showDivider: false,
                 tabIndex: 1,
-                type: "collaborator"
+                type: "collaborator",
+                hideHeaderOnTab: 1
               }
             ]}
           />
