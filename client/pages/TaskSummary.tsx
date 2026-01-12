@@ -1240,6 +1240,21 @@ export default function TaskSummary() {
               );
             }
 
+            // Add attachments from initial creation
+            if (taskData.files && taskData.files.length > 0) {
+              setFiles((prevFiles) => {
+                const newFiles: File[] = taskData.files.map((f: any, idx: number) => ({
+                  id: (prevFiles.length || 0) + idx + 1,
+                  name: f.name,
+                  url: f.url,
+                  uploadedAt: new Date().toLocaleString(),
+                  category: "PDF",
+                  description: "",
+                }));
+                return [...newFiles, ...prevFiles];
+              });
+            }
+
             const initialUpdate = {
               id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
               author: "Current User",
@@ -1254,6 +1269,19 @@ export default function TaskSummary() {
               }),
               ...(taskData.description && {
                 details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
+              }),
+              ...(taskData.files && taskData.files.length > 0 && {
+                attachments: taskData.files.map((f: any) => ({
+                  name: f.name,
+                  url: f.url,
+                  id: f.id,
+                })),
+                onAttachmentClick: (file: any) => {
+                  setViewingAttachment({ id: file.id, name: file.name, url: file.url });
+                  setIsPdfViewerOpen(true);
+                  setIsRenamingAttachment(false);
+                  setRenamingAttachmentName("");
+                },
               }),
               icon: <FlagIcon width={16} height={16} />,
               isInitialCreation: true,
