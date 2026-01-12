@@ -170,6 +170,9 @@ export default function TaskSummary() {
   const [updates, setUpdates] = useState<any[]>(getInitialUpdates());
   const [currentProperty, setCurrentProperty] = useState<string>(navigationState?.taskData?.property || navigationState?.task?.property || "");
   const [currentUnit, setCurrentUnit] = useState<string>(navigationState?.taskData?.unit || navigationState?.task?.unit || "");
+  const [currentTitle, setCurrentTitle] = useState<string>(navigationState?.taskData?.title || navigationState?.task?.title || "");
+  const [currentCategory, setCurrentCategory] = useState<string>(navigationState?.taskData?.category || navigationState?.task?.category || "");
+  const [isEditTaskDetailsOpen, setIsEditTaskDetailsOpen] = useState(false);
 
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
 
