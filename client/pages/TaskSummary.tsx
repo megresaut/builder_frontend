@@ -505,7 +505,7 @@ export default function TaskSummary() {
                     {
                       label: "Created by",
                       mode: "rows",
-                      people: [
+                      people: isNewTask ? [] : [
                         {
                           id: 4,
                           name: "Julia LoSchiavo",
@@ -521,7 +521,7 @@ export default function TaskSummary() {
                     {
                       label: "Rental owners",
                       mode: "rows",
-                      people: [
+                      people: isNewTask || !navigationState?.taskData?.property ? [] : [
                         {
                           id: 5,
                           name: "Peter & Ali Jennison",
