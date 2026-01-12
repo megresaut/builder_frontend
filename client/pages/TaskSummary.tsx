@@ -758,7 +758,7 @@ export default function TaskSummary() {
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>
             <button
-              onClick={() => setIsEditTaskDetailsOpen(true)}
+              onClick={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
               className="text-[#2463eb] text-base font-medium hover:underline transition-colors p-0 border-none bg-transparent cursor-pointer"
               title="Edit task details"
             >
