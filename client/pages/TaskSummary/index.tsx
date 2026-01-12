@@ -355,7 +355,7 @@ export default function TaskSummary() {
     taskId: number;
     property: string;
     unit: string;
-    dueDate: string;
+    dueDate: string | Date | null;
     updatedDate: string;
     age: string;
     priority: string;
