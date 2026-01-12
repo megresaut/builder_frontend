@@ -1024,7 +1024,7 @@ export default function TaskSummary() {
         title={currentTitle || navigationState?.task?.title || navigationState?.taskData?.title || "Edgerton - Quote"}
         subtitle={
           <div className="flex items-center font-medium gap-3 overflow-wrap-anywhere word-wrap-anywhere">
-            <div className="block text-base font-medium">To-Do</div>
+            <div className="block text-base font-medium">To do</div>
             <svg
               width="4"
               height="4"
@@ -1034,13 +1034,7 @@ export default function TaskSummary() {
             >
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>
-            <button
-              onClick={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
-              className="text-[#2463eb] text-base font-medium hover:underline transition-colors p-0 border-none bg-transparent cursor-pointer"
-              title="Edit task details"
-            >
-              Edit
-            </button>
+            <div className="block text-base font-medium">#I {taskId || "1024431"}</div>
           </div>
         }
         action={{

@@ -3,6 +3,7 @@ import { Edit } from "lucide-react";
 import SectionCard from "@/components/SectionCard";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
+import PersonAvatars from "@/components/PersonAvatars";
 
 interface TaskOverviewCardProps {
   category?: string;
@@ -44,7 +45,7 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   return (
     <SectionCard
       variant={variant}
-      title="Overview"
+      title={<span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">To do - #I 1024431</span>}
       actions={
         onEdit && (
           <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">
@@ -65,14 +66,17 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
       {createdBy && (
         <div className="mt-2 text-sm text-[#717179] font-medium flex items-center gap-2">
           <span>Created by</span>
-          <div className="relative group/creator">
-            <div className="flex items-center justify-center w-6 h-6 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-[10px] leading-none flex-shrink-0 cursor-help">
-              {createdBy.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-            </div>
-            <div className="absolute bottom-full left-0 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/creator:opacity-100 transition-opacity pointer-events-none z-50">
-              {createdBy.name}
-            </div>
-          </div>
+          <PersonAvatars
+            people={[
+              {
+                id: "creator",
+                name: createdBy.name,
+                initials: createdBy.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
+              },
+            ]}
+            type="assignee"
+            size="sm"
+          />
           {createdBy.property && (
             <>
               {" "}

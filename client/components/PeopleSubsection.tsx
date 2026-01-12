@@ -134,7 +134,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
               {/* Left: Avatar + Name/Role */}
               <div className="flex items-center gap-2.5 flex-1 min-w-[240px]">
                 <div
-                  className={`flex items-center justify-center flex-shrink-0 bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8] ${
+                  className={`flex items-center justify-center flex-shrink-0 bg-white border ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8] ${
                     density === "default" ? "w-10 h-10 text-xl" : "w-8 h-8 text-sm"
                   }`}
                   title={person.name}
@@ -179,7 +179,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
             <div key={`${person.id}-${idx}`} className="relative group/avatar">
               <button
                 onClick={() => handleAvatarClick(person)}
-                className={`flex items-center justify-center w-10 h-10 bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold text-sm leading-[0.8] hover:bg-opacity-90 transition-colors flex-shrink-0`}
+                className={`flex items-center justify-center w-10 h-10 bg-white border ${borderColor} rounded-full ${textColor} font-semibold text-sm leading-[0.8] hover:bg-opacity-90 transition-colors flex-shrink-0`}
                 title={person.name}
               >
                 {person.initials}
