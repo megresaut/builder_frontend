@@ -1021,7 +1021,7 @@ export default function TaskSummary() {
 
                 {/* Contacts Card */}
                 {(() => {
-                  const rentalOwner = getRentalOwnerByProperty(navigationState?.taskData?.property);
+                  const rentalOwner = getRentalOwnerByProperty(taskData?.property);
                   return (
                     <PeopleCard
                       subsections={[
