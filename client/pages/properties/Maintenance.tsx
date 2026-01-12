@@ -903,6 +903,50 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     return "bg-gray-100 text-gray-700";
   };
 
+  const handleTaskCreated = (taskData: any) => {
+    const newTaskId = Math.max(...tasksList.map((t) => t.id), 0) + 1;
+    const newTask: Task = {
+      id: newTaskId,
+      title: taskData.title,
+      property: taskData.property || "Unassigned",
+      status:
+        taskData.status === "not_started"
+          ? "Not Started"
+          : taskData.status === "in_progress"
+            ? "In Progress"
+            : "Completed",
+      priority:
+        taskData.priority.charAt(0).toUpperCase() +
+        taskData.priority.slice(1),
+      due: taskData.dueDate
+        ? taskData.dueDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "No Due Date",
+      updated: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      age: "0 Days",
+      assignees: taskData.assignees?.map((assignee: any) => ({
+        id: parseInt(assignee.id),
+        name: assignee.label,
+        initials: assignee.initials,
+      })) || [],
+      collaborators: taskData.collaborators?.map((collaborator: any) => ({
+        id: parseInt(collaborator.id),
+        name: collaborator.label,
+        initials: collaborator.initials,
+      })) || [],
+    };
+    setTasksList((prev) => [newTask, ...prev]);
+    // Navigate to the newly created task with its data
+    navigate(`/tasks/${newTaskId}`, { state: { task: newTask, taskData } });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Sub Page Header with TableToggle and Blue Button */}
