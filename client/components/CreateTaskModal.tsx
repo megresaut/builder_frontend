@@ -231,6 +231,10 @@ export default function CreateTaskModal({
             !selectedAssignees.every((a) => initialState.assignees.some((ia) => ia.id === a.id))) {
           changedFields.push("assignees");
         }
+        if (selectedCollaborators.length !== initialState.collaborators.length ||
+            !selectedCollaborators.every((c) => initialState.collaborators.some((ic) => ic.id === c.id))) {
+          changedFields.push("collaborators");
+        }
       }
 
       const taskData = {
