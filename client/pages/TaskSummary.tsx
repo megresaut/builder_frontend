@@ -1611,8 +1611,10 @@ export default function TaskSummary() {
 
       {/* Edit Task Details Modal */}
       <EditTaskDetailsModal
-        open={isEditTaskDetailsOpen}
-        onOpenChange={setIsEditTaskDetailsOpen}
+        open={uiState.modals.editTaskDetails}
+        onOpenChange={(open) => {
+          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+        }}
         initialData={{
           title: currentTitle,
           description: currentDescription,
@@ -1626,7 +1628,7 @@ export default function TaskSummary() {
           setCurrentProperty(data.property);
           setCurrentUnit(data.unit);
           setCurrentCategory(data.category);
-          setIsEditTaskDetailsOpen(false);
+          uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
         }}
       />
     </PageTemplate>
