@@ -328,16 +328,16 @@ export default function TaskSummary() {
     if (taskData?.assignees && taskData.assignees.length > 0) {
       return taskData.assignees;
     }
-    return isNewTask ? [] : [{ id: 1, name: "Julia LoSchiavo", initials: "JL" }];
+    return isNewTask ? [] : [hydratePerson({ id: 1, name: "Julia LoSchiavo", initials: "JL" })];
   });
   const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(() => {
     if (taskData?.collaborators && taskData.collaborators.length > 0) {
       return taskData.collaborators;
     }
     return isNewTask ? [] : [
-      { id: 2, name: "Chris Henry", initials: "CH" },
-      { id: 3, name: "Connor Smith", initials: "CS" },
-      { id: 8, name: "Sarah Martinez", initials: "SM" },
+      hydratePerson({ id: 2, name: "Chris Henry", initials: "CH" }),
+      hydratePerson({ id: 3, name: "Connor Smith", initials: "CS" }),
+      hydratePerson({ id: 8, name: "Sarah Martinez", initials: "SM" }),
     ];
   });
 
@@ -392,10 +392,10 @@ export default function TaskSummary() {
       billStatus: "Paid",
       billTotal: "$420",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS" },
+        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
       ],
       collaborators: [
-        { id: 5, name: "Sarah Wilson", initials: "SW" },
+        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
       ],
       vendorName: "ABC Doors & Hardware",
     },
@@ -413,11 +413,11 @@ export default function TaskSummary() {
       billStatus: "Awaiting Invoice",
       billTotal: "No invoice",
       assignees: [
-        { id: 3, name: "Jane Smith", initials: "JMS" },
+        hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD" },
-        { id: 7, name: "Lisa Brown", initials: "LB" },
+        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
       ],
       vendorName: "Elite HVAC Services",
     },
@@ -435,7 +435,7 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$95",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS" },
+        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
       ],
       collaborators: [],
       vendorName: "Glass & Frames Inc",
@@ -454,10 +454,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$112",
       assignees: [
-        { id: 2, name: "John Doe", initials: "JD" },
+        hydratePerson({ id: 2, name: "John Doe", initials: "JD" }),
       ],
       collaborators: [
-        { id: 5, name: "Sarah Wilson", initials: "SW" },
+        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
       ],
       vendorName: "Pro Roofing Solutions",
     },
@@ -475,10 +475,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$93",
       assignees: [
-        { id: 4, name: "Mike Johnson", initials: "MJ" },
+        hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD" },
+        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
       ],
       vendorName: "Dolce Plumbing & Heating LLC",
     },
@@ -496,11 +496,11 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$75",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS" },
+        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
       ],
       collaborators: [
-        { id: 7, name: "Lisa Brown", initials: "LB" },
-        { id: 5, name: "Sarah Wilson", initials: "SW" },
+        hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
       ],
       vendorName: "Spark Electrical",
     },
@@ -518,7 +518,7 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$101",
       assignees: [
-        { id: 3, name: "Jane Smith", initials: "JMS" },
+        hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
       ],
       collaborators: [],
       vendorName: "Premium Painters Co",
@@ -537,10 +537,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$124",
       assignees: [
-        { id: 2, name: "John Doe", initials: "JD" },
+        hydratePerson({ id: 2, name: "John Doe", initials: "JD" }),
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD" },
+        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
       ],
       vendorName: "Quality Flooring LLC",
     },
@@ -558,11 +558,11 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$67",
       assignees: [
-        { id: 4, name: "Mike Johnson", initials: "MJ" },
+        hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
       ],
       collaborators: [
-        { id: 5, name: "Sarah Wilson", initials: "SW" },
-        { id: 7, name: "Lisa Brown", initials: "LB" },
+        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
       ],
       vendorName: "Green Lawn Services",
     },
@@ -580,10 +580,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$118",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS" },
+        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD" },
+        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
       ],
       vendorName: "Outdoor Construction Corp",
     },
@@ -595,16 +595,16 @@ export default function TaskSummary() {
 
   // Mock field team orders data
   const mockFieldTeamOrders = [
-    { id: 1, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Oct 2, 2025", priority: "high", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 420, unit: "Unit" },
-    { id: 2, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 29, 2025", priority: "normal", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "approved", timesheetStatus: "approved", amount: 95, unit: "Unit" },
-    { id: 3, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 10, 2025", priority: "low", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "pending-approval", timesheetStatus: "submitted", amount: 95, unit: "Unit" },
-    { id: 4, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 6, 2025", priority: "high", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 112, unit: "Unit" },
-    { id: 5, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 5, 2025", priority: "normal", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "approved", amount: 93, unit: "Unit" },
-    { id: 6, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "low", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 75, unit: "Unit" },
-    { id: 7, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "high", fieldTeam: [{ initials: "DC", name: "David Chen" }, { initials: "ER", name: "Emma Rodriguez" }], status: "dispatched", timesheetStatus: "submitted", amount: 101, unit: "Unit" },
-    { id: 8, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 3, 2025", priority: "normal", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 124, unit: "Unit" },
-    { id: 9, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "low", fieldTeam: [{ initials: "JW", name: "James Wilson" }], status: "dispatched", timesheetStatus: "approved", amount: 67, unit: "Unit" },
-    { id: 10, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "high", fieldTeam: [{ initials: "CH", name: "Christopher Harris" }, { initials: "CS", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 118, unit: "Unit" },
+    { id: 1, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Oct 2, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 420, unit: "Unit" },
+    { id: 2, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 29, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "approved", timesheetStatus: "approved", amount: 95, unit: "Unit" },
+    { id: 3, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 10, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "pending-approval", timesheetStatus: "submitted", amount: 95, unit: "Unit" },
+    { id: 4, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 6, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 112, unit: "Unit" },
+    { id: 5, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 5, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "approved", amount: 93, unit: "Unit" },
+    { id: 6, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 75, unit: "Unit" },
+    { id: 7, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "DC", name: "David Chen" }), hydratePerson({ initials: "ER", name: "Emma Rodriguez" })], status: "dispatched", timesheetStatus: "submitted", amount: 101, unit: "Unit" },
+    { id: 8, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 3, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 124, unit: "Unit" },
+    { id: 9, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })], status: "dispatched", timesheetStatus: "approved", amount: 67, unit: "Unit" },
+    { id: 10, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 118, unit: "Unit" },
   ];
 
   const [fieldTeamOrders, setFieldTeamOrders] = useState<any[]>(mockFieldTeamOrders);
@@ -798,32 +798,20 @@ export default function TaskSummary() {
     "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456", title: "Vendor Company" },
   };
 
-  // Extract unique vendors from work orders
-  const vendorsFromWorkOrders = useMemo(() => {
-    const uniqueVendors = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
-    workOrders.forEach((wo) => {
-      if (wo.vendorName && wo.vendorName.trim()) {
-        if (!uniqueVendors.has(wo.vendorName)) {
-          const initials = wo.vendorName
-            .split(" ")
-            .slice(0, 2)
-            .map((word) => word[0])
-            .join("")
-            .toUpperCase();
-          const vendorInfo = vendorMasterData[wo.vendorName];
-          uniqueVendors.set(wo.vendorName, {
-            id: `vendor-${uniqueVendors.size + 1}`,
-            name: wo.vendorName,
-            initials: initials || "V",
-            email: vendorInfo?.email || "",
-            phone: vendorInfo?.phone || "",
-            title: vendorInfo?.title || "Vendor Company",
-          });
-        }
-      }
-    });
-    return Array.from(uniqueVendors.values());
-  }, [workOrders]);
+  // Internal Team Master Data
+  const internalTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
+    "Jerry Sanchez": { email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
+    "Sarah Wilson": { email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
+    "Jane Smith": { email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
+    "Tom Davis": { email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
+    "Lisa Brown": { email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
+    "John Doe": { email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
+    "Mike Johnson": { email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
+    "Julia LoSchiavo": { email: "julia.loschiavo@company.com", phone: "(555) 123-4567", title: "Project Manager" },
+    "Chris Henry": { email: "chris.henry@company.com", phone: "(555) 888-9999", title: "Coordinator" },
+    "Connor Smith": { email: "connor.smith@company.com", phone: "(555) 000-1111", title: "Technician" },
+    "Sarah Martinez": { email: "sarah.martinez@company.com", phone: "(555) 222-4444", title: "Specialist" },
+  };
 
   // Field team member master data with contact information
   const fieldTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
@@ -832,6 +820,21 @@ export default function TaskSummary() {
     "David Chen": { email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
     "Emma Rodriguez": { email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
     "James Wilson": { email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
+  };
+
+  // Helper to hydrate person data
+  const hydratePerson = (person: { id: number | string; name: string; initials: string }) => {
+    const internal = internalTeamMasterData[person.name];
+    const field = fieldTeamMasterData[person.name];
+    const vendor = vendorMasterData[person.name];
+    const info = internal || field || vendor;
+
+    return {
+      ...person,
+      email: info?.email || "",
+      phone: info?.phone || "",
+      title: info?.title || "",
+    };
   };
 
   // Extract unique field team members from field team orders
