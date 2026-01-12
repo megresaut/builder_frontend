@@ -281,47 +281,17 @@ export default function CreateTaskModal({
           changedFields,
         }),
       };
+
       onTaskCreated?.(taskData);
-      // Reset form state
-      setTitle("");
-      setDescription("");
-      setProperty("");
-      setUnit("");
-      setCategory("");
-      setPriority("normal");
-      setDueDate(null);
-      setStatus("not_started");
-      setSelectedAssignees([]);
-      setSelectedCollaborators([]);
-      setMessage("");
-      setInitialState(null);
-      setErrors({});
-      setErrorMessages({});
-      // Reset files after submit
-      fileUpload.reset();
+
+      // Close the modal - state reset is handled by the useEffect [open]
       onOpenChange(false);
     }
-  }, [validateForm, variant, initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, title, description, property, unit, category, message, fileUpload.files, fileUpload.reset, generateUpdateMessage, onTaskCreated, onOpenChange]);
+  }, [validateForm, variant, initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, title, description, property, unit, category, message, fileUpload.files, generateUpdateMessage, onTaskCreated, onOpenChange]);
 
   const handleCancel = useCallback(() => {
-    // Reset form before closing
-    setTitle("");
-    setDescription("");
-    setProperty("");
-    setUnit("");
-    setCategory("");
-    setPriority("normal");
-    setDueDate(null);
-    setStatus("not_started");
-    setSelectedAssignees([]);
-    setSelectedCollaborators([]);
-    setMessage("");
-    setInitialState(null);
-    setErrors({});
-    setErrorMessages({});
-    fileUpload.reset();
     onOpenChange(false);
-  }, [fileUpload.reset, onOpenChange]);
+  }, [onOpenChange]);
 
   // Cleanup on component unmount - Removed automatic cleanup to prevent revoking blob URLs during navigation
   useEffect(() => {
@@ -370,6 +340,7 @@ export default function CreateTaskModal({
         setUnit(editData.unit || "");
         setCategory(editData.category || "");
         setPriority(editData.priority.toLowerCase());
+
         let dateValue: Date | null = null;
         if (editData.dueDate) {
           dateValue = editData.dueDate instanceof Date ? editData.dueDate : new Date(editData.dueDate);
@@ -377,6 +348,7 @@ export default function CreateTaskModal({
           dateValue = new Date(editData.due);
         }
         setDueDate(dateValue);
+
         const statusMap: { [key: string]: string } = {
           "Not Started": "not_started",
           "In Progress": "in_progress",
@@ -386,6 +358,7 @@ export default function CreateTaskModal({
         const statusValue = editData.status || "not_started";
         const mappedStatus = statusMap[statusValue] || statusValue;
         setStatus(mappedStatus);
+
         if (editData.assignees && editData.assignees.length > 0) {
           setSelectedAssignees(
             editData.assignees.map((a) => ({
@@ -404,21 +377,6 @@ export default function CreateTaskModal({
             }))
           );
         }
-      } else {
-        // Clear form when opening in non-edit mode
-        setTitle("");
-        setDescription("");
-        setProperty("");
-        setUnit("");
-        setCategory("");
-        setPriority("normal");
-        setDueDate(null);
-        setStatus("not_started");
-        setSelectedAssignees([]);
-        setSelectedCollaborators([]);
-        setMessage("");
-        // Reset file upload when opening modal in non-edit mode
-        fileUpload.reset();
       }
 
       // Initialize baseline state for the "update" variant
@@ -462,7 +420,7 @@ export default function CreateTaskModal({
         });
       }
     }
-  }, [open, variant, editData]);
+  }, [open, variant, editData?.id]); // Use editData?.id to only re-init if the task ID changes, otherwise only on open
 
 
   return (
