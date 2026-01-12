@@ -102,8 +102,8 @@ export const MOCK_TASKS: Task[] = [
     updated: "Sep 4, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignees: [{ id: 1, name: "John Doe", initials: "JD" }],
-    collaborators: [{ id: 2, name: "Jane Smith", initials: "JMS" }],
+    assignees: [{ id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com", phone: "(555) 123-4567", title: "Maintenance Manager" }],
+    collaborators: [{ id: 2, name: "Jane Smith", initials: "JMS", email: "jane.smith@company.com", phone: "(555) 234-5678", title: "Property Manager" }],
   },
   {
     id: 7,
@@ -116,8 +116,8 @@ export const MOCK_TASKS: Task[] = [
     age: "6 Days",
     priority: "Normal",
     assignees: [
-      { id: 3, name: "Mike Johnson", initials: "MJ" },
-      { id: 1, name: "John Doe", initials: "JD" },
+      { id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com", phone: "(555) 345-6789", title: "Repair Technician" },
+      { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com", phone: "(555) 123-4567", title: "Maintenance Manager" },
     ],
   },
   {
@@ -130,8 +130,8 @@ export const MOCK_TASKS: Task[] = [
     updated: "Sep 2, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JMS" }],
-    collaborators: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
+    assignees: [{ id: 2, name: "Jane Smith", initials: "JMS", email: "jane.smith@company.com", phone: "(555) 234-5678", title: "Property Manager" }],
+    collaborators: [{ id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com", phone: "(555) 345-6789", title: "Repair Technician" }],
   },
   {
     id: 9,
@@ -144,10 +144,10 @@ export const MOCK_TASKS: Task[] = [
     age: "6 Days",
     priority: "Normal",
     assignees: [
-      { id: 1, name: "John Doe", initials: "JD" },
-      { id: 2, name: "Jane Smith", initials: "JMS" },
+      { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com", phone: "(555) 123-4567", title: "Maintenance Manager" },
+      { id: 2, name: "Jane Smith", initials: "JMS", email: "jane.smith@company.com", phone: "(555) 234-5678", title: "Property Manager" },
     ],
-    collaborators: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
+    collaborators: [{ id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com", phone: "(555) 345-6789", title: "Repair Technician" }],
   },
   {
     id: 10,
@@ -159,7 +159,7 @@ export const MOCK_TASKS: Task[] = [
     updated: "Sep 1, 2025",
     age: "6 Days",
     priority: "Normal",
-    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
-    collaborators: [{ id: 1, name: "John Doe", initials: "JD" }],
+    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com", phone: "(555) 345-6789", title: "Repair Technician" }],
+    collaborators: [{ id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com", phone: "(555) 123-4567", title: "Maintenance Manager" }],
   },
 ];
