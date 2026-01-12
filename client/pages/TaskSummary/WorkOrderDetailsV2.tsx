@@ -122,6 +122,12 @@ export default function WorkOrderDetailsV2({
 
   const [bills, setBills] = useState<BillItem[]>([]);
 
+  // Calculate work order total from bills
+  const workOrderTotal = bills.reduce((sum, bill) => {
+    const amount = parseFloat(bill.amount.replace('$', '').replace(',', ''));
+    return sum + (isNaN(amount) ? 0 : amount);
+  }, 0);
+
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
