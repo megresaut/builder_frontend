@@ -621,6 +621,29 @@ export default function TaskSummary() {
         open={isEditTaskModalOpen}
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
+        onTaskCreated={(taskData) => {
+          // Create a new update from the task data
+          const newUpdate = {
+            id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
+            initials: "YOU",
+            author: "You",
+            action: taskData.message || "updated the task",
+            actionValue: null,
+            timestamp: new Date().toLocaleString(),
+            details: taskData.message ? (
+              <div className="text-sm text-[#303030]">
+                <div className="mb-2">{taskData.message}</div>
+                {(taskData.status || taskData.priority) && (
+                  <div className="text-xs text-[#717179]">
+                    {taskData.status && <div>Status: {taskData.status}</div>}
+                    {taskData.priority && <div>Priority: {taskData.priority}</div>}
+                  </div>
+                )}
+              </div>
+            ) : null,
+          };
+          setUpdates([newUpdate, ...updates]);
+        }}
       />
     </PageTemplate>
   );
