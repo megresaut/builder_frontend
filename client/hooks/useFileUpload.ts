@@ -100,19 +100,21 @@ export function useFileUpload(): UseFileUploadResult {
   }, []);
 
   const saveFileName = useCallback(() => {
-    if (selectedFileForView && renamingFileName.trim()) {
+    const trimmedName = renamingFileName.trim();
+    if (selectedFileForView && trimmedName) {
       setFiles((prev) =>
         prev.map((f) =>
           f.id === selectedFileForView.id
-            ? { ...f, name: renamingFileName.trim() }
+            ? { ...f, name: trimmedName }
             : f,
         ),
       );
       setSelectedFileForView({
         ...selectedFileForView,
-        name: renamingFileName.trim(),
+        name: trimmedName,
       });
       setIsRenamingFile(false);
+      setRenamingFileName("");
     }
   }, [selectedFileForView, renamingFileName]);
 
