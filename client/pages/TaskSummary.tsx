@@ -170,11 +170,11 @@ export default function TaskSummary() {
       { label: "Status", value: statusMap[taskData?.status] || taskData?.status || "Not Started" },
       { label: "Priority", value: priorityLabel },
       { label: "Due Date", value: dueDate },
-      { label: "Assignees", value: <PersonAvatars people={taskData?.assignees || []} fallback="Unassigned" /> },
+      { label: "Assignees", value: <PersonAvatars people={taskData?.assignees || []} type="assignee" fallback="Unassigned" /> },
     ];
 
     if (taskData?.collaborators && taskData.collaborators.length > 0) {
-      fields.push({ label: "Collaborators", value: <PersonAvatars people={taskData.collaborators} /> });
+      fields.push({ label: "Collaborators", value: <PersonAvatars people={taskData.collaborators} type="collaborator" /> });
     }
 
     return {
