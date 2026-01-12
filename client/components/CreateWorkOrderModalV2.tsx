@@ -244,7 +244,7 @@ export default function CreateWorkOrderModalV2({
             />
             <button
               type="button"
-              onClick={() => console.log("Create Task")}
+              onClick={() => setIsCreateTaskModalOpen(true)}
               className="flex items-center gap-2 text-[#2463eb] text-sm font-medium hover:underline mt-2"
             >
               <Plus className="w-4 h-4" />
