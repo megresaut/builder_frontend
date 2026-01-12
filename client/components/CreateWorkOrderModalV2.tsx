@@ -17,6 +17,7 @@ import { FileUploadField } from "@/components/forms/FileUploadField";
 import { UploadedFile } from "@/components/ui/attachment-uploader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
+import CreateTaskModal from "@/components/CreateTaskModal";
 
 interface CreateWorkOrderModalV2Props {
   open: boolean;
