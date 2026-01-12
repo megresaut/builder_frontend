@@ -388,71 +388,39 @@ export default function WorkOrderDetailsV2({
           </div>
 
           {/* Notes Section */}
-          <SectionCard
-            variant="white"
-            title="Notes"
-            padding="compact"
-            actions={
-              <SectionActionTemplate
-                label="Add"
-                onClick={() => {
-                  setEditingNoteId(null);
-                  setIsAddNoteModalOpen(true);
-                }}
-              />
-            }
-          >
-            <div className="p-4">
-              <NotesTemplate
-                notes={notes}
-                hideHeader={true}
-                onAdd={() => {
-                  setEditingNoteId(null);
-                  setIsAddNoteModalOpen(true);
-                }}
-                onEdit={(note) => {
-                  setEditingNoteId(note.id);
-                  setIsAddNoteModalOpen(true);
-                }}
-                onDelete={(id) => setNotes(notes.filter(n => n.id !== id))}
-              />
-            </div>
+          <SectionCard padding="compact">
+            <NotesTemplate
+              notes={notes}
+              onAdd={() => {
+                setEditingNoteId(null);
+                setIsAddNoteModalOpen(true);
+              }}
+              onEdit={(note) => {
+                setEditingNoteId(note.id);
+                setIsAddNoteModalOpen(true);
+              }}
+              onDelete={(id) => setNotes(notes.filter(n => n.id !== id))}
+            />
           </SectionCard>
 
           {/* Files Section */}
-          <SectionCard
-            variant="white"
-            title="Recent Files"
-            padding="compact"
-            actions={
-              <SectionActionTemplate
-                label="Add"
-                onClick={() => {
-                  setEditingFileId(null);
-                  setIsAddFileModalOpen(true);
-                }}
-              />
-            }
-          >
-            <div className="p-4">
-              <FilesTemplate
-                files={files}
-                hideHeader={true}
-                onAdd={() => {
-                  setEditingFileId(null);
-                  setIsAddFileModalOpen(true);
-                }}
-                onEdit={(file) => {
-                  setEditingFileId(file.id);
-                  setIsAddFileModalOpen(true);
-                }}
-                onDelete={(id) => setFiles(files.filter(f => f.id !== id))}
-                onView={(file) => {
-                  setViewingFileUrl(file.url || "#");
-                  setViewingFileName(file.name);
-                }}
-              />
-            </div>
+          <SectionCard padding="compact">
+            <FilesTemplate
+              files={files}
+              onAdd={() => {
+                setEditingFileId(null);
+                setIsAddFileModalOpen(true);
+              }}
+              onEdit={(file) => {
+                setEditingFileId(file.id);
+                setIsAddFileModalOpen(true);
+              }}
+              onDelete={(id) => setFiles(files.filter(f => f.id !== id))}
+              onView={(file) => {
+                setViewingFileUrl(file.url || "#");
+                setViewingFileName(file.name);
+              }}
+            />
           </SectionCard>
         </div>
 
