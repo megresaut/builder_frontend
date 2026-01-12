@@ -111,11 +111,7 @@ export default function TaskSummary() {
         </div>
       ),
       ...(taskData?.description && {
-        details: (
-          <div className="pt-2 border-t border-[#e5e5e5]">
-            <div className="text-sm text-[#303030]">{taskData.description}</div>
-          </div>
-        ),
+        details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
       }),
       icon: <FlagIcon width={16} height={16} />,
       isInitialCreation: true,
@@ -159,9 +155,7 @@ export default function TaskSummary() {
           </div>
         ),
         details: (
-          <div className="pt-2 border-t border-[#e5e5e5]">
-            <div className="text-sm text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.</div>
-          </div>
+          <div className="text-sm text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.</div>
         ),
         icon: <FlagIcon width={16} height={16} />,
         isInitialCreation: true,
@@ -756,11 +750,7 @@ export default function TaskSummary() {
                 </div>
               ),
               ...(taskData.description && {
-                details: (
-                  <div className="pt-2 border-t border-[#e5e5e5]">
-                    <div className="text-sm text-[#303030]">{taskData.description}</div>
-                  </div>
-                ),
+                details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
               }),
               icon: <FlagIcon width={16} height={16} />,
               isInitialCreation: true,
