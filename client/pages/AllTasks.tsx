@@ -319,7 +319,9 @@ export default function AllTasks() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/tasks/${task.id}`);
+                    navigate(`/tasks/${task.id}`, {
+                      state: { task, taskData: task }
+                    });
                   }}
                   className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
                 >
