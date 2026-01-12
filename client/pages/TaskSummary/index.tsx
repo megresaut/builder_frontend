@@ -979,6 +979,7 @@ export default function TaskSummary() {
                 onWorkOrdersChange={setWorkOrders}
                 defaultProperty={currentProperty}
                 defaultTask={currentTitle}
+                taskId={taskId || "0"}
               />
             )
           )}
