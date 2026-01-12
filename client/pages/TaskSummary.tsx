@@ -1431,7 +1431,7 @@ export default function TaskSummary() {
             };
 
             setUpdates([initialUpdate, ...updates]);
-            setIsEditTaskModalOpen(false);
+            uiDispatch({ type: "CLOSE_MODAL", payload: "editTask" });
             return;
           }
           // Create a new update from the task data
