@@ -374,7 +374,7 @@ export default function WorkOrderDetailsV2({
                 ESTIMATE TOTAL
               </div>
               <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                $1,450.50
+                $0.00
               </div>
             </div>
             <div className="flex flex-col justify-center items-start gap-1 flex-1 rounded-lg border border-[#DADADA] bg-[#F9F9F9] p-4">
@@ -382,7 +382,7 @@ export default function WorkOrderDetailsV2({
                 WORK ORDER TOTAL
               </div>
               <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                $1,350.00
+                $0.00
               </div>
             </div>
           </div>
