@@ -143,18 +143,15 @@ export default function TaskSummary() {
           ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : taskData.dueDate)
       : "No due date";
-    const assigneeNames = taskData?.assignees?.map((a: any) => a.name || a.label).join(", ") || "Unassigned";
-    const collaboratorNames = taskData?.collaborators?.map((c: any) => c.name || c.label).join(", ") || "None";
-
     const fields = [
       { label: "Status", value: statusMap[taskData?.status] || taskData?.status || "Not Started" },
       { label: "Priority", value: priorityLabel },
       { label: "Due Date", value: dueDate },
-      { label: "Assignees", value: assigneeNames },
+      { label: "Assignees", value: <PersonAvatars people={taskData?.assignees || []} fallback="Unassigned" /> },
     ];
 
     if (taskData?.collaborators && taskData.collaborators.length > 0) {
-      fields.push({ label: "Collaborators", value: collaboratorNames });
+      fields.push({ label: "Collaborators", value: <PersonAvatars people={taskData.collaborators} /> });
     }
 
     return {
@@ -221,7 +218,9 @@ export default function TaskSummary() {
             </div>
             <div>
               <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-              <div className="text-sm text-[#303030] font-medium mt-0.5">Julia LoSchiavo</div>
+              <div className="mt-0.5">
+                <PersonAvatars people={[{ id: 1, name: "Julia LoSchiavo", initials: "JL" }]} />
+              </div>
             </div>
           </div>
         ),
@@ -703,6 +702,31 @@ export default function TaskSummary() {
       unit2: "Unit 2",
     };
     return unitLabels[unitValue] || "";
+  };
+
+  const PersonAvatars = ({ people, fallback = "None" }: { people: any[], fallback?: string }) => {
+    if (!people || people.length === 0) return <span className="text-sm text-[#303030] font-medium mt-0.5">{fallback}</span>;
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        {people.map((person, idx) => {
+          const name = person.name || person.label;
+          const initials = person.initials || (name || "?").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+          return (
+            <div key={idx} className="relative group/avatar">
+              <div
+                className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-xs leading-[0.8] flex-shrink-0"
+                title={name}
+              >
+                {initials}
+              </div>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 transition-opacity pointer-events-none z-50">
+                {name}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -1307,7 +1331,9 @@ export default function TaskSummary() {
               creationFields.push(
                 <div key="assignees">
                   <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-                  <div className="text-sm text-[#303030] font-medium mt-0.5">{assigneeNames}</div>
+                  <div className="mt-0.5">
+                    <PersonAvatars people={taskData.assignees} />
+                  </div>
                 </div>
               );
             }
@@ -1316,7 +1342,9 @@ export default function TaskSummary() {
               creationFields.push(
                 <div key="collaborators">
                   <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Collaborators</div>
-                  <div className="text-sm text-[#303030] font-medium mt-0.5">{collaboratorNames}</div>
+                  <div className="mt-0.5">
+                    <PersonAvatars people={taskData.collaborators} />
+                  </div>
                 </div>
               );
             }
@@ -1423,22 +1451,16 @@ export default function TaskSummary() {
                 });
                 break;
               case "assignees":
-                const assigneeNames = taskData.assignees && taskData.assignees.length > 0
-                  ? taskData.assignees.map((a: any) => a.label).join(", ")
-                  : "Unassigned";
                 displayFields.push({
                   label: "Assignees",
-                  value: assigneeNames,
-                });
+                  value: <PersonAvatars people={taskData.assignees || []} fallback="Unassigned" />,
+                } as any);
                 break;
               case "collaborators":
-                const collaboratorNames = taskData.collaborators && taskData.collaborators.length > 0
-                  ? taskData.collaborators.map((c: any) => c.label).join(", ")
-                  : "None";
                 displayFields.push({
                   label: "Collaborators",
-                  value: collaboratorNames,
-                });
+                  value: <PersonAvatars people={taskData.collaborators || []} />,
+                } as any);
                 break;
             }
           });
