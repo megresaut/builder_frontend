@@ -64,12 +64,20 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   hideHeaderOnTab,
   type = "assignee",
 }) => {
+  const navigate = useNavigate();
+
   // Determine border and text color based on type
   const borderColor = type === "collaborator" ? "border-[#10b981]" : "border-[#2463eb]";
   const textColor = type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]";
   const handleAvatarClick = (person: Person) => {
     if (person.href) {
-      window.location.href = person.href;
+      navigate(person.href);
+    }
+  };
+
+  const handleNameClick = (href?: string) => {
+    if (href) {
+      navigate(href);
     }
   };
 
