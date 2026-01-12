@@ -668,8 +668,9 @@ export default function TaskSummary() {
   };
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    uiDispatch({ type: "SET_ACTIVE_TAB", payload: newTab });
+    // Clear selection immediately to avoid "glitches" during navigation
     uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: null });
+    uiDispatch({ type: "SET_ACTIVE_TAB", payload: newTab });
   };
 
   const handleWorkOrderSelect = (woId: number | null) => {
