@@ -433,8 +433,8 @@ export default function TaskSummary() {
     vendorName?: string;
   }
 
-  // Mock work orders data
-  const mockWorkOrders: WorkOrder[] = [
+  // Mock work orders data - memoized to ensure hydratePerson is available
+  const mockWorkOrders: WorkOrder[] = useMemo(() => [
     {
       id: 1,
       task: "Doors need to be repaired",
@@ -644,7 +644,7 @@ export default function TaskSummary() {
       ],
       vendorName: "Outdoor Construction Corp",
     },
-  ];
+  ], []);
 
   // Work orders and field team orders state
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
