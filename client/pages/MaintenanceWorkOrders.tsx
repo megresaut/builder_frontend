@@ -247,6 +247,8 @@ export default function MaintenanceWorkOrders() {
   } = useColumnManagement([
     "priority",
     "task",
+    "property",
+    "unit",
     "updatedDate",
     "age",
     "status",
