@@ -1189,33 +1189,69 @@ export default function TaskSummary() {
 
             const priorityLabel = (taskData as any).priority.charAt(0).toUpperCase() + (taskData as any).priority.slice(1);
             const dueDate = (taskData as any).dueDate ? new Date(taskData.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date";
-            const assigneeNames = (taskData as any).assignees?.map((a: any) => a.label).join(", ") || "Unassigned";
+            const assigneeNames = (taskData as any).assignees?.map((a: any) => a.label || a.name).join(", ") || "Unassigned";
+            const collaboratorNames = (taskData as any).collaborators?.map((c: any) => c.label || c.name).join(", ") || "None";
+
+            // Build fields array for initial creation
+            const creationFields: any[] = [];
+
+            if (taskData.status) {
+              creationFields.push(
+                <div key="status">
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">{statusMap[(taskData as any).status] || (taskData as any).status}</div>
+                </div>
+              );
+            }
+
+            if (taskData.priority) {
+              creationFields.push(
+                <div key="priority">
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">{priorityLabel}</div>
+                </div>
+              );
+            }
+
+            if (taskData.dueDate) {
+              creationFields.push(
+                <div key="dueDate">
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">{dueDate}</div>
+                </div>
+              );
+            }
+
+            if (taskData.assignees && taskData.assignees.length > 0) {
+              creationFields.push(
+                <div key="assignees">
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">{assigneeNames}</div>
+                </div>
+              );
+            }
+
+            if (taskData.collaborators && taskData.collaborators.length > 0) {
+              creationFields.push(
+                <div key="collaborators">
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Collaborators</div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">{collaboratorNames}</div>
+                </div>
+              );
+            }
 
             const initialUpdate = {
               id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
               author: "Current User",
               action: "created this task",
               timestamp: new Date().toLocaleString(),
-              fieldsDisplay: (
-                <div className="grid grid-cols-4 gap-6 mt-3">
-                  <div>
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-                    <div className="text-sm text-[#303030] font-medium mt-0.5">{statusMap[(taskData as any).status] || (taskData as any).status}</div>
+              ...(creationFields.length > 0 && {
+                fieldsDisplay: (
+                  <div className={`grid gap-6 mt-3 ${creationFields.length === 1 ? 'grid-cols-1' : creationFields.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    {creationFields}
                   </div>
-                  <div>
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-                    <div className="text-sm text-[#303030] font-medium mt-0.5">{priorityLabel}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-                    <div className="text-sm text-[#303030] font-medium mt-0.5">{dueDate}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-                    <div className="text-sm text-[#303030] font-medium mt-0.5">{assigneeNames}</div>
-                  </div>
-                </div>
-              ),
+                ),
+              }),
               ...(taskData.description && {
                 details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
               }),
