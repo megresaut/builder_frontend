@@ -1139,11 +1139,11 @@ export default function TaskSummary() {
           description: navigationState?.taskData?.description || "",
           property: currentProperty,
           unit: currentUnit,
-          priority: navigationState?.taskData?.priority || "normal",
-          status: navigationState?.taskData?.status || "not_started",
-          dueDate: navigationState?.taskData?.dueDate || null,
-          assignees: navigationState?.taskData?.assignees || [],
-          collaborators: navigationState?.taskData?.collaborators || [],
+          priority: currentPriority,
+          status: currentStatus,
+          dueDate: currentDueDate,
+          assignees: currentAssignees,
+          collaborators: currentCollaborators,
           category: currentCategory,
         }}
         onTaskCreated={(taskData: any) => {
