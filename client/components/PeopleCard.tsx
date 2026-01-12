@@ -30,6 +30,7 @@ interface PeopleCardProps {
     onClick: () => void;
     icon?: ReactNode;
   }[];
+  variant?: "default" | "gray";
 }
 
 /**
@@ -53,11 +54,12 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
   defaultTab = 0,
   headerActions,
   footerActions,
+  variant = "default",
 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   return (
-    <SectionCard title={title} actions={headerActions}>
+    <SectionCard variant={variant} title={title} actions={headerActions}>
       {/* Tabs (optional, for Assignees) */}
       {tabs && tabs.length > 0 && (
         <div className="flex w-full px-0.5 py-0.5 bg-[#f2f2f2] rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center mb-4">
