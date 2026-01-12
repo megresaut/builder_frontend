@@ -808,7 +808,7 @@ export default function TaskSummary() {
             action: taskData.message || "updated the task",
             actionValue: null,
             timestamp: new Date().toLocaleString(),
-            details: details.length > 0 ? <div>{details}</div> : null,
+            details: details.length > 0 ? details : null,
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
