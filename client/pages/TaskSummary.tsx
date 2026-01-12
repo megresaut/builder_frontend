@@ -7,6 +7,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
 import TaskWorkOrders from "./TaskWorkOrders";
 import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
+import WorkOrderDetailsV2 from "./WorkOrderDetailsV2";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
 import { useTaskSummaryUI } from "@/hooks/useTaskSummaryUI";
@@ -809,223 +810,6 @@ export default function TaskSummary() {
     return isNaN(amount) ? 0 : amount;
   };
 
-  // If workOrderId is present, render Work Order Summary instead of tabs
-  if ((workOrderId || uiState.selectedWorkOrderId) && selectedWorkOrder) {
-    return (
-      <PageTemplate>
-        {/* Header Section */}
-        <PageHeader
-          title={`${selectedWorkOrder.task} - Work Order #${selectedWorkOrder.id}`}
-          subtitle={
-            <div className="flex items-center font-medium gap-3 overflow-wrap-anywhere word-wrap-anywhere">
-              <div className="block text-base font-medium">{selectedWorkOrder.property}</div>
-              <svg
-                width="4"
-                height="4"
-                viewBox="0 0 4 4"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle cx="2" cy="2" r="2" fill="#717179" />
-              </svg>
-              <div className="text-base font-medium">{selectedWorkOrder.unit}</div>
-            </div>
-          }
-          action={{
-            label: "Back",
-            onClick: () => {
-              handleWorkOrderSelect(null);
-              navigate(`/tasks/${taskId}/workorders`);
-            },
-          }}
-        />
-
-        {/* Work Order Summary Content */}
-        <div className="flex flex-col mt-6 w-full gap-6 bg-white min-h-screen pb-10">
-          {/* Notifications Bar */}
-          {workOrderNotifications.length > 0 && (
-            <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
-              <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
-                <div className="flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 1.5C4.8375 1.5 1.5 4.8375 1.5 9C1.5 13.1625 4.8375 16.5 9 16.5C13.1625 16.5 16.5 13.1625 16.5 9C16.5 4.8375 13.1625 1.5 9 1.5ZM9 15.1875C5.375 15.1875 2.8125 12.625 2.8125 9C2.8125 5.375 5.375 2.8125 9 2.8125C12.625 2.8125 15.1875 5.375 15.1875 9C15.1875 12.625 12.625 15.1875 9 15.1875Z" fill="#303030"/>
-                    <path d="M8.1 5.4H9.9V9.9H8.1V5.4Z" fill="#303030"/>
-                    <path d="M8.1 11.7H9.9V13.5H8.1V11.7Z" fill="#303030"/>
-                  </svg>
-                  <div className="text-base text-[#303030] font-bold tracking-[-0.32px]">
-                    Notifications
-                  </div>
-                </div>
-              </div>
-              {workOrderNotifications.map((notif) => (
-                <div key={notif.id} className="flex items-center justify-between px-3 py-3 bg-white flex-wrap border-t border-[#e5e5e5]">
-                  <div className="flex items-center gap-2 min-w-[240px] flex-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#2463eb]"></div>
-                    <div className="text-base text-[#303030]">{notif.message}</div>
-                  </div>
-                  <button
-                    onClick={() => setWorkOrderNotifications(workOrderNotifications.filter((n) => n.id !== notif.id))}
-                    className="text-[#717179] hover:text-[#303030] text-sm tracking-[-0.28px]"
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Main Content Area - Two Column Layout */}
-          <div className="flex w-full gap-6 flex-wrap lg:flex-nowrap">
-            {/* Left Column */}
-            <div className="flex flex-col min-w-[240px] flex-1 gap-5">
-              {/* Work Order Overview */}
-              <SectionCard variant="gray">
-                <div className="flex flex-col gap-4">
-                  <StatusSelectField
-                    label="Status"
-                    value={workOrderStatus}
-                    onChange={setWorkOrderStatus}
-                  />
-
-                  <div className="border-t border-[#e5e5e5] pt-4">
-                    <PrioritySelectField
-                      label="Priority"
-                      value={workOrderPriority}
-                      onChange={setWorkOrderPriority}
-                    />
-                  </div>
-
-                  <div className="border-t border-[#e5e5e5] pt-4">
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-                    <div className="mt-2 text-sm text-[#303030] font-medium">{selectedWorkOrder.dueDate}</div>
-                  </div>
-
-                  <div className="border-t border-[#e5e5e5] pt-4">
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Bill Status</div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          backgroundColor:
-                            selectedWorkOrder.billStatus === "Paid"
-                              ? "#059669"
-                              : selectedWorkOrder.billStatus === "Unpaid"
-                                ? "#DC2626"
-                                : "#D97706",
-                        }}
-                      />
-                      <span className="text-sm text-[#303030] font-medium capitalize">
-                        {selectedWorkOrder.billStatus}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </SectionCard>
-
-              {/* Assignees Card */}
-              {(selectedWorkOrder.assignees.length > 0 || selectedWorkOrder.collaborators.length > 0) && (
-                <PeopleCard
-                  variant="gray"
-                  title="Assignees"
-                  subsections={[
-                    {
-                      label: "Assigned to",
-                      mode: "rows",
-                      people: selectedWorkOrder.assignees.map((assignee) => ({
-                        id: assignee.id,
-                        name: assignee.name,
-                        initials: assignee.initials,
-                        roleLabel: "Field Staff",
-                        phone: "",
-                        type: "staff",
-                      })),
-                      showRoleLabel: true,
-                      showPhone: false,
-                      showDivider: selectedWorkOrder.collaborators.length > 0,
-                    },
-                    {
-                      label: "Collaborators",
-                      mode: "rows",
-                      people: selectedWorkOrder.collaborators.map((collaborator) => ({
-                        id: collaborator.id,
-                        name: collaborator.name,
-                        initials: collaborator.initials,
-                        roleLabel: "Collaborator",
-                        phone: "",
-                        type: "staff",
-                      })),
-                      showRoleLabel: true,
-                      showPhone: false,
-                      showDivider: false,
-                    },
-                  ]}
-                />
-              )}
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="flex flex-col min-w-[240px] w-[376px] gap-5">
-              {/* Bills Section */}
-              <SectionCard variant="gray" title="Bills">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-[#e5e5e5] hover:border-[#d4d4d8] cursor-pointer transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 2H2C1.4 2 1 2.4 1 3V13C1 13.6 1.4 14 2 14H14C14.6 14 15 13.6 15 13V3C15 2.4 14.6 2 14 2ZM14 4V5H2V4H14ZM2 13V6H14V13H2Z" fill="#303030"/>
-                    </svg>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[#303030]">Invoice from Edgerton Inc</div>
-                      <div className="text-xs text-[#717179]">INV-2024-001 • ${selectedWorkOrder.billTotal}</div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => uiDispatch({ type: "OPEN_MODAL", payload: "viewBill" })}
-                    className="w-full px-4 py-2 rounded-lg border border-[#e5e5e5] bg-white text-sm font-medium text-[#303030] hover:bg-gray-50 transition-colors"
-                  >
-                    View All Bills
-                  </button>
-                </div>
-              </SectionCard>
-            </div>
-          </div>
-        </div>
-
-        {/* View Bill Modal */}
-        {selectedWorkOrder && (
-          <RecordBillModal
-            open={uiState.modals.viewBill || false}
-            onOpenChange={(open) => {
-              if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "viewBill" });
-              else uiDispatch({ type: "OPEN_MODAL", payload: "viewBill" });
-            }}
-            mode="view"
-            data={{
-              vendor: "Edgerton Inc",
-              invoiceNumber: "INV-2024-001",
-              invoiceDate: "2024-12-01",
-              dueDate: "2024-12-15",
-              memo: "Work order completion invoice",
-              lineItems: [
-                {
-                  id: 1,
-                  property: selectedWorkOrder.property,
-                  unit: selectedWorkOrder.unit,
-                  workOrder: `${selectedWorkOrder.id}`,
-                  description: selectedWorkOrder.task,
-                  glAccount: "Maintenance",
-                  reimbursement: false,
-                  subtotal: getBillAmount(selectedWorkOrder.billTotal),
-                  upcharge: 0,
-                  total: getBillAmount(selectedWorkOrder.billTotal),
-                },
-              ],
-            }}
-          />
-        )}
-      </PageTemplate>
-    );
-  }
-
   return (
     <PageTemplate>
       {/* Header Section */}
@@ -1136,7 +920,11 @@ export default function TaskSummary() {
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
           {/* Show TaskWorkOrders component when work orders tab is active */}
           {uiState.activeTab === "workorders" && (
-            <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
+            selectedWorkOrder ? (
+              <WorkOrderDetailsV2 workOrder={selectedWorkOrder} />
+            ) : (
+              <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
+            )
           )}
 
           {/* Show summary content when summary tab is active */}
