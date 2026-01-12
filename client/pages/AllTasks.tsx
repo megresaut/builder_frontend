@@ -432,8 +432,9 @@ export default function AllTasks() {
       assignees: { id: string; label: string; initials: string }[];
       collaborators: { id: string; label: string; initials: string }[];
     }) => {
+      const newTaskId = Math.max(...tasksList.map((t) => t.id), 0) + 1;
       const newTask: Task = {
-        id: Math.max(...tasksList.map((t) => t.id), 0) + 1,
+        id: newTaskId,
         title: taskData.title,
         property: taskData.property || "Unassigned",
         status:
@@ -465,8 +466,10 @@ export default function AllTasks() {
         })),
       };
       setTasksList((prev) => [newTask, ...prev]);
+      // Navigate to the newly created task
+      navigate(`/tasks/${newTaskId}`);
     },
-    [tasksList]
+    [tasksList, navigate]
   );
 
   const actions = [
