@@ -214,48 +214,33 @@ export default function WorkOrderDetailsV2({
   const editingNote = notes.find(n => n.id === editingNoteId);
   const editingFile = files.find(f => f.id === editingFileId);
 
+  // Synchronize local field state with parent workOrder updates
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+    if (onWorkOrderUpdate) {
+      onWorkOrderUpdate({ ...workOrder, status: newStatus });
+    }
+  };
+
+  const handlePriorityChange = (newPriority: string) => {
+    setPriority(newPriority);
+    if (onWorkOrderUpdate) {
+      onWorkOrderUpdate({ ...workOrder, priority: newPriority });
+    }
+  };
+
+  const handleDueDateChange = (newDate: Date | string | null) => {
+    setDueDate(newDate);
+    if (onWorkOrderUpdate) {
+      const dateStr = newDate instanceof Date
+        ? newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : String(newDate || "");
+      onWorkOrderUpdate({ ...workOrder, dueDate: dateStr });
+    }
+  };
+
   return (
     <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
-
-      {/* Notifications Section */}
-      {/*
-      {notifications.length > 0 && (
-        <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden bg-white mb-4">
-          <div className="flex items-center gap-2 px-4 py-3 bg-[#f9f9f9] border-b border-[#e5e5e5]">
-            <Bell className="w-[18px] h-[18px] text-[#8b5cf6]" />
-            <div className="text-base text-[#303030] font-bold tracking-tight">
-              Notifications
-            </div>
-          </div>
-          <div className="flex flex-col divide-y divide-[#e5e5e5]">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="flex items-center justify-between px-4 py-3 bg-white flex-wrap gap-4"
-              >
-                <div className="flex items-center gap-2 flex-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
-                  <div className="text-sm text-[#303030] font-medium">
-                    {notification.message}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm font-medium">
-                  <button
-                    onClick={() => handleDismissNotification(notification.id)}
-                    className="text-[#717179] hover:text-[#303030] transition-colors"
-                  >
-                    Dismiss
-                  </button>
-                  <button className="text-[#2463eb] hover:underline">
-                    Approve
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      */}
 
       {/* Field Selectors Row */}
       <div className="flex flex-wrap items-end gap-6 w-full mb-2">
@@ -263,7 +248,7 @@ export default function WorkOrderDetailsV2({
           <StatusSelectField
             label="Status"
             value={status}
-            onChange={setStatus}
+            onChange={handleStatusChange}
           />
         </div>
 
@@ -271,7 +256,7 @@ export default function WorkOrderDetailsV2({
           <PrioritySelectField
             label="Priority"
             value={priority}
-            onChange={setPriority}
+            onChange={handlePriorityChange}
           />
         </div>
 
@@ -279,7 +264,7 @@ export default function WorkOrderDetailsV2({
           <DateField
             label="Due Date"
             value={dueDate}
-            onChange={setDueDate}
+            onChange={handleDueDateChange}
             returnFormat="Date"
           />
         </div>
