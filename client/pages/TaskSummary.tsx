@@ -1129,7 +1129,7 @@ export default function TaskSummary() {
                 prevUpdates.map((update) => {
                   if (update.attachments && Array.isArray(update.attachments)) {
                     const updatedAttachments = update.attachments.map((att: any) =>
-                      att.id === editingFileId.toString()
+                      String(att.id) === String(editingFileId)
                         ? { ...att, name: newFileName }
                         : att,
                     );
