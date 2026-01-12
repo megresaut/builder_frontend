@@ -51,7 +51,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
         {/* Continuous Timeline Rail - extends from composer down, growing with updates */}
         {onAddUpdate && updates.length > 0 && (
           <div
-            className="absolute left-7 -translate-x-1/2 w-1"
+            className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
             style={{
               top: "20px",
               // For each update, allocate ~125px (includes gap and content height)
