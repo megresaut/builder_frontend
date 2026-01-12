@@ -1125,54 +1125,58 @@ export default function TaskSummary() {
             updateIcon = <EditIcon width={16} height={16} />;
           }
 
-          // Build fields display for updated fields
+          // Build fields display for changed fields (only if changedFields are provided)
           const statusMap: { [key: string]: string } = {
             "not_started": "Not Started",
             "in_progress": "In Progress",
             "completed": "Completed",
           };
 
-          const changedFields: Array<{ label: string; value: string }> = [];
+          const changedFieldsInfo = (taskData as any).changedFields || [];
+          const displayFields: Array<{ label: string; value: string }> = [];
 
-          // Check which fields have changed
-          if (taskData.status && taskData.status !== (updates[0]?.fieldsDisplay ? "not_started" : "")) {
-            changedFields.push({
-              label: "Status",
-              value: statusMap[taskData.status] || taskData.status,
-            });
-          }
-
-          if (taskData.priority && taskData.priority !== (updates[0]?.fieldsDisplay ? "normal" : "")) {
-            changedFields.push({
-              label: "Priority",
-              value: taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1),
-            });
-          }
-
-          if (taskData.dueDate) {
-            const dueDateStr = taskData.dueDate instanceof Date
-              ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-              : taskData.dueDate;
-            changedFields.push({
-              label: "Due Date",
-              value: dueDateStr,
-            });
-          }
-
-          if (taskData.assignees && taskData.assignees.length > 0) {
-            const assigneeNames = taskData.assignees.map((a: any) => a.label).join(", ");
-            changedFields.push({
-              label: "Assignees",
-              value: assigneeNames,
-            });
-          }
+          // Build display for changed fields
+          changedFieldsInfo.forEach((fieldName: string) => {
+            switch (fieldName) {
+              case "status":
+                displayFields.push({
+                  label: "Status",
+                  value: statusMap[taskData.status] || taskData.status,
+                });
+                break;
+              case "priority":
+                displayFields.push({
+                  label: "Priority",
+                  value: taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1),
+                });
+                break;
+              case "dueDate":
+                const dueDateStr = taskData.dueDate instanceof Date
+                  ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  : (taskData.dueDate ? taskData.dueDate : "No due date");
+                displayFields.push({
+                  label: "Due Date",
+                  value: dueDateStr,
+                });
+                break;
+              case "assignees":
+                const assigneeNames = taskData.assignees && taskData.assignees.length > 0
+                  ? taskData.assignees.map((a: any) => a.label).join(", ")
+                  : "Unassigned";
+                displayFields.push({
+                  label: "Assignees",
+                  value: assigneeNames,
+                });
+                break;
+            }
+          });
 
           // Add fields display if there are changed fields
-          if (changedFields.length > 0) {
+          if (displayFields.length > 0) {
             details.push(
               <div key="fields" className="mt-3">
                 <div className="grid grid-cols-2 gap-6 mt-3">
-                  {changedFields.map((field, idx) => (
+                  {displayFields.map((field, idx) => (
                     <div key={idx}>
                       <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">{field.label}</div>
                       <div className="text-sm text-[#303030] font-medium mt-0.5">{field.value}</div>
