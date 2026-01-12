@@ -201,11 +201,28 @@ export default function TaskSummary() {
   const [currentUnit, setCurrentUnit] = useState<string>(navigationState?.taskData?.unit || navigationState?.task?.unit || "");
   const [currentTitle, setCurrentTitle] = useState<string>(navigationState?.taskData?.title || navigationState?.task?.title || "Edgerton - Quote");
   const [currentCategory, setCurrentCategory] = useState<string>(navigationState?.taskData?.category || navigationState?.task?.category || "Uncategorized");
-  const [currentStatus, setCurrentStatus] = useState<string>(navigationState?.taskData?.status || navigationState?.task?.status || "not_started");
-  const [currentPriority, setCurrentPriority] = useState<string>(navigationState?.taskData?.priority || navigationState?.task?.priority || "normal");
-  const [currentDueDate, setCurrentDueDate] = useState<Date | null>(navigationState?.taskData?.dueDate || navigationState?.task?.dueDate || null);
-  const [currentAssignees, setCurrentAssignees] = useState<any[]>(navigationState?.taskData?.assignees || navigationState?.task?.assignees || []);
-  const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(navigationState?.taskData?.collaborators || navigationState?.task?.collaborators || []);
+  const [currentStatus, setCurrentStatus] = useState<string>(navigationState?.taskData?.status || navigationState?.task?.status || (isNewTask ? "not_started" : "not_started"));
+  const [currentPriority, setCurrentPriority] = useState<string>(navigationState?.taskData?.priority || navigationState?.task?.priority?.toLowerCase() || (isNewTask ? "normal" : "normal"));
+  const [currentDueDate, setCurrentDueDate] = useState<Date | null>(() => {
+    if (navigationState?.taskData?.dueDate) return navigationState.taskData.dueDate;
+    if (navigationState?.task?.dueDate) return new Date(navigationState.task.dueDate);
+    if (navigationState?.task?.due && navigationState.task.due !== "No Due Date") return new Date(navigationState.task.due);
+    return isNewTask ? null : new Date(2025, 9, 15); // Oct 15, 2025
+  });
+  const [currentAssignees, setCurrentAssignees] = useState<any[]>(() => {
+    if (navigationState?.taskData?.assignees) return navigationState.taskData.assignees;
+    if (navigationState?.task?.assignees) return navigationState.task.assignees;
+    return isNewTask ? [] : [{ id: 1, name: "Julia LoSchiavo", initials: "JL" }];
+  });
+  const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(() => {
+    if (navigationState?.taskData?.collaborators) return navigationState.taskData.collaborators;
+    if (navigationState?.task?.collaborators) return navigationState.task.collaborators;
+    return isNewTask ? [] : [
+      { id: 2, name: "Chris Henry", initials: "CH" },
+      { id: 3, name: "Connor Smith", initials: "CS" },
+      { id: 8, name: "Sarah Martinez", initials: "SM" },
+    ];
+  });
   const [isEditTaskDetailsOpen, setIsEditTaskDetailsOpen] = useState(false);
 
   // Mock data types
