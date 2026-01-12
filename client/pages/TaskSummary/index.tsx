@@ -784,9 +784,23 @@ export default function TaskSummary() {
     return unitLabels[unitValue] || "";
   };
 
+  // Vendor master data with contact information
+  const vendorMasterData: Record<string, { email: string; phone: string; title: string }> = {
+    "ABC Doors & Hardware": { email: "info@abcdoors.com", phone: "(555) 123-1234", title: "Vendor Company" },
+    "Elite HVAC Services": { email: "contact@elitehvac.com", phone: "(555) 234-5678", title: "Vendor Company" },
+    "Glass & Frames Inc": { email: "sales@glassframes.com", phone: "(555) 345-6789", title: "Vendor Company" },
+    "Pro Roofing Solutions": { email: "quote@proroofing.com", phone: "(555) 456-7890", title: "Vendor Company" },
+    "Dolce Plumbing & Heating LLC": { email: "service@dolceplumbing.com", phone: "(555) 567-8901", title: "Vendor Company" },
+    "Spark Electrical": { email: "jobs@sparkelectrical.com", phone: "(555) 678-9012", title: "Vendor Company" },
+    "Premium Painters Co": { email: "estimate@premiumpainters.com", phone: "(555) 789-0123", title: "Vendor Company" },
+    "Quality Flooring LLC": { email: "orders@qualityflooring.com", phone: "(555) 890-1234", title: "Vendor Company" },
+    "Green Lawn Services": { email: "schedule@greenlawn.com", phone: "(555) 901-2345", title: "Vendor Company" },
+    "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456", title: "Vendor Company" },
+  };
+
   // Extract unique vendors from work orders
   const vendorsFromWorkOrders = useMemo(() => {
-    const uniqueVendors = new Map<string, { id: string; name: string; initials: string }>();
+    const uniqueVendors = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
     workOrders.forEach((wo) => {
       if (wo.vendorName && wo.vendorName.trim()) {
         if (!uniqueVendors.has(wo.vendorName)) {
@@ -796,10 +810,14 @@ export default function TaskSummary() {
             .map((word) => word[0])
             .join("")
             .toUpperCase();
+          const vendorInfo = vendorMasterData[wo.vendorName];
           uniqueVendors.set(wo.vendorName, {
             id: `vendor-${uniqueVendors.size + 1}`,
             name: wo.vendorName,
             initials: initials || "V",
+            email: vendorInfo?.email || "",
+            phone: vendorInfo?.phone || "",
+            title: vendorInfo?.title || "Vendor Company",
           });
         }
       }
@@ -807,18 +825,31 @@ export default function TaskSummary() {
     return Array.from(uniqueVendors.values());
   }, [workOrders]);
 
+  // Field team member master data with contact information
+  const fieldTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
+    "Christopher Harris": { email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
+    "Cassandra Smith": { email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
+    "David Chen": { email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
+    "Emma Rodriguez": { email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
+    "James Wilson": { email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
+  };
+
   // Extract unique field team members from field team orders
   const fieldTeamFromOrders = useMemo(() => {
-    const uniqueFieldTeam = new Map<string, { id: string; name: string; initials: string }>();
+    const uniqueFieldTeam = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
     fieldTeamOrders.forEach((order) => {
       if (order.fieldTeam && Array.isArray(order.fieldTeam)) {
         order.fieldTeam.forEach((member: { name: string; initials: string }) => {
           if (member.name && member.name.trim()) {
             if (!uniqueFieldTeam.has(member.name)) {
+              const memberInfo = fieldTeamMasterData[member.name];
               uniqueFieldTeam.set(member.name, {
                 id: `fieldteam-${uniqueFieldTeam.size + 1}`,
                 name: member.name,
                 initials: member.initials || member.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2),
+                email: memberInfo?.email || "",
+                phone: memberInfo?.phone || "",
+                title: memberInfo?.title || "Field Team Member",
               });
             }
           }
