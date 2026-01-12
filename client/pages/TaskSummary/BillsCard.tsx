@@ -137,7 +137,6 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
               </button>
             </div>
           ) : bills.map((bill) => {
-            const statusColors = getStatusColor(bill.status);
             return (
               <div
                 key={bill.id}
