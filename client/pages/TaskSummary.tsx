@@ -1486,13 +1486,13 @@ export default function TaskSummary() {
               case "assignees":
                 displayFields.push({
                   label: "Assignees",
-                  value: <PersonAvatars people={taskData.assignees || []} fallback="Unassigned" />,
+                  value: <PersonAvatars people={taskData.assignees || []} type="assignee" fallback="Unassigned" />,
                 } as any);
                 break;
               case "collaborators":
                 displayFields.push({
                   label: "Collaborators",
-                  value: <PersonAvatars people={taskData.collaborators || []} />,
+                  value: <PersonAvatars people={taskData.collaborators || []} type="collaborator" />,
                 } as any);
                 break;
             }
