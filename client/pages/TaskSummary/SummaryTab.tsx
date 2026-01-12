@@ -109,6 +109,9 @@ export default function SummaryTab({
           dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
           createdBy={{
             name: "Julia LoSchiavo",
+            email: "julia.loschiavo@company.com",
+            phone: "(555) 123-4567",
+            title: "Project Manager",
             property: currentProperty && currentProperty !== "Unassigned"
               ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
               : "Unassigned",
