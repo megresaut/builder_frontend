@@ -332,7 +332,7 @@ export default function WorkOrderDetailsV2({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize">
+                  <div className="flex items-center gap-1 text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize flex-shrink-0 whitespace-nowrap">
                     <span className="text-[#717179]">Created</span>
                     <span className="text-[#717179]">11/12/2025 9:22 PM</span>
                   </div>
