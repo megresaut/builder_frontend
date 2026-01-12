@@ -18,6 +18,9 @@ interface TaskOverviewCardProps {
   createdBy?: {
     name: string;
     property?: string;
+    email?: string;
+    phone?: string;
+    title?: string;
   };
   createdDate?: string;
   onEdit?: () => void;
