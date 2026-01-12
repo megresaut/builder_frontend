@@ -41,6 +41,8 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   stats,
   createdBy,
   createdDate,
+  assignedTo,
+  collaborators,
   onEdit,
 }) => {
   return (
