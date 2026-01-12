@@ -412,90 +412,92 @@ export default function TaskSummary() {
                 />
 
                 {/* Assignees Card */}
-                <PeopleCard
-                  title="Assignees"
-                  tabs={["Staff", "Vendors", "Field Team"]}
-                  defaultTab={0}
-                  headerActions={
-                    <SectionActionTemplate
-                      icon={<EditIcon width={14} height={14} />}
-                      label="Edit"
-                      onClick={() => setIsEditTaskModalOpen(true)}
-                    />
-                  }
-                  subsections={[
-                    {
-                      label: "Assigned to",
-                      mode: "rows",
-                      people: [
-                        {
-                          id: 1,
-                          name: "Julia LoSchiavo",
-                          initials: "JL",
-                          roleLabel: "Staff member",
-                          phone: "(203) 927-1280",
-                          type: "staff",
-                        },
-                        {
-                          id: 6,
-                          name: "ABC Plumbing",
-                          initials: "AP",
-                          roleLabel: "Vendor",
-                          phone: "(203) 555-0101",
-                          type: "vendor",
-                        },
-                        {
-                          id: 7,
-                          name: "Michael Thompson",
-                          initials: "MT",
-                          roleLabel: "Field Manager",
-                          phone: "(203) 555-0202",
-                          type: "fieldManager",
-                        },
-                      ],
-                      showRoleLabel: true,
-                      showPhone: true,
-                      showDivider: true,
-                      tabIndex: [0, 1, 2],
-                      hideHeaderOnTab: 1,
-                    },
-                    {
-                      label: "Collaborators",
-                      mode: "rows",
-                      people: [
-                        {
-                          id: 2,
-                          name: "Chris Henry",
-                          initials: "CH",
-                          type: "staff",
-                          roleLabel: "Staff member",
-                          phone: "(203) 555-0303",
-                        },
-                        {
-                          id: 3,
-                          name: "Connor Smith",
-                          initials: "CS",
-                          type: "staff",
-                          roleLabel: "Staff member",
-                          phone: "(203) 555-0404",
-                        },
-                        {
-                          id: 8,
-                          name: "Sarah Martinez",
-                          initials: "SM",
-                          type: "fieldManager",
-                          roleLabel: "Field Manager",
-                          phone: "(203) 555-0505",
-                        },
-                      ],
-                      showRoleLabel: true,
-                      showPhone: true,
-                      showDivider: true,
-                      density: "default",
-                      tabIndex: [0, 2],
-                    },
-                  ]}
-                />
+                {!isNewTask && (
+                  <PeopleCard
+                    title="Assignees"
+                    tabs={["Staff", "Vendors", "Field Team"]}
+                    defaultTab={0}
+                    headerActions={
+                      <SectionActionTemplate
+                        icon={<EditIcon width={14} height={14} />}
+                        label="Edit"
+                        onClick={() => setIsEditTaskModalOpen(true)}
+                      />
+                    }
+                    subsections={[
+                      {
+                        label: "Assigned to",
+                        mode: "rows",
+                        people: [
+                          {
+                            id: 1,
+                            name: "Julia LoSchiavo",
+                            initials: "JL",
+                            roleLabel: "Staff member",
+                            phone: "(203) 927-1280",
+                            type: "staff",
+                          },
+                          {
+                            id: 6,
+                            name: "ABC Plumbing",
+                            initials: "AP",
+                            roleLabel: "Vendor",
+                            phone: "(203) 555-0101",
+                            type: "vendor",
+                          },
+                          {
+                            id: 7,
+                            name: "Michael Thompson",
+                            initials: "MT",
+                            roleLabel: "Field Manager",
+                            phone: "(203) 555-0202",
+                            type: "fieldManager",
+                          },
+                        ],
+                        showRoleLabel: true,
+                        showPhone: true,
+                        showDivider: true,
+                        tabIndex: [0, 1, 2],
+                        hideHeaderOnTab: 1,
+                      },
+                      {
+                        label: "Collaborators",
+                        mode: "rows",
+                        people: [
+                          {
+                            id: 2,
+                            name: "Chris Henry",
+                            initials: "CH",
+                            type: "staff",
+                            roleLabel: "Staff member",
+                            phone: "(203) 555-0303",
+                          },
+                          {
+                            id: 3,
+                            name: "Connor Smith",
+                            initials: "CS",
+                            type: "staff",
+                            roleLabel: "Staff member",
+                            phone: "(203) 555-0404",
+                          },
+                          {
+                            id: 8,
+                            name: "Sarah Martinez",
+                            initials: "SM",
+                            type: "fieldManager",
+                            roleLabel: "Field Manager",
+                            phone: "(203) 555-0505",
+                          },
+                        ],
+                        showRoleLabel: true,
+                        showPhone: true,
+                        showDivider: true,
+                        density: "default",
+                        tabIndex: [0, 2],
+                      },
+                    ]}
+                  />
+                )}
 
                 {/* Contacts Card */}
                 <PeopleCard
