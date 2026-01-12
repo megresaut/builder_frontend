@@ -91,6 +91,38 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
     setFileCategory("");
     setFileDescription("");
     setValidateFileForm(false);
+    setIsRenamingFile(false);
+    setRenamingFileName("");
+  };
+
+  const handleStartRenaming = () => {
+    if (viewingFile) {
+      setRenamingFileName(viewingFile.name);
+      setIsRenamingFile(true);
+    }
+  };
+
+  const handleSaveFileName = () => {
+    if (viewingFile && renamingFileName.trim()) {
+      setUploadedFiles(
+        uploadedFiles.map((f) =>
+          f.id === viewingFile.id
+            ? { ...f, name: renamingFileName.trim() }
+            : f,
+        ),
+      );
+      setViewingFile({
+        ...viewingFile,
+        name: renamingFileName.trim(),
+      });
+      setIsRenamingFile(false);
+      setRenamingFileName("");
+    }
+  };
+
+  const handleCancelRenaming = () => {
+    setIsRenamingFile(false);
+    setRenamingFileName("");
   };
 
   return (
