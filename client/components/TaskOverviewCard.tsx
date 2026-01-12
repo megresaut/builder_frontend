@@ -5,6 +5,7 @@ import SectionCard from "@/components/SectionCard";
 interface TaskOverviewCardProps {
   category?: string;
   description?: string;
+  dueDate?: string;
   stats?: {
     label: string;
     value: string;
@@ -26,6 +27,7 @@ interface TaskOverviewCardProps {
 export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   category,
   description,
+  dueDate,
   stats,
   createdBy,
   createdDate,
@@ -67,13 +69,21 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
         </div>
       )}
 
-      {/* Category */}
-      {category && (
-        <div className="flex flex-col mt-5 w-full items-start text-sm text-[#717179]">
-          <div className="flex items-center gap-1">
-            <span className="font-semibold">Category:</span>
-            <span className="font-medium">{category}</span>
-          </div>
+      {/* Category & Due Date */}
+      {(category || dueDate) && (
+        <div className="flex flex-wrap mt-5 w-full items-start text-sm text-[#717179] gap-y-2">
+          {category && (
+            <div className="flex items-center gap-1 min-w-[200px]">
+              <span className="font-semibold">Category:</span>
+              <span className="font-medium">{category}</span>
+            </div>
+          )}
+          {dueDate && (
+            <div className="flex items-center gap-1">
+              <span className="font-semibold">Due Date:</span>
+              <span className="font-medium">{dueDate}</span>
+            </div>
+          )}
         </div>
       )}
 
