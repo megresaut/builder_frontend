@@ -5,6 +5,9 @@ export interface PersonAvatarsPerson {
   name: string;
   initials: string;
   label?: string;
+  email?: string;
+  phone?: string;
+  title?: string;
 }
 
 interface PersonAvatarsProps {
