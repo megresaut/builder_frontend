@@ -690,14 +690,25 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
             setEditingOrder(null);
           }
         }}
-        editData={
+        editingFTO={
           editingOrder
             ? {
-                dueDate: editingOrder.dueDate,
-                priority: "Normal",
-                timesheetStatus: editingOrder.status,
+                id: editingOrder.id,
+                name: editingOrder.description,
+                description: editingOrder.description,
+                priority: editingOrder.priority,
+                status: editingOrder.status === "pending-approval"
+                  ? "new"
+                  : editingOrder.status === "approved"
+                    ? "completed"
+                    : "dispatched",
+                due_date: editingOrder.dueDateISO || editingOrder.dueDate,
+                property_id: editingOrder.propertyId || 1,
+                task_id: editingOrder.taskId,
+                field_team_member_ids: editingOrder.fieldTeamMemberIds || [],
+                pm_assignee_ids: editingOrder.pmAssigneeIds || [],
               }
-            : undefined
+            : null
         }
         onFTOCreated={(ftoData) => {
           const newId = Math.max(...orders.map((o) => o.id), 0) + 1;
