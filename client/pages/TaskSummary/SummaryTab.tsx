@@ -271,6 +271,7 @@ export default function SummaryTab({
                   roleLabel: vendor.title || "Vendor Company",
                   phone: vendor.phone || "",
                   type: "vendor",
+                  href: getVendorHref(vendor.name),
                 })),
                 showRoleLabel: true,
                 showPhone: true,
