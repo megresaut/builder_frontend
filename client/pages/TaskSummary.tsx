@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
@@ -30,6 +30,7 @@ import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import { MOCK_TASKS } from "@/data/tasks";
 
 const PersonAvatars = ({ people, fallback = "None" }: { people: any[], fallback?: string }) => {
   if (!people || people.length === 0) return <span className="text-sm text-[#303030] font-medium mt-0.5">{fallback}</span>;
@@ -64,8 +65,15 @@ export default function TaskSummary() {
   }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const navigationState = location.state as any;
   const { setSelectedTab, setTabMetadata, tabMetadata } = useTabContext();
+
+  // Find the task in MOCK_TASKS if navigation state is missing
+  const existingTask = useMemo(() => {
+    return MOCK_TASKS.find((t) => String(t.id) === taskId);
+  }, [taskId]);
+
+  // Use either provided task data or find it from MOCK_TASKS
+  const taskData = navigationState?.taskData || navigationState?.task || existingTask;
 
   // Ref for tracking blob URLs created during task initialization
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
@@ -78,29 +86,28 @@ export default function TaskSummary() {
   );
 
   // Determine if this is a new task
-  const isNewTask = !!(navigationState?.taskData || navigationState?.task);
+  const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
 
   // Track creation timestamp - set once and never change
   const [createdTimestamp] = useState<string>(() => {
     // Use provided creation timestamp or current time
-    return navigationState?.taskData?.createdAt ||
-           navigationState?.task?.createdAt ||
+    return taskData?.createdAt ||
+           taskData?.updated ||
            new Date().toLocaleString();
   });
 
   // Mock state for notes, files, and updates
-  const [notes, setNotes] = useState<Note[]>(isNewTask ? [] : [
+  const [notes, setNotes] = useState<Note[]>(taskData?.notes || (isNewTask ? [] : [
     {
       id: 1,
       text: "Initial task setup completed",
       date: "11/12/2025 9:22 PM",
       author: "Julia LoSchiavo",
     },
-  ]);
+  ]));
 
   const [files, setFiles] = useState<File[]>(() => {
-    const taskData = navigationState?.taskData || navigationState?.task;
-    if (isNewTask && taskData?.files) {
+    if (taskData?.files) {
       return taskData.files.map((f: any, idx: number) => ({
         id: String(f.id || `${f.name}-${idx}`),
         name: f.name,
@@ -152,21 +159,23 @@ export default function TaskSummary() {
   };
 
   const getInitialUpdate = () => {
-    const taskData = navigationState?.taskData || navigationState?.task;
     const statusMap: { [key: string]: string } = {
       "not_started": "Not Started",
       "in_progress": "In Progress",
       "completed": "Completed",
+      "Not Started": "Not Started",
+      "In Progress": "In Progress",
+      "Completed": "Completed",
     };
     const priorityLabel = taskData?.priority
       ? (typeof taskData.priority === 'string'
           ? taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)
           : taskData.priority)
       : "Normal";
-    const dueDate = taskData?.dueDate
+    const dueDate = taskData?.dueDate || taskData?.due
       ? (taskData.dueDate instanceof Date
           ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : taskData.dueDate)
+          : (taskData.dueDate || taskData.due))
       : "No due date";
     const fields = [
       { label: "Status", value: statusMap[taskData?.status] || taskData?.status || "Not Started" },
@@ -213,10 +222,8 @@ export default function TaskSummary() {
 
   // Initialize updates based on whether this is a newly created task
   const getInitialUpdates = () => {
-    const isNewTask = !!(navigationState?.taskData || navigationState?.task);
-
-    if (isNewTask) {
-      // For newly created tasks, start with just the creation update
+    if (isNewTask || existingTask) {
+      // For newly created or existing MOCK tasks, start with just the creation update
       return [getInitialUpdate()];
     }
 
@@ -259,33 +266,36 @@ export default function TaskSummary() {
   };
 
   const [updates, setUpdates] = useState<any[]>(getInitialUpdates());
-  const [currentProperty, setCurrentProperty] = useState<string>(navigationState?.taskData?.property || navigationState?.task?.property || "");
-  const [currentUnit, setCurrentUnit] = useState<string>(navigationState?.taskData?.unit || navigationState?.task?.unit || "");
-  const [currentTitle, setCurrentTitle] = useState<string>(navigationState?.taskData?.title || navigationState?.task?.title || "Edgerton - Quote");
-  const [currentDescription, setCurrentDescription] = useState<string>(navigationState?.taskData?.description || (isNewTask ? "" : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."));
-  const [currentCategory, setCurrentCategory] = useState<string>(navigationState?.taskData?.category || navigationState?.task?.category || "Uncategorized");
-  const [currentStatus, setCurrentStatus] = useState<string>(navigationState?.taskData?.status || navigationState?.task?.status || (isNewTask ? "not_started" : "not_started"));
-  const [currentPriority, setCurrentPriority] = useState<string>(navigationState?.taskData?.priority || navigationState?.task?.priority?.toLowerCase() || (isNewTask ? "normal" : "normal"));
+  const [currentProperty, setCurrentProperty] = useState<string>(taskData?.property || "");
+  const [currentUnit, setCurrentUnit] = useState<string>(taskData?.unit || "");
+  const [currentTitle, setCurrentTitle] = useState<string>(taskData?.title || "Edgerton - Quote");
+  const [currentDescription, setCurrentDescription] = useState<string>(taskData?.description || (isNewTask ? "" : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."));
+  const [currentCategory, setCurrentCategory] = useState<string>(taskData?.category || "Uncategorized");
+  const [currentStatus, setCurrentStatus] = useState<string>(() => {
+    const status = taskData?.status || "not_started";
+    if (status === "Completed") return "completed";
+    if (status === "In Progress") return "in_progress";
+    if (status === "Not Started") return "not_started";
+    return status.toLowerCase().replace(" ", "_");
+  });
+  const [currentPriority, setCurrentPriority] = useState<string>(() => {
+    const priority = taskData?.priority || "normal";
+    return priority.toLowerCase();
+  });
   const [currentDueDate, setCurrentDueDate] = useState<Date | null>(() => {
-    const rawDueDate = navigationState?.taskData?.dueDate || navigationState?.task?.dueDate;
+    const rawDueDate = taskData?.dueDate || taskData?.due;
     if (rawDueDate) {
       const date = new Date(rawDueDate);
-      return isNaN(date.getTime()) ? null : date;
-    }
-    if (navigationState?.task?.due && navigationState.task.due !== "No Due Date") {
-      const date = new Date(navigationState.task.due);
       return isNaN(date.getTime()) ? null : date;
     }
     return isNewTask ? null : new Date(2025, 9, 15); // Oct 15, 2025
   });
   const [currentAssignees, setCurrentAssignees] = useState<any[]>(() => {
-    if (navigationState?.taskData?.assignees) return navigationState.taskData.assignees;
-    if (navigationState?.task?.assignees) return navigationState.task.assignees;
+    if (taskData?.assignees) return taskData.assignees;
     return isNewTask ? [] : [{ id: 1, name: "Julia LoSchiavo", initials: "JL" }];
   });
   const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(() => {
-    if (navigationState?.taskData?.collaborators) return navigationState.taskData.collaborators;
-    if (navigationState?.task?.collaborators) return navigationState.task.collaborators;
+    if (taskData?.collaborators) return taskData.collaborators;
     return isNewTask ? [] : [
       { id: 2, name: "Chris Henry", initials: "CH" },
       { id: 3, name: "Connor Smith", initials: "CS" },
