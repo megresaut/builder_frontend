@@ -135,7 +135,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
               <div className="flex items-center gap-2.5 flex-1 min-w-[240px]">
                 <div
                   className={cn(
-                    "flex items-center justify-center flex-shrink-0 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold leading-[0.8]",
+                    `flex items-center justify-center flex-shrink-0 bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8]`,
                     {
                       "w-10 h-10 text-xl": density === "default",
                       "w-8 h-8 text-sm": density === "compact",
