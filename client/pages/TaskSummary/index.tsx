@@ -809,6 +809,9 @@ export default function TaskSummary() {
     return found || null;
   }, [workOrderId, uiState.selectedWorkOrderId, workOrders]);
 
+  // Determine if we are trying to view a work order but it's not found yet (loading state)
+  const isLoadingWorkOrder = !!workOrderId && !selectedWorkOrder;
+
   // Work order state
   const [workOrderStatus, setWorkOrderStatus] = useState<string>(() => {
     if (!selectedWorkOrder) return "in_progress";
@@ -960,6 +963,10 @@ export default function TaskSummary() {
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
               />
+            ) : isLoadingWorkOrder ? (
+               <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
+                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+               </div>
             ) : (
               <TaskWorkOrders
                 workOrders={workOrders}
