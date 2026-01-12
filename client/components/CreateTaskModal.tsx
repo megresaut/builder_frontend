@@ -351,6 +351,14 @@ export default function CreateTaskModal({
     }
   }, [open]);
 
+  // For Update variant: always keep message and attachments empty
+  useEffect(() => {
+    if (open && variant === "withMessageAndAttachments") {
+      setMessage("");
+      fileUpload.reset();
+    }
+  }, [open, variant, fileUpload]);
+
   // Initialize form when modal opens and set initial state for change detection
   useEffect(() => {
     if (open) {
