@@ -1225,12 +1225,10 @@ export default function TaskSummary() {
 
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
-            initials: "YOU",
             author: "You",
-            action: taskData.message || "updated the task",
-            actionValue: null,
+            action: "updated the task",
             timestamp: new Date().toLocaleString(),
-            details: details.length > 0 ? <div className="flex flex-col gap-2">{details}</div> : null,
+            fieldsDisplay: details.length > 0 ? <div className="flex flex-col gap-2">{details}</div> : null,
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
