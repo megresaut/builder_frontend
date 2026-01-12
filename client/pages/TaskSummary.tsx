@@ -76,8 +76,8 @@ export default function TaskSummary() {
   const [files, setFiles] = useState<File[]>(() => {
     const taskData = navigationState?.taskData || navigationState?.task;
     if (isNewTask && taskData?.files) {
-      return taskData.files.map((f: any, idx: number) => ({
-        id: idx + 1,
+      return taskData.files.map((f: any) => ({
+        id: String(f.id || f.name), // Sync ID logic with getAttachmentData
         name: f.name,
         url: f.url,
         uploadedAt: new Date().toLocaleString(),
