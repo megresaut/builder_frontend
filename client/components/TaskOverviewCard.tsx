@@ -80,9 +80,21 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
         </div>
       )}
 
-      {/* Category & Due Date */}
-      {(category || dueDate) && (
+      {/* Status, Priority, Category & Due Date */}
+      {(status || priority || category || dueDate) && (
         <div className="flex flex-wrap mt-5 w-full items-start text-sm text-[#717179] gap-y-2">
+          {status && (
+            <div className="flex items-center gap-1 min-w-[200px]">
+              <span className="font-semibold">Status:</span>
+              <span className="font-medium">{status}</span>
+            </div>
+          )}
+          {priority && (
+            <div className="flex items-center gap-1 min-w-[200px]">
+              <span className="font-semibold">Priority:</span>
+              <span className="font-medium">{priority}</span>
+            </div>
+          )}
           {category && (
             <div className="flex items-center gap-1 min-w-[200px]">
               <span className="font-semibold">Category:</span>
