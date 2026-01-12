@@ -62,6 +62,39 @@ export default function TaskSummary() {
 
   const [updates, setUpdates] = useState<any[]>([
     {
+      id: 0,
+      author: "Julia LoSchiavo",
+      action: "created this task",
+      timestamp: "11/12/2025 9:22 PM",
+      fieldsDisplay: (
+        <div className="grid grid-cols-4 gap-6 mt-3">
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">Not Started</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">Normal</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">Oct 15, 2025</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">Julia LoSchiavo</div>
+          </div>
+        </div>
+      ),
+      details: (
+        <div className="pt-2 border-t border-[#e5e5e5]">
+          <div className="text-sm text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.</div>
+        </div>
+      ),
+      icon: <FlagIcon width={16} height={16} />,
+      isInitialCreation: true,
+    },
+    {
       id: 1,
       initials: "JL",
       author: "Julia LoSchiavo",
