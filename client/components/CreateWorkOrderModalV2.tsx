@@ -329,10 +329,7 @@ export default function CreateWorkOrderModalV2({
               value={formData.task}
               onChange={handleTaskChange}
               placeholder="Select Task"
-              options={TASKS.map((task) => ({
-                value: task,
-                label: task,
-              }))}
+              options={buildTaskOptions(initialData?.task)}
               error={errors.task}
             />
             <button
