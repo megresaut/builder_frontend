@@ -62,9 +62,18 @@ export default function TaskSummary() {
 
   // Sync UI state to navigation
   useEffect(() => {
+    // If we're on the base task path and the state is summary, don't force a redirect
+    // This prevents history loops and allows the back button to work correctly
+    const isBaseTab = uiState.activeTab === "summary" && !uiState.selectedWorkOrderId;
+    if (location.pathname === `/tasks/${taskId}` && isBaseTab) {
+      return;
+    }
+
     const currentPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
     if (location.pathname !== currentPath) {
-      navigate(currentPath, { replace: true });
+      // Use replace for the initial sync to avoid polluting history
+      const isInitialSync = location.pathname === `/tasks/${taskId}`;
+      navigate(currentPath, { replace: isInitialSync });
     }
   }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname]);
 
