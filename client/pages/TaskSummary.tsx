@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
@@ -166,6 +166,23 @@ export default function TaskSummary() {
   };
 
   const [updates, setUpdates] = useState<any[]>(getInitialUpdates());
+
+  const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      createdAttachmentUrlsRef.current.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch {
+            // ignore
+          }
+        }
+      });
+      createdAttachmentUrlsRef.current.clear();
+    };
+  }, []);
 
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
@@ -807,16 +824,34 @@ export default function TaskSummary() {
           }
 
           // Create attachments array with preview support
-          const attachments = ((taskData as any).files && (taskData as any).files.length > 0)
-            ? (taskData as any).files.map((file: any) => {
-                // Generate blob URL if file object exists but url doesn't
-                const fileUrl = file.url || (file.file ? URL.createObjectURL(file.file) : undefined);
-                return {
-                  name: file.name,
-                  url: fileUrl,
-                  preview: (file.type?.includes('image') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? fileUrl : undefined,
-                };
-              })
+          const attachments = Array.isArray((taskData as any).files)
+            ? (taskData as any).files
+                .map((file: any) => {
+                  const fileUrl: string | undefined =
+                    file?.file instanceof File
+                      ? URL.createObjectURL(file.file)
+                      : typeof file?.url === "string"
+                        ? file.url
+                        : undefined;
+
+                  if (fileUrl && fileUrl.startsWith("blob:")) {
+                    createdAttachmentUrlsRef.current.add(fileUrl);
+                  }
+
+                  const isImage =
+                    typeof file?.type === "string"
+                      ? file.type.startsWith("image/")
+                      : typeof file?.name === "string"
+                        ? /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+                        : false;
+
+                  return {
+                    name: file.name,
+                    url: fileUrl,
+                    preview: isImage ? fileUrl : undefined,
+                  };
+                })
+                .filter((file: any) => typeof file?.url === "string" && file.url)
             : undefined;
 
           const newUpdate = {
