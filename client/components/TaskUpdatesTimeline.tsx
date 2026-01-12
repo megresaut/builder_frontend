@@ -191,6 +191,9 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                             {
                               name: update.author,
                               initials: update.initials || update.author.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2),
+                              email: update.authorEmail,
+                              phone: update.authorPhone,
+                              title: update.authorTitle,
                             },
                           ]}
                           type={update.authorType || "assignee"}
