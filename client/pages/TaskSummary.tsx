@@ -61,15 +61,28 @@ export default function TaskSummary() {
     },
   ]);
 
-  const [files, setFiles] = useState<File[]>(isNewTask ? [] : [
-    {
-      id: 1,
-      name: "Lorem Ipsum.PDF",
-      uploadedAt: "11/12/2025 9:22 PM",
-      category: "PDF",
-      url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
-    },
-  ]);
+  const [files, setFiles] = useState<File[]>(() => {
+    const taskData = navigationState?.taskData || navigationState?.task;
+    if (isNewTask && taskData?.files) {
+      return taskData.files.map((f: any, idx: number) => ({
+        id: idx + 1,
+        name: f.name,
+        url: f.url,
+        uploadedAt: new Date().toLocaleString(),
+        category: "PDF",
+        description: "",
+      }));
+    }
+    return isNewTask ? [] : [
+      {
+        id: 1,
+        name: "Lorem Ipsum.PDF",
+        uploadedAt: "11/12/2025 9:22 PM",
+        category: "PDF",
+        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
+      },
+    ];
+  });
 
   const getInitialUpdate = () => {
     const taskData = navigationState?.taskData || navigationState?.task;
