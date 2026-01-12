@@ -486,6 +486,37 @@ export default function TaskSummary() {
     navigate(`/tasks/${taskId}/workorders`);
   };
 
+  const handleStartRenamingAttachment = () => {
+    if (viewingAttachment) {
+      setRenamingAttachmentName(viewingAttachment.name);
+      setIsRenamingAttachment(true);
+    }
+  };
+
+  const handleSaveAttachmentFileName = () => {
+    const trimmedName = renamingAttachmentName.trim();
+    if (viewingAttachment && viewingAttachment.id && trimmedName) {
+      setFiles((prevFiles) =>
+        prevFiles.map((f) =>
+          f.id.toString() === viewingAttachment.id
+            ? { ...f, name: trimmedName }
+            : f,
+        ),
+      );
+      setViewingAttachment({
+        ...viewingAttachment,
+        name: trimmedName,
+      });
+      setIsRenamingAttachment(false);
+      setRenamingAttachmentName("");
+    }
+  };
+
+  const handleCancelRenamingAttachment = () => {
+    setIsRenamingAttachment(false);
+    setRenamingAttachmentName("");
+  };
+
   // Map property values to addresses
   const getPropertyAddress = (propertyValue: string): string => {
     const propertyMap: Record<string, { name: string; address: string }> = {
