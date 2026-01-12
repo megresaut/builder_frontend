@@ -28,8 +28,8 @@ interface WorkOrder {
   dueDate: string;
   updatedDate: string;
   age: string;
-  priority: "High" | "Low" | "Normal";
-  status: "In progress" | "Completed";
+  priority: string;
+  status: string;
   billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
   billTotal: string;
   assignees: Assignee[];
@@ -742,6 +742,25 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
           if (!open) {
             setEditingWorkOrder(null);
           }
+        }}
+        onDataUpdate={(data) => {
+          const newWorkOrder: WorkOrder = {
+            id: workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1,
+            task: data.workOrderName || data.task || "New Work Order",
+            taskId: parseInt(window.location.pathname.split("/")[2] || "0"),
+            property: data.property || "",
+            unit: data.unit || "",
+            dueDate: data.dueDate ? data.dueDate.toLocaleDateString() : "No due date",
+            updatedDate: new Date().toLocaleDateString(),
+            age: "Just now",
+            priority: data.priority || "normal",
+            status: data.status || "not_started",
+            billStatus: "Awaiting Invoice",
+            billTotal: "No invoice",
+            assignees: [],
+            collaborators: [],
+          };
+          onWorkOrdersChange([...workOrders, newWorkOrder]);
         }}
       />
 
