@@ -146,6 +146,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
       </div>
 
       {/* Notifications Section */}
+      {/*
       {notifications.length > 0 && (
         <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden bg-white mb-4">
           <div className="flex items-center gap-2 px-4 py-3 bg-[#f9f9f9] border-b border-[#e5e5e5]">
@@ -182,6 +183,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
           </div>
         </div>
       )}
+      */}
 
       {/* Field Selectors Row */}
       <div className="flex flex-wrap items-end gap-6 w-full mb-2">
