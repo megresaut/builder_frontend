@@ -24,6 +24,7 @@ interface AttachmentUploaderProps {
   placeholder?: string;
   variant?: "default" | "single";
   disableRemove?: boolean;
+  disableInlineRename?: boolean;
 }
 
 /**
