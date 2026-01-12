@@ -690,7 +690,12 @@ export default function TaskSummary() {
       {viewingAttachment && (
         <PdfViewerModal
           open={isPdfViewerOpen}
-          onOpenChange={setIsPdfViewerOpen}
+          onOpenChange={(open) => {
+            setIsPdfViewerOpen(open);
+            if (!open) {
+              setViewingAttachment(null);
+            }
+          }}
           title={viewingAttachment.name}
           url={viewingAttachment.url}
         />
