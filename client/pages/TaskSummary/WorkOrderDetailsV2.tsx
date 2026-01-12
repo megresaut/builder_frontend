@@ -378,47 +378,51 @@ export default function WorkOrderDetailsV2({
           />
 
           {/* Assignees Card */}
-          <PeopleCard
-            title="Assignees"
-            variant="default"
-            tabs={["Staff", "Vendors", "Field Team"]}
-            defaultTab={0}
-            footerActions={[]}
-            subsections={[
-              {
-                label: "Assigned to",
-                mode: "rows",
-                people: [
-                  {
-                    id: 1,
-                    name: "Julia LoSchiavo",
-                    initials: "JL",
+          {(currentAssignees.length > 0 || currentCollaborators.length > 0) && (
+            <PeopleCard
+              title="Assignees"
+              variant="default"
+              tabs={["Staff", "Vendors", "Field Team"]}
+              defaultTab={0}
+              footerActions={[]}
+              subsections={[
+                {
+                  label: "Assigned to",
+                  mode: "rows",
+                  people: currentAssignees.map((assignee) => ({
+                    id: assignee.id,
+                    name: assignee.name || assignee.label,
+                    initials: assignee.initials,
                     roleLabel: "Property manager",
-                    phone: "(203) 927-1280",
-                    type: "staff"
-                  }
-                ],
-                showRoleLabel: true,
-                showPhone: true,
-                showDivider: true,
-                tabIndex: 0,
-                type: "assignee"
-              },
-              {
-                label: "Collaborators",
-                mode: "rows",
-                people: [
-                  { id: 2, name: "Chris Henry", initials: "CH", roleLabel: "Property manager", phone: "", type: "staff" },
-                  { id: 3, name: "Connor Smith", initials: "CS", roleLabel: "Property manager", phone: "", type: "staff" },
-                ],
-                showRoleLabel: true,
-                showPhone: false,
-                showDivider: true,
-                tabIndex: 0,
-                type: "collaborator"
-              }
-            ]}
-          />
+                    phone: "",
+                    type: "staff",
+                  })),
+                  showRoleLabel: true,
+                  showPhone: false,
+                  showDivider: true,
+                  tabIndex: 0,
+                  type: "assignee"
+                },
+                {
+                  label: "Collaborators",
+                  mode: "rows",
+                  people: currentCollaborators.map((collaborator) => ({
+                    id: collaborator.id,
+                    name: collaborator.name || collaborator.label,
+                    initials: collaborator.initials,
+                    roleLabel: "Property manager",
+                    phone: "",
+                    type: "staff",
+                  })),
+                  showRoleLabel: true,
+                  showPhone: false,
+                  showDivider: true,
+                  tabIndex: 0,
+                  type: "collaborator"
+                }
+              ]}
+            />
+          )}
 
           {/* Created By Card */}
           <PeopleCard
