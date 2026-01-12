@@ -610,7 +610,7 @@ export default function WorkOrderDetailsV2({
           status: workOrder.status,
           priority: workOrder.priority,
           dueDate: workOrder.dueDate ? new Date(workOrder.dueDate) : null,
-          notes: workOrder.description || "",
+          notes: "",
           files: [],
         }}
         onDataUpdate={handleWorkOrderUpdate}
