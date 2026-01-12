@@ -101,6 +101,7 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   placeholder = "Drag and drop files here, or click to browse",
   variant = "default",
   disableRemove = false,
+  disableInlineRename = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
