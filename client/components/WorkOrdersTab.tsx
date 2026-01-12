@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import WorkOrderDetail from "@/pages/WorkOrderDetail";
 import CreateWorkOrderModalV2 from "./CreateWorkOrderModalV2";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "./ColumnFilterModal";
@@ -299,7 +298,6 @@ export default function WorkOrdersTab({
           <ChevronLeft className="w-4 h-4" />
           Back to Work Orders
         </button>
-        <WorkOrderDetail />
       </div>
     );
   }
@@ -533,7 +531,7 @@ export default function WorkOrdersTab({
             onClick: handleDeleteWorkOrder,
           },
         ]}
-        onRowClick={(workOrder) => handleSelectWorkOrder(workOrder.id)}
+        onRowClick={(workOrder) => handleEditWorkOrder(workOrder)}
         showColumnModal={showColumnModal}
         onShowColumnModalChange={setShowColumnModal}
       />
