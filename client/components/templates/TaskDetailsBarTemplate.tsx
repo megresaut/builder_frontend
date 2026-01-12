@@ -11,7 +11,6 @@ interface TaskDetailsBarTemplateProps {
   onStatusChange: (newStatus: string) => void;
   onPriorityChange: (newPriority: string) => void;
   onDueDateChange: (newDate: Date | string | null) => void;
-  variant?: "white" | "gray";
 }
 
 export const TaskDetailsBarTemplate: React.FC<TaskDetailsBarTemplateProps> = ({
@@ -22,12 +21,9 @@ export const TaskDetailsBarTemplate: React.FC<TaskDetailsBarTemplateProps> = ({
   onStatusChange,
   onPriorityChange,
   onDueDateChange,
-  variant = "white",
 }) => {
-  const bgClass = variant === "gray" ? "bg-[#f5f5f5]" : "bg-white";
-
   return (
-    <div className={`flex flex-wrap items-end gap-6 w-full mb-2 p-6 rounded-lg ${bgClass}`}>
+    <div className="flex flex-wrap items-end gap-6 w-full p-6">
       <div className="flex-1 min-w-[180px]">
         <StatusSelectField
           label="Status"
