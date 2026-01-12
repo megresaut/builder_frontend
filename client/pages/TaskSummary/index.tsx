@@ -77,7 +77,7 @@ export default function TaskSummary() {
     if (urlId !== uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
-  }, [tab, workOrderId, uiDispatch]);
+  }, [tab, workOrderId, uiDispatch, uiState.activeTab, uiState.selectedWorkOrderId]);
 
   // Sync UI state to navigation
   useEffect(() => {
