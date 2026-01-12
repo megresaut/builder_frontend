@@ -242,6 +242,15 @@ export default function WorkOrderDetailsV2({
   return (
     <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
 
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(`/tasks/${taskId}/workorders`)}
+        className="flex items-center gap-2 text-[#2463eb] font-medium text-sm hover:opacity-80 transition-opacity w-fit"
+      >
+        <ArrowLeft width={16} height={16} />
+        Back to Work Orders
+      </button>
+
       {/* Field Selectors Row */}
       <div className="flex flex-wrap items-end gap-6 w-full mb-2">
         <div className="flex-1 min-w-[180px]">
