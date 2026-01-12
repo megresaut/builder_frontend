@@ -229,22 +229,22 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
 
           {/* Totals Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            <SectionCard variant="white">
-              <div className="text-xs font-bold text-[#717179] uppercase tracking-widest mb-1.5">
+            <div className="flex flex-col justify-center items-start gap-1 flex-1 rounded-lg border border-[#DADADA] bg-[#F9F9F9] p-4">
+              <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
                 ESTIMATE TOTAL
               </div>
-              <div className="text-[32px] font-bold text-[#303030] tracking-tight">
+              <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
                 $1,450.50
               </div>
-            </SectionCard>
-            <SectionCard variant="white">
-              <div className="text-xs font-bold text-[#717179] uppercase tracking-widest mb-1.5">
+            </div>
+            <div className="flex flex-col justify-center items-start gap-1 flex-1 rounded-lg border border-[#DADADA] bg-[#F9F9F9] p-4">
+              <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
                 WORK ORDER TOTAL
               </div>
-              <div className="text-[32px] font-bold text-[#303030] tracking-tight">
+              <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
                 $1,350.00
               </div>
-            </SectionCard>
+            </div>
           </div>
 
           {/* Notes Section */}
