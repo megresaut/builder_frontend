@@ -579,6 +579,7 @@ export default function TaskSummary() {
 
   // Work orders and field team orders state
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+  const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] = useState(false);
 
   // Mock field team orders data
   const mockFieldTeamOrders = [
