@@ -65,6 +65,13 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
         )
       }
     >
+      {/* Last Updated Info */}
+      {createdDate && (
+        <div className="text-xs text-[#717179] font-medium">
+          Last Updated <span className="text-[#303030] font-bold">{createdDate}</span>
+        </div>
+      )}
+
       {/* Created By Info */}
       {createdBy && (
         <div className="mt-2 text-sm text-[#717179] font-medium flex items-center gap-2">
