@@ -83,38 +83,6 @@ export default function TaskSummary() {
       action: "updated status to ✓ Completed for Work Order #1024431",
       timestamp: "11/12/2025 9:22 PM",
     },
-    {
-      id: 4,
-      initials: "JL",
-      author: "Julia LoSchiavo",
-      action: "created this task",
-      timestamp: "11/12/2025 9:22 PM",
-      fieldsDisplay: (
-        <div className="grid grid-cols-4 gap-6 mt-3">
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Not Started</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Normal</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Oct 15, 2025</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-            <div className="flex items-center gap-1 mt-0.5">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#F0E8E0] text-[#717179] text-xs font-medium">
-                JL
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
-      icon: <FlagIcon width={16} height={16} />,
-    },
   ]);
 
   // Modal states
