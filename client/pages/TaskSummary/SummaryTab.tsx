@@ -70,6 +70,7 @@ export default function SummaryTab({
   linkedTasks,
   currentAssignees,
   currentCollaborators,
+  vendorsFromWorkOrders,
   isNewTask,
   taskData,
   onEditTaskDetails,
