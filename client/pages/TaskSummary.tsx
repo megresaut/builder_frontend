@@ -166,6 +166,8 @@ export default function TaskSummary() {
   };
 
   const [updates, setUpdates] = useState<any[]>(getInitialUpdates());
+  const [currentProperty, setCurrentProperty] = useState<string>(navigationState?.taskData?.property || navigationState?.task?.property || "");
+  const [currentUnit, setCurrentUnit] = useState<string>(navigationState?.taskData?.unit || navigationState?.task?.unit || "");
 
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
 
@@ -746,6 +748,14 @@ export default function TaskSummary() {
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
         onTaskCreated={(taskData: any) => {
+          // Update property and unit if they changed
+          if (taskData.property) {
+            setCurrentProperty(taskData.property);
+          }
+          if (taskData.unit) {
+            setCurrentUnit(taskData.unit);
+          }
+
           // Check if this is a new task creation (compact variant) or an update
           const isTaskUpdate = (taskData as any).message !== undefined;
 
