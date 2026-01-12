@@ -13,7 +13,7 @@ import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
-import TaskSummary from "./pages/TaskSummary";
+import TaskSummary from "./pages/TaskSummary/index";
 import RecurringTasks from "./pages/RecurringTasks";
 import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
