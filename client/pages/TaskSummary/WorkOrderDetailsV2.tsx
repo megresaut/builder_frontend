@@ -9,7 +9,7 @@ import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
 import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
-import DateField from "@/components/forms/DateField";
+import { DateField } from "@/components/forms/DateField";
 import { cn } from "@/lib/utils";
 import { AddNoteModal, AddFileModal } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
