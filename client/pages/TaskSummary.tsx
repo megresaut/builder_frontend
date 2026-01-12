@@ -602,47 +602,10 @@ export default function TaskSummary() {
           // Create a new update from the task data
           const details: React.ReactNode[] = [];
 
-          // Add status and priority as badges
-          if (taskData.status || taskData.priority) {
-            const statusMap: { [key: string]: string } = {
-              not_started: "New",
-              in_progress: "In Progress",
-              completed: "Completed",
-            };
-            const priorityMap: { [key: string]: string } = {
-              low: "Low",
-              normal: "Normal",
-              high: "High",
-            };
-
-            details.push(
-              <div key="badges" className="flex gap-4 mb-3">
-                {taskData.status && (
-                  <div>
-                    <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Status</div>
-                    <div className="inline-flex items-center px-2 py-1 bg-yellow-50 border border-yellow-200 rounded text-xs font-medium text-yellow-900">
-                      {statusMap[taskData.status] || taskData.status}
-                    </div>
-                  </div>
-                )}
-                {taskData.priority && (
-                  <div>
-                    <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Priority</div>
-                    <div className="flex items-center gap-1 text-xs font-medium text-[#303030]">
-                      <span className="inline-block w-2 h-2 bg-amber-500 rounded-full"></span>
-                      {priorityMap[taskData.priority] || taskData.priority}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          }
-
           // Add message body if provided
           if ((taskData as any).messageBody) {
             details.push(
               <div key="message" className="mb-3">
-                <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Message</div>
                 <div className="text-sm text-[#303030]">{(taskData as any).messageBody}</div>
               </div>
             );
@@ -652,11 +615,14 @@ export default function TaskSummary() {
           if ((taskData as any).files && (taskData as any).files.length > 0) {
             details.push(
               <div key="attachments">
-                <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Attachments</div>
                 <div className="flex flex-col gap-1">
                   {(taskData as any).files.map((file: any, idx: number) => (
-                    <div key={idx} className="text-xs text-[#303030]">
-                      📎 {file.name}
+                    <div key={idx} className="text-xs text-[#303030] flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 2H10L14 6V14C14 14.5304 13.7893 15.0391 13.4142 15.4142C13.0391 15.7893 12.5304 16 12 16H4C3.46957 16 2.96086 15.7893 2.58579 15.4142C2.21071 15.0391 2 14.5304 2 14V2Z" stroke="#525252" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 2V6H14" stroke="#525252" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      {file.name}
                     </div>
                   ))}
                 </div>
