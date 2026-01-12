@@ -124,7 +124,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
         <div className="flex flex-col gap-4">
           {/* Composer Row */}
           {onAddUpdate && (
-            <div className="flex items-start gap-3 -ml-14">
+            <div className="flex items-center gap-3 -ml-14">
               {/* Composer Marker */}
               <div className="flex flex-col items-center gap-0 w-14 flex-shrink-0">
                 <button
