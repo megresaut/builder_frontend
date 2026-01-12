@@ -1,6 +1,8 @@
 import React, { ReactNode } from "react";
 import { Edit } from "lucide-react";
 import SectionCard from "@/components/SectionCard";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 
 interface TaskOverviewCardProps {
   category?: string;
@@ -84,15 +86,15 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
       {(status || priority || category || dueDate) && (
         <div className="flex flex-wrap mt-5 w-full items-start text-sm text-[#717179] gap-y-2">
           {status && (
-            <div className="flex items-center gap-1 min-w-[200px]">
+            <div className="flex items-center gap-2 min-w-[200px]">
               <span className="font-semibold">Status:</span>
-              <span className="font-medium">{status}</span>
+              <TaskStatusBadge status={status as any} />
             </div>
           )}
           {priority && (
-            <div className="flex items-center gap-1 min-w-[200px]">
+            <div className="flex items-center gap-2 min-w-[200px]">
               <span className="font-semibold">Priority:</span>
-              <span className="font-medium">{priority}</span>
+              <TaskPriorityBadge priority={priority as any} />
             </div>
           )}
           {category && (
