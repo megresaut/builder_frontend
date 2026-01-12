@@ -235,7 +235,7 @@ export default function CreateWorkOrderModalV2({
               required={REQUIRED_FIELDS.has("task")}
               value={formData.task}
               onChange={handleTaskChange}
-              placeholder="Select Tasks"
+              placeholder="Select Task"
               options={TASKS.map((task) => ({
                 value: task,
                 label: task,
