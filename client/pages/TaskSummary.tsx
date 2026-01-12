@@ -223,13 +223,20 @@ export default function TaskSummary() {
   const [currentProperty, setCurrentProperty] = useState<string>(navigationState?.taskData?.property || navigationState?.task?.property || "");
   const [currentUnit, setCurrentUnit] = useState<string>(navigationState?.taskData?.unit || navigationState?.task?.unit || "");
   const [currentTitle, setCurrentTitle] = useState<string>(navigationState?.taskData?.title || navigationState?.task?.title || "Edgerton - Quote");
+  const [currentDescription, setCurrentDescription] = useState<string>(navigationState?.taskData?.description || (isNewTask ? "" : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."));
   const [currentCategory, setCurrentCategory] = useState<string>(navigationState?.taskData?.category || navigationState?.task?.category || "Uncategorized");
   const [currentStatus, setCurrentStatus] = useState<string>(navigationState?.taskData?.status || navigationState?.task?.status || (isNewTask ? "not_started" : "not_started"));
   const [currentPriority, setCurrentPriority] = useState<string>(navigationState?.taskData?.priority || navigationState?.task?.priority?.toLowerCase() || (isNewTask ? "normal" : "normal"));
   const [currentDueDate, setCurrentDueDate] = useState<Date | null>(() => {
-    if (navigationState?.taskData?.dueDate) return navigationState.taskData.dueDate;
-    if (navigationState?.task?.dueDate) return new Date(navigationState.task.dueDate);
-    if (navigationState?.task?.due && navigationState.task.due !== "No Due Date") return new Date(navigationState.task.due);
+    const rawDueDate = navigationState?.taskData?.dueDate || navigationState?.task?.dueDate;
+    if (rawDueDate) {
+      const date = new Date(rawDueDate);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    if (navigationState?.task?.due && navigationState.task.due !== "No Due Date") {
+      const date = new Date(navigationState.task.due);
+      return isNaN(date.getTime()) ? null : date;
+    }
     return isNewTask ? null : new Date(2025, 9, 15); // Oct 15, 2025
   });
   const [currentAssignees, setCurrentAssignees] = useState<any[]>(() => {
@@ -801,7 +808,7 @@ export default function TaskSummary() {
                 {/* Task Overview Card */}
               <TaskOverviewCard
                 category={currentCategory || "Uncategorized"}
-                description={navigationState?.taskData?.description || (isNewTask ? "" : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.")}
+                description={currentDescription}
                 dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
                 createdBy={{
                   name: "Current User",
@@ -1215,7 +1222,7 @@ export default function TaskSummary() {
         editData={{
           id: parseInt(taskId || "0"),
           title: currentTitle,
-          description: navigationState?.taskData?.description || "",
+          description: currentDescription,
           property: currentProperty,
           unit: currentUnit,
           priority: currentPriority,
@@ -1232,6 +1239,9 @@ export default function TaskSummary() {
           }
           if (taskData.unit) {
             setCurrentUnit(taskData.unit);
+          }
+          if (taskData.description) {
+            setCurrentDescription(taskData.description);
           }
           if (taskData.title) {
             setCurrentTitle(taskData.title);
@@ -1544,12 +1554,14 @@ export default function TaskSummary() {
         onOpenChange={setIsEditTaskDetailsOpen}
         initialData={{
           title: currentTitle,
+          description: currentDescription,
           property: currentProperty,
           unit: currentUnit,
           category: currentCategory,
         }}
         onSubmit={(data: EditTaskDetailsData) => {
           setCurrentTitle(data.title);
+          setCurrentDescription(data.description || "");
           setCurrentProperty(data.property);
           setCurrentUnit(data.unit);
           setCurrentCategory(data.category);
