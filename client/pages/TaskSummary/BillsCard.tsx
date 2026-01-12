@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import SectionCard from "@/components/SectionCard";
 import { Calendar, Clock } from "lucide-react";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { SelectField } from "@/components/forms/SelectField";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
 interface BillItem {
   id: string;
@@ -13,13 +16,78 @@ interface BillItem {
   status: "Paid" | "Unpaid" | "Awaiting Invoice";
 }
 
+interface AvailableBill {
+  id: number;
+  vendor: string;
+  invoiceNumber: string;
+  amount: number;
+  status: "pushed" | "push-failed";
+}
+
 interface BillsCardProps {
   bills: BillItem[];
   workOrderId?: number;
 }
 
+// Mock bills from the Bills page
+const AVAILABLE_BILLS: AvailableBill[] = [
+  {
+    id: 1,
+    vendor: "Elite HVAC",
+    invoiceNumber: "REF-2024-934",
+    amount: 234,
+    status: "pushed",
+  },
+  {
+    id: 2,
+    vendor: "ABC Plumbing",
+    invoiceNumber: "REF-2024-582",
+    amount: 287,
+    status: "push-failed",
+  },
+  {
+    id: 3,
+    vendor: "Elite HVAC",
+    invoiceNumber: "REF-2024-195",
+    amount: 156,
+    status: "pushed",
+  },
+  {
+    id: 4,
+    vendor: "Elite HVAC",
+    invoiceNumber: "REF-2024-732",
+    amount: 234,
+    status: "push-failed",
+  },
+  {
+    id: 5,
+    vendor: "David Smith",
+    invoiceNumber: "REF-2024-445",
+    amount: 420,
+    status: "pushed",
+  },
+  {
+    id: 6,
+    vendor: "Green Lawn Services",
+    invoiceNumber: "REF-2024-556",
+    amount: 95,
+    status: "push-failed",
+  },
+];
+
 export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId }) => {
   const navigate = useNavigate();
+  const [isSelectBillModalOpen, setIsSelectBillModalOpen] = useState(false);
+  const [selectedBillId, setSelectedBillId] = useState<string>("");
+
+  const billOptions = useMemo(
+    () =>
+      AVAILABLE_BILLS.map((bill) => ({
+        value: String(bill.id),
+        label: `${bill.invoiceNumber} - ${bill.vendor} ($${bill.amount})`,
+      })),
+    []
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -42,7 +110,32 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId }) => {
   };
 
   const handleEnterBill = () => {
-    navigate("/bills/record");
+    setIsSelectBillModalOpen(true);
+    setSelectedBillId("");
+  };
+
+  const handleConfirmBill = () => {
+    if (selectedBillId) {
+      const selectedBill = AVAILABLE_BILLS.find(
+        (b) => String(b.id) === selectedBillId
+      );
+      if (selectedBill) {
+        // Create a new bill item and add to the bills list
+        const newBill: BillItem = {
+          id: String(selectedBill.id),
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          invoiceNumber: selectedBill.invoiceNumber,
+          vendorName: selectedBill.vendor,
+          amount: `$${selectedBill.amount}`,
+          status: selectedBill.status === "pushed" ? "Paid" : "Awaiting Invoice",
+        };
+
+        // Update parent component - for now, we'll just close the modal
+        // In a real app, you'd pass a callback to update the parent state
+        setIsSelectBillModalOpen(false);
+      }
+    }
   };
 
   return (
