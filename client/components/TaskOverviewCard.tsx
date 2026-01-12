@@ -95,33 +95,13 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
         </div>
       )}
 
-      {/* Status, Priority, Category & Due Date */}
-      {(status || priority || category || dueDate) && (
+      {/* Category */}
+      {category && (
         <div className="flex flex-wrap mt-5 w-full items-start text-sm text-[#717179] gap-y-2">
-          {status && (
-            <div className="flex items-center gap-2 min-w-[200px]">
-              <span className="font-semibold">Status:</span>
-              <TaskStatusBadge status={status as any} />
-            </div>
-          )}
-          {priority && (
-            <div className="flex items-center gap-2 min-w-[200px]">
-              <span className="font-semibold">Priority:</span>
-              <TaskPriorityBadge priority={priority as any} />
-            </div>
-          )}
-          {category && (
-            <div className="flex items-center gap-1 min-w-[200px]">
-              <span className="font-semibold">Category:</span>
-              <span className="font-medium">{category}</span>
-            </div>
-          )}
-          {dueDate && (
-            <div className="flex items-center gap-1">
-              <span className="font-semibold">Due Date:</span>
-              <span className="font-medium">{dueDate}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1 min-w-[200px]">
+            <span className="font-semibold">Category:</span>
+            <span className="font-medium">{category}</span>
+          </div>
         </div>
       )}
 
