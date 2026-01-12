@@ -17,6 +17,7 @@ import {
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { TASK_CATEGORIES } from "@/constants/taskCategories";
 
 type ModalVariant = "compact" | "withMessageAndAttachments";
 
