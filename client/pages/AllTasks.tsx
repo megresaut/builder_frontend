@@ -545,6 +545,7 @@ export default function AllTasks() {
             setEditingTask(null);
           }
         }}
+        variant="withMessageAndAttachments"
         onTaskCreated={handleTaskCreated}
         editData={memoizedEditData}
       />
