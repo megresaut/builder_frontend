@@ -1050,6 +1050,7 @@ export default function TaskSummary() {
               linkedTasks={uiState.linkedTasks}
               currentAssignees={currentAssignees}
               currentCollaborators={currentCollaborators}
+              vendorsFromWorkOrders={vendorsFromWorkOrders}
               isNewTask={isNewTask}
               taskData={taskData}
               onEditTaskDetails={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
