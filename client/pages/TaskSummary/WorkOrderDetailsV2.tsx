@@ -387,7 +387,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
                     id: 1,
                     name: "Julia LoSchiavo",
                     initials: "JL",
-                    roleLabel: "Staff member",
+                    roleLabel: "Property manager",
                     phone: "(203) 927-1280",
                     type: "staff"
                   }
@@ -396,22 +396,20 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
                 showPhone: true,
                 showDivider: true,
                 tabIndex: 0,
-                actionLabel: "Edit",
-                onAction: () => console.log("Edit assigned to")
+                type: "assignee"
               },
               {
                 label: "Collaborators",
                 mode: "rows",
                 people: [
-                  { id: 2, name: "Chris Henry", initials: "CH", type: "staff" },
-                  { id: 3, name: "Connor Smith", initials: "CS", type: "staff" },
+                  { id: 2, name: "Chris Henry", initials: "CH", roleLabel: "Property manager", phone: "", type: "staff" },
+                  { id: 3, name: "Connor Smith", initials: "CS", roleLabel: "Property manager", phone: "", type: "staff" },
                 ],
-                showRoleLabel: false,
+                showRoleLabel: true,
                 showPhone: false,
-                showDivider: false,
+                showDivider: true,
                 tabIndex: 0,
-                actionLabel: "Edit",
-                onAction: () => console.log("Edit collaborators")
+                type: "collaborator"
               }
             ]}
           />
