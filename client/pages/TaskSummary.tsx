@@ -76,8 +76,8 @@ export default function TaskSummary() {
   const [files, setFiles] = useState<File[]>(() => {
     const taskData = navigationState?.taskData || navigationState?.task;
     if (isNewTask && taskData?.files) {
-      return taskData.files.map((f: any) => ({
-        id: String(f.id || f.name), // Sync ID logic with getAttachmentData
+      return taskData.files.map((f: any, idx: number) => ({
+        id: String(f.id || `${f.name}-${idx}`),
         name: f.name,
         url: f.url,
         uploadedAt: new Date().toLocaleString(),
@@ -96,7 +96,7 @@ export default function TaskSummary() {
     ];
   });
 
-  const getAttachmentData = (file: any) => {
+  const getAttachmentData = (file: any, index?: number) => {
     const fileUrl: string | undefined =
       file?.file instanceof File
         ? URL.createObjectURL(file.file)
@@ -115,11 +115,14 @@ export default function TaskSummary() {
           ? /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
           : false;
 
+    // Ensure ID is stable and unique. Prefer file.id, fallback to name+index for initial files
+    const stableId = file.id || (index !== undefined ? `${file.name}-${index}` : file.name);
+
     return {
       name: file.name,
       url: fileUrl,
       preview: isImage ? fileUrl : undefined,
-      id: String(file.id || file.name),
+      id: String(stableId),
     };
   };
 
@@ -173,7 +176,7 @@ export default function TaskSummary() {
         details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
       }),
       ...(taskData?.files && taskData.files.length > 0 && {
-        attachments: taskData.files.map((f: any) => getAttachmentData(f)),
+        attachments: taskData.files.map((f: any, idx: number) => getAttachmentData(f, idx)),
         onAttachmentClick: (file: any) => {
           setViewingAttachment({ id: file.id, name: file.name, url: file.url });
           setIsPdfViewerOpen(true);
