@@ -850,12 +850,12 @@ export default function TaskSummary() {
         {/* Main Content Area */}
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
           {/* Show TaskWorkOrders component when work orders tab is active */}
-          {activeTab === "workorders" && (
+          {uiState.activeTab === "workorders" && (
             <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
           )}
 
           {/* Show summary content when summary tab is active */}
-          {activeTab === "summary" && (
+          {uiState.activeTab === "summary" && (
             <>
               {/* Left Column */}
               <div className="flex flex-col min-w-[240px] flex-1 gap-5">
