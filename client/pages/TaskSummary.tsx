@@ -230,11 +230,15 @@ export default function TaskSummary() {
           <div className="grid grid-cols-4 gap-6 mt-3">
             <div>
               <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-              <div className="text-sm text-[#303030] font-medium mt-0.5">Not Started</div>
+              <div className="mt-0.5">
+                <TaskStatusBadge status="Not Started" />
+              </div>
             </div>
             <div>
               <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-              <div className="text-sm text-[#303030] font-medium mt-0.5">Normal</div>
+              <div className="mt-0.5">
+                <TaskPriorityBadge priority="Normal" />
+              </div>
             </div>
             <div>
               <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
