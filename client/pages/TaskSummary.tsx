@@ -1240,6 +1240,20 @@ export default function TaskSummary() {
                 .filter((file: any) => typeof file?.url === "string" && file.url)
             : undefined;
 
+          // Merge renamed files back into the main files state
+          if (Array.isArray((taskData as any).files) && (taskData as any).files.length > 0) {
+            setFiles((prevFiles) => {
+              const renamedFiles = new Map((taskData as any).files.map((f: any) => [f.id, f]));
+              return prevFiles.map((f) => {
+                const renamedFile = renamedFiles.get(f.id);
+                if (renamedFile && renamedFile.name !== f.name) {
+                  return { ...f, name: renamedFile.name };
+                }
+                return f;
+              });
+            });
+          }
+
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
             author: "You",
