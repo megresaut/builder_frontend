@@ -63,6 +63,7 @@ const initialState: TaskSummaryUIState = {
     editTask: false,
     linkTask: false,
     pdfViewer: false,
+    viewBill: false,
   },
 
   editingNoteId: null,
@@ -142,6 +143,7 @@ const taskSummaryUIReducer = (
           editTask: false,
           linkTask: false,
           pdfViewer: false,
+          viewBill: false,
         },
         editingNoteId: null,
         editingFileId: null,
