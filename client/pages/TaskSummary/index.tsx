@@ -79,23 +79,6 @@ export default function TaskSummary() {
     }
   }, [tab, workOrderId, uiDispatch]);
 
-  // Sync UI state to navigation - only when explicitly changing tabs
-  useEffect(() => {
-    // If we're on the base task path and the state is summary, don't force a redirect
-    // This prevents history loops and allows the back button to work correctly
-    const isBaseTab = uiState.activeTab === "summary" && !uiState.selectedWorkOrderId;
-    if (location.pathname === `/tasks/${taskId}` && isBaseTab) {
-      return;
-    }
-
-    // The URL params are the source of truth. We only navigate if the state
-    // has explicitly changed (e.g., user clicked a tab), not due to URL changes.
-    // This prevents bouncing when clicking table rows.
-    const currentPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
-    if (location.pathname !== currentPath) {
-      navigate(currentPath, { replace: true });
-    }
-  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
