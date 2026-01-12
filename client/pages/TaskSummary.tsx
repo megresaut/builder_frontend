@@ -118,63 +118,76 @@ export default function TaskSummary() {
     };
   };
 
-  const [updates, setUpdates] = useState<any[]>([
-    navigationState?.taskData || navigationState?.task ? getInitialUpdate() : {
-      id: 0,
-      author: "Julia LoSchiavo",
-      action: "created this task",
-      timestamp: "11/12/2025 9:22 PM",
-      fieldsDisplay: (
-        <div className="grid grid-cols-4 gap-6 mt-3">
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Not Started</div>
+  // Initialize updates based on whether this is a newly created task
+  const getInitialUpdates = () => {
+    const isNewTask = !!(navigationState?.taskData || navigationState?.task);
+
+    if (isNewTask) {
+      // For newly created tasks, start with just the creation update
+      return [getInitialUpdate()];
+    }
+
+    // For existing tasks (like the Edgerton demo), show the full timeline
+    return [
+      {
+        id: 0,
+        author: "Julia LoSchiavo",
+        action: "created this task",
+        timestamp: "11/12/2025 9:22 PM",
+        fieldsDisplay: (
+          <div className="grid grid-cols-4 gap-6 mt-3">
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">Not Started</div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">Normal</div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">Oct 15, 2025</div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">Julia LoSchiavo</div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Normal</div>
+        ),
+        details: (
+          <div className="pt-2 border-t border-[#e5e5e5]">
+            <div className="text-sm text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.</div>
           </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Oct 15, 2025</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">Julia LoSchiavo</div>
-          </div>
-        </div>
-      ),
-      details: (
-        <div className="pt-2 border-t border-[#e5e5e5]">
-          <div className="text-sm text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.</div>
-        </div>
-      ),
-      icon: <FlagIcon width={16} height={16} />,
-      isInitialCreation: true,
-    },
-    {
-      id: 1,
-      initials: "JL",
-      author: "Julia LoSchiavo",
-      action: "submitted an",
-      actionValue: "8.0 Hour Field Team Submission",
-      timestamp: "11/12/2025 9:22 PM",
-    },
-    {
-      id: 2,
-      initials: "MK",
-      author: "Meghashyam Krishnasamy",
-      action: "updated the priority from Normal to Low",
-      timestamp: "11/12/2025 9:22 PM",
-    },
-    {
-      id: 3,
-      initials: "JL",
-      author: "Julia LoSchiavo",
-      action: "updated status to ✓ Completed for Work Order #1024431",
-      timestamp: "11/12/2025 9:22 PM",
-    },
-  ]);
+        ),
+        icon: <FlagIcon width={16} height={16} />,
+        isInitialCreation: true,
+      },
+      {
+        id: 1,
+        initials: "JL",
+        author: "Julia LoSchiavo",
+        action: "submitted an",
+        actionValue: "8.0 Hour Field Team Submission",
+        timestamp: "11/12/2025 9:22 PM",
+      },
+      {
+        id: 2,
+        initials: "MK",
+        author: "Meghashyam Krishnasamy",
+        action: "updated the priority from Normal to Low",
+        timestamp: "11/12/2025 9:22 PM",
+      },
+      {
+        id: 3,
+        initials: "JL",
+        author: "Julia LoSchiavo",
+        action: "updated status to ✓ Completed for Work Order #1024431",
+        timestamp: "11/12/2025 9:22 PM",
+      },
+    ];
+  };
+
+  const [updates, setUpdates] = useState<any[]>(getInitialUpdates());
 
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
