@@ -120,6 +120,33 @@ export default function SummaryTab({
 }: SummaryTabProps) {
   const navigate = useNavigate();
 
+  // Calculate total expense from work orders and field team orders
+  const calculateTotalExpense = () => {
+    let total = 0;
+
+    // Sum work order bill totals
+    workOrders.forEach((wo) => {
+      if (wo.billTotal) {
+        // Parse billTotal string like "$420" or "$0.00"
+        const amount = parseFloat(wo.billTotal.replace(/[$,]/g, ""));
+        if (!isNaN(amount)) {
+          total += amount;
+        }
+      }
+    });
+
+    // Sum field team order amounts
+    fieldTeamOrders.forEach((fto) => {
+      if (typeof fto.amount === "number") {
+        total += fto.amount;
+      }
+    });
+
+    return total.toFixed(2);
+  };
+
+  const totalExpense = calculateTotalExpense();
+
   return (
     <>
       {/* Left Column */}
