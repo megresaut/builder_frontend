@@ -1324,8 +1324,8 @@ export default function TaskSummary() {
             // Add attachments from initial creation
             if (taskData.files && taskData.files.length > 0) {
               setFiles((prevFiles) => {
-                const newFiles: File[] = taskData.files.map((f: any) => ({
-                  id: String(f.id || f.name),
+                const newFiles: File[] = taskData.files.map((f: any, idx: number) => ({
+                  id: String(f.id || `${f.name}-${idx}`),
                   name: f.name,
                   url: f.url,
                   uploadedAt: new Date().toLocaleString(),
@@ -1352,7 +1352,7 @@ export default function TaskSummary() {
                 details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
               }),
               ...(taskData.files && taskData.files.length > 0 && {
-                attachments: taskData.files.map((f: any) => getAttachmentData(f)),
+                attachments: taskData.files.map((f: any, idx: number) => getAttachmentData(f, idx)),
                 onAttachmentClick: (file: any) => {
                   setViewingAttachment({ id: file.id, name: file.name, url: file.url });
                   setIsPdfViewerOpen(true);
@@ -1510,8 +1510,8 @@ export default function TaskSummary() {
               // Add new files that don't exist yet
               const newFiles = (taskData as any).files
                 .filter((f: any) => !existingIds.has(f.id))
-                .map((f: any) => ({
-                  id: String(f.id || f.name),
+                .map((f: any, idx: number) => ({
+                  id: String(f.id || `${f.name}-${idx}`),
                   name: f.name,
                   url: f.url,
                   uploadedAt: new Date().toLocaleString(),
