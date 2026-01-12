@@ -334,7 +334,11 @@ export default function CreateTaskModal({
 
   // Initialize form when modal opens and set initial state for change detection
   useEffect(() => {
-    if (open) {
+    // Only reinitialize when transitioning from closed to open
+    const isOpeningModal = !prevOpenRef.current && open;
+    prevOpenRef.current = open;
+
+    if (isOpeningModal) {
       if (editData) {
         // Populate fields from editData when opening in edit mode
         setTitle(editData.title);
@@ -423,7 +427,7 @@ export default function CreateTaskModal({
         });
       }
     }
-  }, [open, variant, editData?.id]);
+  }, [open, variant, editData]);
 
 
   return (
