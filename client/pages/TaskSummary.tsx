@@ -84,6 +84,33 @@ export default function TaskSummary() {
     ];
   });
 
+  const getAttachmentData = (file: any) => {
+    const fileUrl: string | undefined =
+      file?.file instanceof File
+        ? URL.createObjectURL(file.file)
+        : typeof file?.url === "string"
+          ? file.url
+          : undefined;
+
+    if (fileUrl && fileUrl.startsWith("blob:")) {
+      createdAttachmentUrlsRef.current.add(fileUrl);
+    }
+
+    const isImage =
+      typeof file?.type === "string"
+        ? file.type.startsWith("image/")
+        : typeof file?.name === "string"
+          ? /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+          : false;
+
+    return {
+      name: file.name,
+      url: fileUrl,
+      preview: isImage ? fileUrl : undefined,
+      id: String(file.id || file.name),
+    };
+  };
+
   const getInitialUpdate = () => {
     const taskData = navigationState?.taskData || navigationState?.task;
     const statusMap: { [key: string]: string } = {
@@ -134,11 +161,7 @@ export default function TaskSummary() {
         details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
       }),
       ...(taskData?.files && taskData.files.length > 0 && {
-        attachments: taskData.files.map((f: any) => ({
-          name: f.name,
-          url: f.url,
-          id: f.id,
-        })),
+        attachments: taskData.files.map((f: any) => getAttachmentData(f)),
         onAttachmentClick: (file: any) => {
           setViewingAttachment({ id: file.id, name: file.name, url: file.url });
           setIsPdfViewerOpen(true);
@@ -1294,7 +1317,7 @@ export default function TaskSummary() {
                   name: f.name,
                   url: f.url,
                   uploadedAt: new Date().toLocaleString(),
-                  category: "PDF",
+                  category: "",
                   description: "",
                 }));
                 return [...newFiles, ...prevFiles];
@@ -1317,11 +1340,7 @@ export default function TaskSummary() {
                 details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
               }),
               ...(taskData.files && taskData.files.length > 0 && {
-                attachments: taskData.files.map((f: any) => ({
-                  name: f.name,
-                  url: f.url,
-                  id: f.id,
-                })),
+                attachments: taskData.files.map((f: any) => getAttachmentData(f)),
                 onAttachmentClick: (file: any) => {
                   setViewingAttachment({ id: file.id, name: file.name, url: file.url });
                   setIsPdfViewerOpen(true);
@@ -1443,32 +1462,7 @@ export default function TaskSummary() {
           // Create attachments array with preview support
           const attachments = Array.isArray((taskData as any).files)
             ? (taskData as any).files
-                .map((file: any) => {
-                  const fileUrl: string | undefined =
-                    file?.file instanceof File
-                      ? URL.createObjectURL(file.file)
-                      : typeof file?.url === "string"
-                        ? file.url
-                        : undefined;
-
-                  if (fileUrl && fileUrl.startsWith("blob:")) {
-                    createdAttachmentUrlsRef.current.add(fileUrl);
-                  }
-
-                  const isImage =
-                    typeof file?.type === "string"
-                      ? file.type.startsWith("image/")
-                      : typeof file?.name === "string"
-                        ? /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
-                        : false;
-
-                  return {
-                    name: file.name,
-                    url: fileUrl,
-                    preview: isImage ? fileUrl : undefined,
-                    id: String(file.id),
-                  };
-                })
+                .map((file: any) => getAttachmentData(file))
                 .filter((file: any) => typeof file?.url === "string" && file.url)
             : undefined;
 
@@ -1495,7 +1489,7 @@ export default function TaskSummary() {
                   name: f.name,
                   url: f.url,
                   uploadedAt: new Date().toLocaleString(),
-                  category: "PDF",
+                  category: "",
                   description: "",
                 }));
 
