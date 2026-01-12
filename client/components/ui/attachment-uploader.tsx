@@ -465,11 +465,13 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                   ) : (
                     <>
                       <p
-                        onClick={
-                          onFileRenamed
-                            ? () => handleStartEditingFileName(file)
-                            : undefined
-                        }
+                        onClick={() => {
+                          if (disableInlineRename && onViewFile && isViewableFile(file)) {
+                            onViewFile(file);
+                          } else if (!disableInlineRename && onFileRenamed) {
+                            handleStartEditingFileName(file);
+                          }
+                        }}
                         style={{
                           fontFamily:
                             "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -480,18 +482,18 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          cursor: onFileRenamed ? "pointer" : "default",
+                          cursor: (disableInlineRename && onViewFile && isViewableFile(file)) || (onFileRenamed && !disableInlineRename) ? "pointer" : "default",
                           transition: "opacity 0.2s",
                         }}
                         onMouseEnter={(e) => {
-                          if (onFileRenamed) {
+                          if ((disableInlineRename && onViewFile && isViewableFile(file)) || (onFileRenamed && !disableInlineRename)) {
                             (
                               e.currentTarget as HTMLParagraphElement
                             ).style.opacity = "0.7";
                           }
                         }}
                         onMouseLeave={(e) => {
-                          if (onFileRenamed) {
+                          if ((disableInlineRename && onViewFile && isViewableFile(file)) || (onFileRenamed && !disableInlineRename)) {
                             (
                               e.currentTarget as HTMLParagraphElement
                             ).style.opacity = "1";
