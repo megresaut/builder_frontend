@@ -37,6 +37,8 @@ interface WorkOrderDetailsV2Props {
   currentAssignees?: any[];
   currentCollaborators?: any[];
   onWorkOrderUpdate?: (updatedWorkOrder: WorkOrder) => void;
+  isUpdateWorkOrderModalOpen?: boolean;
+  onUpdateWorkOrderModalOpenChange?: (open: boolean) => void;
 }
 
 export default function WorkOrderDetailsV2({
