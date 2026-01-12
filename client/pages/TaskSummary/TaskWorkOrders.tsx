@@ -26,7 +26,7 @@ interface WorkOrder {
   taskId: number;
   property: string;
   unit: string;
-  dueDate: string;
+  dueDate: string | Date;
   updatedDate: string;
   age: string;
   priority: string;
@@ -35,6 +35,7 @@ interface WorkOrder {
   billTotal: string;
   assignees: Assignee[];
   collaborators: Assignee[];
+  vendorName?: string;
 }
 
 const mockWorkOrders: WorkOrder[] = [
