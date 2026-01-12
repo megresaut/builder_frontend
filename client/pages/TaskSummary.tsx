@@ -69,7 +69,7 @@ export default function TaskSummary() {
         name: f.name,
         url: f.url,
         uploadedAt: new Date().toLocaleString(),
-        category: "PDF",
+        category: "",
         description: "",
       }));
     }
@@ -78,7 +78,7 @@ export default function TaskSummary() {
         id: 1,
         name: "Lorem Ipsum.PDF",
         uploadedAt: "11/12/2025 9:22 PM",
-        category: "PDF",
+        category: "",
         url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
       },
     ];
