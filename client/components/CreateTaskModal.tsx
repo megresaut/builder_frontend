@@ -120,6 +120,14 @@ export default function CreateTaskModal({
     if (variant !== "withMessageAndAttachments" || !initialState) {
       return true;
     }
+
+    // Check collaborators changes
+    const collaboratorsChanged =
+      selectedCollaborators.length !== initialState.collaborators.length ||
+      !selectedCollaborators.every((c) =>
+        initialState.collaborators.some((ic) => ic.id === c.id)
+      );
+
     return (
       status !== initialState.status ||
       priority !== initialState.priority ||
@@ -128,10 +136,7 @@ export default function CreateTaskModal({
       !selectedAssignees.every((a) =>
         initialState.assignees.some((ia) => ia.id === a.id)
       ) ||
-      selectedCollaborators.length !== initialState.collaborators.length ||
-      !selectedCollaborators.every((c) =>
-        initialState.collaborators.some((ic) => ic.id === c.id)
-      ) ||
+      collaboratorsChanged ||
       message !== initialState.message ||
       property !== initialState.property ||
       unit !== initialState.unit ||
