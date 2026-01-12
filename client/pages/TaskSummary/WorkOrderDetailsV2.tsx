@@ -482,9 +482,10 @@ export default function WorkOrderDetailsV2({
                 ] : [],
                 showRoleLabel: true,
                 showPhone: false,
-                showDivider: true,
+                showDivider: false,
                 tabIndex: 0,
-                type: "assignee"
+                type: "assignee",
+                hideHeaderOnTab: 0
               },
               {
                 label: "Assigned to",
