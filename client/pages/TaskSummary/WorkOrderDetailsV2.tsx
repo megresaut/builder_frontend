@@ -436,70 +436,68 @@ export default function WorkOrderDetailsV2({
           />
 
           {/* Assignees Card */}
-          {(currentAssignees.length > 0 || currentCollaborators.length > 0) && (
-            <PeopleCard
-              title="Assignees"
-              variant="default"
-              tabs={["Vendors", "Staff"]}
-              defaultTab={0}
-              footerActions={[]}
-              subsections={[
-                {
-                  label: "Vendor",
-                  mode: "rows",
-                  people: [
-                    {
-                      id: "vendor-1",
-                      name: workOrder.vendorName || "Vendor",
-                      initials: (workOrder.vendorName || "V").split(" ").map(w => w[0]).join("").toUpperCase(),
-                      roleLabel: "Vendor Company",
-                      phone: "",
-                      type: "vendor",
-                    }
-                  ],
-                  showRoleLabel: true,
-                  showPhone: false,
-                  showDivider: true,
-                  tabIndex: 0,
-                  type: "assignee"
-                },
-                {
-                  label: "Assigned to",
-                  mode: "rows",
-                  people: currentAssignees.map((assignee) => ({
-                    id: assignee.id,
-                    name: assignee.name || assignee.label,
-                    initials: assignee.initials,
-                    roleLabel: "Property manager",
+          <PeopleCard
+            title="Assignees"
+            variant="default"
+            tabs={["Vendors", "Staff"]}
+            defaultTab={0}
+            footerActions={[]}
+            subsections={[
+              {
+                label: "Vendor",
+                mode: "rows",
+                people: workOrder.vendorName ? [
+                  {
+                    id: "vendor-1",
+                    name: workOrder.vendorName,
+                    initials: workOrder.vendorName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2),
+                    roleLabel: "Vendor Company",
                     phone: "",
-                    type: "staff",
-                  })),
-                  showRoleLabel: true,
-                  showPhone: false,
-                  showDivider: true,
-                  tabIndex: 1,
-                  type: "assignee"
-                },
-                {
-                  label: "Collaborators",
-                  mode: "rows",
-                  people: currentCollaborators.map((collaborator) => ({
-                    id: collaborator.id,
-                    name: collaborator.name || collaborator.label,
-                    initials: collaborator.initials,
-                    roleLabel: "Property manager",
-                    phone: "",
-                    type: "staff",
-                  })),
-                  showRoleLabel: true,
-                  showPhone: false,
-                  showDivider: true,
-                  tabIndex: 1,
-                  type: "collaborator"
-                }
-              ]}
-            />
-          )}
+                    type: "vendor",
+                  }
+                ] : [],
+                showRoleLabel: true,
+                showPhone: false,
+                showDivider: true,
+                tabIndex: 0,
+                type: "assignee"
+              },
+              {
+                label: "Assigned to",
+                mode: "rows",
+                people: currentAssignees.map((assignee) => ({
+                  id: assignee.id,
+                  name: assignee.name || assignee.label,
+                  initials: assignee.initials,
+                  roleLabel: "Property manager",
+                  phone: "",
+                  type: "staff",
+                })),
+                showRoleLabel: true,
+                showPhone: false,
+                showDivider: true,
+                tabIndex: 1,
+                type: "assignee"
+              },
+              {
+                label: "Collaborators",
+                mode: "rows",
+                people: currentCollaborators.map((collaborator) => ({
+                  id: collaborator.id,
+                  name: collaborator.name || collaborator.label,
+                  initials: collaborator.initials,
+                  roleLabel: "Property manager",
+                  phone: "",
+                  type: "staff",
+                })),
+                showRoleLabel: true,
+                showPhone: false,
+                showDivider: true,
+                tabIndex: 1,
+                type: "collaborator"
+              }
+            ]}
+          />
 
           {/* Created By Card */}
           <PeopleCard
