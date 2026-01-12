@@ -71,6 +71,7 @@ export default function CreateWorkOrderModalV2({
   onOpenChange,
   mode = "create",
   initialData,
+  onDataUpdate,
 }: CreateWorkOrderModalV2Props) {
   const [formData, setFormData] = useState({
     property: initialData?.property ?? "",
