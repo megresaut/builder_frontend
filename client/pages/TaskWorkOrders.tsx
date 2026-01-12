@@ -1,15 +1,11 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
-import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
-import PageTemplate from "@/layout/PageTemplate";
-import { StatusBadge } from "@/components/StatusBadge";
 import { EditIcon, DeleteIcon } from "@/components/icons";
 
 interface Assignee {
