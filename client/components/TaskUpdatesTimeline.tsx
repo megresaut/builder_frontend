@@ -188,7 +188,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                               initials: update.initials || update.author.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2),
                             },
                           ]}
-                          type="assignee"
+                          type={update.authorType || "assignee"}
                           size="sm"
                         />
                         <div className="flex-1 truncate">
