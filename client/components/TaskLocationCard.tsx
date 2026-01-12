@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import SectionCard from "@/components/SectionCard";
 
 interface TaskLocationCardProps {
@@ -6,6 +7,7 @@ interface TaskLocationCardProps {
   propertyName?: string;
   propertyAddress?: string;
   mapImage?: string;
+  propertyId?: string;
 }
 
 /**
@@ -19,7 +21,16 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
   propertyName,
   propertyAddress,
   mapImage,
+  propertyId,
 }) => {
+  const navigate = useNavigate();
+
+  const handlePropertyNameClick = () => {
+    if (propertyId) {
+      navigate(`/property/${propertyId}`);
+    }
+  };
+
   return (
     <SectionCard title="Location">
       <div className="flex flex-col w-full text-sm">
@@ -37,9 +48,17 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
           <div className="mt-4 w-full">
             {propertyName && (
               <div className="text-sm font-['Inter',sans-serif] font-medium">
-                <span className="font-['Geist',sans-serif] font-bold text-[#2463eb]">
+                <button
+                  onClick={handlePropertyNameClick}
+                  disabled={!propertyId}
+                  className={`font-['Geist',sans-serif] font-bold ${
+                    propertyId
+                      ? "text-[#2463eb] cursor-pointer hover:underline transition-colors"
+                      : "text-[#2463eb]"
+                  }`}
+                >
                   {propertyName}
-                </span>
+                </button>
               </div>
             )}
             {propertyAddress && (
