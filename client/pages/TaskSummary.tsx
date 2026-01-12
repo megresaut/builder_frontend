@@ -1599,10 +1599,9 @@ export default function TaskSummary() {
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
-              setViewingAttachment({ id: String(file.id), name: file.name, url: file.url });
-              setIsPdfViewerOpen(true);
-              setIsRenamingAttachment(false);
-              setRenamingAttachmentName("");
+              uiDispatch({ type: "SET_VIEWING_ATTACHMENT", payload: { id: String(file.id), name: file.name, url: file.url } });
+              uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
+              uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
             },
           };
           setUpdates([newUpdate, ...updates]);
