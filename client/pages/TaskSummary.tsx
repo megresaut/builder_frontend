@@ -971,35 +971,37 @@ export default function TaskSummary() {
         </div>
 
         {/* View Bill Modal */}
-        <RecordBillModal
-          open={uiState.modals.viewBill || false}
-          onOpenChange={(open) => {
-            if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "viewBill" });
-            else uiDispatch({ type: "OPEN_MODAL", payload: "viewBill" });
-          }}
-          mode="view"
-          data={{
-            vendor: "Edgerton Inc",
-            invoiceNumber: "INV-2024-001",
-            invoiceDate: "2024-12-01",
-            dueDate: "2024-12-15",
-            memo: "Work order completion invoice",
-            lineItems: [
-              {
-                id: 1,
-                property: selectedWorkOrder.property,
-                unit: selectedWorkOrder.unit,
-                workOrder: `${selectedWorkOrder.id}`,
-                description: selectedWorkOrder.task,
-                glAccount: "Maintenance",
-                reimbursement: false,
-                subtotal: parseFloat(selectedWorkOrder.billTotal.replace('$', '')),
-                upcharge: 0,
-                total: parseFloat(selectedWorkOrder.billTotal.replace('$', '')),
-              },
-            ],
-          }}
-        />
+        {selectedWorkOrder && (
+          <RecordBillModal
+            open={uiState.modals.viewBill || false}
+            onOpenChange={(open) => {
+              if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "viewBill" });
+              else uiDispatch({ type: "OPEN_MODAL", payload: "viewBill" });
+            }}
+            mode="view"
+            data={{
+              vendor: "Edgerton Inc",
+              invoiceNumber: "INV-2024-001",
+              invoiceDate: "2024-12-01",
+              dueDate: "2024-12-15",
+              memo: "Work order completion invoice",
+              lineItems: [
+                {
+                  id: 1,
+                  property: selectedWorkOrder.property,
+                  unit: selectedWorkOrder.unit,
+                  workOrder: `${selectedWorkOrder.id}`,
+                  description: selectedWorkOrder.task,
+                  glAccount: "Maintenance",
+                  reimbursement: false,
+                  subtotal: getBillAmount(selectedWorkOrder.billTotal),
+                  upcharge: 0,
+                  total: getBillAmount(selectedWorkOrder.billTotal),
+                },
+              ],
+            }}
+          />
+        )}
       </PageTemplate>
     );
   }
