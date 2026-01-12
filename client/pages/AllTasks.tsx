@@ -303,7 +303,9 @@ export default function AllTasks() {
           data={tasksList}
           rowKey="id"
           onRowClick={(task) => {
-            navigate(`/tasks/${task.id}`);
+            navigate(`/tasks/${task.id}`, {
+              state: { task, taskData: task }
+            });
           }}
           renderCell={(task, columnKey) => {
             if (columnKey === "priority") {
