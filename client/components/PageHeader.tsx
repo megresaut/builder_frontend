@@ -79,19 +79,26 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       {/* Action Button */}
       {(actionButton || action) && (
         <div className="flex items-center gap-4">
-          <button
-            onClick={(actionButton || action)!.onClick}
-            className={`flex h-9 items-center gap-2 px-3 rounded-lg border border-white transition-colors ${
-              actionButton
-                ? "bg-[#2463eb] shadow-[0_0_0_1px_#1e4fb0] hover:bg-[#1a52c4]"
-                : "bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73]"
-            }`}
-          >
-            {(actionButton || action)!.icon && <div className="text-white">{(actionButton || action)!.icon}</div>}
-            <span className="text-white font-medium text-base leading-normal">
-              {(actionButton || action)!.label}
-            </span>
-          </button>
+          {actionButton ? (
+            <Button
+              variant="mainBlue"
+              onClick={actionButton.onClick}
+              className="flex items-center gap-2"
+            >
+              {actionButton.icon && <div>{actionButton.icon}</div>}
+              <span>{actionButton.label}</span>
+            </Button>
+          ) : (
+            <button
+              onClick={action!.onClick}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white transition-colors bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] text-white font-medium text-base leading-normal"
+            >
+              {action!.icon && <div className="text-white">{action!.icon}</div>}
+              <span className="text-white font-medium text-base leading-normal">
+                {action!.label}
+              </span>
+            </button>
+          )}
         </div>
       )}
     </div>
