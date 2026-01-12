@@ -55,6 +55,8 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
   const [fileDescription, setFileDescription] = useState(initialDescription);
   const [validateFileForm, setValidateFileForm] = useState(false);
   const [viewingFile, setViewingFile] = useState<UploadedFile | null>(null);
+  const [isRenamingFile, setIsRenamingFile] = useState(false);
+  const [renamingFileName, setRenamingFileName] = useState("");
 
   useEffect(() => {
     if (open) {
