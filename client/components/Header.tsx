@@ -799,7 +799,15 @@ export default function Header({
   useEffect(() => {
     if (!selectedTab) return;
 
+    // Get current state snapshot
     const tabExists = tabs.some((tab) => tab.id === selectedTab);
+    const isOpen = openTabs.has(selectedTab);
+
+    if (tabExists && isOpen) {
+      // Tab exists and is already open, nothing to do
+      navigateToTabRoute(selectedTab);
+      return;
+    }
 
     // If tab doesn't exist but is a task or vendor tab, create it dynamically
     if (!tabExists && selectedTab) {
@@ -845,14 +853,18 @@ export default function Header({
           iconLight: maintenanceIcon,
           iconDark: maintenanceIcon,
         };
+
         setTabs((prevTabs) => {
-          // Double-check to prevent duplicate creation
           if (prevTabs.some((tab) => tab.id === selectedTab)) {
             return prevTabs;
           }
           return [...prevTabs, newTask];
         });
+
         setOpenTabs((prevOpenTabs) => {
+          if (prevOpenTabs.has(selectedTab)) {
+            return prevOpenTabs;
+          }
           const newOpenTabs = new Set(prevOpenTabs);
           newOpenTabs.add(selectedTab);
           return newOpenTabs;
@@ -878,14 +890,18 @@ export default function Header({
           id: selectedTab,
           label: vendorLabel,
         };
+
         setTabs((prevTabs) => {
-          // Double-check to prevent duplicate creation
           if (prevTabs.some((tab) => tab.id === selectedTab)) {
             return prevTabs;
           }
           return [...prevTabs, newVendor];
         });
+
         setOpenTabs((prevOpenTabs) => {
+          if (prevOpenTabs.has(selectedTab)) {
+            return prevOpenTabs;
+          }
           const newOpenTabs = new Set(prevOpenTabs);
           newOpenTabs.add(selectedTab);
           return newOpenTabs;
@@ -895,15 +911,15 @@ export default function Header({
       }
     }
 
-    if (tabExists && !openTabs.has(selectedTab)) {
+    if (tabExists && !isOpen) {
       setOpenTabs((prevOpenTabs) => {
-        const newTabs = new Set(prevOpenTabs);
-        newTabs.add(selectedTab);
-        return newTabs;
+        const newOpenTabs = new Set(prevOpenTabs);
+        newOpenTabs.add(selectedTab);
+        return newOpenTabs;
       });
       navigateToTabRoute(selectedTab);
     }
-  }, [selectedTab, tabs, openTabs]);
+  }, [selectedTab]);
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
