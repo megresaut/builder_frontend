@@ -1059,10 +1059,18 @@ export default function TaskSummary() {
             setIsPdfViewerOpen(open);
             if (!open) {
               setViewingAttachment(null);
+              setIsRenamingAttachment(false);
+              setRenamingAttachmentName("");
             }
           }}
           title={viewingAttachment.name}
           url={viewingAttachment.url}
+          onRenameClick={handleStartRenamingAttachment}
+          isRenaming={isRenamingAttachment}
+          renamingFileName={renamingAttachmentName}
+          onRenamingFileNameChange={setRenamingAttachmentName}
+          onSaveFileName={handleSaveAttachmentFileName}
+          onCancelRenaming={handleCancelRenamingAttachment}
         />
       )}
 
