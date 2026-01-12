@@ -215,7 +215,11 @@ export default function CreateTaskModal({
         status,
         assignees: selectedAssignees,
         collaborators: selectedCollaborators,
-        ...(variant === "withMessageAndAttachments" && { message }),
+        ...(variant === "withMessageAndAttachments" && {
+          message: generateUpdateMessage(),
+          messageBody: message,
+          files: fileUpload.files,
+        }),
       };
       onTaskCreated?.(taskData);
       onOpenChange(false);
