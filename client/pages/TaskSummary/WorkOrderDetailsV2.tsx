@@ -71,7 +71,16 @@ export default function WorkOrderDetailsV2({
     if (workOrder) {
       setStatus(workOrder.status || "completed");
       setPriority(workOrder.priority || "normal");
-      setDueDate(workOrder.dueDate ? new Date(workOrder.dueDate) : null);
+      if (workOrder.dueDate) {
+        if (workOrder.dueDate instanceof Date) {
+          setDueDate(workOrder.dueDate);
+        } else {
+          const parsed = new Date(workOrder.dueDate);
+          setDueDate(!isNaN(parsed.getTime()) ? parsed : workOrder.dueDate);
+        }
+      } else {
+        setDueDate(null);
+      }
     }
   }, [workOrder?.id, workOrder?.status, workOrder?.priority, workOrder?.dueDate]);
 
