@@ -1030,7 +1030,25 @@ export default function TaskSummary() {
                       ? updatedWorkOrder.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                       : updatedWorkOrder.dueDate
                   };
-                  setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo));
+
+                  // Update work orders list
+                  const newWorkOrders = workOrders.map(wo => wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo);
+                  setWorkOrders(newWorkOrders);
+
+                  // Extract new notes and files to add to main task if they were added during work order update
+                  if (updatedWorkOrder.notes && updatedWorkOrder.notes.length > notes.length) {
+                    const newNotes = updatedWorkOrder.notes.filter(wn => !notes.some(n => n.id === wn.id && n.text === wn.text));
+                    if (newNotes.length > 0) {
+                      setNotes(prev => [...prev, ...newNotes]);
+                    }
+                  }
+
+                  if (updatedWorkOrder.files && updatedWorkOrder.files.length > files.length) {
+                    const newFiles = updatedWorkOrder.files.filter(wf => !files.some(f => f.id === wf.id && f.name === wf.name));
+                    if (newFiles.length > 0) {
+                      setFiles(prev => [...prev, ...newFiles]);
+                    }
+                  }
                 }}
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
