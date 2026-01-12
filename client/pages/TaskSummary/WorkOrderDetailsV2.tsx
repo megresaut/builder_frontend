@@ -317,24 +317,8 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
             variant="white"
             title="Notes"
             padding="compact"
-            actions={
-              <PopoverActionsDropdown
-                row={{}}
-                rowKey="id"
-                actions={[
-                  {
-                    label: "Add Note",
-                    icon: <Plus className="w-4 h-4" />,
-                    onClick: () => {
-                      setEditingNoteId(null);
-                      setIsAddNoteModalOpen(true);
-                    }
-                  }
-                ]}
-              />
-            }
           >
-            <div className="p-4 pt-0">
+            <div className="p-0">
               <NotesTemplate
                 notes={notes}
                 hideHeader={true}
@@ -356,24 +340,8 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
             variant="white"
             title="Recent Files"
             padding="compact"
-            actions={
-              <PopoverActionsDropdown
-                row={{}}
-                rowKey="id"
-                actions={[
-                  {
-                    label: "Add File",
-                    icon: <Plus className="w-4 h-4" />,
-                    onClick: () => {
-                      setEditingFileId(null);
-                      setIsAddFileModalOpen(true);
-                    }
-                  }
-                ]}
-              />
-            }
           >
-            <div className="p-4 pt-0">
+            <div className="p-0">
               <FilesTemplate
                 files={files}
                 hideHeader={true}
