@@ -78,6 +78,7 @@ export default function CreateTaskModal({
   const [description, setDescription] = useState("");
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
+  const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [status, setStatus] = useState("not_started");
@@ -105,6 +106,7 @@ export default function CreateTaskModal({
     message: string;
     property: string;
     unit: string;
+    category: string;
   } | null>(null);
 
   // File upload management
@@ -130,6 +132,7 @@ export default function CreateTaskModal({
       message !== initialState.message ||
       property !== initialState.property ||
       unit !== initialState.unit ||
+      category !== initialState.category ||
       fileUpload.files.length > 0
     );
   };
@@ -215,6 +218,7 @@ export default function CreateTaskModal({
         description,
         property,
         unit,
+        category,
         priority,
         dueDate,
         status,
@@ -239,6 +243,7 @@ export default function CreateTaskModal({
     setDescription("");
     setProperty("");
     setUnit("");
+    setCategory("");
     setPriority("normal");
     setDueDate(null);
     setStatus("not_started");
@@ -297,6 +302,7 @@ export default function CreateTaskModal({
         message,
         property,
         unit,
+        category,
       });
     }
   }, [open, editData?.id, variant]);
