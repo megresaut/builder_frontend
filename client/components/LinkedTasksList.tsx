@@ -14,6 +14,7 @@ interface LinkedTasksListProps {
   linkedTasks: LinkedTaskData[];
   onAdd: () => void;
   onUnlink: (taskId: string | number) => void;
+  onTaskClick?: (taskId: string | number) => void;
   emptyMessage?: string;
 }
 
