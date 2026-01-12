@@ -1062,7 +1062,7 @@ export default function TaskSummary() {
           )}
 
           {/* Field Team Orders tab content */}
-          {activeTab === "fieldteam" && <TaskFieldTeamOrders orders={fieldTeamOrders} onOrdersChange={setFieldTeamOrders} />}
+          {uiState.activeTab === "fieldteam" && <TaskFieldTeamOrders orders={fieldTeamOrders} onOrdersChange={setFieldTeamOrders} />}
         </div>
       </div>
 
