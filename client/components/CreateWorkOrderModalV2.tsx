@@ -37,6 +37,18 @@ interface CreateWorkOrderModalV2Props {
     notes?: string;
     files?: UploadedFile[];
   };
+  onDataUpdate?: (data: {
+    property?: string;
+    unit?: string;
+    task?: string;
+    workOrderName?: string;
+    vendor?: string;
+    status?: string;
+    priority?: string;
+    dueDate?: Date | null;
+    notes?: string;
+    files?: UploadedFile[];
+  }) => void;
 }
 
 const PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
