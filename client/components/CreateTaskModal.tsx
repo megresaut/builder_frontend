@@ -370,7 +370,13 @@ export default function CreateTaskModal({
         setUnit(editData.unit || "");
         setCategory(editData.category || "");
         setPriority(editData.priority.toLowerCase());
-        setDueDate(editData.dueDate || null);
+        let dateValue: Date | null = null;
+        if (editData.dueDate) {
+          dateValue = editData.dueDate instanceof Date ? editData.dueDate : new Date(editData.dueDate);
+        } else if (editData.due && editData.due !== "No Due Date") {
+          dateValue = new Date(editData.due);
+        }
+        setDueDate(dateValue);
         const statusMap: { [key: string]: string } = {
           "Not Started": "not_started",
           "In Progress": "in_progress",
