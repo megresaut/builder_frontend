@@ -827,8 +827,6 @@ export default function TaskSummary() {
                     : "Unassigned",
                 }}
                 createdDate={createdTimestamp}
-                assignedTo={currentAssignees}
-                collaborators={currentCollaborators}
                 stats={[
                   { label: "TOTAL EXPENSE", value: "$0.00" },
                   { label: "WORK ORDERS", value: workOrders.length.toString() },
