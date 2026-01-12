@@ -181,7 +181,7 @@ export default function SummaryTab({
           }}
           createdDate={createdTimestamp}
           stats={[
-            { label: "TOTAL EXPENSE", value: "$0.00" },
+            { label: "TOTAL EXPENSE", value: `$${totalExpense}` },
             { label: "WORK ORDERS", value: workOrders.length.toString() },
             { label: "FTOs", value: fieldTeamOrders.length.toString() },
           ]}
