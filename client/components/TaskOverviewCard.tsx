@@ -6,6 +6,8 @@ interface TaskOverviewCardProps {
   category?: string;
   description?: string;
   dueDate?: string;
+  status?: string;
+  priority?: string;
   stats?: {
     label: string;
     value: string;
