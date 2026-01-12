@@ -83,10 +83,10 @@ export default function EditTaskDetailsModal({
         <FormLayout>
           <FormSection showDivider={false}>
             <TextField
-              label="Title"
+              label="Task Name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter task title"
+              placeholder="Enter Task Name"
             />
 
             <TextAreaField
