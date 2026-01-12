@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
-import TextField from "@/components/forms/TextField";
-import SelectField from "@/components/forms/SelectField";
+import { TextField } from "@/components/forms/TextField";
+import { SelectField } from "@/components/forms/SelectField";
 
 export interface EditTaskDetailsData {
   title: string;
