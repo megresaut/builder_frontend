@@ -154,8 +154,8 @@ export default function WorkOrdersTab({
       icon: (
         <img
           loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2834b8d73cc09ccc447b824960316d0f5f8d8f78?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+          className="w-3.5 h-3.5"
           alt=""
         />
       ),
@@ -170,6 +170,55 @@ export default function WorkOrdersTab({
           style={{ width: "16px", height: "16px" }}
           alt=""
         />
+      ),
+    },
+    {
+      key: "property",
+      label: "Property",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M8 1L2 5V14H6V10H10V14H14V5L8 1Z"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M2 5H14M5 5V14M8 5V14M11 5V14"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       ),
     },
     {
