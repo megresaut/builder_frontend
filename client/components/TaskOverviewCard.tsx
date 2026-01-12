@@ -15,16 +15,6 @@ interface TaskOverviewCardProps {
     property?: string;
   };
   createdDate?: string;
-  assignedTo?: {
-    id: number;
-    name: string;
-    initials: string;
-  }[];
-  collaborators?: {
-    id: number;
-    name: string;
-    initials: string;
-  }[];
   onEdit?: () => void;
 }
 
