@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Edit, Bell, Share2, Mail, ChevronDown, Plus } from "lucide-react";
 import SectionCard from "@/components/SectionCard";
