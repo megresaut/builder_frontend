@@ -30,6 +30,8 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   category,
   description,
   dueDate,
+  status,
+  priority,
   stats,
   createdBy,
   createdDate,
