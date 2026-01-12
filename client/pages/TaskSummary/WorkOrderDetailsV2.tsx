@@ -595,6 +595,7 @@ export default function WorkOrderDetailsV2({
         onOpenChange={onUpdateWorkOrderModalOpenChange || (() => {})}
         mode="edit"
         initialData={{
+          task: workOrder.task,
           workOrderName: workOrder.task,
           vendor: workOrder.vendorName || "",
           property: workOrder.property,
