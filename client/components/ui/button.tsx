@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
  *   - secondary: Light button for secondary actions
  *   - ghost: No border or background
  *   - link: Text link style
+ *   - mainBlue: Main action button with prominent blue (#2463eb) background
  *
  * @param size - Button size
  *   - default: Standard button height
