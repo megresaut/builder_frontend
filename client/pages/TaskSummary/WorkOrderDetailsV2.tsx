@@ -573,14 +573,8 @@ export default function WorkOrderDetailsV2({
           status: workOrder.status,
           priority: workOrder.priority,
           dueDate: workOrder.dueDate ? new Date(workOrder.dueDate) : null,
-          notes: notes.length > 0 ? notes[notes.length - 1]?.text || "" : "",
-          files: files.map(f => ({
-            id: String(f.id),
-            name: f.name,
-            url: f.url || "",
-            size: 0,
-            type: "application/pdf",
-          })),
+          notes: "",
+          files: [],
         }}
         onDataUpdate={handleWorkOrderUpdate}
       />
