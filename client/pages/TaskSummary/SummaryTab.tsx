@@ -170,7 +170,7 @@ export default function SummaryTab({
         )}
 
         {/* Assignees Card */}
-        {(currentAssignees.length > 0 || currentCollaborators.length > 0) && (
+        {(currentAssignees.length > 0 || currentCollaborators.length > 0 || vendorsFromWorkOrders.length > 0) && (
           <PeopleCard
             title="Assignees"
             tabs={["Staff", "Vendors", "Field Team"]}
@@ -216,6 +216,23 @@ export default function SummaryTab({
                 showDivider: true,
                 tabIndex: [0],
                 type: "collaborator",
+              },
+              {
+                label: "Vendors",
+                mode: "rows",
+                people: vendorsFromWorkOrders.map((vendor) => ({
+                  id: vendor.id,
+                  name: vendor.name,
+                  initials: vendor.initials,
+                  roleLabel: "Vendor Company",
+                  phone: "",
+                  type: "vendor",
+                })),
+                showRoleLabel: true,
+                showPhone: false,
+                showDivider: true,
+                tabIndex: [1],
+                type: "vendor",
               },
             ]}
           />
