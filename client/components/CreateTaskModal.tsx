@@ -295,6 +295,8 @@ export default function CreateTaskModal({
         assignees: selectedAssignees,
         collaborators: selectedCollaborators,
         message,
+        property,
+        unit,
       });
     }
   }, [open, editData?.id, variant]);
