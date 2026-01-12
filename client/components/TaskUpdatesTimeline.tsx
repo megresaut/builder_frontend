@@ -86,8 +86,13 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                 <div
                   className="flex items-center justify-center w-10 h-10 bg-white border-2 border-[#717179] rounded-full text-[#717179] flex-shrink-0 relative z-10"
                   title={update.author}
+                  style={{ color: "#717179" }}
                 >
-                  <UserIcon width={16} height={16} color="#717179" />
+                  {update.icon ? (
+                    <div className="text-[#717179]">{update.icon}</div>
+                  ) : (
+                    <UserIcon width={16} height={16} color="#717179" />
+                  )}
                 </div>
               </div>
 
