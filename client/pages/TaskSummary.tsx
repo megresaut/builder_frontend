@@ -782,12 +782,18 @@ export default function TaskSummary() {
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
         onTaskCreated={(taskData: any) => {
-          // Update property and unit if they changed
+          // Update property, unit, title, and category if they changed
           if (taskData.property) {
             setCurrentProperty(taskData.property);
           }
           if (taskData.unit) {
             setCurrentUnit(taskData.unit);
+          }
+          if (taskData.title) {
+            setCurrentTitle(taskData.title);
+          }
+          if (taskData.category) {
+            setCurrentCategory(taskData.category);
           }
 
           // Check if this is a new task creation (compact variant) or an update
