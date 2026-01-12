@@ -76,7 +76,7 @@ const AVAILABLE_BILLS: AvailableBill[] = [
   },
 ];
 
-export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId }) => {
+export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBillSelected }) => {
   const navigate = useNavigate();
   const [isSelectBillModalOpen, setIsSelectBillModalOpen] = useState(false);
   const [selectedBillId, setSelectedBillId] = useState<string>("");
