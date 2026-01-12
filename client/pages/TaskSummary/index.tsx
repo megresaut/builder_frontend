@@ -215,6 +215,9 @@ export default function TaskSummary() {
       id: 0,
       author: "Julia LoSchiavo",
       authorType: "assignee",
+      authorEmail: "julia.loschiavo@company.com",
+      authorPhone: "(555) 123-4567",
+      authorTitle: "Project Manager",
       action: "created this task",
       timestamp: new Date().toLocaleString(),
       fieldsDisplay: (
