@@ -802,9 +802,9 @@ export default function MaintenanceWorkOrders() {
           const newWorkOrder = {
             id: newId,
             task: data.workOrderName || data.task || "New Work Order",
-            taskId: 1, // Default task ID
-            property: data.property || "",
-            unit: data.unit || "",
+            taskId: 1,
+            property: "Unassigned",
+            unit: "",
             dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
             updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             age: "Just now",
