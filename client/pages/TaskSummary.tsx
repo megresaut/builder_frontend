@@ -25,6 +25,7 @@ import type { File } from "@/components/templates";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import PdfViewerModal from "@/components/PdfViewerModal";
 
 export default function TaskSummary() {
   const { taskId, tab, workOrderId } = useParams<{
