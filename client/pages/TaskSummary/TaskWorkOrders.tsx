@@ -715,13 +715,14 @@ export default function TaskWorkOrders({
         }}
         onDataUpdate={(data) => {
           const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
+          // Store the original Date object for newly created work order (will be converted to string when added to list)
           const newWorkOrder: WorkOrder = {
             id: newId,
             task: data.workOrderName || data.task || "New Work Order",
             taskId: parseInt(taskId),
             property: data.property || "",
             unit: data.unit || "",
-            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
+            dueDate: data.dueDate || null,
             updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             age: "Just now",
             priority: data.priority || "normal",
@@ -731,6 +732,11 @@ export default function TaskWorkOrders({
             assignees: [],
             collaborators: [],
             vendorName: data.vendor || "Unassigned",
+          };
+          // Convert dueDate to string format for the list, but keep Date object in navigation state for immediate rendering
+          const workOrderForList = {
+            ...newWorkOrder,
+            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
           };
           // Add to work orders list
           onWorkOrdersChange([...workOrders, newWorkOrder]);
