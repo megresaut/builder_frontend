@@ -48,10 +48,6 @@ export const TaskDetailsBarTemplate: React.FC<TaskDetailsBarTemplateProps> = ({
           returnFormat="Date"
         />
       </div>
-
-      <div className="flex-1 flex justify-end text-xs text-[#717179] font-medium pb-1">
-        Last Updated <span className="text-[#303030] font-bold ml-1">{lastUpdated}</span>
-      </div>
     </div>
   );
 };
