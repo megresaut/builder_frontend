@@ -514,7 +514,7 @@ export default function TaskSummary() {
                           {
                             id: 0,
                             name: "Current User",
-                            initials: "CU",
+                            initials: "ME",
                             roleLabel: "Staff member",
                             phone: "",
                           },
