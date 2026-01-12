@@ -298,7 +298,7 @@ export default function TaskSummary() {
         actionButton={{
           label: "Update task",
           onClick: () => {
-            // Handle update task click
+            setIsEditTaskModalOpen(true);
           },
         }}
         moreOptions={{
