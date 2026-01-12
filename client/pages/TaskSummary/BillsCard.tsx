@@ -18,7 +18,9 @@ interface BillsCardProps {
   workOrderId?: number;
 }
 
-export const BillsCard: React.FC<BillsCardProps> = ({ bills }) => {
+export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId }) => {
+  const navigate = useNavigate();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Paid":
@@ -39,10 +41,26 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills }) => {
     }
   };
 
+  const handleEnterBill = () => {
+    navigate("/bills/record");
+  };
+
   return (
     <SectionCard title="Bills" variant="white">
       <div className="flex flex-col gap-4">
-        {bills.map((bill) => {
+        {bills.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="text-[#71717A] text-sm font-normal mb-3">
+              No bills entered yet
+            </div>
+            <button
+              onClick={handleEnterBill}
+              className="text-[#2463eb] text-sm font-medium hover:underline"
+            >
+              Enter Bill
+            </button>
+          </div>
+        ) : bills.map((bill) => {
           const statusColors = getStatusColor(bill.status);
           return (
             <div
