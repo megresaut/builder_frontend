@@ -307,6 +307,8 @@ export default function TaskWorkOrders({
     "billTotal",
     "assignees",
     "collaborators",
+    // Note: "property" and "unit" are defined in columns array but not included here,
+    // so they default to hidden in the column filter modal
   ]);
 
   const columns = [
