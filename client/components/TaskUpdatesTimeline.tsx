@@ -14,6 +14,7 @@ export interface UpdateItem {
   avatar?: string;
   initials?: string;
   author: string;
+  authorType?: "assignee" | "collaborator";
   action: string;
   actionValue?: ReactNode;
   timestamp: string;
