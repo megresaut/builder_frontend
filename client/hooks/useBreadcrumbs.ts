@@ -50,19 +50,28 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
         const tab = match[2];
         const workOrderId = match[3];
         items.push({ label: "Tasks", href: "/all-tasks" });
-        const taskData: Record<string, string> = {
-          "1": "Edgerton - Quote",
-          "2": "Downtown Renovation",
-          "3": "HVAC Installation",
-          "4": "Electrical Rewiring",
-          "5": "Plumbing Repairs",
-          "6": "Roof Inspection",
-          "7": "Window Replacement",
-          "8": "Door Repairs",
-          "9": "Painting Project",
-          "10": "Foundation Work",
-        };
-        items.push({ label: taskData[taskId] || `Task ${taskId}` });
+
+        // Try to get task name from navigation state first, then fall back to hardcoded mapping
+        const navigationState = location.state as any;
+        let taskName = navigationState?.task?.title || navigationState?.taskData?.title;
+
+        if (!taskName) {
+          const taskData: Record<string, string> = {
+            "1": "Edgerton - Quote",
+            "2": "Downtown Renovation",
+            "3": "HVAC Installation",
+            "4": "Electrical Rewiring",
+            "5": "Plumbing Repairs",
+            "6": "Roof Inspection",
+            "7": "Window Replacement",
+            "8": "Door Repairs",
+            "9": "Painting Project",
+            "10": "Foundation Work",
+          };
+          taskName = taskData[taskId];
+        }
+
+        items.push({ label: taskName || `Task ${taskId}` });
 
         if (tab && tab !== "summary") {
           const tabLabels: Record<string, string> = {
