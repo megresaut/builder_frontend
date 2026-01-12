@@ -540,29 +540,26 @@ export default function MaintenanceWorkOrders() {
             rowKey="id"
             renderCell={(workOrder, columnKey) => {
               if (columnKey === "priority") {
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.priority === "High"
-                            ? "#D97706"
-                            : workOrder.priority === "Low"
-                              ? "#059669"
-                              : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.priority}
-                    </span>
-                  </div>
-                );
+                return <TaskPriorityBadge priority={workOrder.priority as any} />;
               }
               if (columnKey === "task") {
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
                     {workOrder.task}
+                  </span>
+                );
+              }
+              if (columnKey === "property") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {workOrder.property}
+                  </span>
+                );
+              }
+              if (columnKey === "unit") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {workOrder.unit}
                   </span>
                 );
               }
@@ -581,22 +578,7 @@ export default function MaintenanceWorkOrders() {
                 );
               }
               if (columnKey === "status") {
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.status === "Completed"
-                            ? "#059669"
-                            : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.status}
-                    </span>
-                  </div>
-                );
+                return <TaskStatusBadge status={workOrder.status as any} />;
               }
               if (columnKey === "dueDate") {
                 return (
@@ -633,72 +615,10 @@ export default function MaintenanceWorkOrders() {
                 );
               }
               if (columnKey === "assignees") {
-                return (
-                  <div className="flex items-center gap-2">
-                    {workOrder.assignees.map((assignee) => (
-                      <div
-                        key={assignee.id}
-                        className="relative group"
-                      >
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                          style={{
-                            backgroundColor: "rgb(59, 130, 246)",
-                            borderColor: "rgb(209, 213, 219)",
-                            borderWidth: "1px",
-                          }}
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
+                return <PersonAvatars people={workOrder.assignees} type="assignee" fallback="None" size="sm" />;
               }
               if (columnKey === "collaborators") {
-                return (
-                  <div className="flex items-center gap-2">
-                    {workOrder.collaborators.map((collaborator) => (
-                      <div
-                        key={collaborator.id}
-                        className="relative group"
-                      >
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                          style={{
-                            backgroundColor: "rgb(59, 130, 246)",
-                            borderColor: "rgb(209, 213, 219)",
-                            borderWidth: "1px",
-                          }}
-                          title={collaborator.name}
-                        >
-                          {collaborator.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {collaborator.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              }
-              if (columnKey === "property") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {workOrder.property}
-                  </span>
-                );
-              }
-              if (columnKey === "unit") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {workOrder.unit}
-                  </span>
-                );
+                return <PersonAvatars people={workOrder.collaborators} type="collaborator" fallback="None" size="sm" />;
               }
               return null;
             }}
