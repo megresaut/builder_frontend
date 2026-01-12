@@ -800,7 +800,6 @@ export default function Header({
     if (!selectedTab) return;
 
     const tabExists = tabs.some((tab) => tab.id === selectedTab);
-    const isAlreadyOpen = openTabs.has(selectedTab);
 
     // If tab doesn't exist but is a task or vendor tab, create it dynamically
     if (!tabExists && selectedTab) {
