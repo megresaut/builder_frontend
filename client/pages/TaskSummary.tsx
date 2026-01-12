@@ -1068,11 +1068,10 @@ export default function TaskSummary() {
 
       {/* View Note Modal */}
       <ModalTemplate
-        open={isViewNoteOpen}
+        open={uiState.modals.viewNote}
         onOpenChange={(open) => {
           if (!open) {
-            setIsViewNoteOpen(false);
-            setViewingNote(null);
+            uiDispatch({ type: "CLOSE_MODAL", payload: "viewNote" });
           }
         }}
         title="Note Details"
@@ -1080,14 +1079,16 @@ export default function TaskSummary() {
         footer={
           <ModalButtons
             onCancel={() => {
-              setIsViewNoteOpen(false);
-              setViewingNote(null);
+              uiDispatch({ type: "CLOSE_MODAL", payload: "viewNote" });
             }}
             onConfirm={() => {
-              if (viewingNote) {
-                setEditingNoteId(viewingNote.id);
-                setIsViewNoteOpen(false);
-                setIsAddNoteModalOpen(true);
+              if (uiState.viewingNote) {
+                uiDispatch({
+                  type: "SET_EDITING_NOTE_ID",
+                  payload: uiState.viewingNote.id,
+                });
+                uiDispatch({ type: "CLOSE_MODAL", payload: "viewNote" });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addNote" });
               }
             }}
             cancelLabel="Close"
@@ -1095,17 +1096,17 @@ export default function TaskSummary() {
           />
         }
       >
-        {viewingNote ? (
+        {uiState.viewingNote ? (
           <FormLayout>
             <FormSection showDivider={false}>
               <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">
-                {viewingNote.text}
+                {uiState.viewingNote.text}
               </div>
               <div className="text-sm text-[#71717A]">
-                <span className="font-medium">Author:</span> {viewingNote.author}
+                <span className="font-medium">Author:</span> {uiState.viewingNote.author}
               </div>
               <div className="text-sm text-[#71717A]">
-                <span className="font-medium">Date:</span> {viewingNote.date}
+                <span className="font-medium">Date:</span> {uiState.viewingNote.date}
               </div>
             </FormSection>
           </FormLayout>
@@ -1114,8 +1115,10 @@ export default function TaskSummary() {
 
       {/* Add/Edit Note Modal */}
       <AddNoteModal
-        open={isAddNoteModalOpen}
-        onOpenChange={setIsAddNoteModalOpen}
+        open={uiState.modals.addNote}
+        onOpenChange={(open) => {
+          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "addNote" });
+        }}
         onSubmit={(text) => {
           if (editingNoteId) {
             // Edit existing note
