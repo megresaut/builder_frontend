@@ -282,7 +282,7 @@ export default function CreateWorkOrderModalV2({
             </FormSection>
           )}
 
-          <FormSection title="Work Order Details">
+          <FormSection title={!hideSubheader ? "Work Order Details" : undefined}>
             <FormFieldRow columns={2}>
               <TextField
                 label="Work Order Name"
