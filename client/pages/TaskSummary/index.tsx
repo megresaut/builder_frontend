@@ -79,7 +79,7 @@ export default function TaskSummary() {
     }
   }, [tab, workOrderId, uiDispatch]);
 
-  // Sync UI state to navigation
+  // Sync UI state to navigation - only when explicitly changing tabs
   useEffect(() => {
     // If we're on the base task path and the state is summary, don't force a redirect
     // This prevents history loops and allows the back button to work correctly
@@ -88,20 +88,14 @@ export default function TaskSummary() {
       return;
     }
 
-    // Don't navigate if we're already on the correct path
-    // This prevents navigation loops when the URL params are already correct
-    const expectedPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
-    if (location.pathname === expectedPath) {
-      return;
-    }
-
+    // The URL params are the source of truth. We only navigate if the state
+    // has explicitly changed (e.g., user clicked a tab), not due to URL changes.
+    // This prevents bouncing when clicking table rows.
     const currentPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
     if (location.pathname !== currentPath) {
-      // Use replace for the initial sync to avoid polluting history
-      const isInitialSync = location.pathname === `/tasks/${taskId}`;
-      navigate(currentPath, { replace: isInitialSync });
+      navigate(currentPath, { replace: true });
     }
-  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname]);
+  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
