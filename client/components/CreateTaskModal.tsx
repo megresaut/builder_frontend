@@ -397,12 +397,7 @@ export default function CreateTaskModal({
               value={category}
               onChange={setCategory}
               placeholder="Select Category"
-              options={[
-                { value: "uncategorized", label: "Uncategorized" },
-                { value: "preventative", label: "Preventative Maintenance" },
-                { value: "emergency", label: "Emergency" },
-                { value: "repair", label: "Repair" },
-              ]}
+              options={TASK_CATEGORIES}
             />
 
             {/* Priority + Due Date + Status - 3 Columns */}
