@@ -389,26 +389,6 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const apiData = await mockFetchFTOs({
-          field_team_member_id: 1,
-          limit: 100,
-        });
-        const transformedOrders = transformAPIToFieldTeamOrder(apiData);
-        setOrders(transformedOrders);
-      } catch (error) {
-        console.error("Error fetching FTOs:", error);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
 
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
