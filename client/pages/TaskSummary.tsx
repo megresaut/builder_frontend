@@ -89,6 +89,18 @@ export default function TaskSummary() {
           : taskData.dueDate)
       : "No due date";
     const assigneeNames = taskData?.assignees?.map((a: any) => a.name || a.label).join(", ") || "Unassigned";
+    const collaboratorNames = taskData?.collaborators?.map((c: any) => c.name || c.label).join(", ") || "None";
+
+    const fields = [
+      { label: "Status", value: statusMap[taskData?.status] || taskData?.status || "Not Started" },
+      { label: "Priority", value: priorityLabel },
+      { label: "Due Date", value: dueDate },
+      { label: "Assignees", value: assigneeNames },
+    ];
+
+    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+      fields.push({ label: "Collaborators", value: collaboratorNames });
+    }
 
     return {
       id: 0,
@@ -96,27 +108,30 @@ export default function TaskSummary() {
       action: "created this task",
       timestamp: new Date().toLocaleString(),
       fieldsDisplay: (
-        <div className="grid grid-cols-4 gap-6 mt-3">
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">{statusMap[taskData?.status] || taskData?.status || "Not Started"}</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">{priorityLabel}</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">{dueDate}</div>
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-            <div className="text-sm text-[#303030] font-medium mt-0.5">{assigneeNames}</div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+          {fields.map((field, idx) => (
+            <div key={idx}>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">{field.label}</div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">{field.value}</div>
+            </div>
+          ))}
         </div>
       ),
       ...(taskData?.description && {
         details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
+      }),
+      ...(taskData?.files && taskData.files.length > 0 && {
+        attachments: taskData.files.map((f: any) => ({
+          name: f.name,
+          url: f.url,
+          id: f.id,
+        })),
+        onAttachmentClick: (file: any) => {
+          setViewingAttachment({ id: file.id, name: file.name, url: file.url });
+          setIsPdfViewerOpen(true);
+          setIsRenamingAttachment(false);
+          setRenamingAttachmentName("");
+        },
       }),
       icon: <FlagIcon width={16} height={16} />,
       isInitialCreation: true,
