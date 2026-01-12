@@ -319,7 +319,7 @@ export default function CreateTaskModal({
       setErrorMessages({});
       fileUpload.reset();
     }
-  }, [open]);
+  }, [open, fileUpload]);
 
   // For Update variant: always keep message and attachments empty
   useEffect(() => {
@@ -420,7 +420,7 @@ export default function CreateTaskModal({
         });
       }
     }
-  }, [open, variant, editData?.id]); // Use editData?.id to only re-init if the task ID changes, otherwise only on open
+  }, [open, variant, editData?.title, editData?.dueDate, editData?.status, editData?.priority, editData?.assignees, editData?.collaborators]);
 
 
   return (
