@@ -114,7 +114,7 @@ export default function CreateTaskModal({
   const fileUpload = useFileUpload();
 
   // Check if anything has changed in the update variant
-  const hasChanges = (): boolean => {
+  const hasChanges = useCallback((): boolean => {
     if (variant !== "withMessageAndAttachments" || !initialState) {
       return true;
     }
@@ -136,10 +136,10 @@ export default function CreateTaskModal({
       category !== initialState.category ||
       fileUpload.files.length > 0
     );
-  };
+  }, [variant, initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, message, property, unit, category, fileUpload.files.length]);
 
   // Generate update message based on changes
-  const generateUpdateMessage = (): string => {
+  const generateUpdateMessage = useCallback((): string => {
     const changes: string[] = [];
 
     if (initialState) {
@@ -185,9 +185,9 @@ export default function CreateTaskModal({
     }
 
     return changes.join(", ");
-  };
+  }, [initialState, status, priority, dueDate, message, fileUpload.files.length]);
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: {
       title?: boolean;
     } = {};
@@ -210,9 +210,9 @@ export default function CreateTaskModal({
     setErrors(newErrors);
     setErrorMessages(newErrorMessages);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [variant, title]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (validateForm()) {
       // Detect which fields have changed for update variant
       const changedFields: string[] = [];
@@ -264,9 +264,9 @@ export default function CreateTaskModal({
       fileUpload.reset();
       onOpenChange(false);
     }
-  };
+  }, [validateForm, variant, initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, title, description, property, unit, category, message, fileUpload.files, fileUpload.reset, generateUpdateMessage, onTaskCreated, onOpenChange]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     // Reset form before closing
     setTitle("");
     setDescription("");
@@ -284,7 +284,7 @@ export default function CreateTaskModal({
     setErrorMessages({});
     fileUpload.reset();
     onOpenChange(false);
-  };
+  }, [fileUpload.reset, onOpenChange]);
 
   // Cleanup on component unmount
   useEffect(() => {
