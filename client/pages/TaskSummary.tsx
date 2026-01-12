@@ -310,7 +310,7 @@ export default function TaskSummary() {
                     timestamp: "11/12/2025 9:22 PM",
                   },
                 ]}
-                onAddUpdate={() => console.log("Add update")}
+                onAddUpdate={() => setIsEditTaskModalOpen(true)}
               />
             </div>
 
