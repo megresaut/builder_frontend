@@ -47,7 +47,9 @@ interface CreateTaskModalProps {
     due?: string;
     status?: string;
     dueDate?: Date | null;
+    category?: string;
     assignees?: Array<{ id: number; name: string; initials: string }>;
+    collaborators?: Array<{ id: number; name: string; initials: string }>;
   };
 }
 
