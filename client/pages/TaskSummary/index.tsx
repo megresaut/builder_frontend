@@ -323,11 +323,15 @@ export default function TaskSummary() {
     return isNewTask ? null : new Date(2025, 9, 15); // Oct 15, 2025
   });
   const [currentAssignees, setCurrentAssignees] = useState<any[]>(() => {
-    if (taskData?.assignees) return taskData.assignees;
+    if (taskData?.assignees && taskData.assignees.length > 0) {
+      return taskData.assignees;
+    }
     return isNewTask ? [] : [{ id: 1, name: "Julia LoSchiavo", initials: "JL" }];
   });
   const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(() => {
-    if (taskData?.collaborators) return taskData.collaborators;
+    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+      return taskData.collaborators;
+    }
     return isNewTask ? [] : [
       { id: 2, name: "Chris Henry", initials: "CH" },
       { id: 3, name: "Connor Smith", initials: "CS" },
