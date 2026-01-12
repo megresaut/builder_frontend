@@ -417,8 +417,19 @@ export default function CreateTaskModal({
 
       // Initialize baseline state for the "update" variant
       if (variant === "withMessageAndAttachments") {
+        // Normalize status - handle both formatted and lowercase formats
+        let normalizedStatus = "not_started";
+        if (editData?.status) {
+          const statusMap: { [key: string]: string } = {
+            "Not Started": "not_started",
+            "In Progress": "in_progress",
+            "Completed": "completed",
+          };
+          normalizedStatus = statusMap[editData.status] || editData.status;
+        }
+
         setInitialState({
-          status: editData ? (editData.status === "In Progress" ? "in_progress" : editData.status === "Completed" ? "completed" : "not_started") : "not_started",
+          status: normalizedStatus,
           priority: editData ? editData.priority.toLowerCase() : "normal",
           dueDate: editData?.dueDate || null,
           assignees: editData?.assignees?.map((a) => ({
