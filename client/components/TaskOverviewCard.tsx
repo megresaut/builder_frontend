@@ -75,6 +75,9 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
                 id: "creator",
                 name: createdBy.name,
                 initials: createdBy.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
+                email: createdBy.email,
+                phone: createdBy.phone,
+                title: createdBy.title,
               },
             ]}
             type="assignee"
