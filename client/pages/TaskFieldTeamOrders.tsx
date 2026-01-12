@@ -537,23 +537,15 @@ export default function TaskFieldTeamOrders() {
   );
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Subheader with Create FTO Button */}
-      <SubPageHeaderV2
-        leftContent={
-          <h3 className="text-lg font-semibold text-gray-900">Field Team Orders</h3>
-        }
-        buttons={[
-          {
-            id: "create-fto",
-            label: "Create FTO",
-            icon: <Plus className="w-4 h-4" />,
-            onClick: () => setShowFTOModal(true),
-          },
-        ]}
-      />
-
-      {loading ? (
+    <>
+      <HeaderV1
+        title="Field Team Orders"
+        subtitle="All your field team orders, in one place"
+        actionLabel="Create FTO"
+        actionIcon={<PlusIcon width={20} height={20} />}
+        onActionClick={() => setShowFTOModal(true)}
+      >
+        {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-gray-500">Loading field team orders...</div>
         </div>
@@ -712,7 +704,8 @@ export default function TaskFieldTeamOrders() {
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
         />
-      )}
+        )}
+      </HeaderV1>
 
       <CreateFTOModal
         open={showFTOModal}
@@ -778,6 +771,6 @@ export default function TaskFieldTeamOrders() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </div>
+    </>
   );
 }
