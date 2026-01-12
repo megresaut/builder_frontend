@@ -101,14 +101,15 @@ export default function TaskSummary() {
   useEffect(() => {
     if (taskId && taskData?.title) {
       const tabId = `task-${taskId}`;
+      const activeTab = (tab as "summary" | "workorders" | "fieldteam") || "summary";
       setTabMetadata(tabId, {
         label: taskData.title,
-        route: `/tasks/${taskId}`,
+        route: `/tasks/${taskId}/${activeTab}`,
         sectionId: "all-tasks",
       });
       setSelectedTab(tabId);
     }
-  }, [taskId, taskData?.title, setTabMetadata, setSelectedTab]);
+  }, [taskId, taskData?.title, tab, setTabMetadata, setSelectedTab]);
 
   // Track creation timestamp - set once and never change
   const [createdTimestamp] = useState<string>(() => {
