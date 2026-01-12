@@ -35,6 +35,7 @@ interface Task {
   updated: string;
   priority: string;
   assignees: Assignee[];
+  unit?: string;
 }
 
 interface RecurringTask {
@@ -941,6 +942,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         name: collaborator.label,
         initials: collaborator.initials,
       })) || [],
+      unit: taskData.unit,
     };
     setTasksList((prev) => [newTask, ...prev]);
     // Navigate to the newly created task with its data
@@ -989,6 +991,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             { key: "priority", label: "Priority", icon: tasksColumnConfig.priority.icon },
             { key: "status", label: "Status", icon: tasksColumnConfig.status.icon },
             { key: "title", label: "Task", icon: tasksColumnConfig.title.icon },
+            { key: "unit", label: "Unit", icon: fieldTeamColumnConfig.unit.icon },
             { key: "due", label: "Due", icon: tasksColumnConfig.due.icon },
             { key: "assignees", label: "Assignees", icon: tasksColumnConfig.assignees.icon },
           ]}
@@ -1054,7 +1057,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     {task.title}
                   </span>
                 );
-              case "due":
+              case "unit":
+                const unitLabels: Record<string, string> = {
+                  unit1: "Unit 1",
+                  unit2: "Unit 2",
+                };
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {task.unit ? (unitLabels[task.unit] || task.unit) : "—"}
+                  </span>
+                );
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
                     {task.due}
