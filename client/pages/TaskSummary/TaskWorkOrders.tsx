@@ -10,6 +10,7 @@ import GlobalTable from "@/components/GlobalTable";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import HeaderV1 from "@/components/HeaderV1";
+import PersonAvatars from "@/components/PersonAvatars";
 import { EditIcon, DeleteIcon, BuildingIcon, HashtagIcon } from "@/components/icons";
 
 interface Assignee {
