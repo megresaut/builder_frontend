@@ -27,6 +27,7 @@ interface AvailableBill {
 interface BillsCardProps {
   bills: BillItem[];
   workOrderId?: number;
+  onBillSelected?: (bill: BillItem) => void;
 }
 
 // Mock bills from the Bills page
