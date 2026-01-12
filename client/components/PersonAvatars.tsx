@@ -42,7 +42,7 @@ export const PersonAvatars: React.FC<PersonAvatarsProps> = ({
         return (
           <div key={`${person.id || idx}-${idx}`} className="relative group/avatar">
             <div
-              className={`flex items-center justify-center ${sizeClass} bg-white ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8] flex-shrink-0`}
+              className={`flex items-center justify-center ${sizeClass} bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8] flex-shrink-0`}
               title={name}
             >
               {initials}
