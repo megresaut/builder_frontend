@@ -1308,7 +1308,7 @@ export default function TaskSummary() {
                     name: file.name,
                     url: fileUrl,
                     preview: isImage ? fileUrl : undefined,
-                    id: file.id,
+                    id: String(file.id),
                   };
                 })
                 .filter((file: any) => typeof file?.url === "string" && file.url)
@@ -1328,16 +1328,28 @@ export default function TaskSummary() {
             });
           }
 
+          // Determine update message based on what changed
+          let updateAction = "updated the task";
+          const hasMessage = !!(taskData as any).messageBody;
+          const hasFiles = Array.isArray((taskData as any).files) && (taskData as any).files.length > 0;
+          const hasFieldChanges = Array.isArray((taskData as any).changedFields) && (taskData as any).changedFields.length > 0;
+
+          if (hasFiles && !hasMessage && !hasFieldChanges) {
+            updateAction = "uploaded a file";
+          } else if (hasMessage && !hasFiles && !hasFieldChanges) {
+            updateAction = "updated a message";
+          }
+
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
             author: "You",
-            action: (taskData as any).message || "updated the task",
+            action: updateAction,
             timestamp: new Date().toLocaleString(),
             details: details.length > 0 ? <div className="flex flex-col gap-5">{details}</div> : undefined,
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
-              setViewingAttachment({ id: file.id, name: file.name, url: file.url });
+              setViewingAttachment({ id: String(file.id), name: file.name, url: file.url });
               setIsPdfViewerOpen(true);
               setIsRenamingAttachment(false);
               setRenamingAttachmentName("");
