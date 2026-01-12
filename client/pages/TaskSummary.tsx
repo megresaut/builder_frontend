@@ -159,7 +159,7 @@ export default function TaskSummary() {
 
     return {
       id: 0,
-      author: "Current User",
+      author: "Julia LoSchiavo",
       action: "created this task",
       timestamp: new Date().toLocaleString(),
       fieldsDisplay: (
@@ -831,8 +831,8 @@ export default function TaskSummary() {
                 description={currentDescription}
                 dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
                 createdBy={{
-                  name: "Current User",
-                  property: currentProperty
+                  name: "Julia LoSchiavo",
+                  property: currentProperty && currentProperty !== "Unassigned"
                     ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
                     : "Unassigned",
                 }}
@@ -985,8 +985,8 @@ export default function TaskSummary() {
                             ...(isNewTask ? [
                               {
                                 id: 0,
-                                name: "Current User",
-                                initials: "ME",
+                                name: "Julia LoSchiavo",
+                                initials: "JL",
                                 roleLabel: "Property manager",
                                 phone: "",
                               },
@@ -1338,7 +1338,7 @@ export default function TaskSummary() {
 
             const initialUpdate = {
               id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
-              author: "Current User",
+              author: "Julia LoSchiavo",
               action: "created this task",
               timestamp: new Date().toLocaleString(),
               ...(creationFields.length > 0 && {
@@ -1533,7 +1533,7 @@ export default function TaskSummary() {
 
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
-            author: "You",
+            author: "Julia LoSchiavo",
             action: updateAction,
             timestamp: new Date().toLocaleString(),
             details: details.length > 0 ? <div className="flex flex-col gap-5">{details}</div> : undefined,
