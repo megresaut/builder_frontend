@@ -775,6 +775,29 @@ export default function TaskSummary() {
     return unitLabels[unitValue] || "";
   };
 
+  // Extract unique vendors from work orders
+  const vendorsFromWorkOrders = useMemo(() => {
+    const uniqueVendors = new Map<string, { id: string; name: string; initials: string }>();
+    workOrders.forEach((wo) => {
+      if (wo.vendorName && wo.vendorName.trim()) {
+        if (!uniqueVendors.has(wo.vendorName)) {
+          const initials = wo.vendorName
+            .split(" ")
+            .slice(0, 2)
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase();
+          uniqueVendors.set(wo.vendorName, {
+            id: `vendor-${uniqueVendors.size + 1}`,
+            name: wo.vendorName,
+            initials: initials || "V",
+          });
+        }
+      }
+    });
+    return Array.from(uniqueVendors.values());
+  }, [workOrders]);
+
   // Memoize editData to prevent unnecessary re-initialization of the modal
   const modalEditData = useMemo(() => ({
     id: parseInt(taskId || "0"),
