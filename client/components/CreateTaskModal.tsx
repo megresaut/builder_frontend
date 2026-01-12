@@ -9,6 +9,8 @@ import {
   TextField,
   TextAreaField,
   SelectField,
+  StatusSelectField,
+  PrioritySelectField,
   MultiSelectField,
   DateField,
   FileUploadField,
@@ -16,8 +18,6 @@ import {
 } from "@/components/forms";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import TaskStatusBadge from "@/components/TaskStatusBadge";
-import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { TASK_CATEGORIES } from "@/constants/taskCategories";
 
