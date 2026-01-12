@@ -807,9 +807,17 @@ export default function TaskSummary() {
     // Prefer workOrderId from URL params (this is the source of truth)
     const targetId = workOrderId ? parseInt(workOrderId) : uiState.selectedWorkOrderId;
     if (!targetId) return null;
+
+    // First check if this is a newly created work order passed through location state
+    const newWorkOrder = navigationState?.newWorkOrder;
+    if (newWorkOrder && newWorkOrder.id === targetId) {
+      return newWorkOrder;
+    }
+
+    // Otherwise look for it in the workOrders list
     const found = workOrders.find((wo) => wo.id === targetId);
     return found || null;
-  }, [workOrderId, uiState.selectedWorkOrderId, workOrders]);
+  }, [workOrderId, uiState.selectedWorkOrderId, workOrders, navigationState?.newWorkOrder]);
 
   // Determine if we are trying to view a work order but it's not found yet (loading state)
   const isLoadingWorkOrder = !!workOrderId && !selectedWorkOrder;
