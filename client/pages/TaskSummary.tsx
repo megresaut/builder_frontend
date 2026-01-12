@@ -605,63 +605,41 @@ export default function TaskSummary() {
     );
   };
 
-  // Get current note/file being edited for initial values
-  const editingNote = editingNoteId
-    ? notes.find((n) => n.id === editingNoteId)
-    : null;
-  const editingFile = editingFileId
-    ? files.find((f) => f.id === editingFileId)
-    : null;
-
-  // Sync activeTab with URL params
-  useEffect(() => {
-    if (tab) {
-      setActiveTab(tab as "summary" | "workorders" | "fieldteam");
-    }
-  }, [tab]);
-
-  // Sync selectedWorkOrderId with URL params
-  useEffect(() => {
-    setSelectedWorkOrderId(workOrderId ? parseInt(workOrderId) : null);
-  }, [workOrderId]);
-
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    navigate(`/tasks/${taskId}/${newTab}`);
+    uiDispatch({ type: "SET_ACTIVE_TAB", payload: newTab });
   };
 
   const handleWorkOrderSelect = (woId: number | null) => {
-    if (woId !== null) {
-      navigate(`/tasks/${taskId}/workorders/${woId}`);
-      return;
-    }
-
-    navigate(`/tasks/${taskId}/workorders`);
+    uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: woId });
   };
 
   const handleStartRenamingAttachment = () => {
-    if (viewingAttachment) {
-      setRenamingAttachmentName(viewingAttachment.name);
-      setIsRenamingAttachment(true);
+    if (uiState.viewingAttachment) {
+      uiDispatch({
+        type: "START_RENAMING_ATTACHMENT",
+        payload: uiState.viewingAttachment.name,
+      });
     }
   };
 
   const handleSaveAttachmentFileName = () => {
-    const trimmedName = renamingAttachmentName.trim();
-    if (viewingAttachment && viewingAttachment.id && trimmedName) {
-      syncFileNameAcrossStates(viewingAttachment.id, trimmedName);
+    const trimmedName = uiState.renamingAttachmentName.trim();
+    if (uiState.viewingAttachment && uiState.viewingAttachment.id && trimmedName) {
+      syncFileNameAcrossStates(uiState.viewingAttachment.id, trimmedName);
 
-      setViewingAttachment({
-        ...viewingAttachment,
-        name: trimmedName,
+      uiDispatch({
+        type: "SET_VIEWING_ATTACHMENT",
+        payload: {
+          ...uiState.viewingAttachment,
+          name: trimmedName,
+        },
       });
-      setIsRenamingAttachment(false);
-      setRenamingAttachmentName("");
+      uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
     }
   };
 
   const handleCancelRenamingAttachment = () => {
-    setIsRenamingAttachment(false);
-    setRenamingAttachmentName("");
+    uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
   };
 
   // Map property values to addresses
