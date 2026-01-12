@@ -327,7 +327,7 @@ export default function AllTasks() {
       // Use replace: true to ensure the modal isn't in the history stack
       setTimeout(() => {
         navigate(`/tasks/${newTaskId}`, {
-          state: { task: newTask, taskData },
+          state: { task: newTask, taskData: { ...taskData, ...newTask } },
           replace: true
         });
       }, 0);
