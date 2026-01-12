@@ -324,7 +324,13 @@ export default function AllTasks() {
       setEditingTask(null);
 
       // Navigate to the newly created task with its data
-      navigate(`/tasks/${newTaskId}`, { state: { task: newTask, taskData } });
+      // Use replace: true to ensure the modal isn't in the history stack
+      setTimeout(() => {
+        navigate(`/tasks/${newTaskId}`, {
+          state: { task: newTask, taskData },
+          replace: true
+        });
+      }, 0);
     },
     [tasksList, navigate]
   );
