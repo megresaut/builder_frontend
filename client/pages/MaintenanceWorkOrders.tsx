@@ -284,6 +284,55 @@ export default function MaintenanceWorkOrders() {
       ),
     },
     {
+      key: "property",
+      label: "Property",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M8 1L2 5V14H6V10H10V14H14V5L8 1Z"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M2 5H14M5 5V14M8 5V14M11 5V14"
+            stroke="#525252"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       key: "updatedDate",
       label: "Updated",
       icon: (
