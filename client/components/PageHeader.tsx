@@ -52,28 +52,56 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   action,
   actionButton,
   moreOptions,
+  onBack,
 }) => {
   return (
     <div className="flex items-center gap-10 justify-between flex-wrap">
-      {/* Title and Description */}
-      <div className="flex flex-col gap-1 min-w-[240px]">
-        <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-          {title}
-        </h1>
-        {subtitle && (
-          typeof subtitle === 'string' ? (
-            <span
-              className="text-[#717179] font-medium text-base leading-4 block"
-              style={{ marginTop: "4px" }}
+      {/* Back button and Title Container */}
+      <div className="flex items-start gap-3 min-w-0">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors mt-1"
+            aria-label="Go back"
+            type="button"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              {subtitle}
-            </span>
-          ) : (
-            <div style={{ marginTop: "4px" }}>
-              {subtitle}
-            </div>
-          )
+              <path
+                d="M12.5 15.8334L4.16667 7.50008L12.5 -0.833251"
+                stroke="#303030"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         )}
+        {/* Title and Description */}
+        <div className="flex flex-col gap-1 min-w-0">
+          <h1 className="text-[#303030] font-semibold text-2xl leading-[30px] truncate">
+            {title}
+          </h1>
+          {subtitle && (
+            typeof subtitle === 'string' ? (
+              <span
+                className="text-[#717179] font-medium text-base leading-4 block"
+                style={{ marginTop: "4px" }}
+              >
+                {subtitle}
+              </span>
+            ) : (
+              <div style={{ marginTop: "4px" }}>
+                {subtitle}
+              </div>
+            )
+          )}
+        </div>
       </div>
 
       {/* Action Button */}
