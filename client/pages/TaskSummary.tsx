@@ -1485,6 +1485,20 @@ export default function TaskSummary() {
               const updatedFiles = prevFiles.map((f) => {
                 const renamedFile = renamedFiles.get(f.id);
                 if (renamedFile && renamedFile.name !== f.name) {
+                  // Also sync the name change to the timeline updates
+                  setUpdates((prevUpdates) =>
+                    prevUpdates.map((update) => {
+                      if (update.attachments && Array.isArray(update.attachments)) {
+                        const updatedAttachments = update.attachments.map((att: any) =>
+                          String(att.id) === String(f.id)
+                            ? { ...att, name: renamedFile.name }
+                            : att,
+                        );
+                        return { ...update, attachments: updatedAttachments };
+                      }
+                      return update;
+                    }),
+                  );
                   return { ...f, name: renamedFile.name };
                 }
                 return f;
