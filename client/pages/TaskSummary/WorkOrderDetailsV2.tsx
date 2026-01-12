@@ -13,6 +13,7 @@ import DateField from "@/components/forms/DateField";
 import { cn } from "@/lib/utils";
 import { AddNoteModal, AddFileModal } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
+import PdfViewerModal from "@/components/PdfViewerModal";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 
@@ -82,6 +83,8 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
+  const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
+  const [viewingFileName, setViewingFileName] = useState<string>("");
 
   const handleDismissNotification = (id: number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
@@ -372,7 +375,10 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
                   setIsAddFileModalOpen(true);
                 }}
                 onDelete={(id) => setFiles(files.filter(f => f.id !== id))}
-                onView={() => console.log("View file")}
+                onView={(file) => {
+                  setViewingFileUrl(file.url || "#");
+                  setViewingFileName(file.name);
+                }}
               />
             </div>
           </SectionCard>
@@ -471,6 +477,15 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
         initialCategory={editingFile?.category}
         initialDescription={editingFile?.description}
         isEditMode={!!editingFileId}
+      />
+
+      <PdfViewerModal
+        open={!!viewingFileUrl}
+        onOpenChange={(open) => {
+          if (!open) setViewingFileUrl(null);
+        }}
+        title={viewingFileName}
+        url={viewingFileUrl || ""}
       />
     </div>
   );
