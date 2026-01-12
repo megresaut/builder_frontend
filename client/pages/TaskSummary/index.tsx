@@ -381,6 +381,7 @@ export default function TaskSummary() {
       collaborators: [
         { id: 5, name: "Sarah Wilson", initials: "SW" },
       ],
+      vendorName: "ABC Doors & Hardware",
     },
     {
       id: 2,
@@ -402,6 +403,7 @@ export default function TaskSummary() {
         { id: 6, name: "Tom Davis", initials: "TD" },
         { id: 7, name: "Lisa Brown", initials: "LB" },
       ],
+      vendorName: "Elite HVAC Services",
     },
     {
       id: 3,
@@ -420,6 +422,7 @@ export default function TaskSummary() {
         { id: 1, name: "Jerry Sanchez", initials: "JS" },
       ],
       collaborators: [],
+      vendorName: "Glass & Frames Inc",
     },
     {
       id: 4,
@@ -440,6 +443,7 @@ export default function TaskSummary() {
       collaborators: [
         { id: 5, name: "Sarah Wilson", initials: "SW" },
       ],
+      vendorName: "Pro Roofing Solutions",
     },
     {
       id: 5,
@@ -460,6 +464,7 @@ export default function TaskSummary() {
       collaborators: [
         { id: 6, name: "Tom Davis", initials: "TD" },
       ],
+      vendorName: "Dolce Plumbing & Heating LLC",
     },
     {
       id: 6,
@@ -481,6 +486,7 @@ export default function TaskSummary() {
         { id: 7, name: "Lisa Brown", initials: "LB" },
         { id: 5, name: "Sarah Wilson", initials: "SW" },
       ],
+      vendorName: "Spark Electrical",
     },
     {
       id: 7,
@@ -499,6 +505,7 @@ export default function TaskSummary() {
         { id: 3, name: "Jane Smith", initials: "JMS" },
       ],
       collaborators: [],
+      vendorName: "Premium Painters Co",
     },
     {
       id: 8,
@@ -519,6 +526,7 @@ export default function TaskSummary() {
       collaborators: [
         { id: 6, name: "Tom Davis", initials: "TD" },
       ],
+      vendorName: "Quality Flooring LLC",
     },
     {
       id: 9,
@@ -540,6 +548,7 @@ export default function TaskSummary() {
         { id: 5, name: "Sarah Wilson", initials: "SW" },
         { id: 7, name: "Lisa Brown", initials: "LB" },
       ],
+      vendorName: "Green Lawn Services",
     },
     {
       id: 10,
@@ -560,6 +569,7 @@ export default function TaskSummary() {
       collaborators: [
         { id: 6, name: "Tom Davis", initials: "TD" },
       ],
+      vendorName: "Outdoor Construction Corp",
     },
   ];
 
