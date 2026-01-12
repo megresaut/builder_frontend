@@ -18,10 +18,12 @@ import SectionCard from "@/components/SectionCard";
 import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
+import LinkTaskModal from "@/components/LinkTaskModal";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
+import type { LinkedTaskData } from "@/components/LinkTaskModal";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
@@ -175,6 +177,8 @@ export default function TaskSummary() {
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [viewingAttachment, setViewingAttachment] = useState<{ name: string; url: string } | null>(null);
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+  const [linkedTasks, setLinkedTasks] = useState<LinkedTaskData[]>(isNewTask ? [] : []);
+  const [isLinkTaskModalOpen, setIsLinkTaskModalOpen] = useState(false);
 
   // Get current note/file being edited for initial values
   const editingNote = editingNoteId
@@ -387,8 +391,11 @@ export default function TaskSummary() {
 
               {/* Linked Tasks Card */}
               <LinkedTasksCard
-                count={3}
-                onLinkTasks={() => console.log("Link tasks")}
+                linkedTasks={linkedTasks}
+                onLinkTasks={() => setIsLinkTaskModalOpen(true)}
+                onUnlinkTask={(taskId) =>
+                  setLinkedTasks(linkedTasks.filter((t) => t.id !== taskId))
+                }
               />
 
               {/* Updates Timeline */}
@@ -702,6 +709,19 @@ export default function TaskSummary() {
           url={viewingAttachment.url}
         />
       )}
+
+      {/* Link Task Modal */}
+      <LinkTaskModal
+        open={isLinkTaskModalOpen}
+        onOpenChange={setIsLinkTaskModalOpen}
+        onSubmit={(linkedTask) => {
+          // Check if task is already linked
+          if (!linkedTasks.some((t) => t.id === linkedTask.id)) {
+            setLinkedTasks([linkedTask, ...linkedTasks]);
+          }
+          setIsLinkTaskModalOpen(false);
+        }}
+      />
 
       {/* Create/Edit Task Modal */}
       <CreateTaskModal
