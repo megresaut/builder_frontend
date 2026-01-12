@@ -1206,29 +1206,28 @@ export default function TaskSummary() {
         }
         initialCategory={editingFile?.category || ""}
         initialDescription={editingFile?.description || ""}
-        isEditMode={!!editingFileId}
-        title={editingFileId ? "Edit File" : "Add File"}
-        submitLabel={editingFileId ? "Update" : "Add"}
+        isEditMode={!!uiState.editingFileId}
+        title={uiState.editingFileId ? "Edit File" : "Add File"}
+        submitLabel={uiState.editingFileId ? "Update" : "Add"}
       />
 
       {/* PDF Viewer Modal for Attachments */}
-      {viewingAttachment && (
+      {uiState.viewingAttachment && (
         <PdfViewerModal
-          open={isPdfViewerOpen}
+          open={uiState.modals.pdfViewer}
           onOpenChange={(open) => {
-            setIsPdfViewerOpen(open);
             if (!open) {
-              setViewingAttachment(null);
-              setIsRenamingAttachment(false);
-              setRenamingAttachmentName("");
+              uiDispatch({ type: "CLOSE_MODAL", payload: "pdfViewer" });
             }
           }}
-          title={viewingAttachment.name}
-          url={viewingAttachment.url}
+          title={uiState.viewingAttachment.name}
+          url={uiState.viewingAttachment.url}
           onRenameClick={handleStartRenamingAttachment}
-          isRenaming={isRenamingAttachment}
-          renamingFileName={renamingAttachmentName}
-          onRenamingFileNameChange={setRenamingAttachmentName}
+          isRenaming={uiState.isRenamingAttachment}
+          renamingFileName={uiState.renamingAttachmentName}
+          onRenamingFileNameChange={(name) =>
+            uiDispatch({ type: "SET_RENAMING_ATTACHMENT_NAME", payload: name })
+          }
           onSaveFileName={handleSaveAttachmentFileName}
           onCancelRenaming={handleCancelRenamingAttachment}
         />
@@ -1236,22 +1235,50 @@ export default function TaskSummary() {
 
       {/* Link Task Modal */}
       <LinkTaskModal
-        open={isLinkTaskModalOpen}
-        onOpenChange={setIsLinkTaskModalOpen}
+        open={uiState.modals.linkTask}
+        onOpenChange={(open) => {
+          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
+        }}
         availableTasks={availableTasksForLinking}
         onSubmit={(linkedTask) => {
           // Check if task is already linked
-          if (!linkedTasks.some((t) => t.id === linkedTask.id)) {
-            setLinkedTasks([linkedTask, ...linkedTasks]);
+          if (!uiState.linkedTasks.some((t) => t.id === linkedTask.id)) {
+            uiDispatch({ type: "ADD_LINKED_TASK", payload: linkedTask });
+          } else {
+            uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
           }
-          setIsLinkTaskModalOpen(false);
+        }}
+      />
+
+      {/* Edit Task Details Modal */}
+      <EditTaskDetailsModal
+        open={uiState.modals.editTaskDetails}
+        onOpenChange={(open) => {
+          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+        }}
+        initialData={{
+          title: currentTitle,
+          description: currentDescription,
+          property: currentProperty,
+          unit: currentUnit,
+          category: currentCategory,
+        }}
+        onSubmit={(data) => {
+          setCurrentTitle(data.title);
+          setCurrentDescription(data.description);
+          setCurrentProperty(data.property);
+          setCurrentUnit(data.unit);
+          setCurrentCategory(data.category);
+          uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
         }}
       />
 
       {/* Create/Edit Task Modal */}
       <CreateTaskModal
-        open={isEditTaskModalOpen}
-        onOpenChange={setIsEditTaskModalOpen}
+        open={uiState.modals.editTask}
+        onOpenChange={(open) => {
+          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "editTask" });
+        }}
         variant="withMessageAndAttachments"
         editData={modalEditData}
         onTaskCreated={(taskData: any) => {
