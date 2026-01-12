@@ -245,6 +245,7 @@ interface TaskWorkOrdersProps {
   onWorkOrdersChange: (orders: WorkOrder[]) => void;
   defaultProperty?: string;
   defaultTask?: string;
+  defaultUnit?: string;
   taskId: string;
   onWorkOrderSelect?: (woId: number) => void;
 }
