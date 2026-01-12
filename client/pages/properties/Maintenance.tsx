@@ -1067,6 +1067,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     {task.unit ? (unitLabels[task.unit] || task.unit) : "—"}
                   </span>
                 );
+              case "due":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
                     {task.due}
