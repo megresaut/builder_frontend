@@ -223,7 +223,6 @@ export default function CreateTaskModal({
       };
       onTaskCreated?.(taskData);
       onOpenChange(false);
-      // Don't call reset here - let the useEffect handle it when open becomes false
     }
   };
 
@@ -278,7 +277,7 @@ export default function CreateTaskModal({
     }
   }, [open, editData?.id, variant]);
 
-  // Clear form and reset files when modal closes
+  // Clear form when modal closes
   useEffect(() => {
     if (!open) {
       // Clear all form state
@@ -295,16 +294,8 @@ export default function CreateTaskModal({
       setInitialState(null);
       setErrors({});
       setErrorMessages({});
-    }
-  }, [open]);
-
-  // Reset file upload state when modal closes (separate effect to avoid conflicts)
-  useEffect(() => {
-    if (!open) {
-      // Use a microtask to avoid update depth issues
-      Promise.resolve().then(() => {
-        fileUpload.reset();
-      });
+      // Reset file upload state
+      fileUpload.reset();
     }
   }, [open]);
 
