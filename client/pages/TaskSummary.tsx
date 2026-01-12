@@ -919,7 +919,7 @@ export default function TaskSummary() {
                 )}
 
                 {/* Assignees Card */}
-                {!isNewTask && (
+                {(currentAssignees.length > 0 || currentCollaborators.length > 0) && (
                   <PeopleCard
                     title="Assignees"
                     tabs={["Staff", "Vendors", "Field Team"]}
