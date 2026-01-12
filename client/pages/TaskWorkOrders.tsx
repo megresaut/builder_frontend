@@ -506,9 +506,9 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
 
   const handleDeleteWorkOrder = useCallback(
     (workOrder: WorkOrder) => {
-      setWorkOrders((prev) => prev.filter((wo) => wo.id !== workOrder.id));
+      onWorkOrdersChange(workOrders.filter((wo) => wo.id !== workOrder.id));
     },
-    []
+    [workOrders, onWorkOrdersChange]
   );
 
   const handleEditWorkOrder = useCallback(
