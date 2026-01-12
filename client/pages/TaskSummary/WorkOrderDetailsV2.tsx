@@ -46,6 +46,8 @@ export default function WorkOrderDetailsV2({
   currentAssignees = [],
   currentCollaborators = [],
   onWorkOrderUpdate,
+  isUpdateWorkOrderModalOpen = false,
+  onUpdateWorkOrderModalOpenChange,
 }: WorkOrderDetailsV2Props) {
   const navigate = useNavigate();
   const { taskId } = useParams<{ taskId: string }>();
