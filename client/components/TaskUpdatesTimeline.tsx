@@ -41,15 +41,25 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
       {/* Updates List Container - relative so rail can be absolutely positioned */}
       <div className="relative pl-14">
         {/* Continuous Timeline Rail - extends from composer to initial creation item, stopping before it */}
-        {updates.length > 0 && (
+        {updates.length > 0 && !updates[updates.length - 1]?.isInitialCreation && (
           <div
             className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
             style={{
               top: "20px",
-              // Stop before the last item if it's an initial creation
-              bottom: updates[updates.length - 1]?.isInitialCreation
-                ? `${updates.length * 96 + 40}px`
-                : "20px",
+              bottom: "20px",
+              clipPath: "inset(0 0 20px 0)",
+              backgroundImage:
+                "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
+            }}
+          />
+        )}
+        {/* For initial creation item at bottom, only show line from composer to before last item */}
+        {updates.length > 1 && updates[updates.length - 1]?.isInitialCreation && (
+          <div
+            className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
+            style={{
+              top: "20px",
+              bottom: `${(updates.length - 1) * 104 + 40}px`,
               clipPath: "inset(0 0 20px 0)",
               backgroundImage:
                 "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
