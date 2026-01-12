@@ -206,7 +206,8 @@ export default function CreateWorkOrderModalV2({
 
   const handleConfirm = () => {
     if (validateForm()) {
-      console.log("Work Order Created:", formData);
+      const actionLabel = mode === "edit" ? "Work Order Updated:" : "Work Order Created:";
+      console.log(actionLabel, formData);
       onOpenChange(false);
     }
   };
@@ -215,19 +216,23 @@ export default function CreateWorkOrderModalV2({
     onOpenChange(false);
   };
 
+  const isEditMode = mode === "edit";
+  const modalTitle = isEditMode ? "Update Work Order" : "Create Work Order";
+  const confirmLabel = isEditMode ? "Update Work Order" : "Create Work Order";
+
   return (
     <>
       <ModalTemplate
         open={open}
         onOpenChange={onOpenChange}
-        title="Create Work Order"
+        title={modalTitle}
         size="md"
         footer={
           <ModalButtons
             onCancel={handleCancel}
             onConfirm={handleConfirm}
             cancelLabel="Cancel"
-            confirmLabel="Create Work Order"
+            confirmLabel={confirmLabel}
           />
         }
       >
