@@ -452,7 +452,7 @@ export default function TaskSummary() {
           )}
 
           {/* Field Team Orders tab content */}
-          {activeTab === "fieldteam" && <FieldTeamOrdersTab />}
+          {activeTab === "fieldteam" && <TaskFieldTeamOrders />}
         </div>
       </div>
 
