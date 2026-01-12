@@ -54,12 +54,15 @@ export const NotesTemplate: React.FC<NotesTemplateProps> = ({
       )}
 
       {notes.length === 0 ? (
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <EmptyStateTemplate message={emptyMessage} />
+        <>
           {hideHeader && (
-            <SectionActionTemplate label="Add" onClick={onAdd} />
+            <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+              <span></span>
+              <SectionActionTemplate label="Add" onClick={onAdd} />
+            </div>
           )}
-        </div>
+          <EmptyStateTemplate message={emptyMessage} />
+        </>
       ) : (
         <RecordListTemplate>
           {[...notes].reverse().map((note, idx) => (
