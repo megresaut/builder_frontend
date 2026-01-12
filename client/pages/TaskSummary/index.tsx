@@ -812,9 +812,10 @@ export default function TaskSummary() {
 
   // Get the selected work order if workOrderId is present or set in state
   const selectedWorkOrder = useMemo(() => {
-    const woId = workOrderId || String(uiState.selectedWorkOrderId || "");
-    if (!woId) return null;
-    const found = workOrders.find((wo) => String(wo.id) === woId);
+    // Prefer workOrderId from URL params (this is the source of truth)
+    const targetId = workOrderId ? parseInt(workOrderId) : uiState.selectedWorkOrderId;
+    if (!targetId) return null;
+    const found = workOrders.find((wo) => wo.id === targetId);
     return found || null;
   }, [workOrderId, uiState.selectedWorkOrderId, workOrders]);
 
