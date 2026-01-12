@@ -116,7 +116,6 @@ export default function SummaryTab({
             onStatusChange={onStatusChange}
             onPriorityChange={onPriorityChange}
             onDueDateChange={onDueDateChange}
-            variant="gray"
           />
         </SectionCard>
 
