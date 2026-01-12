@@ -513,6 +513,14 @@ export default function TaskSummary() {
     return propertyMap[propertyValue]?.name || "";
   };
 
+  const getPropertyDisplayLabel = (propertyValue: string): string => {
+    const propertyLabels: Record<string, string> = {
+      property1: "22 Indian Chase Dr",
+      property2: "Property 2",
+    };
+    return propertyLabels[propertyValue] || "";
+  };
+
   return (
     <PageTemplate>
       {/* Header Section */}
