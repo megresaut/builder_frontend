@@ -434,10 +434,17 @@ export default function CreateTaskModal({
           normalizedStatus = statusMap[editData.status] || editData.status;
         }
 
+        let baselineDueDate: Date | null = null;
+        if (editData?.dueDate) {
+          baselineDueDate = editData.dueDate instanceof Date ? editData.dueDate : new Date(editData.dueDate);
+        } else if (editData?.due && editData.due !== "No Due Date") {
+          baselineDueDate = new Date(editData.due);
+        }
+
         setInitialState({
           status: normalizedStatus,
           priority: editData ? editData.priority.toLowerCase() : "normal",
-          dueDate: editData?.dueDate || null,
+          dueDate: baselineDueDate,
           assignees: editData?.assignees?.map((a) => ({
             id: String(a.id),
             label: a.name,
@@ -455,7 +462,7 @@ export default function CreateTaskModal({
         });
       }
     }
-  }, [open, variant]);
+  }, [open, variant, editData]);
 
 
   return (
