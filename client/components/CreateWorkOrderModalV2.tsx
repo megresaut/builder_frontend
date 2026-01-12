@@ -167,9 +167,6 @@ export default function CreateWorkOrderModalV2({
     if (!formData.vendor.trim()) {
       newErrors.vendor = "Vendor is required";
     }
-    if (!formData.dueDate) {
-      newErrors.dueDate = "Due Date is required";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
