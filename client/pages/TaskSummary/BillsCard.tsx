@@ -140,7 +140,7 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
             return (
               <button
                 key={bill.id}
-                onClick={() => navigate(`/record-bill?billId=${bill.id}`)}
+                onClick={() => navigate(`/bills/record?billId=${bill.id}`)}
                 className="flex flex-col gap-0 rounded-lg bg-[#f9f9f9] border border-[#dadada] p-4 hover:bg-[#f0f0f0] transition-colors text-left"
               >
                 <div className="flex items-start gap-6 text-sm text-[#71717A] font-normal tracking-[-0.28px] leading-[1.14]">
