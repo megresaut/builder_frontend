@@ -70,7 +70,7 @@ export default function CreateWorkOrderModalV2({
         task: "",
         workOrderName: "",
         vendor: "",
-        status: "in_progress",
+        status: "not_started",
         priority: "normal",
         dueDate: null,
         notes: "",
