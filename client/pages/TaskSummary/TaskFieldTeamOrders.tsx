@@ -667,9 +667,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
               onClick: handleDeleteOrder,
             },
           ]}
-          onRowClick={(order) => {
-            navigate(`/tasks/${order.taskId}/fieldteam`);
-          }}
+          onRowClick={handleEditOrder}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
         />
