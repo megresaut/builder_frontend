@@ -275,25 +275,29 @@ export default function CreateWorkOrderModalV2({
             </FormFieldRow>
 
             <FormFieldRow columns={2}>
-              <SelectField
+              <StatusSelectField
                 label="Status"
-                value={formData.status}
-                onChange={handleStatusChange}
-                placeholder="Select a Status"
-                options={STATUSES.map((status) => ({
-                  value: status,
-                  label: status,
-                }))}
+                value={formData.status.toLowerCase() === "in progress" ? "in_progress" : formData.status.toLowerCase()}
+                onChange={(value) => {
+                  const statusMap: Record<string, string> = {
+                    in_progress: "In progress",
+                    completed: "Completed",
+                    pending: "Pending",
+                  };
+                  handleStatusChange(statusMap[value] || value);
+                }}
               />
-              <SelectField
+              <PrioritySelectField
                 label="Priority"
-                value={formData.priority}
-                onChange={handlePriorityChange}
-                placeholder="Select a Priority"
-                options={PRIORITIES.map((priority) => ({
-                  value: priority,
-                  label: priority,
-                }))}
+                value={formData.priority.toLowerCase()}
+                onChange={(value) => {
+                  const priorityMap: Record<string, string> = {
+                    low: "Low",
+                    normal: "Normal",
+                    high: "High",
+                  };
+                  handlePriorityChange(priorityMap[value] || value);
+                }}
               />
             </FormFieldRow>
 
