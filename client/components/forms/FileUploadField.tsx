@@ -24,6 +24,7 @@ interface FileUploadFieldProps {
   variant?: "default" | "single";
   validate?: boolean;
   disableRemove?: boolean;
+  disableInlineRename?: boolean;
 }
 
 /**
