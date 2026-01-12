@@ -8,6 +8,7 @@ interface LinkedTasksCardProps {
   onLinkTasks?: () => void;
   onUnlinkTask?: (taskId: string | number) => void;
   onTaskClick?: (taskId: string | number) => void;
+  variant?: "default" | "gray";
 }
 
 /**
@@ -20,9 +21,10 @@ export const LinkedTasksCard: React.FC<LinkedTasksCardProps> = ({
   onLinkTasks,
   onUnlinkTask,
   onTaskClick,
+  variant = "default",
 }) => {
   return (
-    <SectionCard padding="compact">
+    <SectionCard variant={variant} padding="compact">
       <LinkedTasksList
         linkedTasks={linkedTasks}
         onAdd={onLinkTasks || (() => {})}
