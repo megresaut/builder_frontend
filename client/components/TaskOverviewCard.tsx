@@ -81,6 +81,45 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
         </div>
       )}
 
+      {/* Assigned By Info */}
+      {(assignedTo && assignedTo.length > 0) || (collaborators && collaborators.length > 0) ? (
+        <div className="mt-5 text-sm text-[#717179] font-medium">
+          <div className="font-semibold mb-2">Assigned by Current User</div>
+          <div className="flex flex-wrap gap-3">
+            {assignedTo && assignedTo.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-1">Assignees</div>
+                <div className="flex flex-wrap gap-2">
+                  {assignedTo.map((person) => (
+                    <div key={person.id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#2463eb] text-white text-xs font-semibold flex items-center justify-center">
+                        {person.initials}
+                      </div>
+                      <span className="text-sm font-medium">{person.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {collaborators && collaborators.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-1">Collaborators</div>
+                <div className="flex flex-wrap gap-2">
+                  {collaborators.map((person) => (
+                    <div key={person.id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#7c3aed] text-white text-xs font-semibold flex items-center justify-center">
+                        {person.initials}
+                      </div>
+                      <span className="text-sm font-medium">{person.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
       {/* Category & Due Date */}
       {(category || dueDate) && (
         <div className="flex flex-wrap mt-5 w-full items-start text-sm text-[#717179] gap-y-2">
