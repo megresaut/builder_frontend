@@ -37,7 +37,11 @@ interface WorkOrderDetailsV2Props {
   currentCollaborators?: any[];
 }
 
-export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Props) {
+export default function WorkOrderDetailsV2({
+  workOrder,
+  currentAssignees = [],
+  currentCollaborators = [],
+}: WorkOrderDetailsV2Props) {
   const navigate = useNavigate();
   const { taskId } = useParams<{ taskId: string }>();
 
