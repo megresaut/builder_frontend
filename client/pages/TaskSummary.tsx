@@ -65,6 +65,7 @@ export default function TaskSummary() {
   }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const navigationState = location.state as any;
   const { setSelectedTab, setTabMetadata, tabMetadata } = useTabContext();
 
   // Find the task in MOCK_TASKS if navigation state is missing
