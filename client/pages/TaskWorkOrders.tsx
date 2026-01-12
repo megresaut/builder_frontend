@@ -557,16 +557,19 @@ export default function TaskWorkOrders() {
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Subheader with Create Work Order Button */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Work Orders</h3>
-        <button
-          onClick={() => setIsCreateWorkOrderModalOpen(true)}
-          className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
-        >
-          <Plus className="w-5 h-5" color="white" />
-          <span className="text-white font-medium text-sm">Create Work Order</span>
-        </button>
-      </div>
+      <SubPageHeaderV2
+        leftContent={
+          <h3 className="text-lg font-semibold text-gray-900">Work Orders</h3>
+        }
+        buttons={[
+          {
+            id: "create-work-order",
+            label: "Create Work Order",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: () => setIsCreateWorkOrderModalOpen(true),
+          },
+        ]}
+      />
 
       {/* Work Orders Table - Using GlobalTable Component */}
       <GlobalTable
