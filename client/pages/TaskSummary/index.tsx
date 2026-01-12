@@ -979,7 +979,7 @@ export default function TaskSummary() {
                 currentAssignees={currentAssignees}
                 currentCollaborators={currentCollaborators}
                 onWorkOrderUpdate={(updatedWorkOrder) => {
-                  setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo));
+                  setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? { ...updatedWorkOrder, dueDate: updatedWorkOrder.dueDate instanceof Date ? updatedWorkOrder.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : updatedWorkOrder.dueDate } : wo));
                 }}
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
