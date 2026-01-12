@@ -51,12 +51,46 @@ interface CreateWorkOrderModalV2Props {
   }) => void;
 }
 
-const PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
-const UNITS = ["N/A", "1", "2", "3", "4", "5"];
-const TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
+const BASE_PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
+const BASE_UNITS = ["N/A", "1", "2", "3", "4", "5"];
+const BASE_TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
 const VENDORS = ["David Smith", "Elite HVAC", "ABC Plumbing", "Green Lawn Services", "Spark Electrical"];
 const STATUSES = ["not_started", "in_progress", "completed"];
 const PRIORITIES = ["low", "normal", "high"];
+
+// Helper function to build options, ensuring initialData values are included
+const buildPropertyOptions = (initialProperty?: string) => {
+  const options = new Set(BASE_PROPERTIES);
+  if (initialProperty && initialProperty.trim()) {
+    options.add(initialProperty);
+  }
+  return Array.from(options).sort().map(prop => ({
+    value: prop,
+    label: prop,
+  }));
+};
+
+const buildUnitOptions = (initialUnit?: string) => {
+  const options = new Set(BASE_UNITS);
+  if (initialUnit && initialUnit.trim()) {
+    options.add(initialUnit);
+  }
+  return Array.from(options).sort().map(unit => ({
+    value: unit,
+    label: unit,
+  }));
+};
+
+const buildTaskOptions = (initialTask?: string) => {
+  const options = new Set(BASE_TASKS);
+  if (initialTask && initialTask.trim()) {
+    options.add(initialTask);
+  }
+  return Array.from(options).sort().map(task => ({
+    value: task,
+    label: task,
+  }));
+};
 
 // Fields that must be validated on submit
 const REQUIRED_FIELDS = new Set([
