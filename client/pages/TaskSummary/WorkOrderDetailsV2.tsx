@@ -80,6 +80,17 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
 
   return (
     <div className="flex flex-col w-full gap-6 bg-[#f9f9f9] min-h-screen p-6 font-['Geist',sans-serif]">
+      {/* Back Button */}
+      <div className="flex items-center gap-4 -mt-2">
+        <button
+          onClick={() => navigate(`/tasks/${taskId}/workorders`)}
+          className="flex items-center gap-2 text-sm text-[#717179] hover:text-[#303030] transition-colors font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Work Orders
+        </button>
+      </div>
+
       {/* Notifications Section */}
       {notifications.length > 0 && (
         <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden bg-white mb-4">
