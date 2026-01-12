@@ -530,9 +530,22 @@ export default function WorkOrdersTab({
           }
           if (columnKey === "billStatus") {
             return (
-              <span className="text-gray-900 font-normal text-sm truncate">
-                {workOrder.billStatus}
-              </span>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      workOrder.billStatus === "Paid"
+                        ? "#059669"
+                        : workOrder.billStatus === "Unpaid"
+                          ? "#DC2626"
+                          : "#D97706",
+                  }}
+                />
+                <span className="text-gray-900 font-normal text-sm capitalize">
+                  {workOrder.billStatus}
+                </span>
+              </div>
             );
           }
           if (columnKey === "billTotal") {
