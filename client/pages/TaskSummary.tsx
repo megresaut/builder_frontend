@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
-import { EditIcon, NoteIcon, DocumentIcon, FlagIcon, CalendarIcon } from "@/components/icons";
+import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
@@ -606,11 +606,11 @@ export default function TaskSummary() {
           let updateIcon = <EditIcon width={16} height={16} />;
 
           if ((taskData as any).messageBody && (taskData as any).files?.length > 0) {
-            // Message with attachments - use document icon
-            updateIcon = <DocumentIcon width={16} height={16} />;
+            // Message with attachments - use paperclip icon
+            updateIcon = <PaperclipIcon width={16} height={16} />;
           } else if ((taskData as any).files && (taskData as any).files.length > 0) {
-            // Only attachments - use document icon
-            updateIcon = <DocumentIcon width={16} height={16} />;
+            // Only attachments - use paperclip icon
+            updateIcon = <PaperclipIcon width={16} height={16} />;
           } else if ((taskData as any).messageBody) {
             // Only message - use note icon
             updateIcon = <NoteIcon width={16} height={16} />;
