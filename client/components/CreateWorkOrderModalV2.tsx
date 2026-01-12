@@ -256,31 +256,29 @@ export default function CreateWorkOrderModalV2({
         }
       >
         <FormLayout>
-          <FormSection title="Task Details">
-            {mode === "create" && (
-              <>
-                <SelectField
-                  label="Task"
-                  required={REQUIRED_FIELDS.has("task")}
-                  value={formData.task}
-                  onChange={handleTaskChange}
-                  placeholder="Select Task"
-                  options={buildTaskOptions(initialData?.task)}
-                  error={errors.task}
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsCreateTaskModalOpen(true)}
-                  className="flex items-center gap-2 text-[#2463eb] text-sm font-medium hover:underline mt-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Task
-                </button>
-              </>
-            )}
-          </FormSection>
+          {mode === "create" && (
+            <FormSection>
+              <SelectField
+                label="Task"
+                required={REQUIRED_FIELDS.has("task")}
+                value={formData.task}
+                onChange={handleTaskChange}
+                placeholder="Select Task"
+                options={buildTaskOptions(initialData?.task)}
+                error={errors.task}
+              />
+              <button
+                type="button"
+                onClick={() => setIsCreateTaskModalOpen(true)}
+                className="flex items-center gap-2 text-[#2463eb] text-sm font-medium hover:underline mt-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create Task
+              </button>
+            </FormSection>
+          )}
 
-          <FormSection title="Work Order Details">
+          <FormSection>
             <FormFieldRow columns={2}>
               <TextField
                 label="Work Order Name"
