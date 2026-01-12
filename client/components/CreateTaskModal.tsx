@@ -274,10 +274,10 @@ export default function CreateTaskModal({
         status,
         assignees: selectedAssignees,
         collaborators: selectedCollaborators,
+        files: fileUpload.files,
         ...(variant === "withMessageAndAttachments" && {
           message: generateUpdateMessage(),
           messageBody: message,
-          files: fileUpload.files,
           changedFields,
         }),
       };
