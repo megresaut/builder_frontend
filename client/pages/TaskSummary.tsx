@@ -5,7 +5,7 @@ import { EditIcon } from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
-import WorkOrdersTab from "@/components/WorkOrdersTab";
+import TaskWorkOrders from "./TaskWorkOrders";
 import FieldTeamOrdersTab from "@/components/FieldTeamOrdersTab";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
