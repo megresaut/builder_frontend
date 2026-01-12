@@ -552,6 +552,7 @@ export default function WorkOrderDetailsV2({
                     name: "Julia LoSchiavo",
                     initials: "JL",
                     roleLabel: "Property manager",
+                    email: "julia.loschiavo@company.com",
                     phone: "(203) 927-1280",
                   }
                 ],
