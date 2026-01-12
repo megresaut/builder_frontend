@@ -26,6 +26,7 @@ interface CreateWorkOrderModalV2Props {
   onOpenChange: (open: boolean) => void;
   mode?: "create" | "edit";
   hideTaskSelection?: boolean;
+  hideSubheader?: boolean;
   initialData?: {
     task?: string;
     workOrderName?: string;
