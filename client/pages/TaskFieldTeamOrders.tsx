@@ -490,9 +490,9 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
 
   const handleDeleteOrder = useCallback(
     (order: FieldTeamOrder) => {
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      onOrdersChange(orders.filter((o) => o.id !== order.id));
     },
-    []
+    [orders, onOrdersChange]
   );
 
   const handleEditOrder = useCallback(
