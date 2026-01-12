@@ -405,10 +405,10 @@ export default function TaskSummary() {
               <div className="flex flex-col min-w-[240px] w-[376px] gap-5">
                 {/* Location Card */}
                 <TaskLocationCard
-                  propertyImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
-                  propertyName="(C) 51 Willowmere Circle, Riverside CT 06878 -1"
-                  propertyAddress="51 Willowmere Circle Greenwich, CT 06878"
-                  mapImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"
+                  propertyImage={isNewTask ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"}
+                  propertyName={isNewTask ? undefined : "(C) 51 Willowmere Circle, Riverside CT 06878 -1"}
+                  propertyAddress={isNewTask ? undefined : "51 Willowmere Circle Greenwich, CT 06878"}
+                  mapImage={isNewTask ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"}
                 />
 
                 {/* Assignees Card */}
