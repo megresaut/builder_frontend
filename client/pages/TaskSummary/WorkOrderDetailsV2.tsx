@@ -1,6 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit, Bell, Share2, Mail, ChevronDown } from "lucide-react";
+import SectionCard from "@/components/SectionCard";
+import PeopleCard from "@/components/PeopleCard";
+import BillsCard from "./BillsCard";
+import { NotesTemplate, FilesTemplate } from "@/components/templates";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
+import { StatusSelectField } from "@/components/forms/StatusSelectField";
+import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
+import DateField from "@/components/forms/DateField";
+import { cn } from "@/lib/utils";
 
 interface WorkOrder {
   id: number;
@@ -10,6 +20,9 @@ interface WorkOrder {
   status: string;
   priority: string;
   dueDate: string;
+  invoiceNumber?: string;
+  vendorName?: string;
+  chargeTo?: string;
 }
 
 interface WorkOrderDetailsV2Props {
@@ -20,48 +33,298 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
   const navigate = useNavigate();
   const { taskId } = useParams<{ taskId: string }>();
 
-  return (
-    <div className="flex flex-col w-full gap-6 bg-white min-h-[400px] pb-10 font-['Geist',sans-serif]">
-      <div className="flex items-center gap-4 mb-2">
-        <button
-          onClick={() => navigate(`/tasks/${taskId}/workorders`)}
-          className="flex items-center gap-2 text-sm text-[#717179] hover:text-[#303030] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Work Orders
-        </button>
-      </div>
+  // Mock notifications
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      message: "A bill from Edgerton Inc. was uploaded, would you like to update work order status?",
+      type: "bill",
+    },
+    {
+      id: 2,
+      message: "Estimate differed from invoice by $50.50",
+      type: "discrepancy",
+    },
+  ]);
 
-      <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden">
-        <div className="px-6 py-5 bg-[#f9f9f9] border-b border-[#e5e5e5]">
-          <h2 className="text-xl text-[#303030] font-bold tracking-tight">
-            Work Order #{workOrder.id} - {workOrder.task}
-          </h2>
+  // Mock notes and files
+  const [notes, setNotes] = useState([
+    {
+      id: 1,
+      text: "Initial check of the HVAC system showed some leaks.",
+      date: "11/12/2025 9:22 PM",
+      author: "Julia LoSchiavo",
+    },
+  ]);
+
+  const [files, setFiles] = useState([
+    {
+      id: 1,
+      name: "Lorem Ipsum.PDF",
+      uploadedAt: "11/12/2025 9:22 PM",
+      category: "Invoice",
+      url: "#",
+    },
+    {
+      id: 2,
+      name: "Lorem Ipsum.PDF",
+      uploadedAt: "11/12/2025 9:22 PM",
+      category: "Work Order",
+      url: "#",
+    },
+  ]);
+
+  const handleDismissNotification = (id: number) => {
+    setNotifications(notifications.filter((n) => n.id !== id));
+  };
+
+  return (
+    <div className="flex flex-col w-full gap-6 bg-[#f9f9f9] min-h-screen p-6 font-['Geist',sans-serif]">
+      {/* Notifications Section */}
+      {notifications.length > 0 && (
+        <div className="flex flex-col w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden bg-white mb-4">
+          <div className="flex items-center gap-2 px-4 py-3 bg-[#f9f9f9] border-b border-[#e5e5e5]">
+            <Bell className="w-[18px] h-[18px] text-[#8b5cf6]" />
+            <div className="text-base text-[#303030] font-bold tracking-tight">
+              Notifications
+            </div>
+          </div>
+          <div className="flex flex-col divide-y divide-[#e5e5e5]">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className="flex items-center justify-between px-4 py-3 bg-white flex-wrap gap-4"
+              >
+                <div className="flex items-center gap-2 flex-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
+                  <div className="text-sm text-[#303030] font-medium">
+                    {notification.message}
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm font-medium">
+                  <button
+                    onClick={() => handleDismissNotification(notification.id)}
+                    className="text-[#717179] hover:text-[#303030] transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                  <button className="text-[#2463eb] hover:underline">
+                    Approve
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Field Selectors Row */}
+      <div className="flex flex-wrap items-end gap-6 w-full mb-2">
+        <div className="flex flex-col gap-1.5 min-w-[180px]">
+          <label className="text-xs font-semibold text-[#717179] uppercase tracking-wider">Status</label>
+          <div className="relative">
+             <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#e5e5e5] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-10">
+                <div className="w-2 h-2 rounded-full bg-[#10b981]"></div>
+                <span className="text-sm text-[#303030] font-medium flex-1">Completed</span>
+                <ChevronDown className="w-4 h-4 text-[#717179]" />
+             </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-col gap-1.5 min-w-[180px]">
+          <label className="text-xs font-semibold text-[#717179] uppercase tracking-wider">Priority</label>
+          <div className="relative">
+             <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#e5e5e5] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-10">
+                <div className="w-2 h-2 rounded-full bg-[#2463eb]"></div>
+                <span className="text-sm text-[#303030] font-medium flex-1">Normal</span>
+                <ChevronDown className="w-4 h-4 text-[#717179]" />
+             </div>
+          </div>
         </div>
 
-        <div className="p-6 bg-white space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div>
-              <div className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-1">Property</div>
-              <div className="text-sm text-[#303030] font-medium">{workOrder.property}</div>
+        <div className="flex flex-col gap-1.5 min-w-[180px]">
+          <label className="text-xs font-semibold text-[#717179] uppercase tracking-wider">Due Date</label>
+          <div className="flex items-center px-3 py-2 bg-white border border-[#e5e5e5] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-10 min-w-[180px]">
+             <span className="text-sm text-[#717179] flex-1 font-medium italic">mm/dd/yyyy</span>
+             <ChevronDown className="w-4 h-4 text-[#717179]" />
+          </div>
+        </div>
+
+        <div className="flex-1 flex justify-end text-xs text-[#717179] font-medium pb-1">
+          Last Updated <span className="text-[#303030] font-bold ml-1">11/12/2025 9:22 PM</span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap lg:flex-nowrap gap-6 w-full">
+        {/* Left Column (Main Content) */}
+        <div className="flex flex-col flex-1 gap-6 min-w-0">
+          {/* Main Overview Card */}
+          <SectionCard variant="white" padding="none">
+            <div className="flex flex-col md:flex-row w-full p-5 gap-6">
+              <div className="w-full md:w-[190px] h-[140px] rounded-lg overflow-hidden flex-shrink-0 border border-[#e5e5e5]">
+                <img 
+                  src="https://api.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F8f2f256086b940029bc4894372e519c1?format=webp&width=400" 
+                  alt="Property" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-4 w-full flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[22px] font-bold text-[#303030] tracking-tight">
+                      HVAC - #1024431-1
+                    </h2>
+                    <button className="flex items-center gap-1 text-sm text-[#2463eb] font-medium hover:underline">
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </button>
+                  </div>
+                  <div className="text-xs text-[#717179] font-medium">
+                    Created <span className="text-[#303030] font-bold">11/12/2025 9:22 PM</span>
+                  </div>
+                </div>
+
+                <div className="mt-2 text-sm text-[#717179] font-medium leading-relaxed">
+                  Created by Julia LoSchiavo for{" "}
+                  <a href="#" className="text-[#2463eb] font-bold hover:underline">
+                    (C) 51 Willowmere Circle, Riverside CT 06878 -1
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 mt-4 text-sm font-medium">
+                   <div className="flex items-center gap-1.5">
+                      <span className="text-[#717179]">Invoice Number:</span>
+                      <span className="text-[#303030]">234605</span>
+                   </div>
+                   <div className="flex items-center gap-1.5 sm:justify-end">
+                      <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#e5e5e5] rounded-lg text-xs font-semibold text-[#2463eb] shadow-sm hover:bg-gray-50 transition-colors">
+                        <Share2 className="w-3.5 h-3.5" />
+                        View Maps
+                      </button>
+                   </div>
+                   <div className="flex items-center gap-1.5">
+                      <span className="text-[#717179]">Vendor:</span>
+                      <span className="text-[#303030]">Dolce Plumbing & Heating LLC</span>
+                   </div>
+                   <div className="flex items-center gap-1.5">
+                      <span className="text-[#717179]">Charge Work To:</span>
+                      <span className="text-[#303030]">Owner</span>
+                   </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-1">Unit</div>
-              <div className="text-sm text-[#303030] font-medium">{workOrder.unit}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-1">Status</div>
-              <div className="text-sm text-[#303030] font-medium">{workOrder.status}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-1">Due Date</div>
-              <div className="text-sm text-[#303030] font-medium">{workOrder.dueDate}</div>
-            </div>
+          </SectionCard>
+
+          {/* Totals Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            <SectionCard variant="white">
+              <div className="text-xs font-bold text-[#717179] uppercase tracking-widest mb-1.5">
+                ESTIMATE TOTAL
+              </div>
+              <div className="text-[32px] font-bold text-[#303030] tracking-tight">
+                $1,450.50
+              </div>
+            </SectionCard>
+            <SectionCard variant="white">
+              <div className="text-xs font-bold text-[#717179] uppercase tracking-widest mb-1.5">
+                WORK ORDER TOTAL
+              </div>
+              <div className="text-[32px] font-bold text-[#303030] tracking-tight">
+                $1,350.00
+              </div>
+            </SectionCard>
           </div>
 
-          <div className="pt-8 border-t border-[#f0f0f0]">
-            <p className="text-sm text-[#717179] italic">Blank Work Order Details V2 Page - Content coming soon.</p>
-          </div>
+          {/* Notes Section */}
+          <SectionCard variant="white" title="Notes" padding="compact">
+            <div className="p-4 pt-2">
+              <textarea 
+                className="w-full min-h-[160px] p-3 text-sm text-[#303030] bg-white border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-[#717179] placeholder:italic"
+                placeholder="Add some note here"
+              />
+            </div>
+          </SectionCard>
+
+          {/* Files Section */}
+          <SectionCard variant="white" padding="compact">
+            <FilesTemplate
+              files={files}
+              onAdd={() => console.log("Add file")}
+              onEdit={() => console.log("Edit file")}
+              onDelete={(id) => setFiles(files.filter(f => f.id !== id))}
+              onView={() => console.log("View file")}
+            />
+          </SectionCard>
+        </div>
+
+        {/* Right Sidebar */}
+        <div className="flex flex-col w-full lg:w-[376px] gap-6 flex-shrink-0">
+          {/* Bills Card */}
+          <BillsCard 
+            bills={[
+              {
+                id: "1",
+                date: "November 27",
+                time: "5:00 PM",
+                invoiceNumber: "234605",
+                vendorName: "Dolce Heating & Plumbing",
+                amount: "$1,350.00",
+                status: "Paid",
+              }
+            ]}
+          />
+
+          {/* Assignees Card */}
+          <PeopleCard
+            title="Assignees"
+            variant="white"
+            tabs={["Staff", "Vendors", "Field Team"]}
+            defaultTab={0}
+            footerActions={[
+              {
+                label: "Email Staff",
+                onClick: () => console.log("Email staff"),
+                icon: <Mail className="w-4 h-4" />
+              }
+            ]}
+            subsections={[
+              {
+                label: "Assigned to",
+                mode: "rows",
+                people: [
+                  {
+                    id: 1,
+                    name: "Julia LoSchiavo",
+                    initials: "JL",
+                    roleLabel: "Staff member",
+                    phone: "(203) 927-1280",
+                    type: "staff"
+                  }
+                ],
+                showRoleLabel: true,
+                showPhone: true,
+                showDivider: true,
+                tabIndex: 0,
+                actionLabel: "Edit",
+                onAction: () => console.log("Edit assigned to")
+              },
+              {
+                label: "Collaborators",
+                mode: "rows",
+                people: [
+                  { id: 2, name: "Chris Henry", initials: "CH", type: "staff" },
+                  { id: 3, name: "Connor Smith", initials: "CS", type: "staff" },
+                ],
+                showRoleLabel: false,
+                showPhone: false,
+                showDivider: false,
+                tabIndex: 0,
+                actionLabel: "Edit",
+                onAction: () => console.log("Edit collaborators")
+              }
+            ]}
+          />
         </div>
       </div>
     </div>
