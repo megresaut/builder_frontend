@@ -104,21 +104,21 @@ export default function SummaryTab({
 
   return (
     <>
-      {/* Task Details Bar - Status, Priority, Due Date, Last Updated - Full Width */}
-      <SectionCard padding="none" variant="gray">
-        <TaskDetailsBarTemplate
-          status={currentStatus}
-          priority={currentPriority}
-          dueDate={currentDueDate}
-          lastUpdated={createdTimestamp}
-          onStatusChange={onStatusChange}
-          onPriorityChange={onPriorityChange}
-          onDueDateChange={onDueDateChange}
-        />
-      </SectionCard>
-
       {/* Left Column */}
       <div className="flex flex-col min-w-[240px] flex-1 gap-5">
+        {/* Task Details Bar - Status, Priority, Due Date, Last Updated */}
+        <SectionCard padding="none" variant="gray">
+          <TaskDetailsBarTemplate
+            status={currentStatus}
+            priority={currentPriority}
+            dueDate={currentDueDate}
+            lastUpdated={createdTimestamp}
+            onStatusChange={onStatusChange}
+            onPriorityChange={onPriorityChange}
+            onDueDateChange={onDueDateChange}
+          />
+        </SectionCard>
+
         {/* Task Overview Card */}
         <TaskOverviewCard
           category={currentCategory || "Uncategorized"}
