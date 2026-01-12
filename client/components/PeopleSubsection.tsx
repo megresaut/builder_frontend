@@ -8,6 +8,8 @@ export interface Person {
   href?: string;
   roleLabel?: string;
   phone?: string;
+  email?: string;
+  title?: string;
   type?: "staff" | "vendor" | "propertyManager" | "fieldManager";
 }
 
