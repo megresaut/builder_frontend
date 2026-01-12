@@ -20,6 +20,7 @@ interface TaskOverviewCardProps {
   };
   createdDate?: string;
   onEdit?: () => void;
+  variant?: "default" | "gray";
 }
 
 /**
@@ -38,9 +39,11 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   createdBy,
   createdDate,
   onEdit,
+  variant = "default",
 }) => {
   return (
     <SectionCard
+      variant={variant}
       title="Overview"
       actions={
         onEdit && (
