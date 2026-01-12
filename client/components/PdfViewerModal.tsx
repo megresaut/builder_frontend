@@ -399,7 +399,7 @@ export default function PdfViewerModal({
 
               <iframe
                 key={iframeKey}
-                src={safeUrl}
+                src={`${safeUrl}#toolbar=0&navpanes=0`}
                 title={title}
                 onLoad={() => {
                   setIsFrameLoading(false);
