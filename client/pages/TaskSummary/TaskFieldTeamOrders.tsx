@@ -715,16 +715,32 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
             : null
         }
         onFTOCreated={(ftoData) => {
+          const fieldTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
+            "Christopher Harris": { email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
+            "Cassandra Smith": { email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
+            "David Chen": { email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
+            "Emma Rodriguez": { email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
+            "James Wilson": { email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
+          };
+
           const newId = Math.max(...orders.map((o) => o.id), 0) + 1;
           const fieldTeamArray = ftoData.selectedAssignees.map(
-            (assignee: any) => ({
-              initials:
-                assignee.initials ||
-                assignee.value?.substring(0, 2).toUpperCase() ||
-                "?",
-              color: assignee.color || "bg-blue-500",
-              name: assignee.name || assignee.label || assignee.value || "",
-            })
+            (assignee: any, idx: number) => {
+              const name = assignee.name || assignee.label || assignee.value || "";
+              const memberInfo = fieldTeamMasterData[name];
+              return {
+                id: assignee.id || idx + 1,
+                initials:
+                  assignee.initials ||
+                  assignee.value?.substring(0, 2).toUpperCase() ||
+                  "?",
+                color: assignee.color || "bg-blue-500",
+                name: name,
+                email: memberInfo?.email || "",
+                phone: memberInfo?.phone || "",
+                title: memberInfo?.title || "Field Team Member",
+              };
+            }
           );
           const newFTO: FieldTeamOrder = {
             id: newId,
