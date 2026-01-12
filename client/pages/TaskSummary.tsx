@@ -169,8 +169,8 @@ export default function TaskSummary() {
           : (taskData.dueDate || taskData.due))
       : "No due date";
     const fields = [
-      { label: "Status", value: statusMap[taskData?.status] || taskData?.status || "Not Started" },
-      { label: "Priority", value: priorityLabel },
+      { label: "Status", value: <TaskStatusBadge status={(statusMap[taskData?.status] || taskData?.status || "Not Started") as any} /> },
+      { label: "Priority", value: <TaskPriorityBadge priority={priorityLabel as any} /> },
       { label: "Due Date", value: dueDate },
       { label: "Assignees", value: <PersonAvatars people={taskData?.assignees || []} type="assignee" fallback="Unassigned" /> },
     ];
