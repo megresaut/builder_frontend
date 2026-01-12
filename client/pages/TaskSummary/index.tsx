@@ -819,6 +819,17 @@ export default function TaskSummary() {
     return found || null;
   }, [workOrderId, uiState.selectedWorkOrderId, workOrders, navigationState?.newWorkOrder]);
 
+  // Clear location state once the new work order is added to the list
+  useEffect(() => {
+    if (navigationState?.newWorkOrder && selectedWorkOrder) {
+      const found = workOrders.find((wo) => wo.id === selectedWorkOrder.id);
+      if (found) {
+        // The newly created work order is now in the list, we can clear the navigation state
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [workOrders, selectedWorkOrder, navigationState?.newWorkOrder]);
+
   // Determine if we are trying to view a work order but it's not found yet (loading state)
   const isLoadingWorkOrder = !!workOrderId && !selectedWorkOrder;
 
