@@ -207,10 +207,20 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
       <PdfViewerModal
         open={viewingFile !== null}
         onOpenChange={(open) => {
-          if (!open) setViewingFile(null);
+          if (!open) {
+            setViewingFile(null);
+            setIsRenamingFile(false);
+            setRenamingFileName("");
+          }
         }}
         title={viewingFile?.name || "File Preview"}
         url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : viewingFile?.url}
+        onRenameClick={handleStartRenaming}
+        isRenaming={isRenamingFile}
+        renamingFileName={renamingFileName}
+        onRenamingFileNameChange={setRenamingFileName}
+        onSaveFileName={handleSaveFileName}
+        onCancelRenaming={handleCancelRenaming}
       />
     </ModalTemplate>
   );
