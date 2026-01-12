@@ -8,6 +8,7 @@ interface TaskLocationCardProps {
   propertyAddress?: string;
   mapImage?: string;
   propertyId?: string;
+  variant?: "default" | "gray";
 }
 
 /**
@@ -22,6 +23,7 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
   propertyAddress,
   mapImage,
   propertyId,
+  variant = "default",
 }) => {
   const navigate = useNavigate();
 
@@ -32,7 +34,7 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
   };
 
   return (
-    <SectionCard title="Location">
+    <SectionCard variant={variant} title="Location">
       <div className="flex flex-col w-full text-sm">
         {/* Property Image */}
         {propertyImage && (
