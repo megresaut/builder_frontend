@@ -257,9 +257,6 @@ export default function CreateWorkOrderModalV2({
     if (!formData.workOrderName.trim()) {
       newErrors.workOrderName = "Work Order Name is required";
     }
-    if (!formData.vendor.trim()) {
-      newErrors.vendor = "Vendor is required";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
