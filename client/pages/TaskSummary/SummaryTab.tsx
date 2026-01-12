@@ -201,7 +201,7 @@ export default function SummaryTab({
                   type: "staff",
                 })),
                 showRoleLabel: true,
-                showPhone: false,
+                showPhone: true,
                 showDivider: true,
                 tabIndex: [0],
                 type: "assignee",
