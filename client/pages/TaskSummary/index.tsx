@@ -926,8 +926,8 @@ export default function TaskSummary() {
             selectedWorkOrder ? (
               <WorkOrderDetailsV2
                 workOrder={selectedWorkOrder}
-                currentAssignees={currentAssignees}
-                currentCollaborators={currentCollaborators}
+                currentAssignees={selectedWorkOrder.assignees || currentAssignees}
+                currentCollaborators={selectedWorkOrder.collaborators || currentCollaborators}
                 onWorkOrderUpdate={(updatedWorkOrder) => {
                   setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo));
                 }}
