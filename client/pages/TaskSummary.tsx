@@ -63,12 +63,16 @@ export default function TaskSummary() {
     (tab as "summary" | "workorders" | "fieldteam") || "summary"
   );
 
-  // Initialize selectedWorkOrderId from URL params on mount
+  // Initialize activeTab and selectedWorkOrderId from URL params on mount
   useEffect(() => {
+    const tabValue = (tab as "summary" | "workorders" | "fieldteam") || "summary";
+    if (tabValue !== uiState.activeTab) {
+      uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
+    }
     if (workOrderId && !uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: parseInt(workOrderId) });
     }
-  }, [workOrderId, uiState.selectedWorkOrderId, uiDispatch]);
+  }, [tab, workOrderId, uiState.activeTab, uiState.selectedWorkOrderId, uiDispatch]);
 
   // Sync UI state to navigation
   useEffect(() => {
