@@ -58,6 +58,7 @@ export default function CreateWorkOrderModalV2({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const pdfViewer = usePdfViewer();
 
   useEffect(() => {
