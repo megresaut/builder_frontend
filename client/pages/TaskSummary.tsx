@@ -590,7 +590,7 @@ export default function TaskSummary() {
       // Update the main files state
       setFiles((prevFiles) =>
         prevFiles.map((f) =>
-          f.id.toString() === viewingAttachment.id
+          String(f.id) === String(viewingAttachment.id)
             ? { ...f, name: trimmedName }
             : f,
         ),
@@ -601,7 +601,7 @@ export default function TaskSummary() {
         prevUpdates.map((update) => {
           if (update.attachments && Array.isArray(update.attachments)) {
             const updatedAttachments = update.attachments.map((att: any) =>
-              att.id === viewingAttachment.id
+              String(att.id) === String(viewingAttachment.id)
                 ? { ...att, name: trimmedName }
                 : att,
             );
