@@ -738,8 +738,11 @@ export default function TaskWorkOrders({
           }
           // Close the modal
           setIsCreateWorkOrderModalOpen(false);
-          // Navigate to the new work order details
-          navigate(`/tasks/${taskId}/workorders/${newId}`);
+          // Navigate to the new work order details, passing the work order data through state
+          // so it's available immediately while the state update propagates
+          navigate(`/tasks/${taskId}/workorders/${newId}`, {
+            state: { newWorkOrder }
+          });
         }}
       />
 
