@@ -243,13 +243,15 @@ interface TaskWorkOrdersProps {
   onWorkOrdersChange: (orders: WorkOrder[]) => void;
   defaultProperty?: string;
   defaultTask?: string;
+  taskId: string;
 }
 
 export default function TaskWorkOrders({
   workOrders,
   onWorkOrdersChange,
   defaultProperty,
-  defaultTask
+  defaultTask,
+  taskId
 }: TaskWorkOrdersProps) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
@@ -756,11 +758,10 @@ export default function TaskWorkOrders({
         }}
         onDataUpdate={(data) => {
           const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
-          const currentTaskId = parseInt(window.location.pathname.split("/")[2] || "0");
           const newWorkOrder: WorkOrder = {
             id: newId,
             task: data.workOrderName || data.task || "New Work Order",
-            taskId: currentTaskId,
+            taskId: parseInt(taskId),
             property: data.property || "",
             unit: data.unit || "",
             dueDate: data.dueDate ? data.dueDate.toLocaleDateString() : "No due date",
@@ -775,7 +776,7 @@ export default function TaskWorkOrders({
           };
           onWorkOrdersChange([...workOrders, newWorkOrder]);
           // Immediately navigate to the new work order details
-          navigate(`/tasks/${currentTaskId}/workorders/${newId}`);
+          navigate(`/tasks/${taskId}/workorders/${newId}`);
         }}
       />
 
