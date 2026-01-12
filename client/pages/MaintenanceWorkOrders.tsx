@@ -780,7 +780,6 @@ export default function MaintenanceWorkOrders() {
             setEditingWorkOrder(null);
           }
         }}
-        hideSubheader={true}
         onDataUpdate={(data) => {
           const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
 
