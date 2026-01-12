@@ -30,6 +30,8 @@ interface WorkOrder {
   invoiceNumber?: string;
   vendorName?: string;
   chargeTo?: string;
+  notes?: Note[];
+  files?: File[];
 }
 
 interface WorkOrderDetailsV2Props {
