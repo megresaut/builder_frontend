@@ -103,6 +103,8 @@ export default function CreateTaskModal({
     assignees: MultiSelectOption[];
     collaborators: MultiSelectOption[];
     message: string;
+    property: string;
+    unit: string;
   } | null>(null);
 
   // File upload management
