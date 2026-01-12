@@ -44,6 +44,29 @@ interface WorkOrderDetailsV2Props {
   onUpdateWorkOrderModalOpenChange?: (open: boolean) => void;
 }
 
+const vendorMasterData: Record<string, { email: string; phone: string }> = {
+  "ABC Doors & Hardware": { email: "info@abcdoors.com", phone: "(555) 123-1234" },
+  "Elite HVAC Services": { email: "contact@elitehvac.com", phone: "(555) 234-5678" },
+  "Glass & Frames Inc": { email: "sales@glassframes.com", phone: "(555) 345-6789" },
+  "Pro Roofing Solutions": { email: "quote@proroofing.com", phone: "(555) 456-7890" },
+  "Dolce Plumbing & Heating LLC": { email: "service@dolceplumbing.com", phone: "(555) 567-8901" },
+  "Spark Electrical": { email: "jobs@sparkelectrical.com", phone: "(555) 678-9012" },
+  "Premium Painters Co": { email: "estimate@premiumpainters.com", phone: "(555) 789-0123" },
+  "Quality Flooring LLC": { email: "orders@qualityflooring.com", phone: "(555) 890-1234" },
+  "Green Lawn Services": { email: "schedule@greenlawn.com", phone: "(555) 901-2345" },
+  "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456" },
+};
+
+const getVendorEmail = (vendorName?: string): string => {
+  if (!vendorName) return "";
+  return vendorMasterData[vendorName]?.email || "";
+};
+
+const getVendorPhone = (vendorName?: string): string => {
+  if (!vendorName) return "";
+  return vendorMasterData[vendorName]?.phone || "";
+};
+
 export default function WorkOrderDetailsV2({
   workOrder,
   currentAssignees = [],
