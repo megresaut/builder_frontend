@@ -116,21 +116,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               {/* Update Card - height:auto so it grows naturally */}
               <div
                 className="flex-1 bg-white border border-[#e5e5e5] rounded-lg hover:border-[#d4d4d8] transition-colors"
-                style={{
-                  /* Speech bubble notch */
-                  position: "relative",
-                }}
               >
-                {/* Notch pointer (optional speech bubble effect) */}
-                <div
-                  className="absolute left-0 top-3 w-0 h-0"
-                  style={{
-                    borderTop: "6px solid transparent",
-                    borderBottom: "6px solid transparent",
-                    borderRight: "8px solid white",
-                    marginLeft: "-8px",
-                  }}
-                />
 
                 {/* Card Content */}
                 <div className="px-4 py-3 flex flex-col gap-2">
