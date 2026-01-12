@@ -221,6 +221,11 @@ export default function CreateWorkOrderModalV2({
     if (validateForm()) {
       const actionLabel = mode === "edit" ? "Work Order Updated:" : "Work Order Created:";
       console.log(actionLabel, formData);
+
+      if (onDataUpdate) {
+        onDataUpdate(formData);
+      }
+
       onOpenChange(false);
     }
   };
