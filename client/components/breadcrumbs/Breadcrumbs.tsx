@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BreadcrumbItem } from "./useBreadcrumbs";
+import { BreadcrumbItem } from "@/hooks/useBreadcrumbs";
 import { ChevronRightIcon } from "@/components/icons";
 
 interface BreadcrumbsProps {
