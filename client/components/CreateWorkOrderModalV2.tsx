@@ -26,8 +26,6 @@ interface CreateWorkOrderModalV2Props {
   onOpenChange: (open: boolean) => void;
   mode?: "create" | "edit";
   initialData?: {
-    property?: string;
-    unit?: string;
     task?: string;
     workOrderName?: string;
     vendor?: string;
@@ -38,8 +36,6 @@ interface CreateWorkOrderModalV2Props {
     files?: UploadedFile[];
   };
   onDataUpdate?: (data: {
-    property?: string;
-    unit?: string;
     task?: string;
     workOrderName?: string;
     vendor?: string;
@@ -52,36 +48,12 @@ interface CreateWorkOrderModalV2Props {
 }
 
 // Base options for dropdowns
-const BASE_PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
-const BASE_UNITS = ["N/A", "1", "2", "3", "4", "5"];
 const BASE_TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
 const VENDORS = ["David Smith", "Elite HVAC", "ABC Plumbing", "Green Lawn Services", "Spark Electrical"];
 const STATUSES = ["not_started", "in_progress", "completed"];
 const PRIORITIES = ["low", "normal", "high"];
 
 // Helper function to build options, ensuring initialData values are included
-const buildPropertyOptions = (initialProperty?: string) => {
-  const options = new Set(BASE_PROPERTIES);
-  if (initialProperty && initialProperty.trim()) {
-    options.add(initialProperty);
-  }
-  return Array.from(options).sort().map(prop => ({
-    value: prop,
-    label: prop,
-  }));
-};
-
-const buildUnitOptions = (initialUnit?: string) => {
-  const options = new Set(BASE_UNITS);
-  if (initialUnit && initialUnit.trim()) {
-    options.add(initialUnit);
-  }
-  return Array.from(options).sort().map(unit => ({
-    value: unit,
-    label: unit,
-  }));
-};
-
 const buildTaskOptions = (initialTask?: string) => {
   const options = new Set(BASE_TASKS);
   if (initialTask && initialTask.trim()) {
@@ -106,7 +78,6 @@ const buildVendorOptions = (initialVendor?: string) => {
 
 // Fields that must be validated on submit
 const REQUIRED_FIELDS = new Set([
-  "property",
   "task",
   "workOrderName",
 ]);
@@ -119,8 +90,6 @@ export default function CreateWorkOrderModalV2({
   onDataUpdate,
 }: CreateWorkOrderModalV2Props) {
   const [formData, setFormData] = useState({
-    property: initialData?.property ?? "",
-    unit: initialData?.unit ?? "",
     task: initialData?.task ?? "",
     workOrderName: initialData?.workOrderName ?? "",
     vendor: initialData?.vendor ?? "",
@@ -139,8 +108,6 @@ export default function CreateWorkOrderModalV2({
     if (open) {
       if (mode === "edit" && initialData) {
         setFormData({
-          property: initialData.property ?? "",
-          unit: initialData.unit ?? "",
           task: initialData.task ?? "",
           workOrderName: initialData.workOrderName ?? "",
           vendor: initialData.vendor ?? "",
@@ -151,10 +118,7 @@ export default function CreateWorkOrderModalV2({
           files: initialData.files ?? [],
         });
       } else {
-        // Explicitly set defaults for create mode
         setFormData({
-          property: initialData?.property ?? "",
-          unit: initialData?.unit ?? "",
           task: initialData?.task ?? "",
           workOrderName: initialData?.workOrderName ?? "",
           vendor: initialData?.vendor ?? "",
@@ -167,8 +131,6 @@ export default function CreateWorkOrderModalV2({
       }
     } else {
       setFormData({
-        property: "",
-        unit: "",
         task: "",
         workOrderName: "",
         vendor: "",
@@ -183,17 +145,6 @@ export default function CreateWorkOrderModalV2({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mode]);
-
-  const handlePropertyChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, property: value }));
-    if (errors.property) {
-      setErrors((prev) => ({ ...prev, property: "" }));
-    }
-  };
-
-  const handleUnitChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, unit: value }));
-  };
 
   const handleTaskChange = (value: string) => {
     setFormData((prev) => ({ ...prev, task: value }));
@@ -211,9 +162,6 @@ export default function CreateWorkOrderModalV2({
 
   const handleVendorChange = (value: string) => {
     setFormData((prev) => ({ ...prev, vendor: value }));
-    if (errors.vendor) {
-      setErrors((prev) => ({ ...prev, vendor: "" }));
-    }
   };
 
   const handleStatusChange = (value: string) => {
@@ -259,9 +207,6 @@ export default function CreateWorkOrderModalV2({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.property.trim()) {
-      newErrors.property = "Property is required";
-    }
     if (!formData.task.trim()) {
       newErrors.task = "Task is required";
     }
@@ -312,25 +257,6 @@ export default function CreateWorkOrderModalV2({
       >
         <FormLayout>
           <FormSection title="Task Details">
-            <FormFieldRow columns={2}>
-              <SelectField
-                label="Property"
-                required={REQUIRED_FIELDS.has("property")}
-                value={formData.property}
-                onChange={handlePropertyChange}
-                placeholder="Select a Property"
-                options={buildPropertyOptions(initialData?.property)}
-                error={errors.property}
-              />
-              <SelectField
-                label="Unit"
-                value={formData.unit}
-                onChange={handleUnitChange}
-                placeholder="Select a Unit"
-                options={buildUnitOptions(initialData?.unit)}
-              />
-            </FormFieldRow>
-
             {mode === "create" && (
               <>
                 <SelectField
@@ -366,12 +292,10 @@ export default function CreateWorkOrderModalV2({
               />
               <SelectField
                 label="Vendor"
-                required={REQUIRED_FIELDS.has("vendor")}
                 value={formData.vendor}
                 onChange={handleVendorChange}
                 placeholder="Select a Vendor"
                 options={buildVendorOptions(initialData?.vendor)}
-                error={errors.vendor}
               />
             </FormFieldRow>
 
@@ -431,7 +355,6 @@ export default function CreateWorkOrderModalV2({
         onOpenChange={setIsCreateTaskModalOpen}
         variant="compact"
         onTaskCreated={(taskData) => {
-          // Set the created task as the selected task and close the Create Task modal
           setFormData((prev) => ({
             ...prev,
             task: taskData.title,
