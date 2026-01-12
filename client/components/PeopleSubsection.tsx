@@ -134,13 +134,9 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
               {/* Left: Avatar + Name/Role */}
               <div className="flex items-center gap-2.5 flex-1 min-w-[240px]">
                 <div
-                  className={cn(
-                    `flex items-center justify-center flex-shrink-0 bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8]`,
-                    {
-                      "w-10 h-10 text-xl": density === "default",
-                      "w-8 h-8 text-sm": density === "compact",
-                    },
-                  )}
+                  className={`flex items-center justify-center flex-shrink-0 bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8] ${
+                    density === "default" ? "w-10 h-10 text-xl" : "w-8 h-8 text-sm"
+                  }`}
                   title={person.name}
                 >
                   {person.initials}
