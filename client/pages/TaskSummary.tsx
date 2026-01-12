@@ -31,6 +31,7 @@ import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import RecordBillModal from "@/components/RecordBillModal";
 import { MOCK_TASKS } from "@/data/tasks";
 
 export default function TaskSummary() {
