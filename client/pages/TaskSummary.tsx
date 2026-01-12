@@ -1329,8 +1329,10 @@ export default function TaskSummary() {
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
-              setViewingAttachment({ name: file.name, url: file.url });
+              setViewingAttachment({ id: file.id, name: file.name, url: file.url });
               setIsPdfViewerOpen(true);
+              setIsRenamingAttachment(false);
+              setRenamingAttachmentName("");
             },
           };
           setUpdates([newUpdate, ...updates]);
