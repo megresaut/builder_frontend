@@ -30,7 +30,7 @@ interface FieldTeamOrder {
   description: string;
   dueDate: string;
   priority: "low" | "normal" | "high";
-  fieldTeam: Array<{ initials: string; color: string; name: string }>;
+  fieldTeam: Array<{ id: number; initials: string; color: string; name: string; email: string; phone: string; title: string }>;
   status: "dispatched" | "approved" | "pending-approval";
   timesheetStatus:
     | "awaiting-submission"
