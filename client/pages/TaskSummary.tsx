@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
-import { EditIcon } from "@/components/icons";
+import { EditIcon, NoteIcon, DocumentIcon, FlagIcon, CalendarIcon } from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
@@ -602,6 +602,20 @@ export default function TaskSummary() {
           // Create a new update from the task data
           const details: React.ReactNode[] = [];
 
+          // Determine the primary update type and icon
+          let updateIcon = <EditIcon width={16} height={16} />;
+
+          if ((taskData as any).messageBody && (taskData as any).files?.length > 0) {
+            // Message with attachments - use document icon
+            updateIcon = <DocumentIcon width={16} height={16} />;
+          } else if ((taskData as any).files && (taskData as any).files.length > 0) {
+            // Only attachments - use document icon
+            updateIcon = <DocumentIcon width={16} height={16} />;
+          } else if ((taskData as any).messageBody) {
+            // Only message - use note icon
+            updateIcon = <NoteIcon width={16} height={16} />;
+          }
+
           // Add message body if provided
           if ((taskData as any).messageBody) {
             details.push(
@@ -638,6 +652,7 @@ export default function TaskSummary() {
             actionValue: null,
             timestamp: new Date().toLocaleString(),
             details: details.length > 0 ? <div>{details}</div> : null,
+            icon: updateIcon,
           };
           setUpdates([newUpdate, ...updates]);
         }}
