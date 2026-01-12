@@ -7,6 +7,7 @@ interface SectionCardProps {
   children: ReactNode;
   className?: string;
   padding?: "default" | "compact" | "none";
+  variant?: "default" | "gray";
 }
 
 /**
@@ -28,6 +29,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   children,
   className,
   padding = "default",
+  variant = "default",
 }) => {
   const paddingClass = {
     default: "px-4 py-4",
@@ -35,10 +37,16 @@ export const SectionCard: React.FC<SectionCardProps> = ({
     none: "p-0",
   }[padding];
 
+  const variantClasses = {
+    default: "bg-[#f9f9f9] border border-[#e5e5e5]",
+    gray: "bg-[#f3f3f3] border border-[#e5e5e5]",
+  }[variant];
+
   return (
     <div
       className={cn(
-        "flex flex-col w-full bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg shadow-sm font-['Geist',sans-serif]",
+        "flex flex-col w-full rounded-lg shadow-sm font-['Geist',sans-serif]",
+        variantClasses,
         paddingClass,
         className,
       )}
