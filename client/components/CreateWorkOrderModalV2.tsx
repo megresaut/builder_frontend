@@ -98,7 +98,6 @@ const REQUIRED_FIELDS = new Set([
   "property",
   "task",
   "workOrderName",
-  "vendor",
 ]);
 
 export default function CreateWorkOrderModalV2({
