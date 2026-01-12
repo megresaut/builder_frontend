@@ -14,6 +14,7 @@ interface UseFileUploadResult {
   startRenaming: (file: UploadedFile) => void;
   updateRenamingFileName: (name: string) => void;
   saveFileName: () => void;
+  renameFile: (fileId: string, newName: string) => void;
   cancelRenaming: () => void;
   cleanup: () => void;
   reset: () => void;
