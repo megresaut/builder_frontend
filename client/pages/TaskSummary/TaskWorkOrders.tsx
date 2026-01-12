@@ -738,8 +738,8 @@ export default function TaskWorkOrders({
             ...newWorkOrder,
             dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
           };
-          // Add to work orders list
-          onWorkOrdersChange([...workOrders, newWorkOrder]);
+          // Add to work orders list (with formatted dueDate string)
+          onWorkOrdersChange([...workOrders, workOrderForList]);
           // Update parent state to select the new work order
           if (onWorkOrderSelect) {
             onWorkOrderSelect(newId);
@@ -747,7 +747,7 @@ export default function TaskWorkOrders({
           // Close the modal
           setIsCreateWorkOrderModalOpen(false);
           // Navigate to the new work order details, passing the work order data through state
-          // so it's available immediately while the state update propagates
+          // Keep the Date object in navigation state so it renders correctly immediately
           navigate(`/tasks/${taskId}/workorders/${newId}`, {
             state: { newWorkOrder }
           });
