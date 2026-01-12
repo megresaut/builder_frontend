@@ -799,18 +799,14 @@ export default function Header({
   useEffect(() => {
     if (!selectedTab) return;
 
-    // Get current state snapshot
-    const tabExists = tabs.some((tab) => tab.id === selectedTab);
-    const isOpen = openTabs.has(selectedTab);
+    // We check existence within the set state to avoid stale closure issues
+    // and multiple simultaneous updates
+    setTabs((prevTabs) => {
+      const tabExists = prevTabs.some((tab) => tab.id === selectedTab);
 
-    if (tabExists && isOpen) {
-      // Tab exists and is already open, nothing to do
-      navigateToTabRoute(selectedTab);
-      return;
-    }
+      if (tabExists) return prevTabs;
 
-    // If tab doesn't exist but is a task or vendor tab, create it dynamically
-    if (!tabExists && selectedTab) {
+      // Create dynamic tab if it's a task or vendor
       if (selectedTab.startsWith("task-")) {
         const taskId = selectedTab.replace("task-", "");
         const taskData: Record<string, string> = {
@@ -846,31 +842,13 @@ export default function Header({
           </svg>
         );
 
-        const newTask: Tab = {
+        return [...prevTabs, {
           id: selectedTab,
           label: taskLabel,
           icon: maintenanceIcon,
           iconLight: maintenanceIcon,
           iconDark: maintenanceIcon,
-        };
-
-        setTabs((prevTabs) => {
-          if (prevTabs.some((tab) => tab.id === selectedTab)) {
-            return prevTabs;
-          }
-          return [...prevTabs, newTask];
-        });
-
-        setOpenTabs((prevOpenTabs) => {
-          if (prevOpenTabs.has(selectedTab)) {
-            return prevOpenTabs;
-          }
-          const newOpenTabs = new Set(prevOpenTabs);
-          newOpenTabs.add(selectedTab);
-          return newOpenTabs;
-        });
-        navigateToTabRoute(selectedTab);
-        return;
+        }];
       } else if (selectedTab.startsWith("vendor-")) {
         const vendorId = selectedTab.replace("vendor-", "");
         const vendorData: Record<string, string> = {
@@ -886,39 +864,23 @@ export default function Header({
           "10": "David Smith",
         };
         const vendorLabel = vendorData[vendorId] || `Vendor ${vendorId}`;
-        const newVendor: Tab = {
+
+        return [...prevTabs, {
           id: selectedTab,
           label: vendorLabel,
-        };
-
-        setTabs((prevTabs) => {
-          if (prevTabs.some((tab) => tab.id === selectedTab)) {
-            return prevTabs;
-          }
-          return [...prevTabs, newVendor];
-        });
-
-        setOpenTabs((prevOpenTabs) => {
-          if (prevOpenTabs.has(selectedTab)) {
-            return prevOpenTabs;
-          }
-          const newOpenTabs = new Set(prevOpenTabs);
-          newOpenTabs.add(selectedTab);
-          return newOpenTabs;
-        });
-        navigateToTabRoute(selectedTab);
-        return;
+        }];
       }
-    }
+      return prevTabs;
+    });
 
-    if (tabExists && !isOpen) {
-      setOpenTabs((prevOpenTabs) => {
-        const newOpenTabs = new Set(prevOpenTabs);
-        newOpenTabs.add(selectedTab);
-        return newOpenTabs;
-      });
-      navigateToTabRoute(selectedTab);
-    }
+    setOpenTabs((prevOpenTabs) => {
+      if (prevOpenTabs.has(selectedTab)) return prevOpenTabs;
+      const newOpenTabs = new Set(prevOpenTabs);
+      newOpenTabs.add(selectedTab);
+      return newOpenTabs;
+    });
+
+    navigateToTabRoute(selectedTab);
   }, [selectedTab]);
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
