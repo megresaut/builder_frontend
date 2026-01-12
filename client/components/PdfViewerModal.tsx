@@ -139,9 +139,10 @@ export default function PdfViewerModal({
           <button
             type="button"
             onClick={onSaveFileName}
+            disabled={!renamingFileName.trim()}
             style={{
               borderRadius: "8px",
-              backgroundColor: "var(--color-button-primary)",
+              backgroundColor: renamingFileName.trim() ? "var(--color-button-primary)" : "rgba(218, 218, 218, 1)",
               border: "1px solid rgba(255, 255, 255, 1)",
               display: "flex",
               alignItems: "center",
@@ -151,16 +152,17 @@ export default function PdfViewerModal({
               paddingTop: "8px",
               paddingBottom: "8px",
               minHeight: "36px",
-              color: "rgba(255, 255, 255, 1)",
+              color: renamingFileName.trim() ? "rgba(255, 255, 255, 1)" : "rgba(153, 153, 153, 1)",
               fontWeight: 500,
               letterSpacing: "-0.32px",
               lineHeight: 1.4,
               justifyContent: "center",
-              cursor: "pointer",
+              cursor: renamingFileName.trim() ? "pointer" : "not-allowed",
               fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
               fontSize: "16px",
               whiteSpace: "nowrap",
-              boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+              boxShadow: renamingFileName.trim() ? "0px 0px 0px 1px var(--color-button-primary-shadow)" : "none",
+              opacity: renamingFileName.trim() ? 1 : 0.6,
             }}
           >
             Save
