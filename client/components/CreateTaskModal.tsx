@@ -304,6 +304,7 @@ export default function CreateTaskModal({
         setDescription(editData.description || "");
         setProperty(editData.property || "");
         setUnit(editData.unit || "");
+        setCategory(editData.category || "");
         setPriority(editData.priority.toLowerCase());
         setDueDate(editData.dueDate || null);
         const statusMap: { [key: string]: string } = {
@@ -318,6 +319,15 @@ export default function CreateTaskModal({
               id: String(a.id),
               label: a.name,
               initials: a.initials,
+            }))
+          );
+        }
+        if (editData.collaborators && editData.collaborators.length > 0) {
+          setSelectedCollaborators(
+            editData.collaborators.map((c) => ({
+              id: String(c.id),
+              label: c.name,
+              initials: c.initials,
             }))
           );
         }
@@ -349,7 +359,11 @@ export default function CreateTaskModal({
             label: a.name,
             initials: a.initials,
           })) || [],
-          collaborators: [],
+          collaborators: editData?.collaborators?.map((c) => ({
+            id: String(c.id),
+            label: c.name,
+            initials: c.initials,
+          })) || [],
           message: "",
           property: editData?.property || "",
           unit: editData?.unit || "",
