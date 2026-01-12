@@ -88,22 +88,13 @@ export default function TaskSummary() {
       return;
     }
 
-    // Skip sync if we just navigated from the table to a work order and state hasn't caught up yet
-    // But don't skip if we are intentionally clearing the selection via state
-    const isNavigatingToWorkOrder = workOrderId && !uiState.selectedWorkOrderId;
-    const isClearingWorkOrderSelection = !workOrderId && uiState.selectedWorkOrderId;
-
-    if (isNavigatingToWorkOrder && !isClearingWorkOrderSelection) {
-      return;
-    }
-
     const currentPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
     if (location.pathname !== currentPath) {
       // Use replace for the initial sync to avoid polluting history
       const isInitialSync = location.pathname === `/tasks/${taskId}`;
       navigate(currentPath, { replace: isInitialSync });
     }
-  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname, tab, workOrderId]);
+  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
