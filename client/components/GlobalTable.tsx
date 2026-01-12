@@ -161,9 +161,10 @@ export default function GlobalTable({
   return (
     <div
       className={cn(
-        "ra-table w-full border border-gray-200 bg-white rounded-lg overflow-hidden",
+        "ra-table w-full border border-gray-200 bg-white rounded-lg overflow-visible",
         className,
       )}
+      style={{ position: "relative" }}
     >
       {/* Table Header */}
       {(title || headerActions) && (
