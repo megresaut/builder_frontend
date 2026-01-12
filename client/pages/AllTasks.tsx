@@ -337,7 +337,7 @@ export default function AllTasks() {
 
   const actions = [
     {
-      label: "Edit",
+      label: "Update",
       icon: <EditIcon width={18} height={18} color="#525252" />,
       onClick: handleEditTask,
     },
