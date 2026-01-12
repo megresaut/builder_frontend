@@ -374,9 +374,12 @@ export default function CreateTaskModal({
         const statusMap: { [key: string]: string } = {
           "Not Started": "not_started",
           "In Progress": "in_progress",
-          Completed: "completed",
+          "Completed": "completed",
         };
-        setStatus(statusMap[editData.status || "Not Started"] || "not_started");
+        // Handle both formatted and lowercase status values
+        const statusValue = editData.status || "not_started";
+        const mappedStatus = statusMap[statusValue] || statusValue;
+        setStatus(mappedStatus);
         if (editData.assignees && editData.assignees.length > 0) {
           setSelectedAssignees(
             editData.assignees.map((a) => ({
