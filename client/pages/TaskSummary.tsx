@@ -719,10 +719,10 @@ export default function TaskSummary() {
               <div className="flex flex-col min-w-[240px] w-[376px] gap-5">
                 {/* Location Card */}
                 <TaskLocationCard
-                  propertyImage={(isNewTask || !currentProperty) ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"}
-                  propertyName={(isNewTask || !currentProperty) ? undefined : getPropertyName(currentProperty)}
-                  propertyAddress={(isNewTask || !currentProperty) ? undefined : getPropertyAddress(currentProperty)}
-                  mapImage={(isNewTask || !currentProperty) ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"}
+                  propertyImage={!currentProperty ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"}
+                  propertyName={!currentProperty ? undefined : getPropertyName(currentProperty)}
+                  propertyAddress={!currentProperty ? undefined : getPropertyAddress(currentProperty)}
+                  mapImage={!currentProperty ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"}
                 />
 
                 {/* Assignees Card */}
