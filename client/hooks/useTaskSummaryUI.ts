@@ -17,6 +17,7 @@ export interface TaskSummaryUIState {
     editTask: boolean;
     linkTask: boolean;
     pdfViewer: boolean;
+    viewBill: boolean;
   };
 
   // Editing/selection state
