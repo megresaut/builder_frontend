@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
@@ -33,6 +33,8 @@ export default function TaskSummary() {
     workOrderId?: string;
   }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigationState = location.state as any;
   const [activeTab, setActiveTab] = useState<
     "summary" | "workorders" | "fieldteam"
   >((tab as "summary" | "workorders" | "fieldteam") || "summary");
