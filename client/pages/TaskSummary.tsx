@@ -1118,7 +1118,7 @@ export default function TaskSummary() {
               id: maxId + 1,
               text,
               date: new Date().toLocaleString(),
-              author: "Current User",
+              author: "Julia LoSchiavo",
             };
             setNotes([newNote, ...notes]);
           }
