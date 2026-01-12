@@ -4,7 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
-import WorkOrders from "./WorkOrders";
+import WorkOrders from "../WorkOrders";
 import TaskWorkOrders from "./TaskWorkOrders";
 import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
 import WorkOrderDetailsV2 from "./WorkOrderDetailsV2";
