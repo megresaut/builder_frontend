@@ -321,13 +321,25 @@ export default function CreateTaskModal({
         setMessage("");
       }
 
-      // Initialize baseline state for the "update" variant
-      if (variant === "withMessageAndAttachments") {
-        // This will be set on next render with current form values
-        setInitialState(null);
-      }
     }
   }, [open, editData?.id, variant]);
+
+  // Set initial state for change detection in "update" variant
+  useEffect(() => {
+    if (open && variant === "withMessageAndAttachments" && !initialState) {
+      setInitialState({
+        status,
+        priority,
+        dueDate,
+        assignees: selectedAssignees,
+        collaborators: selectedCollaborators,
+        message,
+        property,
+        unit,
+        category,
+      });
+    }
+  }, [open, variant, status, priority, dueDate, selectedAssignees, selectedCollaborators, message, property, unit, category, initialState]);
 
 
   return (
