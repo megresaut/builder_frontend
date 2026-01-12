@@ -755,10 +755,12 @@ export default function TaskWorkOrders({
           task: defaultTask,
         }}
         onDataUpdate={(data) => {
+          const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
+          const currentTaskId = parseInt(window.location.pathname.split("/")[2] || "0");
           const newWorkOrder: WorkOrder = {
-            id: workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1,
+            id: newId,
             task: data.workOrderName || data.task || "New Work Order",
-            taskId: parseInt(window.location.pathname.split("/")[2] || "0"),
+            taskId: currentTaskId,
             property: data.property || "",
             unit: data.unit || "",
             dueDate: data.dueDate ? data.dueDate.toLocaleDateString() : "No due date",
@@ -772,6 +774,8 @@ export default function TaskWorkOrders({
             collaborators: [],
           };
           onWorkOrdersChange([...workOrders, newWorkOrder]);
+          // Immediately navigate to the new work order details
+          navigate(`/tasks/${currentTaskId}/workorders/${newId}`);
         }}
       />
 
