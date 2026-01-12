@@ -841,58 +841,6 @@ export default function TaskSummary() {
     return unitLabels[unitValue] || "";
   };
 
-  // Vendor master data with contact information
-  const vendorMasterData: Record<string, { email: string; phone: string; title: string }> = {
-    "ABC Doors & Hardware": { email: "info@abcdoors.com", phone: "(555) 123-1234", title: "Vendor Company" },
-    "Elite HVAC Services": { email: "contact@elitehvac.com", phone: "(555) 234-5678", title: "Vendor Company" },
-    "Glass & Frames Inc": { email: "sales@glassframes.com", phone: "(555) 345-6789", title: "Vendor Company" },
-    "Pro Roofing Solutions": { email: "quote@proroofing.com", phone: "(555) 456-7890", title: "Vendor Company" },
-    "Dolce Plumbing & Heating LLC": { email: "service@dolceplumbing.com", phone: "(555) 567-8901", title: "Vendor Company" },
-    "Spark Electrical": { email: "jobs@sparkelectrical.com", phone: "(555) 678-9012", title: "Vendor Company" },
-    "Premium Painters Co": { email: "estimate@premiumpainters.com", phone: "(555) 789-0123", title: "Vendor Company" },
-    "Quality Flooring LLC": { email: "orders@qualityflooring.com", phone: "(555) 890-1234", title: "Vendor Company" },
-    "Green Lawn Services": { email: "schedule@greenlawn.com", phone: "(555) 901-2345", title: "Vendor Company" },
-    "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456", title: "Vendor Company" },
-  };
-
-  // Internal Team Master Data
-  const internalTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
-    "Jerry Sanchez": { email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
-    "Sarah Wilson": { email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
-    "Jane Smith": { email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
-    "Tom Davis": { email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
-    "Lisa Brown": { email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
-    "John Doe": { email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
-    "Mike Johnson": { email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
-    "Julia LoSchiavo": { email: "julia.loschiavo@company.com", phone: "(555) 123-4567", title: "Project Manager" },
-    "Chris Henry": { email: "chris.henry@company.com", phone: "(555) 888-9999", title: "Coordinator" },
-    "Connor Smith": { email: "connor.smith@company.com", phone: "(555) 000-1111", title: "Technician" },
-    "Sarah Martinez": { email: "sarah.martinez@company.com", phone: "(555) 222-4444", title: "Specialist" },
-  };
-
-  // Field team member master data with contact information
-  const fieldTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
-    "Christopher Harris": { email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
-    "Cassandra Smith": { email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
-    "David Chen": { email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
-    "Emma Rodriguez": { email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
-    "James Wilson": { email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
-  };
-
-  // Helper to hydrate person data
-  const hydratePerson = (person: { id: number | string; name: string; initials: string }) => {
-    const internal = internalTeamMasterData[person.name];
-    const field = fieldTeamMasterData[person.name];
-    const vendor = vendorMasterData[person.name];
-    const info = internal || field || vendor;
-
-    return {
-      ...person,
-      email: info?.email || "",
-      phone: info?.phone || "",
-      title: info?.title || "",
-    };
-  };
 
   // Extract unique vendors from work orders
   const vendorsFromWorkOrders = useMemo(() => {
