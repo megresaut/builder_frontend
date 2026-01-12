@@ -1542,6 +1542,7 @@ export default function TaskSummary() {
             },
           };
           setUpdates([newUpdate, ...updates]);
+          setIsEditTaskModalOpen(false);
         }}
       />
 
