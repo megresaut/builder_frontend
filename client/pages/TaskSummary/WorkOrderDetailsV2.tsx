@@ -176,6 +176,8 @@ export default function WorkOrderDetailsV2({
       task: formData.workOrderName || workOrder.task,
       property: formData.property || workOrder.property,
       unit: formData.unit || workOrder.unit,
+      notes: notes,
+      files: files,
     };
 
     if (onWorkOrderUpdate) {
