@@ -445,22 +445,14 @@ export default function WorkOrderDetailsV2({
               footerActions={[]}
               subsections={[
                 {
-                  label: "Assigned to",
+                  label: "Vendor",
                   mode: "rows",
                   people: [
-                    ...currentAssignees.map((assignee) => ({
-                      id: assignee.id,
-                      name: assignee.name || assignee.label,
-                      initials: assignee.initials,
-                      roleLabel: "Property manager",
-                      phone: "",
-                      type: "staff",
-                    })),
                     {
                       id: "vendor-1",
                       name: workOrder.vendorName || "Vendor",
                       initials: (workOrder.vendorName || "V").split(" ").map(w => w[0]).join("").toUpperCase(),
-                      roleLabel: "Vendor",
+                      roleLabel: "Vendor Company",
                       phone: "",
                       type: "vendor",
                     }
@@ -469,6 +461,23 @@ export default function WorkOrderDetailsV2({
                   showPhone: false,
                   showDivider: true,
                   tabIndex: 0,
+                  type: "assignee"
+                },
+                {
+                  label: "Assigned to",
+                  mode: "rows",
+                  people: currentAssignees.map((assignee) => ({
+                    id: assignee.id,
+                    name: assignee.name || assignee.label,
+                    initials: assignee.initials,
+                    roleLabel: "Property manager",
+                    phone: "",
+                    type: "staff",
+                  })),
+                  showRoleLabel: true,
+                  showPhone: false,
+                  showDivider: true,
+                  tabIndex: 1,
                   type: "assignee"
                 },
                 {
