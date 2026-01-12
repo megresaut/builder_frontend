@@ -1,5 +1,6 @@
 import React, { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import SectionCard from "@/components/SectionCard";
+import PersonAvatars from "@/components/PersonAvatars";
 import { DotsIcon, PlusIcon, UserIcon } from "@/components/icons";
 
 export interface AttachmentFile {
