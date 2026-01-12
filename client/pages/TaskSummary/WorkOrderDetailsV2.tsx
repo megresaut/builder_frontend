@@ -576,6 +576,53 @@ export default function WorkOrderDetailsV2({
         }}
         onDataUpdate={handleWorkOrderUpdate}
       />
+
+      {/* View Maps Modal */}
+      {isViewMapsOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-[#e3e3e3]">
+              <h2 className="text-[#303030] text-lg font-semibold">Property Location</h2>
+              <button
+                onClick={() => setIsViewMapsOpen(false)}
+                className="text-[#717179] hover:text-[#303030] text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-2">
+                  <div className="text-sm font-semibold text-[#717179] min-w-[100px]">Address:</div>
+                  <div className="text-sm text-[#303030]">{workOrder.property}</div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="text-sm font-semibold text-[#717179] min-w-[100px]">Unit:</div>
+                  <div className="text-sm text-[#303030]">{workOrder.unit}</div>
+                </div>
+                <div className="mt-4">
+                  <iframe
+                    width="100%"
+                    height="400"
+                    style={{ border: 0, borderRadius: "8px" }}
+                    src={`https://www.google.com/maps/embed/v1/search?key=AIzaSyA_pzr1CkR5V7rppLlFNAq3r3LNXS5Z5eY&q=${encodeURIComponent(workOrder.property)}`}
+                    allowFullScreen={true}
+                    loading="lazy"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#e3e3e3]">
+              <button
+                onClick={() => setIsViewMapsOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-[#303030] border border-[#dadada] bg-white rounded-lg hover:opacity-80 transition-opacity"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
