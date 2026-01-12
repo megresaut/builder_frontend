@@ -74,9 +74,14 @@ export const LinkedTasksList: React.FC<LinkedTasksListProps> = ({
               isLast={idx === linkedTasks.length - 1}
               leftSlot={
                 <div className="flex-1">
-                  <div className="text-[#303030] text-sm font-normal leading-[1.29]">
+                  <a
+                    href={`/tasks/${task.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#2463eb] font-medium text-sm hover:underline cursor-pointer"
+                  >
                     {task.name}
-                  </div>
+                  </a>
                   <div className="flex items-center gap-4 mt-2">
                     <span
                       className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(
