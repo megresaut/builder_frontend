@@ -1402,6 +1402,7 @@ export default function TaskSummary() {
             const initialUpdate = {
               id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
               author: "Julia LoSchiavo",
+              authorType: "assignee",
               action: "created this task",
               timestamp: new Date().toLocaleString(),
               ...(creationFields.length > 0 && {
