@@ -569,10 +569,7 @@ export default function CreateTaskModal({
                 onFilesAdded={fileUpload.addFiles}
                 onFileRemoved={fileUpload.removeFile}
                 onViewFile={fileUpload.viewFile}
-                onFileRenamed={(fileId, newName) => {
-                  // Update file name in the list
-                  // Note: Full rename editing happens in the PDF viewer modal
-                }}
+                disableInlineRename={true}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
                 maxFiles={10}
                 maxSize={10 * 1024 * 1024}
