@@ -112,7 +112,6 @@ export default function SummaryTab({
             status={currentStatus}
             priority={currentPriority}
             dueDate={currentDueDate}
-            lastUpdated={createdTimestamp}
             onStatusChange={onStatusChange}
             onPriorityChange={onPriorityChange}
             onDueDateChange={onDueDateChange}
