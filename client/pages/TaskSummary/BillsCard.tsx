@@ -13,7 +13,6 @@ interface BillItem {
   invoiceNumber: string;
   vendorName: string;
   amount: string;
-  status: "Paid" | "Unpaid" | "Awaiting Invoice";
 }
 
 interface AvailableBill {
@@ -129,7 +128,6 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
           invoiceNumber: selectedBill.invoiceNumber,
           vendorName: selectedBill.vendor,
           amount: `$${selectedBill.amount}`,
-          status: selectedBill.status === "pushed" ? "Paid" : "Awaiting Invoice",
         };
 
         // Call the parent callback to add this bill
@@ -183,36 +181,6 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
                 <div className="flex items-start justify-between gap-4 mt-6">
                   <div className="text-[#2463eb] text-2xl font-medium leading-[1.08]">
                     {bill.amount}
-                  </div>
-                  <div
-                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full min-h-[32px]"
-                    style={{
-                      borderColor: statusColors.border,
-                      borderWidth: "1px",
-                      borderStyle: "solid",
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
-                        stroke={statusColors.text}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span
-                      className="text-base font-medium tracking-[-0.32px] leading-[1.4]"
-                      style={{ color: statusColors.text }}
-                    >
-                      {bill.status}
-                    </span>
                   </div>
                 </div>
               </div>
