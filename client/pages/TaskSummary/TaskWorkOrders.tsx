@@ -712,6 +712,7 @@ export default function TaskWorkOrders({
             setEditingWorkOrder(null);
           }
         }}
+        hideTaskSelection={true}
         initialData={{
           task: defaultTask,
         }}
