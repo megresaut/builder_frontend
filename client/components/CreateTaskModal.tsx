@@ -232,7 +232,22 @@ export default function CreateTaskModal({
         }),
       };
       onTaskCreated?.(taskData);
-      // Reset files after submit (form reset will happen when modal closes)
+      // Reset form state
+      setTitle("");
+      setDescription("");
+      setProperty("");
+      setUnit("");
+      setCategory("");
+      setPriority("normal");
+      setDueDate(null);
+      setStatus("not_started");
+      setSelectedAssignees([]);
+      setSelectedCollaborators([]);
+      setMessage("");
+      setInitialState(null);
+      setErrors({});
+      setErrorMessages({});
+      // Reset files after submit
       fileUpload.reset();
       onOpenChange(false);
     }
