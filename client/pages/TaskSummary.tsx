@@ -650,7 +650,7 @@ export default function TaskSummary() {
                 description={navigationState?.taskData?.description || ""}
                 createdBy={{
                   name: "Current User",
-                  property: currentProperty || "Unassigned",
+                  property: currentProperty ? getPropertyDisplayLabel(currentProperty) : "Unassigned",
                 }}
                 createdDate={new Date().toLocaleString()}
                 stats={[
