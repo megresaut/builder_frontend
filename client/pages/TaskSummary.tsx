@@ -1051,6 +1051,18 @@ export default function TaskSummary() {
         open={isEditTaskModalOpen}
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
+        editData={{
+          id: parseInt(taskId || "0"),
+          title: currentTitle,
+          description: navigationState?.taskData?.description || "",
+          property: currentProperty,
+          unit: currentUnit,
+          priority: navigationState?.taskData?.priority || "normal",
+          status: navigationState?.taskData?.status || "not_started",
+          dueDate: navigationState?.taskData?.dueDate || null,
+          assignees: navigationState?.taskData?.assignees || [],
+          category: currentCategory,
+        }}
         onTaskCreated={(taskData: any) => {
           // Update property, unit, title, and category if they changed
           if (taskData.property) {
