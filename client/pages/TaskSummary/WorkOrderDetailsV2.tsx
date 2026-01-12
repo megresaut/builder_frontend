@@ -413,6 +413,28 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
               }
             ]}
           />
+
+          {/* Created By Card */}
+          <PeopleCard
+            subsections={[
+              {
+                label: "Created by",
+                mode: "rows",
+                people: [
+                  {
+                    id: 4,
+                    name: "Julia LoSchiavo",
+                    initials: "JL",
+                    roleLabel: "Property manager",
+                    phone: "(203) 927-1280",
+                  }
+                ],
+                showRoleLabel: true,
+                showPhone: true,
+                showDivider: true,
+              }
+            ]}
+          />
         </div>
       </div>
 
