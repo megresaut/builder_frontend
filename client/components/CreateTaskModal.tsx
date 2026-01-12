@@ -420,7 +420,7 @@ export default function CreateTaskModal({
         });
       }
     }
-  }, [open, variant, editData?.title, editData?.dueDate, editData?.status, editData?.priority, editData?.assignees, editData?.collaborators]);
+  }, [open, variant, editData?.id]);
 
 
   return (
