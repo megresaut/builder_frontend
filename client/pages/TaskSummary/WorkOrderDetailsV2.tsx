@@ -44,17 +44,17 @@ interface WorkOrderDetailsV2Props {
   onUpdateWorkOrderModalOpenChange?: (open: boolean) => void;
 }
 
-const vendorMasterData: Record<string, { email: string; phone: string }> = {
-  "ABC Doors & Hardware": { email: "info@abcdoors.com", phone: "(555) 123-1234" },
-  "Elite HVAC Services": { email: "contact@elitehvac.com", phone: "(555) 234-5678" },
-  "Glass & Frames Inc": { email: "sales@glassframes.com", phone: "(555) 345-6789" },
-  "Pro Roofing Solutions": { email: "quote@proroofing.com", phone: "(555) 456-7890" },
-  "Dolce Plumbing & Heating LLC": { email: "service@dolceplumbing.com", phone: "(555) 567-8901" },
-  "Spark Electrical": { email: "jobs@sparkelectrical.com", phone: "(555) 678-9012" },
-  "Premium Painters Co": { email: "estimate@premiumpainters.com", phone: "(555) 789-0123" },
-  "Quality Flooring LLC": { email: "orders@qualityflooring.com", phone: "(555) 890-1234" },
-  "Green Lawn Services": { email: "schedule@greenlawn.com", phone: "(555) 901-2345" },
-  "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456" },
+const vendorMasterData: Record<string, { email: string; phone: string; id: number }> = {
+  "ABC Doors & Hardware": { email: "info@abcdoors.com", phone: "(555) 123-1234", id: 1 },
+  "Elite HVAC Services": { email: "contact@elitehvac.com", phone: "(555) 234-5678", id: 2 },
+  "Glass & Frames Inc": { email: "sales@glassframes.com", phone: "(555) 345-6789", id: 3 },
+  "Pro Roofing Solutions": { email: "quote@proroofing.com", phone: "(555) 456-7890", id: 4 },
+  "Dolce Plumbing & Heating LLC": { email: "service@dolceplumbing.com", phone: "(555) 567-8901", id: 5 },
+  "Spark Electrical": { email: "jobs@sparkelectrical.com", phone: "(555) 678-9012", id: 6 },
+  "Premium Painters Co": { email: "estimate@premiumpainters.com", phone: "(555) 789-0123", id: 7 },
+  "Quality Flooring LLC": { email: "orders@qualityflooring.com", phone: "(555) 890-1234", id: 8 },
+  "Green Lawn Services": { email: "schedule@greenlawn.com", phone: "(555) 901-2345", id: 9 },
+  "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456", id: 10 },
 };
 
 const getVendorEmail = (vendorName?: string): string => {
@@ -65,6 +65,12 @@ const getVendorEmail = (vendorName?: string): string => {
 const getVendorPhone = (vendorName?: string): string => {
   if (!vendorName) return "";
   return vendorMasterData[vendorName]?.phone || "";
+};
+
+const getVendorHref = (vendorName?: string): string | undefined => {
+  if (!vendorName) return undefined;
+  const vendorId = vendorMasterData[vendorName]?.id;
+  return vendorId ? `/vendors/${vendorId}` : undefined;
 };
 
 export default function WorkOrderDetailsV2({
