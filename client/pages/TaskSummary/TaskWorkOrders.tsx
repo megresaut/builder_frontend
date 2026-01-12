@@ -734,7 +734,7 @@ export default function TaskWorkOrders({
             billTotal: "No invoice",
             assignees: [],
             collaborators: [],
-            vendorName: data.vendor || "Unassigned",
+            vendorName: data.vendor || "",
           };
           // Convert dueDate to string format for the list, but keep Date object in navigation state for immediate rendering
           const workOrderForList = {
