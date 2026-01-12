@@ -186,7 +186,7 @@ export default function WorkOrderDetailsV2({
       status: formData.status || workOrder.status,
       priority: formData.priority || workOrder.priority,
       dueDate: dueDateValue,
-      vendorName: formData.vendor || workOrder.vendorName,
+      vendorName: formData.vendor !== undefined ? formData.vendor : workOrder.vendorName,
       task: formData.workOrderName || workOrder.task,
       property: formData.property || workOrder.property,
       unit: formData.unit || workOrder.unit,
