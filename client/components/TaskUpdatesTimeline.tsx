@@ -2,6 +2,12 @@ import React, { ReactNode } from "react";
 import SectionCard from "@/components/SectionCard";
 import { DotsIcon, PlusIcon, UserIcon } from "@/components/icons";
 
+export interface AttachmentFile {
+  name: string;
+  url: string;
+  preview?: string;
+}
+
 export interface UpdateItem {
   id: string | number;
   avatar?: string;
@@ -15,6 +21,8 @@ export interface UpdateItem {
   moreOptions?: () => void;
   icon?: ReactNode;
   isInitialCreation?: boolean;
+  attachments?: AttachmentFile[];
+  onAttachmentClick?: (file: AttachmentFile) => void;
 }
 
 interface TaskUpdatesTimelineProps {
