@@ -73,57 +73,59 @@ export default function EditTaskDetailsModal({
         />
       }
     >
-      <FormLayout>
-        <FormSection showDivider={false}>
-          <TextField
-            label="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter task title"
-          />
+      <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextField
+              label="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter task title"
+            />
 
-          <SelectField
-            label="Property"
-            value={property}
-            onChange={(value) => {
-              setProperty(value);
-              // Clear unit when property changes
-              if (value !== property) {
-                setUnit("");
+            <SelectField
+              label="Property"
+              value={property}
+              onChange={(value) => {
+                setProperty(value);
+                // Clear unit when property changes
+                if (value !== property) {
+                  setUnit("");
+                }
+              }}
+              placeholder="Select Property"
+              options={[
+                { value: "property1", label: "22 Indian Chase Dr" },
+                { value: "property2", label: "Property 2" },
+              ]}
+            />
+
+            <SelectField
+              label="Unit"
+              value={unit}
+              onChange={setUnit}
+              placeholder="Select Unit If Applicable"
+              disabled={!property}
+              options={
+                property
+                  ? [
+                      { value: "unit1", label: "Unit 1" },
+                      { value: "unit2", label: "Unit 2" },
+                    ]
+                  : []
               }
-            }}
-            placeholder="Select Property"
-            options={[
-              { value: "property1", label: "22 Indian Chase Dr" },
-              { value: "property2", label: "Property 2" },
-            ]}
-          />
+            />
 
-          <SelectField
-            label="Unit"
-            value={unit}
-            onChange={setUnit}
-            placeholder="Select Unit If Applicable"
-            disabled={!property}
-            options={
-              property
-                ? [
-                    { value: "unit1", label: "Unit 1" },
-                    { value: "unit2", label: "Unit 2" },
-                  ]
-                : []
-            }
-          />
-
-          <SelectField
-            label="Category"
-            value={category}
-            onChange={setCategory}
-            placeholder="Select Category"
-            options={TASK_CATEGORIES}
-          />
-        </FormSection>
-      </FormLayout>
+            <SelectField
+              label="Category"
+              value={category}
+              onChange={setCategory}
+              placeholder="Select Category"
+              options={TASK_CATEGORIES}
+            />
+          </FormSection>
+        </FormLayout>
+      </div>
     </ModalTemplate>
   );
 }
