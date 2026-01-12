@@ -992,6 +992,7 @@ export default function VendorDetail() {
                         {
                           label: "SERVICES PROVIDED",
                           value: (vendorDraft || vendor).servicesProvided,
+                          fullWidth: true,
                         },
                       ],
                     },
