@@ -286,6 +286,7 @@ export default function MaintenanceWorkOrders() {
     "billStatus",
     "billTotal",
     "assignees",
+    "collaborators",
   ]);
 
   const columns = [
