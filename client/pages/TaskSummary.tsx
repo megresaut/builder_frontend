@@ -180,6 +180,7 @@ export default function TaskSummary() {
     return {
       id: 0,
       author: "Julia LoSchiavo",
+      authorType: "assignee",
       action: "created this task",
       timestamp: new Date().toLocaleString(),
       fieldsDisplay: (
