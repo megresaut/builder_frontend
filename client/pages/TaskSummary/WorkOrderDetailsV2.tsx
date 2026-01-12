@@ -110,6 +110,18 @@ export default function WorkOrderDetailsV2({
 
   const [files, setFiles] = useState<File[]>(() => workOrder?.files || []);
 
+  interface BillItem {
+    id: string;
+    date: string;
+    time: string;
+    invoiceNumber: string;
+    vendorName: string;
+    amount: string;
+    status: "Paid" | "Unpaid" | "Awaiting Invoice";
+  }
+
+  const [bills, setBills] = useState<BillItem[]>([]);
+
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
