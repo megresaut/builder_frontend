@@ -449,30 +449,12 @@ export default function AllTasks() {
             }
             if (columnKey === "collaborators") {
               return (
-                <div className="flex items-center gap-2">
-                  {task.collaborators && task.collaborators.length > 0 ? (
-                    task.collaborators.map((collaborator) => (
-                      <div key={collaborator.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                          style={{
-                            backgroundColor: "rgb(34, 197, 94)",
-                            borderColor: "rgb(209, 213, 219)",
-                            borderWidth: "1px",
-                          }}
-                          title={collaborator.name}
-                        >
-                          {collaborator.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {collaborator.name}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 text-sm">—</span>
-                  )}
-                </div>
+                <PersonAvatars
+                  people={task.collaborators || []}
+                  type="collaborator"
+                  size="sm"
+                  fallback="—"
+                />
               );
             }
             return null;
