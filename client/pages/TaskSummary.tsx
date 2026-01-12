@@ -1201,6 +1201,15 @@ export default function TaskSummary() {
                   value: assigneeNames,
                 });
                 break;
+              case "collaborators":
+                const collaboratorNames = taskData.collaborators && taskData.collaborators.length > 0
+                  ? taskData.collaborators.map((c: any) => c.label).join(", ")
+                  : "None";
+                displayFields.push({
+                  label: "Collaborators",
+                  value: collaboratorNames,
+                });
+                break;
             }
           });
 
