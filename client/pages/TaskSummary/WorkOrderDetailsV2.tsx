@@ -30,6 +30,7 @@ interface WorkOrder {
   invoiceNumber?: string;
   vendorName?: string;
   chargeTo?: string;
+  description?: string;
   notes?: Note[];
   files?: File[];
 }
