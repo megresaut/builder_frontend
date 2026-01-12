@@ -598,8 +598,72 @@ export default function TaskSummary() {
         open={isEditTaskModalOpen}
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
-        onTaskCreated={(taskData) => {
+        onTaskCreated={(taskData: any) => {
           // Create a new update from the task data
+          const details: React.ReactNode[] = [];
+
+          // Add status and priority as badges
+          if (taskData.status || taskData.priority) {
+            const statusMap: { [key: string]: string } = {
+              not_started: "New",
+              in_progress: "In Progress",
+              completed: "Completed",
+            };
+            const priorityMap: { [key: string]: string } = {
+              low: "Low",
+              normal: "Normal",
+              high: "High",
+            };
+
+            details.push(
+              <div key="badges" className="flex gap-4 mb-3">
+                {taskData.status && (
+                  <div>
+                    <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Status</div>
+                    <div className="inline-flex items-center px-2 py-1 bg-yellow-50 border border-yellow-200 rounded text-xs font-medium text-yellow-900">
+                      {statusMap[taskData.status] || taskData.status}
+                    </div>
+                  </div>
+                )}
+                {taskData.priority && (
+                  <div>
+                    <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Priority</div>
+                    <div className="flex items-center gap-1 text-xs font-medium text-[#303030]">
+                      <span className="inline-block w-2 h-2 bg-amber-500 rounded-full"></span>
+                      {priorityMap[taskData.priority] || taskData.priority}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Add message body if provided
+          if ((taskData as any).messageBody) {
+            details.push(
+              <div key="message" className="mb-3">
+                <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Message</div>
+                <div className="text-sm text-[#303030]">{(taskData as any).messageBody}</div>
+              </div>
+            );
+          }
+
+          // Add attachments if provided
+          if ((taskData as any).files && (taskData as any).files.length > 0) {
+            details.push(
+              <div key="attachments">
+                <div className="text-xs text-[#717179] font-medium uppercase tracking-wide mb-1">Attachments</div>
+                <div className="flex flex-col gap-1">
+                  {(taskData as any).files.map((file: any, idx: number) => (
+                    <div key={idx} className="text-xs text-[#303030]">
+                      📎 {file.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
             initials: "YOU",
@@ -607,17 +671,7 @@ export default function TaskSummary() {
             action: taskData.message || "updated the task",
             actionValue: null,
             timestamp: new Date().toLocaleString(),
-            details: taskData.message ? (
-              <div className="text-sm text-[#303030]">
-                <div className="mb-2">{taskData.message}</div>
-                {(taskData.status || taskData.priority) && (
-                  <div className="text-xs text-[#717179]">
-                    {taskData.status && <div>Status: {taskData.status}</div>}
-                    {taskData.priority && <div>Priority: {taskData.priority}</div>}
-                  </div>
-                )}
-              </div>
-            ) : null,
+            details: details.length > 0 ? <div>{details}</div> : null,
           };
           setUpdates([newUpdate, ...updates]);
         }}
