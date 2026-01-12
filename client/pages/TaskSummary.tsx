@@ -391,11 +391,11 @@ export default function TaskSummary() {
               <div className="flex flex-col min-w-[240px] flex-1 gap-5">
                 {/* Task Overview Card */}
               <TaskOverviewCard
-                category="Uncategorized"
+                category={currentCategory || "Uncategorized"}
                 description={navigationState?.taskData?.description || ""}
                 createdBy={{
                   name: "Current User",
-                  property: navigationState?.taskData?.property || "Unassigned",
+                  property: currentProperty || "Unassigned",
                 }}
                 createdDate={new Date().toLocaleString()}
                 stats={[
@@ -403,7 +403,7 @@ export default function TaskSummary() {
                   { label: "WORK ORDERS", value: "0" },
                   { label: "FTOs", value: "0" },
                 ]}
-                onEdit={() => setIsEditTaskModalOpen(true)}
+                onEdit={() => setIsEditTaskDetailsOpen(true)}
               />
 
               {/* Notes Section */}
