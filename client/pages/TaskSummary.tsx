@@ -286,18 +286,18 @@ export default function TaskSummary() {
                 {/* Task Overview Card */}
               <TaskOverviewCard
                 category="Uncategorized"
-                description="We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower. My wife and I both timed it and we lose hot water in the shower after about 5 min. It also takes about 3-4 min to even heat up."
+                description={navigationState?.taskData?.description || ""}
                 createdBy={{
-                  name: "Julia LoSchiavo",
-                  property: "(C) 51 Willowmere Circle, Riverside CT 06878 -1",
+                  name: "Current User",
+                  property: navigationState?.taskData?.property || "Unassigned",
                 }}
-                createdDate="11/12/2025 9:22 PM"
+                createdDate={new Date().toLocaleString()}
                 stats={[
-                  { label: "TOTAL EXPENSE", value: "$1,450.50" },
-                  { label: "WORK ORDERS", value: "5" },
-                  { label: "FTOs", value: "3" },
+                  { label: "TOTAL EXPENSE", value: "$0.00" },
+                  { label: "WORK ORDERS", value: "0" },
+                  { label: "FTOs", value: "0" },
                 ]}
-                onEdit={() => console.log("Edit task")}
+                onEdit={() => setIsEditTaskModalOpen(true)}
               />
 
               {/* Notes Section */}
