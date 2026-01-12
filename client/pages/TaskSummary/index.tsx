@@ -365,8 +365,8 @@ export default function TaskSummary() {
     dueDate: string;
     updatedDate: string;
     age: string;
-    priority: "High" | "Low" | "Normal";
-    status: "In progress" | "Completed";
+    priority: string;
+    status: string;
     billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
     billTotal: string;
     assignees: Assignee[];
@@ -385,8 +385,8 @@ export default function TaskSummary() {
       dueDate: "Oct 2, 2025",
       updatedDate: "Oct 2, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "In progress",
+      priority: "high",
+      status: "in_progress",
       billStatus: "Paid",
       billTotal: "$420",
       assignees: [
@@ -406,8 +406,8 @@ export default function TaskSummary() {
       dueDate: "Sep 29, 2025",
       updatedDate: "Sep 29, 2025",
       age: "6 days 5 hours",
-      priority: "Low",
-      status: "In progress",
+      priority: "low",
+      status: "in_progress",
       billStatus: "Awaiting Invoice",
       billTotal: "No invoice",
       assignees: [
@@ -428,8 +428,8 @@ export default function TaskSummary() {
       dueDate: "Sep 10, 2025",
       updatedDate: "Sep 10, 2025",
       age: "6 days 5 hours",
-      priority: "Normal",
-      status: "Completed",
+      priority: "normal",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$95",
       assignees: [
@@ -447,8 +447,8 @@ export default function TaskSummary() {
       dueDate: "Sep 6, 2025",
       updatedDate: "Sep 6, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$112",
       assignees: [
@@ -468,8 +468,8 @@ export default function TaskSummary() {
       dueDate: "Sep 5, 2025",
       updatedDate: "Sep 5, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$93",
       assignees: [
@@ -489,8 +489,8 @@ export default function TaskSummary() {
       dueDate: "Sep 4, 2025",
       updatedDate: "Sep 4, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$75",
       assignees: [
@@ -511,8 +511,8 @@ export default function TaskSummary() {
       dueDate: "Sep 4, 2025",
       updatedDate: "Sep 4, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$101",
       assignees: [
@@ -530,8 +530,8 @@ export default function TaskSummary() {
       dueDate: "Sep 3, 2025",
       updatedDate: "Sep 3, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$124",
       assignees: [
@@ -551,8 +551,8 @@ export default function TaskSummary() {
       dueDate: "Sep 1, 2025",
       updatedDate: "Sep 1, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$67",
       assignees: [
@@ -573,8 +573,8 @@ export default function TaskSummary() {
       dueDate: "Sep 1, 2025",
       updatedDate: "Sep 1, 2025",
       age: "6 days 5 hours",
-      priority: "High",
-      status: "Completed",
+      priority: "high",
+      status: "completed",
       billStatus: "Unpaid",
       billTotal: "$118",
       assignees: [
