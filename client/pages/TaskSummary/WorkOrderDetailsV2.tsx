@@ -83,8 +83,14 @@ export default function WorkOrderDetailsV2({
       } else {
         setDueDate(null);
       }
+      if (workOrder.notes) {
+        setNotes(workOrder.notes);
+      }
+      if (workOrder.files) {
+        setFiles(workOrder.files);
+      }
     }
-  }, [workOrder?.id, workOrder?.status, workOrder?.priority, workOrder?.dueDate]);
+  }, [workOrder?.id, workOrder?.status, workOrder?.priority, workOrder?.dueDate, workOrder?.notes, workOrder?.files]);
 
   // Mock notifications
   const [notifications, setNotifications] = useState([
