@@ -280,7 +280,7 @@ export default function CreateTaskModal({
     };
   }, []);
 
-  // Initialize form when modal opens
+  // Initialize form when modal opens and set initial state for change detection
   useEffect(() => {
     if (open) {
       if (editData) {
@@ -321,28 +321,26 @@ export default function CreateTaskModal({
         setMessage("");
       }
 
+      // Initialize baseline state for the "update" variant
+      if (variant === "withMessageAndAttachments") {
+        setInitialState({
+          status: editData ? (editData.status === "In Progress" ? "in_progress" : editData.status === "Completed" ? "completed" : "not_started") : "not_started",
+          priority: editData ? editData.priority.toLowerCase() : "normal",
+          dueDate: editData?.dueDate || null,
+          assignees: editData?.assignees?.map((a) => ({
+            id: String(a.id),
+            label: a.name,
+            initials: a.initials,
+          })) || [],
+          collaborators: [],
+          message: "",
+          property: editData?.property || "",
+          unit: editData?.unit || "",
+          category: editData?.category || "",
+        });
+      }
     }
   }, [open, editData?.id, variant]);
-
-  // Set initial state for change detection in "update" variant
-  useEffect(() => {
-    if (open && variant === "withMessageAndAttachments" && initialState === null) {
-      const timer = setTimeout(() => {
-        setInitialState({
-          status,
-          priority,
-          dueDate,
-          assignees: selectedAssignees,
-          collaborators: selectedCollaborators,
-          message,
-          property,
-          unit,
-          category,
-        });
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-  }, [open, variant]);
 
 
   return (
