@@ -785,11 +785,15 @@ export default function TaskSummary() {
 
           // Create attachments array with preview support
           const attachments = ((taskData as any).files && (taskData as any).files.length > 0)
-            ? (taskData as any).files.map((file: any) => ({
-                name: file.name,
-                url: file.url,
-                preview: file.type?.includes('image') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? file.url : undefined,
-              }))
+            ? (taskData as any).files.map((file: any) => {
+                // Generate blob URL if file object exists but url doesn't
+                const fileUrl = file.url || (file.file ? URL.createObjectURL(file.file) : undefined);
+                return {
+                  name: file.name,
+                  url: fileUrl,
+                  preview: (file.type?.includes('image') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? fileUrl : undefined,
+                };
+              })
             : undefined;
 
           const newUpdate = {
