@@ -132,8 +132,11 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
           status: selectedBill.status === "pushed" ? "Paid" : "Awaiting Invoice",
         };
 
-        // Update parent component - for now, we'll just close the modal
-        // In a real app, you'd pass a callback to update the parent state
+        // Call the parent callback to add this bill
+        if (onBillSelected) {
+          onBillSelected(newBill);
+        }
+
         setIsSelectBillModalOpen(false);
       }
     }
