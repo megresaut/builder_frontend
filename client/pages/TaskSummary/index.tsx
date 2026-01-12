@@ -857,8 +857,8 @@ export default function TaskSummary() {
           label: uiState.selectedWorkOrderId ? "Update Work Order" : "Update task",
           onClick: () => {
             if (uiState.selectedWorkOrderId) {
-              // Trigger Update Work Order Modal through uiDispatch
-              uiDispatch({ type: "OPEN_MODAL", payload: "updateWorkOrder" });
+              // Trigger Update Work Order Modal
+              setIsUpdateWorkOrderModalOpen(true);
             } else {
               // Trigger Update Task Modal
               uiDispatch({ type: "OPEN_MODAL", payload: "editTask" });
