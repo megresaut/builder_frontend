@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import React, { useState } from "react";
 import TabContent from "./components/TabContent";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
@@ -191,7 +191,7 @@ export default function App() {
                   path="/tasks/:taskId/:tab/:workOrderId"
                   element={
                     <ShellLayout>
-                      <TaskSummary />
+                      <TaskSummaryWrapper />
                     </ShellLayout>
                   }
                 />
@@ -199,7 +199,7 @@ export default function App() {
                   path="/tasks/:taskId/:tab"
                   element={
                     <ShellLayout>
-                      <TaskSummary />
+                      <TaskSummaryWrapper />
                     </ShellLayout>
                   }
                 />
@@ -207,7 +207,7 @@ export default function App() {
                   path="/tasks/:taskId"
                   element={
                     <ShellLayout>
-                      <TaskSummary />
+                      <TaskSummaryWrapper />
                     </ShellLayout>
                   }
                 />
@@ -262,3 +262,8 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+const TaskSummaryWrapper = () => {
+  const { taskId } = useParams();
+  return <TaskSummary key={taskId} />;
+};
