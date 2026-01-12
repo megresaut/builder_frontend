@@ -138,6 +138,11 @@ export default function WorkOrderDetailsV2({
     if (formData.status) setStatus(formData.status);
     if (formData.priority) setPriority(formData.priority);
     if (formData.dueDate) setDueDate(formData.dueDate);
+
+    // Build updated notes and files arrays
+    let updatedNotes = notes;
+    let updatedFiles = files;
+
     if (formData.notes) {
       const newNote: Note = {
         id: Math.max(0, ...notes.map(n => n.id)) + 1,
@@ -145,8 +150,10 @@ export default function WorkOrderDetailsV2({
         date: new Date().toLocaleString(),
         author: "Julia LoSchiavo",
       };
-      setNotes([...notes, newNote]);
+      updatedNotes = [...notes, newNote];
+      setNotes(updatedNotes);
     }
+
     if (formData.files && formData.files.length > 0) {
       const newFiles: File[] = formData.files.map((uf, idx) => ({
         id: Math.max(0, ...files.map(f => f.id)) + idx + 1,
@@ -156,7 +163,8 @@ export default function WorkOrderDetailsV2({
         category: "Work Order",
         description: "",
       }));
-      setFiles([...files, ...newFiles]);
+      updatedFiles = [...files, ...newFiles];
+      setFiles(updatedFiles);
     }
 
     // Update parent work orders list
@@ -176,8 +184,8 @@ export default function WorkOrderDetailsV2({
       task: formData.workOrderName || workOrder.task,
       property: formData.property || workOrder.property,
       unit: formData.unit || workOrder.unit,
-      notes: notes,
-      files: files,
+      notes: updatedNotes,
+      files: updatedFiles,
     };
 
     if (onWorkOrderUpdate) {
