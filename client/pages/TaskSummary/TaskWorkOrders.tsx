@@ -689,9 +689,7 @@ export default function TaskWorkOrders({
               },
             ]}
             onRowClick={(workOrder) => {
-              if (onWorkOrderSelect) {
-                onWorkOrderSelect(workOrder.id);
-              }
+              // Navigate to work order details - the URL change will drive state updates via effects
               navigate(
                 `/tasks/${taskId}/workorders/${workOrder.id}`,
               );
