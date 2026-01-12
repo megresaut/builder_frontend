@@ -292,6 +292,7 @@ export default function CreateTaskModal({
       setSelectedAssignees([]);
       setSelectedCollaborators([]);
       setMessage("");
+      setInitialState(null);
       setErrors({});
       setErrorMessages({});
     }
