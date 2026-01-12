@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { EditIcon } from "@/components/icons";
-import { SectionActionTemplate } from "@/components/templates";
+import { SectionActionTemplate, TaskDetailsBarTemplate } from "@/components/templates";
 import TaskOverviewCard from "@/components/TaskOverviewCard";
 import TaskLocationCard from "@/components/TaskLocationCard";
 import LinkedTasksCard from "@/components/LinkedTasksCard";
@@ -47,6 +47,9 @@ interface SummaryTabProps {
   onTaskClick: (taskId: number) => void;
   onAddUpdate: () => void;
   onEditTask: () => void;
+  onStatusChange: (newStatus: string) => void;
+  onPriorityChange: (newPriority: string) => void;
+  onDueDateChange: (newDate: Date | string | null) => void;
   getPropertyDisplayLabel: (property: string) => string;
   getUnitDisplayLabel: (unit: string) => string;
   getPropertyName: (property: string) => string;
@@ -88,6 +91,9 @@ export default function SummaryTab({
   onTaskClick,
   onAddUpdate,
   onEditTask,
+  onStatusChange,
+  onPriorityChange,
+  onDueDateChange,
   getPropertyDisplayLabel,
   getUnitDisplayLabel,
   getPropertyName,
@@ -100,6 +106,20 @@ export default function SummaryTab({
     <>
       {/* Left Column */}
       <div className="flex flex-col min-w-[240px] flex-1 gap-5">
+        {/* Task Details Bar - Status, Priority, Due Date, Last Updated */}
+        <SectionCard padding="none" variant="gray">
+          <TaskDetailsBarTemplate
+            status={currentStatus}
+            priority={currentPriority}
+            dueDate={currentDueDate}
+            lastUpdated={createdTimestamp}
+            onStatusChange={onStatusChange}
+            onPriorityChange={onPriorityChange}
+            onDueDateChange={onDueDateChange}
+            variant="gray"
+          />
+        </SectionCard>
+
         {/* Task Overview Card */}
         <TaskOverviewCard
           category={currentCategory || "Uncategorized"}
