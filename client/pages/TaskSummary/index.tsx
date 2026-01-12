@@ -853,9 +853,15 @@ export default function TaskSummary() {
           </div>
         }
         action={{
-          label: "Update task",
+          label: uiState.selectedWorkOrderId ? "Update Work Order" : "Update task",
           onClick: () => {
-            uiDispatch({ type: "OPEN_MODAL", payload: "editTask" });
+            if (uiState.selectedWorkOrderId) {
+              // Trigger Update Work Order Modal through uiDispatch
+              uiDispatch({ type: "OPEN_MODAL", payload: "updateWorkOrder" });
+            } else {
+              // Trigger Update Task Modal
+              uiDispatch({ type: "OPEN_MODAL", payload: "editTask" });
+            }
           },
         }}
         moreOptions={{
