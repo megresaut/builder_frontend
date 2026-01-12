@@ -304,6 +304,27 @@ export default function CreateTaskModal({
     };
   }, []);
 
+  // Clear form when modal closes
+  useEffect(() => {
+    if (!open) {
+      setTitle("");
+      setDescription("");
+      setProperty("");
+      setUnit("");
+      setCategory("");
+      setPriority("normal");
+      setDueDate(null);
+      setStatus("not_started");
+      setSelectedAssignees([]);
+      setSelectedCollaborators([]);
+      setMessage("");
+      setInitialState(null);
+      setErrors({});
+      setErrorMessages({});
+      fileUpload.reset();
+    }
+  }, [open, fileUpload.reset]);
+
   // Initialize form when modal opens and set initial state for change detection
   useEffect(() => {
     if (open) {
