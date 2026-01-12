@@ -214,6 +214,18 @@ export default function CreateTaskModal({
 
   const handleSubmit = () => {
     if (validateForm()) {
+      // Detect which fields have changed for update variant
+      const changedFields: string[] = [];
+      if (variant === "withMessageAndAttachments" && initialState) {
+        if (status !== initialState.status) changedFields.push("status");
+        if (priority !== initialState.priority) changedFields.push("priority");
+        if (dueDate?.toString() !== initialState.dueDate?.toString()) changedFields.push("dueDate");
+        if (selectedAssignees.length !== initialState.assignees.length ||
+            !selectedAssignees.every((a) => initialState.assignees.some((ia) => ia.id === a.id))) {
+          changedFields.push("assignees");
+        }
+      }
+
       const taskData = {
         title,
         description,
@@ -229,6 +241,7 @@ export default function CreateTaskModal({
           message: generateUpdateMessage(),
           messageBody: message,
           files: fileUpload.files,
+          changedFields,
         }),
       };
       onTaskCreated?.(taskData);
