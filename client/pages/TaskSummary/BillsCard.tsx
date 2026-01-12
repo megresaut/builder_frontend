@@ -139,82 +139,114 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId }) => {
   };
 
   return (
-    <SectionCard title="Bills" variant="white">
-      <div className="flex flex-col gap-4">
-        {bills.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <div className="text-[#71717A] text-sm font-normal mb-3">
-              No bills entered yet
+    <>
+      <SectionCard title="Bills" variant="white">
+        <div className="flex flex-col gap-4">
+          {bills.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <div className="text-[#71717A] text-sm font-normal mb-3">
+                No bills entered yet
+              </div>
+              <button
+                onClick={handleEnterBill}
+                className="text-[#2463eb] text-sm font-medium hover:underline"
+              >
+                Enter Bill
+              </button>
             </div>
-            <button
-              onClick={handleEnterBill}
-              className="text-[#2463eb] text-sm font-medium hover:underline"
-            >
-              Enter Bill
-            </button>
-          </div>
-        ) : bills.map((bill) => {
-          const statusColors = getStatusColor(bill.status);
-          return (
-            <div
-              key={bill.id}
-              className="flex flex-col gap-0 rounded-lg bg-[#f9f9f9] border border-[#dadada] p-4"
-            >
-              <div className="flex items-start gap-6 text-sm text-[#71717A] font-normal tracking-[-0.28px] leading-[1.14]">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>{bill.date}</span>
+          ) : bills.map((bill) => {
+            const statusColors = getStatusColor(bill.status);
+            return (
+              <div
+                key={bill.id}
+                className="flex flex-col gap-0 rounded-lg bg-[#f9f9f9] border border-[#dadada] p-4"
+              >
+                <div className="flex items-start gap-6 text-sm text-[#71717A] font-normal tracking-[-0.28px] leading-[1.14]">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{bill.date}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{bill.time}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{bill.time}</span>
-                </div>
-              </div>
 
-              <div className="text-[#303030] text-base font-medium leading-[1.25] tracking-[-0.32px] mt-3">
-                {bill.invoiceNumber} - {bill.vendorName}
-              </div>
+                <div className="text-[#303030] text-base font-medium leading-[1.25] tracking-[-0.32px] mt-3">
+                  {bill.invoiceNumber} - {bill.vendorName}
+                </div>
 
-              <div className="flex items-start justify-between gap-4 mt-6">
-                <div className="text-[#2463eb] text-2xl font-medium leading-[1.08]">
-                  {bill.amount}
-                </div>
-                <div
-                  className="flex items-center gap-1 px-3.5 py-1.5 rounded-full min-h-[32px]"
-                  style={{
-                    borderColor: statusColors.border,
-                    borderWidth: "1px",
-                    borderStyle: "solid",
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                <div className="flex items-start justify-between gap-4 mt-6">
+                  <div className="text-[#2463eb] text-2xl font-medium leading-[1.08]">
+                    {bill.amount}
+                  </div>
+                  <div
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full min-h-[32px]"
+                    style={{
+                      borderColor: statusColors.border,
+                      borderWidth: "1px",
+                      borderStyle: "solid",
+                    }}
                   >
-                    <path
-                      d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
-                      stroke={statusColors.text}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span
-                    className="text-base font-medium tracking-[-0.32px] leading-[1.4]"
-                    style={{ color: statusColors.text }}
-                  >
-                    {bill.status}
-                  </span>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
+                        stroke={statusColors.text}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span
+                      className="text-base font-medium tracking-[-0.32px] leading-[1.4]"
+                      style={{ color: statusColors.text }}
+                    >
+                      {bill.status}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </SectionCard>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      {/* Select Bill Modal */}
+      <ModalTemplate
+        open={isSelectBillModalOpen}
+        onOpenChange={setIsSelectBillModalOpen}
+        title="Select Bill"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setIsSelectBillModalOpen(false)}
+            onConfirm={handleConfirmBill}
+            cancelLabel="Cancel"
+            confirmLabel="Select"
+            disableConfirm={!selectedBillId}
+          />
+        }
+      >
+        <FormLayout>
+          <FormSection>
+            <SelectField
+              label="Bill"
+              required
+              value={selectedBillId}
+              onChange={setSelectedBillId}
+              placeholder="Select a bill"
+              options={billOptions}
+            />
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
+    </>
   );
 };
 
