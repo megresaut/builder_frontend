@@ -762,7 +762,8 @@ export default function TaskSummary() {
   // Get the selected work order if workOrderId is present
   const selectedWorkOrder = useMemo(() => {
     if (!workOrderId) return null;
-    return workOrders.find((wo) => String(wo.id) === workOrderId);
+    const found = workOrders.find((wo) => String(wo.id) === workOrderId);
+    return found || null;
   }, [workOrderId, workOrders]);
 
   // Work order state
@@ -781,6 +782,13 @@ export default function TaskSummary() {
   const [workOrderNotifications, setWorkOrderNotifications] = useState<Array<{ id: string; message: string }>>([
     { id: "1", message: "A bill from Edgerton Inc was uploaded" },
   ]);
+
+  // Helper function to safely parse bill total
+  const getBillAmount = (billTotal: string): number => {
+    if (!billTotal) return 0;
+    const amount = parseFloat(billTotal.replace('$', '').replace(',', ''));
+    return isNaN(amount) ? 0 : amount;
+  };
 
   // If workOrderId is present, render Work Order Summary instead of tabs
   if (workOrderId && selectedWorkOrder) {
