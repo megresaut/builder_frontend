@@ -515,10 +515,9 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
 
   const handleEditWorkOrder = useCallback(
     (workOrder: WorkOrder) => {
-      setEditingWorkOrder(workOrder);
-      setIsCreateWorkOrderModalOpen(true);
+      navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
     },
-    [setIsCreateWorkOrderModalOpen]
+    [navigate]
   );
 
   return (
