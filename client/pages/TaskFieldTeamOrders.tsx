@@ -8,7 +8,7 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
-import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
+import HeaderV1 from "@/components/HeaderV1";
 import {
   EditIcon,
   DeleteIcon,
