@@ -162,7 +162,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                   {/* Details Section */}
                   {(update.details || update.attachments?.length) && (
                     <div className="pt-2 border-t border-[#e5e5e5]">
-                      {Array.isArray(update.details) ? <>{update.details}</> : update.details}
+                      {update.details}
 
                       {/* Attachments with Previews */}
                       {update.attachments && update.attachments.length > 0 && (
