@@ -650,8 +650,8 @@ export default function TaskSummary() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
   const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] = useState(false);
 
-  // Mock field team orders data
-  const mockFieldTeamOrders = [
+  // Mock field team orders data - memoized to ensure hydratePerson is available
+  const mockFieldTeamOrders = useMemo(() => [
     { id: 1, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Oct 2, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 420, unit: "Unit" },
     { id: 2, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 29, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "approved", timesheetStatus: "approved", amount: 95, unit: "Unit" },
     { id: 3, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 10, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "pending-approval", timesheetStatus: "submitted", amount: 95, unit: "Unit" },
@@ -662,7 +662,7 @@ export default function TaskSummary() {
     { id: 8, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 3, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 124, unit: "Unit" },
     { id: 9, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })], status: "dispatched", timesheetStatus: "approved", amount: 67, unit: "Unit" },
     { id: 10, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 118, unit: "Unit" },
-  ];
+  ], []);
 
   const [fieldTeamOrders, setFieldTeamOrders] = useState<any[]>(mockFieldTeamOrders);
 
