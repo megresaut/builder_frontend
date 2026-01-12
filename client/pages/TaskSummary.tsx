@@ -853,49 +853,18 @@ export default function TaskSummary() {
               {/* Work Order Overview */}
               <SectionCard variant="gray">
                 <div className="flex flex-col gap-4">
-                  <div>
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-                    <div className="mt-2">
-                      <div className="inline-block">
-                        <select
-                          value={workOrderStatus}
-                          onChange={(e) => setWorkOrderStatus(e.target.value)}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e5e5e5] bg-white text-sm font-medium cursor-pointer hover:border-[#d4d4d8] transition-colors appearance-none pr-8"
-                          style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23303030' d='M3.5 5.5L8 10L12.5 5.5'/%3E%3C/svg%3E")`,
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 8px center',
-                            backgroundSize: '16px',
-                          }}
-                        >
-                          <option value="in_progress">In progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                  <StatusSelectField
+                    label="Status"
+                    value={workOrderStatus}
+                    onChange={setWorkOrderStatus}
+                  />
 
                   <div className="border-t border-[#e5e5e5] pt-4">
-                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-                    <div className="mt-2">
-                      <div className="inline-block">
-                        <select
-                          value={workOrderPriority}
-                          onChange={(e) => setWorkOrderPriority(e.target.value)}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e5e5e5] bg-white text-sm font-medium cursor-pointer hover:border-[#d4d4d8] transition-colors appearance-none pr-8"
-                          style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23303030' d='M3.5 5.5L8 10L12.5 5.5'/%3E%3C/svg%3E")`,
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 8px center',
-                            backgroundSize: '16px',
-                          }}
-                        >
-                          <option value="low">Low</option>
-                          <option value="normal">Normal</option>
-                          <option value="high">High</option>
-                        </select>
-                      </div>
-                    </div>
+                    <PrioritySelectField
+                      label="Priority"
+                      value={workOrderPriority}
+                      onChange={setWorkOrderPriority}
+                    />
                   </div>
 
                   <div className="border-t border-[#e5e5e5] pt-4">
