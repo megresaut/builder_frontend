@@ -236,9 +236,13 @@ const mockWorkOrders: WorkOrder[] = [
   },
 ];
 
-export default function TaskWorkOrders() {
+interface TaskWorkOrdersProps {
+  workOrders: WorkOrder[];
+  onWorkOrdersChange: (orders: WorkOrder[]) => void;
+}
+
+export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskWorkOrdersProps) {
   const navigate = useNavigate();
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
