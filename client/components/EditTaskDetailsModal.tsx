@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { TextField } from "@/components/forms/TextField";
+import { TextAreaField } from "@/components/forms/TextAreaField";
 import { SelectField } from "@/components/forms/SelectField";
 import { TASK_CATEGORIES } from "@/constants/taskCategories";
 
 export interface EditTaskDetailsData {
   title: string;
+  description: string;
   property: string;
   unit: string;
   category: string;
@@ -26,6 +28,7 @@ export default function EditTaskDetailsModal({
   initialData,
 }: EditTaskDetailsModalProps) {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
   const [category, setCategory] = useState("");
@@ -33,11 +36,13 @@ export default function EditTaskDetailsModal({
   useEffect(() => {
     if (open && initialData) {
       setTitle(initialData.title || "");
+      setDescription(initialData.description || "");
       setProperty(initialData.property || "");
       setUnit(initialData.unit || "");
       setCategory(initialData.category || "");
     } else if (open) {
       setTitle("");
+      setDescription("");
       setProperty("");
       setUnit("");
       setCategory("");
@@ -47,6 +52,7 @@ export default function EditTaskDetailsModal({
   const handleSubmit = () => {
     onSubmit({
       title,
+      description,
       property,
       unit,
       category,
@@ -81,6 +87,13 @@ export default function EditTaskDetailsModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter task title"
+            />
+
+            <TextAreaField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter task description"
             />
 
             <SelectField
