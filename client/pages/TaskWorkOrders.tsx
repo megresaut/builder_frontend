@@ -8,7 +8,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import HeaderV1 from "@/components/HeaderV1";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, BuildingIcon, HashtagIcon } from "@/components/icons";
 
 interface Assignee {
   id: number;
@@ -315,51 +315,12 @@ export default function TaskWorkOrders() {
     {
       key: "property",
       label: "Property",
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M8 1L2 5V14H6V10H10V14H14V5L8 1Z"
-            stroke="#525252"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
+      icon: <BuildingIcon width={16} height={16} className="text-gray-600" />,
     },
     {
       key: "unit",
       label: "Unit",
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z"
-            stroke="#525252"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M2 5H14M5 5V14M8 5V14M11 5V14"
-            stroke="#525252"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
+      icon: <HashtagIcon width={16} height={16} className="text-gray-600" />,
     },
     {
       key: "updatedDate",
