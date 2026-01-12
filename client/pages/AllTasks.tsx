@@ -545,9 +545,9 @@ export default function AllTasks() {
             setEditingTask(null);
           }
         }}
-        variant="withMessageAndAttachments"
+        variant={editingTask ? "withMessageAndAttachments" : "compact"}
         onTaskCreated={handleTaskCreated}
-        editData={memoizedEditData}
+        editData={editingTask ? memoizedEditData : undefined}
       />
 
       <ColumnFilterModal
