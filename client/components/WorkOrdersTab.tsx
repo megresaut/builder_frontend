@@ -472,6 +472,20 @@ export default function WorkOrdersTab({
               </span>
             );
           }
+          if (columnKey === "property") {
+            return (
+              <span className="text-gray-900 font-normal text-sm truncate">
+                {workOrder.property}
+              </span>
+            );
+          }
+          if (columnKey === "unit") {
+            return (
+              <span className="text-gray-900 font-normal text-sm truncate">
+                {workOrder.unit}
+              </span>
+            );
+          }
           if (columnKey === "updatedDate") {
             return (
               <span className="text-gray-900 font-normal text-sm truncate">
