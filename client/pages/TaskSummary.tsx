@@ -683,6 +683,16 @@ export default function TaskSummary() {
         submitLabel={editingFileId ? "Update" : "Add"}
       />
 
+      {/* PDF Viewer Modal for Attachments */}
+      {viewingAttachment && (
+        <PdfViewerModal
+          open={isPdfViewerOpen}
+          onOpenChange={setIsPdfViewerOpen}
+          title={viewingAttachment.name}
+          url={viewingAttachment.url}
+        />
+      )}
+
       {/* Create/Edit Task Modal */}
       <CreateTaskModal
         open={isEditTaskModalOpen}
