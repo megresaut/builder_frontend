@@ -446,8 +446,10 @@ export default function TaskSummary() {
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
-  const [viewingAttachment, setViewingAttachment] = useState<{ name: string; url: string } | null>(null);
+  const [viewingAttachment, setViewingAttachment] = useState<{ id?: string; name: string; url: string } | null>(null);
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+  const [isRenamingAttachment, setIsRenamingAttachment] = useState(false);
+  const [renamingAttachmentName, setRenamingAttachmentName] = useState("");
   const [linkedTasks, setLinkedTasks] = useState<LinkedTaskData[]>(isNewTask ? [] : []);
   const [isLinkTaskModalOpen, setIsLinkTaskModalOpen] = useState(false);
 
