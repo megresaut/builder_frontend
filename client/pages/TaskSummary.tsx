@@ -173,6 +173,11 @@ export default function TaskSummary() {
   const [currentUnit, setCurrentUnit] = useState<string>(navigationState?.taskData?.unit || navigationState?.task?.unit || "");
   const [currentTitle, setCurrentTitle] = useState<string>(navigationState?.taskData?.title || navigationState?.task?.title || "Edgerton - Quote");
   const [currentCategory, setCurrentCategory] = useState<string>(navigationState?.taskData?.category || navigationState?.task?.category || "Uncategorized");
+  const [currentStatus, setCurrentStatus] = useState<string>(navigationState?.taskData?.status || navigationState?.task?.status || "not_started");
+  const [currentPriority, setCurrentPriority] = useState<string>(navigationState?.taskData?.priority || navigationState?.task?.priority || "normal");
+  const [currentDueDate, setCurrentDueDate] = useState<Date | null>(navigationState?.taskData?.dueDate || navigationState?.task?.dueDate || null);
+  const [currentAssignees, setCurrentAssignees] = useState<any[]>(navigationState?.taskData?.assignees || navigationState?.task?.assignees || []);
+  const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(navigationState?.taskData?.collaborators || navigationState?.task?.collaborators || []);
   const [isEditTaskDetailsOpen, setIsEditTaskDetailsOpen] = useState(false);
 
   // Mock data types
