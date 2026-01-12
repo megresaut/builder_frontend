@@ -843,10 +843,18 @@ export default function Header({
           iconLight: maintenanceIcon,
           iconDark: maintenanceIcon,
         };
-        setTabs([...tabs, newTask]);
-        const newOpenTabs = new Set(openTabs);
-        newOpenTabs.add(selectedTab);
-        setOpenTabs(newOpenTabs);
+        setTabs((prevTabs) => {
+          // Double-check to prevent duplicate creation
+          if (prevTabs.some((tab) => tab.id === selectedTab)) {
+            return prevTabs;
+          }
+          return [...prevTabs, newTask];
+        });
+        setOpenTabs((prevOpenTabs) => {
+          const newOpenTabs = new Set(prevOpenTabs);
+          newOpenTabs.add(selectedTab);
+          return newOpenTabs;
+        });
         navigateToTabRoute(selectedTab);
         return;
       } else if (selectedTab.startsWith("vendor-")) {
@@ -868,19 +876,29 @@ export default function Header({
           id: selectedTab,
           label: vendorLabel,
         };
-        setTabs([...tabs, newVendor]);
-        const newOpenTabs = new Set(openTabs);
-        newOpenTabs.add(selectedTab);
-        setOpenTabs(newOpenTabs);
+        setTabs((prevTabs) => {
+          // Double-check to prevent duplicate creation
+          if (prevTabs.some((tab) => tab.id === selectedTab)) {
+            return prevTabs;
+          }
+          return [...prevTabs, newVendor];
+        });
+        setOpenTabs((prevOpenTabs) => {
+          const newOpenTabs = new Set(prevOpenTabs);
+          newOpenTabs.add(selectedTab);
+          return newOpenTabs;
+        });
         navigateToTabRoute(selectedTab);
         return;
       }
     }
 
     if (tabExists && !openTabs.has(selectedTab)) {
-      const newTabs = new Set(openTabs);
-      newTabs.add(selectedTab);
-      setOpenTabs(newTabs);
+      setOpenTabs((prevOpenTabs) => {
+        const newTabs = new Set(prevOpenTabs);
+        newTabs.add(selectedTab);
+        return newTabs;
+      });
       navigateToTabRoute(selectedTab);
     }
   }, [selectedTab, tabs, openTabs]);
