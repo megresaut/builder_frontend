@@ -769,7 +769,7 @@ export default function TaskSummary() {
         action={{
           label: "Update task",
           onClick: () => {
-            setIsEditTaskModalOpen(true);
+            uiDispatch({ type: "OPEN_MODAL", payload: "editTask" });
           },
         }}
         onBack={() => navigate("/all-tasks")}
