@@ -59,10 +59,10 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Paid",
     billTotal: "$420",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
     ],
     collaborators: [
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
     ],
   },
   {
@@ -79,11 +79,11 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Awaiting Invoice",
     billTotal: "No invoice",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500", email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
-      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500", email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
     ],
   },
   {
@@ -100,7 +100,7 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$95",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
     ],
     collaborators: [],
   },
@@ -118,10 +118,10 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$112",
     assignees: [
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500", email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
     ],
     collaborators: [
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
     ],
   },
   {
@@ -138,10 +138,10 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$93",
     assignees: [
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500", email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
     ],
   },
   {
@@ -158,11 +158,11 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$75",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
     ],
     collaborators: [
-      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500", email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
     ],
   },
   {
@@ -179,7 +179,7 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$101",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500", email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
     ],
     collaborators: [],
   },
@@ -197,10 +197,10 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$124",
     assignees: [
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500", email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
     ],
   },
   {
@@ -217,11 +217,11 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$67",
     assignees: [
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500", email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
     ],
     collaborators: [
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
-      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500", email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
     ],
   },
   {
@@ -238,10 +238,10 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$118",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
     ],
   },
 ];
