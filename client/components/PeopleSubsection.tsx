@@ -179,7 +179,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
             <div key={`${person.id}-${idx}`} className="relative group/avatar">
               <button
                 onClick={() => handleAvatarClick(person)}
-                className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm leading-[0.8] hover:bg-[#f0f4ff] transition-colors flex-shrink-0"
+                className={`flex items-center justify-center w-10 h-10 bg-white border-2 ${borderColor} rounded-full ${textColor} font-semibold text-sm leading-[0.8] hover:bg-opacity-90 transition-colors flex-shrink-0`}
                 title={person.name}
               >
                 {person.initials}
