@@ -17,6 +17,8 @@ import TaskUpdatesTimeline from "@/components/TaskUpdatesTimeline";
 import PeopleCard from "@/components/PeopleCard";
 import SectionCard from "@/components/SectionCard";
 import PersonAvatars from "@/components/PersonAvatars";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { AddNoteModal, AddFileModal, EditTaskDetailsModal, LinkTaskModal } from "@/components/task";
 import { NotesTemplate } from "@/components/templates";
