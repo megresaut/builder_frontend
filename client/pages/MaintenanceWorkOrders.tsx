@@ -53,6 +53,9 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
+    collaborators: [
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+    ],
   },
   {
     id: 2,
@@ -69,6 +72,10 @@ const mockWorkOrders: WorkOrder[] = [
     billTotal: "No invoice",
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+    ],
+    collaborators: [
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
     ],
   },
   {
@@ -87,6 +94,7 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
+    collaborators: [],
   },
   {
     id: 4,
@@ -103,6 +111,9 @@ const mockWorkOrders: WorkOrder[] = [
     billTotal: "$112",
     assignees: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
+    collaborators: [
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
     ],
   },
   {
@@ -121,6 +132,9 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
+    collaborators: [
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+    ],
   },
   {
     id: 6,
@@ -137,6 +151,10 @@ const mockWorkOrders: WorkOrder[] = [
     billTotal: "$75",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
+    collaborators: [
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
     ],
   },
   {
@@ -155,6 +173,7 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
+    collaborators: [],
   },
   {
     id: 8,
@@ -171,6 +190,9 @@ const mockWorkOrders: WorkOrder[] = [
     billTotal: "$124",
     assignees: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+    ],
+    collaborators: [
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
     ],
   },
   {
@@ -189,6 +211,10 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
     ],
+    collaborators: [
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+    ],
   },
   {
     id: 10,
@@ -205,6 +231,9 @@ const mockWorkOrders: WorkOrder[] = [
     billTotal: "$118",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+    ],
+    collaborators: [
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
     ],
   },
 ];
