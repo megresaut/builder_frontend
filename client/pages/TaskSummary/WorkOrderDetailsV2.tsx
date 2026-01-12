@@ -53,9 +53,18 @@ export default function WorkOrderDetailsV2({
   const { taskId } = useParams<{ taskId: string }>();
 
   // Field state
-  const [status, setStatus] = useState("completed");
-  const [priority, setPriority] = useState("normal");
-  const [dueDate, setDueDate] = useState<Date | string | null>(null);
+  const [status, setStatus] = useState(() => workOrder?.status || "completed");
+  const [priority, setPriority] = useState(() => workOrder?.priority || "normal");
+  const [dueDate, setDueDate] = useState<Date | string | null>(() => workOrder?.dueDate ? new Date(workOrder.dueDate) : null);
+
+  // Sync workOrder prop changes to local state
+  useEffect(() => {
+    if (workOrder) {
+      setStatus(workOrder.status || "completed");
+      setPriority(workOrder.priority || "normal");
+      setDueDate(workOrder.dueDate ? new Date(workOrder.dueDate) : null);
+    }
+  }, [workOrder?.id, workOrder?.status, workOrder?.priority, workOrder?.dueDate]);
 
   // Mock notifications
   const [notifications, setNotifications] = useState([
