@@ -415,7 +415,7 @@ export default function CreateTaskModal({
         });
       }
     }
-  }, [open, editData?.id, variant]);
+  }, [open, variant]);
 
 
   return (
