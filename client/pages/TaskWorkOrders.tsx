@@ -557,20 +557,7 @@ export default function TaskWorkOrders() {
   );
 
   return (
-    <PageTemplate>
-      <div className="flex flex-col gap-6 w-fit min-w-full">
-        {/* Header Section - Using PageHeader Template */}
-        <PageHeader
-          title="Work Orders"
-          subtitle="All your work orders, in one place"
-          action={{
-            label: "Create Work Order",
-            onClick: () => setIsCreateWorkOrderModalOpen(true),
-            icon: <Plus className="w-5 h-5" />,
-          }}
-        />
-
-        <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
           {/* Work Orders Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns}
@@ -806,9 +793,6 @@ export default function TaskWorkOrders() {
             showColumnModal={showColumnModal}
             onShowColumnModalChange={setShowColumnModal}
           />
-        </div>
-      </div>
-
       {/* Create Work Order Modal */}
       <CreateWorkOrderModalV2
         open={isCreateWorkOrderModalOpen}
@@ -834,6 +818,6 @@ export default function TaskWorkOrders() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </PageTemplate>
+    </div>
   );
 }
