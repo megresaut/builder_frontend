@@ -770,7 +770,6 @@ export default function TaskSummary() {
             uiDispatch({ type: "OPEN_MODAL", payload: "editTask" });
           },
         }}
-        onBack={() => navigate("/all-tasks")}
         moreOptions={{
           onView: () => {
             // Handle view
