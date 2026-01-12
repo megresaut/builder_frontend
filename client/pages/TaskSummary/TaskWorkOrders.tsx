@@ -244,6 +244,7 @@ interface TaskWorkOrdersProps {
   defaultProperty?: string;
   defaultTask?: string;
   taskId: string;
+  onWorkOrderSelect?: (woId: number) => void;
 }
 
 export default function TaskWorkOrders({
@@ -251,7 +252,8 @@ export default function TaskWorkOrders({
   onWorkOrdersChange,
   defaultProperty,
   defaultTask,
-  taskId
+  taskId,
+  onWorkOrderSelect
 }: TaskWorkOrdersProps) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
@@ -734,8 +736,11 @@ export default function TaskWorkOrders({
               },
             ]}
             onRowClick={(workOrder) => {
+              if (onWorkOrderSelect) {
+                onWorkOrderSelect(workOrder.id);
+              }
               navigate(
-                `/tasks/${workOrder.taskId}/workorders/${workOrder.id}`,
+                `/tasks/${taskId}/workorders/${workOrder.id}`,
               );
             }}
             showColumnModal={showColumnModal}
