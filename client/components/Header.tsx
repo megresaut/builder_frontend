@@ -799,7 +799,7 @@ export default function Header({
   useEffect(() => {
     if (!selectedTab) return;
 
-    // Check if tab already exists in current tabs state
+    // Check if tab already exists
     const tabExists = tabs.some((tab) => tab.id === selectedTab);
 
     if (!tabExists) {
@@ -840,7 +840,6 @@ export default function Header({
         );
 
         setTabs((prevTabs) => {
-          // Double-check that the tab doesn't already exist before adding
           if (prevTabs.some((tab) => tab.id === selectedTab)) {
             return prevTabs;
           }
@@ -880,7 +879,6 @@ export default function Header({
       }
     }
 
-    // Add tab to open tabs set
     setOpenTabs((prevOpenTabs) => {
       if (prevOpenTabs.has(selectedTab)) return prevOpenTabs;
       const newOpenTabs = new Set(prevOpenTabs);
