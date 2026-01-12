@@ -593,12 +593,67 @@ export default function TaskSummary() {
         submitLabel={editingFileId ? "Update" : "Add"}
       />
 
-      {/* Edit Task Modal - Update variant for task updates */}
+      {/* Create/Edit Task Modal */}
       <CreateTaskModal
         open={isEditTaskModalOpen}
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
         onTaskCreated={(taskData: any) => {
+          // Check if this is a new task creation (compact variant) or an update
+          const isTaskUpdate = (taskData as any).message !== undefined;
+
+          if (!isTaskUpdate) {
+            // This is a new task creation - create initial update with all fields
+            const statusMap: { [key: string]: string } = {
+              "not_started": "Not Started",
+              "in_progress": "In Progress",
+              "completed": "Completed",
+            };
+
+            const priorityLabel = (taskData as any).priority.charAt(0).toUpperCase() + (taskData as any).priority.slice(1);
+            const dueDate = (taskData as any).dueDate ? new Date(taskData.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date";
+            const assigneeNames = (taskData as any).assignees?.map((a: any) => a.label).join(", ") || "Unassigned";
+
+            const initialUpdate = {
+              id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
+              author: "Current User",
+              action: "created this task",
+              timestamp: new Date().toLocaleString(),
+              fieldsDisplay: (
+                <div className="grid grid-cols-4 gap-6 mt-3">
+                  <div>
+                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
+                    <div className="text-sm text-[#303030] font-medium mt-0.5">{statusMap[(taskData as any).status] || (taskData as any).status}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
+                    <div className="text-sm text-[#303030] font-medium mt-0.5">{priorityLabel}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
+                    <div className="text-sm text-[#303030] font-medium mt-0.5">{dueDate}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
+                    <div className="text-sm text-[#303030] font-medium mt-0.5">{assigneeNames}</div>
+                  </div>
+                </div>
+              ),
+              ...(taskData.description && {
+                details: (
+                  <div className="pt-2 border-t border-[#e5e5e5]">
+                    <div className="text-sm text-[#303030]">{taskData.description}</div>
+                  </div>
+                ),
+              }),
+              icon: <FlagIcon width={16} height={16} />,
+              isInitialCreation: true,
+            };
+
+            setUpdates([initialUpdate, ...updates]);
+            setIsEditTaskModalOpen(false);
+            return;
+          }
           // Create a new update from the task data
           const details: React.ReactNode[] = [];
 
