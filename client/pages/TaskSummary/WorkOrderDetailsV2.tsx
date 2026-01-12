@@ -207,6 +207,9 @@ export default function WorkOrderDetailsV2({
     if (onWorkOrderUpdate) {
       onWorkOrderUpdate(updatedWorkOrder);
     }
+
+    // Close the modal after update
+    onUpdateWorkOrderModalOpenChange?.(false);
   };
 
   const handleAddNote = (text: string) => {
