@@ -366,10 +366,7 @@ export default function CreateWorkOrderModalV2({
                 value={formData.vendor}
                 onChange={handleVendorChange}
                 placeholder="Select a Vendor"
-                options={VENDORS.map((vendor) => ({
-                  value: vendor,
-                  label: vendor,
-                }))}
+                options={buildVendorOptions(initialData?.vendor)}
                 error={errors.vendor}
               />
             </FormFieldRow>
