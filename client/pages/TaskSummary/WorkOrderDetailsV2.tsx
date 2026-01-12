@@ -477,14 +477,12 @@ export default function WorkOrderDetailsV2({
                     initials: workOrder.vendorName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2),
                     roleLabel: "Vendor Company",
                     phone: "",
-                    type: "vendor",
                   }
                 ] : [],
                 showRoleLabel: true,
                 showPhone: false,
                 showDivider: false,
                 tabIndex: 0,
-                type: "assignee",
                 hideHeaderOnTab: 0
               },
               {
