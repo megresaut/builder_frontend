@@ -21,7 +21,7 @@ export const TaskDetailsBarTemplate: React.FC<TaskDetailsBarTemplateProps> = ({
   onDueDateChange,
 }) => {
   return (
-    <div className="flex flex-wrap items-end gap-6 w-full p-6">
+    <div className="flex flex-wrap items-end gap-6 w-full p-4">
       <div className="flex-1 min-w-[180px]">
         <StatusSelectField
           label="Status"
