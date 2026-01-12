@@ -40,15 +40,15 @@ export const KeyValueGrid: React.FC<KeyValueGridProps> = ({ cells }) => {
                       href={cell.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] rounded-lg hover:underline"
+                      className="mt-1 flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] rounded-lg hover:underline whitespace-nowrap overflow-hidden text-ellipsis"
                     >
                       {cell.icon && cell.icon}
-                      <span>{cell.value}</span>
+                      <span className="overflow-hidden text-ellipsis">{cell.value}</span>
                     </a>
                   ) : (
-                    <div className="mt-1 flex items-center gap-1 text-[#303030] text-sm font-medium leading-[1.29]">
+                    <div className="mt-1 flex items-center gap-1 text-[#303030] text-sm font-medium leading-[1.29] whitespace-nowrap overflow-hidden text-ellipsis">
                       {cell.icon && cell.icon}
-                      <span>{cell.value}</span>
+                      <span className="overflow-hidden text-ellipsis">{cell.value}</span>
                     </div>
                   )
                 ) : (
