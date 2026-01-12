@@ -58,10 +58,10 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               <div className="flex flex-col items-center gap-0 w-14 flex-shrink-0">
                 <button
                   onClick={onAddUpdate}
-                  className="flex items-center justify-center w-10 h-10 bg-white border-2 border-[#717179] rounded-full text-[#717179] hover:bg-gray-50 transition-colors flex-shrink-0 relative z-10 shadow-sm"
+                  className="flex items-center justify-center w-10 h-10 bg-white border-2 border-[#013764] rounded-full text-white bg-[#013764] hover:bg-[#003a73] transition-colors flex-shrink-0 relative z-10 shadow-[0_0_0_1px_#002D5A]"
                   title="Add update"
                 >
-                  <PlusIcon width={16} height={16} color="#717179" />
+                  <PlusIcon width={16} height={16} color="white" />
                 </button>
               </div>
 
@@ -69,7 +69,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               <div className="flex-1 flex items-center">
                 <button
                   onClick={onAddUpdate}
-                  className="w-full px-4 py-2.5 bg-[#013764] border border-white rounded-lg text-base text-white font-['Geist',sans-serif] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-left"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif] hover:bg-gray-100 hover:border-[#d4d4d8] transition-colors text-left"
                 >
                   Add an update...
                 </button>

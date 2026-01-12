@@ -334,7 +334,7 @@ export default function CreateTaskModal({
           )}
 
           {variant === "withMessageAndAttachments" && (
-            <FormSection title="Update Details" showDivider={true}>
+            <FormSection showDivider={false}>
               {/* Priority + Due Date + Status - 3 Columns */}
               <FormFieldRow columns={3}>
                 <SelectField
