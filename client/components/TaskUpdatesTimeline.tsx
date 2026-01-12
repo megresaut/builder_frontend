@@ -14,6 +14,7 @@ export interface UpdateItem {
   details?: ReactNode;
   moreOptions?: () => void;
   icon?: ReactNode;
+  isInitialCreation?: boolean;
 }
 
 interface TaskUpdatesTimelineProps {
@@ -40,16 +41,30 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
       {/* Updates List Container - relative so rail can be absolutely positioned */}
       <div className="relative pl-14">
         {/* Continuous Timeline Rail - extends from first to last marker center */}
-        <div
-          className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
-          style={{
-            top: "20px",
-            bottom: "20px",
-            clipPath: "inset(0 0 20px 0)",
-            backgroundImage:
-              "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
-          }}
-        />
+        {updates.length > 0 && !updates[updates.length - 1]?.isInitialCreation && (
+          <div
+            className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
+            style={{
+              top: "20px",
+              bottom: "20px",
+              clipPath: "inset(0 0 20px 0)",
+              backgroundImage:
+                "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
+            }}
+          />
+        )}
+        {updates.length > 0 && updates[updates.length - 1]?.isInitialCreation && (
+          <div
+            className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
+            style={{
+              top: "20px",
+              bottom: `calc(100% - ${(updates.length - 1) * 96 + 40}px)`,
+              clipPath: "inset(0 0 20px 0)",
+              backgroundImage:
+                "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
+            }}
+          />
+        )}
 
         {/* Updates Stack */}
         <div className="flex flex-col gap-4">
