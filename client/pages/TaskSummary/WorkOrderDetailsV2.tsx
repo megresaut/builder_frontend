@@ -310,7 +310,7 @@ export default function WorkOrderDetailsV2({
                   <div className="flex flex-col items-start gap-4 flex-1 min-w-0">
                     <div className="flex justify-center items-center gap-2">
                       <h2 className="text-[#303030] text-[22px] font-semibold leading-[30px]">
-                        HVAC - #1024431-1
+                        {workOrder.task} - #{workOrder.id}
                       </h2>
                       <button
                         onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
@@ -328,7 +328,7 @@ export default function WorkOrderDetailsV2({
                         Created by Julia LoSchiavo for
                       </div>
                       <div className="text-[#2463eb] text-sm font-bold leading-4">
-                        (C) 51 Willowmere Circle, Riverside CT 06878 -1
+                        (C) {workOrder.property} {workOrder.unit && `- ${workOrder.unit}`}
                       </div>
                     </div>
                   </div>
@@ -342,15 +342,15 @@ export default function WorkOrderDetailsV2({
                   <div className="flex flex-col items-start gap-3 flex-1">
                     <div className="flex items-center gap-1">
                       <span className="text-[#717179] text-sm font-semibold leading-4">Invoice Number:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">234605</span>
+                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || "234605"}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-[#717179] text-sm font-semibold leading-4">Vendor:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">Dolce Plumbing & Heating LLC</span>
+                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.vendorName || "Unassigned"}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-[#717179] text-sm font-semibold leading-4">Charge Work To:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">Owner</span>
+                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.chargeTo || "Owner"}</span>
                     </div>
                   </div>
                   <a
