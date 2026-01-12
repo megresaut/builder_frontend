@@ -124,6 +124,19 @@ export function useFileUpload(): UseFileUploadResult {
     setRenamingFileName("");
   }, []);
 
+  const renameFile = useCallback((fileId: string, newName: string) => {
+    const trimmedName = newName.trim();
+    if (trimmedName) {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId
+            ? { ...f, name: trimmedName }
+            : f,
+        ),
+      );
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
     files.forEach((file) => {
       if (file.url && file.url.startsWith("blob:")) {
@@ -158,6 +171,7 @@ export function useFileUpload(): UseFileUploadResult {
     startRenaming,
     updateRenamingFileName,
     saveFileName,
+    renameFile,
     cancelRenaming,
     cleanup,
     reset,
