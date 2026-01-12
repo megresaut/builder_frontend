@@ -1689,9 +1689,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           const newWorkOrder = {
             id: newId,
             task: data.workOrderName || data.task || "New Work Order",
-            taskId: 1, // Default task ID for demo
-            property: data.property || propertyAddress,
-            unit: data.unit || "",
+            taskId: 1,
+            property: propertyAddress,
+            unit: "",
             dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
             updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             age: "Just now",
