@@ -58,7 +58,12 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
       )}
 
       {files.length === 0 ? (
-        <EmptyStateTemplate message={emptyMessage} />
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <EmptyStateTemplate message={emptyMessage} />
+          {hideHeader && (
+            <SectionActionTemplate label="Add" onClick={onAdd} />
+          )}
+        </div>
       ) : (
         <RecordListTemplate>
           {[...files].reverse().map((file, idx) => (
