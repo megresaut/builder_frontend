@@ -23,6 +23,8 @@ interface WorkOrder {
   id: number;
   task: string;
   taskId: number;
+  property: string;
+  unit: string;
   dueDate: string;
   updatedDate: string;
   age: string;
