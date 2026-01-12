@@ -722,8 +722,8 @@ export default function TaskWorkOrders({
             taskId: parseInt(taskId),
             property: data.property || "",
             unit: data.unit || "",
-            dueDate: data.dueDate ? data.dueDate.toLocaleDateString() : "No due date",
-            updatedDate: new Date().toLocaleDateString(),
+            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
+            updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             age: "Just now",
             priority: data.priority || "normal",
             status: data.status || "not_started",
@@ -732,8 +732,15 @@ export default function TaskWorkOrders({
             assignees: [],
             collaborators: [],
           };
+          // Add to work orders list
           onWorkOrdersChange([...workOrders, newWorkOrder]);
-          // Immediately navigate to the new work order details
+          // Update parent state to select the new work order
+          if (onWorkOrderSelect) {
+            onWorkOrderSelect(newId);
+          }
+          // Close the modal
+          setIsCreateWorkOrderModalOpen(false);
+          // Navigate to the new work order details
           navigate(`/tasks/${taskId}/workorders/${newId}`);
         }}
       />
