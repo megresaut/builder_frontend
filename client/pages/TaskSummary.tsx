@@ -1516,7 +1516,9 @@ export default function TaskSummary() {
                   {displayFields.map((field, idx) => (
                     <div key={idx}>
                       <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">{field.label}</div>
-                      <div className="text-sm text-[#303030] font-medium mt-0.5">{field.value}</div>
+                      <div className={`mt-0.5 ${typeof field.value === 'string' ? 'text-sm text-[#303030] font-medium' : ''}`}>
+                        {field.value}
+                      </div>
                     </div>
                   ))}
                 </div>
