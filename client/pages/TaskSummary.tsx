@@ -19,6 +19,7 @@ import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import LinkTaskModal from "@/components/LinkTaskModal";
+import EditTaskDetailsModal from "@/components/EditTaskDetailsModal";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
