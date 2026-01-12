@@ -270,7 +270,7 @@ export default function TaskSummary() {
     <PageTemplate>
       {/* Header Section */}
       <PageHeader
-        title={navigationState?.task?.title || navigationState?.taskData?.title || "Edgerton - Quote"}
+        title={currentTitle || navigationState?.task?.title || navigationState?.taskData?.title || "Edgerton - Quote"}
         subtitle={
           <div className="flex items-center font-medium gap-3 overflow-wrap-anywhere word-wrap-anywhere">
             <div className="block text-base font-medium">Resident Request</div>
