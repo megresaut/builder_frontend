@@ -85,7 +85,14 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
             workorders: "Work Orders",
             fieldteam: "Field Team Orders",
           };
-          items.push({ label: tabLabels[tab] || tab });
+          const tabHrefs: Record<string, string> = {
+            workorders: `/tasks/${taskId}/workorders`,
+            fieldteam: `/tasks/${taskId}/fieldteam`,
+          };
+          items.push({
+            label: tabLabels[tab] || tab,
+            href: tabHrefs[tab]
+          });
 
           if (workOrderId && tab === "workorders") {
             const workOrderData: Record<string, string> = {
