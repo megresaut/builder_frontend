@@ -83,11 +83,20 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
       <div className="flex flex-col w-full gap-4">
         {subsections
           .filter((subsection) => {
-            if (subsection.tabIndex === undefined) return true;
-            const indices = Array.isArray(subsection.tabIndex)
-              ? subsection.tabIndex
-              : [subsection.tabIndex];
-            return indices.includes(activeTab);
+            // Filter by active tab
+            if (subsection.tabIndex !== undefined) {
+              const indices = Array.isArray(subsection.tabIndex)
+                ? subsection.tabIndex
+                : [subsection.tabIndex];
+              if (!indices.includes(activeTab)) return false;
+            }
+
+            // Hide subsection if it has no people (specifically for Collaborators as requested)
+            if (subsection.label === "Collaborators" && (!subsection.people || subsection.people.length === 0)) {
+              return false;
+            }
+
+            return true;
           })
           .map((subsection, idx) => (
             <PeopleSubsection key={idx} {...subsection} activeTab={activeTab} />
