@@ -569,7 +569,7 @@ export default function WorkOrderDetailsV2({
 
       <CreateWorkOrderModalV2
         open={isUpdateWorkOrderModalOpen}
-        onOpenChange={setIsUpdateWorkOrderModalOpen}
+        onOpenChange={onUpdateWorkOrderModalOpenChange || (() => {})}
         mode="edit"
         initialData={{
           workOrderName: workOrder.task,
