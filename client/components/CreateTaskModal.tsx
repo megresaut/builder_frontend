@@ -332,6 +332,8 @@ export default function CreateTaskModal({
         setSelectedAssignees([]);
         setSelectedCollaborators([]);
         setMessage("");
+        // Reset file upload when opening modal in non-edit mode
+        fileUpload.reset();
       }
 
       // Initialize baseline state for the "update" variant
