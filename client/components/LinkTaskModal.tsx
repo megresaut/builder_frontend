@@ -6,6 +6,8 @@ import {
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ComboboxField } from "@/components/forms";
 
+import { MOCK_TASKS } from "@/data/tasks";
+
 export interface LinkedTaskData {
   id: string | number;
   name: string;
@@ -21,50 +23,20 @@ interface LinkTaskModalProps {
   availableTasks?: LinkedTaskData[];
 }
 
-// Mock available tasks for selection
-const MOCK_AVAILABLE_TASKS: LinkedTaskData[] = [
-  {
-    id: "task-1",
-    name: "Tree branches weighing down power wires",
-    status: "in_progress",
-    updatedDate: "10/14/2025 10:12 AM",
-    updatedBy: "Jon Hughes",
-  },
-  {
-    id: "task-2",
-    name: "Fix broken window latch",
-    status: "completed",
-    updatedDate: "10/13/2025 2:30 PM",
-    updatedBy: "Sarah Martinez",
-  },
-  {
-    id: "task-3",
-    name: "Repair kitchen sink",
-    status: "not_started",
-    updatedDate: "10/12/2025 9:15 AM",
-    updatedBy: "Chris Henry",
-  },
-  {
-    id: "task-4",
-    name: "Replace air filter",
-    status: "completed",
-    updatedDate: "10/11/2025 1:45 PM",
-    updatedBy: "Michael Thompson",
-  },
-  {
-    id: "task-5",
-    name: "Inspect electrical panel",
-    status: "in_progress",
-    updatedDate: "10/11/2025 8:00 AM",
-    updatedBy: "Julia LoSchiavo",
-  },
-];
+// Map MOCK_TASKS to LinkedTaskData for default availability
+const DEFAULT_AVAILABLE_TASKS: LinkedTaskData[] = MOCK_TASKS.map((task) => ({
+  id: task.id,
+  name: task.title,
+  status: task.status.toLowerCase().replace(" ", "_") as any,
+  updatedDate: task.updated,
+  updatedBy: task.assignees[0]?.name || "Unknown",
+}));
 
 export const LinkTaskModal: React.FC<LinkTaskModalProps> = ({
   open,
   onOpenChange,
   onSubmit,
-  availableTasks = MOCK_AVAILABLE_TASKS,
+  availableTasks = DEFAULT_AVAILABLE_TASKS,
 }) => {
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const [selectedTask, setSelectedTask] = useState<LinkedTaskData | null>(null);
