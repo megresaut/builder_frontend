@@ -464,6 +464,11 @@ export default function AllTasks() {
           name: assignee.label,
           initials: assignee.initials,
         })),
+        collaborators: taskData.collaborators?.map((collaborator) => ({
+          id: parseInt(collaborator.id),
+          name: collaborator.label,
+          initials: collaborator.initials,
+        })),
       };
       setTasksList((prev) => [newTask, ...prev]);
       // Navigate to the newly created task with its data
