@@ -97,7 +97,7 @@ export default function TaskSummary() {
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
 
-  // Update tab metadata with actual task name
+  // Update tab metadata with actual task name and switch to task tab
   useEffect(() => {
     if (taskId && taskData?.title) {
       const tabId = `task-${taskId}`;
@@ -105,8 +105,9 @@ export default function TaskSummary() {
         label: taskData.title,
         route: `/tasks/${taskId}`,
       });
+      setSelectedTab(tabId);
     }
-  }, [taskId, taskData?.title, setTabMetadata]);
+  }, [taskId, taskData?.title, setTabMetadata, setSelectedTab]);
 
   // Track creation timestamp - set once and never change
   const [createdTimestamp] = useState<string>(() => {
