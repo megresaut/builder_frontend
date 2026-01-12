@@ -333,10 +333,10 @@ export default function TaskSummary() {
       billStatus: "Paid",
       billTotal: "$420",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+        { id: 1, name: "Jerry Sanchez", initials: "JS" },
       ],
       collaborators: [
-        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+        { id: 5, name: "Sarah Wilson", initials: "SW" },
       ],
     },
     {
