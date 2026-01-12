@@ -479,6 +479,11 @@ export default function AllTasks() {
         })),
       };
       setTasksList((prev) => [newTask, ...prev]);
+
+      // Close the modal before navigating to avoid it being open when coming back
+      setIsCreateTaskModalOpen(false);
+      setEditingTask(null);
+
       // Navigate to the newly created task with its data
       navigate(`/tasks/${newTaskId}`, { state: { task: newTask, taskData } });
     },
