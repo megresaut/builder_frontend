@@ -45,7 +45,7 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   return (
     <SectionCard
       variant={variant}
-      title={<span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">To do - #I 1024431</span>}
+      title={<span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">To-Do - #I 1024431</span>}
       actions={
         onEdit && (
           <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">

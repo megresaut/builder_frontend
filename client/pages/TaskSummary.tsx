@@ -1035,7 +1035,7 @@ export default function TaskSummary() {
         subtitle={
           <div className="flex items-center gap-3">
             <div className="text-[#717179] font-medium text-base leading-4">
-              To Do.
+              To-Do
             </div>
             <svg
               width="4"
