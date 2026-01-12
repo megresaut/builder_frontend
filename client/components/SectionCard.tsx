@@ -32,8 +32,8 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   variant = "default",
 }) => {
   const paddingClass = {
-    default: "px-4 py-4",
-    compact: "px-0 py-0",
+    default: "p-4",
+    compact: "p-0",
     none: "p-0",
   }[padding];
 
@@ -54,7 +54,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
     >
       {/* Header (optional) */}
       {(title || actions) && (
-        <div className="flex items-center justify-between gap-10 w-full flex-wrap">
+        <div className={cn("flex items-center justify-between gap-10 w-full flex-wrap", padding === "compact" && "px-4 pt-4")}>
           {title && (
             <div className="text-base text-[#303030] font-medium">{title}</div>
           )}
@@ -63,7 +63,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
       )}
 
       {/* Content */}
-      <div className={title || actions ? "mt-4 w-full" : "w-full"}>
+      <div className={cn(title || actions ? "mt-4 w-full" : "w-full", padding === "compact" && "mt-0")}>
         {children}
       </div>
     </div>
