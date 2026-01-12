@@ -1480,28 +1480,24 @@ export default function TaskSummary() {
 
           // Add new files and merge renamed files back into the main files state
           if (Array.isArray((taskData as any).files) && (taskData as any).files.length > 0) {
+            const renamedFilesFromModal = (taskData as any).files;
+
+            // Sync any renames that happened in the modal to all existing updates
+            renamedFilesFromModal.forEach((rf: any) => {
+              const existingFile = files.find(f => String(f.id) === String(rf.id));
+              if (existingFile && existingFile.name !== rf.name) {
+                syncFileNameAcrossStates(rf.id, rf.name);
+              }
+            });
+
             setFiles((prevFiles) => {
-              const renamedFiles = new Map((taskData as any).files.map((f: any) => [f.id, f]));
-              const existingIds = new Set(prevFiles.map((f) => f.id));
+              const renamedFiles = new Map((taskData as any).files.map((f: any) => [String(f.id), f]));
+              const existingIds = new Set(prevFiles.map((f) => String(f.id)));
 
               // Update existing files with renamed versions
               const updatedFiles = prevFiles.map((f) => {
-                const renamedFile = renamedFiles.get(f.id);
+                const renamedFile = renamedFiles.get(String(f.id));
                 if (renamedFile && renamedFile.name !== f.name) {
-                  // Also sync the name change to the timeline updates
-                  setUpdates((prevUpdates) =>
-                    prevUpdates.map((update) => {
-                      if (update.attachments && Array.isArray(update.attachments)) {
-                        const updatedAttachments = update.attachments.map((att: any) =>
-                          String(att.id) === String(f.id)
-                            ? { ...att, name: renamedFile.name }
-                            : att,
-                        );
-                        return { ...update, attachments: updatedAttachments };
-                      }
-                      return update;
-                    }),
-                  );
                   return { ...f, name: renamedFile.name };
                 }
                 return f;
@@ -1509,7 +1505,7 @@ export default function TaskSummary() {
 
               // Add new files that don't exist yet
               const newFiles = (taskData as any).files
-                .filter((f: any) => !existingIds.has(f.id))
+                .filter((f: any) => !existingIds.has(String(f.id)))
                 .map((f: any, idx: number) => ({
                   id: String(f.id || `${f.name}-${idx}`),
                   name: f.name,
