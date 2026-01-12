@@ -65,13 +65,14 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                 </button>
               </div>
 
-              {/* Composer Input */}
+              {/* Composer Button */}
               <div className="flex-1 flex items-center">
-                <input
-                  type="text"
-                  placeholder="Add an update..."
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2463eb] focus:border-transparent"
-                />
+                <button
+                  onClick={onAddUpdate}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif] hover:bg-gray-100 hover:border-[#d4d4d8] transition-colors text-left"
+                >
+                  Add an update...
+                </button>
               </div>
             </div>
           )}
