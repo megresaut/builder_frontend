@@ -729,6 +729,7 @@ export default function TaskWorkOrders({
             billTotal: "No invoice",
             assignees: [],
             collaborators: [],
+            vendorName: data.vendor || "Unassigned",
           };
           // Add to work orders list
           onWorkOrdersChange([...workOrders, newWorkOrder]);
