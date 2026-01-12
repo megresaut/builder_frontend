@@ -559,7 +559,7 @@ export default function TaskSummary() {
             </div>
           </div>
         }
-        actionButton={{
+        action={{
           label: "Update task",
           onClick: () => {
             setIsEditTaskModalOpen(true);
