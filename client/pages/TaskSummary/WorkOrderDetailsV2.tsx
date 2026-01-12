@@ -553,6 +553,7 @@ export default function WorkOrderDetailsV2({
           priority: workOrder.priority,
           dueDate: workOrder.dueDate ? new Date(workOrder.dueDate) : null,
         }}
+        onDataUpdate={handleWorkOrderUpdate}
       />
     </div>
   );
