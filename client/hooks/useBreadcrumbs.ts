@@ -52,9 +52,15 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
         const workOrderId = match[3];
         items.push({ label: "Tasks", href: "/all-tasks" });
 
-        // Try to get task name from navigation state first, then fall back to hardcoded mapping
+        // Try to get task name from navigation state first, then MOCK_TASKS, then fall back to hardcoded mapping
         const navigationState = location.state as any;
         let taskName = navigationState?.task?.title || navigationState?.taskData?.title;
+
+        if (!taskName) {
+          // Try to find in MOCK_TASKS
+          const mockTask = MOCK_TASKS.find((t) => String(t.id) === taskId);
+          taskName = mockTask?.title;
+        }
 
         if (!taskName) {
           const taskData: Record<string, string> = {
