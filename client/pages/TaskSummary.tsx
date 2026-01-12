@@ -232,6 +232,35 @@ export default function TaskSummary() {
     navigate(`/tasks/${taskId}/workorders`);
   };
 
+  // Map property values to addresses
+  const getPropertyAddress = (propertyValue: string): string => {
+    const propertyMap: Record<string, { name: string; address: string }> = {
+      property1: {
+        name: "(C) 22 Indian Chase Dr, Greenwich, CT 06831 -1",
+        address: "22 Indian Chase Dr Greenwich, CT 06831",
+      },
+      property2: {
+        name: "(C) Property 2 Address -1",
+        address: "Property 2 Address Details",
+      },
+    };
+    return propertyMap[propertyValue]?.address || "";
+  };
+
+  const getPropertyName = (propertyValue: string): string => {
+    const propertyMap: Record<string, { name: string; address: string }> = {
+      property1: {
+        name: "(C) 22 Indian Chase Dr, Greenwich, CT 06831 -1",
+        address: "22 Indian Chase Dr Greenwich, CT 06831",
+      },
+      property2: {
+        name: "(C) Property 2 Address -1",
+        address: "Property 2 Address Details",
+      },
+    };
+    return propertyMap[propertyValue]?.name || "";
+  };
+
   return (
     <PageTemplate>
       {/* Header Section */}
