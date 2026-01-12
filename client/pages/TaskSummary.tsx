@@ -816,7 +816,7 @@ export default function TaskSummary() {
             action: taskData.message || "updated the task",
             actionValue: null,
             timestamp: new Date().toLocaleString(),
-            details: details.length > 0 ? details : null,
+            details: details.length > 0 ? <div className="flex flex-col gap-2">{details}</div> : null,
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
