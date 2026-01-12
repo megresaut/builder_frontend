@@ -1072,6 +1072,7 @@ export default function TaskSummary() {
               currentAssignees={currentAssignees}
               currentCollaborators={currentCollaborators}
               vendorsFromWorkOrders={vendorsFromWorkOrders}
+              fieldTeamFromOrders={fieldTeamFromOrders}
               isNewTask={isNewTask}
               taskData={taskData}
               onEditTaskDetails={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
