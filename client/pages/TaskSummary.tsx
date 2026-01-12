@@ -42,8 +42,11 @@ export default function TaskSummary() {
     workOrderId ? parseInt(workOrderId) : null,
   );
 
+  // Determine if this is a new task
+  const isNewTask = !!(navigationState?.taskData || navigationState?.task);
+
   // Mock state for notes, files, and updates
-  const [notes, setNotes] = useState<Note[]>([
+  const [notes, setNotes] = useState<Note[]>(isNewTask ? [] : [
     {
       id: 1,
       text: "Initial task setup completed",
@@ -52,7 +55,7 @@ export default function TaskSummary() {
     },
   ]);
 
-  const [files, setFiles] = useState<File[]>([
+  const [files, setFiles] = useState<File[]>(isNewTask ? [] : [
     {
       id: 1,
       name: "Lorem Ipsum.PDF",
