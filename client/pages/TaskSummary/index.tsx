@@ -8,6 +8,8 @@ import WorkOrders from "../WorkOrders";
 import TaskWorkOrders from "./TaskWorkOrders";
 import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
 import WorkOrderDetailsV2 from "./WorkOrderDetailsV2";
+import SummaryTab from "./SummaryTab";
+import TaskSummaryModals from "./TaskSummaryModals";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
 import { useTaskSummaryUI } from "@/hooks/useTaskSummaryUI";
@@ -929,211 +931,65 @@ export default function TaskSummary() {
 
           {/* Show summary content when summary tab is active */}
           {uiState.activeTab === "summary" && (
-            <>
-              {/* Left Column */}
-              <div className="flex flex-col min-w-[240px] flex-1 gap-5">
-                {/* Task Overview Card */}
-              <TaskOverviewCard
-                category={currentCategory || "Uncategorized"}
-                description={currentDescription}
-                status={currentStatus ? (currentStatus === "not_started" ? "Not Started" : currentStatus === "in_progress" ? "In Progress" : "Completed") : "Not Started"}
-                priority={currentPriority ? currentPriority.charAt(0).toUpperCase() + currentPriority.slice(1) : "Normal"}
-                dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
-                createdBy={{
-                  name: "Julia LoSchiavo",
-                  property: currentProperty && currentProperty !== "Unassigned"
-                    ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
-                    : "Unassigned",
-                }}
-                createdDate={createdTimestamp}
-                stats={[
-                  { label: "TOTAL EXPENSE", value: "$0.00" },
-                  { label: "WORK ORDERS", value: workOrders.length.toString() },
-                  { label: "FTOs", value: fieldTeamOrders.length.toString() },
-                ]}
-                onEdit={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
-              />
-
-              {/* Notes Section */}
-              <SectionCard padding="compact">
-                <NotesTemplate
-                  notes={notes}
-                  onAdd={() => {
-                    uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: null });
-                    uiDispatch({ type: "SET_VIEWING_NOTE", payload: null });
-                    uiDispatch({ type: "OPEN_MODAL", payload: "addNote" });
-                  }}
-                  onEdit={(note) => {
-                    uiDispatch({ type: "SET_VIEWING_NOTE", payload: note });
-                    uiDispatch({ type: "OPEN_MODAL", payload: "viewNote" });
-                  }}
-                  onDelete={(noteId) =>
-                    setNotes(notes.filter((n) => n.id !== noteId))
-                  }
-                />
-              </SectionCard>
-
-              {/* Files Section */}
-              <SectionCard padding="compact">
-                <FilesTemplate
-                  files={files}
-                  onAdd={() => {
-                    uiDispatch({ type: "SET_EDITING_FILE_ID", payload: null });
-                    uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
-                  }}
-                  onEdit={(file) => {
-                    uiDispatch({ type: "SET_EDITING_FILE_ID", payload: file.id });
-                    uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
-                  }}
-                  onDelete={(fileId) =>
-                    setFiles(files.filter((f) => f.id !== fileId))
-                  }
-                  onView={(file) => console.log("View file", file)}
-                />
-              </SectionCard>
-
-              {/* Linked Tasks Card */}
-              <LinkedTasksCard
-                linkedTasks={uiState.linkedTasks}
-                onLinkTasks={() => uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })}
-                onUnlinkTask={(taskId) =>
-                  uiDispatch({
-                    type: "REMOVE_LINKED_TASK",
-                    payload: taskId,
-                  })
-                }
-                onTaskClick={(linkedTaskId) => {
-                  const tabId = `task-${linkedTaskId}`;
-                  setSelectedTab(tabId);
-                  setTabMetadata(tabId, {
-                    label: `Task ${linkedTaskId}`,
-                    route: `/tasks/${linkedTaskId}`,
-                  });
-                  navigate(`/tasks/${linkedTaskId}`);
-                }}
-              />
-
-              {/* Updates Timeline */}
-              <TaskUpdatesTimeline
-                updates={updates}
-                onAddUpdate={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
-              />
-            </div>
-
-              {/* Right Sidebar */}
-              <div className="flex flex-col min-w-[240px] w-[376px] gap-5">
-                {/* Location Card - Only show when property is selected */}
-                {currentProperty && currentProperty !== "Unassigned" && (
-                  <TaskLocationCard
-                    propertyImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
-                    propertyName={`${getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
-                    propertyAddress={getPropertyAddress(currentProperty)}
-                    mapImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"
-                    propertyId={currentProperty}
-                  />
-                )}
-
-                {/* Assignees Card */}
-                {(currentAssignees.length > 0 || currentCollaborators.length > 0) && (
-                  <PeopleCard
-                    title="Assignees"
-                    tabs={["Staff", "Vendors", "Field Team"]}
-                    defaultTab={0}
-                    headerActions={
-                      <SectionActionTemplate
-                        icon={<EditIcon width={14} height={14} />}
-                        label="Edit"
-                        onClick={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
-                      />
-                    }
-                    subsections={[
-                      {
-                        label: "Assigned to",
-                        mode: "rows",
-                        people: currentAssignees.map((assignee) => ({
-                          id: assignee.id,
-                          name: assignee.name || assignee.label,
-                          initials: assignee.initials,
-                          roleLabel: "Property manager",
-                          phone: "",
-                          type: "staff",
-                        })),
-                        showRoleLabel: true,
-                        showPhone: false,
-                        showDivider: true,
-                        tabIndex: [0],
-                        type: "assignee",
-                      },
-                      {
-                        label: "Collaborators",
-                        mode: "rows",
-                        people: currentCollaborators.map((collaborator) => ({
-                          id: collaborator.id,
-                          name: collaborator.name || collaborator.label,
-                          initials: collaborator.initials,
-                          roleLabel: "Property manager",
-                          phone: "",
-                          type: "staff",
-                        })),
-                        showRoleLabel: true,
-                        showPhone: false,
-                        showDivider: true,
-                        tabIndex: [0],
-                        type: "collaborator",
-                      },
-                    ]}
-                  />
-                )}
-
-                {/* Contacts Card */}
-                {(() => {
-                  const rentalOwner = getRentalOwnerByProperty(taskData?.property);
-                  return (
-                    <PeopleCard
-                      subsections={[
-                        {
-                          label: "Created by",
-                          mode: "rows",
-                          people: [
-                            // Show current user for new tasks; existing task creator for demo tasks
-                            ...(isNewTask ? [
-                              {
-                                id: 0,
-                                name: "Julia LoSchiavo",
-                                initials: "JL",
-                                roleLabel: "Property manager",
-                                phone: "",
-                              },
-                            ] : [
-                              {
-                                id: 4,
-                                name: "Julia LoSchiavo",
-                                initials: "JL",
-                                roleLabel: "Property manager",
-                                phone: "(203) 927-1280",
-                              },
-                            ]),
-                          ],
-                          showRoleLabel: true,
-                          showPhone: true,
-                          showDivider: true,
-                        },
-                        ...(rentalOwner ? [
-                          {
-                            label: "Rental owners",
-                            mode: "rows",
-                            people: [rentalOwner],
-                            showRoleLabel: true,
-                            showPhone: true,
-                            showDivider: true,
-                          },
-                        ] : []),
-                      ]}
-                    />
-                  );
-                })()}
-              </div>
-            </>
+            <SummaryTab
+              currentCategory={currentCategory}
+              currentDescription={currentDescription}
+              currentStatus={currentStatus}
+              currentPriority={currentPriority}
+              currentDueDate={currentDueDate}
+              currentProperty={currentProperty}
+              currentUnit={currentUnit}
+              createdTimestamp={createdTimestamp}
+              workOrders={workOrders}
+              fieldTeamOrders={fieldTeamOrders}
+              notes={notes}
+              files={files}
+              updates={updates}
+              linkedTasks={uiState.linkedTasks}
+              currentAssignees={currentAssignees}
+              currentCollaborators={currentCollaborators}
+              isNewTask={isNewTask}
+              taskData={taskData}
+              onEditTaskDetails={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
+              onAddNote={() => {
+                uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: null });
+                uiDispatch({ type: "SET_VIEWING_NOTE", payload: null });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addNote" });
+              }}
+              onEditNote={(note) => {
+                uiDispatch({ type: "SET_VIEWING_NOTE", payload: note });
+                uiDispatch({ type: "OPEN_MODAL", payload: "viewNote" });
+              }}
+              onDeleteNote={(noteId) => setNotes(notes.filter((n) => n.id !== noteId))}
+              onAddFile={() => {
+                uiDispatch({ type: "SET_EDITING_FILE_ID", payload: null });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
+              }}
+              onEditFile={(file) => {
+                uiDispatch({ type: "SET_EDITING_FILE_ID", payload: file.id });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
+              }}
+              onDeleteFile={(fileId) => setFiles(files.filter((f) => f.id !== fileId))}
+              onViewFile={(file) => console.log("View file", file)}
+              onLinkTasks={() => uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })}
+              onUnlinkTask={(taskId) => uiDispatch({ type: "REMOVE_LINKED_TASK", payload: taskId })}
+              onTaskClick={(linkedTaskId) => {
+                const tabId = `task-${linkedTaskId}`;
+                setSelectedTab(tabId);
+                setTabMetadata(tabId, {
+                  label: `Task ${linkedTaskId}`,
+                  route: `/tasks/${linkedTaskId}`,
+                });
+                navigate(`/tasks/${linkedTaskId}`);
+              }}
+              onAddUpdate={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
+              onEditTask={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
+              getPropertyDisplayLabel={getPropertyDisplayLabel}
+              getUnitDisplayLabel={getUnitDisplayLabel}
+              getPropertyName={getPropertyName}
+              getPropertyAddress={getPropertyAddress}
+              getRentalOwnerByProperty={getRentalOwnerByProperty}
+            />
           )}
 
           {/* Field Team Orders tab content */}
