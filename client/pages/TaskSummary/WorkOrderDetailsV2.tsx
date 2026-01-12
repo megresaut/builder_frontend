@@ -387,13 +387,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
             variant="white"
             tabs={["Staff", "Vendors", "Field Team"]}
             defaultTab={0}
-            footerActions={[
-              {
-                label: "Email Staff",
-                onClick: () => console.log("Email staff"),
-                icon: <Mail className="w-4 h-4" />
-              }
-            ]}
+            footerActions={[]}
             subsections={[
               {
                 label: "Assigned to",
