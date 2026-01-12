@@ -837,6 +837,33 @@ export default function TaskSummary() {
     };
   };
 
+  // Extract unique vendors from work orders
+  const vendorsFromWorkOrders = useMemo(() => {
+    const uniqueVendors = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
+    workOrders.forEach((wo) => {
+      if (wo.vendorName && wo.vendorName.trim()) {
+        if (!uniqueVendors.has(wo.vendorName)) {
+          const initials = wo.vendorName
+            .split(" ")
+            .slice(0, 2)
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase();
+          const vendorInfo = vendorMasterData[wo.vendorName];
+          uniqueVendors.set(wo.vendorName, {
+            id: `vendor-${uniqueVendors.size + 1}`,
+            name: wo.vendorName,
+            initials: initials || "V",
+            email: vendorInfo?.email || "",
+            phone: vendorInfo?.phone || "",
+            title: vendorInfo?.title || "Vendor Company",
+          });
+        }
+      }
+    });
+    return Array.from(uniqueVendors.values());
+  }, [workOrders]);
+
   // Extract unique field team members from field team orders
   const fieldTeamFromOrders = useMemo(() => {
     const uniqueFieldTeam = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
