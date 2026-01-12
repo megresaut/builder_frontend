@@ -434,6 +434,41 @@ export default function CreateTaskModal({
 
           {variant === "withMessageAndAttachments" && (
             <FormSection showDivider={false}>
+              {/* Property + Unit - 2 Columns */}
+              <FormFieldRow columns={2}>
+                <SelectField
+                  label="Property"
+                  value={property}
+                  onChange={(value) => {
+                    setProperty(value);
+                    // Clear unit when property changes
+                    if (value !== property) {
+                      setUnit("");
+                    }
+                  }}
+                  placeholder="Select Property"
+                  options={[
+                    { value: "property1", label: "22 Indian Chase Dr" },
+                    { value: "property2", label: "Property 2" },
+                  ]}
+                />
+                <SelectField
+                  label="Unit"
+                  value={unit}
+                  onChange={setUnit}
+                  placeholder="Select Unit If Applicable"
+                  disabled={!property}
+                  options={
+                    property
+                      ? [
+                          { value: "unit1", label: "Unit 1" },
+                          { value: "unit2", label: "Unit 2" },
+                        ]
+                      : []
+                  }
+                />
+              </FormFieldRow>
+
               {/* Priority + Due Date + Status - 3 Columns */}
               <FormFieldRow columns={3}>
                 <SelectField
