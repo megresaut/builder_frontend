@@ -337,7 +337,7 @@ export default function CreateTaskModal({
       setErrorMessages({});
       fileUpload.reset();
     }
-  }, [open, fileUpload.reset]);
+  }, [open]);
 
   // Initialize form when modal opens and set initial state for change detection
   useEffect(() => {
