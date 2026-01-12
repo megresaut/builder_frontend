@@ -756,6 +756,7 @@ export default function TaskWorkOrders({
             assignees: [],
             collaborators: [],
             vendorName: data.vendor || "",
+            description: data.notes || "",
             notes: newNotes,
             files: newFiles,
           };
