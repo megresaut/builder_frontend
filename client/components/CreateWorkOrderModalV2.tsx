@@ -57,18 +57,20 @@ const REQUIRED_FIELDS = new Set([
 export default function CreateWorkOrderModalV2({
   open,
   onOpenChange,
+  mode = "create",
+  initialData,
 }: CreateWorkOrderModalV2Props) {
   const [formData, setFormData] = useState({
-    property: "",
-    unit: "",
-    task: "",
-    workOrderName: "",
-    vendor: "",
-    status: "not_started",
-    priority: "normal",
-    dueDate: null as Date | null,
-    notes: "",
-    files: [] as UploadedFile[],
+    property: initialData?.property ?? "",
+    unit: initialData?.unit ?? "",
+    task: initialData?.task ?? "",
+    workOrderName: initialData?.workOrderName ?? "",
+    vendor: initialData?.vendor ?? "",
+    status: initialData?.status ?? "not_started",
+    priority: initialData?.priority ?? "normal",
+    dueDate: initialData?.dueDate ?? (null as Date | null),
+    notes: initialData?.notes ?? "",
+    files: initialData?.files ?? ([] as UploadedFile[]),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
