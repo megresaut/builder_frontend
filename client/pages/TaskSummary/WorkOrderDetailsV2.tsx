@@ -458,8 +458,9 @@ export default function WorkOrderDetailsV2({
         <div className="flex flex-col w-full lg:w-[376px] gap-6 flex-shrink-0">
           {/* Bills Card */}
           <BillsCard
-            bills={[]}
+            bills={bills}
             workOrderId={workOrder.id}
+            onBillSelected={(bill) => setBills([...bills, bill])}
           />
 
           {/* Assignees Card */}
