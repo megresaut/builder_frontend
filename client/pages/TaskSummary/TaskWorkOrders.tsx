@@ -714,6 +714,7 @@ export default function TaskWorkOrders({
         initialData={{
           property: defaultProperty,
           task: defaultTask,
+          unit: defaultUnit,
         }}
         onDataUpdate={(data) => {
           const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
