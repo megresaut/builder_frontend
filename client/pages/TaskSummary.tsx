@@ -770,7 +770,8 @@ export default function TaskSummary() {
                 {/* Task Overview Card */}
               <TaskOverviewCard
                 category={currentCategory || "Uncategorized"}
-                description={navigationState?.taskData?.description || ""}
+                description={navigationState?.taskData?.description || (isNewTask ? "" : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.")}
+                dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
                 createdBy={{
                   name: "Current User",
                   property: currentProperty ? getPropertyDisplayLabel(currentProperty) : "Unassigned",
