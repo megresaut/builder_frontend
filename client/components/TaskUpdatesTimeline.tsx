@@ -158,41 +158,39 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                     </div>
                   )}
 
-                  {/* Details Section - always show border to separate header from body */}
-                  {(update.details || update.attachments?.length || true) && (
-                    <div className="pt-2 border-t border-[#e5e5e5]">
-                      {update.details}
+                  {/* Details Section - always show border divider */}
+                  <div className="pt-2 border-t border-[#e5e5e5]">
+                    {update.details}
 
-                      {/* Attachments with Previews */}
-                      {update.attachments && update.attachments.length > 0 && (
-                        <div className="flex flex-col gap-2 mt-2">
-                          {update.attachments.map((file, idx) => (
-                            <div
-                              key={idx}
-                              onClick={() => update.onAttachmentClick?.(file)}
-                              className="flex items-start gap-2 p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors"
-                              title="Click to view"
-                            >
-                              {file.preview && (
-                                <div className="flex-shrink-0 w-14 h-14 rounded overflow-hidden border border-[#e5e5e5]">
-                                  <img
-                                    src={file.preview}
-                                    alt={file.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="text-xs text-[#303030] font-medium truncate">
-                                  {file.name}
-                                </div>
+                    {/* Attachments with Previews */}
+                    {update.attachments && update.attachments.length > 0 && (
+                      <div className="flex flex-col gap-2 mt-2">
+                        {update.attachments.map((file, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => update.onAttachmentClick?.(file)}
+                            className="flex items-start gap-2 p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors"
+                            title="Click to view"
+                          >
+                            {file.preview && (
+                              <div className="flex-shrink-0 w-14 h-14 rounded overflow-hidden border border-[#e5e5e5]">
+                                <img
+                                  src={file.preview}
+                                  alt={file.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-[#303030] font-medium truncate">
+                                {file.name}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
