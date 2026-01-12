@@ -1033,8 +1033,10 @@ export default function TaskSummary() {
       <PageHeader
         title={currentTitle || navigationState?.task?.title || navigationState?.taskData?.title || "Edgerton - Quote"}
         subtitle={
-          <div className="flex items-center font-medium gap-3 overflow-wrap-anywhere word-wrap-anywhere">
-            <div className="block text-base font-medium">To do</div>
+          <div className="flex items-center gap-3">
+            <div className="text-[#717179] font-medium text-base leading-4">
+              to do.
+            </div>
             <svg
               width="4"
               height="4"
@@ -1044,7 +1046,9 @@ export default function TaskSummary() {
             >
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>
-            <div className="block text-base font-medium">#I {taskId || "1024431"}</div>
+            <span className="text-[#717179] font-medium text-base leading-4">
+              #I 1024431
+            </span>
           </div>
         }
         action={{
