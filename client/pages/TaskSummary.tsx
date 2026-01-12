@@ -283,14 +283,14 @@ export default function TaskSummary() {
             >
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="block text-base font-medium">{taskId}</span>
               <button
                 onClick={() => setIsEditTaskDetailsOpen(true)}
-                className="flex items-center justify-center w-6 h-6 text-[#717179] hover:text-[#303030] transition-colors p-0 border-none bg-transparent cursor-pointer"
+                className="text-[#2463eb] text-sm font-medium hover:underline transition-colors p-0 border-none bg-transparent cursor-pointer"
                 title="Edit task details"
               >
-                <EditIcon width={16} height={16} />
+                Edit
               </button>
             </div>
           </div>
