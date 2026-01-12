@@ -1464,7 +1464,7 @@ export default function TaskSummary() {
           };
 
           const changedFieldsInfo = (taskData as any).changedFields || [];
-          const displayFields: Array<{ label: string; value: string }> = [];
+          const displayFields: Array<{ label: string; value: any }> = [];
 
           // Build display for changed fields
           changedFieldsInfo.forEach((fieldName: string) => {
@@ -1472,13 +1472,13 @@ export default function TaskSummary() {
               case "status":
                 displayFields.push({
                   label: "Status",
-                  value: statusMap[taskData.status] || taskData.status,
+                  value: <TaskStatusBadge status={(statusMap[taskData.status] || taskData.status) as any} />,
                 });
                 break;
               case "priority":
                 displayFields.push({
                   label: "Priority",
-                  value: taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1),
+                  value: <TaskPriorityBadge priority={(taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)) as any} />,
                 });
                 break;
               case "dueDate":
