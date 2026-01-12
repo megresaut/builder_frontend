@@ -670,6 +670,14 @@ export default function TaskSummary() {
     return propertyLabels[propertyValue] || "";
   };
 
+  const getUnitDisplayLabel = (unitValue: string): string => {
+    const unitLabels: Record<string, string> = {
+      unit1: "Unit 1",
+      unit2: "Unit 2",
+    };
+    return unitLabels[unitValue] || "";
+  };
+
   return (
     <PageTemplate>
       {/* Header Section */}
@@ -797,7 +805,9 @@ export default function TaskSummary() {
                 dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
                 createdBy={{
                   name: "Current User",
-                  property: currentProperty ? getPropertyDisplayLabel(currentProperty) : "Unassigned",
+                  property: currentProperty
+                    ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
+                    : "Unassigned",
                 }}
                 createdDate={new Date().toLocaleString()}
                 stats={[
@@ -876,7 +886,7 @@ export default function TaskSummary() {
                 {/* Location Card */}
                 <TaskLocationCard
                   propertyImage={!currentProperty ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"}
-                  propertyName={!currentProperty ? undefined : getPropertyName(currentProperty)}
+                  propertyName={!currentProperty ? undefined : `${getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
                   propertyAddress={!currentProperty ? undefined : getPropertyAddress(currentProperty)}
                   mapImage={!currentProperty ? undefined : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"}
                   propertyId={currentProperty}
