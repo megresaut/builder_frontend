@@ -120,12 +120,7 @@ export default function EditTaskDetailsModal({
             value={category}
             onChange={setCategory}
             placeholder="Select Category"
-            options={[
-              { value: "uncategorized", label: "Uncategorized" },
-              { value: "preventative", label: "Preventative Maintenance" },
-              { value: "emergency", label: "Emergency" },
-              { value: "repair", label: "Repair" },
-            ]}
+            options={TASK_CATEGORIES}
           />
         </FormSection>
       </FormLayout>
