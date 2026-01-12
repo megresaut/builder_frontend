@@ -745,13 +745,32 @@ export default function TaskSummary() {
     return propertyLabels[propertyValue] || "";
   };
 
-  const getUnitDisplayLabel = (unitValue: string): string => {
-    const unitLabels: Record<string, string> = {
-      unit1: "Unit 1",
-      unit2: "Unit 2",
-    };
-    return unitLabels[unitValue] || "";
-  };
+  // Memoize editData to prevent unnecessary re-initialization of the modal
+  const modalEditData = useMemo(() => ({
+    id: parseInt(taskId || "0"),
+    title: currentTitle,
+    description: currentDescription,
+    property: currentProperty,
+    unit: currentUnit,
+    priority: currentPriority,
+    status: currentStatus,
+    dueDate: currentDueDate,
+    assignees: currentAssignees,
+    collaborators: currentCollaborators,
+    category: currentCategory,
+  }), [
+    taskId,
+    currentTitle,
+    currentDescription,
+    currentProperty,
+    currentUnit,
+    currentPriority,
+    currentStatus,
+    currentDueDate,
+    currentAssignees,
+    currentCollaborators,
+    currentCategory
+  ]);
 
   return (
     <PageTemplate>
@@ -1260,19 +1279,7 @@ export default function TaskSummary() {
         open={isEditTaskModalOpen}
         onOpenChange={setIsEditTaskModalOpen}
         variant="withMessageAndAttachments"
-        editData={{
-          id: parseInt(taskId || "0"),
-          title: currentTitle,
-          description: currentDescription,
-          property: currentProperty,
-          unit: currentUnit,
-          priority: currentPriority,
-          status: currentStatus,
-          dueDate: currentDueDate,
-          assignees: currentAssignees,
-          collaborators: currentCollaborators,
-          category: currentCategory,
-        }}
+        editData={modalEditData}
         onTaskCreated={(taskData: any) => {
           // Update all task fields
           if (taskData.property) {
