@@ -589,8 +589,6 @@ export default function WorkOrderDetailsV2({
           task: workOrder.task,
           workOrderName: workOrder.task,
           vendor: workOrder.vendorName || "",
-          property: workOrder.property,
-          unit: workOrder.unit,
           status: workOrder.status,
           priority: workOrder.priority,
           dueDate: workOrder.dueDate ? new Date(workOrder.dueDate) : null,
