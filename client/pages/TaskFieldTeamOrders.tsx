@@ -20,6 +20,7 @@ import {
   DollarIcon,
   UserIcon,
   FlagIcon,
+  PlusIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
