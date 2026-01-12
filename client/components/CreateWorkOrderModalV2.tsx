@@ -10,6 +10,8 @@ import {
   FormFieldRow,
 } from "@/components/ui/form-layout";
 import { SelectField } from "@/components/forms/SelectField";
+import { StatusSelectField } from "@/components/forms/StatusSelectField";
+import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
 import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
