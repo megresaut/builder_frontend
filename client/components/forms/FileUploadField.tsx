@@ -106,6 +106,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   variant = "default",
   validate = false,
   disableRemove = false,
+  disableInlineRename = false,
 }) => {
   return (
     <FieldShell
@@ -132,6 +133,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         placeholder={placeholder}
         variant={variant}
         disableRemove={disableRemove}
+        disableInlineRename={disableInlineRename}
       />
     </FieldShell>
   );
