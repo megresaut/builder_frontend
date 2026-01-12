@@ -1130,18 +1130,41 @@ export default function TaskSummary() {
         onOpenChange={setIsAddFileModalOpen}
         onSubmit={(uploadedFiles, category, description) => {
           if (editingFileId) {
-            // Edit existing file
+            // Get the old file name before updating
+            const oldFile = files.find((f) => f.id === editingFileId);
+            const oldFileName = oldFile?.name || "";
+            const newFileName = uploadedFiles[0]?.name || oldFileName;
+
+            // Update the file in the files list
             setFiles(
               files.map((f) =>
                 f.id === editingFileId
                   ? {
                       ...f,
+                      name: newFileName,
                       category: category || f.category,
                       description,
                     }
                   : f,
               ),
             );
+
+            // If the file name changed, sync it with the timeline updates
+            if (newFileName !== oldFileName) {
+              setUpdates((prevUpdates) =>
+                prevUpdates.map((update) => {
+                  if (update.attachments && Array.isArray(update.attachments)) {
+                    const updatedAttachments = update.attachments.map((att: any) =>
+                      att.id === editingFileId.toString()
+                        ? { ...att, name: newFileName }
+                        : att,
+                    );
+                    return { ...update, attachments: updatedAttachments };
+                  }
+                  return update;
+                }),
+              );
+            }
           } else {
             // Add new file - convert UploadedFile to File
             const maxId = files.length > 0 ? Math.max(...files.map((f) => f.id)) : 0;
