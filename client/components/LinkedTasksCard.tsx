@@ -7,6 +7,7 @@ interface LinkedTasksCardProps {
   linkedTasks?: LinkedTaskData[];
   onLinkTasks?: () => void;
   onUnlinkTask?: (taskId: string | number) => void;
+  onTaskClick?: (taskId: string | number) => void;
 }
 
 /**
@@ -18,6 +19,7 @@ export const LinkedTasksCard: React.FC<LinkedTasksCardProps> = ({
   linkedTasks = [],
   onLinkTasks,
   onUnlinkTask,
+  onTaskClick,
 }) => {
   return (
     <SectionCard padding="compact">
@@ -25,6 +27,7 @@ export const LinkedTasksCard: React.FC<LinkedTasksCardProps> = ({
         linkedTasks={linkedTasks}
         onAdd={onLinkTasks || (() => {})}
         onUnlink={onUnlinkTask || (() => {})}
+        onTaskClick={onTaskClick}
       />
     </SectionCard>
   );
