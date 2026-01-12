@@ -909,55 +909,52 @@ export default function TaskSummary() {
                 )}
 
                 {/* Contacts Card */}
-                <PeopleCard
-                  subsections={[
-                    {
-                      label: "Created by",
-                      mode: "rows",
-                      people: [
-                        // Show current user for new tasks; existing task creator for demo tasks
-                        ...(isNewTask ? [
+                {(() => {
+                  const rentalOwner = getRentalOwnerByProperty(navigationState?.taskData?.property);
+                  return (
+                    <PeopleCard
+                      subsections={[
+                        {
+                          label: "Created by",
+                          mode: "rows",
+                          people: [
+                            // Show current user for new tasks; existing task creator for demo tasks
+                            ...(isNewTask ? [
+                              {
+                                id: 0,
+                                name: "Current User",
+                                initials: "ME",
+                                roleLabel: "Staff member",
+                                phone: "",
+                              },
+                            ] : [
+                              {
+                                id: 4,
+                                name: "Julia LoSchiavo",
+                                initials: "JL",
+                                roleLabel: "Staff member",
+                                phone: "(203) 927-1280",
+                              },
+                            ]),
+                          ],
+                          showRoleLabel: true,
+                          showPhone: true,
+                          showDivider: true,
+                        },
+                        ...(rentalOwner ? [
                           {
-                            id: 0,
-                            name: "Current User",
-                            initials: "ME",
-                            roleLabel: "Staff member",
-                            phone: "",
+                            label: "Rental owners",
+                            mode: "rows",
+                            people: [rentalOwner],
+                            showRoleLabel: true,
+                            showPhone: true,
+                            showDivider: true,
                           },
-                        ] : [
-                          {
-                            id: 4,
-                            name: "Julia LoSchiavo",
-                            initials: "JL",
-                            roleLabel: "Staff member",
-                            phone: "(203) 927-1280",
-                          },
-                        ]),
-                      ],
-                      showRoleLabel: true,
-                      showPhone: true,
-                      showDivider: true,
-                    },
-                    ...(navigationState?.taskData?.property && !navigationState?.taskData?.property?.includes("Unassigned") ? [
-                      {
-                        label: "Rental owners",
-                        mode: "rows",
-                        people: [
-                          {
-                            id: 5,
-                            name: "Peter & Ali Jennison",
-                            initials: "PJ",
-                            roleLabel: "Rental Owner",
-                            phone: "(203) 927-1280",
-                          },
-                        ],
-                        showRoleLabel: true,
-                        showPhone: true,
-                        showDivider: true,
-                      },
-                    ] : []),
-                  ]}
-                />
+                        ] : []),
+                      ]}
+                    />
+                  );
+                })()}
               </div>
             </>
           )}
