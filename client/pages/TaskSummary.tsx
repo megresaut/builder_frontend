@@ -826,7 +826,9 @@ export default function TaskSummary() {
                     ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
                     : "Unassigned",
                 }}
-                createdDate={new Date().toLocaleString()}
+                createdDate={createdTimestamp}
+                assignedTo={currentAssignees}
+                collaborators={currentCollaborators}
                 stats={[
                   { label: "TOTAL EXPENSE", value: "$0.00" },
                   { label: "WORK ORDERS", value: workOrders.length.toString() },
