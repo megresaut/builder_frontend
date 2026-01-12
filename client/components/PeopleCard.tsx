@@ -91,8 +91,8 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
               if (!indices.includes(activeTab)) return false;
             }
 
-            // Hide subsection if it has no people (specifically for Collaborators as requested)
-            if (subsection.label === "Collaborators" && (!subsection.people || subsection.people.length === 0)) {
+            // Hide subsection if it has no people
+            if ((subsection.label === "Collaborators" || subsection.label === "Assigned to") && (!subsection.people || subsection.people.length === 0)) {
               return false;
             }
 
