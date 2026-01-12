@@ -211,7 +211,8 @@ export default function CreateWorkOrderModalV2({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.task.trim()) {
+    // Only require task field if task selection is visible
+    if (!hideTaskSelection && !formData.task.trim()) {
       newErrors.task = "Task is required";
     }
     if (!formData.workOrderName.trim()) {
