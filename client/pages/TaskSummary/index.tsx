@@ -657,8 +657,9 @@ export default function TaskSummary() {
   };
 
   const handleWorkOrderSelect = (woId: number | null) => {
-    // Don't update state directly - let URL params drive the state
-    // The effect will sync URL to state
+    // Update state when work order is selected
+    // This is called by the table row click handler
+    uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: woId });
   };
 
   const handleStartRenamingAttachment = () => {
