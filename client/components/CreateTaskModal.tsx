@@ -107,6 +107,77 @@ export default function CreateTaskModal({
   // File upload management
   const fileUpload = useFileUpload();
 
+  // Check if anything has changed in the update variant
+  const hasChanges = (): boolean => {
+    if (variant !== "withMessageAndAttachments" || !initialState) {
+      return true;
+    }
+    return (
+      status !== initialState.status ||
+      priority !== initialState.priority ||
+      (dueDate?.toString() !== initialState.dueDate?.toString()) ||
+      selectedAssignees.length !== initialState.assignees.length ||
+      !selectedAssignees.every((a) =>
+        initialState.assignees.some((ia) => ia.id === a.id)
+      ) ||
+      selectedCollaborators.length !== initialState.collaborators.length ||
+      !selectedCollaborators.every((c) =>
+        initialState.collaborators.some((ic) => ic.id === c.id)
+      ) ||
+      message !== initialState.message ||
+      fileUpload.files.length > 0
+    );
+  };
+
+  // Generate update message based on changes
+  const generateUpdateMessage = (): string => {
+    const changes: string[] = [];
+
+    if (initialState) {
+      if (status !== initialState.status) {
+        const statusLabels: { [key: string]: string } = {
+          not_started: "Not Started",
+          in_progress: "In Progress",
+          completed: "Completed",
+        };
+        changes.push(
+          `updated status to ${statusLabels[status] || status}`
+        );
+      }
+
+      if (priority !== initialState.priority) {
+        const priorityLabel =
+          priority.charAt(0).toUpperCase() + priority.slice(1);
+        changes.push(`updated priority to ${priorityLabel}`);
+      }
+
+      if (dueDate?.toString() !== initialState.dueDate?.toString()) {
+        const dateStr = dueDate
+          ? dueDate.toLocaleDateString()
+          : "no due date";
+        changes.push(`updated due date to ${dateStr}`);
+      }
+    }
+
+    if (message) {
+      changes.push("added a message");
+    }
+
+    if (fileUpload.files.length > 0) {
+      changes.push(
+        `added ${fileUpload.files.length} attachment${
+          fileUpload.files.length !== 1 ? "s" : ""
+        }`
+      );
+    }
+
+    if (changes.length === 0) {
+      return "updated the task";
+    }
+
+    return changes.join(", ");
+  };
+
   const validateForm = (): boolean => {
     const newErrors: {
       title?: boolean;
