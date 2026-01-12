@@ -320,36 +320,38 @@ export default function WorkOrderDetailsV2({
       </button>
 
       {/* Field Selectors Row */}
-      <div className="flex flex-wrap items-end gap-6 w-full mb-2">
-        <div className="flex-1 min-w-[180px]">
-          <StatusSelectField
-            label="Status"
-            value={status}
-            onChange={handleStatusChange}
-          />
-        </div>
+      <SectionCard padding="none" variant="white">
+        <div className="flex flex-wrap items-end gap-6 w-full p-6">
+          <div className="flex-1 min-w-[180px]">
+            <StatusSelectField
+              label="Status"
+              value={status}
+              onChange={handleStatusChange}
+            />
+          </div>
 
-        <div className="flex-1 min-w-[180px]">
-          <PrioritySelectField
-            label="Priority"
-            value={priority}
-            onChange={handlePriorityChange}
-          />
-        </div>
+          <div className="flex-1 min-w-[180px]">
+            <PrioritySelectField
+              label="Priority"
+              value={priority}
+              onChange={handlePriorityChange}
+            />
+          </div>
 
-        <div className="flex-1 min-w-[180px]">
-          <DateField
-            label="Due Date"
-            value={dueDate}
-            onChange={handleDueDateChange}
-            returnFormat="Date"
-          />
-        </div>
+          <div className="flex-1 min-w-[180px]">
+            <DateField
+              label="Due Date"
+              value={dueDate}
+              onChange={handleDueDateChange}
+              returnFormat="Date"
+            />
+          </div>
 
-        <div className="flex-1 flex justify-end text-xs text-[#717179] font-medium pb-1">
-          Last Updated <span className="text-[#303030] font-bold ml-1">11/12/2025 9:22 PM</span>
+          <div className="flex-1 flex justify-end text-xs text-[#717179] font-medium pb-1">
+            Last Updated <span className="text-[#303030] font-bold ml-1">11/12/2025 9:22 PM</span>
+          </div>
         </div>
-      </div>
+      </SectionCard>
 
       <div className="flex flex-wrap lg:flex-nowrap gap-6 w-full">
         {/* Left Column (Main Content) */}
@@ -439,26 +441,30 @@ export default function WorkOrderDetailsV2({
 
           {/* Totals Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            <div className="flex flex-col justify-center items-start gap-1 flex-1 rounded-lg border border-[#DADADA] bg-[#F9F9F9] p-4">
-              <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
-                ESTIMATE TOTAL
+            <SectionCard padding="none" variant="white">
+              <div className="flex flex-col justify-center items-start gap-1 flex-1 p-4">
+                <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
+                  ESTIMATE TOTAL
+                </div>
+                <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
+                  $0.00
+                </div>
               </div>
-              <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                $0.00
+            </SectionCard>
+            <SectionCard padding="none" variant="white">
+              <div className="flex flex-col justify-center items-start gap-1 flex-1 p-4">
+                <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
+                  WORK ORDER TOTAL
+                </div>
+                <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
+                  ${workOrderTotal.toFixed(2)}
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col justify-center items-start gap-1 flex-1 rounded-lg border border-[#DADADA] bg-[#F9F9F9] p-4">
-              <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
-                WORK ORDER TOTAL
-              </div>
-              <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                ${workOrderTotal.toFixed(2)}
-              </div>
-            </div>
+            </SectionCard>
           </div>
 
           {/* Notes Section */}
-          <SectionCard padding="compact">
+          <SectionCard padding="compact" variant="white">
             <NotesTemplate
               notes={notes}
               onAdd={() => {
@@ -474,7 +480,7 @@ export default function WorkOrderDetailsV2({
           </SectionCard>
 
           {/* Files Section */}
-          <SectionCard padding="compact">
+          <SectionCard padding="compact" variant="white">
             <FilesTemplate
               files={files}
               onAdd={() => {
@@ -506,7 +512,7 @@ export default function WorkOrderDetailsV2({
           {/* Assignees Card */}
           <PeopleCard
             title="Assignees"
-            variant="default"
+            variant="white"
             tabs={["Vendors", "Staff"]}
             defaultTab={0}
             footerActions={[]}
@@ -568,6 +574,7 @@ export default function WorkOrderDetailsV2({
 
           {/* Created By Card */}
           <PeopleCard
+            variant="white"
             subsections={[
               {
                 label: "Created by",
