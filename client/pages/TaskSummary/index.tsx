@@ -1001,6 +1001,7 @@ export default function TaskSummary() {
                 onWorkOrdersChange={setWorkOrders}
                 defaultProperty={currentProperty}
                 defaultTask={currentTitle}
+                defaultUnit={currentUnit}
                 taskId={taskId || "0"}
                 onWorkOrderSelect={handleWorkOrderSelect}
               />
