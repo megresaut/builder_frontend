@@ -104,6 +104,7 @@ export default function TaskSummary() {
       setTabMetadata(tabId, {
         label: taskData.title,
         route: `/tasks/${taskId}`,
+        sectionId: "all-tasks",
       });
       setSelectedTab(tabId);
     }
