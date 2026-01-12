@@ -913,22 +913,24 @@ export default function TaskSummary() {
                       showPhone: true,
                       showDivider: true,
                     },
-                    {
-                      label: "Rental owners",
-                      mode: "rows",
-                      people: (navigationState?.taskData?.property && !navigationState?.taskData?.property?.includes("Unassigned")) ? [
-                        {
-                          id: 5,
-                          name: "Peter & Ali Jennison",
-                          initials: "PJ",
-                          roleLabel: "Rental Owner",
-                          phone: "(203) 927-1280",
-                        },
-                      ] : [],
-                      showRoleLabel: true,
-                      showPhone: true,
-                      showDivider: true,
-                    },
+                    ...(navigationState?.taskData?.property && !navigationState?.taskData?.property?.includes("Unassigned") ? [
+                      {
+                        label: "Rental owners",
+                        mode: "rows",
+                        people: [
+                          {
+                            id: 5,
+                            name: "Peter & Ali Jennison",
+                            initials: "PJ",
+                            roleLabel: "Rental Owner",
+                            phone: "(203) 927-1280",
+                          },
+                        ],
+                        showRoleLabel: true,
+                        showPhone: true,
+                        showDivider: true,
+                      },
+                    ] : []),
                   ]}
                 />
               </div>
