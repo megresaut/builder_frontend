@@ -30,6 +30,7 @@ export interface UpdateItem {
 interface TaskUpdatesTimelineProps {
   updates: UpdateItem[];
   onAddUpdate?: () => void;
+  variant?: "default" | "gray";
 }
 
 /**
@@ -45,6 +46,7 @@ interface TaskUpdatesTimelineProps {
 export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
   updates,
   onAddUpdate,
+  variant = "default",
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const composerButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -111,7 +113,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
   }, [onAddUpdate, updates.length]);
 
   return (
-    <SectionCard title="Updates">
+    <SectionCard variant={variant} title="Updates">
       {/* Updates List Container - relative so rail can be absolutely positioned */}
       <div ref={containerRef} className="relative pl-14">
         {/* Continuous Timeline Rail - from composer to last circle */}
