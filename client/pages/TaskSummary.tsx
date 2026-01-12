@@ -922,6 +922,25 @@ export default function TaskSummary() {
           setUpdates([newUpdate, ...updates]);
         }}
       />
+
+      {/* Edit Task Details Modal */}
+      <EditTaskDetailsModal
+        open={isEditTaskDetailsOpen}
+        onOpenChange={setIsEditTaskDetailsOpen}
+        initialData={{
+          title: currentTitle,
+          property: currentProperty,
+          unit: currentUnit,
+          category: currentCategory,
+        }}
+        onSubmit={(data: EditTaskDetailsData) => {
+          setCurrentTitle(data.title);
+          setCurrentProperty(data.property);
+          setCurrentUnit(data.unit);
+          setCurrentCategory(data.category);
+          setIsEditTaskDetailsOpen(false);
+        }}
+      />
     </PageTemplate>
   );
 }
