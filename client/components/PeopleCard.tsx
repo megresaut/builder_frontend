@@ -62,7 +62,7 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
     <SectionCard variant={variant} title={title} actions={headerActions}>
       {/* Tabs (optional, for Assignees) */}
       {tabs && tabs.length > 0 && (
-        <div className="flex w-full px-0.5 py-0.5 bg-[#f2f2f2] rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center mb-4">
+        <div className="flex w-full px-0.5 py-0.5 bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(210,209,207,1)] text-sm text-[#282828] text-center mb-4">
           {tabs.map((tab, idx) => (
             <button
               key={idx}
@@ -70,7 +70,7 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
               className={cn(
                 "flex items-center justify-center flex-1 px-4 py-1.5 rounded-md transition-colors",
                 {
-                  "bg-white shadow-sm text-[#09090b] font-medium":
+                  "bg-[#f2f2f2] shadow-sm text-[#09090b] font-medium":
                     activeTab === idx,
                   "text-[#282828] hover:text-[#09090b]": activeTab !== idx,
                 },
