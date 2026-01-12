@@ -17,6 +17,7 @@ interface PageHeaderProps {
     onView?: () => void;
     onDelete?: () => void;
   };
+  onBack?: () => void;
 }
 
 /**
