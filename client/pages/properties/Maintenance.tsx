@@ -1621,6 +1621,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       <CreateTaskModal
         open={showCreateTaskModal}
         onOpenChange={setShowCreateTaskModal}
+        onTaskCreated={handleTaskCreated}
       />
 
       {/* Create Recurring Task Modal */}
