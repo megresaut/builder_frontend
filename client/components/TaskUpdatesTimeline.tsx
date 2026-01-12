@@ -158,8 +158,8 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                     </div>
                   )}
 
-                  {/* Details Section */}
-                  {(update.details || update.attachments?.length) && (
+                  {/* Details Section - always show border to separate header from body */}
+                  {(update.details || update.attachments?.length || true) && (
                     <div className="pt-2 border-t border-[#e5e5e5]">
                       {update.details}
 
