@@ -467,18 +467,9 @@ export default function WorkOrderDetailsV2({
         {/* Right Sidebar */}
         <div className="flex flex-col w-full lg:w-[376px] gap-6 flex-shrink-0">
           {/* Bills Card */}
-          <BillsCard 
-            bills={[
-              {
-                id: "1",
-                date: "November 27",
-                time: "5:00 PM",
-                invoiceNumber: "234605",
-                vendorName: "Dolce Heating & Plumbing",
-                amount: "$1,350.00",
-                status: "Paid",
-              }
-            ]}
+          <BillsCard
+            bills={[]}
+            workOrderId={workOrder.id}
           />
 
           {/* Assignees Card */}
