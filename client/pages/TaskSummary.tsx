@@ -628,7 +628,7 @@ export default function TaskSummary() {
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
           {/* Show TaskWorkOrders component when work orders tab is active */}
           {activeTab === "workorders" && (
-            <TaskWorkOrders />
+            <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
           )}
 
           {/* Show summary content when summary tab is active */}
