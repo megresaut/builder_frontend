@@ -1219,8 +1219,8 @@ export default function TaskSummary() {
             const gridColsClass = displayFields.length === 1 ? "grid-cols-1" : displayFields.length <= 2 ? "grid-cols-2" : "grid-cols-3";
 
             details.push(
-              <div key="fields" className="mt-3">
-                <div className={`grid ${gridColsClass} gap-6 mt-3`}>
+              <div key="fields">
+                <div className={`grid ${gridColsClass} gap-6`}>
                   {displayFields.map((field, idx) => (
                     <div key={idx}>
                       <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">{field.label}</div>
