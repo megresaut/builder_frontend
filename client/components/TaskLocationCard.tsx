@@ -69,26 +69,27 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
           </div>
         )}
 
-        {/* Map Image and View Maps Button */}
+        {/* Map Image */}
         {mapImage && (
-          <>
+          <button
+            onClick={() => {
+              if (propertyAddress) {
+                const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(propertyAddress)}`;
+                window.open(mapsUrl, "_blank");
+              }
+            }}
+            className={`mt-6 w-full rounded-lg overflow-hidden transition-transform hover:scale-105 ${
+              propertyAddress ? "cursor-pointer" : "cursor-default"
+            }`}
+            disabled={!propertyAddress}
+            title={propertyAddress ? "Click to view on Google Maps" : ""}
+          >
             <img
               src={mapImage}
               alt="Map"
-              className="mt-6 w-full aspect-[2.33] rounded-lg object-cover"
+              className="w-full aspect-[2.33] object-cover"
             />
-            {propertyAddress && (
-              <button
-                onClick={() => {
-                  const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(propertyAddress)}`;
-                  window.open(mapsUrl, "_blank");
-                }}
-                className="mt-3 w-full px-3 py-2 bg-[#2463eb] text-white text-sm font-medium rounded-lg hover:bg-[#1a4ba0] transition-colors"
-              >
-                View Maps
-              </button>
-            )}
-          </>
+          </button>
         )}
       </div>
     </SectionCard>
