@@ -1419,10 +1419,9 @@ export default function TaskSummary() {
               ...(taskData.files && taskData.files.length > 0 && {
                 attachments: taskData.files.map((f: any, idx: number) => getAttachmentData(f, idx)),
                 onAttachmentClick: (file: any) => {
-                  setViewingAttachment({ id: file.id, name: file.name, url: file.url });
-                  setIsPdfViewerOpen(true);
-                  setIsRenamingAttachment(false);
-                  setRenamingAttachmentName("");
+                  uiDispatch({ type: "SET_VIEWING_ATTACHMENT", payload: { id: file.id, name: file.name, url: file.url } });
+                  uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
+                  uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
                 },
               }),
               icon: <FlagIcon width={16} height={16} />,
