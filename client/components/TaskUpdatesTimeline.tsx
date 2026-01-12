@@ -48,15 +48,17 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
     <SectionCard title="Updates">
       {/* Updates List Container - relative so rail can be absolutely positioned */}
       <div className="relative pl-14">
-        {/* Continuous Timeline Rail - extends from composer down */}
+        {/* Continuous Timeline Rail - extends from composer down, growing with updates */}
         {onAddUpdate && updates.length > 0 && (
           <div
             className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
             style={{
               top: "20px",
-              // If the last item is initial creation, stop before it; otherwise continue to bottom
+              // Calculate bottom based on whether last item is initial creation
+              // Each update row is roughly 104px (40px gap + ~64px content)
+              // If last is initial creation, stop before it; otherwise extend to bottom
               bottom: updates[updates.length - 1]?.isInitialCreation && updates.length > 1
-                ? `${(updates.length - 1) * 104 + 40}px`
+                ? `${(updates.length - 1) * 108 + 20}px`
                 : "20px",
               clipPath: "inset(0 0 20px 0)",
               backgroundImage:
