@@ -979,7 +979,12 @@ export default function TaskSummary() {
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
               />
             ) : (
-              <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
+              <TaskWorkOrders
+                workOrders={workOrders}
+                onWorkOrdersChange={setWorkOrders}
+                defaultProperty={currentProperty}
+                defaultTask={currentTitle}
+              />
             )
           )}
 
