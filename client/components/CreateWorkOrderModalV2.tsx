@@ -55,8 +55,8 @@ const PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
 const UNITS = ["N/A", "1", "2", "3", "4", "5"];
 const TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
 const VENDORS = ["David Smith", "Elite HVAC", "ABC Plumbing", "Green Lawn Services", "Spark Electrical"];
-const STATUSES = ["In progress", "Completed", "Pending"];
-const PRIORITIES = ["Low", "Normal", "High"];
+const STATUSES = ["not_started", "in_progress", "completed"];
+const PRIORITIES = ["low", "normal", "high"];
 
 // Fields that must be validated on submit
 const REQUIRED_FIELDS = new Set([
@@ -104,6 +104,20 @@ export default function CreateWorkOrderModalV2({
           dueDate: initialData.dueDate ?? null,
           notes: initialData.notes ?? "",
           files: initialData.files ?? [],
+        });
+      } else {
+        // Explicitly set defaults for create mode
+        setFormData({
+          property: initialData?.property ?? "",
+          unit: initialData?.unit ?? "",
+          task: initialData?.task ?? "",
+          workOrderName: initialData?.workOrderName ?? "",
+          vendor: initialData?.vendor ?? "",
+          status: "not_started",
+          priority: "normal",
+          dueDate: initialData?.dueDate ?? null,
+          notes: initialData?.notes ?? "",
+          files: initialData?.files ?? [],
         });
       }
     } else {
