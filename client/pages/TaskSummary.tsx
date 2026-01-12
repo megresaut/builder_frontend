@@ -555,20 +555,13 @@ export default function TaskSummary() {
     };
   }, []);
 
-  // Modal states
-  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-  const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
-  const [viewingNote, setViewingNote] = useState<Note | null>(null);
-  const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
-  const [editingFileId, setEditingFileId] = useState<number | null>(null);
-  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
-  const [viewingAttachment, setViewingAttachment] = useState<{ id?: string; name: string; url: string } | null>(null);
-  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
-  const [isRenamingAttachment, setIsRenamingAttachment] = useState(false);
-  const [renamingAttachmentName, setRenamingAttachmentName] = useState("");
-  const [linkedTasks, setLinkedTasks] = useState<LinkedTaskData[]>(isNewTask ? [] : []);
-  const [isLinkTaskModalOpen, setIsLinkTaskModalOpen] = useState(false);
+  // Get editing note/file from reducer state
+  const editingNote = uiState.editingNoteId
+    ? notes.find((n) => n.id === uiState.editingNoteId)
+    : null;
+  const editingFile = uiState.editingFileId
+    ? files.find((f) => f.id === uiState.editingFileId)
+    : null;
 
   // Map MOCK_TASKS to LinkedTaskData for default availability, excluding current task
   const availableTasksForLinking = useMemo(() => {
