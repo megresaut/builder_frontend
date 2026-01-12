@@ -16,6 +16,7 @@ import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
 interface WorkOrder {
   id: number;
