@@ -353,11 +353,11 @@ export default function TaskSummary() {
       billStatus: "Awaiting Invoice",
       billTotal: "No invoice",
       assignees: [
-        { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+        { id: 3, name: "Jane Smith", initials: "JMS" },
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
-        { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+        { id: 6, name: "Tom Davis", initials: "TD" },
+        { id: 7, name: "Lisa Brown", initials: "LB" },
       ],
     },
     {
@@ -374,7 +374,7 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$95",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+        { id: 1, name: "Jerry Sanchez", initials: "JS" },
       ],
       collaborators: [],
     },
@@ -392,10 +392,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$112",
       assignees: [
-        { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+        { id: 2, name: "John Doe", initials: "JD" },
       ],
       collaborators: [
-        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+        { id: 5, name: "Sarah Wilson", initials: "SW" },
       ],
     },
     {
@@ -412,10 +412,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$93",
       assignees: [
-        { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+        { id: 4, name: "Mike Johnson", initials: "MJ" },
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+        { id: 6, name: "Tom Davis", initials: "TD" },
       ],
     },
     {
@@ -432,11 +432,11 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$75",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+        { id: 1, name: "Jerry Sanchez", initials: "JS" },
       ],
       collaborators: [
-        { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
-        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+        { id: 7, name: "Lisa Brown", initials: "LB" },
+        { id: 5, name: "Sarah Wilson", initials: "SW" },
       ],
     },
     {
@@ -453,7 +453,7 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$101",
       assignees: [
-        { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+        { id: 3, name: "Jane Smith", initials: "JMS" },
       ],
       collaborators: [],
     },
@@ -471,10 +471,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$124",
       assignees: [
-        { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+        { id: 2, name: "John Doe", initials: "JD" },
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+        { id: 6, name: "Tom Davis", initials: "TD" },
       ],
     },
     {
@@ -491,11 +491,11 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$67",
       assignees: [
-        { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+        { id: 4, name: "Mike Johnson", initials: "MJ" },
       ],
       collaborators: [
-        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
-        { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+        { id: 5, name: "Sarah Wilson", initials: "SW" },
+        { id: 7, name: "Lisa Brown", initials: "LB" },
       ],
     },
     {
@@ -512,10 +512,10 @@ export default function TaskSummary() {
       billStatus: "Unpaid",
       billTotal: "$118",
       assignees: [
-        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+        { id: 1, name: "Jerry Sanchez", initials: "JS" },
       ],
       collaborators: [
-        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+        { id: 6, name: "Tom Davis", initials: "TD" },
       ],
     },
   ];
