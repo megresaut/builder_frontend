@@ -39,6 +39,11 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
   const navigate = useNavigate();
   const { taskId } = useParams<{ taskId: string }>();
 
+  // Field state
+  const [status, setStatus] = useState("completed");
+  const [priority, setPriority] = useState("normal");
+  const [dueDate, setDueDate] = useState<Date | string | null>(null);
+
   // Mock notifications
   const [notifications, setNotifications] = useState([
     {
