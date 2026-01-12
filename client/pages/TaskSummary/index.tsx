@@ -79,6 +79,18 @@ export default function TaskSummary() {
     }
   }, [tab, workOrderId, uiDispatch]);
 
+  // Sync state to URL when tab changes (from user clicking tab button)
+  // This happens when handleTabChange calls navigate, then this ensures state is synced
+  useEffect(() => {
+    // Build expected path based on current state
+    const expectedPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
+
+    // Only update URL if it doesn't match state (e.g., after a tab click)
+    // Don't update if URL already matches (e.g., after a table row click)
+    if (location.pathname !== expectedPath) {
+      navigate(expectedPath, { replace: true });
+    }
+  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
