@@ -241,9 +241,16 @@ const mockWorkOrders: WorkOrder[] = [
 interface TaskWorkOrdersProps {
   workOrders: WorkOrder[];
   onWorkOrdersChange: (orders: WorkOrder[]) => void;
+  defaultProperty?: string;
+  defaultTask?: string;
 }
 
-export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskWorkOrdersProps) {
+export default function TaskWorkOrders({
+  workOrders,
+  onWorkOrdersChange,
+  defaultProperty,
+  defaultTask
+}: TaskWorkOrdersProps) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -742,6 +749,10 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
           if (!open) {
             setEditingWorkOrder(null);
           }
+        }}
+        initialData={{
+          property: defaultProperty,
+          task: defaultTask,
         }}
         onDataUpdate={(data) => {
           const newWorkOrder: WorkOrder = {
