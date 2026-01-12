@@ -1365,7 +1365,7 @@ export default function TaskSummary() {
                 <div key="assignees">
                   <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
                   <div className="mt-0.5">
-                    <PersonAvatars people={taskData.assignees} />
+                    <PersonAvatars people={taskData.assignees} type="assignee" />
                   </div>
                 </div>
               );
@@ -1376,7 +1376,7 @@ export default function TaskSummary() {
                 <div key="collaborators">
                   <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Collaborators</div>
                   <div className="mt-0.5">
-                    <PersonAvatars people={taskData.collaborators} />
+                    <PersonAvatars people={taskData.collaborators} type="collaborator" />
                   </div>
                 </div>
               );
