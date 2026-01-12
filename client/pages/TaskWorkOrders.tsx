@@ -555,24 +555,16 @@ export default function TaskWorkOrders() {
   );
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Subheader with Create Work Order Button */}
-      <SubPageHeaderV2
-        leftContent={
-          <h3 className="text-lg font-semibold text-gray-900">Work Orders</h3>
-        }
-        buttons={[
-          {
-            id: "create-work-order",
-            label: "Create Work Order",
-            icon: <Plus className="w-4 h-4" />,
-            onClick: () => setIsCreateWorkOrderModalOpen(true),
-          },
-        ]}
-      />
-
-      {/* Work Orders Table - Using GlobalTable Component */}
-      <GlobalTable
+    <>
+      <HeaderV1
+        title="Work Orders"
+        subtitle="All your work orders, in one place"
+        actionLabel="Create Work Order"
+        actionIcon={<Plus className="w-5 h-5" />}
+        onActionClick={() => setIsCreateWorkOrderModalOpen(true)}
+      >
+        {/* Work Orders Table - Using GlobalTable Component */}
+        <GlobalTable
             columns={columns}
             data={workOrders}
             rowKey="id"
@@ -806,6 +798,8 @@ export default function TaskWorkOrders() {
             showColumnModal={showColumnModal}
             onShowColumnModalChange={setShowColumnModal}
           />
+      </HeaderV1>
+
       {/* Create Work Order Modal */}
       <CreateWorkOrderModalV2
         open={isCreateWorkOrderModalOpen}
@@ -831,6 +825,6 @@ export default function TaskWorkOrders() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
-    </div>
+    </>
   );
 }
