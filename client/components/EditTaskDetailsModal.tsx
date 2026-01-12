@@ -3,6 +3,7 @@ import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { TextField } from "@/components/forms/TextField";
 import { SelectField } from "@/components/forms/SelectField";
+import { TASK_CATEGORIES } from "@/constants/taskCategories";
 
 export interface EditTaskDetailsData {
   title: string;
