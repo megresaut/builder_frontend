@@ -311,6 +311,7 @@ export default function CreateTaskModal({
             onConfirm={handleSubmit}
             cancelLabel="Cancel"
             confirmLabel={variant === "withMessageAndAttachments" ? "Save Update" : (editData ? "Update Task" : "Create Task")}
+            confirmDisabled={variant === "withMessageAndAttachments" && !hasChanges()}
           />
         }
       >
