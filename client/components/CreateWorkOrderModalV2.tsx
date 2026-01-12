@@ -89,6 +89,7 @@ export default function CreateWorkOrderModalV2({
   onOpenChange,
   mode = "create",
   hideTaskSelection = false,
+  hideSubheader = false,
   initialData,
   onDataUpdate,
 }: CreateWorkOrderModalV2Props) {
