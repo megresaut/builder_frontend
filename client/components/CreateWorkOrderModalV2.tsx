@@ -24,6 +24,19 @@ import CreateTaskModal from "@/components/CreateTaskModal";
 interface CreateWorkOrderModalV2Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode?: "create" | "edit";
+  initialData?: {
+    property?: string;
+    unit?: string;
+    task?: string;
+    workOrderName?: string;
+    vendor?: string;
+    status?: string;
+    priority?: string;
+    dueDate?: Date | null;
+    notes?: string;
+    files?: UploadedFile[];
+  };
 }
 
 const PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
