@@ -278,10 +278,12 @@ export default function CreateTaskModal({
     }
   }, [open, editData?.id, variant]);
 
-  // Clear form when modal closes
+  // Clear form when modal closes - use a ref to avoid excessive re-renders
+  const clearFormRef = React.useRef<boolean>(false);
   useEffect(() => {
-    if (!open) {
-      // Clear all form state
+    if (!open && !clearFormRef.current) {
+      clearFormRef.current = true;
+      // Reset all state in one batch to reduce update depth
       setTitle("");
       setDescription("");
       setProperty("");
@@ -295,6 +297,8 @@ export default function CreateTaskModal({
       setInitialState(null);
       setErrors({});
       setErrorMessages({});
+    } else if (open) {
+      clearFormRef.current = false;
     }
   }, [open]);
 
