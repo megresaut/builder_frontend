@@ -115,6 +115,9 @@ export default function CreateTaskModal({
   // File upload management
   const fileUpload = useFileUpload();
 
+  // Track previous open state to detect modal opening
+  const prevOpenRef = useRef(false);
+
   // Check if anything has changed in the update variant
   const hasChanges = useCallback((): boolean => {
     if (variant !== "withMessageAndAttachments" || !initialState) {
