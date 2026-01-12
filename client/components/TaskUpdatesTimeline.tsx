@@ -10,6 +10,7 @@ export interface UpdateItem {
   action: string;
   actionValue?: ReactNode;
   timestamp: string;
+  fieldsDisplay?: ReactNode;
   details?: ReactNode;
   moreOptions?: () => void;
   icon?: ReactNode;
@@ -157,6 +158,13 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                       </button>
                     )}
                   </div>
+
+                  {/* Fields Display (inline on same line) */}
+                  {update.fieldsDisplay && (
+                    <div className="pt-2">
+                      {update.fieldsDisplay}
+                    </div>
+                  )}
 
                   {/* Details Section */}
                   {update.details && (
