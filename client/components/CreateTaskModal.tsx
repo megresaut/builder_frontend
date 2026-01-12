@@ -326,20 +326,23 @@ export default function CreateTaskModal({
 
   // Set initial state for change detection in "update" variant
   useEffect(() => {
-    if (open && variant === "withMessageAndAttachments" && !initialState) {
-      setInitialState({
-        status,
-        priority,
-        dueDate,
-        assignees: selectedAssignees,
-        collaborators: selectedCollaborators,
-        message,
-        property,
-        unit,
-        category,
-      });
+    if (open && variant === "withMessageAndAttachments" && initialState === null) {
+      const timer = setTimeout(() => {
+        setInitialState({
+          status,
+          priority,
+          dueDate,
+          assignees: selectedAssignees,
+          collaborators: selectedCollaborators,
+          message,
+          property,
+          unit,
+          category,
+        });
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [open, variant, status, priority, dueDate, selectedAssignees, selectedCollaborators, message, property, unit, category, initialState]);
+  }, [open, variant]);
 
 
   return (
