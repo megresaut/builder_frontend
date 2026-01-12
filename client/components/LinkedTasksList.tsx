@@ -28,6 +28,7 @@ export const LinkedTasksList: React.FC<LinkedTasksListProps> = ({
   linkedTasks,
   onAdd,
   onUnlink,
+  onTaskClick,
   emptyMessage = "No linked tasks yet",
 }) => {
   const getStatusColor = (status: string) => {
