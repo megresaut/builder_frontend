@@ -34,6 +34,8 @@ const mockWorkOrders: WorkOrder[] = [
   {
     id: 1,
     task: "Doors need to be repaired",
+    property: "Downtown Building",
+    unit: "Unit 101",
     dueDate: "Oct 2, 2025",
     updatedDate: "Oct 2, 2025",
     age: "6 days 5 hours",
@@ -44,10 +46,15 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
+    collaborators: [
+      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+    ],
   },
   {
     id: 2,
-    task: "Doors need to be repaired",
+    task: "HVAC maintenance needed",
+    property: "Riverside Complex",
+    unit: "Unit 205",
     dueDate: "Sep 29, 2025",
     updatedDate: "Sep 29, 2025",
     age: "6 days 5 hours",
@@ -58,10 +65,16 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
+    collaborators: [
+      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+    ],
   },
   {
     id: 3,
-    task: "Doors need to be repaired",
+    task: "Window replacement",
+    property: "Central Plaza",
+    unit: "Unit 312",
     dueDate: "Sep 10, 2025",
     updatedDate: "Sep 10, 2025",
     age: "6 days 5 hours",
@@ -72,6 +85,7 @@ const mockWorkOrders: WorkOrder[] = [
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
+    collaborators: [],
   },
 ];
 
