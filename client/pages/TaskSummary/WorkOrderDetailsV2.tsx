@@ -486,6 +486,21 @@ export default function WorkOrderDetailsV2({
         title={viewingFileName}
         url={viewingFileUrl || ""}
       />
+
+      <CreateWorkOrderModalV2
+        open={isUpdateWorkOrderModalOpen}
+        onOpenChange={setIsUpdateWorkOrderModalOpen}
+        mode="edit"
+        initialData={{
+          workOrderName: workOrder.task,
+          vendor: workOrder.vendorName || "",
+          property: workOrder.property,
+          unit: workOrder.unit,
+          status: workOrder.status,
+          priority: workOrder.priority,
+          dueDate: workOrder.dueDate ? new Date(workOrder.dueDate) : null,
+        }}
+      />
     </div>
   );
 }
