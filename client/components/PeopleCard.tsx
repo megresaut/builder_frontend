@@ -16,6 +16,7 @@ export interface PeopleSubsectionProps {
   density?: "default" | "compact";
   showSecondaryMetaColumn?: boolean;
   tabIndex?: number | number[];
+  type?: "assignee" | "collaborator";
 }
 
 interface PeopleCardProps {
