@@ -1592,6 +1592,7 @@ export default function TaskSummary() {
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
             author: "Julia LoSchiavo",
+            authorType: "assignee",
             action: updateAction,
             timestamp: new Date().toLocaleString(),
             details: details.length > 0 ? <div className="flex flex-col gap-5">{details}</div> : undefined,
