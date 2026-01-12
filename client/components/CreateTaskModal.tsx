@@ -188,7 +188,19 @@ export default function CreateTaskModal({
         );
       }
     }
-  }, [open, editData?.id]);
+
+    // Initialize baseline state for the "update" variant
+    if (open && variant === "withMessageAndAttachments") {
+      setInitialState({
+        status,
+        priority,
+        dueDate,
+        assignees: selectedAssignees,
+        collaborators: selectedCollaborators,
+        message,
+      });
+    }
+  }, [open, editData?.id, variant]);
 
   // Clear form when modal closes
   useEffect(() => {
