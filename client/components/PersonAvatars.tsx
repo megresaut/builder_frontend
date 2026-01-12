@@ -42,7 +42,7 @@ export const PersonAvatars: React.FC<PersonAvatarsProps> = ({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 mt-1">
       {people.map((person, idx) => {
         const name = person.name || person.label || "Unknown";
         const initials = person.initials || (name || "?").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
