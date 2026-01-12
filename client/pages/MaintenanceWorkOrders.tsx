@@ -33,6 +33,7 @@ interface WorkOrder {
   billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
   billTotal: string;
   assignees: Assignee[];
+  collaborators: Assignee[];
 }
 
 const mockWorkOrders: WorkOrder[] = [
