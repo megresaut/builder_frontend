@@ -566,7 +566,7 @@ export default function CreateTaskModal({
                 onFilesAdded={fileUpload.addFiles}
                 onFileRemoved={fileUpload.removeFile}
                 onViewFile={fileUpload.viewFile}
-                disableInlineRename={true}
+                onFileRenamed={fileUpload.renameFile}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
                 maxFiles={10}
                 maxSize={10 * 1024 * 1024}
