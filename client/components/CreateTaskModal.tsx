@@ -18,9 +18,12 @@ import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { useFileUpload } from "@/hooks/useFileUpload";
 
+type ModalVariant = "compact" | "withMessageAndAttachments";
+
 interface CreateTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  variant?: ModalVariant;
   onTaskCreated?: (taskData: {
     title: string;
     description: string;
@@ -31,6 +34,7 @@ interface CreateTaskModalProps {
     status: string;
     assignees: MultiSelectOption[];
     collaborators: MultiSelectOption[];
+    message?: string;
   }) => void;
   editData?: {
     id: number;
@@ -67,6 +71,7 @@ export default function CreateTaskModal({
   onOpenChange,
   onTaskCreated,
   editData,
+  variant = "compact",
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -81,6 +86,7 @@ export default function CreateTaskModal({
   const [selectedCollaborators, setSelectedCollaborators] = useState<
     MultiSelectOption[]
   >([]);
+  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<{
     title?: boolean;
   }>({});
@@ -99,13 +105,16 @@ export default function CreateTaskModal({
       title?: string;
     } = {};
 
-    if (!title.trim()) {
-      newErrors.title = true;
-      newErrorMessages.title = "Task name is required";
-    }
-    if (title.trim().length > 125) {
-      newErrors.title = true;
-      newErrorMessages.title = "Task name must be 125 characters or less";
+    // Only validate title in compact mode; withMessageAndAttachments doesn't show it
+    if (variant === "compact") {
+      if (!title.trim()) {
+        newErrors.title = true;
+        newErrorMessages.title = "Task name is required";
+      }
+      if (title.trim().length > 125) {
+        newErrors.title = true;
+        newErrorMessages.title = "Task name must be 125 characters or less";
+      }
     }
 
     setErrors(newErrors);
@@ -125,6 +134,7 @@ export default function CreateTaskModal({
         status,
         assignees: selectedAssignees,
         collaborators: selectedCollaborators,
+        ...(variant === "withMessageAndAttachments" && { message }),
       };
       onTaskCreated?.(taskData);
       onOpenChange(false);
@@ -184,6 +194,7 @@ export default function CreateTaskModal({
       setStatus("not_started");
       setSelectedAssignees([]);
       setSelectedCollaborators([]);
+      setMessage("");
       setErrors({});
       setErrorMessages({});
     }
@@ -195,150 +206,234 @@ export default function CreateTaskModal({
         open={open}
         onOpenChange={onOpenChange}
         onClose={handleCancel}
-        title={editData ? "Edit Task" : "Create Task"}
+        title={variant === "withMessageAndAttachments" ? "Update task" : (editData ? "Edit Task" : "Create Task")}
         size="lg"
         footer={
           <ModalButtons
             onCancel={handleCancel}
             onConfirm={handleSubmit}
             cancelLabel="Cancel"
-            confirmLabel={editData ? "Update Task" : "Create Task"}
+            confirmLabel={variant === "withMessageAndAttachments" ? "Save Update" : (editData ? "Update Task" : "Create Task")}
           />
         }
       >
         <FormLayout>
-          <FormSection title="Task Details" showDivider={true}>
-            {/* Task Name - Full Width, First Field */}
-            <TextField
-            label="Task Name"
-            required
-            value={title}
-            onChange={(e) => {
-              const newValue = e.target.value.slice(0, 125);
-              setTitle(newValue);
-              if (errors.title && newValue.trim()) {
-                setErrors((prev) => ({ ...prev, title: false }));
-                setErrorMessages((prev) => ({ ...prev, title: undefined }));
-              }
-            }}
-            error={errorMessages.title}
-            placeholder="Type Task Name"
-            maxLength={125}
-          />
-
-          {/* Description - Full Width */}
-          <TextAreaField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Insert Description Here"
-          />
-
-          {/* Property + Unit - 2 Columns */}
-          <FormFieldRow columns={2}>
-            <SelectField
-              label="Property"
-              value={property}
-              onChange={(value) => {
-                setProperty(value);
-                // Clear unit when property changes
-                if (value !== property) {
-                  setUnit("");
+          {variant === "compact" && (
+            <FormSection title="Task Details" showDivider={true}>
+              {/* Task Name - Full Width, First Field */}
+              <TextField
+              label="Task Name"
+              required
+              value={title}
+              onChange={(e) => {
+                const newValue = e.target.value.slice(0, 125);
+                setTitle(newValue);
+                if (errors.title && newValue.trim()) {
+                  setErrors((prev) => ({ ...prev, title: false }));
+                  setErrorMessages((prev) => ({ ...prev, title: undefined }));
                 }
               }}
-              placeholder="Select Property"
-              options={[
-                { value: "property1", label: "22 Indian Chase Dr" },
-                { value: "property2", label: "Property 2" },
-              ]}
+              error={errorMessages.title}
+              placeholder="Type Task Name"
+              maxLength={125}
             />
-            <SelectField
-              label="Unit"
-              value={unit}
-              onChange={setUnit}
-              placeholder="Select Unit If Applicable"
-              disabled={!property}
-              options={
-                property
-                  ? [
-                      { value: "unit1", label: "Unit 1" },
-                      { value: "unit2", label: "Unit 2" },
-                    ]
-                  : []
-              }
-            />
-          </FormFieldRow>
 
-          {/* Priority + Due Date + Status - 3 Columns */}
-          <FormFieldRow columns={3}>
-            <SelectField
-              label="Priority"
-              value={priority}
-              onChange={setPriority}
-              placeholder="Select Priority"
-              options={[
-                { value: "low", label: "Low" },
-                { value: "normal", label: "Normal" },
-                { value: "high", label: "High" },
-              ]}
+            {/* Description - Full Width */}
+            <TextAreaField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Insert Description Here"
             />
-            <DateField
-              label="Due Date"
-              value={dueDate}
-              onChange={setDueDate}
-              placeholder="mm/dd/yyyy"
-              returnFormat="Date"
-            />
-            <SelectField
-              label="Status"
-              value={status}
-              onChange={setStatus}
-              placeholder="Select Status"
-              options={[
-                { value: "not_started", label: "Not Started" },
-                { value: "in_progress", label: "In Progress" },
-                { value: "completed", label: "Completed" },
-              ]}
-            />
-          </FormFieldRow>
 
-          {/* Attachments - Full Width */}
-          <FileUploadField
-            label="Attachments"
-            files={fileUpload.files}
-            onFilesAdded={fileUpload.addFiles}
-            onFileRemoved={fileUpload.removeFile}
-            onViewFile={fileUpload.viewFile}
-            onFileRenamed={(fileId, newName) => {
-              // Update file name in the list
-              // Note: Full rename editing happens in the PDF viewer modal
-            }}
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
-            maxFiles={10}
-            maxSize={10 * 1024 * 1024}
-            placeholder="Drag and drop files here, or click to browse"
-          />
-        </FormSection>
+            {/* Property + Unit - 2 Columns */}
+            <FormFieldRow columns={2}>
+              <SelectField
+                label="Property"
+                value={property}
+                onChange={(value) => {
+                  setProperty(value);
+                  // Clear unit when property changes
+                  if (value !== property) {
+                    setUnit("");
+                  }
+                }}
+                placeholder="Select Property"
+                options={[
+                  { value: "property1", label: "22 Indian Chase Dr" },
+                  { value: "property2", label: "Property 2" },
+                ]}
+              />
+              <SelectField
+                label="Unit"
+                value={unit}
+                onChange={setUnit}
+                placeholder="Select Unit If Applicable"
+                disabled={!property}
+                options={
+                  property
+                    ? [
+                        { value: "unit1", label: "Unit 1" },
+                        { value: "unit2", label: "Unit 2" },
+                      ]
+                    : []
+                }
+              />
+            </FormFieldRow>
 
-        <FormSection title="Assignment" showDivider={true}>
-          {/* Assignees + Collaborators - 2 Columns */}
-          <FormFieldRow columns={2}>
-            <MultiSelectField
-              label="Assignees"
-              value={selectedAssignees}
-              onChange={setSelectedAssignees}
-              placeholder="Select assignees"
-              options={AVAILABLE_ASSIGNEES}
+            {/* Priority + Due Date + Status - 3 Columns */}
+            <FormFieldRow columns={3}>
+              <SelectField
+                label="Priority"
+                value={priority}
+                onChange={setPriority}
+                placeholder="Select Priority"
+                options={[
+                  { value: "low", label: "Low" },
+                  { value: "normal", label: "Normal" },
+                  { value: "high", label: "High" },
+                ]}
+              />
+              <DateField
+                label="Due Date"
+                value={dueDate}
+                onChange={setDueDate}
+                placeholder="mm/dd/yyyy"
+                returnFormat="Date"
+              />
+              <SelectField
+                label="Status"
+                value={status}
+                onChange={setStatus}
+                placeholder="Select Status"
+                options={[
+                  { value: "not_started", label: "Not Started" },
+                  { value: "in_progress", label: "In Progress" },
+                  { value: "completed", label: "Completed" },
+                ]}
+              />
+            </FormFieldRow>
+
+            {/* Attachments - Full Width */}
+            <FileUploadField
+              label="Attachments"
+              files={fileUpload.files}
+              onFilesAdded={fileUpload.addFiles}
+              onFileRemoved={fileUpload.removeFile}
+              onViewFile={fileUpload.viewFile}
+              onFileRenamed={(fileId, newName) => {
+                // Update file name in the list
+                // Note: Full rename editing happens in the PDF viewer modal
+              }}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+              maxFiles={10}
+              maxSize={10 * 1024 * 1024}
+              placeholder="Drag and drop files here, or click to browse"
             />
-            <MultiSelectField
-              label="Collaborators"
-              value={selectedCollaborators}
-              onChange={setSelectedCollaborators}
-              placeholder="Select collaborators"
-              options={AVAILABLE_COLLABORATORS}
-            />
-          </FormFieldRow>
           </FormSection>
+          )}
+
+          {variant === "withMessageAndAttachments" && (
+            <FormSection title="Update Details" showDivider={true}>
+              {/* Priority + Due Date + Status - 3 Columns */}
+              <FormFieldRow columns={3}>
+                <SelectField
+                  label="Status"
+                  value={status}
+                  onChange={setStatus}
+                  placeholder="Select Status"
+                  options={[
+                    { value: "not_started", label: "Not Started" },
+                    { value: "in_progress", label: "In Progress" },
+                    { value: "completed", label: "Completed" },
+                  ]}
+                />
+                <SelectField
+                  label="Priority"
+                  value={priority}
+                  onChange={setPriority}
+                  placeholder="Select Priority"
+                  options={[
+                    { value: "low", label: "Low" },
+                    { value: "normal", label: "Normal" },
+                    { value: "high", label: "High" },
+                  ]}
+                />
+                <DateField
+                  label="Due Date"
+                  value={dueDate}
+                  onChange={setDueDate}
+                  placeholder="mm/dd/yyyy"
+                  returnFormat="Date"
+                />
+              </FormFieldRow>
+
+              {/* Assignees + Collaborators - 2 Columns */}
+              <FormFieldRow columns={2}>
+                <MultiSelectField
+                  label="Assigned To"
+                  value={selectedAssignees}
+                  onChange={setSelectedAssignees}
+                  placeholder="Select assignees"
+                  options={AVAILABLE_ASSIGNEES}
+                />
+                <MultiSelectField
+                  label="Collaborators"
+                  value={selectedCollaborators}
+                  onChange={setSelectedCollaborators}
+                  placeholder="Select collaborators"
+                  options={AVAILABLE_COLLABORATORS}
+                />
+              </FormFieldRow>
+
+              {/* Message - Full Width */}
+              <TextAreaField
+                label="Message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Add a message…"
+              />
+
+              {/* Attachments - Full Width */}
+              <FileUploadField
+                label="Attachments"
+                files={fileUpload.files}
+                onFilesAdded={fileUpload.addFiles}
+                onFileRemoved={fileUpload.removeFile}
+                onViewFile={fileUpload.viewFile}
+                onFileRenamed={(fileId, newName) => {
+                  // Update file name in the list
+                  // Note: Full rename editing happens in the PDF viewer modal
+                }}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+                maxFiles={10}
+                maxSize={10 * 1024 * 1024}
+                placeholder="Drag and drop files here, or click to browse"
+              />
+            </FormSection>
+          )}
+
+          {variant === "compact" && (
+            <FormSection title="Assignment" showDivider={true}>
+              {/* Assignees + Collaborators - 2 Columns */}
+              <FormFieldRow columns={2}>
+                <MultiSelectField
+                  label="Assignees"
+                  value={selectedAssignees}
+                  onChange={setSelectedAssignees}
+                  placeholder="Select assignees"
+                  options={AVAILABLE_ASSIGNEES}
+                />
+                <MultiSelectField
+                  label="Collaborators"
+                  value={selectedCollaborators}
+                  onChange={setSelectedCollaborators}
+                  placeholder="Select collaborators"
+                  options={AVAILABLE_COLLABORATORS}
+                />
+              </FormFieldRow>
+            </FormSection>
+          )}
         </FormLayout>
       </ModalTemplate>
 
