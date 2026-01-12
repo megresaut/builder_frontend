@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
+import type { Note, File } from "@/components/templates";
 import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -778,6 +779,52 @@ export default function MaintenanceWorkOrders() {
           if (!open) {
             setEditingWorkOrder(null);
           }
+        }}
+        onDataUpdate={(data) => {
+          const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
+
+          const newNotes: Note[] = data.notes ? [{
+            id: 1,
+            text: data.notes,
+            date: new Date().toLocaleString(),
+            author: "Julia LoSchiavo",
+          }] : [];
+
+          const newFiles: File[] = data.files ? data.files.map((uf, idx) => ({
+            id: idx + 1,
+            name: uf.name,
+            url: uf.url || "#",
+            uploadedAt: new Date().toLocaleString(),
+            category: "Work Order",
+            description: "",
+          })) : [];
+
+          const newWorkOrder = {
+            id: newId,
+            task: data.workOrderName || data.task || "New Work Order",
+            taskId: 1, // Default task ID
+            property: data.property || "",
+            unit: data.unit || "",
+            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
+            updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            age: "Just now",
+            priority: data.priority === "high" ? "High" : data.priority === "low" ? "Low" : "Normal",
+            status: data.status === "completed" ? "Completed" : "In progress",
+            billStatus: "Awaiting Invoice",
+            billTotal: "No invoice",
+            assignees: [],
+            collaborators: [],
+            vendorName: data.vendor || "",
+            notes: newNotes,
+            files: newFiles,
+          };
+
+          setWorkOrders(prev => [newWorkOrder as any, ...prev]);
+          setIsCreateWorkOrderModalOpen(false);
+
+          navigate(`/tasks/${newWorkOrder.taskId}/workorders/${newWorkOrder.id}`, {
+            state: { newWorkOrder }
+          });
         }}
       />
 
