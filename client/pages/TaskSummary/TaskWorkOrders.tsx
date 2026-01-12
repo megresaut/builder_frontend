@@ -299,8 +299,6 @@ export default function TaskWorkOrders({
   } = useColumnManagement([
     "priority",
     "task",
-    "property",
-    "unit",
     "updatedDate",
     "age",
     "status",
