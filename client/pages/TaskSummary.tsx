@@ -83,6 +83,50 @@ export default function TaskSummary() {
       action: "updated status to ✓ Completed for Work Order #1024431",
       timestamp: "11/12/2025 9:22 PM",
     },
+    {
+      id: 4,
+      initials: "JL",
+      author: "Julia LoSchiavo",
+      action: "created this task",
+      timestamp: "11/12/2025 9:22 PM",
+      details: (
+        <div className="space-y-2">
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Name:</span>{" "}
+            <span className="text-[#303030]">Edgerton - Quote</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Description:</span>{" "}
+            <span className="text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants.</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Property:</span>{" "}
+            <span className="text-[#303030]">(C) 51 Willowmere Circle, Riverside CT 06878 -1</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Unit:</span>{" "}
+            <span className="text-[#303030]">Unit 1A</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Status:</span>{" "}
+            <span className="text-[#303030]">Not Started</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Priority:</span>{" "}
+            <span className="text-[#303030]">Normal</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Due Date:</span>{" "}
+            <span className="text-[#303030]">Oct 15, 2025</span>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-[#71717A]">Assigned To:</span>{" "}
+            <span className="text-[#303030]">Julia LoSchiavo</span>
+          </div>
+        </div>
+      ),
+      icon: <FlagIcon width={16} height={16} />,
+    },
   ]);
 
   // Modal states
