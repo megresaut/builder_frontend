@@ -1608,7 +1608,7 @@ export default function TaskSummary() {
             },
           };
           setUpdates([newUpdate, ...updates]);
-          setIsEditTaskModalOpen(false);
+          uiDispatch({ type: "CLOSE_MODAL", payload: "editTask" });
         }}
       />
 
