@@ -63,6 +63,13 @@ export default function TaskSummary() {
     (tab as "summary" | "workorders" | "fieldteam") || "summary"
   );
 
+  // Initialize selectedWorkOrderId from URL params on mount
+  useEffect(() => {
+    if (workOrderId && !uiState.selectedWorkOrderId) {
+      uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: parseInt(workOrderId) });
+    }
+  }, [workOrderId, uiState.selectedWorkOrderId, uiDispatch]);
+
   // Sync UI state to navigation
   useEffect(() => {
     // If we're on the base task path and the state is summary, don't force a redirect
