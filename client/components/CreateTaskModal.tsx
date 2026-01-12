@@ -73,7 +73,7 @@ export default function CreateTaskModal({
   editData,
   variant = "compact",
   onModalClose,
-}: CreateTaskModalProps & { onModalClose?: () => void }) {
+}: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [property, setProperty] = useState("");
