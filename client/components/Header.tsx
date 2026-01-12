@@ -799,13 +799,10 @@ export default function Header({
   useEffect(() => {
     if (!selectedTab) return;
 
-    // We check existence within the set state to avoid stale closure issues
-    // and multiple simultaneous updates
-    setTabs((prevTabs) => {
-      const tabExists = prevTabs.some((tab) => tab.id === selectedTab);
+    // Check if tab already exists in current tabs state
+    const tabExists = tabs.some((tab) => tab.id === selectedTab);
 
-      if (tabExists) return prevTabs;
-
+    if (!tabExists) {
       // Create dynamic tab if it's a task or vendor
       if (selectedTab.startsWith("task-")) {
         const taskId = selectedTab.replace("task-", "");
@@ -842,13 +839,19 @@ export default function Header({
           </svg>
         );
 
-        return [...prevTabs, {
-          id: selectedTab,
-          label: taskLabel,
-          icon: maintenanceIcon,
-          iconLight: maintenanceIcon,
-          iconDark: maintenanceIcon,
-        }];
+        setTabs((prevTabs) => {
+          // Double-check that the tab doesn't already exist before adding
+          if (prevTabs.some((tab) => tab.id === selectedTab)) {
+            return prevTabs;
+          }
+          return [...prevTabs, {
+            id: selectedTab,
+            label: taskLabel,
+            icon: maintenanceIcon,
+            iconLight: maintenanceIcon,
+            iconDark: maintenanceIcon,
+          }];
+        });
       } else if (selectedTab.startsWith("vendor-")) {
         const vendorId = selectedTab.replace("vendor-", "");
         const vendorData: Record<string, string> = {
@@ -865,14 +868,19 @@ export default function Header({
         };
         const vendorLabel = vendorData[vendorId] || `Vendor ${vendorId}`;
 
-        return [...prevTabs, {
-          id: selectedTab,
-          label: vendorLabel,
-        }];
+        setTabs((prevTabs) => {
+          if (prevTabs.some((tab) => tab.id === selectedTab)) {
+            return prevTabs;
+          }
+          return [...prevTabs, {
+            id: selectedTab,
+            label: vendorLabel,
+          }];
+        });
       }
-      return prevTabs;
-    });
+    }
 
+    // Add tab to open tabs set
     setOpenTabs((prevOpenTabs) => {
       if (prevOpenTabs.has(selectedTab)) return prevOpenTabs;
       const newOpenTabs = new Set(prevOpenTabs);
@@ -881,7 +889,7 @@ export default function Header({
     });
 
     navigateToTabRoute(selectedTab);
-  }, [selectedTab]);
+  }, [selectedTab, tabs]);
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
