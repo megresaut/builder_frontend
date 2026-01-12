@@ -319,7 +319,7 @@ export default function CreateTaskModal({
       setErrorMessages({});
       fileUpload.reset();
     }
-  }, [open, fileUpload]);
+  }, [open]);
 
   // For Update variant: always keep message and attachments empty
   useEffect(() => {
