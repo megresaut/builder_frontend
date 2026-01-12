@@ -160,8 +160,11 @@ export default function WorkOrderDetailsV2({
       ...workOrder,
       status: formData.status || workOrder.status,
       priority: formData.priority || workOrder.priority,
-      dueDate: formData.dueDate ? (formData.dueDate instanceof Date ? formData.dueDate.toISOString() : String(formData.dueDate)) : workOrder.dueDate,
+      dueDate: formData.dueDate ? (formData.dueDate instanceof Date ? formData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : String(formData.dueDate)) : workOrder.dueDate,
       vendorName: formData.vendor || workOrder.vendorName,
+      task: formData.workOrderName || workOrder.task,
+      property: formData.property || workOrder.property,
+      unit: formData.unit || workOrder.unit,
     };
 
     if (onWorkOrderUpdate) {
