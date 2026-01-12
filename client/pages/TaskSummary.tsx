@@ -40,6 +40,7 @@ export default function TaskSummary() {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationState = location.state as any;
+  const { setSelectedTab, setTabMetadata, tabMetadata } = useTabContext();
   const [activeTab, setActiveTab] = useState<
     "summary" | "workorders" | "fieldteam"
   >((tab as "summary" | "workorders" | "fieldteam") || "summary");
