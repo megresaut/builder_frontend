@@ -798,6 +798,27 @@ export default function TaskSummary() {
     return Array.from(uniqueVendors.values());
   }, [workOrders]);
 
+  // Extract unique field team members from field team orders
+  const fieldTeamFromOrders = useMemo(() => {
+    const uniqueFieldTeam = new Map<string, { id: string; name: string; initials: string }>();
+    fieldTeamOrders.forEach((order) => {
+      if (order.fieldTeam && Array.isArray(order.fieldTeam)) {
+        order.fieldTeam.forEach((member: { name: string; initials: string }) => {
+          if (member.name && member.name.trim()) {
+            if (!uniqueFieldTeam.has(member.name)) {
+              uniqueFieldTeam.set(member.name, {
+                id: `fieldteam-${uniqueFieldTeam.size + 1}`,
+                name: member.name,
+                initials: member.initials || member.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2),
+              });
+            }
+          }
+        });
+      }
+    });
+    return Array.from(uniqueFieldTeam.values());
+  }, [fieldTeamOrders]);
+
   // Memoize editData to prevent unnecessary re-initialization of the modal
   const modalEditData = useMemo(() => ({
     id: parseInt(taskId || "0"),
