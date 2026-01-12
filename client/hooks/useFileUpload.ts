@@ -16,6 +16,7 @@ interface UseFileUploadResult {
   saveFileName: () => void;
   cancelRenaming: () => void;
   cleanup: () => void;
+  reset: () => void;
 }
 
 /**
@@ -132,6 +133,15 @@ export function useFileUpload(): UseFileUploadResult {
     });
   }, [files]);
 
+  const reset = useCallback(() => {
+    cleanup();
+    setFiles([]);
+    setIsViewFileOpen(false);
+    setSelectedFileForView(null);
+    setIsRenamingFile(false);
+    setRenamingFileName("");
+  }, [cleanup]);
+
   return {
     files,
     selectedFileForView,
@@ -147,5 +157,6 @@ export function useFileUpload(): UseFileUploadResult {
     saveFileName,
     cancelRenaming,
     cleanup,
+    reset,
   };
 }
