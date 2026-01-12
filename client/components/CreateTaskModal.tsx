@@ -489,22 +489,7 @@ export default function CreateTaskModal({
               onFilesAdded={fileUpload.addFiles}
               onFileRemoved={fileUpload.removeFile}
               onViewFile={fileUpload.viewFile}
-              onFileRenamed={(fileId, newName) => {
-                // Update the file name in the files array
-                const updatedFiles = fileUpload.files.map((f) =>
-                  f.id === fileId ? { ...f, name: newName } : f
-                );
-                // Re-add files to trigger state update (using the same mechanism as addFiles)
-                const renamedFile = updatedFiles.find((f) => f.id === fileId);
-                if (renamedFile) {
-                  // Update by replacing the entire array with renamed file
-                  fileUpload.files.forEach((f) => {
-                    if (f.id === fileId && f.name !== newName) {
-                      f.name = newName;
-                    }
-                  });
-                }
-              }}
+              onFileRenamed={fileUpload.renameFile}
               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
               maxFiles={10}
               maxSize={10 * 1024 * 1024}
