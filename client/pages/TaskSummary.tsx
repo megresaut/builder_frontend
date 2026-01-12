@@ -508,14 +508,17 @@ export default function TaskSummary() {
                     {
                       label: "Created by",
                       mode: "rows",
-                      people: isNewTask ? [] : [
-                        {
-                          id: 4,
-                          name: "Julia LoSchiavo",
-                          initials: "JL",
-                          roleLabel: "Staff member",
-                          phone: "(203) 927-1280",
-                        },
+                      people: [
+                        // For new tasks, show empty placeholder; for existing tasks, show the actual creator
+                        ...(isNewTask ? [] : [
+                          {
+                            id: 4,
+                            name: "Julia LoSchiavo",
+                            initials: "JL",
+                            roleLabel: "Staff member",
+                            phone: "(203) 927-1280",
+                          },
+                        ]),
                       ],
                       showRoleLabel: true,
                       showPhone: true,
@@ -524,7 +527,7 @@ export default function TaskSummary() {
                     {
                       label: "Rental owners",
                       mode: "rows",
-                      people: isNewTask || !navigationState?.taskData?.property ? [] : [
+                      people: (navigationState?.taskData?.property && !navigationState?.taskData?.property?.includes("Unassigned")) ? [
                         {
                           id: 5,
                           name: "Peter & Ali Jennison",
@@ -532,7 +535,7 @@ export default function TaskSummary() {
                           roleLabel: "Rental Owner",
                           phone: "(203) 927-1280",
                         },
-                      ],
+                      ] : [],
                       showRoleLabel: true,
                       showPhone: true,
                       showDivider: true,
