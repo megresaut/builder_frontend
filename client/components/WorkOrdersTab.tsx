@@ -135,6 +135,8 @@ export default function WorkOrdersTab({
   } = useColumnManagement([
     "priority",
     "task",
+    "property",
+    "unit",
     "updatedDate",
     "age",
     "status",
@@ -142,6 +144,7 @@ export default function WorkOrdersTab({
     "billStatus",
     "billTotal",
     "assignees",
+    "collaborators",
   ]);
 
   const columns = [
