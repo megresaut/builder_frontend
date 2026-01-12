@@ -924,7 +924,11 @@ export default function TaskSummary() {
           {/* Show TaskWorkOrders component when work orders tab is active */}
           {uiState.activeTab === "workorders" && (
             selectedWorkOrder ? (
-              <WorkOrderDetailsV2 workOrder={selectedWorkOrder} />
+              <WorkOrderDetailsV2
+                workOrder={selectedWorkOrder}
+                currentAssignees={currentAssignees}
+                currentCollaborators={currentCollaborators}
+              />
             ) : (
               <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
             )
