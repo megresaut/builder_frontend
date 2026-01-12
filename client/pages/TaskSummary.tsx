@@ -1292,7 +1292,7 @@ export default function TaskSummary() {
             author: "You",
             action: "updated the task",
             timestamp: new Date().toLocaleString(),
-            details: details.length > 0 ? <div className="flex flex-col gap-2">{details}</div> : undefined,
+            details: details.length > 0 ? <div className="flex flex-col gap-5">{details}</div> : undefined,
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
