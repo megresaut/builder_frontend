@@ -180,14 +180,16 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-sm text-[#303030] leading-snug">
-                        <div className="relative group/author">
-                          <div className="flex items-center justify-center w-6 h-6 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-[10px] leading-none flex-shrink-0 cursor-help">
-                            {update.initials || update.author.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
-                          </div>
-                          <div className="absolute bottom-full left-0 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/author:opacity-100 transition-opacity pointer-events-none z-50">
-                            {update.author}
-                          </div>
-                        </div>
+                        <PersonAvatars
+                          people={[
+                            {
+                              name: update.author,
+                              initials: update.initials || update.author.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2),
+                            },
+                          ]}
+                          type="assignee"
+                          size="sm"
+                        />
                         <div className="flex-1 truncate">
                           {update.action}
                           {update.actionValue && (
