@@ -969,6 +969,7 @@ export default function TaskSummary() {
                 defaultProperty={currentProperty}
                 defaultTask={currentTitle}
                 taskId={taskId || "0"}
+                onWorkOrderSelect={handleWorkOrderSelect}
               />
             )
           )}
