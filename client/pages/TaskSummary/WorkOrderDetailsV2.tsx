@@ -113,7 +113,6 @@ export default function WorkOrderDetailsV2({
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>("");
-  const [isViewMapsOpen, setIsViewMapsOpen] = useState(false);
 
   const handleDismissNotification = (id: number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
