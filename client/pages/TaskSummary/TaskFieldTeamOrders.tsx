@@ -69,12 +69,12 @@ interface APIFTOResponse {
   updated_at?: string;
 }
 
-const mockUsers: Record<number, { id: number; name: string }> = {
-  1: { id: 1, name: "Christopher Harris" },
-  2: { id: 2, name: "Cassandra Smith" },
-  3: { id: 3, name: "David Chen" },
-  4: { id: 4, name: "Emma Rodriguez" },
-  5: { id: 5, name: "James Wilson" },
+const mockUsers: Record<number, { id: number; name: string; email: string; phone: string; title: string }> = {
+  1: { id: 1, name: "Christopher Harris", email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
+  2: { id: 2, name: "Cassandra Smith", email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
+  3: { id: 3, name: "David Chen", email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
+  4: { id: 4, name: "Emma Rodriguez", email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
+  5: { id: 5, name: "James Wilson", email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
 };
 
 const getInitials = (name: string): string => {
@@ -88,13 +88,17 @@ const getInitials = (name: string): string => {
 
 const resolveFieldTeamMembers = (
   memberIds: number[]
-): Array<{ initials: string; color: string; name: string }> => {
+): Array<{ id: number; initials: string; color: string; name: string; email: string; phone: string; title: string }> => {
   return memberIds.map((id) => {
-    const user = mockUsers[id] || { id, name: "Unknown User" };
+    const user = mockUsers[id] || { id, name: "Unknown User", email: "", phone: "", title: "Field Team" };
     return {
+      id: user.id,
       initials: getInitials(user.name),
       color: "bg-blue-500",
       name: user.name,
+      email: user.email,
+      phone: user.phone,
+      title: user.title,
     };
   });
 };
