@@ -497,6 +497,7 @@ export default function TaskSummary() {
   const handleSaveAttachmentFileName = () => {
     const trimmedName = renamingAttachmentName.trim();
     if (viewingAttachment && viewingAttachment.id && trimmedName) {
+      // Update the main files state
       setFiles((prevFiles) =>
         prevFiles.map((f) =>
           f.id.toString() === viewingAttachment.id
@@ -504,6 +505,22 @@ export default function TaskSummary() {
             : f,
         ),
       );
+
+      // Update the attachment in the timeline updates
+      setUpdates((prevUpdates) =>
+        prevUpdates.map((update) => {
+          if (update.attachments && Array.isArray(update.attachments)) {
+            const updatedAttachments = update.attachments.map((att: any) =>
+              att.id === viewingAttachment.id
+                ? { ...att, name: trimmedName }
+                : att,
+            );
+            return { ...update, attachments: updatedAttachments };
+          }
+          return update;
+        }),
+      );
+
       setViewingAttachment({
         ...viewingAttachment,
         name: trimmedName,
