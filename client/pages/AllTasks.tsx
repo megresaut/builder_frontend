@@ -9,6 +9,8 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PersonAvatars from "@/components/PersonAvatars";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import PageTemplate from "@/layout/PageTemplate";
 import {
   EditIcon,
@@ -21,73 +23,6 @@ import {
 } from "@/components/icons";
 
 import { MOCK_TASKS, type Task } from "@/data/tasks";
-
-const StatusBadge = ({ status }: { status: string }) => {
-  const getStatusColor = (status: string) => {
-    if (status === "Completed") return "#059669";
-    if (status === "In Progress") return "#2463EB";
-    return "#6B7280";
-  };
-
-  const dotColor = getStatusColor(status);
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        color: dotColor,
-        fontSize: "14px",
-      }}
-    >
-      <div
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: dotColor,
-          flexShrink: 0,
-        }}
-      />
-      {status}
-    </div>
-  );
-};
-
-const PriorityBadge = ({ priority }: { priority: string }) => {
-  const getPriorityColor = (priority: string) => {
-    if (priority === "Low") return "#059669";
-    if (priority === "Normal") return "#2463EB";
-    if (priority === "High") return "#D97706";
-    return "#6B7280";
-  };
-
-  const dotColor = getPriorityColor(priority);
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        color: dotColor,
-        fontSize: "14px",
-      }}
-    >
-      <div
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: dotColor,
-          flexShrink: 0,
-        }}
-      />
-      {priority}
-    </div>
-  );
-};
 
 export default function AllTasks() {
   const navigate = useNavigate();
