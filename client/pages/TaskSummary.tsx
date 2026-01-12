@@ -550,6 +550,31 @@ export default function TaskSummary() {
     return propertyMap[propertyValue]?.address || "";
   };
 
+  // Map property values to rental owner information
+  const getRentalOwnerByProperty = (propertyValue: string | undefined): { id: number; name: string; initials: string; roleLabel: string; phone: string } | null => {
+    if (!propertyValue || propertyValue.includes("Unassigned")) {
+      return null;
+    }
+
+    const rentalOwnerMap: Record<string, { id: number; name: string; initials: string; roleLabel: string; phone: string }> = {
+      property1: {
+        id: 5,
+        name: "Peter & Ali Jennison",
+        initials: "PJ",
+        roleLabel: "Rental Owner",
+        phone: "(203) 927-1280",
+      },
+      property2: {
+        id: 6,
+        name: "Sarah Mitchell",
+        initials: "SM",
+        roleLabel: "Rental Owner",
+        phone: "(203) 555-1234",
+      },
+    };
+    return rentalOwnerMap[propertyValue] || null;
+  };
+
   const getPropertyName = (propertyValue: string): string => {
     const propertyMap: Record<string, { name: string; address: string }> = {
       property1: {
