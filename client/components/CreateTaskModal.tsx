@@ -278,29 +278,6 @@ export default function CreateTaskModal({
     }
   }, [open, editData?.id, variant]);
 
-  // Clear form when modal closes - use a ref to avoid excessive re-renders
-  const clearFormRef = React.useRef<boolean>(false);
-  useEffect(() => {
-    if (!open && !clearFormRef.current) {
-      clearFormRef.current = true;
-      // Reset all state in one batch to reduce update depth
-      setTitle("");
-      setDescription("");
-      setProperty("");
-      setUnit("");
-      setPriority("normal");
-      setDueDate(null);
-      setStatus("not_started");
-      setSelectedAssignees([]);
-      setSelectedCollaborators([]);
-      setMessage("");
-      setInitialState(null);
-      setErrors({});
-      setErrorMessages({});
-    } else if (open) {
-      clearFormRef.current = false;
-    }
-  }, [open]);
 
   return (
     <>
