@@ -57,11 +57,8 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               // For each update, allocate ~125px (includes gap and content height)
               // If last item is initial creation, stop before it
               bottom: updates[updates.length - 1]?.isInitialCreation && updates.length > 1
-                ? `calc(${(updates.length - 1) * 125 + 50}px)`
+                ? `${(updates.length - 1) * 125 + 50}px`
                 : "20px",
-              backgroundImage:
-                "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
-              backgroundSize: "100% 100%",
               clipPath: "inset(0 0 20px 0)",
             }}
           />
