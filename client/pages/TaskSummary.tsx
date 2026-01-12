@@ -772,6 +772,7 @@ export default function TaskSummary() {
             setIsEditTaskModalOpen(true);
           },
         }}
+        onBack={() => navigate("/all-tasks")}
         moreOptions={{
           onView: () => {
             // Handle view
