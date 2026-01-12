@@ -41,6 +41,10 @@ export default function TaskSummary() {
   const location = useLocation();
   const navigationState = location.state as any;
   const { setSelectedTab, setTabMetadata, tabMetadata } = useTabContext();
+
+  // Ref for tracking blob URLs created during task initialization
+  const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
+
   const [activeTab, setActiveTab] = useState<
     "summary" | "workorders" | "fieldteam"
   >((tab as "summary" | "workorders" | "fieldteam") || "summary");
