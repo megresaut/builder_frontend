@@ -18,7 +18,7 @@ export const RecordRowTemplate: React.FC<RecordRowTemplateProps> = ({
   isLast = false,
 }) => (
   <div
-    className={`flex items-center justify-between gap-6 px-3 py-2 ${
+    className={`flex items-center justify-between gap-6 px-4 py-2.5 ${
       !isLast ? "border-b border-[#DADADA]" : ""
     }`}
   >
