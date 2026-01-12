@@ -17,6 +17,8 @@ interface Assignee {
 interface WorkOrder {
   id: number;
   task: string;
+  property: string;
+  unit: string;
   dueDate: string;
   updatedDate: string;
   age: string;
@@ -25,6 +27,7 @@ interface WorkOrder {
   billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
   billTotal: string;
   assignees: Assignee[];
+  collaborators: Assignee[];
 }
 
 const mockWorkOrders: WorkOrder[] = [
