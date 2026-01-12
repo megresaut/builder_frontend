@@ -416,7 +416,7 @@ export default function WorkOrderDetailsV2({
                 WORK ORDER TOTAL
               </div>
               <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                $0.00
+                ${workOrderTotal.toFixed(2)}
               </div>
             </div>
           </div>
