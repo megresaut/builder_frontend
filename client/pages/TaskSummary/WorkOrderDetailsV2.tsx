@@ -106,6 +106,57 @@ export default function WorkOrderDetailsV2({
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 
+  const handleWorkOrderUpdate = (formData: {
+    property?: string;
+    unit?: string;
+    task?: string;
+    workOrderName?: string;
+    vendor?: string;
+    status?: string;
+    priority?: string;
+    dueDate?: Date | null;
+    notes?: string;
+    files?: UploadedFile[];
+  }) => {
+    // Update local state
+    if (formData.status) setStatus(formData.status);
+    if (formData.priority) setPriority(formData.priority);
+    if (formData.dueDate) setDueDate(formData.dueDate);
+    if (formData.notes) {
+      const newNote: Note = {
+        id: Math.max(0, ...notes.map(n => n.id)) + 1,
+        text: formData.notes,
+        date: new Date().toLocaleString(),
+        author: "Julia LoSchiavo",
+      };
+      setNotes([...notes, newNote]);
+    }
+    if (formData.files && formData.files.length > 0) {
+      const newFiles: File[] = formData.files.map((uf, idx) => ({
+        id: Math.max(0, ...files.map(f => f.id)) + idx + 1,
+        name: uf.name,
+        url: uf.url || "#",
+        uploadedAt: new Date().toLocaleString(),
+        category: "Work Order",
+        description: "",
+      }));
+      setFiles([...files, ...newFiles]);
+    }
+
+    // Update parent work orders list
+    const updatedWorkOrder: WorkOrder = {
+      ...workOrder,
+      status: formData.status || workOrder.status,
+      priority: formData.priority || workOrder.priority,
+      dueDate: formData.dueDate ? (formData.dueDate instanceof Date ? formData.dueDate.toISOString() : String(formData.dueDate)) : workOrder.dueDate,
+      vendorName: formData.vendor || workOrder.vendorName,
+    };
+
+    if (onWorkOrderUpdate) {
+      onWorkOrderUpdate(updatedWorkOrder);
+    }
+  };
+
   const handleAddNote = (text: string) => {
     if (editingNoteId) {
       setNotes(notes.map(n => n.id === editingNoteId ? { ...n, text, date: new Date().toLocaleString() } : n));
