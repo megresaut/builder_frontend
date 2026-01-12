@@ -207,7 +207,7 @@ export default function CreateTaskModal({
         onOpenChange={onOpenChange}
         onClose={handleCancel}
         title={variant === "withMessageAndAttachments" ? "Update task" : (editData ? "Edit Task" : "Create Task")}
-        size="lg"
+        size={variant === "withMessageAndAttachments" ? "md" : "lg"}
         footer={
           <ModalButtons
             onCancel={handleCancel}
