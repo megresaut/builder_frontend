@@ -69,7 +69,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               <div className="flex-1 flex items-center">
                 <button
                   onClick={onAddUpdate}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif] hover:bg-gray-100 hover:border-[#d4d4d8] transition-colors text-left"
+                  className="w-full px-4 py-2.5 bg-white border border-[#e5e5e5] rounded-lg text-base text-[#303030] font-['Geist',sans-serif] hover:bg-gray-50 hover:border-[#d4d4d8] transition-colors text-left"
                 >
                   Add an update...
                 </button>
