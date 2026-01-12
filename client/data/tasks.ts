@@ -2,6 +2,9 @@ export interface Assignee {
   id: number;
   name: string;
   initials: string;
+  email?: string;
+  phone?: string;
+  title?: string;
 }
 
 export interface Task {
