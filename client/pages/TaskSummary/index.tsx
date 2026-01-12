@@ -953,6 +953,8 @@ export default function TaskSummary() {
                 onWorkOrderUpdate={(updatedWorkOrder) => {
                   setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo));
                 }}
+                isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
+                onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
               />
             ) : (
               <TaskWorkOrders workOrders={workOrders} onWorkOrdersChange={setWorkOrders} />
