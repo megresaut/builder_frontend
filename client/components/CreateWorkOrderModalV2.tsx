@@ -337,6 +337,20 @@ export default function CreateWorkOrderModalV2({
         title={pdfViewer.title || "Document"}
         url={pdfViewer.url}
       />
+
+      <CreateTaskModal
+        open={isCreateTaskModalOpen}
+        onOpenChange={setIsCreateTaskModalOpen}
+        variant="compact"
+        onTaskCreated={(taskData) => {
+          // Set the created task as the selected task and close the Create Task modal
+          setFormData((prev) => ({
+            ...prev,
+            task: taskData.title,
+          }));
+          setIsCreateTaskModalOpen(false);
+        }}
+      />
     </>
   );
 }
