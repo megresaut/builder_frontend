@@ -7,7 +7,7 @@ interface SectionCardProps {
   children: ReactNode;
   className?: string;
   padding?: "default" | "compact" | "none";
-  variant?: "default" | "gray";
+  variant?: "default" | "gray" | "white";
 }
 
 /**
@@ -40,6 +40,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   const variantClasses = {
     default: "bg-[#f9f9f9] border border-[#e5e5e5]",
     gray: "bg-[#f3f3f3] border border-[#e5e5e5]",
+    white: "bg-white border border-[#e5e5e5]",
   }[variant];
 
   return (
