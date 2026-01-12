@@ -228,25 +228,11 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
 
   const handleSaveFileName = (fileId: string) => {
     const trimmedName = editingFileName.trim();
-    if (trimmedName) {
-      // Call parent callback to notify of rename
-      if (onFileRenamed) {
-        onFileRenamed(fileId, trimmedName);
-      }
-
-      // Also update the files array locally to reflect the new name
-      // This ensures the UI updates immediately
-      const updatedFiles = files.map((f) =>
-        f.id === fileId ? { ...f, name: trimmedName } : f
-      );
-      // Re-render by clearing editing state
-      setEditingFileId(null);
-      setEditingFileName("");
-    } else {
-      // If name is empty, just cancel editing
-      setEditingFileId(null);
-      setEditingFileName("");
+    if (trimmedName && onFileRenamed) {
+      onFileRenamed(fileId, trimmedName);
     }
+    setEditingFileId(null);
+    setEditingFileName("");
   };
 
   const handleCancelEditingFileName = () => {
