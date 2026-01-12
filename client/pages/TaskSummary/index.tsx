@@ -652,13 +652,13 @@ export default function TaskSummary() {
   };
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    // Clear selection immediately to avoid "glitches" during navigation
-    uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: null });
-    uiDispatch({ type: "SET_ACTIVE_TAB", payload: newTab });
+    // Navigate to the new tab without a work order selection
+    navigate(`/tasks/${taskId}/${newTab}`, { replace: false });
   };
 
   const handleWorkOrderSelect = (woId: number | null) => {
-    uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: woId });
+    // Don't update state directly - let URL params drive the state
+    // The effect will sync URL to state
   };
 
   const handleStartRenamingAttachment = () => {
