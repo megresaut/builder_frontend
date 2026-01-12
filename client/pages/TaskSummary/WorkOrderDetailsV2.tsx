@@ -321,7 +321,7 @@ export default function WorkOrderDetailsV2({
 
       {/* Field Selectors Row */}
       <SectionCard padding="none" variant="white">
-        <div className="flex flex-wrap items-end gap-6 w-full p-6">
+        <div className="flex flex-wrap items-end gap-6 w-full p-4">
           <div className="flex-1 min-w-[180px]">
             <StatusSelectField
               label="Status"
