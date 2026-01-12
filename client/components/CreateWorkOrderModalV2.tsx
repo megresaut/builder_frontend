@@ -51,6 +51,7 @@ interface CreateWorkOrderModalV2Props {
   }) => void;
 }
 
+// Base options for dropdowns
 const BASE_PROPERTIES = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
 const BASE_UNITS = ["N/A", "1", "2", "3", "4", "5"];
 const BASE_TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
