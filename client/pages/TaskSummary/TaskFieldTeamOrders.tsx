@@ -41,6 +41,10 @@ interface FieldTeamOrder {
   unit?: string;
   fieldTeamAssignee?: string;
   task?: string;
+  fieldTeamMemberIds?: number[];
+  pmAssigneeIds?: number[];
+  propertyId?: number;
+  dueDateISO?: string;
 }
 
 interface APIFTOResponse {
