@@ -339,6 +339,16 @@ export default function TaskSummary() {
     ];
   });
 
+  // Sync assignees and collaborators when taskData changes
+  useEffect(() => {
+    if (taskData?.assignees && taskData.assignees.length > 0) {
+      setCurrentAssignees(taskData.assignees);
+    }
+    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+      setCurrentCollaborators(taskData.collaborators);
+    }
+  }, [taskData?.assignees, taskData?.collaborators]);
+
   // Mock data types
   interface Assignee {
     id: number;
