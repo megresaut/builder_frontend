@@ -1321,8 +1321,8 @@ export default function TaskSummary() {
             // Add attachments from initial creation
             if (taskData.files && taskData.files.length > 0) {
               setFiles((prevFiles) => {
-                const newFiles: File[] = taskData.files.map((f: any, idx: number) => ({
-                  id: (prevFiles.length || 0) + idx + 1,
+                const newFiles: File[] = taskData.files.map((f: any) => ({
+                  id: String(f.id || f.name),
                   name: f.name,
                   url: f.url,
                   uploadedAt: new Date().toLocaleString(),
@@ -1508,7 +1508,7 @@ export default function TaskSummary() {
               const newFiles = (taskData as any).files
                 .filter((f: any) => !existingIds.has(f.id))
                 .map((f: any) => ({
-                  id: f.id || (Math.max(...updatedFiles.map(file => file.id), 0) + 1),
+                  id: String(f.id || f.name),
                   name: f.name,
                   url: f.url,
                   uploadedAt: new Date().toLocaleString(),
