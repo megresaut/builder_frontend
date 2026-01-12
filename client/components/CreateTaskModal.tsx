@@ -94,6 +94,16 @@ export default function CreateTaskModal({
     title?: string;
   }>({});
 
+  // Track initial state for detecting changes
+  const [initialState, setInitialState] = useState<{
+    status: string;
+    priority: string;
+    dueDate: Date | null;
+    assignees: MultiSelectOption[];
+    collaborators: MultiSelectOption[];
+    message: string;
+  } | null>(null);
+
   // File upload management
   const fileUpload = useFileUpload();
 
