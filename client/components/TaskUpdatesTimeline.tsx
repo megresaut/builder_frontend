@@ -54,10 +54,10 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
             className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
             style={{
               top: "20px",
-              // Always extend to near the bottom of all updates
-              // If last item is initial creation, stop before it; otherwise extend all the way
+              // Calculate based on number of updates. Each update is ~120px with gap
+              // Stop before the last item if it's initial creation
               bottom: updates[updates.length - 1]?.isInitialCreation && updates.length > 1
-                ? `${(updates.length - 1) * 110 + 30}px`
+                ? `${(updates.length - 1) * 120 + 40}px`
                 : "20px",
               clipPath: "inset(0 0 20px 0)",
               backgroundImage:
