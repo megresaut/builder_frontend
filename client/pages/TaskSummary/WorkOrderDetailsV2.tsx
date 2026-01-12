@@ -589,6 +589,7 @@ export default function WorkOrderDetailsV2({
         open={isUpdateWorkOrderModalOpen}
         onOpenChange={onUpdateWorkOrderModalOpenChange || (() => {})}
         mode="edit"
+        hideTaskSelection={true}
         initialData={{
           task: workOrder.task,
           workOrderName: workOrder.task,
