@@ -323,10 +323,10 @@ export default function CreateTaskModal({
     onOpenChange(false);
   }, [fileUpload.reset, onOpenChange]);
 
-  // Cleanup on component unmount
+  // Cleanup on component unmount - Removed automatic cleanup to prevent revoking blob URLs during navigation
   useEffect(() => {
     return () => {
-      fileUpload.cleanup();
+      // fileUpload.cleanup();
     };
   }, []);
 
