@@ -100,9 +100,9 @@ export default function WorkOrderDetailsV2({
     },
   ]);
 
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Note[]>(() => workOrder?.notes || []);
 
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>(() => workOrder?.files || []);
 
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
