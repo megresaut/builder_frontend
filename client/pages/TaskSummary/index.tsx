@@ -889,7 +889,11 @@ export default function TaskSummary() {
       <div className="flex flex-col mt-6 w-full">
         <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
           <button
-            onClick={() => handleTabChange("summary")}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleTabChange("summary");
+            }}
             className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
               uiState.activeTab === "summary"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
@@ -899,7 +903,11 @@ export default function TaskSummary() {
             Summary
           </button>
           <button
-            onClick={() => handleTabChange("workorders")}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleTabChange("workorders");
+            }}
             className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
               uiState.activeTab === "workorders"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
@@ -909,7 +917,11 @@ export default function TaskSummary() {
             Work orders
           </button>
           <button
-            onClick={() => handleTabChange("fieldteam")}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleTabChange("fieldteam");
+            }}
             className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
               uiState.activeTab === "fieldteam"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
