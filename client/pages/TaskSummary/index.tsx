@@ -77,7 +77,7 @@ export default function TaskSummary() {
     if (urlId !== uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
-  }, [tab, workOrderId, uiDispatch, uiState.activeTab, uiState.selectedWorkOrderId]);
+  }, [tab, workOrderId, uiDispatch]);
 
   // Sync UI state to navigation
   useEffect(() => {
@@ -85,6 +85,13 @@ export default function TaskSummary() {
     // This prevents history loops and allows the back button to work correctly
     const isBaseTab = uiState.activeTab === "summary" && !uiState.selectedWorkOrderId;
     if (location.pathname === `/tasks/${taskId}` && isBaseTab) {
+      return;
+    }
+
+    // Don't navigate if we're already on the correct path
+    // This prevents navigation loops when the URL params are already correct
+    const expectedPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
+    if (location.pathname === expectedPath) {
       return;
     }
 
