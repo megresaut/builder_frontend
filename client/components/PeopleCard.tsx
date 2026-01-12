@@ -95,7 +95,7 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
             }
 
             // Hide subsection if it has no people
-            if ((subsection.label === "Collaborators" || subsection.label === "Assigned to") && (!subsection.people || subsection.people.length === 0)) {
+            if ((subsection.label === "Collaborators" || subsection.label === "Assigned to" || subsection.label === "Vendor") && (!subsection.people || subsection.people.length === 0)) {
               return false;
             }
 
