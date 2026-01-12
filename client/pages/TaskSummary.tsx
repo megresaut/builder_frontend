@@ -25,6 +25,7 @@ import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
 import type { LinkedTaskData } from "@/components/LinkTaskModal";
+import type { EditTaskDetailsData } from "@/components/EditTaskDetailsModal";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
