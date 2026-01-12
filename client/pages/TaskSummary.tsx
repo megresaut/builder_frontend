@@ -1150,22 +1150,24 @@ export default function TaskSummary() {
 
       {/* Add/Edit File Modal */}
       <AddFileModal
-        open={isAddFileModalOpen}
-        onOpenChange={setIsAddFileModalOpen}
+        open={uiState.modals.addFile}
+        onOpenChange={(open) => {
+          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "addFile" });
+        }}
         onSubmit={(uploadedFiles, category, description) => {
-          if (editingFileId) {
+          if (uiState.editingFileId) {
             // Get the old file name before updating
-            const oldFile = files.find((f) => f.id === editingFileId);
+            const oldFile = files.find((f) => f.id === uiState.editingFileId);
             const oldFileName = oldFile?.name || "";
             const newFileName = uploadedFiles[0]?.name || oldFileName;
 
             // Update file info using helper for consistency
-            syncFileNameAcrossStates(editingFileId, newFileName);
+            syncFileNameAcrossStates(uiState.editingFileId, newFileName);
 
             // Also update category/description in files list
             setFiles((prevFiles) =>
               prevFiles.map((f) =>
-                f.id === editingFileId
+                f.id === uiState.editingFileId
                   ? {
                       ...f,
                       category: category || f.category,
@@ -1187,8 +1189,7 @@ export default function TaskSummary() {
             }));
             setFiles([...newFiles, ...files]);
           }
-          setEditingFileId(null);
-          setIsAddFileModalOpen(false);
+          uiDispatch({ type: "CLOSE_MODAL", payload: "addFile" });
         }}
         initialFiles={
           editingFile
