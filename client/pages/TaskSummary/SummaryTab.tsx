@@ -31,6 +31,7 @@ interface SummaryTabProps {
   currentAssignees: any[];
   currentCollaborators: any[];
   vendorsFromWorkOrders: any[];
+  fieldTeamFromOrders: any[];
   isNewTask: boolean;
   taskData: any;
   onEditTaskDetails: () => void;
