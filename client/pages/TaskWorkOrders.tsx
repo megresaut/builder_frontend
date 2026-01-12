@@ -7,6 +7,8 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import HeaderV1 from "@/components/HeaderV1";
 import { EditIcon, DeleteIcon, BuildingIcon, HashtagIcon } from "@/components/icons";
 
@@ -535,24 +537,7 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
             rowKey="id"
             renderCell={(workOrder, columnKey) => {
               if (columnKey === "priority") {
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.priority === "High"
-                            ? "#D97706"
-                            : workOrder.priority === "Low"
-                              ? "#059669"
-                              : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.priority}
-                    </span>
-                  </div>
-                );
+                return <TaskPriorityBadge priority={workOrder.priority as any} />;
               }
               if (columnKey === "task") {
                 return (
@@ -590,22 +575,7 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
                 );
               }
               if (columnKey === "status") {
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          workOrder.status === "Completed"
-                            ? "#059669"
-                            : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {workOrder.status}
-                    </span>
-                  </div>
-                );
+                return <TaskStatusBadge status={workOrder.status as any} />;
               }
               if (columnKey === "dueDate") {
                 return (
