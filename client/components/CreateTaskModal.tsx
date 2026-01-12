@@ -128,6 +128,8 @@ export default function CreateTaskModal({
         initialState.collaborators.some((ic) => ic.id === c.id)
       ) ||
       message !== initialState.message ||
+      property !== initialState.property ||
+      unit !== initialState.unit ||
       fileUpload.files.length > 0
     );
   };
