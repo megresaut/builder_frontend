@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
+import type { Note, File } from "@/components/templates";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -36,6 +37,8 @@ interface WorkOrder {
   assignees: Assignee[];
   collaborators: Assignee[];
   vendorName?: string;
+  notes?: Note[];
+  files?: File[];
 }
 
 const mockWorkOrders: WorkOrder[] = [
@@ -718,6 +721,24 @@ export default function TaskWorkOrders({
         }}
         onDataUpdate={(data) => {
           const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
+
+          // Process notes and files from modal
+          const newNotes: Note[] = data.notes ? [{
+            id: 1,
+            text: data.notes,
+            date: new Date().toLocaleString(),
+            author: "Julia LoSchiavo",
+          }] : [];
+
+          const newFiles: File[] = data.files ? data.files.map((uf, idx) => ({
+            id: idx + 1,
+            name: uf.name,
+            url: uf.url || "#",
+            uploadedAt: new Date().toLocaleString(),
+            category: "Work Order",
+            description: "",
+          })) : [];
+
           // Store the original Date object for newly created work order (will be converted to string when added to list)
           const newWorkOrder: WorkOrder = {
             id: newId,
@@ -735,6 +756,8 @@ export default function TaskWorkOrders({
             assignees: [],
             collaborators: [],
             vendorName: data.vendor || "",
+            notes: newNotes,
+            files: newFiles,
           };
           // Convert dueDate to string format for the list, but keep Date object in navigation state for immediate rendering
           const workOrderForList = {
