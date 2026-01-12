@@ -424,14 +424,14 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
     handleColumnDrop,
   } = useColumnManagement([
     "priority",
-    "property",
-    "unit",
     "description",
     "dueDate",
     "fieldTeam",
     "status",
     "timesheetStatus",
     "amount",
+    // Note: "property" and "unit" are defined in columns array but not included here,
+    // so they default to hidden in the column filter modal
   ]);
 
   const columns = [
