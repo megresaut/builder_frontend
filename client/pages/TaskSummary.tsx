@@ -581,6 +581,19 @@ export default function TaskSummary() {
   const [linkedTasks, setLinkedTasks] = useState<LinkedTaskData[]>(isNewTask ? [] : []);
   const [isLinkTaskModalOpen, setIsLinkTaskModalOpen] = useState(false);
 
+  // Map MOCK_TASKS to LinkedTaskData for default availability, excluding current task
+  const availableTasksForLinking = useMemo(() => {
+    return MOCK_TASKS
+      .filter((t) => String(t.id) !== taskId)
+      .map((task) => ({
+        id: task.id,
+        name: task.title,
+        status: task.status.toLowerCase().replace(" ", "_") as any,
+        updatedDate: task.updated,
+        updatedBy: task.assignees[0]?.name || "Unknown",
+      }));
+  }, [taskId]);
+
   // Helper function to sync file names across files and updates states
   const syncFileNameAcrossStates = (fileId: string | number, newName: string) => {
     const stringId = String(fileId);
@@ -1231,6 +1244,7 @@ export default function TaskSummary() {
       <LinkTaskModal
         open={isLinkTaskModalOpen}
         onOpenChange={setIsLinkTaskModalOpen}
+        availableTasks={availableTasksForLinking}
         onSubmit={(linkedTask) => {
           // Check if task is already linked
           if (!linkedTasks.some((t) => t.id === linkedTask.id)) {
