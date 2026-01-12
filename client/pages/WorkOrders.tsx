@@ -446,7 +446,7 @@ export default function WorkOrders() {
                       Julia LoSchiavo
                     </div>
                     <div className="mt-1 text-[#a1a1a9] leading-[1.14]">
-                      Staff member
+                      Property manager
                     </div>
                   </div>
                 </div>
