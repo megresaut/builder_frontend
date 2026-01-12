@@ -174,11 +174,18 @@ export default function WorkOrderDetailsV2({
     }
 
     // Update parent work orders list
+    let dueDateValue: string | Date | null = workOrder.dueDate;
+    if (formData.dueDate) {
+      dueDateValue = formData.dueDate instanceof Date
+        ? formData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : String(formData.dueDate);
+    }
+
     const updatedWorkOrder: WorkOrder = {
       ...workOrder,
       status: formData.status || workOrder.status,
       priority: formData.priority || workOrder.priority,
-      dueDate: formData.dueDate ? (formData.dueDate instanceof Date ? formData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : String(formData.dueDate)) : workOrder.dueDate,
+      dueDate: dueDateValue,
       vendorName: formData.vendor || workOrder.vendorName,
       task: formData.workOrderName || workOrder.task,
       property: formData.property || workOrder.property,
