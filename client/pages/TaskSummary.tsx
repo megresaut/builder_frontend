@@ -1120,11 +1120,11 @@ export default function TaskSummary() {
           if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "addNote" });
         }}
         onSubmit={(text) => {
-          if (editingNoteId) {
+          if (uiState.editingNoteId) {
             // Edit existing note
             setNotes(
               notes.map((n) =>
-                n.id === editingNoteId
+                n.id === uiState.editingNoteId
                   ? { ...n, text, date: new Date().toLocaleString() }
                   : n,
               ),
@@ -1140,14 +1140,12 @@ export default function TaskSummary() {
             };
             setNotes([newNote, ...notes]);
           }
-          setEditingNoteId(null);
-          setViewingNote(null);
-          setIsAddNoteModalOpen(false);
+          uiDispatch({ type: "CLOSE_MODAL", payload: "addNote" });
         }}
         initialText={editingNote?.text || ""}
-        isEditMode={!!editingNoteId}
-        title={editingNoteId ? "Edit Note" : "Add Note"}
-        submitLabel={editingNoteId ? "Update" : "Add"}
+        isEditMode={!!uiState.editingNoteId}
+        title={uiState.editingNoteId ? "Edit Note" : "Add Note"}
+        submitLabel={uiState.editingNoteId ? "Update" : "Add"}
       />
 
       {/* Add/Edit File Modal */}
