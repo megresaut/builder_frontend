@@ -308,13 +308,13 @@ export default function WorkOrderDetailsV2({
               <div className="flex flex-col items-start gap-6 flex-1 min-w-0">
                 <div className="flex items-start gap-4 w-full">
                   <div className="flex flex-col items-start gap-4 flex-1 min-w-0">
-                    <div className="flex justify-center items-center gap-2 w-full">
-                      <h2 className="text-[#303030] text-[22px] font-semibold leading-[30px] truncate flex-1">
+                    <div className="flex justify-start items-start gap-2 w-full">
+                      <h2 className="text-[#303030] text-[22px] font-semibold leading-[30px] flex-1">
                         {workOrder.task} - #{workOrder.id}
                       </h2>
                       <button
                         onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
-                        className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 ml-auto whitespace-nowrap"
+                        className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 ml-auto whitespace-nowrap mt-1"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M14.4714 1.52855C13.4747 0.531824 11.8587 0.531823 10.862 1.52855L10.0876 2.3029C9.82359 2.56691 9.69158 2.69892 9.64212 2.85114C9.59862 2.98503 9.59862 3.12926 9.64212 3.26316C9.69158 3.41538 9.82359 3.54739 10.0876 3.8114L12.1886 5.91238C12.4526 6.17639 12.5846 6.30839 12.7368 6.35785C12.8707 6.40136 13.0149 6.40136 13.1488 6.35785C13.3011 6.30839 13.4331 6.17639 13.6971 5.91238L14.4714 5.13803C15.4682 4.1413 15.4682 2.52528 14.4714 1.52855Z" fill="#2463EB"/>
