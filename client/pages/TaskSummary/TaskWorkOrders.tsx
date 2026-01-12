@@ -524,7 +524,7 @@ export default function TaskWorkOrders({ workOrders, onWorkOrdersChange }: TaskW
     <>
       <HeaderV1
         title="Work Orders"
-        subtitle="All your work orders, in one place"
+        subtitle="Your work orders for this task in one place"
         actionLabel="Create Work Order"
         actionIcon={<Plus className="w-5 h-5" />}
         onActionClick={() => setIsCreateWorkOrderModalOpen(true)}
