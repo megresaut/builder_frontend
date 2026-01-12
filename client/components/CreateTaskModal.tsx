@@ -223,11 +223,28 @@ export default function CreateTaskModal({
         }),
       };
       onTaskCreated?.(taskData);
+      // Reset files after submit (form reset will happen when modal closes)
+      fileUpload.reset();
       onOpenChange(false);
     }
   };
 
   const handleCancel = () => {
+    // Reset form before closing
+    setTitle("");
+    setDescription("");
+    setProperty("");
+    setUnit("");
+    setPriority("normal");
+    setDueDate(null);
+    setStatus("not_started");
+    setSelectedAssignees([]);
+    setSelectedCollaborators([]);
+    setMessage("");
+    setInitialState(null);
+    setErrors({});
+    setErrorMessages({});
+    fileUpload.reset();
     onOpenChange(false);
   };
 
