@@ -713,6 +713,7 @@ export default function TaskWorkOrders({
           }
         }}
         hideTaskSelection={true}
+        hideSubheader={true}
         initialData={{
           task: defaultTask,
         }}
