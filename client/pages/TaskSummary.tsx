@@ -292,7 +292,6 @@ export default function TaskSummary() {
       { id: 8, name: "Sarah Martinez", initials: "SM" },
     ];
   });
-  const [isEditTaskDetailsOpen, setIsEditTaskDetailsOpen] = useState(false);
 
   // Mock data types
   interface Assignee {
