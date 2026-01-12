@@ -367,10 +367,14 @@ const transformAPIToFieldTeamOrder = (
   });
 };
 
-export default function TaskFieldTeamOrders() {
+interface TaskFieldTeamOrdersProps {
+  orders: FieldTeamOrder[];
+  onOrdersChange: (orders: FieldTeamOrder[]) => void;
+}
+
+export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFieldTeamOrdersProps) {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<FieldTeamOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
