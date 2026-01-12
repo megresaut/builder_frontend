@@ -11,6 +11,9 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { StatusBadge } from "@/components/StatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import PersonAvatars from "@/components/PersonAvatars";
 import { EditIcon, DeleteIcon, BuildingIcon, HashtagIcon } from "@/components/icons";
 
 interface Assignee {
