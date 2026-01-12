@@ -745,6 +745,14 @@ export default function TaskSummary() {
     return propertyLabels[propertyValue] || "";
   };
 
+  const getUnitDisplayLabel = (unitValue: string): string => {
+    const unitLabels: Record<string, string> = {
+      unit1: "Unit 1",
+      unit2: "Unit 2",
+    };
+    return unitLabels[unitValue] || "";
+  };
+
   // Memoize editData to prevent unnecessary re-initialization of the modal
   const modalEditData = useMemo(() => ({
     id: parseInt(taskId || "0"),
