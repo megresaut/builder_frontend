@@ -22,7 +22,7 @@ export const MOCK_TASKS: Task[] = [
   {
     id: 1,
     status: "Completed",
-    title: "Doors Need To Be Repaired",
+    title: "Edgerton - Quote",
     property: "22 Indian Chase Dr",
     unit: "Unit 1A",
     due: "Oct 2, 2025",
