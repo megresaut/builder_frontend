@@ -979,7 +979,14 @@ export default function TaskSummary() {
                 currentAssignees={currentAssignees}
                 currentCollaborators={currentCollaborators}
                 onWorkOrderUpdate={(updatedWorkOrder) => {
-                  setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? { ...updatedWorkOrder, dueDate: updatedWorkOrder.dueDate instanceof Date ? updatedWorkOrder.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : updatedWorkOrder.dueDate } : wo));
+                  // Convert dueDate back to string format when updating the list
+                  const workOrderForUpdate = {
+                    ...updatedWorkOrder,
+                    dueDate: updatedWorkOrder.dueDate instanceof Date
+                      ? updatedWorkOrder.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : updatedWorkOrder.dueDate
+                  };
+                  setWorkOrders(workOrders.map(wo => wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo));
                 }}
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
