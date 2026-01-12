@@ -21,6 +21,9 @@ interface Assignee {
   name: string;
   initials: string;
   color: string;
+  email?: string;
+  phone?: string;
+  title?: string;
 }
 
 interface WorkOrder {
