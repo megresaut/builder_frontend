@@ -13,6 +13,24 @@ import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
 
+const vendorMasterData: Record<string, { id: number }> = {
+  "ABC Doors & Hardware": { id: 1 },
+  "Elite HVAC Services": { id: 2 },
+  "Glass & Frames Inc": { id: 3 },
+  "Pro Roofing Solutions": { id: 4 },
+  "Dolce Plumbing & Heating LLC": { id: 5 },
+  "Spark Electrical": { id: 6 },
+  "Premium Painters Co": { id: 7 },
+  "Quality Flooring LLC": { id: 8 },
+  "Green Lawn Services": { id: 9 },
+  "Outdoor Construction Corp": { id: 10 },
+};
+
+const getVendorHref = (vendorName: string): string | undefined => {
+  const vendorId = vendorMasterData[vendorName]?.id;
+  return vendorId ? `/vendors/${vendorId}` : undefined;
+};
+
 interface SummaryTabProps {
   currentCategory: string;
   currentDescription: string;
