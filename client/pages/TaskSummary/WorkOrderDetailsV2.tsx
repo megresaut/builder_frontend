@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { AddNoteModal, AddFileModal } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
