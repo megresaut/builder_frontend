@@ -51,17 +51,18 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
         {/* Continuous Timeline Rail - extends from composer down, growing with updates */}
         {onAddUpdate && updates.length > 0 && (
           <div
-            className="absolute left-7 -translate-x-1/2 w-1 bg-gradient-to-b from-[#d4e3f7] to-[#e5e5e5]"
+            className="absolute left-7 -translate-x-1/2 w-1"
             style={{
               top: "20px",
-              // Calculate based on number of updates. Each update is ~120px with gap
-              // Stop before the last item if it's initial creation
+              // For each update, allocate ~125px (includes gap and content height)
+              // If last item is initial creation, stop before it
               bottom: updates[updates.length - 1]?.isInitialCreation && updates.length > 1
-                ? `${(updates.length - 1) * 120 + 40}px`
+                ? `calc(${(updates.length - 1) * 125 + 50}px)`
                 : "20px",
-              clipPath: "inset(0 0 20px 0)",
               backgroundImage:
                 "linear-gradient(to bottom, rgb(212, 227, 247) 0%, rgb(229, 229, 229) 100%)",
+              backgroundSize: "100% 100%",
+              clipPath: "inset(0 0 20px 0)",
             }}
           />
         )}
