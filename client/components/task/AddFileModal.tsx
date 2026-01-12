@@ -64,13 +64,8 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
       setFileCategory(initialCategory || "");
       setFileDescription(initialDescription || "");
       setValidateFileForm(false);
-    } else {
-      setUploadedFiles([]);
-      setFileCategory("");
-      setFileDescription("");
-      setValidateFileForm(false);
     }
-  }, [open, initialFiles, initialCategory, initialDescription]);
+  }, [open]); // Only sync when modal opens
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) {
