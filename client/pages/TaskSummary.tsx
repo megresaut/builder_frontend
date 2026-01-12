@@ -213,13 +213,9 @@ export default function TaskSummary() {
 
         {/* Main Content Area */}
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
-          {/* Show WorkOrdersTab component when work orders tab is active */}
+          {/* Show TaskWorkOrders component when work orders tab is active */}
           {activeTab === "workorders" && (
-            <WorkOrdersTab
-              taskId={taskId}
-              initialSelectedWorkOrderId={selectedWorkOrderId}
-              onWorkOrderSelect={handleWorkOrderSelect}
-            />
+            <TaskWorkOrders />
           )}
 
           {/* Show summary content when summary tab is active */}
