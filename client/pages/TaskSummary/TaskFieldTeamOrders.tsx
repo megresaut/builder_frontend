@@ -368,6 +368,10 @@ const transformAPIToFieldTeamOrder = (
       timesheetStatus,
       amount: fto.total_amount,
       unit: "Unit",
+      fieldTeamMemberIds: fto.field_team_member_ids,
+      pmAssigneeIds: fto.pm_assignee_ids,
+      propertyId: fto.property_id,
+      dueDateISO: fto.due_date,
     };
   });
 };
