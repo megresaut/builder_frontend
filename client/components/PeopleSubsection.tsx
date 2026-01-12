@@ -145,12 +145,20 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                   {person.href ? (
                     <a
                       href={person.href}
-                      className="text-[#2463eb] font-medium tracking-[-0.28px] hover:underline truncate"
+                      className={cn(
+                        "font-medium tracking-[-0.28px] hover:underline truncate",
+                        type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]"
+                      )}
                     >
                       {person.name}
                     </a>
                   ) : (
-                    <div className="text-[#2463eb] font-medium tracking-[-0.28px] truncate">
+                    <div
+                      className={cn(
+                        "font-medium tracking-[-0.28px] truncate",
+                        type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]"
+                      )}
+                    >
                       {person.name}
                     </div>
                   )}
