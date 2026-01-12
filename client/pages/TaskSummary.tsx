@@ -179,6 +179,8 @@ export default function TaskSummary() {
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [viewingAttachment, setViewingAttachment] = useState<{ name: string; url: string } | null>(null);
+  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
 
   // Get current note/file being edited for initial values
   const editingNote = editingNoteId
