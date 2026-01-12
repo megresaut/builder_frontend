@@ -83,13 +83,21 @@ export default function TaskSummary() {
       return;
     }
 
+    // Skip sync if we are currently initializing from URL to avoid race conditions
+    const tabFromUrl = (tab as "summary" | "workorders" | "fieldteam") || "summary";
+    const idFromUrl = workOrderId ? parseInt(workOrderId) : null;
+
+    if (uiState.activeTab === tabFromUrl && uiState.selectedWorkOrderId === idFromUrl) {
+      return;
+    }
+
     const currentPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
     if (location.pathname !== currentPath) {
       // Use replace for the initial sync to avoid polluting history
       const isInitialSync = location.pathname === `/tasks/${taskId}`;
       navigate(currentPath, { replace: isInitialSync });
     }
-  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname]);
+  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname, tab, workOrderId]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
@@ -770,12 +778,13 @@ export default function TaskSummary() {
     currentCategory
   ]);
 
-  // Get the selected work order if workOrderId is present
+  // Get the selected work order if workOrderId is present or set in state
   const selectedWorkOrder = useMemo(() => {
-    if (!workOrderId) return null;
-    const found = workOrders.find((wo) => String(wo.id) === workOrderId);
+    const woId = workOrderId || String(uiState.selectedWorkOrderId || "");
+    if (!woId) return null;
+    const found = workOrders.find((wo) => String(wo.id) === woId);
     return found || null;
-  }, [workOrderId, workOrders]);
+  }, [workOrderId, uiState.selectedWorkOrderId, workOrders]);
 
   // Work order state
   const [workOrderStatus, setWorkOrderStatus] = useState<string>(() => {
@@ -802,7 +811,7 @@ export default function TaskSummary() {
   };
 
   // If workOrderId is present, render Work Order Summary instead of tabs
-  if (workOrderId && selectedWorkOrder) {
+  if ((workOrderId || uiState.selectedWorkOrderId) && selectedWorkOrder) {
     return (
       <PageTemplate>
         {/* Header Section */}
@@ -826,6 +835,7 @@ export default function TaskSummary() {
           action={{
             label: "Back",
             onClick: () => {
+              handleWorkOrderSelect(null);
               navigate(`/tasks/${taskId}/workorders`);
             },
           }}
