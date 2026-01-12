@@ -16,7 +16,6 @@ export const TaskDetailsBarTemplate: React.FC<TaskDetailsBarTemplateProps> = ({
   status,
   priority,
   dueDate,
-  lastUpdated,
   onStatusChange,
   onPriorityChange,
   onDueDateChange,
