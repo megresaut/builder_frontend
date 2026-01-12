@@ -301,7 +301,7 @@ export default function WorkOrderDetailsV2({
                         HVAC - #1024431-1
                       </h2>
                       <button
-                        onClick={() => setIsUpdateWorkOrderModalOpen(true)}
+                        onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
                         className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
