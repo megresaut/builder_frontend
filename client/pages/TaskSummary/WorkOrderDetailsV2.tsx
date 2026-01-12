@@ -401,6 +401,14 @@ export default function WorkOrderDetailsV2({
                     <span className="text-[#2463eb] text-sm font-medium leading-[140%] tracking-[-0.28px] capitalize">View Maps</span>
                   </a>
                 </div>
+
+                {/* Description Section */}
+                <div className="w-full mt-4 pt-4 border-t border-[#e5e5e5]">
+                  <div className="text-[#717179] text-sm font-semibold leading-4 mb-2">Description:</div>
+                  <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
+                    {workOrder.description || "No description provided"}
+                  </div>
+                </div>
               </div>
             </div>
           </SectionCard>
