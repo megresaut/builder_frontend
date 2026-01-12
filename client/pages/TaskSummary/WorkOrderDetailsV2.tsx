@@ -26,7 +26,7 @@ interface WorkOrder {
   unit: string;
   status: string;
   priority: string;
-  dueDate: string;
+  dueDate: string | Date | null;
   invoiceNumber?: string;
   vendorName?: string;
   chargeTo?: string;
