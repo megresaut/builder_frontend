@@ -988,6 +988,7 @@ export default function TaskSummary() {
                         showPhone: false,
                         showDivider: true,
                         tabIndex: [0],
+                        type: "assignee",
                       },
                       {
                         label: "Collaborators",
@@ -1004,6 +1005,7 @@ export default function TaskSummary() {
                         showPhone: false,
                         showDivider: true,
                         tabIndex: [0],
+                        type: "collaborator",
                       },
                     ]}
                   />
