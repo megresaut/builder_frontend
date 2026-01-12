@@ -98,31 +98,9 @@ export default function WorkOrderDetailsV2({
     },
   ]);
 
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: 1,
-      text: "Initial check of the HVAC system showed some leaks.",
-      date: "11/12/2025 9:22 PM",
-      author: "Julia LoSchiavo",
-    },
-  ]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
-  const [files, setFiles] = useState<File[]>([
-    {
-      id: 1,
-      name: "Lorem Ipsum.PDF",
-      uploadedAt: "11/12/2025 9:22 PM",
-      category: "Invoice",
-      url: "#",
-    },
-    {
-      id: 2,
-      name: "Lorem Ipsum.PDF",
-      uploadedAt: "11/12/2025 9:22 PM",
-      category: "Work Order",
-      url: "#",
-    },
-  ]);
+  const [files, setFiles] = useState<File[]>([]);
 
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
