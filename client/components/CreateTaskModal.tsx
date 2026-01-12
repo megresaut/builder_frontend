@@ -221,14 +221,13 @@ export default function CreateTaskModal({
           files: fileUpload.files,
         }),
       };
-      onTaskCreated?.(taskData);
       fileUpload.reset();
+      onTaskCreated?.(taskData);
       onOpenChange(false);
     }
   };
 
   const handleCancel = () => {
-    fileUpload.reset();
     onOpenChange(false);
   };
 
@@ -237,7 +236,7 @@ export default function CreateTaskModal({
     return () => {
       fileUpload.cleanup();
     };
-  }, [fileUpload]);
+  }, []);
 
   // Initialize form when modal opens in edit mode
   useEffect(() => {
@@ -282,7 +281,6 @@ export default function CreateTaskModal({
   // Clear form when modal closes
   useEffect(() => {
     if (!open) {
-      fileUpload.reset();
       setTitle("");
       setDescription("");
       setProperty("");
@@ -297,7 +295,14 @@ export default function CreateTaskModal({
       setErrors({});
       setErrorMessages({});
     }
-  }, [open, fileUpload]);
+  }, [open]);
+
+  // Reset file upload state when modal closes
+  useEffect(() => {
+    if (!open) {
+      fileUpload.reset();
+    }
+  }, [open]);
 
   return (
     <>
