@@ -24,6 +24,7 @@ interface NotesTemplateProps {
   onDelete: (noteId: number) => void;
   isLast?: boolean;
   emptyMessage?: string;
+  hideHeader?: boolean;
 }
 
 /**
@@ -39,15 +40,18 @@ export const NotesTemplate: React.FC<NotesTemplateProps> = ({
   onDelete,
   isLast = true,
   emptyMessage = "You don't have any notes right now.",
+  hideHeader = false,
 }) => {
   return (
     <SectionRowTemplate isLast={isLast}>
-      <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-        <h2 className="text-[#303030] text-base font-medium leading-[1.1]">
-          Recent Notes
-        </h2>
-        <SectionActionTemplate label="Add" onClick={onAdd} />
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
+          <h2 className="text-[#303030] text-base font-medium leading-[1.1]">
+            Recent Notes
+          </h2>
+          <SectionActionTemplate label="Add" onClick={onAdd} />
+        </div>
+      )}
 
       {notes.length === 0 ? (
         <EmptyStateTemplate message={emptyMessage} />
