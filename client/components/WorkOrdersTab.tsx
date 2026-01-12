@@ -390,11 +390,16 @@ export default function WorkOrdersTab({
     const searchLower = searchValue.toLowerCase();
     return (
       order.task.toLowerCase().includes(searchLower) ||
+      order.property.toLowerCase().includes(searchLower) ||
+      order.unit.toLowerCase().includes(searchLower) ||
       order.dueDate.toLowerCase().includes(searchLower) ||
       order.status.toLowerCase().includes(searchLower) ||
       order.priority.toLowerCase().includes(searchLower) ||
       order.billStatus.toLowerCase().includes(searchLower) ||
       order.assignees.some((member) =>
+        member.name.toLowerCase().includes(searchLower),
+      ) ||
+      order.collaborators.some((member) =>
         member.name.toLowerCase().includes(searchLower),
       )
     );
