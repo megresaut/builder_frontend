@@ -479,7 +479,7 @@ export default function WorkOrderDetailsV2({
               {
                 label: "Vendor",
                 mode: "rows",
-                people: workOrder.vendorName && workOrder.vendorName !== "Unassigned" ? [
+                people: workOrder.vendorName ? [
                   {
                     id: "vendor-1",
                     name: workOrder.vendorName,
