@@ -53,12 +53,15 @@ export default function TaskSummary() {
   // Ref for tracking blob URLs created during task initialization
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
 
-  const [activeTab, setActiveTab] = useState<
-    "summary" | "workorders" | "fieldteam"
-  >((tab as "summary" | "workorders" | "fieldteam") || "summary");
-  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
-    workOrderId ? parseInt(workOrderId) : null,
+  // Initialize UI state reducer
+  const { state: uiState, dispatch: uiDispatch } = useTaskSummaryUI(
+    (tab as "summary" | "workorders" | "fieldteam") || "summary"
   );
+
+  // Sync UI state to navigation
+  useEffect(() => {
+    navigate(`/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`);
+  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
