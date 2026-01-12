@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
@@ -9,53 +9,27 @@ import TaskWorkOrders from "./TaskWorkOrders";
 import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
+import { useTaskSummaryUI } from "@/hooks/useTaskSummaryUI";
 import TaskOverviewCard from "@/components/TaskOverviewCard";
 import TaskLocationCard from "@/components/TaskLocationCard";
 import LinkedTasksCard from "@/components/LinkedTasksCard";
 import TaskUpdatesTimeline from "@/components/TaskUpdatesTimeline";
 import PeopleCard from "@/components/PeopleCard";
 import SectionCard from "@/components/SectionCard";
-import AddNoteModal from "@/components/AddNoteModal";
-import AddFileModal from "@/components/AddFileModal";
+import PersonAvatars from "@/components/PersonAvatars";
 import CreateTaskModal from "@/components/CreateTaskModal";
-import LinkTaskModal from "@/components/LinkTaskModal";
-import EditTaskDetailsModal from "@/components/EditTaskDetailsModal";
+import { AddNoteModal, AddFileModal, EditTaskDetailsModal, LinkTaskModal } from "@/components/task";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
-import type { LinkedTaskData } from "@/components/LinkTaskModal";
-import type { EditTaskDetailsData } from "@/components/EditTaskDetailsModal";
+import type { LinkedTaskData } from "@/components/task";
+import type { EditTaskDetailsData } from "@/components/task";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { MOCK_TASKS } from "@/data/tasks";
-
-const PersonAvatars = ({ people, fallback = "None" }: { people: any[], fallback?: string }) => {
-  if (!people || people.length === 0) return <span className="text-sm text-[#303030] font-medium mt-0.5">{fallback}</span>;
-  return (
-    <div className="flex items-center gap-2 mt-1">
-      {people.map((person, idx) => {
-        const name = person.name || person.label;
-        const initials = person.initials || (name || "?").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-        return (
-          <div key={idx} className="relative group/avatar">
-            <div
-              className="flex items-center justify-center w-8 h-8 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-xs leading-[0.8] flex-shrink-0"
-              title={name}
-            >
-              {initials}
-            </div>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 transition-opacity pointer-events-none z-50">
-              {name}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
 
 export default function TaskSummary() {
   const { taskId, tab, workOrderId } = useParams<{
