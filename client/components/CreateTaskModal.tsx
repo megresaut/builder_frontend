@@ -148,6 +148,7 @@ export default function CreateTaskModal({
   // Generate update message based on changes
   const generateUpdateMessage = useCallback((): string => {
     const changes: string[] = [];
+    let hasFieldChanges = false;
 
     if (initialState) {
       if (status !== initialState.status) {
@@ -159,12 +160,14 @@ export default function CreateTaskModal({
         changes.push(
           `updated status to ${statusLabels[status] || status}`
         );
+        hasFieldChanges = true;
       }
 
       if (priority !== initialState.priority) {
         const priorityLabel =
           priority.charAt(0).toUpperCase() + priority.slice(1);
         changes.push(`updated priority to ${priorityLabel}`);
+        hasFieldChanges = true;
       }
 
       if (dueDate?.toString() !== initialState.dueDate?.toString()) {
@@ -172,6 +175,7 @@ export default function CreateTaskModal({
           ? dueDate.toLocaleDateString()
           : "no due date";
         changes.push(`updated due date to ${dateStr}`);
+        hasFieldChanges = true;
       }
 
       if (selectedAssignees.length !== initialState.assignees.length ||
@@ -179,6 +183,7 @@ export default function CreateTaskModal({
             initialState.assignees.some((ia) => ia.id === a.id)
           )) {
         changes.push("updated assignees");
+        hasFieldChanges = true;
       }
 
       if (selectedCollaborators.length !== initialState.collaborators.length ||
@@ -186,6 +191,7 @@ export default function CreateTaskModal({
             initialState.collaborators.some((ic) => ic.id === c.id)
           )) {
         changes.push("updated collaborators");
+        hasFieldChanges = true;
       }
     }
 
@@ -193,12 +199,18 @@ export default function CreateTaskModal({
       changes.push("added a message");
     }
 
-    if (fileUpload.files.length > 0) {
+    const hasFiles = fileUpload.files.length > 0;
+    if (hasFiles) {
       changes.push(
         `added ${fileUpload.files.length} attachment${
           fileUpload.files.length !== 1 ? "s" : ""
         }`
       );
+    }
+
+    // If only files were uploaded with no other changes or message
+    if (hasFiles && changes.length === 1 && !message && !hasFieldChanges) {
+      return fileUpload.files.length === 1 ? "uploaded a file" : `uploaded ${fileUpload.files.length} files`;
     }
 
     if (changes.length === 0) {
