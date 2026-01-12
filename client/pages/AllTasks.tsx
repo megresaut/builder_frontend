@@ -416,9 +416,11 @@ export default function AllTasks() {
       property: editingTask.property,
       priority: editingTask.priority,
       status: editingTask.status,
+      due: editingTask.due,
       assignees: editingTask.assignees,
+      collaborators: editingTask.collaborators,
     };
-  }, [editingTask?.id, editingTask?.title, editingTask?.property, editingTask?.priority, editingTask?.status]);
+  }, [editingTask?.id, editingTask?.title, editingTask?.property, editingTask?.priority, editingTask?.status, editingTask?.due, editingTask?.assignees, editingTask?.collaborators]);
 
   const handleTaskCreated = useCallback(
     (taskData: {
