@@ -33,6 +33,8 @@ interface WorkOrder {
 
 interface WorkOrderDetailsV2Props {
   workOrder: WorkOrder;
+  currentAssignees?: any[];
+  currentCollaborators?: any[];
 }
 
 export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Props) {
