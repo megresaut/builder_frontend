@@ -62,8 +62,11 @@ export default function TaskSummary() {
 
   // Sync UI state to navigation
   useEffect(() => {
-    navigate(`/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`);
-  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate]);
+    const currentPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
+    if (location.pathname !== currentPath) {
+      navigate(currentPath, { replace: true });
+    }
+  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate, location.pathname]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
