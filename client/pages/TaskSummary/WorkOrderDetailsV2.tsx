@@ -297,7 +297,8 @@ export default function WorkOrderDetailsV2({
                 src="https://api.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F8f2f256086b940029bc4894372e519c1?format=webp&width=502"
                 alt="Property"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23f0f0f0' width='100' height='100'/%3E%3Ctext x='50' y='50' font-size='14' fill='%23999' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+                  const img = e.target as HTMLImageElement;
+                  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='251' height='191'%3E%3Crect fill='%23e5e5e5' width='251' height='191'/%3E%3Ctext x='50%25' y='50%25' font-family='Geist,sans-serif' font-size='16' fill='%23999' text-anchor='middle' dominant-baseline='middle'%3EProperty Image%3C/text%3E%3C/svg%3E";
                 }}
                 className="w-full md:w-[251px] h-[191px] rounded-lg object-cover flex-shrink-0 bg-[#f0f0f0]"
               />
