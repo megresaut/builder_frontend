@@ -544,6 +544,35 @@ export default function TaskSummary() {
   const [linkedTasks, setLinkedTasks] = useState<LinkedTaskData[]>(isNewTask ? [] : []);
   const [isLinkTaskModalOpen, setIsLinkTaskModalOpen] = useState(false);
 
+  // Helper function to sync file names across files and updates states
+  const syncFileNameAcrossStates = (fileId: string | number, newName: string) => {
+    const stringId = String(fileId);
+
+    // Update the main files state
+    setFiles((prevFiles) =>
+      prevFiles.map((f) =>
+        String(f.id) === stringId
+          ? { ...f, name: newName }
+          : f,
+      ),
+    );
+
+    // Update the attachment in all timeline updates
+    setUpdates((prevUpdates) =>
+      prevUpdates.map((update) => {
+        if (update.attachments && Array.isArray(update.attachments)) {
+          const updatedAttachments = update.attachments.map((att: any) =>
+            String(att.id) === stringId
+              ? { ...att, name: newName }
+              : att,
+          );
+          return { ...update, attachments: updatedAttachments };
+        }
+        return update;
+      }),
+    );
+  };
+
   // Get current note/file being edited for initial values
   const editingNote = editingNoteId
     ? notes.find((n) => n.id === editingNoteId)
@@ -587,29 +616,7 @@ export default function TaskSummary() {
   const handleSaveAttachmentFileName = () => {
     const trimmedName = renamingAttachmentName.trim();
     if (viewingAttachment && viewingAttachment.id && trimmedName) {
-      // Update the main files state
-      setFiles((prevFiles) =>
-        prevFiles.map((f) =>
-          String(f.id) === String(viewingAttachment.id)
-            ? { ...f, name: trimmedName }
-            : f,
-        ),
-      );
-
-      // Update the attachment in the timeline updates
-      setUpdates((prevUpdates) =>
-        prevUpdates.map((update) => {
-          if (update.attachments && Array.isArray(update.attachments)) {
-            const updatedAttachments = update.attachments.map((att: any) =>
-              String(att.id) === String(viewingAttachment.id)
-                ? { ...att, name: trimmedName }
-                : att,
-            );
-            return { ...update, attachments: updatedAttachments };
-          }
-          return update;
-        }),
-      );
+      syncFileNameAcrossStates(viewingAttachment.id, trimmedName);
 
       setViewingAttachment({
         ...viewingAttachment,
@@ -1109,36 +1116,21 @@ export default function TaskSummary() {
             const oldFileName = oldFile?.name || "";
             const newFileName = uploadedFiles[0]?.name || oldFileName;
 
-            // Update the file in the files list
-            setFiles(
-              files.map((f) =>
+            // Update file info using helper for consistency
+            syncFileNameAcrossStates(editingFileId, newFileName);
+
+            // Also update category/description in files list
+            setFiles((prevFiles) =>
+              prevFiles.map((f) =>
                 f.id === editingFileId
                   ? {
                       ...f,
-                      name: newFileName,
                       category: category || f.category,
                       description,
                     }
                   : f,
               ),
             );
-
-            // If the file name changed, sync it with the timeline updates
-            if (newFileName !== oldFileName) {
-              setUpdates((prevUpdates) =>
-                prevUpdates.map((update) => {
-                  if (update.attachments && Array.isArray(update.attachments)) {
-                    const updatedAttachments = update.attachments.map((att: any) =>
-                      String(att.id) === String(editingFileId)
-                        ? { ...att, name: newFileName }
-                        : att,
-                    );
-                    return { ...update, attachments: updatedAttachments };
-                  }
-                  return update;
-                }),
-              );
-            }
           } else {
             // Add new file - convert UploadedFile to File
             const maxId = files.length > 0 ? Math.max(...files.map((f) => f.id)) : 0;
