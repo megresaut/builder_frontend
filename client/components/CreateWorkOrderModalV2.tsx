@@ -78,7 +78,22 @@ export default function CreateWorkOrderModalV2({
   const pdfViewer = usePdfViewer();
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      if (mode === "edit" && initialData) {
+        setFormData({
+          property: initialData.property ?? "",
+          unit: initialData.unit ?? "",
+          task: initialData.task ?? "",
+          workOrderName: initialData.workOrderName ?? "",
+          vendor: initialData.vendor ?? "",
+          status: initialData.status ?? "not_started",
+          priority: initialData.priority ?? "normal",
+          dueDate: initialData.dueDate ?? null,
+          notes: initialData.notes ?? "",
+          files: initialData.files ?? [],
+        });
+      }
+    } else {
       setFormData({
         property: "",
         unit: "",
@@ -95,7 +110,7 @@ export default function CreateWorkOrderModalV2({
       pdfViewer.closePdf();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, mode]);
 
   const handlePropertyChange = (value: string) => {
     setFormData((prev) => ({ ...prev, property: value }));
