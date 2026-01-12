@@ -750,6 +750,12 @@ export default function TaskSummary() {
                   setLinkedTasks(linkedTasks.filter((t) => t.id !== taskId))
                 }
                 onTaskClick={(linkedTaskId) => {
+                  const tabId = `task-${linkedTaskId}`;
+                  setSelectedTab(tabId);
+                  setTabMetadata(tabId, {
+                    label: `Task ${linkedTaskId}`,
+                    route: `/tasks/${linkedTaskId}`,
+                  });
                   navigate(`/tasks/${linkedTaskId}`);
                 }}
               />
