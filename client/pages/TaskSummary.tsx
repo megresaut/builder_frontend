@@ -1043,7 +1043,7 @@ export default function TaskSummary() {
                       <SectionActionTemplate
                         icon={<EditIcon width={14} height={14} />}
                         label="Edit"
-                        onClick={() => setIsEditTaskModalOpen(true)}
+                        onClick={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
                       />
                     }
                     subsections={[
