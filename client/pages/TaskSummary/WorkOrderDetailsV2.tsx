@@ -79,7 +79,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
   };
 
   return (
-    <div className="flex flex-col w-full gap-6 bg-[#f9f9f9] min-h-screen p-6 font-['Geist',sans-serif]">
+    <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
       {/* Back Button */}
       <div className="flex items-center gap-4 -mt-2">
         <button
