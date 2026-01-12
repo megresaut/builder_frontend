@@ -787,7 +787,7 @@ export default function TaskSummary() {
           <button
             onClick={() => handleTabChange("summary")}
             className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
-              activeTab === "summary"
+              uiState.activeTab === "summary"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
                 : "hover:text-[#09090b]"
             } transition-colors`}
@@ -797,7 +797,7 @@ export default function TaskSummary() {
           <button
             onClick={() => handleTabChange("workorders")}
             className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
-              activeTab === "workorders"
+              uiState.activeTab === "workorders"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
                 : "hover:text-[#09090b]"
             } transition-colors`}
@@ -807,7 +807,7 @@ export default function TaskSummary() {
           <button
             onClick={() => handleTabChange("fieldteam")}
             className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
-              activeTab === "fieldteam"
+              uiState.activeTab === "fieldteam"
                 ? "border-b-2 border-[#09090b] text-[#09090b]"
                 : "hover:text-[#09090b]"
             } transition-colors`}
