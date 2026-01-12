@@ -791,8 +791,65 @@ export default function Header({
   };
 
   // Automatically open the selected tab if it exists and isn't open
+  // Also create dynamic task/vendor tabs if they're selected
   useEffect(() => {
     const tabExists = tabs.some((tab) => tab.id === selectedTab);
+
+    // If tab doesn't exist but is a task or vendor tab, create it dynamically
+    if (!tabExists && selectedTab) {
+      if (selectedTab.startsWith("task-")) {
+        const taskId = selectedTab.replace("task-", "");
+        const taskData: Record<string, string> = {
+          "1": "Edgerton - Quote",
+          "2": "Downtown Renovation",
+          "3": "HVAC Installation",
+          "4": "Electrical Rewiring",
+          "5": "Plumbing Repairs",
+          "6": "Roof Inspection",
+          "7": "Window Replacement",
+          "8": "Door Repairs",
+          "9": "Painting Project",
+          "10": "Foundation Work",
+        };
+        const taskLabel = taskData[taskId] || `Task ${taskId}`;
+        const newTask: Tab = {
+          id: selectedTab,
+          label: taskLabel,
+        };
+        setTabs([...tabs, newTask]);
+        const newOpenTabs = new Set(openTabs);
+        newOpenTabs.add(selectedTab);
+        setOpenTabs(newOpenTabs);
+        navigateToTabRoute(selectedTab);
+        return;
+      } else if (selectedTab.startsWith("vendor-")) {
+        const vendorId = selectedTab.replace("vendor-", "");
+        const vendorData: Record<string, string> = {
+          "1": "Dolce Heating & Plumbing",
+          "2": "David Smith",
+          "3": "David Smith",
+          "4": "David Smith",
+          "5": "David Smith",
+          "6": "David Smith",
+          "7": "David Smith",
+          "8": "David Smith",
+          "9": "David Smith",
+          "10": "David Smith",
+        };
+        const vendorLabel = vendorData[vendorId] || `Vendor ${vendorId}`;
+        const newVendor: Tab = {
+          id: selectedTab,
+          label: vendorLabel,
+        };
+        setTabs([...tabs, newVendor]);
+        const newOpenTabs = new Set(openTabs);
+        newOpenTabs.add(selectedTab);
+        setOpenTabs(newOpenTabs);
+        navigateToTabRoute(selectedTab);
+        return;
+      }
+    }
+
     if (tabExists && !openTabs.has(selectedTab)) {
       const newTabs = new Set(openTabs);
       newTabs.add(selectedTab);
