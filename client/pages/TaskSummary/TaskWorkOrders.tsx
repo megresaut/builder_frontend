@@ -255,6 +255,7 @@ export default function TaskWorkOrders({
   onWorkOrdersChange,
   defaultProperty,
   defaultTask,
+  defaultUnit,
   taskId,
   onWorkOrderSelect
 }: TaskWorkOrdersProps) {
