@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit, Bell, Share2, Mail, ChevronDown } from "lucide-react";
+import { ArrowLeft, Edit, Bell, Share2, Mail, ChevronDown, Plus } from "lucide-react";
 import SectionCard from "@/components/SectionCard";
 import PeopleCard from "@/components/PeopleCard";
 import BillsCard from "./BillsCard";
-import { NotesTemplate, FilesTemplate } from "@/components/templates";
+import { NotesTemplate, FilesTemplate, SectionActionTemplate } from "@/components/templates";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
 import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
 import DateField from "@/components/forms/DateField";
 import { cn } from "@/lib/utils";
+import { AddNoteModal, AddFileModal } from "@/components/task";
+import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
+import type { Note, File } from "@/components/templates";
 
 interface WorkOrder {
   id: number;
@@ -47,8 +51,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
     },
   ]);
 
-  // Mock notes and files
-  const [notes, setNotes] = useState([
+  const [notes, setNotes] = useState<Note[]>([
     {
       id: 1,
       text: "Initial check of the HVAC system showed some leaks.",
@@ -57,7 +60,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
     },
   ]);
 
-  const [files, setFiles] = useState([
+  const [files, setFiles] = useState<File[]>([
     {
       id: 1,
       name: "Lorem Ipsum.PDF",
@@ -74,9 +77,57 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
     },
   ]);
 
+  // Modal states
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editingFileId, setEditingFileId] = useState<number | null>(null);
+
   const handleDismissNotification = (id: number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
+
+  const handleAddNote = (text: string) => {
+    if (editingNoteId) {
+      setNotes(notes.map(n => n.id === editingNoteId ? { ...n, text, date: new Date().toLocaleString() } : n));
+    } else {
+      const newNote: Note = {
+        id: Math.max(0, ...notes.map(n => n.id)) + 1,
+        text,
+        date: new Date().toLocaleString(),
+        author: "Julia LoSchiavo",
+      };
+      setNotes([...notes, newNote]);
+    }
+    setIsAddNoteModalOpen(false);
+    setEditingNoteId(null);
+  };
+
+  const handleAddFile = (uploadedFiles: UploadedFile[], category: string, description: string) => {
+    if (editingFileId) {
+      setFiles(files.map(f => f.id === editingFileId ? {
+        ...f,
+        name: uploadedFiles[0]?.name || f.name,
+        category,
+        description
+      } : f));
+    } else {
+      const newFiles: File[] = uploadedFiles.map((uf, idx) => ({
+        id: Math.max(0, ...files.map(f => f.id)) + idx + 1,
+        name: uf.name,
+        url: uf.url || "#",
+        uploadedAt: new Date().toLocaleString(),
+        category,
+        description,
+      }));
+      setFiles([...files, ...newFiles]);
+    }
+    setIsAddFileModalOpen(false);
+    setEditingFileId(null);
+  };
+
+  const editingNote = notes.find(n => n.id === editingNoteId);
+  const editingFile = files.find(f => f.id === editingFileId);
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
@@ -248,21 +299,73 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
           </div>
 
           {/* Notes Section */}
-          <SectionCard variant="white" title="Notes" padding="compact">
-            <div className="p-4 pt-2">
-              <textarea 
-                className="w-full min-h-[160px] p-3 text-sm text-[#303030] bg-white border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-[#717179] placeholder:italic"
-                placeholder="Add some note here"
+          <SectionCard
+            variant="white"
+            title="Notes"
+            padding="compact"
+            actions={
+              <PopoverActionsDropdown
+                row={{}}
+                rowKey="id"
+                actions={[
+                  {
+                    label: "Add Note",
+                    icon: <Plus className="w-4 h-4" />,
+                    onClick: () => {
+                      setEditingNoteId(null);
+                      setIsAddNoteModalOpen(true);
+                    }
+                  }
+                ]}
               />
-            </div>
+            }
+          >
+            <NotesTemplate
+              notes={notes}
+              onAdd={() => {
+                setEditingNoteId(null);
+                setIsAddNoteModalOpen(true);
+              }}
+              onEdit={(note) => {
+                setEditingNoteId(note.id);
+                setIsAddNoteModalOpen(true);
+              }}
+              onDelete={(id) => setNotes(notes.filter(n => n.id !== id))}
+            />
           </SectionCard>
 
           {/* Files Section */}
-          <SectionCard variant="white" padding="compact">
+          <SectionCard
+            variant="white"
+            title="Recent Files"
+            padding="compact"
+            actions={
+              <PopoverActionsDropdown
+                row={{}}
+                rowKey="id"
+                actions={[
+                  {
+                    label: "Add File",
+                    icon: <Plus className="w-4 h-4" />,
+                    onClick: () => {
+                      setEditingFileId(null);
+                      setIsAddFileModalOpen(true);
+                    }
+                  }
+                ]}
+              />
+            }
+          >
             <FilesTemplate
               files={files}
-              onAdd={() => console.log("Add file")}
-              onEdit={() => console.log("Edit file")}
+              onAdd={() => {
+                setEditingFileId(null);
+                setIsAddFileModalOpen(true);
+              }}
+              onEdit={(file) => {
+                setEditingFileId(file.id);
+                setIsAddFileModalOpen(true);
+              }}
               onDelete={(id) => setFiles(files.filter(f => f.id !== id))}
               onView={() => console.log("View file")}
             />
@@ -338,6 +441,31 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
           />
         </div>
       </div>
+
+      {/* Modals */}
+      <AddNoteModal
+        open={isAddNoteModalOpen}
+        onOpenChange={setIsAddNoteModalOpen}
+        onSubmit={handleAddNote}
+        initialText={editingNote?.text}
+        isEditMode={!!editingNoteId}
+      />
+
+      <AddFileModal
+        open={isAddFileModalOpen}
+        onOpenChange={setIsAddFileModalOpen}
+        onSubmit={handleAddFile}
+        initialFiles={editingFile ? [{
+          id: String(editingFile.id),
+          name: editingFile.name,
+          url: editingFile.url,
+          size: 0,
+          type: "application/pdf"
+        }] : []}
+        initialCategory={editingFile?.category}
+        initialDescription={editingFile?.description}
+        isEditMode={!!editingFileId}
+      />
     </div>
   );
 }
