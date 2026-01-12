@@ -39,6 +39,8 @@ interface GlobalTableProps {
   headerActions?: ReactNode;
   showColumnModal: boolean;
   onShowColumnModalChange: (show: boolean) => void;
+  showPageSizeDropdown?: boolean;
+  onShowPageSizeDropdownChange?: (show: boolean) => void;
   showPagination?: boolean;
   getRowClassName?: (row: any) => string;
   getCellClassName?: (row: any, columnKey: string) => string;
