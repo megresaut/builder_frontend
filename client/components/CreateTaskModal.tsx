@@ -280,46 +280,65 @@ export default function CreateTaskModal({
     };
   }, []);
 
-  // Initialize form when modal opens in edit mode
+  // Initialize form when modal opens
   useEffect(() => {
-    if (open && editData) {
-      // Populate fields from editData when opening in edit mode
-      setTitle(editData.title);
-      setDescription(editData.description || "");
-      setProperty(editData.property || "");
-      setUnit(editData.unit || "");
-      setPriority(editData.priority.toLowerCase());
-      setDueDate(editData.dueDate || null);
-      const statusMap: { [key: string]: string } = {
-        "Not Started": "not_started",
-        "In Progress": "in_progress",
-        Completed: "completed",
-      };
-      setStatus(statusMap[editData.status || "Not Started"] || "not_started");
-      if (editData.assignees && editData.assignees.length > 0) {
-        setSelectedAssignees(
-          editData.assignees.map((a) => ({
+    if (open) {
+      if (editData) {
+        // Populate fields from editData when opening in edit mode
+        setTitle(editData.title);
+        setDescription(editData.description || "");
+        setProperty(editData.property || "");
+        setUnit(editData.unit || "");
+        setPriority(editData.priority.toLowerCase());
+        setDueDate(editData.dueDate || null);
+        const statusMap: { [key: string]: string } = {
+          "Not Started": "not_started",
+          "In Progress": "in_progress",
+          Completed: "completed",
+        };
+        setStatus(statusMap[editData.status || "Not Started"] || "not_started");
+        if (editData.assignees && editData.assignees.length > 0) {
+          setSelectedAssignees(
+            editData.assignees.map((a) => ({
+              id: String(a.id),
+              label: a.name,
+              initials: a.initials,
+            }))
+          );
+        }
+      } else {
+        // Clear form when opening in non-edit mode
+        setTitle("");
+        setDescription("");
+        setProperty("");
+        setUnit("");
+        setCategory("");
+        setPriority("normal");
+        setDueDate(null);
+        setStatus("not_started");
+        setSelectedAssignees([]);
+        setSelectedCollaborators([]);
+        setMessage("");
+      }
+
+      // Initialize baseline state for the "update" variant
+      if (variant === "withMessageAndAttachments") {
+        setInitialState({
+          status: editData ? editData.status === "In Progress" ? "in_progress" : editData.status === "Completed" ? "completed" : "not_started" : "not_started",
+          priority: editData ? editData.priority.toLowerCase() : "normal",
+          dueDate: editData?.dueDate || null,
+          assignees: editData?.assignees?.map((a) => ({
             id: String(a.id),
             label: a.name,
             initials: a.initials,
-          }))
-        );
+          })) || selectedAssignees,
+          collaborators: selectedCollaborators,
+          message,
+          property: editData?.property || property,
+          unit: editData?.unit || unit,
+          category: editData?.category || category,
+        });
       }
-    }
-
-    // Initialize baseline state for the "update" variant
-    if (open && variant === "withMessageAndAttachments") {
-      setInitialState({
-        status,
-        priority,
-        dueDate,
-        assignees: selectedAssignees,
-        collaborators: selectedCollaborators,
-        message,
-        property,
-        unit,
-        category,
-      });
     }
   }, [open, editData?.id, variant]);
 
