@@ -93,6 +93,17 @@ const buildTaskOptions = (initialTask?: string) => {
   }));
 };
 
+const buildVendorOptions = (initialVendor?: string) => {
+  const options = new Set(VENDORS);
+  if (initialVendor && initialVendor.trim()) {
+    options.add(initialVendor);
+  }
+  return Array.from(options).sort().map(vendor => ({
+    value: vendor,
+    label: vendor,
+  }));
+};
+
 // Fields that must be validated on submit
 const REQUIRED_FIELDS = new Set([
   "property",
