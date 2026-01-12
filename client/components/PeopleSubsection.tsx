@@ -145,15 +145,16 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
                   {person.href ? (
-                    <a
-                      href={person.href}
+                    <button
+                      onClick={() => handleNameClick(person.href)}
                       className={cn(
-                        "font-medium tracking-[-0.28px] hover:underline truncate",
-                        type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]"
+                        "font-medium tracking-[-0.28px] hover:underline truncate text-left",
+                        type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]",
+                        "bg-transparent border-0 cursor-pointer p-0"
                       )}
                     >
                       {person.name}
-                    </a>
+                    </button>
                   ) : (
                     <div
                       className={cn(
