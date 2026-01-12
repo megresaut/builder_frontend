@@ -357,6 +357,7 @@ export default function TaskSummary() {
     billTotal: string;
     assignees: Assignee[];
     collaborators: Assignee[];
+    vendorName?: string;
   }
 
   // Mock work orders data
