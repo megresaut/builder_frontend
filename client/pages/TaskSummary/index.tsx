@@ -88,8 +88,12 @@ export default function TaskSummary() {
       return;
     }
 
-    // Skip sync if we just navigated to a work order and state hasn't caught up yet
-    if (workOrderId && !uiState.selectedWorkOrderId) {
+    // Skip sync if we just navigated from the table to a work order and state hasn't caught up yet
+    // But don't skip if we are intentionally clearing the selection via state
+    const isNavigatingToWorkOrder = workOrderId && !uiState.selectedWorkOrderId;
+    const isClearingWorkOrderSelection = !workOrderId && uiState.selectedWorkOrderId;
+
+    if (isNavigatingToWorkOrder && !isClearingWorkOrderSelection) {
       return;
     }
 
