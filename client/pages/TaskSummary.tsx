@@ -1235,7 +1235,7 @@ export default function TaskSummary() {
           // Add message body if provided
           if ((taskData as any).messageBody) {
             details.push(
-              <div key="message" className="mb-3">
+              <div key="message">
                 <div className="text-sm text-[#303030]">{(taskData as any).messageBody}</div>
               </div>
             );
