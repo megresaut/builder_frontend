@@ -119,8 +119,13 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
           {filteredPeople.map((person, idx) => (
             <div
               key={`${person.id}-${idx}`}
-              className="flex items-center justify-between gap-3 flex-wrap"
+              className="flex items-center justify-between gap-3 flex-wrap group/row relative"
             >
+              {/* Tooltip for name on hover */}
+              <div className="absolute bottom-full left-0 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/row:opacity-100 transition-opacity pointer-events-none z-50">
+                {person.name}
+              </div>
+
               {/* Left: Avatar + Name/Role */}
               <div className="flex items-center gap-2.5 flex-1 min-w-[240px]">
                 <div
@@ -131,6 +136,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                       "w-8 h-8 text-sm": density === "compact",
                     },
                   )}
+                  title={person.name}
                 >
                   {person.initials}
                 </div>
@@ -169,7 +175,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
       {mode === "avatars" && (
         <div className="flex items-center gap-2 mt-3">
           {filteredPeople.map((person, idx) => (
-            <div key={`${person.id}-${idx}`} className="relative group">
+            <div key={`${person.id}-${idx}`} className="relative group/avatar">
               <button
                 onClick={() => handleAvatarClick(person)}
                 className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-[#2463eb] font-semibold text-sm leading-[0.8] hover:bg-[#f0f4ff] transition-colors flex-shrink-0"
@@ -177,7 +183,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
               >
                 {person.initials}
               </button>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#303030] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 transition-opacity pointer-events-none z-50">
                 {person.name}
               </div>
             </div>
