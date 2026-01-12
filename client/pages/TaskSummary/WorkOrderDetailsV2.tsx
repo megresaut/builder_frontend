@@ -392,8 +392,17 @@ export default function WorkOrderDetailsV2({
             variant="white"
             title="Notes"
             padding="compact"
+            actions={
+              <SectionActionTemplate
+                label="Add"
+                onClick={() => {
+                  setEditingNoteId(null);
+                  setIsAddNoteModalOpen(true);
+                }}
+              />
+            }
           >
-            <div className="p-0">
+            <div className="p-4">
               <NotesTemplate
                 notes={notes}
                 hideHeader={true}
@@ -415,8 +424,17 @@ export default function WorkOrderDetailsV2({
             variant="white"
             title="Recent Files"
             padding="compact"
+            actions={
+              <SectionActionTemplate
+                label="Add"
+                onClick={() => {
+                  setEditingFileId(null);
+                  setIsAddFileModalOpen(true);
+                }}
+              />
+            }
           >
-            <div className="p-0">
+            <div className="p-4">
               <FilesTemplate
                 files={files}
                 hideHeader={true}
