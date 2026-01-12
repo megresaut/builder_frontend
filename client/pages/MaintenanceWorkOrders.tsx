@@ -697,6 +697,47 @@ export default function MaintenanceWorkOrders() {
                   </div>
                 );
               }
+              if (columnKey === "collaborators") {
+                return (
+                  <div className="flex items-center gap-2">
+                    {workOrder.collaborators.map((collaborator) => (
+                      <div
+                        key={collaborator.id}
+                        className="relative group"
+                      >
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                          style={{
+                            backgroundColor: "rgb(59, 130, 246)",
+                            borderColor: "rgb(209, 213, 219)",
+                            borderWidth: "1px",
+                          }}
+                          title={collaborator.name}
+                        >
+                          {collaborator.initials}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                          {collaborator.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+              if (columnKey === "property") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {workOrder.property}
+                  </span>
+                );
+              }
+              if (columnKey === "unit") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {workOrder.unit}
+                  </span>
+                );
+              }
               return null;
             }}
             sortingHook={{
