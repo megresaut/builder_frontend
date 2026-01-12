@@ -372,10 +372,10 @@ export default function AllTasks() {
           }}
           renderCell={(task, columnKey) => {
             if (columnKey === "priority") {
-              return <PriorityBadge priority={task.priority} />;
+              return <TaskPriorityBadge priority={task.priority as any} />;
             }
             if (columnKey === "status") {
-              return <StatusBadge status={task.status} />;
+              return <TaskStatusBadge status={task.status as any} />;
             }
             if (columnKey === "title") {
               return (
