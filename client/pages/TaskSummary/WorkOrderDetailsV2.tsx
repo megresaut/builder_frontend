@@ -534,6 +534,7 @@ export default function WorkOrderDetailsV2({
                     roleLabel: "Vendor Company",
                     email: getVendorEmail(workOrder.vendorName),
                     phone: getVendorPhone(workOrder.vendorName),
+                    href: getVendorHref(workOrder.vendorName),
                   }
                 ] : [],
                 showRoleLabel: true,
