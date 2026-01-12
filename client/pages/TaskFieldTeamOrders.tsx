@@ -738,7 +738,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
             timesheetStatus: "awaiting-submission",
             amount: 0,
           };
-          setOrders([newFTO, ...orders]);
+          onOrdersChange([newFTO, ...orders]);
         }}
       />
 
