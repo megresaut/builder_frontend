@@ -1147,7 +1147,7 @@ export default function TaskSummary() {
           category: currentCategory,
         }}
         onTaskCreated={(taskData: any) => {
-          // Update property, unit, title, and category if they changed
+          // Update all task fields
           if (taskData.property) {
             setCurrentProperty(taskData.property);
           }
@@ -1159,6 +1159,21 @@ export default function TaskSummary() {
           }
           if (taskData.category) {
             setCurrentCategory(taskData.category);
+          }
+          if (taskData.status) {
+            setCurrentStatus(taskData.status);
+          }
+          if (taskData.priority) {
+            setCurrentPriority(taskData.priority);
+          }
+          if (taskData.dueDate) {
+            setCurrentDueDate(taskData.dueDate);
+          }
+          if (taskData.assignees) {
+            setCurrentAssignees(taskData.assignees);
+          }
+          if (taskData.collaborators) {
+            setCurrentCollaborators(taskData.collaborators);
           }
 
           // Check if this is a new task creation (compact variant) or an update
