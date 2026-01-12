@@ -509,8 +509,16 @@ export default function TaskSummary() {
                       label: "Created by",
                       mode: "rows",
                       people: [
-                        // For new tasks, show empty placeholder; for existing tasks, show the actual creator
-                        ...(isNewTask ? [] : [
+                        // Show current user for new tasks; existing task creator for demo tasks
+                        ...(isNewTask ? [
+                          {
+                            id: 0,
+                            name: "Current User",
+                            initials: "CU",
+                            roleLabel: "Staff member",
+                            phone: "",
+                          },
+                        ] : [
                           {
                             id: 4,
                             name: "Julia LoSchiavo",
