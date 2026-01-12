@@ -1426,17 +1426,34 @@ export default function TaskSummary() {
                 .filter((file: any) => typeof file?.url === "string" && file.url)
             : undefined;
 
-          // Merge renamed files back into the main files state
+          // Add new files and merge renamed files back into the main files state
           if (Array.isArray((taskData as any).files) && (taskData as any).files.length > 0) {
             setFiles((prevFiles) => {
               const renamedFiles = new Map((taskData as any).files.map((f: any) => [f.id, f]));
-              return prevFiles.map((f) => {
+              const existingIds = new Set(prevFiles.map((f) => f.id));
+
+              // Update existing files with renamed versions
+              const updatedFiles = prevFiles.map((f) => {
                 const renamedFile = renamedFiles.get(f.id);
                 if (renamedFile && renamedFile.name !== f.name) {
                   return { ...f, name: renamedFile.name };
                 }
                 return f;
               });
+
+              // Add new files that don't exist yet
+              const newFiles = (taskData as any).files
+                .filter((f: any) => !existingIds.has(f.id))
+                .map((f: any) => ({
+                  id: f.id || (Math.max(...updatedFiles.map(file => file.id), 0) + 1),
+                  name: f.name,
+                  url: f.url,
+                  uploadedAt: new Date().toLocaleString(),
+                  category: "PDF",
+                  description: "",
+                }));
+
+              return [...newFiles, ...updatedFiles];
             });
           }
 
