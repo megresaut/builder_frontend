@@ -342,7 +342,7 @@ export default function WorkOrderDetailsV2({
                   <div className="flex flex-col items-start gap-3 flex-1">
                     <div className="flex items-center gap-1">
                       <span className="text-[#717179] text-sm font-semibold leading-4">Invoice Number:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || "234605"}</span>
+                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || ""}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-[#717179] text-sm font-semibold leading-4">Vendor:</span>
