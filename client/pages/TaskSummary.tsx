@@ -911,7 +911,7 @@ export default function TaskSummary() {
               {/* Right Sidebar */}
               <div className="flex flex-col min-w-[240px] w-[376px] gap-5">
                 {/* Location Card - Only show when property is selected */}
-                {currentProperty && (
+                {currentProperty && currentProperty !== "Unassigned" && (
                   <TaskLocationCard
                     propertyImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
                     propertyName={`${getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
@@ -940,7 +940,7 @@ export default function TaskSummary() {
                         mode: "rows",
                         people: currentAssignees.map((assignee) => ({
                           id: assignee.id,
-                          name: assignee.name,
+                          name: assignee.name || assignee.label,
                           initials: assignee.initials,
                           roleLabel: "Property manager",
                           phone: "",
@@ -956,7 +956,7 @@ export default function TaskSummary() {
                         mode: "rows",
                         people: currentCollaborators.map((collaborator) => ({
                           id: collaborator.id,
-                          name: collaborator.name,
+                          name: collaborator.name || collaborator.label,
                           initials: collaborator.initials,
                           roleLabel: "Property manager",
                           phone: "",
