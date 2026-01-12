@@ -742,6 +742,26 @@ export default function TaskSummary() {
     uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: woId });
   };
 
+  const handleStatusChange = (newStatus: string) => {
+    setCurrentStatus(newStatus);
+  };
+
+  const handlePriorityChange = (newPriority: string) => {
+    setCurrentPriority(newPriority);
+  };
+
+  const handleDueDateChange = (newDate: Date | string | null) => {
+    if (newDate instanceof Date) {
+      setCurrentDueDate(newDate);
+    } else if (newDate && typeof newDate === "string") {
+      // Parse string date back to Date object
+      const parsed = new Date(newDate);
+      setCurrentDueDate(!isNaN(parsed.getTime()) ? parsed : null);
+    } else {
+      setCurrentDueDate(null);
+    }
+  };
+
   const handleStartRenamingAttachment = () => {
     if (uiState.viewingAttachment) {
       uiDispatch({
@@ -1202,6 +1222,9 @@ export default function TaskSummary() {
               }}
               onAddUpdate={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
               onEditTask={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
+              onStatusChange={handleStatusChange}
+              onPriorityChange={handlePriorityChange}
+              onDueDateChange={handleDueDateChange}
               getPropertyDisplayLabel={getPropertyDisplayLabel}
               getUnitDisplayLabel={getUnitDisplayLabel}
               getPropertyName={getPropertyName}
