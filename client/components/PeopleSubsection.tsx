@@ -25,6 +25,7 @@ interface PeopleSubsectionProps {
   alignBody?: "left" | "center";
   activeTab?: number;
   hideHeaderOnTab?: number | number[];
+  type?: "assignee" | "collaborator";
 }
 
 /**
