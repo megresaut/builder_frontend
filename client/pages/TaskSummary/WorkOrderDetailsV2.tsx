@@ -257,10 +257,13 @@ export default function WorkOrderDetailsV2({
   const handleDueDateChange = (newDate: Date | string | null) => {
     setDueDate(newDate);
     if (onWorkOrderUpdate) {
-      const dateStr = newDate instanceof Date
-        ? newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        : String(newDate || "");
-      onWorkOrderUpdate({ ...workOrder, dueDate: dateStr });
+      let dateValue: string | null = null;
+      if (newDate) {
+        dateValue = newDate instanceof Date
+          ? newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : String(newDate);
+      }
+      onWorkOrderUpdate({ ...workOrder, dueDate: dateValue });
     }
   };
 
