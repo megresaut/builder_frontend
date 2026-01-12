@@ -12,6 +12,7 @@ export interface UpdateItem {
   timestamp: string;
   details?: ReactNode;
   moreOptions?: () => void;
+  icon?: ReactNode;
 }
 
 interface TaskUpdatesTimelineProps {
