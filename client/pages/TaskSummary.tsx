@@ -878,7 +878,7 @@ export default function TaskSummary() {
                   { label: "WORK ORDERS", value: workOrders.length.toString() },
                   { label: "FTOs", value: fieldTeamOrders.length.toString() },
                 ]}
-                onEdit={() => setIsEditTaskDetailsOpen(true)}
+                onEdit={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
               />
 
               {/* Notes Section */}
@@ -886,13 +886,13 @@ export default function TaskSummary() {
                 <NotesTemplate
                   notes={notes}
                   onAdd={() => {
-                    setEditingNoteId(null);
-                    setViewingNote(null);
-                    setIsAddNoteModalOpen(true);
+                    uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: null });
+                    uiDispatch({ type: "SET_VIEWING_NOTE", payload: null });
+                    uiDispatch({ type: "OPEN_MODAL", payload: "addNote" });
                   }}
                   onEdit={(note) => {
-                    setViewingNote(note);
-                    setIsViewNoteOpen(true);
+                    uiDispatch({ type: "SET_VIEWING_NOTE", payload: note });
+                    uiDispatch({ type: "OPEN_MODAL", payload: "viewNote" });
                   }}
                   onDelete={(noteId) =>
                     setNotes(notes.filter((n) => n.id !== noteId))
@@ -905,12 +905,12 @@ export default function TaskSummary() {
                 <FilesTemplate
                   files={files}
                   onAdd={() => {
-                    setEditingFileId(null);
-                    setIsAddFileModalOpen(true);
+                    uiDispatch({ type: "SET_EDITING_FILE_ID", payload: null });
+                    uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
                   }}
                   onEdit={(file) => {
-                    setEditingFileId(file.id);
-                    setIsAddFileModalOpen(true);
+                    uiDispatch({ type: "SET_EDITING_FILE_ID", payload: file.id });
+                    uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
                   }}
                   onDelete={(fileId) =>
                     setFiles(files.filter((f) => f.id !== fileId))
@@ -921,10 +921,13 @@ export default function TaskSummary() {
 
               {/* Linked Tasks Card */}
               <LinkedTasksCard
-                linkedTasks={linkedTasks}
-                onLinkTasks={() => setIsLinkTaskModalOpen(true)}
+                linkedTasks={uiState.linkedTasks}
+                onLinkTasks={() => uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })}
                 onUnlinkTask={(taskId) =>
-                  setLinkedTasks(linkedTasks.filter((t) => t.id !== taskId))
+                  uiDispatch({
+                    type: "REMOVE_LINKED_TASK",
+                    payload: taskId,
+                  })
                 }
                 onTaskClick={(linkedTaskId) => {
                   const tabId = `task-${linkedTaskId}`;
@@ -940,7 +943,7 @@ export default function TaskSummary() {
               {/* Updates Timeline */}
               <TaskUpdatesTimeline
                 updates={updates}
-                onAddUpdate={() => setIsEditTaskModalOpen(true)}
+                onAddUpdate={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
               />
             </div>
 
