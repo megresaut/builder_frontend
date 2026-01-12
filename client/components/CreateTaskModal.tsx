@@ -323,21 +323,8 @@ export default function CreateTaskModal({
 
       // Initialize baseline state for the "update" variant
       if (variant === "withMessageAndAttachments") {
-        setInitialState({
-          status: editData ? editData.status === "In Progress" ? "in_progress" : editData.status === "Completed" ? "completed" : "not_started" : "not_started",
-          priority: editData ? editData.priority.toLowerCase() : "normal",
-          dueDate: editData?.dueDate || null,
-          assignees: editData?.assignees?.map((a) => ({
-            id: String(a.id),
-            label: a.name,
-            initials: a.initials,
-          })) || selectedAssignees,
-          collaborators: selectedCollaborators,
-          message,
-          property: editData?.property || property,
-          unit: editData?.unit || unit,
-          category: editData?.category || category,
-        });
+        // This will be set on next render with current form values
+        setInitialState(null);
       }
     }
   }, [open, editData?.id, variant]);
