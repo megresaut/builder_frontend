@@ -411,14 +411,18 @@ export default function Header({
 
   // Navigate back within the current tab's history
   const handleBackInTab = () => {
-    if (!selectedTab) return;
+    if (!selectedTab) {
+      navigate(-1);
+      return;
+    }
 
     const metadata = tabMetadata[selectedTab];
     const currentIndex = metadata?.historyIndex ?? -1;
     const history = metadata?.history || [];
 
-    // Can't go back if at the beginning
+    // If at the beginning of history, use browser back navigation
     if (currentIndex <= 0) {
+      navigate(-1);
       return;
     }
 
