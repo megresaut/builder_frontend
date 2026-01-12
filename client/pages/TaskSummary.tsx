@@ -506,8 +506,6 @@ export default function TaskSummary() {
 
   const [fieldTeamOrders, setFieldTeamOrders] = useState<any[]>(mockFieldTeamOrders);
 
-  const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
-
   useEffect(() => {
     return () => {
       createdAttachmentUrlsRef.current.forEach((url) => {
