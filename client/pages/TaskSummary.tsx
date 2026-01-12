@@ -298,7 +298,6 @@ export default function TaskSummary() {
     id: number;
     name: string;
     initials: string;
-    color: string;
   }
 
   interface WorkOrder {
