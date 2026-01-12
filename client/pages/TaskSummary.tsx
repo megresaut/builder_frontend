@@ -715,6 +715,9 @@ export default function TaskSummary() {
                 onUnlinkTask={(taskId) =>
                   setLinkedTasks(linkedTasks.filter((t) => t.id !== taskId))
                 }
+                onTaskClick={(linkedTaskId) => {
+                  navigate(`/tasks/${linkedTaskId}`);
+                }}
               />
 
               {/* Updates Timeline */}
