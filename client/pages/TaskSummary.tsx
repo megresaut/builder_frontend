@@ -222,6 +222,7 @@ export default function TaskSummary() {
       {
         id: 0,
         author: "Julia LoSchiavo",
+        authorType: "assignee",
         action: "created this task",
         timestamp: "11/12/2025 9:22 PM",
         fieldsDisplay: (
@@ -241,7 +242,7 @@ export default function TaskSummary() {
             <div>
               <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
               <div className="mt-0.5">
-                <PersonAvatars people={[{ id: 1, name: "Julia LoSchiavo", initials: "JL" }]} />
+                <PersonAvatars people={[{ id: 1, name: "Julia LoSchiavo", initials: "JL" }]} type="assignee" />
               </div>
             </div>
           </div>
