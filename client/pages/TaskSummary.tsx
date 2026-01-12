@@ -647,8 +647,8 @@ export default function TaskSummary() {
                 createdDate={new Date().toLocaleString()}
                 stats={[
                   { label: "TOTAL EXPENSE", value: "$0.00" },
-                  { label: "WORK ORDERS", value: "0" },
-                  { label: "FTOs", value: "0" },
+                  { label: "WORK ORDERS", value: workOrders.length.toString() },
+                  { label: "FTOs", value: fieldTeamOrders.length.toString() },
                 ]}
                 onEdit={() => setIsEditTaskDetailsOpen(true)}
               />
