@@ -43,6 +43,7 @@ export default function WorkOrderDetailsV2({
   workOrder,
   currentAssignees = [],
   currentCollaborators = [],
+  onWorkOrderUpdate,
 }: WorkOrderDetailsV2Props) {
   const navigate = useNavigate();
   const { taskId } = useParams<{ taskId: string }>();
