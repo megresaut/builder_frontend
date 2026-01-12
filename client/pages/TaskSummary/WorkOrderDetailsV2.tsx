@@ -384,7 +384,7 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
           {/* Assignees Card */}
           <PeopleCard
             title="Assignees"
-            variant="white"
+            variant="default"
             tabs={["Staff", "Vendors", "Field Team"]}
             defaultTab={0}
             footerActions={[]}
