@@ -62,8 +62,64 @@ export default function TaskSummary() {
     },
   ]);
 
+  const getInitialUpdate = () => {
+    const taskData = navigationState?.taskData || navigationState?.task;
+    const statusMap: { [key: string]: string } = {
+      "not_started": "Not Started",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+    };
+    const priorityLabel = taskData?.priority
+      ? (typeof taskData.priority === 'string'
+          ? taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)
+          : taskData.priority)
+      : "Normal";
+    const dueDate = taskData?.dueDate
+      ? (taskData.dueDate instanceof Date
+          ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : taskData.dueDate)
+      : "No due date";
+    const assigneeNames = taskData?.assignees?.map((a: any) => a.name || a.label).join(", ") || "Unassigned";
+
+    return {
+      id: 0,
+      author: "Current User",
+      action: "created this task",
+      timestamp: new Date().toLocaleString(),
+      fieldsDisplay: (
+        <div className="grid grid-cols-4 gap-6 mt-3">
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">{statusMap[taskData?.status] || taskData?.status || "Not Started"}</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">{priorityLabel}</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">{dueDate}</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">{assigneeNames}</div>
+          </div>
+        </div>
+      ),
+      ...(taskData?.description && {
+        details: (
+          <div className="pt-2 border-t border-[#e5e5e5]">
+            <div className="text-sm text-[#303030]">{taskData.description}</div>
+          </div>
+        ),
+      }),
+      icon: <FlagIcon width={16} height={16} />,
+      isInitialCreation: true,
+    };
+  };
+
   const [updates, setUpdates] = useState<any[]>([
-    {
+    navigationState?.taskData || navigationState?.task ? getInitialUpdate() : {
       id: 0,
       author: "Julia LoSchiavo",
       action: "created this task",
