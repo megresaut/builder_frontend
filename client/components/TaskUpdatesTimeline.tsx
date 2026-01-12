@@ -121,15 +121,6 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                     marginLeft: "-8px",
                   }}
                 />
-                <div
-                  className="absolute left-0 top-3 w-0 h-0"
-                  style={{
-                    borderTop: "6px solid transparent",
-                    borderBottom: "6px solid transparent",
-                    borderRight: "8px solid #e5e5e5",
-                    marginLeft: "-9px",
-                  }}
-                />
 
                 {/* Card Content */}
                 <div className="px-4 py-3 flex flex-col gap-2">
