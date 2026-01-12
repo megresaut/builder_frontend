@@ -173,6 +173,20 @@ export default function CreateTaskModal({
           : "no due date";
         changes.push(`updated due date to ${dateStr}`);
       }
+
+      if (selectedAssignees.length !== initialState.assignees.length ||
+          !selectedAssignees.every((a) =>
+            initialState.assignees.some((ia) => ia.id === a.id)
+          )) {
+        changes.push("updated assignees");
+      }
+
+      if (selectedCollaborators.length !== initialState.collaborators.length ||
+          !selectedCollaborators.every((c) =>
+            initialState.collaborators.some((ic) => ic.id === c.id)
+          )) {
+        changes.push("updated collaborators");
+      }
     }
 
     if (message) {
@@ -192,7 +206,7 @@ export default function CreateTaskModal({
     }
 
     return changes.join(", ");
-  }, [initialState, status, priority, dueDate, message, fileUpload.files.length]);
+  }, [initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, message, fileUpload.files.length]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: {
