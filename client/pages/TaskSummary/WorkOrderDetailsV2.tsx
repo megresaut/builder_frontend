@@ -231,14 +231,14 @@ export default function WorkOrderDetailsV2({
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
     if (onWorkOrderUpdate) {
-      onWorkOrderUpdate({ ...workOrder, status: newStatus });
+      onWorkOrderUpdate({ ...workOrder, status: newStatus, notes, files });
     }
   };
 
   const handlePriorityChange = (newPriority: string) => {
     setPriority(newPriority);
     if (onWorkOrderUpdate) {
-      onWorkOrderUpdate({ ...workOrder, priority: newPriority });
+      onWorkOrderUpdate({ ...workOrder, priority: newPriority, notes, files });
     }
   };
 
@@ -251,7 +251,7 @@ export default function WorkOrderDetailsV2({
           ? newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : String(newDate);
       }
-      onWorkOrderUpdate({ ...workOrder, dueDate: dateValue });
+      onWorkOrderUpdate({ ...workOrder, dueDate: dateValue, notes, files });
     }
   };
 
