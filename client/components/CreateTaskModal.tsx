@@ -586,28 +586,38 @@ export default function CreateTaskModal({
             <FormSection showDivider={false}>
               {/* Priority + Due Date + Status - 3 Columns */}
               <FormFieldRow columns={3}>
-                <SelectField
-                  label="Status"
-                  value={status}
-                  onChange={setStatus}
-                  placeholder="Select Status"
-                  options={[
-                    { value: "not_started", label: "Not Started" },
-                    { value: "in_progress", label: "In Progress" },
-                    { value: "completed", label: "Completed" },
-                  ]}
-                />
-                <SelectField
-                  label="Priority"
-                  value={priority}
-                  onChange={setPriority}
-                  placeholder="Select Priority"
-                  options={[
-                    { value: "low", label: "Low" },
-                    { value: "normal", label: "Normal" },
-                    { value: "high", label: "High" },
-                  ]}
-                />
+                <div>
+                  <SelectField
+                    label="Status"
+                    value={status}
+                    onChange={setStatus}
+                    placeholder="Select Status"
+                    options={[
+                      { value: "not_started", label: "Not Started" },
+                      { value: "in_progress", label: "In Progress" },
+                      { value: "completed", label: "Completed" },
+                    ]}
+                  />
+                  <div className="mt-2">
+                    <TaskStatusBadge status={status as any} />
+                  </div>
+                </div>
+                <div>
+                  <SelectField
+                    label="Priority"
+                    value={priority}
+                    onChange={setPriority}
+                    placeholder="Select Priority"
+                    options={[
+                      { value: "low", label: "Low" },
+                      { value: "normal", label: "Normal" },
+                      { value: "high", label: "High" },
+                    ]}
+                  />
+                  <div className="mt-2">
+                    <TaskPriorityBadge priority={priority as any} />
+                  </div>
+                </div>
                 <DateField
                   label="Due Date"
                   value={dueDate}
