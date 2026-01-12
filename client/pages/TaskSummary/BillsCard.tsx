@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import SectionCard from "@/components/SectionCard";
 import { Calendar, Clock } from "lucide-react";
 
@@ -14,6 +15,7 @@ interface BillItem {
 
 interface BillsCardProps {
   bills: BillItem[];
+  workOrderId?: number;
 }
 
 export const BillsCard: React.FC<BillsCardProps> = ({ bills }) => {
