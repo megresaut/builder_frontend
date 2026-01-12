@@ -1160,19 +1160,19 @@ export default function TaskSummary() {
           if (taskData.category) {
             setCurrentCategory(taskData.category);
           }
-          if (taskData.status) {
+          if (taskData.status !== undefined) {
             setCurrentStatus(taskData.status);
           }
-          if (taskData.priority) {
+          if (taskData.priority !== undefined) {
             setCurrentPriority(taskData.priority);
           }
-          if (taskData.dueDate) {
+          if (taskData.dueDate !== undefined) {
             setCurrentDueDate(taskData.dueDate);
           }
-          if (taskData.assignees) {
+          if (taskData.assignees !== undefined) {
             setCurrentAssignees(taskData.assignees);
           }
-          if (taskData.collaborators) {
+          if (taskData.collaborators !== undefined) {
             setCurrentCollaborators(taskData.collaborators);
           }
 
