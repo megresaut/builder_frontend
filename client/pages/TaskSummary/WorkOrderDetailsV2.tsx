@@ -55,7 +55,16 @@ export default function WorkOrderDetailsV2({
   // Field state
   const [status, setStatus] = useState(() => workOrder?.status || "completed");
   const [priority, setPriority] = useState(() => workOrder?.priority || "normal");
-  const [dueDate, setDueDate] = useState<Date | string | null>(() => workOrder?.dueDate ? new Date(workOrder.dueDate) : null);
+  const [dueDate, setDueDate] = useState<Date | string | null>(() => {
+    if (!workOrder?.dueDate) return null;
+    // If it's already a Date object, use it directly
+    if (workOrder.dueDate instanceof Date) {
+      return workOrder.dueDate;
+    }
+    // Try to parse string dates (may be ISO or formatted)
+    const parsed = new Date(workOrder.dueDate);
+    return !isNaN(parsed.getTime()) ? parsed : workOrder.dueDate;
+  });
 
   // Sync workOrder prop changes to local state
   useEffect(() => {
