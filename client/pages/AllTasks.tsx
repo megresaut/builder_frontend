@@ -466,8 +466,8 @@ export default function AllTasks() {
         })),
       };
       setTasksList((prev) => [newTask, ...prev]);
-      // Navigate to the newly created task
-      navigate(`/tasks/${newTaskId}`);
+      // Navigate to the newly created task with its data
+      navigate(`/tasks/${newTaskId}`, { state: { task: newTask, taskData } });
     },
     [tasksList, navigate]
   );
