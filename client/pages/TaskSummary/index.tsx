@@ -81,16 +81,18 @@ export default function TaskSummary() {
 
   // Sync state to URL when tab changes (from user clicking tab button)
   // This happens when handleTabChange calls navigate, then this ensures state is synced
+  /*
+    REMOVED: This effect caused a race condition/bounce because it would try to sync "old" state
+    back to the URL before the URL-to-State sync could update the state.
+    Since we are using URL as the single source of truth and all actions (tabs, rows, create)
+    trigger navigation explicitly, we don't need to sync State -> URL here.
+    We only need to handle the case where no tab is selected (redirect to summary).
+  */
   useEffect(() => {
-    // Build expected path based on current state
-    const expectedPath = `/tasks/${taskId}/${uiState.activeTab}${uiState.selectedWorkOrderId ? `/${uiState.selectedWorkOrderId}` : ""}`;
-
-    // Only update URL if it doesn't match state (e.g., after a tab click)
-    // Don't update if URL already matches (e.g., after a table row click)
-    if (location.pathname !== expectedPath) {
-      navigate(expectedPath, { replace: true });
+    if (!tab && taskId) {
+      navigate(`/tasks/${taskId}/summary`, { replace: true });
     }
-  }, [uiState.activeTab, uiState.selectedWorkOrderId, taskId, navigate]);
+  }, [tab, taskId, navigate]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
