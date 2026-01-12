@@ -770,24 +770,14 @@ export default function TaskSummary() {
             );
           }
 
-          // Add attachments if provided
-          if ((taskData as any).files && (taskData as any).files.length > 0) {
-            details.push(
-              <div key="attachments">
-                <div className="flex flex-col gap-1">
-                  {(taskData as any).files.map((file: any, idx: number) => (
-                    <div key={idx} className="text-xs text-[#303030] flex items-center gap-2">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2 2H10L14 6V14C14 14.5304 13.7893 15.0391 13.4142 15.4142C13.0391 15.7893 12.5304 16 12 16H4C3.46957 16 2.96086 15.7893 2.58579 15.4142C2.21071 15.0391 2 14.5304 2 14V2Z" stroke="#525252" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M10 2V6H14" stroke="#525252" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      {file.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          }
+          // Create attachments array with preview support
+          const attachments = ((taskData as any).files && (taskData as any).files.length > 0)
+            ? (taskData as any).files.map((file: any) => ({
+                name: file.name,
+                url: file.url,
+                preview: file.type?.includes('image') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? file.url : undefined,
+              }))
+            : undefined;
 
           const newUpdate = {
             id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
@@ -798,6 +788,11 @@ export default function TaskSummary() {
             timestamp: new Date().toLocaleString(),
             details: details.length > 0 ? <div>{details}</div> : null,
             icon: updateIcon,
+            attachments,
+            onAttachmentClick: (file: any) => {
+              setViewingAttachment({ name: file.name, url: file.url });
+              setIsPdfViewerOpen(true);
+            },
           };
           setUpdates([newUpdate, ...updates]);
         }}
