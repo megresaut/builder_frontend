@@ -738,6 +738,7 @@ export default function MaintenanceWorkOrders() {
             assignees: [],
             collaborators: [],
             vendorName: data.vendor || "",
+            description: data.notes || "",
             notes: newNotes,
             files: newFiles,
           };
