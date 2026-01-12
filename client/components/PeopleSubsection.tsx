@@ -69,20 +69,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
     }
   };
 
-  const filterPeopleByTab = (peopleList: Person[]) => {
-    if (activeTab === 0) {
-      return peopleList.filter((p) => p.type === "staff" || !p.type);
-    } else if (activeTab === 1) {
-      return peopleList.filter((p) => p.type === "vendor");
-    } else if (activeTab === 2) {
-      return peopleList.filter(
-        (p) => p.type === "propertyManager" || p.type === "fieldManager"
-      );
-    }
-    return peopleList;
-  };
-
-  const filteredPeople = filterPeopleByTab(people);
+  const filteredPeople = people;
 
   const shouldHideHeader = hideHeaderOnTab !== undefined && (
     Array.isArray(hideHeaderOnTab)
