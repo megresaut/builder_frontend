@@ -7,7 +7,6 @@ interface TaskDetailsBarTemplateProps {
   status: string;
   priority: string;
   dueDate: Date | string | null;
-  lastUpdated: string;
   onStatusChange: (newStatus: string) => void;
   onPriorityChange: (newPriority: string) => void;
   onDueDateChange: (newDate: Date | string | null) => void;
