@@ -89,6 +89,32 @@ export default function TaskSummary() {
       author: "Julia LoSchiavo",
       action: "created this task",
       timestamp: "11/12/2025 9:22 PM",
+      fieldsDisplay: (
+        <div className="flex items-center gap-6 mt-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</span>
+            <span className="inline-flex items-center px-2.5 py-1 bg-[#E8F3FF] text-[#0B5ED7] text-xs font-medium rounded-full">
+              Not Started
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</span>
+            <span className="text-[#303030] font-medium">Normal</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</span>
+            <span className="text-[#303030] font-medium">Oct 15, 2025</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</span>
+            <div className="flex items-center -space-x-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#F0E8E0] border border-white text-[#717179] text-xs font-medium">
+                JL
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
       details: (
         <div className="space-y-2">
           <div className="text-sm">
@@ -106,22 +132,6 @@ export default function TaskSummary() {
           <div className="text-sm">
             <span className="font-medium text-[#71717A]">Unit:</span>{" "}
             <span className="text-[#303030]">Unit 1A</span>
-          </div>
-          <div className="text-sm">
-            <span className="font-medium text-[#71717A]">Status:</span>{" "}
-            <span className="text-[#303030]">Not Started</span>
-          </div>
-          <div className="text-sm">
-            <span className="font-medium text-[#71717A]">Priority:</span>{" "}
-            <span className="text-[#303030]">Normal</span>
-          </div>
-          <div className="text-sm">
-            <span className="font-medium text-[#71717A]">Due Date:</span>{" "}
-            <span className="text-[#303030]">Oct 15, 2025</span>
-          </div>
-          <div className="text-sm">
-            <span className="font-medium text-[#71717A]">Assigned To:</span>{" "}
-            <span className="text-[#303030]">Julia LoSchiavo</span>
           </div>
         </div>
       ),
