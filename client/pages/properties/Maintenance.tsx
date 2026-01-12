@@ -10,6 +10,7 @@ import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
+import type { Note, File } from "@/components/templates";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import TableToggle from "@/components/TableToggle";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
@@ -1666,6 +1667,51 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       <CreateWorkOrderModalV2
         open={showCreateWorkOrderModal}
         onOpenChange={setShowCreateWorkOrderModal}
+        onDataUpdate={(data) => {
+          const newId = workOrdersList.length > 0 ? Math.max(...workOrdersList.map(wo => wo.id)) + 1 : 1;
+
+          const newNotes: Note[] = data.notes ? [{
+            id: 1,
+            text: data.notes,
+            date: new Date().toLocaleString(),
+            author: "Julia LoSchiavo",
+          }] : [];
+
+          const newFiles: File[] = data.files ? data.files.map((uf, idx) => ({
+            id: idx + 1,
+            name: uf.name,
+            url: uf.url || "#",
+            uploadedAt: new Date().toLocaleString(),
+            category: "Work Order",
+            description: "",
+          })) : [];
+
+          const newWorkOrder = {
+            id: newId,
+            task: data.workOrderName || data.task || "New Work Order",
+            taskId: 1, // Default task ID for demo
+            property: data.property || propertyAddress,
+            unit: data.unit || "",
+            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
+            updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            age: "Just now",
+            priority: data.priority || "normal",
+            status: data.status === "completed" ? "Completed" : "In progress",
+            billStatus: "Awaiting Invoice",
+            billTotal: "No invoice",
+            assignees: [],
+            vendorName: data.vendor || "",
+            notes: newNotes,
+            files: newFiles,
+          };
+
+          setWorkOrdersList(prev => [newWorkOrder as any, ...prev]);
+          setShowCreateWorkOrderModal(false);
+
+          navigate(`/tasks/${newWorkOrder.taskId}/workorders/${newWorkOrder.id}`, {
+            state: { newWorkOrder }
+          });
+        }}
       />
 
       {/* Create FTO Modal */}
