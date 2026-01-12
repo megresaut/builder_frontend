@@ -174,6 +174,253 @@ export default function TaskSummary() {
   const [currentCategory, setCurrentCategory] = useState<string>(navigationState?.taskData?.category || navigationState?.task?.category || "Uncategorized");
   const [isEditTaskDetailsOpen, setIsEditTaskDetailsOpen] = useState(false);
 
+  // Mock data types
+  interface Assignee {
+    id: number;
+    name: string;
+    initials: string;
+    color: string;
+  }
+
+  interface WorkOrder {
+    id: number;
+    task: string;
+    taskId: number;
+    property: string;
+    unit: string;
+    dueDate: string;
+    updatedDate: string;
+    age: string;
+    priority: "High" | "Low" | "Normal";
+    status: "In progress" | "Completed";
+    billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
+    billTotal: string;
+    assignees: Assignee[];
+    collaborators: Assignee[];
+  }
+
+  // Mock work orders data
+  const mockWorkOrders: WorkOrder[] = [
+    {
+      id: 1,
+      task: "Doors need to be repaired",
+      taskId: 1,
+      property: "Downtown Building",
+      unit: "Unit 101",
+      dueDate: "Oct 2, 2025",
+      updatedDate: "Oct 2, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "In progress",
+      billStatus: "Paid",
+      billTotal: "$420",
+      assignees: [
+        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      ],
+      collaborators: [
+        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      ],
+    },
+    {
+      id: 2,
+      task: "HVAC maintenance needed",
+      taskId: 2,
+      property: "Riverside Complex",
+      unit: "Unit 205",
+      dueDate: "Sep 29, 2025",
+      updatedDate: "Sep 29, 2025",
+      age: "6 days 5 hours",
+      priority: "Low",
+      status: "In progress",
+      billStatus: "Awaiting Invoice",
+      billTotal: "No invoice",
+      assignees: [
+        { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      ],
+      collaborators: [
+        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+        { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+      ],
+    },
+    {
+      id: 3,
+      task: "Window replacement",
+      taskId: 3,
+      property: "Central Plaza",
+      unit: "Unit 312",
+      dueDate: "Sep 10, 2025",
+      updatedDate: "Sep 10, 2025",
+      age: "6 days 5 hours",
+      priority: "Normal",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$95",
+      assignees: [
+        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      ],
+      collaborators: [],
+    },
+    {
+      id: 4,
+      task: "Roof inspection",
+      taskId: 4,
+      property: "Highland Towers",
+      unit: "Roof Level",
+      dueDate: "Sep 6, 2025",
+      updatedDate: "Sep 6, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$112",
+      assignees: [
+        { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      ],
+      collaborators: [
+        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      ],
+    },
+    {
+      id: 5,
+      task: "Plumbing repair",
+      taskId: 5,
+      property: "Market Street Apt",
+      unit: "Unit 404",
+      dueDate: "Sep 5, 2025",
+      updatedDate: "Sep 5, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$93",
+      assignees: [
+        { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      ],
+      collaborators: [
+        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      ],
+    },
+    {
+      id: 6,
+      task: "Electrical work",
+      taskId: 6,
+      property: "Oak Ridge Manor",
+      unit: "Unit 501",
+      dueDate: "Sep 4, 2025",
+      updatedDate: "Sep 4, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$75",
+      assignees: [
+        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      ],
+      collaborators: [
+        { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+      ],
+    },
+    {
+      id: 7,
+      task: "Painting job",
+      taskId: 7,
+      property: "Park Avenue Building",
+      unit: "Unit 102",
+      dueDate: "Sep 4, 2025",
+      updatedDate: "Sep 4, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$101",
+      assignees: [
+        { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      ],
+      collaborators: [],
+    },
+    {
+      id: 8,
+      task: "Carpet replacement",
+      taskId: 8,
+      property: "Westside Residences",
+      unit: "Unit 203",
+      dueDate: "Sep 3, 2025",
+      updatedDate: "Sep 3, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$124",
+      assignees: [
+        { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      ],
+      collaborators: [
+        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      ],
+    },
+    {
+      id: 9,
+      task: "Landscaping work",
+      taskId: 9,
+      property: "Spring Valley Complex",
+      unit: "Common Area",
+      dueDate: "Sep 1, 2025",
+      updatedDate: "Sep 1, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$67",
+      assignees: [
+        { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      ],
+      collaborators: [
+        { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500" },
+        { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500" },
+      ],
+    },
+    {
+      id: 10,
+      task: "Fence repair",
+      taskId: 10,
+      property: "Lakeside Gardens",
+      unit: "Unit 606",
+      dueDate: "Sep 1, 2025",
+      updatedDate: "Sep 1, 2025",
+      age: "6 days 5 hours",
+      priority: "High",
+      status: "Completed",
+      billStatus: "Unpaid",
+      billTotal: "$118",
+      assignees: [
+        { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      ],
+      collaborators: [
+        { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500" },
+      ],
+    },
+  ];
+
+  // Work orders and field team orders state
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+
+  // Mock field team orders data
+  const mockFieldTeamOrders = [
+    { id: 1, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Oct 2, 2025", priority: "high", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 420, unit: "Unit" },
+    { id: 2, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 29, 2025", priority: "normal", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "approved", timesheetStatus: "approved", amount: 95, unit: "Unit" },
+    { id: 3, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 10, 2025", priority: "low", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "pending-approval", timesheetStatus: "submitted", amount: 95, unit: "Unit" },
+    { id: 4, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 6, 2025", priority: "high", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 112, unit: "Unit" },
+    { id: 5, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 5, 2025", priority: "normal", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "approved", amount: 93, unit: "Unit" },
+    { id: 6, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "low", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 75, unit: "Unit" },
+    { id: 7, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "high", fieldTeam: [{ initials: "DC", color: "bg-blue-500", name: "David Chen" }, { initials: "ER", color: "bg-blue-500", name: "Emma Rodriguez" }], status: "dispatched", timesheetStatus: "submitted", amount: 101, unit: "Unit" },
+    { id: 8, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 3, 2025", priority: "normal", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 124, unit: "Unit" },
+    { id: 9, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "low", fieldTeam: [{ initials: "JW", color: "bg-blue-500", name: "James Wilson" }], status: "dispatched", timesheetStatus: "approved", amount: 67, unit: "Unit" },
+    { id: 10, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "high", fieldTeam: [{ initials: "CH", color: "bg-blue-500", name: "Christopher Harris" }, { initials: "CS", color: "bg-blue-500", name: "Cassandra Smith" }], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 118, unit: "Unit" },
+  ];
+
+  const [fieldTeamOrders, setFieldTeamOrders] = useState<any[]>(mockFieldTeamOrders);
+
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
