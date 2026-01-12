@@ -915,6 +915,8 @@ export default function TaskSummary() {
               <TaskOverviewCard
                 category={currentCategory || "Uncategorized"}
                 description={currentDescription}
+                status={currentStatus ? (currentStatus === "not_started" ? "Not Started" : currentStatus === "in_progress" ? "In Progress" : "Completed") : "Not Started"}
+                priority={currentPriority ? currentPriority.charAt(0).toUpperCase() + currentPriority.slice(1) : "Normal"}
                 dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
                 createdBy={{
                   name: "Julia LoSchiavo",
