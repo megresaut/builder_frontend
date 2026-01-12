@@ -493,6 +493,20 @@ export default function CreateTaskModal({
                 />
               </FormFieldRow>
 
+              {/* Category - Full Width */}
+              <SelectField
+                label="Category"
+                value={category}
+                onChange={setCategory}
+                placeholder="Select Category"
+                options={[
+                  { value: "uncategorized", label: "Uncategorized" },
+                  { value: "preventative", label: "Preventative Maintenance" },
+                  { value: "emergency", label: "Emergency" },
+                  { value: "repair", label: "Repair" },
+                ]}
+              />
+
               {/* Priority + Due Date + Status - 3 Columns */}
               <FormFieldRow columns={3}>
                 <SelectField
