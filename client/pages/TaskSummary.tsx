@@ -63,16 +63,18 @@ export default function TaskSummary() {
     (tab as "summary" | "workorders" | "fieldteam") || "summary"
   );
 
-  // Initialize activeTab and selectedWorkOrderId from URL params on mount
+  // Initialize activeTab and selectedWorkOrderId from URL params on mount and when URL changes
   useEffect(() => {
     const tabValue = (tab as "summary" | "workorders" | "fieldteam") || "summary";
     if (tabValue !== uiState.activeTab) {
       uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
     }
-    if (workOrderId && !uiState.selectedWorkOrderId) {
-      uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: parseInt(workOrderId) });
+
+    const urlId = workOrderId ? parseInt(workOrderId) : null;
+    if (urlId !== uiState.selectedWorkOrderId) {
+      uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
-  }, [tab, workOrderId, uiState.activeTab, uiState.selectedWorkOrderId, uiDispatch]);
+  }, [tab, workOrderId, uiDispatch]);
 
   // Sync UI state to navigation
   useEffect(() => {
@@ -83,11 +85,8 @@ export default function TaskSummary() {
       return;
     }
 
-    // Skip sync if we are currently initializing from URL to avoid race conditions
-    const tabFromUrl = (tab as "summary" | "workorders" | "fieldteam") || "summary";
-    const idFromUrl = workOrderId ? parseInt(workOrderId) : null;
-
-    if (uiState.activeTab === tabFromUrl && uiState.selectedWorkOrderId === idFromUrl) {
+    // Skip sync if we just navigated to a work order and state hasn't caught up yet
+    if (workOrderId && !uiState.selectedWorkOrderId) {
       return;
     }
 
