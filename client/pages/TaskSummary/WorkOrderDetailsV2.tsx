@@ -193,34 +193,29 @@ export default function WorkOrderDetailsV2({ workOrder }: WorkOrderDetailsV2Prop
 
       {/* Field Selectors Row */}
       <div className="flex flex-wrap items-end gap-6 w-full mb-2">
-        <div className="flex flex-col gap-1.5 min-w-[180px]">
-          <label className="text-xs font-semibold text-[#717179] uppercase tracking-wider">Status</label>
-          <div className="relative">
-             <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#e5e5e5] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-10">
-                <div className="w-2 h-2 rounded-full bg-[#10b981]"></div>
-                <span className="text-sm text-[#303030] font-medium flex-1">Completed</span>
-                <ChevronDown className="w-4 h-4 text-[#717179]" />
-             </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-1.5 min-w-[180px]">
-          <label className="text-xs font-semibold text-[#717179] uppercase tracking-wider">Priority</label>
-          <div className="relative">
-             <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#e5e5e5] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-10">
-                <div className="w-2 h-2 rounded-full bg-[#2463eb]"></div>
-                <span className="text-sm text-[#303030] font-medium flex-1">Normal</span>
-                <ChevronDown className="w-4 h-4 text-[#717179]" />
-             </div>
-          </div>
+        <div className="flex-1 min-w-[180px]">
+          <StatusSelectField
+            label="Status"
+            value={status}
+            onChange={setStatus}
+          />
         </div>
 
-        <div className="flex flex-col gap-1.5 min-w-[180px]">
-          <label className="text-xs font-semibold text-[#717179] uppercase tracking-wider">Due Date</label>
-          <div className="flex items-center px-3 py-2 bg-white border border-[#e5e5e5] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-10 min-w-[180px]">
-             <span className="text-sm text-[#717179] flex-1 font-medium italic">mm/dd/yyyy</span>
-             <ChevronDown className="w-4 h-4 text-[#717179]" />
-          </div>
+        <div className="flex-1 min-w-[180px]">
+          <PrioritySelectField
+            label="Priority"
+            value={priority}
+            onChange={setPriority}
+          />
+        </div>
+
+        <div className="flex-1 min-w-[180px]">
+          <DateField
+            label="Due Date"
+            value={dueDate}
+            onChange={setDueDate}
+            returnFormat="Date"
+          />
         </div>
 
         <div className="flex-1 flex justify-end text-xs text-[#717179] font-medium pb-1">
