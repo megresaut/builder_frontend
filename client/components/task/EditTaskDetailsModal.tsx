@@ -34,20 +34,22 @@ export default function EditTaskDetailsModal({
   const [category, setCategory] = useState("");
 
   useEffect(() => {
-    if (open && initialData) {
-      setTitle(initialData.title || "");
-      setDescription(initialData.description || "");
-      setProperty(initialData.property || "");
-      setUnit(initialData.unit || "");
-      setCategory(initialData.category || "");
-    } else if (open) {
-      setTitle("");
-      setDescription("");
-      setProperty("");
-      setUnit("");
-      setCategory("");
+    if (open) {
+      if (initialData) {
+        setTitle(initialData.title || "");
+        setDescription(initialData.description || "");
+        setProperty(initialData.property || "");
+        setUnit(initialData.unit || "");
+        setCategory(initialData.category || "");
+      } else {
+        setTitle("");
+        setDescription("");
+        setProperty("");
+        setUnit("");
+        setCategory("");
+      }
     }
-  }, [open, initialData]);
+  }, [open]); // Only sync when the modal opens
 
   const handleSubmit = () => {
     onSubmit({
