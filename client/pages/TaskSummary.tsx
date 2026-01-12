@@ -6,7 +6,7 @@ import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "./WorkOrders";
 import TaskWorkOrders from "./TaskWorkOrders";
-import FieldTeamOrdersTab from "@/components/FieldTeamOrdersTab";
+import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
 import { useTabContext } from "@/hooks/useTabContext";
 import { usePageState } from "@/hooks/usePageState";
 import TaskOverviewCard from "@/components/TaskOverviewCard";
