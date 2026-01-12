@@ -166,7 +166,7 @@ export default function TaskSummary() {
     <PageTemplate>
       {/* Header Section */}
       <PageHeader
-        title="Edgerton - Quote"
+        title={navigationState?.task?.title || navigationState?.taskData?.title || "Edgerton - Quote"}
         subtitle={
           <div className="flex items-center font-medium gap-3 overflow-wrap-anywhere word-wrap-anywhere">
             <div className="block text-base font-medium">Resident Request</div>
@@ -179,7 +179,7 @@ export default function TaskSummary() {
             >
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>
-            <span className="block text-base font-medium">10244381</span>
+            <span className="block text-base font-medium">{taskId}</span>
             <svg
               width="4"
               height="4"
