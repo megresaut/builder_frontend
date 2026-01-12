@@ -55,6 +55,14 @@ export default function TaskSummary() {
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task);
 
+  // Track creation timestamp - set once and never change
+  const [createdTimestamp] = useState<string>(() => {
+    // Use provided creation timestamp or current time
+    return navigationState?.taskData?.createdAt ||
+           navigationState?.task?.createdAt ||
+           new Date().toLocaleString();
+  });
+
   // Mock state for notes, files, and updates
   const [notes, setNotes] = useState<Note[]>(isNewTask ? [] : [
     {
