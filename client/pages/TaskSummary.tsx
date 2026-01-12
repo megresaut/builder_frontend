@@ -21,6 +21,8 @@ import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { AddNoteModal, AddFileModal, EditTaskDetailsModal, LinkTaskModal } from "@/components/task";
+import { StatusSelectField } from "@/components/forms/StatusSelectField";
+import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
 import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
