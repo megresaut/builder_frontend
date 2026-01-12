@@ -30,7 +30,7 @@ interface PeopleCardProps {
     onClick: () => void;
     icon?: ReactNode;
   }[];
-  variant?: "default" | "gray";
+  variant?: "default" | "gray" | "white";
 }
 
 /**
