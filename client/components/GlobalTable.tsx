@@ -72,6 +72,8 @@ export default function GlobalTable({
   headerActions,
   showColumnModal,
   onShowColumnModalChange,
+  showPageSizeDropdown = false,
+  onShowPageSizeDropdownChange,
   showPagination = true,
   getRowClassName,
   getCellClassName,
