@@ -37,7 +37,6 @@ const REQUIRED_FIELDS = new Set([
   "task",
   "workOrderName",
   "vendor",
-  "dueDate",
 ]);
 
 export default function CreateWorkOrderModalV2({
