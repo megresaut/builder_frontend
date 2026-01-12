@@ -311,10 +311,7 @@ export default function CreateWorkOrderModalV2({
                 value={formData.property}
                 onChange={handlePropertyChange}
                 placeholder="Select a Property"
-                options={PROPERTIES.map((prop) => ({
-                  value: prop,
-                  label: prop,
-                }))}
+                options={buildPropertyOptions(initialData?.property)}
                 error={errors.property}
               />
               <SelectField
@@ -322,10 +319,7 @@ export default function CreateWorkOrderModalV2({
                 value={formData.unit}
                 onChange={handleUnitChange}
                 placeholder="Select a Unit"
-                options={UNITS.map((unit) => ({
-                  value: unit,
-                  label: unit,
-                }))}
+                options={buildUnitOptions(initialData?.unit)}
               />
             </FormFieldRow>
 
