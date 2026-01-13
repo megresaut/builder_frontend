@@ -677,8 +677,12 @@ export default function FieldTeamOrders() {
               showSearchBar={true}
               searchValue={searchValue}
               onSearchChange={setSearchValue}
-              onFilterClick={() => setShowFilterPopover(true)}
+              onFilterClick={() => {
+                openFilterPopover();
+                setShowFilterPopover(true);
+              }}
               showFilterButton={true}
+              filterCount={activeFilterCount}
               renderCell={(order, columnKey) => {
                 if (columnKey === "priority") {
                   return (
