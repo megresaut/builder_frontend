@@ -192,11 +192,8 @@ export default function TaskSummary() {
           icon: <EditIcon width={16} height={16} />,
         }, ...prev]);
       }
-
-      // Clear the navigation state to prevent re-processing
-      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [navigationState, navigate, location.pathname]);
+  }, [navigationState?.ftoAction, navigationState?.ftoId]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
