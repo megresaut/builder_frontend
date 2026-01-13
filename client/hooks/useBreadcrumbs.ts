@@ -78,7 +78,10 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
           taskName = taskData[taskId];
         }
 
-        items.push({ label: taskName || `Task ${taskId}` });
+        items.push({
+          label: taskName || `Task ${taskId}`,
+          href: `/tasks/${taskId}/summary`
+        });
 
         if (tab && tab !== "summary") {
           const tabLabels: Record<string, string> = {
