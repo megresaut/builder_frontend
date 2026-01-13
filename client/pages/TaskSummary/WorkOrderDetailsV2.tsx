@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit, Bell, Share2, Mail, ChevronDown, Plus } from "lucide-react";
+import { ArrowLeft, Bell, Share2, Mail, ChevronDown, Plus } from "lucide-react";
+import { EditIcon } from "@/components/icons";
 import SectionCard from "@/components/SectionCard";
 import PeopleCard from "@/components/PeopleCard";
 import BillsCard from "./BillsCard";
