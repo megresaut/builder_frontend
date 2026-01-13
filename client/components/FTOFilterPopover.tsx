@@ -1,13 +1,12 @@
-import { MultiSelectField } from "@/components/forms";
+import { SelectField } from "@/components/forms";
 import { DateField } from "@/components/forms";
 import { FieldRow, FieldRowItem } from "@/components/ui/field-row";
-import type { MultiSelectOption } from "@/components/forms";
 
 interface FTOFilterPopoverProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedManagers: string[];
-  onManagersChange: (managers: string[]) => void;
+  selectedManager: string;
+  onManagerChange: (managerId: string) => void;
   dateRangeStart: Date | null;
   onDateRangeStartChange: (date: Date | null) => void;
   dateRangeEnd: Date | null;
@@ -15,36 +14,32 @@ interface FTOFilterPopoverProps {
 }
 
 // Mock field team managers for dropdown
-const FIELD_TEAM_MANAGERS: MultiSelectOption[] = [
-  { id: "1", label: "Christopher Harris" },
-  { id: "2", label: "Cassandra Smith" },
-  { id: "3", label: "David Chen" },
-  { id: "4", label: "Emma Rodriguez" },
-  { id: "5", label: "James Wilson" },
+const FIELD_TEAM_MANAGERS = [
+  { value: "1", label: "Christopher Harris" },
+  { value: "2", label: "Cassandra Smith" },
+  { value: "3", label: "David Chen" },
+  { value: "4", label: "Emma Rodriguez" },
+  { value: "5", label: "James Wilson" },
 ];
 
 export default function FTOFilterPopover({
   isOpen,
   onOpenChange,
-  selectedManagers,
-  onManagersChange,
+  selectedManager,
+  onManagerChange,
   dateRangeStart,
   onDateRangeStartChange,
   dateRangeEnd,
   onDateRangeEndChange,
 }: FTOFilterPopoverProps) {
-  const selectedManagerOptions = FIELD_TEAM_MANAGERS.filter((m) =>
-    selectedManagers.includes(m.id)
-  );
-
   const handleClearFilters = () => {
-    onManagersChange([]);
+    onManagerChange("");
     onDateRangeStartChange(null);
     onDateRangeEndChange(null);
   };
 
   const hasActiveFilters =
-    selectedManagers.length > 0 || dateRangeStart || dateRangeEnd;
+    selectedManager || dateRangeStart || dateRangeEnd;
 
   if (!isOpen) return null;
 
@@ -72,15 +67,13 @@ export default function FTOFilterPopover({
 
           {/* Content */}
           <div className="px-6 py-4 space-y-6">
-            {/* Field Team Managers */}
+            {/* Field Team Manager (Single Select) */}
             <div>
-              <MultiSelectField
-                label="Field Team Managers"
-                value={selectedManagerOptions}
-                onChange={(options) => {
-                  onManagersChange(options.map((opt) => opt.id));
-                }}
-                placeholder="Select managers..."
+              <SelectField
+                label="Field Team Manager"
+                value={selectedManager}
+                onChange={onManagerChange}
+                placeholder="Select a manager..."
                 options={FIELD_TEAM_MANAGERS}
               />
             </div>
