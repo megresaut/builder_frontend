@@ -207,10 +207,10 @@ export default function FTOFilterPopover({
                   onCategoryChange(category);
                   setShowLeftPanel(true);
                 }}
-                className={`w-full text-left px-3 py-2 rounded text-sm transition-all ${
+                className={`w-full text-left px-3 py-2 rounded text-sm transition-all border ${
                   activeCategory === category
-                    ? "bg-white text-[#2463eb] font-medium border border-[#2463eb]"
-                    : "text-[#525252] hover:bg-white"
+                    ? "bg-white text-[#2463eb] font-medium border-[#2463eb]"
+                    : "text-[#525252] hover:bg-white border-transparent"
                 }`}
               >
                 {CATEGORY_LABELS[category]}
