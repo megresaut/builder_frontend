@@ -202,10 +202,10 @@ export const DrawerSubheader: React.FC<DrawerSubheaderProps> = ({ children }) =>
       <div
         style={{
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-          fontSize: "14px",
+          fontSize: "20px",
           color: "var(--color-text-primary)",
           fontWeight: 600,
-          lineHeight: 1.43,
+          lineHeight: 1.3,
         }}
       >
         {children}
