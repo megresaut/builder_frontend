@@ -108,7 +108,7 @@ export const DrawerTemplate = React.forwardRef<
             className="flex-shrink-0 border-b px-6 py-5"
             style={{ borderColor: "var(--color-border-light)" }}
           >
-            <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex items-start justify-between gap-4">
               <h2
                 className="text-2xl font-semibold"
                 style={{ color: "var(--color-text-primary)", lineHeight: 1.08 }}
@@ -140,28 +140,6 @@ export const DrawerTemplate = React.forwardRef<
                 </button>
               )}
             </div>
-
-            {/* Subtitle */}
-            {subtitle && (
-              <p
-                className="text-xs leading-relaxed"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                {subtitle}
-              </p>
-            )}
-
-            {/* Divider */}
-            {showDivider && (
-              <div
-                style={{
-                  width: "100%",
-                  height: "1px",
-                  backgroundColor: "var(--color-border-light)",
-                  marginTop: subtitle ? "12px" : "0px",
-                }}
-              />
-            )}
           </div>
 
           {/* Content */}
