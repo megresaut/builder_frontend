@@ -325,9 +325,8 @@ export default function TaskSummaryModals({
           if (taskData.priority !== undefined) {
             onCurrentPriorityChange(taskData.priority);
           }
-          if (taskData.dueDate !== undefined) {
-            onCurrentDueDateChange(taskData.dueDate);
-          }
+          // Always update dueDate, even if it's null
+          onCurrentDueDateChange(taskData.dueDate || null);
           if (taskData.assignees !== undefined) {
             onCurrentAssigneesChange(taskData.assignees);
           }
