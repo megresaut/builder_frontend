@@ -125,26 +125,6 @@ export default function HoursSummaryDrawer({
     hours: order.hours || 0,
   }));
 
-  // Calculate hours by status
-  const hoursByStatus = [
-    {
-      status: "Awaiting Submission",
-      hours: pendingHours,
-      count: filteredOrders.filter((o) => o.timesheetStatus === "awaiting-submission")
-        .length,
-    },
-    {
-      status: "Submitted",
-      hours: submittedHours,
-      count: filteredOrders.filter((o) => o.timesheetStatus === "submitted").length,
-    },
-    {
-      status: "Approved",
-      hours: approvedHours,
-      count: filteredOrders.filter((o) => o.timesheetStatus === "approved").length,
-    },
-  ];
-
   return (
     <DrawerTemplate
       open={isOpen}
