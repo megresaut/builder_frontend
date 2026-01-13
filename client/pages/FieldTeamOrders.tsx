@@ -657,7 +657,8 @@ export default function FieldTeamOrders() {
               <span>Create FTO</span>
             </button>
             <button
-              onClick={() => setShowHoursSummary(true)}
+              ref={hoursSummaryButtonRef}
+              onClick={() => setShowHoursSummaryPopover(!showHoursSummaryPopover)}
               className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
               title="Hours Summary"
               style={{ transform: "rotate(90deg)" }}
