@@ -282,3 +282,106 @@ export const DrawerSection: React.FC<{ children: React.ReactNode }> = ({
 };
 
 DrawerSection.displayName = "DrawerSection";
+
+/**
+ * DrawerButtons - Standard Cancel/Confirm button pair
+ *
+ * Provides consistent button styling matching the ModalTemplate.
+ * Cancel button (outline) on left, Confirm button (primary/blue) on right.
+ *
+ * IMPORTANT: The primary button is ALWAYS blue and clickable.
+ * Form validation should happen INSIDE the onConfirm handler.
+ * If validation fails, show error messages and highlight invalid fields in red.
+ */
+export const DrawerButtons: React.FC<DrawerButtonsProps> = ({
+  onCancel,
+  onConfirm,
+  cancelLabel = "Cancel",
+  confirmLabel = "Save",
+  confirmDisabled = false,
+  cancelDisabled = false,
+}) => {
+  return (
+    <div className="flex w-full items-center justify-end gap-2.5">
+      <button
+        onClick={onCancel}
+        disabled={cancelDisabled}
+        style={{
+          borderRadius: "8px",
+          backgroundColor: "rgba(251, 251, 251, 1)",
+          boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+          borderColor: "rgba(218, 218, 218, 1)",
+          borderStyle: "solid",
+          borderWidth: "1px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          paddingLeft: "12px",
+          paddingRight: "12px",
+          paddingTop: "8px",
+          paddingBottom: "8px",
+          minHeight: "36px",
+          color: "rgba(48, 48, 48, 1)",
+          fontWeight: 400,
+          letterSpacing: "-0.32px",
+          lineHeight: 1.4,
+          justifyContent: "center",
+          cursor: cancelDisabled ? "not-allowed" : "pointer",
+          opacity: cancelDisabled ? 0.5 : 1,
+          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+          fontSize: "16px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {cancelLabel}
+      </button>
+      {onConfirm && (
+        <button
+          onClick={onConfirm}
+          disabled={confirmDisabled}
+          style={{
+            borderRadius: "8px",
+            backgroundColor: confirmDisabled ? "#ccc" : "var(--color-button-primary)",
+            border: "1px solid rgba(255, 255, 255, 1)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            paddingLeft: "12px",
+            paddingRight: "12px",
+            paddingTop: "8px",
+            paddingBottom: "8px",
+            minHeight: "36px",
+            color: confirmDisabled ? "rgba(150, 150, 150, 1)" : "rgba(255, 255, 255, 1)",
+            fontWeight: 500,
+            letterSpacing: "-0.32px",
+            lineHeight: 1.4,
+            justifyContent: "center",
+            cursor: confirmDisabled ? "not-allowed" : "pointer",
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            fontSize: "16px",
+            whiteSpace: "nowrap",
+            boxShadow: confirmDisabled ? "none" : "0px 0px 0px 1px var(--color-button-primary-shadow)",
+            transition: "background-color 0.2s",
+            opacity: confirmDisabled ? 0.6 : 1,
+          }}
+          onMouseEnter={(e) => {
+            if (!confirmDisabled) {
+              e.currentTarget.style.backgroundColor =
+                "var(--color-button-primary-hover)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!confirmDisabled) {
+              e.currentTarget.style.backgroundColor =
+                "var(--color-button-primary)";
+            }
+          }}
+        >
+          {confirmLabel}
+        </button>
+      )}
+    </div>
+  );
+};
+
+DrawerButtons.displayName = "DrawerButtons";
