@@ -899,20 +899,28 @@ export default function FieldTeamOrders() {
         isOpen={showHoursSummary}
         onClose={() => setShowHoursSummary(false)}
         orders={filteredOrders}
-        selectedManager={selectedManagerId}
-        dateRangeStart={dateRangeStart}
-        dateRangeEnd={dateRangeEnd}
+        selectedManager={appliedFilters.fieldManager}
+        dateRangeStart={appliedFilters.dateRangeStart}
+        dateRangeEnd={appliedFilters.dateRangeEnd}
       />
 
       <FTOFilterPopover
         isOpen={showFilterPopover}
-        onOpenChange={setShowFilterPopover}
-        selectedManager={selectedManagerId}
-        onManagerChange={setSelectedManagerId}
-        dateRangeStart={dateRangeStart}
-        onDateRangeStartChange={setDateRangeStart}
-        dateRangeEnd={dateRangeEnd}
-        onDateRangeEndChange={setDateRangeEnd}
+        onOpenChange={(open) => {
+          if (open) {
+            openFilterPopover();
+          } else {
+            closeFilterPopover();
+          }
+          setShowFilterPopover(open);
+        }}
+        appliedFilters={appliedFilters}
+        pendingFilters={pendingFilters}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        onPendingFilterUpdate={updatePendingFilter}
+        onApply={applyFilters}
+        onReset={resetFilters}
       />
     </PageTemplate>
   );
