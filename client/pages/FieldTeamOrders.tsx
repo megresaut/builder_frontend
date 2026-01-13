@@ -650,7 +650,13 @@ export default function FieldTeamOrders() {
             }}
           />
           <button
-            onClick={() => setShowHoursSummary(true)}
+            onClick={() => {
+              if (!appliedFilters.fieldManager) {
+                alert("Please select a Field Manager in the filters before viewing Hours Summary");
+                return;
+              }
+              setShowHoursSummary(true);
+            }}
             className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
           >
             <span>📊</span>
