@@ -496,18 +496,26 @@ export default function TaskSummaryModals({
                   value: dueDateStr,
                 });
                 break;
-              case "assignees":
-                displayFields.push({
-                  label: "Assignees",
-                  value: <PersonAvatars people={taskData.assignees || []} type="assignee" fallback="Unassigned" />,
-                } as any);
+              case "assignees": {
+                const newAssignees = taskData.newAssignees || taskData.assignees || [];
+                if (newAssignees.length > 0) {
+                  displayFields.push({
+                    label: "Assignees",
+                    value: <PersonAvatars people={newAssignees} type="assignee" fallback="None" />,
+                  } as any);
+                }
                 break;
-              case "collaborators":
-                displayFields.push({
-                  label: "Collaborators",
-                  value: <PersonAvatars people={taskData.collaborators || []} type="collaborator" />,
-                } as any);
+              }
+              case "collaborators": {
+                const newCollaborators = taskData.newCollaborators || taskData.collaborators || [];
+                if (newCollaborators.length > 0) {
+                  displayFields.push({
+                    label: "Collaborators",
+                    value: <PersonAvatars people={newCollaborators} type="collaborator" />,
+                  } as any);
+                }
                 break;
+              }
             }
           });
 
