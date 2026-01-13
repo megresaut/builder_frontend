@@ -48,6 +48,7 @@ interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingFTO?: EditingFTO | null;
+  onFTOCreated?: (ftoData: any) => void;
 }
 
 // Mock Data (shaped like real API responses)
@@ -72,6 +73,7 @@ export default function CreateFTOModal({
   open,
   onOpenChange,
   editingFTO,
+  onFTOCreated,
 }: CreateFTOModalProps) {
   // Form state - using IDs instead of objects
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
@@ -212,6 +214,11 @@ export default function CreateFTOModal({
     };
 
     console.log("[API] POST /field-team-orders", payload);
+
+    // Notify parent component of new FTO
+    if (onFTOCreated) {
+      onFTOCreated(payload);
+    }
 
     onOpenChange(false);
   };
