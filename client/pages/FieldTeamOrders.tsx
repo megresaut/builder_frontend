@@ -641,29 +641,27 @@ export default function FieldTeamOrders() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <PageHeader
             title="All Field Team Orders"
             subtitle="All your field team orders, in one place"
-            action={{
-              label: "Create FTO",
-              onClick: () => setShowFTOModal(true),
-              icon: <PlusIcon width={20} height={20} />,
-            }}
           />
-          <button
-            onClick={() => {
-              if (!appliedFilters.fieldManager) {
-                alert("Please select a Field Manager in the filters before viewing Hours Summary");
-                return;
-              }
-              setShowHoursSummary(true);
-            }}
-            className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
-          >
-            <span>📊</span>
-            <span>Hours Summary</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowHoursSummary(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
+            >
+              <span>📊</span>
+              <span>Hours Summary</span>
+            </button>
+            <button
+              onClick={() => setShowFTOModal(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-white font-medium text-sm"
+            >
+              <PlusIcon width={20} height={20} />
+              <span>Create FTO</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-6">
