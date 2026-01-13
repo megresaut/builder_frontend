@@ -732,8 +732,12 @@ export default function TaskSummary() {
   };
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    // Navigate to the new tab without a work order selection
-    navigate(`/tasks/${taskId}/${newTab}`, { replace: false });
+    // Navigate to the new tab and preserve the selected work order ID if on workorders tab
+    if (newTab === "workorders" && uiState.selectedWorkOrderId) {
+      navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, { replace: false });
+    } else {
+      navigate(`/tasks/${taskId}/${newTab}`, { replace: false });
+    }
   };
 
   const handleWorkOrderSelect = (woId: number | null) => {
