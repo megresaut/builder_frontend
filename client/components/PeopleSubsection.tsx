@@ -129,7 +129,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
             >
               {/* Tooltip for name on hover */}
               <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-[#303030] text-white text-xs rounded opacity-0 group-hover/row:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal min-w-max">
-                <div className="font-semibold">{person.name}</div>
+                <div className="font-semibold">{person.name || "Unknown"}</div>
                 {person.roleLabel && <div className="text-[#b4b4b4]">{person.roleLabel}</div>}
                 {person.email && <div className="text-[#b4b4b4]">{person.email}</div>}
                 {person.phone && <div className="text-[#b4b4b4]">{person.phone}</div>}
