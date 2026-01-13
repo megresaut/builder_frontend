@@ -376,55 +376,6 @@ export default function HoursSummaryDrawer({
                 </div>
               )}
             </div>
-
-            {/* Hours by Status */}
-            <div
-              className="border rounded-lg overflow-hidden"
-              style={{
-                borderColor: "var(--color-border-light)",
-              }}
-            >
-              <button
-                onClick={() => toggleSection("byStatus")}
-                className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
-                style={{ backgroundColor: "var(--color-bg-subtle)" }}
-              >
-                <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-                  Hours by Status
-                </span>
-                <ChevronDownIcon
-                  width={16}
-                  height={16}
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    transform: expandedSections["byStatus"]
-                      ? "rotate(180deg)"
-                      : "rotate(0deg)",
-                    transition: "transform 200ms ease-out",
-                  }}
-                />
-              </button>
-              {expandedSections["byStatus"] && (
-                <div
-                  className="px-4 py-3 space-y-2"
-                  style={{
-                    borderTop: "1px solid var(--color-border-light)",
-                    backgroundColor: "white",
-                  }}
-                >
-                  {hoursByStatus.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
-                      <span style={{ color: "var(--color-text-secondary)" }}>
-                        {item.status} ({item.count})
-                      </span>
-                      <span className="font-medium" style={{ color: "var(--color-text-primary)" }}>
-                        {item.hours.toFixed(1)}h
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </DrawerSection>
       )}
